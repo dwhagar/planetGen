@@ -51,14 +51,14 @@ def _admin_page_endpoints(app):
 
 
 def test_every_admin_page_is_in_the_registry_or_exempt(app):
-    registered = {entry.endpoint for entry in adminregistry.PAGES}
+    registered = {entry.endpoint for entry in [*adminregistry.PAGES, *adminregistry.tasks()]}
     missing = _admin_page_endpoints(app) - registered - set(adminregistry.EXEMPT)
     assert not missing, f"add {sorted(missing)} to adminregistry.PAGES, or to EXEMPT with the reason"
 
 
 def test_nothing_is_both_a_page_and_exempt_and_every_name_is_a_route(app):
     names = {rule.endpoint.removeprefix("web.") for rule in app.url_map.iter_rules()}
-    registered = {entry.endpoint for entry in adminregistry.PAGES}
+    registered = {entry.endpoint for entry in [*adminregistry.PAGES, *adminregistry.tasks()]}
     assert not registered & set(adminregistry.EXEMPT)
     assert registered <= names
     assert set(adminregistry.EXEMPT) <= names, "an exempt endpoint that no longer exists"

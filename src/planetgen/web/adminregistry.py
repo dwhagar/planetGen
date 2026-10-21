@@ -76,6 +76,8 @@ PAGES = (
           "generate", "make", "create", "galaxy", "sectors", "run", danger="rewrites"),
     _page("generate-system", "Generate a system", "Make one system from the settings you choose.", "generate",
           "generate_system", "system", "star", "planet", danger="safe"),
+    _page("generate-history", "Generate history", "Every recent job, with its status and time.", "generate",
+          "generate_history", "jobs", "recent", "log"),
     _page("settings", "Settings", "Every site setting you can change, in plain groups.", "settings",
           "admin_settings", "options", "config", "configuration"),
     _page("settings-backups", "Settings backups", "Earlier copies of the settings file, with restore.", "settings",
@@ -116,13 +118,11 @@ EXEMPT = {
 }
 """dict: Admin routes that are not pages of their own, with why. The registry test reads this."""
 
-TASKS = ()
-"""tuple: The Generate page's tasks (`Entry` of kind `task`), filled in by `web/generate_page.py` as each task
-card is built (ADM.107 on)."""
-
-
 def tasks():
-    return list(TASKS)
+    """The Generate page's tasks as entries of kind `task` (`web/generate_flow.TASKS`)."""
+    from planetgen.web import generate_flow
+
+    return generate_flow.task_entries()
 
 
 def setting_entries(role="admin", environ=None):

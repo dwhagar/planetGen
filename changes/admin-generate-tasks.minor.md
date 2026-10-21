@@ -1,0 +1,6 @@
+**Headline:** Generate is now a Start screen with a card per task, a page for each task and a Review step that shows what will run before anything does.
+
+### Changed
+- **Start screen and task pages.** The one long page of folding sections is replaced by six task cards (Add sectors, Start a new galaxy, Change what is scattered, Make one system, Check the database, and the Wipe card last and red). Each task is its own page; the rarely changed prevalence, star mix and sector minimums fold under Advanced. The Customize window and the folding sections' memory are gone.
+- **Review before Run.** Every task ends in a Review step: what will run, each step's command line, the size and time of a galaxy run, the disk refusal with "Generate anyway", then Run, or Back to the form with everything still filled in. The old size-and-time page is this step.
+- **The frame.** A status strip, Start and History tabs and the current job (or the last job's result with Show on Galaxy Map) are on every Generate screen, and the forms stay usable while a job runs. History lists the recent jobs with a link to the Work Queue.

@@ -1,71 +1,16 @@
-// static/generatefolds.js
+// static/generatefinder.js
 //
-// The admin Generate page's folding sections and its "Around a sector"
-// finder (web/templates/generate.html, TODO ADM.4).
+// The admin Generate page's "Around a sector" finder (web/templates/generate_task.html, TODO ADM.4, ADM.109).
 //
-// Folds: every section is a <details>. Current job always starts open;
-// the others open or close as this browser last left them (localStorage),
-// except a section the server marked data-fold-keep (a form shown again
-// with its error or estimate), which stays open. A link to a section
-// (#plan, or the redirect's #current-job) opens it.
-//
-// Finder: searches sector and star system names through the Galaxy Map's
-// /galaxy/locate, or pages through every filled sector from
-// /admin/generate/sectors; picking one fills "Sector ID" and selects
-// "Around a sector" by a filled sector. Without JavaScript the sections
-// still fold (the server opens Current job and a form shown again), and
-// the Sector ID is typed by hand.
+// Searches sector and star system names through the Galaxy Map's /galaxy/locate, or pages through every filled
+// sector from /admin/generate/sectors; picking one fills "Sector ID" and selects "Around a sector" by a filled
+// sector. Without JavaScript the Sector ID is typed by hand.
 
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
-const STORE_KEY = "planetgen.generate.open";
 const SEARCH_DELAY_MS = 300;
-
-function readStored() {
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORE_KEY) || "null");
-    return Array.isArray(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeStored(ids) {
-  try {
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(ids));
-  } catch {
-    // Private mode or a full store: the page just forgets.
-  }
-}
-
-const folds = Array.from(document.querySelectorAll("details[data-fold]"));
-
-function remembered() {
-  return folds.filter((fold) => fold.dataset.fold !== "current-job" && fold.open).map((fold) => fold.dataset.fold);
-}
-
-function openForHash() {
-  const id = decodeURIComponent(window.location.hash.slice(1));
-  if (!id) return;
-  const target = document.getElementById(id);
-  const fold = target && (target.querySelector("details[data-fold]") || target.closest("details[data-fold]"));
-  if (fold && !fold.open) fold.open = true;
-}
-
-const stored = readStored();
-for (const fold of folds) {
-  if (fold.dataset.fold === "current-job" || "foldKeep" in fold.dataset) continue;
-  fold.open = stored ? stored.includes(fold.dataset.fold) : false;
-}
-openForHash();
-for (const fold of folds) {
-  fold.addEventListener("toggle", () => writeStored(remembered()));
-}
-window.addEventListener("hashchange", openForHash);
-
-// --- "Around a sector" finder -------------------------------------------------
 
 const finder = document.querySelector("[data-finder]");
 if (finder) setUpFinder(finder);

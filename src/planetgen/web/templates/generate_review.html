@@ -1,0 +1,67 @@
+{#- planetgen/web/templates/generate_review.html -- the Review step (ADM.108): what will run, what it costs, then Run.
+    The estimate page it replaces is the same facts. Run posts the task's fields to /admin/generate; Back posts them to
+    the task's page, which fills the form again. -#}
+{% extends "generate_base.html" %}
+{% block generate_body %}
+<p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
+<section class="panel generate-review" id="review" aria-labelledby="review-heading">
+  <h2 id="review-heading">Review: {{ review.title }}</h2>
+  <p class="hint">Nothing has run yet. This is what Run will do.</p>
+  {%- if review.estimate %}
+  {%- set estimate = review.estimate %}
+  <h3>{{ "Time" if estimate.deep_check else "Size and time" }}</h3>
+  {%- if estimate.deep_check %}
+  <dl class="estimate-facts">
+    <dt>Star systems</dt><dd>{{ num(estimate.systems) }} to load and validate, besides the table checks</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough guess){% endif %}</dd>
+  </dl>
+  <p class="hint">The check changes nothing. It runs as a job you can watch and cancel.</p>
+  {%- else %}
+  <dl class="estimate-facts">
+    <dt>Sectors</dt><dd>{{ num(estimate.sectors) }} (about {{ num(estimate.systems) }} star systems, {{ num(estimate.stars) }} stars)</dd>
+    <dt>Database growth</dt><dd>About {{ estimate.size_text }} (10% margin included)</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough default){% endif %}</dd>
+    <dt>Database disk</dt><dd>{{ estimate.disk_text or estimate.disk_note_text or "Not measured, so nothing is refused for space." }}</dd>
+  </dl>
+  {%- endif %}
+  {%- if estimate.refused %}
+  <p class="error" role="alert">{{ estimate.refusal }}</p>
+  <p class="hint">You can still generate it. Generating anyway is recorded in the activity log.</p>
+  {%- endif %}
+  {%- endif %}
+  <h3>What will run</h3>
+  <ol class="generate-steps">
+    {%- for step in review.steps %}
+    <li><strong>{{ step.label }}</strong>
+      <details class="generate-advanced"><summary>Command line</summary><pre class="command-line" tabindex="0">{{ step.command }}</pre></details></li>
+    {%- endfor %}
+  </ol>
+  {%- if review.destructive %}
+  <p class="error" role="note">This deletes data in <code>{{ database }}</code> and can't be undone.</p>
+  {%- endif %}
+  {%- if active %}
+  <p class="hint" role="status">{{ active.title }} is running. {% if queued_job %}A job is already waiting behind it, so this cannot be queued until that one starts or is discarded.{% else %}This will start when it finishes.{% endif %}</p>
+  {%- endif %}
+  <div class="search-actions">
+    <form method="post" action="{{ url_for('web.generate') }}" class="table-form">
+      {{ csrf_field() }}
+      {%- for name, value in review.fields %}
+      <input type="hidden" name="{{ name }}" value="{{ value }}">
+      {%- endfor %}
+      <input type="hidden" name="{{ estimate_confirm_field }}" value="1">
+      {%- if review.estimate and review.estimate.refused %}
+      <input type="hidden" name="{{ generate_anyway_field }}" value="1">
+      {%- endif %}
+      <button type="submit" class="btn{% if review.destructive %} btn-danger{% endif %}"{% if active and queued_job %} disabled{% endif %}>{{ review.run_label }}</button>
+    </form>
+    <form method="post" action="{{ url_for('web.generate_task', key=task.key) }}" class="table-form">
+      {{ csrf_field() }}
+      {%- for name, value in review.fields %}
+      <input type="hidden" name="{{ name }}" value="{{ value }}">
+      {%- endfor %}
+      <input type="hidden" name="back" value="1">
+      <button type="submit" class="btn">Back</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -144,13 +144,6 @@ CENTER_CHOICES = (
 """tuple: How "Around a sector" names its center (`center_by`):
 `(value, label, hint)`."""
 
-SECTION_FOR_ACTION = {
-    "new_galaxy": "new-galaxy", "galaxy": "generate-sectors", "plan": "plan",
-    "redo_scatters": "redo-scatters", "bright_band": "bright-band", "reset": "reset",
-}
-"""dict: The page section each form lives in, so a form shown again
-with an error is open whatever the browser remembered."""
-
 FINDER_PAGE_SIZE = 50
 """int: Sectors per page in the "Around a sector" list (every web list
 pages 50 rows)."""
@@ -1041,15 +1034,6 @@ def _edge_pc(action, form, database):
     return (shape or {}).get("edge_pc")
 
 
-def _kept_section(form):
-    """
-    The section of a form shown again (with its error or its estimate),
-    which the server renders open and `static/generatefolds.js` leaves
-    open whatever the browser remembered; `None` on a plain visit.
-    """
-    return SECTION_FOR_ACTION.get(form.get("action")) if form else None
-
-
 MAKES_SECTORS_KINDS = ("galaxy", "new_galaxy")
 """tuple: Job kinds whose finished page offers "Show on Galaxy Map" (ADM.31)."""
 
@@ -1262,7 +1246,12 @@ def format_elapsed(seconds):
     return f"{secs} s"
 
 
-def _page(admin, error=None, status=200, form=None, estimate=None, estimate_title=None, estimate_fields=()):
+def page_context(admin, form=None, error=None, status=200):
+    """
+    What every Generate screen's template is drawn from (`web/generate_flow.py`): the galaxy summary, the running job
+    and the last one, the recent jobs, and the form constants (field lists, limits, presets). `form` is the draft being
+    shown again.
+    """
     database = db_name()
     try:
         root = jobs.jobs_dir()
@@ -1275,12 +1264,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         active, recent, jobs_error = None, [], str(exc)
         recent_total, recent_page = 0, 1
         log.error(f"Generate page: {exc}")
-    return _no_store(render_page(
-        "generate.html",
-        title="Generate",
-        section="admin_generate",
-        breadcrumbs=[crumb("Admin", "admin"), crumb("Generate")],
-        description="Generate, plan or reset this site's galaxy.",
+    return dict(
         admin=admin,
         database=database,
         summary=_galaxy_summary(database),
@@ -1320,16 +1304,26 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         max_limit=MAX_GENERATE_LIMIT,
         max_neighborhoods=MAX_GENERATE_NEIGHBORHOODS,
         center_choices=CENTER_CHOICES,
-        kept_section=_kept_section(form),
+        advanced_open=bool(form) and any(name.startswith(ADVANCED_PREFIXES) for name in form),
         error=error,
         form=form or {},
-        estimate=estimate,
-        estimate_title=estimate_title,
-        estimate_fields=estimate_fields,
         estimate_confirm_field=ESTIMATE_CONFIRM_FIELD,
         generate_anyway_field=GENERATE_ANYWAY_FIELD,
         status=status,
-    ))
+        last_job=_job_view(recent[0]) if recent and not active else None,
+        queued_job=_queued(),
+    )
+
+
+ADVANCED_PREFIXES = ("prevalence_", "star_mix_", "directive_")
+"""tuple: Form fields that live in the Advanced block; a draft shown again that holds one opens it."""
+
+
+def _queued():
+    try:
+        return jobs.queued_job()
+    except OSError:
+        return None
 
 
 @bp.route("/admin/generate", methods=["GET", "POST"])
@@ -1339,7 +1333,7 @@ def generate():
     started)."""
     if request.method in ("GET", "HEAD"):
         admin, response = _admin_or_redirect()
-        return response or _page(admin)
+        return response or generate_flow.start_page(admin)
 
     admin = _admin_or_403()
     action = request.form.get("action") or ""
@@ -1364,34 +1358,31 @@ def generate():
 
     database = db_name()
     wants_json = _wants_json()
+
+    def refuse(message, status):
+        """The refusal as JSON for a script, else the task's page with the draft and the message."""
+        if wants_json:
+            return _no_store(make_response(jsonify({"error": message}), status))
+        return generate_flow.task_page_for_action(admin, action, form=request.form, error=message, status=status)
+
     try:
         kind, title, steps = build_job(action, request.form, database, edge_pc=_edge_pc(action, request.form, database))
     except FormError as exc:
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": str(exc)}), 400))
-        return _page(admin, error=str(exc), status=400, form=request.form)
+        return refuse(str(exc), 400)
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-    if kind in ("galaxy", "check_db") and (kind == "galaxy" or request.form.get("deep")) \
-            and not request.form.get(ESTIMATE_CONFIRM_FIELD):
-        # PERF.3: show the size and time first; the admin confirms (or the
-        # disk refuses it) before the job starts.
+    if estimate_needed(kind, request.form) and not request.form.get(ESTIMATE_CONFIRM_FIELD):
+        # PERF.3: show the size and time first; the admin confirms (or the disk refuses it) before the job starts.
         try:
-            argv = steps[-1]["argv"]
-            estimate = estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
-                                              lambda: run_estimate(argv, env))
+            estimate = estimate_for(kind, steps, database, env)
         except FormError as exc:
-            if wants_json:
-                return _no_store(make_response(jsonify({"error": str(exc)}), 400))
-            return _page(admin, error=str(exc), status=400, form=request.form)
+            return refuse(str(exc), 400)
         if wants_json:
             return _no_store(make_response(jsonify({
                 "error": estimate.get("refusal") or f"Confirm first: {estimate.get('summary') or estimate.get('what')}",
                 "estimate": estimate, "confirm_field": ESTIMATE_CONFIRM_FIELD,
                 "generate_anyway_field": GENERATE_ANYWAY_FIELD,
             }), 409))
-        return _page(admin, form=request.form, estimate=_estimate_view(estimate), estimate_title=title,
-                     estimate_fields=[(name, value) for name, value in request.form.items(multi=True)
-                                      if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD)])
+        return generate_flow.review_page(admin, action, kind, title, steps, request.form, estimate=_estimate_view(estimate))
     try:
         job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
         activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
@@ -1408,24 +1399,16 @@ def generate():
                 activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
                 return _no_store(redirect(url_for("web.generate"), code=303))
             except jobs.QueueFull:
-                message = (f"{running} is still running and another job is already waiting behind it. "
-                           "Discard the waiting job, or wait for the running one to finish.")
-                return _page(admin, error=message, status=409, form=request.form)
+                return refuse(f"{running} is still running and another job is already waiting behind it. "
+                              "Discard the waiting job, or wait for the running one to finish.", 409)
             except OSError as queue_exc:
                 log.error(f"Could not queue a {kind} job: {queue_exc}")
-        message = f"{running} is still running. Wait for it to finish, or cancel it first."
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": message}), 409))
-        return _page(admin, error=message, status=409, form=request.form)
+        return refuse(f"{running} is still running. Wait for it to finish, or cancel it first.", 409)
     except updateguard.UpdateRunning as exc:
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": str(exc)}), 503))
-        return _page(admin, error=str(exc), status=503, form=request.form)
+        return refuse(str(exc), 503)
     except OSError as exc:
         log.exception(f"Could not start a {kind} job: {exc}")
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": f"The job could not be started: {exc}"}), 500))
-        return _page(admin, error=f"The job could not be started: {exc}", status=500, form=request.form)
+        return refuse(f"The job could not be started: {exc}", 500)
     if wants_json:
         return _no_store(make_response(jsonify({
             "job": job_id,
@@ -1433,6 +1416,22 @@ def generate():
             "status_url": url_for("web.generate_status", job=job_id),
         }), 202))
     return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
+
+
+def estimate_needed(kind, form):
+    """Whether a job asks for its size and time first (a galaxy run, or a deep database check)."""
+    return kind in ("galaxy", "check_db") and (kind == "galaxy" or bool(form.get("deep")))
+
+
+def estimate_for(kind, steps, database, env):
+    """The size and time of the job's last step (`run_estimate`, cached by `estimatecache`).
+
+    Raises:
+        FormError: The estimate refused the arguments.
+    """
+    argv = steps[-1]["argv"]
+    return estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
+                                  lambda: run_estimate(argv, env))
 
 
 def _estimate_view(estimate):
@@ -1686,3 +1685,6 @@ def generate_job(job_id):
         job=_job_view(job),
         output=jobs.log_tail(job_id, max_bytes=256 * 1024, root=root),
     ))
+
+
+from . import generate_flow  # noqa: E402,F401 -- the Generate screens (they use this module's logic)

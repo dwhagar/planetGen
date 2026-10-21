@@ -121,7 +121,7 @@ itself, which needs `pymysql` and a database account.
 | `../src/html/static/galaxystages.js`, `galaxystageview.js` | The Galaxy Map's drill-down from the galaxy to one sector (`design/galaxy-drilldown-navigation.md`): the stage rules (`galaxystages.js`) and the scene, camera moves, breadcrumb and stage URLs that draw them (`galaxystageview.js`), backed by `/galaxy/stage`; a generated sector is opened in place as the last stage (`galaxysector.js`, MAP.66). Served directly, same as `style.css`. |
 | `../src/html/static/phenomenonmap.js`, `mapzoom.js` | Zoom and pan for the phenomenon page's AU-scale SVG diagram (`mapzoom.js` is the shared viewBox zoom/pan it uses). Served directly, same as `style.css`. |
 | `../src/html/static/phenomenonrender.js` | Draws `planetgen/web/maps/phenomenonrender.py`'s "View" panel with three.js. Served directly, same as `style.css`. |
-| `../src/html/static/generatefolds.js` | The Generate page's folding sections (remembered per browser) and "Around a sector"'s finder: name search through `/galaxy/locate` and the paged list from `/admin/generate/sectors`. Served directly, same as `style.css`. |
+| `../src/html/static/generatefinder.js` | The "Around a sector" finder on the Add sectors page: name search through `/galaxy/locate` and the paged list from `/admin/generate/sectors`. Served directly, same as `style.css`. |
 | `../src/html/static/generatejobs.js` | Keeps the Generate page's "Current job" panel live by polling `/admin/generate/status`. Served directly, same as `style.css`. |
 | `../src/html/static/slowload.js` | The loading state of a slow page (UX.118): polls `GET /api/page-jobs/<id>` every second, draws the job's estimated progress with `numberformat.js` and `unitladder.js`, and when the job has succeeded fetches the page again and swaps its content in without a reload (or carries on with the next job the page waits for); Stop waiting, Check again and Try again (`X-Slow-Retry`). Served directly. |
 | `../src/planetgen/web/maps/systemscene.py` | The 3D system view's data (MAP.69): `build_scene` turns `system_detail` into one JSON scene (every star, planet, moon, belt and comet with its ref, radius, colour, orbit elements, position at the epoch). Served by `GET /api/systems/<id>/scene` and relayed to the page at `/system/<id>/scene`. |
@@ -144,7 +144,7 @@ itself, which needs `pymysql` and a database account.
 | `../src/html/static/nebulamesh.js`, `nebulaview.js` | A nebula drawn from its shape instead of a flat sprite (GEN.75, MAP.103): the triangle mesh `/galaxy/nebula/<id>/shape` serves, shared by the maps; and the nebula page's 3D view (MAP.105) with the brightest stars round it from `/galaxy/nebula/<id>/surroundings`. |
 | `../src/html/static/tilepack.js` | The reader of the packed Galaxy Map tiles `/galaxy/tiles` sends and the tile store keeps (MAP.159); `web/lib/tilepack.py` writes them and describes the layout, and `tests/test_tilepack.py` with `tests/js/tilepack.test.mjs` hold the two together. |
 | `../src/html/static/menuplace.js`, `navtimes.js`, `connectionnote.js` | Button menus that open where they can be seen (UX.85: above the button when there is more room, height capped); the NAV result's Warp/Fold travel-times switch (UX.70); and when to tell an admin a live job stream was lost (ADM.40; the stream ends on purpose every `STREAM_SECONDS`). |
-| `../src/html/static/joblog.js`, `generatecustomize.js`, `generateranges.js`, `generatestarmix.js` | The Generate page's job output box (ADM.22: an Xterm.js terminal, falling back to a `<pre>`), its "Customize" window (ADM.28: fieldsets become tabs), the range sliders' read-outs (GEN.183) and the star mix's running total, which must reach 100% (ADM.45). |
+| `../src/html/static/joblog.js`, `generateranges.js`, `generatestarmix.js` | The Generate page's job output box (ADM.22: an Xterm.js terminal, falling back to a `<pre>`), the range sliders' read-outs (GEN.183) and the star mix's running total, which must reach 100% (ADM.45). |
 | `../src/html/static/components.js`, `shoelaceicons.js`, `shoelace-theme.css` | The shared Shoelace component set (UX.40, vendored under `vendor/shoelace/`; `components.js` is loaded as a module on every page and registers the elements), the icon libraries pointed at files under `vendor/shoelace/assets/` (Shoelace's own data-URI icons would break the Content-Security-Policy), and the theme that maps Shoelace's tokens onto `style.css`'s. `icons.svg` is the site's icon sprite. |
 | `../src/html/static/localtime.js` | Rewrites every server-rendered UTC `<time data-local-time>` in the viewer's own time zone. Without script the times stay readable, labelled UTC. Served directly, same as `style.css`. |
 
@@ -255,7 +255,7 @@ a help link on each page and a test that every page has one); until then the pag
 | `/galaxy/uncharted/<shell>/<band>/<wedge>/scene` | (new) | JSON scene of a sector cell nothing was generated in (MAP.162): the waiting bright stars and unbuilt scattered phenomena the scatters left there, for the map to open in place with an "Uncharted" mark. A generated cell redirects to its sector's scene; a cell outside the grid is a 404 and an API failure a 502. Shares the `galaxy_tiles` rate limit. |
 | `/galaxy/nebula/<id>/shape`, `/galaxy/nebula/<id>/surroundings` | (new) | JSON for the maps' nebula meshes (MAP.103, `?lod=low\|full`; `GET /api/nebulae/<id>/shape`) and for a nebula page's 3D view (MAP.105: the brightest stars round it). 404 for an unknown nebula, 502 on an API failure. Shares the `galaxy_tiles` rate limit. |
 | `/galaxy/tiles?tiles=...` | `galaxy_tiles.py` | JSON for the map's script: the requested cube tiles (`tiles=level/ix/iy/iz,...`) and, given the browser cache's `stamp`, the changed tiles since. The map also sends `at=cx,cy,cz,tx,ty,tz` (its camera and target, parsecs), which only tells the server where to build ahead (PERF.132, `web/lib/tileprefetch.py`); a missing or malformed `at` is ignored. Through `planetgen/web/lib/tilecache.py`'s disk cache, which stores each tile as trimmed JSON bytes (MAP.157: only `clouds`, `stars`, `generated` and `points`; a star keeps `id`, `x`, `y`, `z`, `luminosity_sol`, `temperature_k`, `radius_sol`, the class letter in `star_type` and `system_id`). The body is those bytes joined, not parsed and serialised again (Apache compresses it, Brotli when `mod_brotli` is on). 400 on a malformed request, 502 on an API failure, both `{"error": ...}`. `Cache-Control: no-store`. |
-| `/admin/generate/sectors` | (new) | Admins only: JSON, 50 filled sectors a page (`?page=N`), for "Around a sector"'s list (`static/generatefolds.js`). |
+| `/admin/generate/sectors` | (new) | Admins only: JSON, 50 filled sectors a page (`?page=N`), for "Around a sector"'s list (`static/generatefinder.js`). |
 | `/admin/generate/shape-report` | (new) | Admins only: JSON for the line under the Generate page's shape dials (`static/generatelevers.js`): `?mass=...&flatness=...` (the Plan fields) answer with `line` (the disc's crest over the one-star density, the share of the stars in planned sectors, the outline's shells and candidate sectors), `warnings`, `refusal` (set when the outline would be empty) and `sample` (the Auto dials were drawn from a sample seed because no galaxy is planned); 400 `{"error"}` for a value out of range. The same numbers `planetgen plan` prints. |
 | `/admin/generate/status` | (new) | Admins only: JSON for the Generate page's live job panel (`static/generatejobs.js`). |
 | `/admin/generate/jobs/<id>` | (new) | Admins only: one past job with its full output. |
@@ -502,9 +502,21 @@ For a visitor:
   page back to the API (see below). Visitors without a session cookie
   cost no login lookup at all.
 
-**The Generate page** (`/admin/generate`, `web/generate_page.py` +
-`templates/generate.html`) runs the galaxy tools an admin used to run in a
-terminal on the server, as background jobs:
+**The Generate screens** (`/admin/generate`, `web/generate_flow.py` over the
+logic in `web/generate_page.py`; ADM.107, ADM.108) run the galaxy tools an
+admin used to run in a terminal on the server, as background jobs. The Start
+screen (`templates/generate.html`) has a card per task: Add sectors, Start a
+new galaxy, Change what is scattered, Make one system, Check the database and
+(last, apart) Wipe the galaxy. Each task is a page of its own
+(`/admin/generate/task/<key>`, `templates/generate_task.html`) that posts to
+itself and answers with the Review step (`templates/generate_review.html`):
+what will run, each step's command line, the size and time of a galaxy run
+(and the disk refusal with "Generate anyway"), then Run. Run posts the same
+fields to `POST /admin/generate`, which builds the job and starts it, or
+queues it behind the running one (ADM.123); Back returns to the form filled
+in. The frame (`templates/generate_base.html`) shows the status strip, the
+Start and History tabs and the current job on every screen, and the forms stay
+usable while a job runs. The jobs below are what the tasks run:
 
 | Form | Runs |
 |---|---|
@@ -515,11 +527,9 @@ terminal on the server, as background jobs:
 | Add a dimmer layer of bright stars | `planetgen scatter --band --down-to N`: keeps the bright stars already placed and adds only those from N up to the current star-fill level (shown on the panel), leaving filled sectors out. Disabled until a scatter has run. |
 | Reset | `python3 -m planetgen.cli.reset --yes`. |
 
-Every section of the page folds (a `<details>` whose summary is the
-section's heading, ADM.4). Current job starts open; the others open or
-close as the browser last left them (`static/generatefolds.js`, in
-`localStorage`), except the section of a form shown again with its error
-or estimate, which the server keeps open.
+Rarely changed settings (prevalence, star mix and the sector minimums) sit
+in a folded Advanced block on their task's page, open when a draft that holds
+one is shown again.
 
 The number fields have upper bounds, the same ones `planetgen` checks
 (`src/planetgen/generation/limits.py`): a radius of at most 200 pc,
