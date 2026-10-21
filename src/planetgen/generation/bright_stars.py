@@ -25,8 +25,7 @@ stars below the luminosity the scatter already placed. A staged scatter's
 luminosity bands (`backfill_cells`, GEN.44) still top up what a sector
 lacks.
 
-The scatter can go down in stages (`planetgen plan
---bright-stars-down-to`): a galaxy scattered at 500 Lsun can later add
+The scatter can go down in stages (`planetgen scatter --band --down-to`): a galaxy scattered at 500 Lsun can later add
 only the band from, say, 100 up to (not including) 500, keeping every
 star already placed. `galaxy_shape.bright_star_min_luminosity_sol` holds
 the level reached so far, and `sector_stats.bright_level_sol` a sector's

@@ -1,6 +1,6 @@
 """
 DB.23, GEN.201: `phenomenon_scatter.map_luminosity_sol`, the luminosity a star of a row's mass would have on the
-Galaxy Map (GEN.200). A scatter writes it with each row, and `plan --fill-map-luminosity` fills it for a galaxy
+Galaxy Map (GEN.200). A scatter writes it with each row, and `planetgen fill-map-luminosity` fills it for a galaxy
 scattered before it, to the same values.
 """
 
@@ -14,7 +14,7 @@ from planetgen.generation import run_plan
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.physics import stellar_evolution
 
-from tests.test_phenomenon_scatter import SHAPE, _plan_args, _seed_galaxy
+from tests.test_phenomenon_scatter import SHAPE, _scatter_args, _seed_galaxy
 
 pytestmark = pytest.mark.db
 
@@ -76,7 +76,7 @@ def _sql_connection(sql_conn):
 
 def test_a_plan_writes_it_and_the_fill_gives_an_old_galaxy_the_same_values(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     written = _rows(mysql_config)
     massive = [row for row in written if row["mass_solar"] is not None]
     assert len(massive) > 50
@@ -90,8 +90,7 @@ def test_a_plan_writes_it_and_the_fill_gives_an_old_galaxy_the_same_values(mysql
         conn.commit()
     finally:
         conn.close()
-    args = _plan_args(mysql_config)
-    args.fill_map_luminosity = True
+    args = _scatter_args(mysql_config)
     original = run_plan.MAP_LUMINOSITY_BATCH_IDS
     run_plan.MAP_LUMINOSITY_BATCH_IDS = 1000
     try:
@@ -109,7 +108,7 @@ def test_a_plan_writes_it_and_the_fill_gives_an_old_galaxy_the_same_values(mysql
 
 def test_a_stopped_fill_carries_on_where_it_was(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
         half = conn.execute("SELECT MAX(id) DIV 2 AS n FROM phenomenon_scatter").fetchone()["n"]
@@ -117,8 +116,7 @@ def test_a_stopped_fill_carries_on_where_it_was(mysql_config):
         conn.commit()
     finally:
         conn.close()
-    args = _plan_args(mysql_config)
-    args.fill_map_luminosity = True
+    args = _scatter_args(mysql_config)
     filled = run_plan.fill_map_luminosity(args)
     assert 0 < filled
     assert all(row["map_luminosity_sol"] is not None for row in _rows(mysql_config) if row["mass_solar"] is not None)

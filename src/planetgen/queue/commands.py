@@ -114,6 +114,9 @@ REGISTRY = _commands(
     CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
                 unit=("planetgen.generation.run_plan", "clean_nebula_field_unit"),
                 expand=("planetgen.generation.run_plan", "expand_clean_nebula_field")),
+    CommandSpec("clear-scatter", "Clear one scatter's stored rows: one unit",
+                unit=("planetgen.generation.run_plan", "clear_scatter_unit"),
+                expand=("planetgen.generation.run_plan", "expand_clear_scatter")),
     CommandSpec("draw-nebula-field", "Draw the nebula field: one unit per slab of cells",
                 unit=("planetgen.generation.run_plan", "draw_nebula_field_unit"),
                 expand=("planetgen.generation.run_plan", "expand_draw_nebula_field")),
@@ -185,7 +188,8 @@ KIND_OF_STAGE = {
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
     "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability",
     "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "start": "generate-start-sector",
-    "neighborhood": "generate-neighborhood",
+    "neighborhood": "generate-neighborhood", "clear-mass": "clear-scatter", "clear-luminosity": "clear-scatter",
+    "clear-phenomena": "clear-scatter", "clear-nebula-field": "clear-scatter",
     "sectors": "generate-sectors", "link": "link-neighbours", "population": "run-population",
     "settle": "settle-sector-paths",
 }
@@ -261,6 +265,11 @@ def expand_function(kind):
     return _function(command.expand)
 
 
+STAGED_COMMANDS = ("galaxy", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
+                   "clean-nebula-field")
+"""tuple: The commands whose stages (`generation/stages.py`) the wrapper turns into steps."""
+
+
 def build_steps(command, args):
     """
     The steps a `planetgen galaxy`, `plan`, `warm` or `check-db` run with the parsed `args` will take, in order:
@@ -277,8 +286,8 @@ def build_steps(command, args):
     if command == "check-db":
         return _check_steps(args)
     from planetgen.generation import stages
-    if command not in ("galaxy", "plan"):
-        raise ValueError(f"the wrapper builds steps for galaxy, plan, warm and check-db, not {command!r}")
+    if command not in STAGED_COMMANDS:
+        raise ValueError(f"the wrapper builds steps for {', '.join(STAGED_COMMANDS)}, warm and check-db, not {command!r}")
     return [Step(stage.key, KIND_OF_STAGE[stage.key], stage.label, stages.stage_settings(stage.key, args))
             for stage in stages.for_command(command, args) if stage.skip is None]
 

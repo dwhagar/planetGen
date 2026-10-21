@@ -36,7 +36,7 @@ def database_args(mysql_config):
 
 
 def steps_for(command, args):
-    """The steps of a `galaxy` or `plan` run for the parsed `args` (`commands.build_steps`): the same list for the
+    """The steps of a `galaxy`, `plan`, `scatter` or one-stage run for the parsed `args` (`commands.build_steps`): the same list for the
     same arguments."""
     return commands.build_steps(command, args)
 
@@ -52,7 +52,7 @@ def step_for(args, key, label, params):
     """
     from planetgen.generation import stages
     command = getattr(args, "command", None)
-    listing = steps_for(command, args) if command in ("galaxy", "plan") else []
+    listing = steps_for(command, args) if command in commands.STAGED_COMMANDS else []
     found = next((step for step in listing if step.key == key), None)
     step = commands.Step(key, commands.KIND_OF_STAGE[key], found.label if found else label,
                          {**(found.params if found else stages.stage_settings(key, args)), **params})

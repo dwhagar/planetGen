@@ -22,7 +22,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.queue.progress_rate import DecayingRate
 
-from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy
+from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _scatter_args, _seed_galaxy
 
 
 class _Clock:
@@ -155,9 +155,9 @@ def test_a_parallel_scatter_places_the_same_stars_as_a_serial_one(mysql_config, 
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
     # The galaxy's seed fixes the scatter's (GEN.39), so both draw alike.
     _seed_galaxy(mysql_config)
-    serial = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    serial = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", "1"))
     serial_rows = _stored_stars(mysql_config)
-    parallel = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "2"))
+    parallel = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", "2"))
     assert serial["total"] == parallel["total"] == len(serial_rows) > 20
     assert serial["counts"] == parallel["counts"]
     assert _stored_stars(mysql_config) == serial_rows

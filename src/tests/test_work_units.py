@@ -242,9 +242,9 @@ def _scatter_mass(mysql_config, workers):
     """Draws the toy galaxy's massive stars (8 solar masses and up) and returns the stars stored, sorted."""
     from planetgen.db import store
     from planetgen.generation import run_plan
-    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     _seed_galaxy(mysql_config)
-    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", str(workers))
+    args = _scatter_args(mysql_config, "--mass", "--workers", str(workers))
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM bright_stars")
@@ -282,11 +282,11 @@ def _scatter_then_band(mysql_config, workers):
     """Scatters the toy galaxy's bright stars (both passes), then adds the band down to 100 L_sun; returns the stars
     stored after each, sorted."""
     from planetgen.generation import run_plan
-    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", str(workers)))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", str(workers)))
     scattered = _stored_stars(mysql_config)
-    run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100", "--workers", str(workers)))
+    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "100", "--workers", str(workers)))
     return scattered, _stored_stars(mysql_config)
 
 
@@ -313,13 +313,13 @@ def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_s
     from planetgen.db import store
     from planetgen.generation import run_plan, stages
     from planetgen.generation import stats as generation_stats
-    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     store.get_control_connection(mysql_config, ensure_schema=True).close()
     monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
     _seed_galaxy(mysql_config)
-    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", "2")
-    stages.begin(stages.for_command("plan", args), args, "plan")
+    args = _scatter_args(mysql_config, "--mass", "--workers", "2")
+    stages.begin(stages.for_command("scatter", args), args, "scatter")
     summary = run_plan.scatter_bright_stars(args)
     stages.finish()
     conn = store.get_control_connection(mysql_config)
@@ -349,13 +349,13 @@ def test_the_band_stage_is_stored_once_by_the_starter_because_it_tops_up_after_i
     from planetgen.db import store
     from planetgen.generation import run_plan, stages
     from planetgen.generation import stats as generation_stats
-    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     store.get_control_connection(mysql_config, ensure_schema=True).close()
     monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
-    run_plan.run_plan(_plan_args(mysql_config, "--bright-stars-down-to", "100", "--workers", "2"))
+    run_plan.run_scatter(_scatter_args(mysql_config, "--band", "--down-to", "100", "--workers", "2"))
     conn = store.get_control_connection(mysql_config)
     try:
         bands = [run for run in generation_stats.stage_history(conn) if run["stage_key"] == "band"]
@@ -403,9 +403,9 @@ def _scatter_phenomena(mysql_config, workers):
 
     from planetgen.db import store
     from planetgen.generation import run_plan
-    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", str(workers)))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomena", "--workers", str(workers)))
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT * FROM phenomenon_scatter").fetchall()
@@ -548,17 +548,17 @@ def test_the_skeleton_stage_is_stored_once_by_its_unit(control_database, monkeyp
 def test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands(mysql_config, monkeypatch):
     from planetgen.generation import run_plan
     from tests.test_map_luminosity import _seed_galaxy
-    from tests.test_phenomenon_scatter import _plan_args
+    from tests.test_habitability_fill import _fill_args
+    from tests.test_phenomenon_scatter import _scatter_args
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     monkeypatch.setattr(run_plan, "MAP_LUMINOSITY_BATCH_IDS", 5000)
     monkeypatch.setattr(run_plan, "HABITABILITY_BATCH_SYSTEMS", 1)
     runs = []
     real = wrapper.run
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
-    for flag, fill in (("--fill-map-luminosity", run_plan.fill_map_luminosity),
-                       ("--fill-habitability", run_plan.fill_habitability)):
-        fill(_plan_args(mysql_config, flag))
+    for fill in (run_plan.fill_map_luminosity, run_plan.fill_habitability):
+        fill(_fill_args(mysql_config))
     conn = redisqueue.connect()
     kinds = [[step["kind"] for step in runrecord.read_steps(conn, run)] for run in runs]
     assert kinds == [["fill-map-luminosity"], ["rescore-habitability"]]
@@ -573,9 +573,9 @@ def test_a_batch_fill_unit_runs_alone_from_its_json_arguments(mysql_config):
 
     from planetgen.generation import run_plan
     from tests.test_map_luminosity import _seed_galaxy
-    from tests.test_phenomenon_scatter import _plan_args
+    from tests.test_phenomenon_scatter import _scatter_args
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     params = json.loads(json.dumps({"database": wrapper.database_args(mysql_config)}))
     expansion = run_plan.expand_fill_map_luminosity(params)
     assert sum(cost for _args, cost in expansion.units) == expansion.plan["top"]
@@ -588,12 +588,12 @@ def test_the_nebula_field_is_a_unit_per_slab_and_the_clean_up_one_unit(mysql_con
 
     from planetgen.generation import run_plan
     from tests.test_nebula_field_table import _seed_galaxy, _table, no_superbubbles, plenty_of_clouds  # noqa: F401
-    from tests.test_phenomenon_scatter import _plan_args
+    from tests.test_phenomenon_scatter import _scatter_args
     _seed_galaxy(mysql_config)
     runs = []
     real = wrapper.run
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = redisqueue.connect()
     drawn = [run for run in runs if [step["kind"] for step in runrecord.read_steps(conn, run)] == ["draw-nebula-field"]]
     assert len(drawn) == 1

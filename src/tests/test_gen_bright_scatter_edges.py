@@ -34,7 +34,7 @@ from planetgen import tuning
 from tests import worker_patches
 from tests.test_bright_star_scatter import (
     light_steps,  # noqa: F401  (autouse: quick backfill steps)
-    E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy,
+    E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _scatter_args, _seed_galaxy,
 )
 
 EMPTY_SHELL = 300
@@ -135,7 +135,7 @@ def test_a_plan_with_no_shells_records_an_empty_scatter(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=0,
                           expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12)
     store.replace_galaxy_shells([], config=mysql_config)
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert summary["total"] == 0
     assert set(summary["counts"]) == set(brightStars.POPULATIONS)
     conn = store.get_connection(mysql_config)
@@ -275,7 +275,7 @@ def _interrupt_after_commits(mysql_config, monkeypatch):
     undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
                                            "tests.test_gen_bright_scatter_edges:heaviest_shell_fails_after_commits")
     with pytest.raises(RuntimeError, match="scatter worker died"):
-        run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+        run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     undo()
     return yielded
 
@@ -301,7 +301,7 @@ def test_a_scatter_that_fails_after_two_commits_keeps_them_and_no_seed(mysql_con
 def test_a_re_plan_after_an_interrupted_scatter_holds_exactly_one_scatter(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     _interrupt_after_commits(mysql_config, monkeypatch)
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
 
     seed = _scatter_seed(mysql_config)
     expected = _expected_scatter(mysql_config, seed)
@@ -421,7 +421,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
                                            "tests.test_gen_bright_scatter_edges:shell_fails", shell=FAILING_SHELL)
     with pytest.raises(RuntimeError, match="scatter worker died"):
-        run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+        run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     undo()
     assert _settings(mysql_config) is None
 
@@ -497,18 +497,18 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     # run finished don't hold it twice.
     _seed_galaxy(mysql_config)
     seed = _scatter_seed(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "20"))
     first = _count(mysql_config)
     first_rows = _stored_rows(mysql_config)
     undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
                                            "tests.test_gen_bright_scatter_edges:shell_fails", shell=FAILING_SHELL)
     with pytest.raises(RuntimeError, match="scatter worker died"):
-        run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
+        run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", str(BAND_FLOOR)))
     undo()
     assert _settings(mysql_config) == (THRESHOLD, seed)
     assert _count(mysql_config) > first
 
-    band = run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
+    band = run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", str(BAND_FLOOR)))
     assert band is not None
     assert _settings(mysql_config) == (BAND_FLOOR, seed)
     band_seed = _scatter_seed(mysql_config, f"band/{BAND_FLOOR:g}-{THRESHOLD:g}")

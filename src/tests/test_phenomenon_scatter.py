@@ -165,39 +165,43 @@ def test_the_special_rows_leave_out_filled_cells():
     assert len(left) == len(rows) - 1 or len(left) < len(rows)
 
 
-def _plan_args(mysql_config, *extra):
-    """Parsed plan arguments; a `--phenomenon-min-mass` below the presets (1, to keep the tests'
+def _scatter_args(mysql_config, *extra):
+    """Parsed `planetgen scatter` arguments (`--mass` stands in when `extra` names no kind: the scatter functions take
+    their kind from the function called); a `--phenomenon-min-mass` below the presets (1, to keep the tests'
     scatters small) is set after the parser has checked the rest."""
+    from tests.test_bright_star_scatter import SCATTER_KINDS
     extra = list(extra or ("--phenomenon-min-mass", "1"))
     mass = None
     if "--phenomenon-min-mass" in extra:
         at = extra.index("--phenomenon-min-mass")
         mass = float(extra[at + 1])
         del extra[at:at + 2]
+    if not any(kind in extra for kind in SCATTER_KINDS):
+        extra.insert(0, "--mass")
     parser = argparse.ArgumentParser(prefix_chars='-+')
-    generate_cli.add_plan_arguments(parser)
+    generate_cli.add_scatter_arguments(parser)
     args = parser.parse_args([
         "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
         "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
         "--mysql-database", mysql_config.database, "--workers", "1",
         *extra,
     ])
-    generate_cli.validate_plan_args(args, parser)
+    generate_cli.validate_scatter_args(args, parser)
     args.phenomenon_min_mass = mass
     return args
 
 
 def test_the_mass_limit_must_be_a_preset(mysql_config):
     parser = argparse.ArgumentParser(prefix_chars='-+')
-    generate_cli.add_plan_arguments(parser)
+    generate_cli.add_scatter_arguments(parser)
     for value, ok in (("8", True), ("14", True), ("20", True), ("7", False), ("13", False), ("21", False)):
-        args = parser.parse_args(["--phenomenon-min-mass", value])
+        args = parser.parse_args(["--mass", "--phenomenon-min-mass", value])
         if ok:
-            generate_cli.validate_plan_args(args, parser)
+            generate_cli.validate_scatter_args(args, parser)
         else:
             with pytest.raises(SystemExit):
-                generate_cli.validate_plan_args(args, parser)
-    assert parser.parse_args([]).phenomenon_min_mass is None
+                generate_cli.validate_scatter_args(args, parser)
+    assert parser.parse_args(["--mass"]).phenomenon_min_mass is None
     assert tuning.PHENOMENON_MIN_MASS_PRESETS[0] == 8.0 and tuning.PHENOMENON_MIN_MASS_SOLAR == 14.0
 
 
@@ -228,7 +232,7 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     _seed_galaxy(mysql_config)
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
-    summary = run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", "1"))
+    summary = run_plan.scatter_phenomena(_scatter_args(mysql_config, "--workers", "1"))
     shell_lines = [m for m in messages if m.startswith("Phenomena, shell")]
     assert shell_lines and all(": placed " in m for m in shell_lines)
     assert any(m.startswith("Special phenomena: ") for m in messages)
@@ -250,7 +254,7 @@ def test_the_phenomena_line_counts_the_rows_to_place_not_the_progress_weight(mys
     _seed_galaxy(mysql_config)
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
         stored = store.get_galaxy_shape(conn).shape  # the run draws the structure from the stored galaxy seed
@@ -265,7 +269,7 @@ def test_the_phenomena_line_counts_the_rows_to_place_not_the_progress_weight(mys
 
 def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysql_config):
     _seed_galaxy(mysql_config)
-    summary = run_plan.scatter_phenomena(_plan_args(mysql_config))
+    summary = run_plan.scatter_phenomena(_scatter_args(mysql_config))
     stored = _rows(mysql_config)
     assert summary["total"] == len(stored) > 50
     kinds = {row["kind"] for row in stored}
@@ -280,7 +284,7 @@ def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysq
     assert seed is not None
 
     assert {row["epoch_unix"] for row in stored if row["kind"] == "hypervelocity-star"} == {None}  # no orbit update yet
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     again = _rows(mysql_config)
     assert 50 < len(again)
     assert [row["id"] for row in again][0] == 1
@@ -292,7 +296,7 @@ def test_the_scatter_leaves_filled_sectors_out(mysql_config):
     args.num_systems = 1
     address = (1, 0, 2)
     run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     assert not _rows(mysql_config, "shell_index = 1 AND band_index = 0 AND wedge_index = 2")
 
 
@@ -310,7 +314,7 @@ def _busiest_cell(mysql_config, kind_filter):
 
 def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_kinds(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind IN ('black-hole', 'neutron-star', 'supernova-remnant')")
     rows = store.phenomena_for_sector(store.get_connection(mysql_config), *address)
     assert rows
@@ -348,7 +352,7 @@ def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_k
 
 def test_built_neutron_stars_sit_where_the_scatter_put_them(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind = 'neutron-star'")
     conn = store.get_connection(mysql_config)
     try:
@@ -374,7 +378,7 @@ def test_built_neutron_stars_sit_where_the_scatter_put_them(mysql_config):
 
 def test_the_same_row_builds_the_same_object(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind = 'black-hole'")
     conn = store.get_connection(mysql_config)
     try:
@@ -412,7 +416,7 @@ def test_a_galaxy_with_no_scatter_still_rolls_its_own(mysql_config):
 
 def test_the_nucleus_row_builds_the_nucleus_and_the_fill_rolls_none(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
     address = scatter.NUCLEUS_ADDRESS
@@ -499,7 +503,7 @@ def test_a_scattered_black_hole_is_built_above_the_cut(mysql_config):
 
 def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomenon-min-mass", "20"))
     conn = store.get_connection(mysql_config)
     try:
         seed, cut = store.phenomenon_scatter_settings(conn)
@@ -529,11 +533,15 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
 
 
 def test_a_scatter_without_a_flag_keeps_the_stored_cut(mysql_config):
+    from tests.test_bright_star_scatter import _clear_args
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
-    args = _plan_args(mysql_config, "--phenomena-only")
+    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomenon-min-mass", "20"))
+    args = _scatter_args(mysql_config, "--phenomena")
     assert args.phenomenon_min_mass is None
-    run_plan.run_plan(args)
+    with pytest.raises(RuntimeError, match="clear-scatter --phenomena"):      # a scatter draws where none is stored
+        run_plan.run_scatter(args)
+    run_plan.run_clear_scatter(_clear_args(mysql_config, "--phenomena"))
+    run_plan.run_scatter(args)
     conn = store.get_connection(mysql_config)
     try:
         assert store.phenomenon_scatter_settings(conn)[1] == 20.0
@@ -542,11 +550,13 @@ def test_a_scatter_without_a_flag_keeps_the_stored_cut(mysql_config):
 
 
 def test_phenomena_only_rescatters_at_a_new_cut(mysql_config):
+    from tests.test_bright_star_scatter import _clear_args
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomenon-min-mass", "20"))
     few = len(_rows(mysql_config))
-    args = _plan_args(mysql_config, "--phenomenon-min-mass", "1", "--phenomena-only")
-    run_plan.run_plan(args)
+    run_plan.run_clear_scatter(_clear_args(mysql_config, "--phenomena"))
+    args = _scatter_args(mysql_config, "--phenomenon-min-mass", "1", "--phenomena")
+    run_plan.run_scatter(args)
     assert len(_rows(mysql_config)) > few
     conn = store.get_connection(mysql_config)
     try:
@@ -559,7 +569,7 @@ def test_a_scatter_with_no_stored_cut_draws_nothing_below_one(mysql_config, monk
     # A scatter recorded before v71 placed every mass: its sectors are
     # complete from their rows and draw no neutron star or black hole on top.
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomenon-min-mass", "20"))
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("UPDATE galaxy_shape SET phenomenon_min_mass_solar = NULL")
@@ -592,7 +602,7 @@ def test_the_phenomenon_scatter_has_a_bar_that_ends_full(mysql_config, tmp_path,
 
     monkeypatch.setattr(progress_file, "report", record)
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     bar = [report for report in reports if report[0].startswith("Phenomena (")]
     assert bar and bar[0][1] == 0 and bar[0][2] > 0
     assert bar[-1][0].startswith(f"Phenomena ({len(EXTENTS):,} of {len(EXTENTS):,} shells)")
@@ -614,7 +624,7 @@ def test_every_stage_of_the_phenomenon_scatter_draws_a_bar(mysql_config, tmp_pat
 
     monkeypatch.setattr(progress_file, "report", record)
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     for stage in ("Clearing the earlier phenomena scatter", "Phenomena (", "Drawing the special phenomena",
                   "Writing the special phenomena", "Stamping the hypervelocity"):
         assert any(text and text.startswith(stage) for text in descriptions), (stage, descriptions)
@@ -623,7 +633,7 @@ def test_every_stage_of_the_phenomenon_scatter_draws_a_bar(mysql_config, tmp_pat
 # --- The neutron star and black hole limit (GEN.195) ---
 
 def _compact_args(mysql_config, stellar, compact):
-    args = _plan_args(mysql_config, "--phenomenon-min-mass", "1")
+    args = _scatter_args(mysql_config, "--phenomenon-min-mass", "1")
     args.phenomenon_min_mass = stellar
     args.compact_min_mass = compact
     return args
@@ -631,17 +641,18 @@ def _compact_args(mysql_config, stellar, compact):
 
 def test_the_compact_limit_must_be_a_preset_or_star():
     parser = argparse.ArgumentParser(prefix_chars='-+')
-    generate_cli.add_plan_arguments(parser)
+    generate_cli.add_scatter_arguments(parser)
     for value, ok in (("1", True), ("2", True), ("4", True), ("6", True), ("star", True), ("3", False),
                       ("8", False), ("0.5", False)):
-        args = parser.parse_args(["--compact-min-mass", value])
+        args = parser.parse_args(["--phenomena", "--compact-min-mass", value])
         if ok:
-            generate_cli.validate_plan_args(args, parser)
+            generate_cli.validate_scatter_args(args, parser)
         else:
             with pytest.raises(SystemExit):
-                generate_cli.validate_plan_args(args, parser)
-    assert parser.parse_args([]).compact_min_mass is None
-    assert parser.parse_args(["--compact-min-mass", "star"]).compact_min_mass == tuning.COMPACT_MIN_MASS_STAR
+                generate_cli.validate_scatter_args(args, parser)
+    assert parser.parse_args(["--phenomena"]).compact_min_mass is None
+    assert parser.parse_args(["--phenomena", "--compact-min-mass", "star"]).compact_min_mass \
+        == tuning.COMPACT_MIN_MASS_STAR
 
 
 def test_the_galaxy_command_takes_the_compact_limit_too():
@@ -877,7 +888,7 @@ def test_the_indexes_are_built_one_at_a_time_and_each_one_is_reported(mysql_conf
 
 def test_a_finished_scatter_leaves_its_indexes_in_place(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
         assert set(store.PHENOMENON_SCATTER_INDEXES) <= _index_names(conn)

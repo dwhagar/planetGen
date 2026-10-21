@@ -6,7 +6,7 @@ needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
 - New galaxy: wipe the database (`python3 -m planetgen.cli.reset --yes`), build the
-  density skeleton (`planetgen plan --no-bright-stars`), then generate
+  density skeleton (`planetgen plan`), then generate
   a first neighborhood around a random start and only then scatter the
   bright stars, leaving those sectors out (`planetgen galaxy
   --then-scatter`, GEN.30).
@@ -17,7 +17,7 @@ needs a terminal on the server. Four actions, each a background job
   sectors are always left out).
 - Add a dimmer step: keep the bright stars already placed and add only
   those from a lower level up to the current one
-  (`planetgen plan --bright-stars-down-to N`).
+  (`planetgen scatter --band --down-to N`).
 - Generate sectors: `planetgen galaxy` in any of its modes (random
   start, a whole shell, around a sector, one address, ...). "Around a
   sector" names its center as a filled sector (searched by name or
@@ -58,7 +58,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 from pydantic import Field, TypeAdapter, ValidationError
 
 from planetgen.queue import api_jobs, progress_rate
-from planetgen.queue.commands import DEEP_CHECKS
+from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
 from planetgen.web.lib import apiclient, estimatecache
 from planetgen.web.lib.fmt import utc_time_html
@@ -169,6 +169,8 @@ pages 50 rows)."""
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 
 BAND_LABEL = "Add a dimmer step of bright stars"
+
+MASS_SCATTER_LABEL = "Scatter the massive stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
 
@@ -390,8 +392,8 @@ def limits_argv(form):
 
 def plan_argv(form):
     """`planetgen plan` arguments from the Plan fields (blank means
-    the default), the mass limit and the limits stored with the galaxy (`limits_argv`)."""
-    argv = mass_limit_argv(form) + limits_argv(form)
+    the default) and the limits stored with the galaxy (`limits_argv`)."""
+    argv = limits_argv(form)
     for name, flag, label, kind, _default, minimum, maximum in PLAN_FIELDS:
         value = _number(form, name, label, kind, minimum=minimum, maximum=maximum, exclusive_max=True)
         if value is not None:
@@ -602,24 +604,60 @@ def span_argv(form):
     return argv, f"in {span.describe()}"
 
 
-def scatter_argv(form, with_mass_limit=True):
+def luminosity_floor_argv(form):
     """
-    `planetgen plan --bright-stars-only` plus the form's galaxy-wide
-    threshold (GEN.30: `--bright-star-min-luminosity`; blank means
-    `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`) and, unless `with_mass_limit`
-    is false (`galaxy --then-scatter` takes the plan's stored limit), the
-    mass limit.
+    The form's galaxy-wide threshold as `--bright-star-min-luminosity` (GEN.30; blank means
+    `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`, and gives no option).
 
     Raises:
         FormError: A threshold that isn't a number between the lowest and
             highest luminosity floor (GEN.184).
     """
-    argv = ["plan", "--bright-stars-only"] + (mass_limit_argv(form) if with_mass_limit else [])
     threshold = _number(form, "bright_min_luminosity", BRIGHT_THRESHOLD_LABEL, float,
                         minimum=tuning.BRIGHT_STAR_FLOOR_MIN_SOL, maximum=tuning.BRIGHT_STAR_FLOOR_MAX_SOL)
-    if threshold is not None:
-        argv += ["--bright-star-min-luminosity", f"{threshold:.0f}"]
-    return argv
+    return [] if threshold is None else ["--bright-star-min-luminosity", f"{threshold:.0f}"]
+
+
+def mass_value_argv(form):
+    """The form's mass limit as `--phenomenon-min-mass` alone (GEN.183: one of `tuning.PHENOMENON_MIN_MASS_PRESETS`;
+    blank leaves the galaxy's stored limit and gives no option).
+
+    Raises:
+        FormError: A value that isn't one of the presets.
+    """
+    value = _number(form, "phenomenon_min_mass", MASS_LIMIT_LABEL, float)
+    if value is None:
+        return []
+    if not any(abs(value - preset) < 1e-9 for preset in tuning.PHENOMENON_MIN_MASS_PRESETS):
+        _problem(f"{MASS_LIMIT_LABEL} must be one of "
+                 + ", ".join(f"{preset:g}" for preset in tuning.PHENOMENON_MIN_MASS_PRESETS) + ".")
+        return []
+    return ["--phenomenon-min-mass", f"{value:g}"]
+
+
+SCATTER_STEP_LABELS = {"mass": MASS_SCATTER_LABEL, "luminosity": SCATTER_LABEL, "phenomena": PHENOMENA_LABEL}
+"""dict: The label of each scatter step (`scatter_steps`)."""
+
+
+def scatter_steps(generate, form, kinds=("mass", "luminosity", "phenomena")):
+    """
+    One job step per scatter in `kinds`, in the order the scatters have to run (PERF.121: `planetgen scatter` draws one
+    kind per run): the massive stars at the form's mass limit and threshold, the bright stars at its threshold (the
+    mass limit stored by the step before), and the phenomena at its neutron star and black hole limit, which follows
+    a mass limit the form gave when the form names none of its own.
+
+    Raises:
+        FormError: A mass limit, a threshold or a neutron star limit that is not allowed.
+    """
+    mass = mass_value_argv(form) if "mass" in kinds else []
+    floor = luminosity_floor_argv(form) if {"mass", "luminosity"} & set(kinds) else []
+    compact = []
+    if "phenomena" in kinds:
+        compact = compact_limit_argv(form) or (["--compact-min-mass", tuning.COMPACT_MIN_MASS_STAR] if mass else [])
+    argv = {"mass": ["scatter", "--mass", *mass, *floor], "luminosity": ["scatter", "--luminosity", *floor],
+            "phenomena": ["scatter", "--phenomena", *compact]}
+    return [{"label": SCATTER_STEP_LABELS[kind], "argv": generate + argv[kind]}
+            for kind in ("mass", "luminosity", "phenomena") if kind in kinds]
 
 
 PREVALENCE_LABELS = {
@@ -738,18 +776,23 @@ def directive_argv(form):
     return argv
 
 
-REDO_SCATTERS_LABEL = "Redo the chosen scatters"
 REDO_CHOICES = (("mass", "redo_mass"), ("luminosity", "redo_luminosity"), ("phenomena", "redo_phenomena"))
-"""tuple: `--redo-scatters` word and the form's checkbox for each scatter (GEN.196)."""
+"""tuple: The scatter (a kind of `planetgen scatter`) and the form's checkbox for it (GEN.196)."""
 
 
-def redo_scatters_argv(form):
+CLEAR_STEP_LABELS = {"luminosity": "Clear the bright stars", "mass": "Clear the massive stars",
+                     "phenomena": "Clear the phenomena"}
+"""dict: The label of each clear step (`redo_scatters_steps`), in the order the clears have to run: the bright stars
+before the massive stars they are split from."""
+
+
+def redo_scatters_steps(generate, form):
     """
-    `planetgen plan --redo-scatters` with the scatters whose boxes are ticked
-    and the setting of each (GEN.196): the stellar mass limit for the massive
-    stars, the luminosity floor for the bright stars, the neutron star and
-    black hole limit for the phenomena. A scatter left unticked gets none of
-    its settings, so it is left as it was.
+    The steps that redo the scatters whose boxes are ticked, each at its setting (GEN.196, Boss's F7): `planetgen
+    clear-scatter` for each ticked scatter, then `planetgen scatter` for each (`scatter_steps`), at the stellar mass
+    limit for the massive stars, the luminosity floor for the bright stars, the neutron star and black hole limit for
+    the phenomena. A scatter left unticked is left as it was, except that the bright stars are split from the massive
+    stars at the mass limit, so redoing the massive stars redoes the bright stars with them.
 
     Raises:
         FormError: Nothing ticked, or a setting that isn't one of its presets.
@@ -758,40 +801,26 @@ def redo_scatters_argv(form):
     if not ticked:
         _problem("Tick at least one scatter to redo.")
         return []
-    argv = ["plan", "--redo-scatters", *ticked]
-    if "mass" in ticked:
-        argv += mass_limit_argv({key: value for key, value in form.items()
-                                 if key not in ("compact_use_star", "compact_min_mass")})
-    if "luminosity" in ticked:
-        argv += scatter_argv(form, with_mass_limit=False)[2:]
-    if "phenomena" in ticked:
-        argv += compact_limit_argv(form)
-    return argv
-
-
-def phenomena_step(generate, form):
-    """The phenomena scatter as its own step (`planetgen plan --phenomena-only`,
-    GEN.185's passes 1 and 5), at the form's mass limit. The bright-star scatter
-    alone (`--bright-stars-only`) leaves the phenomena out, so every job that
-    scatters the bright stars on its own follows it with this."""
-    return {"label": PHENOMENA_LABEL,
-            "argv": generate + ["plan", "--phenomena-only"] + mass_limit_argv(form)}
+    if "mass" in ticked and "luminosity" not in ticked:
+        ticked.append("luminosity")
+    unwanted = ({"phenomenon_min_mass"} if "mass" not in ticked else set()) | (
+        {"bright_min_luminosity"} if "luminosity" not in ticked else set())
+    clears = [{"label": CLEAR_STEP_LABELS[kind], "argv": generate + ["clear-scatter", f"--{kind}"]}
+              for kind in CLEAR_STEP_LABELS if kind in ticked]
+    return clears + scatter_steps(generate, {key: value for key, value in form.items() if key not in unwanted}, ticked)
 
 
 def plan_steps(generate, form):
     """
-    The plan step and, unless the form's "skip the bright-star scatter"
-    box is ticked, the scatter as a second step and the phenomena as a
-    third (`planetgen plan` would otherwise run them in one command, with
-    no separate labels), at the form's threshold (`scatter_argv`).
+    The plan step and, unless the form's "skip the bright-star scatter" box is ticked, the scatters as the steps after
+    it (`scatter_steps`: the massive stars, the bright stars, the phenomena), at the form's limits.
 
     Returns:
         list[dict]: Job steps.
     """
-    steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}]
+    steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}]
     if not form.get("skip_bright_stars"):
-        steps.append({"label": SCATTER_LABEL, "argv": generate + scatter_argv(form)})
-        steps.append(phenomena_step(generate, form))
+        steps += scatter_steps(generate, form)
     return steps
 
 
@@ -829,7 +858,7 @@ def step_stages(step, form):
     argv = step["argv"]
     start = len(jobs.GENERATE_COMMAND) + 1
     command = argv[start] if len(argv) > start and argv[:start] == [argv[0], *jobs.GENERATE_COMMAND] else None
-    if command in ("galaxy", "plan"):
+    if command in STAGED_COMMANDS:
         try:
             from planetgen.cli import generate as generate_cli
             _parser, parsers = generate_cli.build_parser()
@@ -886,24 +915,23 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "new_galaxy":
         # GEN.30: the scatter runs after the sectors (`galaxy
         # --then-scatter`), so it leaves out every sector just filled.
-        plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}
+        plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
         argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form)
         label = "Generate sectors around a random start"
         if not form.get("skip_bright_stars"):
             # The plan step doesn't store the mass limit, so the scatters take it from here.
-            argv += ["--then-scatter"] + mass_limit_argv(form) + scatter_argv(form, with_mass_limit=False)[2:]
+            argv += ["--then-scatter"] + mass_limit_argv(form) + luminosity_floor_argv(form)
             label = NEW_GALAXY_SCATTER_LABEL
         return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
     if action == "redo_scatters":
-        return "redo_scatters", "Redo scatters", [{"label": REDO_SCATTERS_LABEL,
-                                                    "argv": generate + redo_scatters_argv(form)}]
+        return "redo_scatters", "Redo scatters", redo_scatters_steps(generate, form)
     if action == "bright_band":
         down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
         if down_to is None:
             return "bright_band", "", []
-        argv = generate + ["plan", "--bright-stars-down-to", f"{down_to:g}"]
+        argv = generate + ["scatter", "--band", "--down-to", f"{down_to:g}"]
         return "bright_band", f"Bright stars down to {down_to:g} L\u2609", [{"label": BAND_LABEL, "argv": argv}]
     if action == "galaxy":
         argv, description = galaxy_argv(form, edge_pc)

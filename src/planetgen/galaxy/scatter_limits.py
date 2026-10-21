@@ -330,7 +330,7 @@ def luminosity_pass(limits):
 
 def band_pass(newer, older):
     """
-    The band a staged scatter adds (`planetgen plan --bright-stars-down-to`): per tier, the stars from its new floor
+    The band a staged scatter adds (`planetgen scatter --band --down-to`): per tier, the stars from its new floor
     up to, not including, its old one. A tier whose floor did not fall (the halo's, which does not follow the
     baseline; a core floor that was set) draws nothing.
     """

@@ -15,7 +15,7 @@ from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import run_galaxy, run_plan
 
 from tests.test_nebula_field import SHAPE
-from tests.test_phenomenon_scatter import E_VALUE, EDGE_PC, EXTENTS, _plan_args
+from tests.test_phenomenon_scatter import E_VALUE, EDGE_PC, EXTENTS, _scatter_args
 
 pytestmark = pytest.mark.db
 
@@ -76,7 +76,7 @@ def _sectors():
 
 def test_the_table_holds_the_kept_classes_m_and_n_and_the_rows_equal_the_fields_clouds(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     rows = _table(mysql_config)
     assert len(rows) > 20
     assert {row["nebula_class"] for row in rows} == set(nebula_field.TABLE_CLASSES)
@@ -98,7 +98,7 @@ def test_the_table_holds_the_kept_classes_m_and_n_and_the_rows_equal_the_fields_
 
 def test_a_saved_sector_marks_the_clouds_it_stores_with_their_object_ids(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
     address = next(address for address in _sectors() if any(
@@ -119,7 +119,7 @@ def test_a_saved_sector_marks_the_clouds_it_stores_with_their_object_ids(mysql_c
 
 def test_a_plan_run_links_the_clouds_a_galaxy_already_holds(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
     address = next(address for address in _sectors() if any(
@@ -127,15 +127,15 @@ def test_a_plan_run_links_the_clouds_a_galaxy_already_holds(mysql_config):
         for nebula, _ in nebula_field.clouds_reaching(_seed(mysql_config), SHAPE, sector_position_pc(*address, EDGE_PC), REACH_PC)))
     run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     before = _table(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     assert _table(mysql_config) == before
 
 
-# --- GEN.205: --redo-nebula-field ------------------------------------------------------------------------------------
+# --- GEN.205: clean-nebula-field ------------------------------------------------------------------------------------
 
 def _redo_args(mysql_config, mode):
-    args = _plan_args(mysql_config)
-    args.redo_nebula_field = mode
+    args = _scatter_args(mysql_config)
+    args.apply = mode == "apply"
     return args
 
 
@@ -153,7 +153,7 @@ def _galaxy_at_the_old_rates(mysql_config, monkeypatch):
     current = dict(tuning.NEBULA_FIELD_KEEP)
     monkeypatch.setattr(tuning, "NEBULA_FIELD_KEEP", {letter: 1.0 for letter in current})
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
     for address in _sectors()[:2]:
@@ -165,23 +165,24 @@ def test_the_dry_run_counts_the_rejected_clouds_and_changes_nothing(mysql_config
     _galaxy_at_the_old_rates(mysql_config, monkeypatch)
     before, table = _nebulae(mysql_config), _table(mysql_config)
     assert before
-    result = run_plan.redo_nebula_field(_redo_args(mysql_config, "dry-run"))
+    result = run_plan.clean_nebula_field(_redo_args(mysql_config, "dry-run"))
     assert result["deleted"] == 0 and sum(result["rejected"].values()) > 0
     assert sum(result["stored"].values()) >= sum(result["rejected"].values())
     assert _nebulae(mysql_config) == before and _table(mysql_config) == table
 
 
-def test_apply_deletes_the_rejected_clouds_and_draws_the_table_again(mysql_config, monkeypatch):
+def test_apply_deletes_the_rejected_clouds_and_the_scatter_draws_the_table_again(mysql_config, monkeypatch):
     _galaxy_at_the_old_rates(mysql_config, monkeypatch)
     before = _nebulae(mysql_config)
-    dry = run_plan.redo_nebula_field(_redo_args(mysql_config, "dry-run"))
-    result = run_plan.redo_nebula_field(_redo_args(mysql_config, "apply"))
+    dry = run_plan.clean_nebula_field(_redo_args(mysql_config, "dry-run"))
+    result = run_plan.clean_nebula_field(_redo_args(mysql_config, "apply"))
+    run_plan.redraw_nebula_field(_redo_args(mysql_config, "dry-run"))
     assert result["deleted"] == sum(dry["rejected"].values()) > 0
     after = _nebulae(mysql_config)
     assert len(after) == len(before) - result["deleted"]
     assert set(after) <= set(before)
     # What stays is exactly what the current rule keeps; run again: nothing more to delete.
-    again = run_plan.redo_nebula_field(_redo_args(mysql_config, "dry-run"))
+    again = run_plan.clean_nebula_field(_redo_args(mysql_config, "dry-run"))
     assert sum(again["rejected"].values()) == 0
     # The table was drawn again at the current rates and links the clouds that stayed.
     table = _table(mysql_config)
@@ -199,7 +200,7 @@ def test_each_slab_line_lists_its_nebula_classes_and_the_shells_they_reach(mysql
     _seed_galaxy(mysql_config)
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
-    run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", "1"))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--workers", "1"))
     lines = [m for m in messages if m.startswith("Nebula field, slab ")]
     table = _table(mysql_config)
     assert table and lines
@@ -220,3 +221,17 @@ def test_each_slab_line_lists_its_nebula_classes_and_the_shells_they_reach(mysql
 def test_a_slab_reports_the_shells_its_clouds_reach_within_the_galaxys_shells():
     text = run_plan._shell_range_text
     assert text((2, 2)) == "shell 2" and text((1, 3)) == "shells 1 to 3"
+
+
+def test_the_nebula_field_is_cleared_and_drawn_on_its_own(mysql_config):
+    """Boss's F7: `scatter --nebula-field` draws where none is stored and `clear-scatter --nebula-field` empties it."""
+    from tests.test_bright_star_scatter import _clear_args, _scatter_args
+    _seed_galaxy(mysql_config)
+    run_plan.run_scatter(_scatter_args(mysql_config, "--nebula-field"))
+    assert _table(mysql_config)
+    with pytest.raises(RuntimeError, match="clear-scatter --nebula-field"):
+        run_plan.run_scatter(_scatter_args(mysql_config, "--nebula-field"))
+    run_plan.run_clear_scatter(_clear_args(mysql_config, "--nebula-field"))
+    assert not _table(mysql_config)
+    run_plan.run_scatter(_scatter_args(mysql_config, "--nebula-field"))
+    assert _table(mysql_config)

@@ -113,7 +113,7 @@ def _stored_seed(mysql_config):
 
 def _plan(mysql_config, monkeypatch, *extra):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
-    monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--no-bright-stars", "--max-shell", "40", *extra]
+    monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--max-shell", "40", *extra]
                         + _mysql_argv(mysql_config))
     generate_cli.main()
 

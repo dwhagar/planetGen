@@ -61,7 +61,7 @@ def build_rich_galaxy(config, seed=20261001):
 
 def _build(config):
     target = mysql_argv(config)
-    run_cli("plan", ["--quiet", "--no-bright-stars", "--cell-star-ceiling", "1e12", "--nuclear-amplitude", "0"] + target)
+    run_cli("plan", ["--quiet", "--cell-star-ceiling", "1e12", "--nuclear-amplitude", "0"] + target)
     with forced_system_config(PLANETS=True):
         run_cli("galaxy", ["--shell", "1", "--band", "0", "--limit", "3", "--num-systems", "6", "--population",
                            "--yes", "--quiet"] + target)

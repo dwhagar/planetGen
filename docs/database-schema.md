@@ -636,7 +636,7 @@ their rows' locks (`_db.lock_sector_stats`), and its new level is written
 with its stars, so a crash leaves either the old level or none. A sector
 holding unbuilt stars with no level anywhere (no row level and no
 finished scatter) is left over from a failed run: the backfill deletes
-them and draws it whole. A band run (`plan --bright-stars-down-to`)
+them and draws it whole. A band run (`scatter --band --down-to`)
 leaves sectors with their own level out of its layers and tops each up
 from its own level. A sector's draws come in fixed luminosity bands
 (`brightStars.canonical_bands`, eight to a decade), each from its own
@@ -2195,11 +2195,11 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 
 ### v84 (DB.23, GEN.201): `phenomenon_scatter.map_luminosity_sol`
 
-`phenomenon_scatter.map_luminosity_sol` (FLOAT, nullable) is the luminosity, in solar luminosities, of a main-sequence star of the row's `mass_solar` by the Galaxy Map's relation (`stellar_evolution.map_luminosity_sol`, GEN.200), so a faint but massive neutron star or black hole is shown where a star of its mass would be. It is NULL for a row with no mass (planetary nebulae, supernova remnants, hypervelocity stars, the quasar). A scatter writes it with each row; `planetgen plan --fill-map-luminosity` fills it, in id-range batches of 200,000 that readers never wait for, in a galaxy scattered before v84 (resumable: it only fills rows still empty). The migration adds the column empty. No index. FLOAT keeps about seven digits and the server prints six, so a value read back agrees with the function to 1e-5 relative.
+`phenomenon_scatter.map_luminosity_sol` (FLOAT, nullable) is the luminosity, in solar luminosities, of a main-sequence star of the row's `mass_solar` by the Galaxy Map's relation (`stellar_evolution.map_luminosity_sol`, GEN.200), so a faint but massive neutron star or black hole is shown where a star of its mass would be. It is NULL for a row with no mass (planetary nebulae, supernova remnants, hypervelocity stars, the quasar). A scatter writes it with each row; `planetgen fill-map-luminosity` fills it, in id-range batches of 200,000 that readers never wait for, in a galaxy scattered before v84 (resumable: it only fills rows still empty). The migration adds the column empty. No index. FLOAT keeps about seven digits and the server prints six, so a value read back agrees with the function to 1e-5 relative.
 
 ### v83 (DB.24): `nebula_field`
 
-`nebula_field` holds the galaxy's field clouds of classes M and N (giant molecular clouds and dark clouds; P and Q stay implicit in the seed), one row each, written by `planetgen plan` from the galaxy seed over the 50 pc field cells (`galaxy/nebula_field.py`). Primary key `(cell_i, cell_j, cell_k, n)`: the field cell and the cloud's place in that cell's draw, so a row is found again from the seed alone. `nebula_class` (CHAR(1)), `radius_ly` and `center_x_pc`, `center_y_pc`, `center_z_pc` (DOUBLE, the exact numbers the seed gives) describe the cloud. `uid` (BINARY(12), nullable, indexed) and `is_stored` (TINYINT, default 0) stay empty until a sector's save stores the cloud as a `nebulae` row, which gives it its object ID: working an ID out for every cloud would cost a nebula shape each (about 0.1 s). The table is seed-fixed and rebuilt by every plan, by `plan --redo-scatters phenomena` and by `plan --redo-nebula-field apply`. The migration only creates the empty table.
+`nebula_field` holds the galaxy's field clouds of classes M and N (giant molecular clouds and dark clouds; P and Q stay implicit in the seed), one row each, written by `planetgen scatter --phenomena` (or `--nebula-field` alone) from the galaxy seed over the 50 pc field cells (`galaxy/nebula_field.py`). Primary key `(cell_i, cell_j, cell_k, n)`: the field cell and the cloud's place in that cell's draw, so a row is found again from the seed alone. `nebula_class` (CHAR(1)), `radius_ly` and `center_x_pc`, `center_y_pc`, `center_z_pc` (DOUBLE, the exact numbers the seed gives) describe the cloud. `uid` (BINARY(12), nullable, indexed) and `is_stored` (TINYINT, default 0) stay empty until a sector's save stores the cloud as a `nebulae` row, which gives it its object ID: working an ID out for every cloud would cost a nebula shape each (about 0.1 s). The table is seed-fixed, emptied by every plan and rebuilt by every phenomena scatter and by `planetgen scatter --nebula-field`; `planetgen clean-nebula-field --apply` drops the clouds the keep rates now reject. The migration only creates the empty table.
 
 ### v82 (PERF.68, PERF.70, PERF.74): indexes and `sector_system_counts` for the pages that timed out
 
@@ -2215,7 +2215,7 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 
 ### v71 (GEN.167): `galaxy_shape.phenomenon_min_mass_solar`
 
-`galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows at a 0.1% share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen plan --phenomena-only --phenomenon-min-mass M` re-scatters at a new cut; filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.
+`galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows at a 0.1% share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen clear-scatter --phenomena` and `planetgen scatter --phenomena` re-scatter at a new cut (`--mass --phenomenon-min-mass M` stores the stellar limit); filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.
 
 ### v72 (GEN.86): stellar activity and magnetic fields
 

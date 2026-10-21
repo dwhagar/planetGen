@@ -301,8 +301,11 @@ def plan_skeleton_unit(params, report):
                 and store.has_galaxy_sectors(conn)):
             raise ValueError(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(stored_seed)}; "
                              f"a different --seed needs a wiped galaxy.")
-        # A new outline invalidates every pre-placed bright star (schema v43).
+        # A new outline invalidates every pre-placed bright star (schema v43) and with it the phenomena and the nebula
+        # field drawn on the old one: a plan alone leaves them to the scatters, which draw them again (PERF.121).
         store.clear_bright_stars(conn)
+        store.clear_phenomenon_scatter(conn)
+        store.clear_nebula_field(conn)
         # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
@@ -459,14 +462,12 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
 
     Each run of shells is one task per pass, with a progress bar. Sectors already
     filled are always left out (GEN.30): the scatter never adds stars to a
-    generated sector. `--force` is still accepted and does nothing more.
+    generated sector.
 
-    `passes` (GEN.196) names the passes to redo. Both (the default) replace
-    the whole scatter. One alone clears and rewrites only that pass's stars
-    (`store.clear_bright_star_pass`) and keeps the other's: the luminosity
-    pass alone works at the mass limit already stored, the mass pass alone at
-    the luminosity floor already stored. With no scatter stored yet a single
-    pass becomes both.
+    `passes` names the passes to draw. Both (the default, `galaxy --then-scatter`) replace the whole scatter. One alone
+    is what `planetgen scatter --mass` or `--luminosity` draws (PERF.121) after `run_scatter` has found none of it
+    stored (Boss's F7: `planetgen clear-scatter` empties a kind first, so no draw replaces another): the luminosity
+    pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).
 
     Returns:
         dict: `counts` (per population), `total` and `elapsed_s`.
@@ -486,25 +487,17 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
         stored_limit = store.bright_star_mass_limit(conn)
         stored_settings = store.bright_star_scatter_settings(conn)
         passes = set(passes)
-        if passes != {"mass", "luminosity"} and (stored_limit is None or stored_settings is None):
-            log.normal("No complete scatter is stored yet, so both passes run.")
-            passes = {"mass", "luminosity"}
-        elif passes == {"mass"} and not math.isclose(mass_limit, stored_limit):
-            log.normal(f"The mass limit changed from {stored_limit:g} to {mass_limit:g} solar masses, so the "
-                       "luminosity pass is redone with it.")
-            passes = {"mass", "luminosity"}
+        if passes == {"luminosity"} and stored_limit is None:
+            raise RuntimeError("No massive-star pass is stored yet, and the luminosity pass is split from it at its "
+                               "mass limit -- run 'planetgen scatter --mass' first.")
         seed = _bright_star_seed(skeleton, "scatter")
         mass_seed = _bright_star_seed(skeleton, "mass-scatter")
-        if passes == {"mass", "luminosity"}:
-            store.clear_bright_stars(conn)
-        elif passes == {"luminosity"}:
+        if passes == {"luminosity"}:
             mass_limit = stored_limit
             store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
-                skeleton, stored_settings[0], stored_limit))
+                skeleton, stored_settings[0] if stored_settings is not None else min_luminosity_sol, stored_limit))
         else:
-            min_luminosity_sol = float(stored_settings[0])
-            store.clear_bright_star_pass(conn, "mass", scatter_limits.ScatterLimits.of(
-                skeleton, min_luminosity_sol, stored_limit))
+            store.clear_bright_stars(conn)
         # GEN.333: the baseline floor and mass limit, and the core's and halo's settings, give each band its tier's.
         limits = scatter_limits.ScatterLimits.of(skeleton, min_luminosity_sol, mass_limit)
         log.normal(_limits_text(limits))
@@ -516,16 +509,12 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             stages.enter("mass")
             counts = _scatter_mass(args, mysql_config, min_luminosity_sol, mass_limit, mass_seed)
             massive = sum(counts.values())
-        else:
-            stages.skip("mass", "not chosen to be redone")
         if "luminosity" in passes:
             stages.enter("luminosity")
             light = _scatter_on_queue(args, mysql_config, "luminosity", "Bright stars", {
                 "min_luminosity_sol": min_luminosity_sol, "mass_limit_sol": float(mass_limit)}, seed)
             for population, count in light.items():
                 counts[population] += count
-        else:
-            stages.skip("luminosity", "not chosen to be redone")
         store.record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit)
         conn.commit()
     finally:
@@ -540,26 +529,6 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun, "
               f"mass limit {mass_limit:g} solar masses")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
-
-
-def redo_scatters(args):
-    """
-    Redoes the scatters `--redo-scatters` names, each at this run's settings
-    (GEN.196), in the order of the plan's own run: the phenomena (neutron
-    stars and black holes at the compact-object limit, everything else, and
-    the nucleus), then the star passes. A star pass alone clears and rewrites
-    only its own stars (`scatter_bright_stars(passes=...)`); the phenomena
-    scatter clears and rewrites the phenomena. A scatter not named is left
-    exactly as it was, and its stage is listed as skipped.
-    """
-    chosen = list(args.redo_scatters)
-    if "phenomena" in chosen:
-        with workQueue.job_node("phenomena", "Phenomena"):
-            scatter_phenomena(args)
-    star_passes = [name for name in ("mass", "luminosity") if name in chosen]
-    if star_passes:
-        with workQueue.job_node("bright-stars", "Bright stars"):
-            scatter_bright_stars(args, passes=star_passes)
 
 
 def _bright_star_seed(skeleton, address):
@@ -1180,7 +1149,7 @@ def expand_scatter_luminosity(params):
 def expand_scatter_band(params):
     """
     The `scatter-band` command's stage cut into its units (PERF.106): the band of bright stars from the new level up
-    to the stored one (`--bright-stars-down-to`), each tier from its new floor up to its old one, in the sectors that
+    to the stored one (`planetgen scatter --band --down-to`), each tier from its new floor up to its old one, in the sectors that
     are neither filled nor backfilled to their own level.
 
     Args:
@@ -1261,7 +1230,7 @@ def _scatter_mass(args, mysql_config, min_luminosity_sol, mass_limit, seed, labe
 
 def add_bright_star_band(args):
     """
-    Lowers the galaxy's star-fill level to `--bright-stars-down-to`:
+    Lowers the galaxy's star-fill level to `--down-to`:
     keeps every bright star already placed and scatters only the band from
     the new level up to (not including) the stored one, then stores the new
     level. Sectors already filled are left out: their own systems were
@@ -1274,7 +1243,7 @@ def add_bright_star_band(args):
             below the current one).
     """
     mysql_config = store.mysql_config_from_args(args)
-    target = float(args.bright_stars_down_to)
+    target = float(args.down_to)
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
@@ -1285,7 +1254,7 @@ def add_bright_star_band(args):
         mass_range = None if mass_limit is None else (None, mass_limit)
         if settings is None:
             log.normal("No bright stars are scattered yet, so there is no level to go below. Run "
-                       f"'planetgen plan --bright-stars-only --bright-star-min-luminosity {target:g}' instead.")
+                       f"'planetgen scatter --luminosity --bright-star-min-luminosity {target:g}' instead.")
             return None
         current, first_seed = float(settings[0]), settings[1]
         # GEN.333: each tier's floor moves with the baseline unless it was set, so each band goes from its tier's new
@@ -2097,7 +2066,7 @@ def clean_nebula_field_unit(params, report):
             ", ".join(f"class {letter}: {rejected[letter]:,} of {stored[letter]:,} stored field clouds rejected"
                       for letter in sorted(stored)) or "no stored field clouds") + f"; {len(doomed):,} would be deleted."]
         if not params["apply"]:
-            lines.append("Nothing was changed. Run again with --redo-nebula-field apply to delete them and draw "
+            lines.append("Nothing was changed. Run again with --apply to delete them and draw "
                          "the nebula_field table again.")
             return {"stored": dict(stored), "rejected": dict(rejected), "deleted": 0, "lines": lines}
         sector_ids = set()
@@ -2116,16 +2085,17 @@ def clean_nebula_field_unit(params, report):
         conn.close()
 
 
-def redo_nebula_field(args):
+def clean_nebula_field(args):
     """
     Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205), on the new queue:
-    the `clean-nebula-field` command checks them and, with `--redo-nebula-field apply`, deletes the rejected ones
-    (`clean_nebula_field_unit`), and `nebula_field` is drawn again (`build_nebula_field`).
+    the `clean-nebula-field` command checks them (the dry run, always done and logged first) and, with `--apply`,
+    deletes the rejected ones (`clean_nebula_field_unit`). It draws nothing: the table is drawn again by
+    `planetgen scatter --nebula-field` (PERF.121, PERF.122).
 
     Returns:
         dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
     """
-    apply = args.redo_nebula_field == "apply"
+    apply = bool(args.apply)
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
     step, listing = wrapper.step_for(args, "nebula-field", "Nebula field", {
@@ -2152,19 +2122,37 @@ def redo_nebula_field(args):
                     if marker not in str(exc):
                         raise
                     raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
-            result = held["result"]
-            if apply:
-                conn = store.get_connection(mysql_config)
-                try:
-                    skeleton = store.get_galaxy_shape(conn)
-                    extents = _outline(conn)
-                    if extents:
-                        build_nebula_field(args, conn, skeleton, extents, progress)
-                finally:
-                    conn.close()
         finally:
             log.reset_console()
+    result = held["result"]
     return {key: result[key] for key in ("stored", "rejected", "deleted")}
+
+
+def redraw_nebula_field(args):
+    """
+    Draws the nebula field table again from the galaxy seed, the one thing `planetgen scatter --nebula-field` does
+    (PERF.121): the earlier table is cleared and the `draw-nebula-field` command draws it (`build_nebula_field`).
+
+    Returns:
+        int: The rows written (0 for a galaxy with no outline).
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
+        extents = _outline(conn)
+        if not extents:
+            return 0
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                return build_nebula_field(args, conn, skeleton, extents, progress)
+            finally:
+                log.reset_console()
+    finally:
+        conn.close()
 
 
 def scatter_phenomena(args):
@@ -2373,54 +2361,15 @@ def _phenomenon_shells_task(payload):
 
 def run_plan(args):
     """
-    Builds and persists the galaxy's density skeleton, then scatters its
-    bright stars (unless `--no-bright-stars`; `--bright-stars-only` skips
-    the rebuild, and `--bright-stars-down-to` adds one dimmer band to the
-    stored scatter instead).
+    Builds and persists the galaxy's density skeleton and nothing else (PERF.121): the scatters, the fills and the
+    nebula field clean-up are commands of their own (`run_scatter`, `run_fill_map_luminosity`,
+    `run_rescore_habitability`, `run_clean_nebula_field`), asked for in the run's step list.
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
     stages.begin(stages.plan_stages(args), args, "plan")
-    if getattr(args, "bright_stars_down_to", None) is not None:
-        stages.enter("band")
-        with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
-            add_bright_star_band(args)
-        stages.finish()
-        return
-    if getattr(args, "fill_map_luminosity", False):
-        stages.enter("map-luminosity")
-        with workQueue.job_node("map-luminosity", "Map luminosity"):
-            fill_map_luminosity(args)
-        stages.finish()
-        return
-    if getattr(args, "fill_habitability", False):
-        stages.enter("habitability")
-        with workQueue.job_node("habitability", "Habitability"):
-            fill_habitability(args)
-        stages.finish()
-        return
-    if getattr(args, "redo_nebula_field", None):
-        stages.enter("nebula-field")
-        with workQueue.job_node("nebula-field", "Nebula field"):
-            redo_nebula_field(args)
-        stages.finish()
-        return
-    if getattr(args, "redo_scatters", None):
-        redo_scatters(args)
-        stages.finish()
-        return
-    if getattr(args, "phenomena_only", False):
-        with workQueue.job_node("phenomena", "Phenomena"):
-            scatter_phenomena(args)
-        stages.finish()
-        return
-    if getattr(args, "bright_stars_only", False):
-        with workQueue.job_node("bright-stars", "Bright stars"):
-            scatter_bright_stars(args)
-        stages.finish()
-        return
     stages.enter("skeleton")
     with workQueue.job_node("skeleton", "Galaxy skeleton"):
         summary = _skeleton_on_queue(args)
@@ -2438,9 +2387,159 @@ def run_plan(args):
             f"galaxy's true edge was not reached. Re-run with a larger --max-shell if these shape "
             f"parameters really do produce a galaxy this large."
         )
-    if summary["shell_count"] and not getattr(args, "no_bright_stars", False):
+    stages.finish("the galaxy has no shells" if not summary["shell_count"] else None)
+
+
+SCATTER_NAMES = {"mass": "massive-star", "luminosity": "bright-star", "phenomena": "phenomena",
+                 "nebula-field": "nebula field"}
+"""dict: What each kind of scatter is called in a message."""
+
+
+def _refuse_stored_scatter(args, kind):
+    """
+    Stops a `planetgen scatter` of `kind` when that scatter already has rows (Boss's F7): a scatter draws where none is
+    stored, and `planetgen clear-scatter` empties a kind first. The band adds to the bright stars and is not refused.
+
+    Raises:
+        RuntimeError: The kind's rows are stored.
+    """
+    if kind == "band":
+        return
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        stored = store.scatter_stored(conn, kind)
+    finally:
+        conn.close()
+    if stored:
+        raise RuntimeError(f"The {SCATTER_NAMES[kind]} scatter is already stored -- run "
+                           f"'planetgen clear-scatter --{kind}' first.")
+
+
+def run_scatter(args):
+    """
+    `planetgen scatter` (PERF.121): draws the one kind of scatter `args` names (`stages.scatter_kind`) on the stored
+    plan and nothing else. `--mass` and `--luminosity` each clear and rewrite only their own pass of the bright stars
+    (`scatter_bright_stars`); `--phenomena` clears and rewrites the phenomena (`scatter_phenomena`); `--nebula-field`
+    draws the nebula field table again (`redraw_nebula_field`); `--band` adds the band of dimmer stars down to
+    `--down-to` (`add_bright_star_band`).
+    """
+    kind = stages.scatter_kind(args)
+    _refuse_stored_scatter(args, kind)
+    stages.begin(stages.scatter_stages(args), args, "scatter")
+    if kind == "band":
+        stages.enter("band")
+        with workQueue.job_node("bright-stars", f"Bright stars down to {args.down_to:g} L_sun"):
+            add_bright_star_band(args)
+    elif kind == "phenomena":
         with workQueue.job_node("phenomena", "Phenomena"):
             scatter_phenomena(args)
+    elif kind == "nebula-field":
+        stages.enter(NEBULA_DRAW_KEY)
+        with workQueue.job_node("nebula-field", "Nebula field"):
+            redraw_nebula_field(args)
+    else:
         with workQueue.job_node("bright-stars", "Bright stars"):
-            scatter_bright_stars(args)
-    stages.finish("the galaxy has no shells" if not summary["shell_count"] else None)
+            scatter_bright_stars(args, passes=(kind,))
+    stages.finish()
+
+
+def expand_clear_scatter(params):
+    """The `clear-scatter` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def clear_scatter_unit(params, report):
+    """
+    The `clear-scatter` command's unit (Boss's F7): empties the stored rows of one kind of scatter, `params["part"]`:
+    "mass" (the massive stars, refused while the bright stars are stored, since they are split from these at the mass
+    limit), "luminosity" (the bright stars, the band with them), "phenomena" or "nebula-field". Nothing else is touched.
+
+    Returns:
+        dict: `part` and `lines`, what the run says about it, for the process that started the run to log (this unit
+            may run in a worker).
+
+    Raises:
+        RuntimeError: The massive stars are asked for while the bright stars are stored.
+    """
+    part = params["part"]
+    name = SCATTER_NAMES[part]
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        if not store.scatter_stored(conn, part):
+            return {"part": part, "lines": [f"The {name} scatter has nothing stored."]}
+        if part == "mass" and store.scatter_stored(conn, "luminosity"):
+            raise RuntimeError("The bright stars are split from the massive stars at the mass limit -- run "
+                               "'planetgen clear-scatter --luminosity' first.")
+        if part in ("mass", "luminosity"):
+            if store.bright_star_mass_limit(conn) is None:      # no mass pass to split the stars at: they all go
+                store.clear_bright_stars(conn)
+            else:
+                store.clear_bright_star_pass(conn, part, store.scatter_limits_of(conn))
+        elif part == "phenomena":
+            store.clear_phenomenon_scatter(conn)
+        else:
+            store.clear_nebula_field(conn)
+    finally:
+        conn.close()
+    return {"part": part, "lines": [f"Cleared the {name} scatter."]}
+
+
+def clear_scatter(args):
+    """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged."""
+    kind = stages.clear_kind(args)
+    key = stages.CLEAR_STAGE[kind].key
+    mysql_config = store.mysql_config_from_args(args)
+    step, listing = wrapper.step_for(args, key, stages.CLEAR_STAGE[kind].label, {
+        "database": wrapper.database_args(mysql_config)})
+    row = stages.hand_over_open_stage()
+
+    def on_result(_index, _unit, result):
+        for line in result["lines"]:
+            log.normal(line)
+
+    try:
+        wrapper.run(step.label, [step], lambda _index, plan: None, on_result, workers_count=1,
+                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None),
+                    seed=None, listing=listing, rows=None if row is None else {key: row})
+    except units.RunStopped as exc:
+        marker = "RuntimeError: "
+        if marker not in str(exc):
+            raise
+        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+
+
+def run_clear_scatter(args):
+    """`planetgen clear-scatter` (Boss's F7): `clear_scatter`, the one stage of its run."""
+    kind = stages.clear_kind(args)
+    stages.begin(stages.clear_stages(args), args, "clear-scatter")
+    stages.enter(stages.CLEAR_STAGE[kind].key)
+    with workQueue.job_node("clear-scatter", stages.CLEAR_STAGE[kind].label):
+        clear_scatter(args)
+    stages.finish()
+
+
+def run_fill_map_luminosity(args):
+    """`planetgen fill-map-luminosity` (PERF.122): `fill_map_luminosity`, the one stage of its run."""
+    stages.begin(stages.for_command("fill-map-luminosity", args), args, "fill-map-luminosity")
+    stages.enter("map-luminosity")
+    with workQueue.job_node("map-luminosity", "Map luminosity"):
+        fill_map_luminosity(args)
+    stages.finish()
+
+
+def run_rescore_habitability(args):
+    """`planetgen rescore-habitability` (PERF.122): `fill_habitability`, the one stage of its run."""
+    stages.begin(stages.for_command("rescore-habitability", args), args, "rescore-habitability")
+    stages.enter("habitability")
+    with workQueue.job_node("habitability", "Habitability"):
+        fill_habitability(args)
+    stages.finish()
+
+
+def run_clean_nebula_field(args):
+    """`planetgen clean-nebula-field` (PERF.122): `clean_nebula_field`, the one stage of its run."""
+    stages.begin(stages.for_command("clean-nebula-field", args), args, "clean-nebula-field")
+    stages.enter("nebula-field")
+    with workQueue.job_node("nebula-field", "Nebula field"):
+        clean_nebula_field(args)
+    stages.finish()

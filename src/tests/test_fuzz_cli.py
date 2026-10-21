@@ -527,7 +527,7 @@ def plan_argv(draw):
     argv = [
         # The bright-star scatter walks every cell of the outline; its own
         # tests (test_bright_star_scatter.py) cover it on a small galaxy.
-        "plan", "--quiet", "--no-bright-stars",
+        "plan", "--quiet",
         "--disk-scale-length-pc", repr(length),
         "--disk-scale-height-pc", repr(draw(st.sampled_from([1e-3, 1.0, 350.0, 1e5]))),
         "--bulge-scale-radius-pc", repr(draw(st.sampled_from([1e-3, 10.0, 200.0, 1e5]))),

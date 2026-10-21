@@ -271,7 +271,7 @@ def site_db(_mysql_server_available):
             # The real scatter places tens of millions of stars over the
             # whole galaxy; a few hundred near the core are enough for the
             # Galaxy Map to draw some.
-            run_cli("plan", ["--quiet", "--no-bright-stars", "--nuclear-amplitude", "0"] + target)
+            run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + target)
             _add_bright_stars(config)
             with forced_system_config(PLANETS=True):
                 run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)

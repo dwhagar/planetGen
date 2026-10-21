@@ -216,17 +216,45 @@ PLAN_ERRORS = [
     (["--pitch-angle-deg", "0"], "--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude."),
     (["--pitch-angle-deg", "-90.001"], "--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude."),
     (["--disk-scale-length-pc", "1e80"], "these galaxy shape parameters can't be normalized ("),
-    (["--no-bright-stars", "--bright-stars-only"], "--no-bright-stars and --bright-stars-only can't be combined."),
-    (["--bright-stars-only", "--bright-stars-down-to", "10"],
-     "--bright-stars-down-to can't be combined with --no-bright-stars or --bright-stars-only."),
-    (["--bright-stars-down-to", "-1"], "--bright-stars-down-to: "),
-    (["--bright-star-min-luminosity", "-1"], "--bright-star-min-luminosity: "),
+]
+
+SCATTER_ERRORS = [
+    (["--mass", "--bright-star-min-luminosity", "-1"], "--bright-star-min-luminosity: "),
+    (["--luminosity", "--bright-star-min-luminosity", "-1"], "--bright-star-min-luminosity: "),
+    (["--band"], "--band needs --down-to L_SUN."),
+    (["--band", "--down-to", "-1"], "--down-to: "),
+    (["--luminosity", "--phenomenon-min-mass", "12"], "--phenomenon-min-mass belongs to --mass, not --luminosity."),
+    (["--mass", "--compact-min-mass", "2"], "--compact-min-mass belongs to --phenomena, not --mass."),
+    (["--mass", "--down-to", "10"], "--down-to belongs to --band, not --mass."),
+    (["--mass", "--phenomenon-min-mass", "9"], "--phenomenon-min-mass must be one of "),
+    (["--mass", "--workers", "-1"], "--workers must be 0 (automatic) or more."),
 ]
 
 
 @pytest.mark.parametrize("argv, message", PLAN_ERRORS)
 def test_plan_error_messages(monkeypatch, capsys, argv, message):
     assert _error(monkeypatch, capsys, "plan", argv).startswith(message)
+
+
+@pytest.mark.parametrize("argv, message", SCATTER_ERRORS)
+def test_scatter_error_messages(monkeypatch, capsys, argv, message):
+    assert _error(monkeypatch, capsys, "scatter", argv).startswith(message)
+
+
+@pytest.mark.parametrize("command", ["scatter", "clear-scatter"])
+def test_a_scatter_or_clear_without_its_kind_or_with_two_is_refused(monkeypatch, capsys, command):
+    for argv in ([], ["--mass", "--luminosity"]):
+        capsys.readouterr()
+        with pytest.raises(SystemExit):
+            _parse(monkeypatch, command, argv)
+        assert "--mass" in capsys.readouterr().err
+
+
+def test_a_clear_takes_no_option_of_a_scatter(monkeypatch, capsys):
+    for argv in (["--mass", "--phenomenon-min-mass", "12"], ["--band"], ["--luminosity", "--down-to", "5"]):
+        with pytest.raises(SystemExit):
+            _parse(monkeypatch, "clear-scatter", argv)
+    assert _parse(monkeypatch, "clear-scatter", ["--nebula-field"]).nebula_field is True
 
 
 def test_plan_shape_edges_that_are_allowed(monkeypatch):

@@ -172,12 +172,14 @@ STAGE_TOTAL_ENV = "PLANETGEN_STAGE_TOTAL"
 
 
 def _staged_command(argv):
-    """`(command, args)` of a `galaxy` or `plan` command line, else `None`."""
+    """`(command, args)` of a command line of a command that has stages (`commands.STAGED_COMMANDS`), else `None`."""
     from planetgen.cli import generate as generate_cli
+    from planetgen.queue import commands
     from planetgen.web import jobs
 
     start = len(jobs.GENERATE_COMMAND) + 1
-    if len(argv) <= start or argv[1:start] != list(jobs.GENERATE_COMMAND) or argv[start] not in ("galaxy", "plan"):
+    if len(argv) <= start or argv[1:start] != list(jobs.GENERATE_COMMAND) \
+            or argv[start] not in commands.STAGED_COMMANDS:
         return None
     try:
         _parser, parsers = generate_cli.build_parser()
