@@ -14,6 +14,8 @@ Users place their own ships and stations and follow them across the map (USR.10,
 
 Users add their own objects and the scatter of vessels and stations for the races.
 
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+
 ### Ships and stations
 
 | ID | Item | Needs | Note |

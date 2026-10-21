@@ -55,7 +55,7 @@ busy ones, which helps when a few slow tests land on the same worker.
 
 ## The database tests
 
-Tests that save and load systems, sectors or users need a MySQL or MariaDB
+Tests that save and load systems, sectors or users need a MySQL
 server. They skip (not fail) without one. Point them at a server with:
 
 ```sh
@@ -310,7 +310,7 @@ the TODO).
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK
-corpus (`python -m nltk.downloader words`), MariaDB or MySQL with a user that
+corpus (`python -m nltk.downloader words`), MySQL with a user that
 has `ALL ... WITH GRANT OPTION` (one test creates a restricted user), Redis
 (`redis-server --daemonize yes`, then `export PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0`; the tests that
 need it skip without that variable), and a Playwright whose Chromium matches the one on the machine: the image

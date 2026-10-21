@@ -5550,7 +5550,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
-  GEN.530.
+  GEN.530, SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -6017,6 +6017,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outcome rules and applying them, GEN.290 to choosing per system when
   to switch to the perturbed pass, the cost estimate and the seeded
   black-hole test (2026-10-16 review).
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on side branch gen334-closest-approach off main
+  (`physics/closest_approach.py`, 17 tests green, no gate yet).
   Prerequisites: none. Related: GEN.110, GEN.290.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -6160,6 +6163,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exact then one point mass per sector) is built here after GEN.370, and
   the order of work is GEN.370, GEN.341, GEN.342 on Core 3 after its 8.1
   queue.
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on side branch gen341-influence-set, stacked on GEN.370
+  (`galaxy/influence.py`, 10 tests green, no gate yet). It uses the
+  global radius, so the cover lists named in this title are not built.
+  The wording above that the per-sector `max_mass_kg` and `max_mass_id`
+  columns come from GEN.294:m is stale: they already exist (DB.55).
   Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
@@ -6799,6 +6808,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   superseded; the placement keep-apart fill (6 percent at the old radius
   against up to 108 percent at 1.4 pc) is rechecked in this item's gate
   and the result is stated in its PR.
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on branch claude/project-thread-l8ulna (commit d5f78e8),
+  generator epoch 42 pending (renumbers if GEN.545 merges first); design
+  docs and a note are included, and its `changed` gate's second run
+  started 4:24 PM EDT (40 percent at 4:40 PM EDT; the first run was lost
+  to the stale run key, TEST.260). It removes
+  `mass_chain.central_mass_kg`, `current_central_mass_kg` and
+  `MassChain.halo_mass_kg`, and records a placement-fill recheck in
+  docs/design/course-avoidance.md: in a dense galaxy the placer now fits
+  60 to 70 percent of the requested systems at 1 kpc and 35 to 45
+  percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
+  galaxies are unchanged; the old fill never passed 0.03. The text above
+  that the default distance is already gone (GEN.404) is true.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13427,6 +13449,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system mass is 0.51 solar masses, not the recalled 0.4, so the
   reference galaxy's system count goes down about 21%; Core 1 proceeds
   with the approved default (derive it; generator epoch 42).
+  Status from the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
+  reported): built on branch claude/project-thread-6lw1fr (commit
+  bc7f1e8 on main 8.0.1861) and in its `changed` gate (97 percent at
+  4:39 PM EDT). It derives the mean system mass from the IMF, the
+  star-count table, the companion draw and the remnants (new
+  `generation/system_mass.py` and `galaxy/system_mass.py`), removes
+  `tuning.MEAN_SYSTEM_MASS_SOLAR`, and takes generator epoch 42.
+  Reference galaxy: 0.504 solar masses a system (not 0.4), 9.9e10
+  systems (was 1.25e11), density at the reference radius 0.595 of the
+  pinned value (was 0.750). Superseded: the sentence above that Boss
+  expects GEN.544 and GEN.545 to undo most of the star count drop no
+  longer holds, because the derived mean lowers the count about 21
+  percent (the coordinator told Boss at 2:03 PM EDT); the approved
+  default (derive it) stands. The old Core 1 draft branch
+  claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
+  gen545-core1-draft.patch are superseded.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -13777,6 +13815,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kick-escape share and any other source this step cannot read stay
   labelled recalled or placeholder in the gap registry and do not block
   the step.
+  Slices 2 and 3 in flight (Core 4, 4:40 PM EDT 2026-10-21 as the lane
+  reported): explosion islands, the natal kick and the black hole cap at
+  the reference unbound share; docs explosion-islands.md and
+  natal-kick.md are new and four design notes are edited; its `changed`
+  gate on MySQL 8 started 3:54 PM EDT (51 percent at 4:39 PM EDT).
+  Epoch: the branch stamps 41, but 41 is taken on main by GEN.544
+  (8.0.1855), so it renumbers at merge to the next free one. Stand-ins
+  for the gap registry that this slice adds: nesting of failure windows
+  above the verified islands (stand-in); kick sigma 265 km/s (recalled,
+  Hobbs 2005, unverified); black hole unbound share 2 percent
+  (placeholder); a single Maxwellian instead of two components; birth
+  only in the thin disc; ejecta speed not yet the kick tail above
+  escape; `remnant_distribution` placement still empirical; the neutron
+  star and black hole mass function unchanged (a later slice); magnetars
+  still use the tuning rate as their stand-in. Reference neutron star
+  unbound share is 16 percent (the old 20 to 40 percent is a test target
+  only; the published Milky Way halo gives 27 percent). Perturber mass
+  changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
+  AU because of the new rates. Network access is closed (Boss, 1:17 PM
+  EDT), so the unverified sources stay labelled recalled.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15306,6 +15364,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
   Prerequisites: none. Related: GEN.545, GEN.262.
 
+- [ ] **GEN.597 A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug)**
+  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
+  Core 4's note), filed by the TODO thread.
+  `src/tests/test_insolation.py::test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_body`
+  asserts 0.0 <= flux_variation <= 1.0 on every body; a rocky planet
+  (body_type "t") of a wide binary (binary_type "wide") can get a value
+  above 1. Fails on main: yes, at seeds outside the test's own
+  range(60): seed 106 gives 1.72, seed 225 gives 1.10, seed 245 gives
+  2.32 (the test's seeds 0 to 59 pass on main only by the luck of the
+  draws; seed 36 gives 1.63 on Core 4's branch). Frequency: about 3 of
+  240 systems. Reproducer, from src/: `from tests.fuzz_support import
+  deterministic_entropy`; `with deterministic_entropy(seed):
+  draw.set_run_seed(seed); s = StarSystem(SystemConfig(),
+  galactic_center_dist_ly=26000.0)`, then any planet in `s.planets +
+  s.secondary_planets` with body_type != "g" and flux_variation > 1. Do:
+  find why the wide-binary secondary's contribution pushes the ratio of
+  minimum to maximum flux (or the variation fraction) past 1 for a
+  planet in the pair's own orbit around the primary, fix the formula or
+  the clamp's cause, and widen the test's seeds to 240. Done: the
+  reproducer gives no value above 1 in 240 systems. Owner: Bug Hunt (routed by the coordinator, 3:46 PM EDT 2026-10-21).
+  Prerequisites: none. Related: GEN.545.
+
+- [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
+  Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
+  reported), filed by the TODO thread. `CLUSTER_MEAN_SYSTEM_MASS_SOL =
+  0.4` is the same recalled constant as the galaxy's
+  `MEAN_SYSTEM_MASS_SOLAR` and is read in `king.py`, `components.py`,
+  `component_field.py`, `component_pass.py` and `open_clusters.py`; it
+  divides a cluster's or satellite's stellar mass into a system count.
+  Boss's rule is no fixed content. Fails on main: no (a stand-in,
+  labelled recalled within a factor of 1.5, not yet measured). Do:
+  derive it from the cluster's own mass function and multiplicity the
+  way GEN.545 does for the galaxy (reuse `generation/system_mass.py`),
+  so the constant goes; where a cluster has a different mass function (a
+  bottom-heavy or top-heavy IMF), the derivation takes it from the
+  component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
+  test checks the derived mean against a seeded draw. Owner: Core 1
+  (proposed, after GEN.545 merges); a generator change, so it takes the
+  next free epoch.
+  Prerequisites: GEN.545. Related: GEN.545, GEN.404.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15799,6 +15898,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `--redo-scatters` removed and no shim. Pure-Python tests pass (398);
   the DB tests, the same-galaxy equivalence check and the gate come
   after the PERF.107 and PERF.108 merge.
+  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
+  built together with PERF.122 on branch claude/core5-perf121 (main
+  merged in, f74b4f7). Wording above that is stale: `plan` now places no
+  stars (it is the skeleton only) and the five commands exist (scatter,
+  clear-scatter, fill-map-luminosity, rescore-habitability,
+  clean-nebula-field). The old-against-new equivalence check (galaxy
+  fingerprint on a 200-shell grid, old plan on main against plan plus
+  scatter --mass, --luminosity and --phenomena on the branch) has the
+  old side done (51 minutes) and the new side running since 4:35 PM EDT
+  (expected end about 5:30 PM EDT); the `changed` gate starts after the
+  fingerprints match. Finding from the same lane: `plan --max-shell`
+  does not shrink the scatter (the grid is 65,536 shells;
+  `--reach-shells` does), so a default-size plan run takes hours; this
+  item's rework should make the shell limit apply or remove the option,
+  no shim.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -15824,6 +15938,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescore-habitability` and `planetgen clean-nebula-field` (with
   `--apply`). They replace the `plan --fill-map-luminosity`, `plan
   --fill-habitability` and `plan --redo-nebula-field` modes.
+  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
+  built with PERF.121 on branch claude/core5-perf121; see the note
+  there. The `changed` gate has not started.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
@@ -16182,6 +16299,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation, `planetgen orbits` and data-version changes) and slice 3
   (the admin page shows each phase); the list and index half of Boss's
   no-recompile test waits on DB.79 and PERF.140.
+  Slice 2 merged as #2337 (Core 2, 4:45 PM EDT 2026-10-21 as the lane
+  reported): the warm-up starts by itself after a generation run, the
+  orbital update, an edit or any change; new settings
+  `cache.warm_on_change` and `cache.warm_settle_seconds`; gate 19,668
+  passed, 3 environment or flake failures that pass alone. Slice 3 (the
+  admin queue page's 'Cache warm-up' panel with each phase's state, `GET
+  /api/admin/work/warm`) is written and tested and its gate starts next.
+  Slices 1 to 3 do not need PERF.140, so after slice 3 this item stays
+  open only for the deeper list pages and the index in phase 1, which
+  wait on PERF.140 (the 'Suggested owner' and prerequisite wording above
+  predates the split). The old Core 2's branch claude/perf141-slice2-wip
+  is superseded by #2337.
   Prerequisites: PERF.140.
 
 - [ ] **PERF.142 A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug)**
@@ -16248,6 +16377,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker is killed stays in the RQ started registry for ever; fix:
   `workers.reap_dead_jobs`, called by the guard and at worker start. The
   RQ time limit for those jobs is PERF.144, not this item.
+  Test-side reproducer from Core 3 (4:23 PM EDT 2026-10-21 as the
+  coordinator relayed): a timed-out
+  `test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0]`
+  (TEST.260) leaves `planetgen:run:active` set in the test Redis, and
+  170 later tests fail with `Busy: run ... is running`.
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): written with
+  PERF.143 on branch claude/project-thread-i3vcln:
+  `planetgen:run:active` is taken over from a dead owner using a
+  heartbeat key. The PR follows the gate; the lane will send the number.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
@@ -16290,6 +16428,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it never touches galaxy data, caches or settings. The name is
   `reset_jobs`, not `planetgen reset`. Bug Hunt adds the console help
   list entry if that list is built, and will say if it is not.
+  Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed): rerunning
+  a gate meant deleting the `planetgen:run:*` keys by hand (a shell
+  xargs delete was refused by the permission classifier, a
+  scan-and-delete in Python worked), so `reset_jobs` should clear the
+  run keys too, and the test fixtures should be able to call it.
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): written and in
+  gate 23 (started 2:46 PM EDT, browser phase at 46 percent at 4:40 PM
+  EDT, expected end about 5:20 PM EDT), branch
+  claude/project-thread-i3vcln: `planetgen.cli.reset_jobs`, `update.sh
+  --reset-jobs`, a dead-job reap in the update guard and at worker
+  start, and a note in docs/deployment/README.md. The Done clause about
+  the console help list can only be met when the console items (8.7) are
+  built, because no console help list exists in the code yet.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.144 Web and API jobs get an RQ time limit from recorded stats instead of no limit, so a killed worker's entry expires**
@@ -17543,6 +17694,45 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   numbers the migration (next free 0113). This replaces the suggested
   owner Core 1 above. Not started.
   Prerequisites: none.
+
+- [ ] **DB.80 `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug)**
+  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
+  Core 4's note: its fresh machine ran MariaDB 10.11.14 and 259 tests
+  failed identically on origin/main), filed by the TODO thread.
+  `src/planetgen/db/region.py` (the key-run list, GEN.276) and
+  `src/planetgen/db/store.py` (the scatter value list, line 9322) build
+  `VALUES ROW(a, b), ROW(c, d)`; that table value constructor is MySQL
+  8.0.19+ syntax and MariaDB does not accept it, while INSTALL.md lists
+  MySQL 8.0.16+ or MariaDB 10.4+. Tests that fail there include
+  test_db_old_schemas, test_galaxy_gen, test_gen_resume and
+  test_parallel_generation. Fails on main: yes on that server; the other
+  lanes' servers are not known to the TODO thread to be a different
+  version, so which server the tests are normally run on is open. Do:
+  pick one with Boss (question put to the coordinator): the default is
+  to rewrite both lists as a portable `SELECT ... UNION ALL SELECT ...`
+  derived table (no backward-compatibility shim), which keeps INSTALL.md
+  true; the other choice is to raise the documented minimum to MySQL
+  8.0.19 and drop MariaDB from INSTALL.md. Done: the affected tests pass
+  on MariaDB 10.4 and MySQL 8.0.19, and INSTALL.md matches. Owner: not
+  assigned (DB queue).
+  Decided (Boss, card tapped 4:37 PM EDT 2026-10-21, 'Raise minimum to
+  MySQL 8.0.19', card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3vCP2EtkXETBwr8rfqmGon): the documented
+  minimum rises to MySQL 8.0.19 and MariaDB is not supported; the
+  `VALUES ROW(...)` code stays as it is, no rewrite and no shim. This
+  replaces the default above (the UNION ALL rewrite). Done by the TODO
+  thread in a docs PR (4:40 PM EDT): INSTALL.md, README.md,
+  docs/WINDOWS.md, docs/deployment/{README,nginx,paas,macos}.md and
+  docs/testing.md (the first lines) now say MySQL 8.0.19+ with MariaDB
+  not supported. Still to do, for a lane: the `mysql.host` help text in
+  `src/planetgen/util/settings.py` and its row in docs/config.md ('The
+  MySQL or MariaDB server's host name or address'), docs/testing.md
+  lines on local MariaDB runs and the MariaDB 11.4 leg,
+  docs/ci-runners.md, and the tests' MariaDB branches (reserved-word
+  set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
+  fails by design, so a lane's machine must run MySQL 8 (the recipe is
+  in project memory). Owner: not assigned.
+  Prerequisites: none. Related: GEN.276.
 
 ## API: The JSON API
 
@@ -18804,6 +18994,38 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   NIST's password-only guidance is wanted.
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
+
+- [ ] **SEC.33 Release gate: a full security code audit of the whole code base, done before every point release (8.1 first)**
+  Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
+  must be a full security code audit, and it MUST be done before every
+  single point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are
+  not point releases). One standing item: it stays open and is re-run
+  for each point release, never retired. Scope: every route, API
+  endpoint and form; sign-in, sessions, cookies, CSRF, rate limits and
+  lockouts; authorization and every admin page; all SQL and any string
+  built into a query; file, path and upload handling and the tile cache
+  and jobs directory; the stored-XSS and output-escaping paths in
+  templates and JavaScript; the Content-Security-Policy and headers;
+  secrets, config and settings handling; the dependency list and its
+  known vulnerabilities (pip and npm lockfiles); the install, update and
+  deployment scripts and the systemd and Apache or nginx examples; the
+  Redis and job-queue inputs; and anything new since the last pass (use
+  git log since the last audited release). Run the repository's own
+  static checks and add a scanner pass where one can run without the
+  network. Done: for the release, a dated report
+  (/mnt/project-files/reports/release-audit-security-<version>.md,
+  linked from the goal issue and logged on this item as 'Release log:
+  <version>, <EDT date and time>, <commit>') that names the commit
+  audited, lists what was covered and what was not, and files every
+  finding as its own item (a high or critical finding blocks the release
+  until fixed and merged; the rest are filed with an owner). The release
+  is not stamped while the report for its version is missing, or while a
+  finding it marks blocking is open. Proposed owner: its own thread,
+  started when the version nears close (8.1: after the whole-sphere
+  audits TEST.185, TEST.184, TEST.159 and TEST.160 merge, so the audit
+  sees the final code); it must not be the lane that wrote the code
+  under audit.
+  Prerequisites: TEST.159, TEST.160. Related: TEST.261.
 
 ## TEST: The test suite
 
@@ -20606,6 +20828,67 @@ clears each one.
   symptom is a loaded-gate failure).
   Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
 
+- [ ] **TEST.260 test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug)**
+  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
+  Core 3's note, in its `scripts/test.py changed` gate), filed by the
+  TODO thread. Kind: test infrastructure, the PERF.142 family.
+  `src/tests/test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-the
+  largest allowed radius, wider than the test galaxy]` fails with `hang:
+  planetgen galaxy --quiet --center-sector 1 --radius-pc 200.0 ... did
+  not finish within 10s` (`_Timeout` at units.py `follow_stage`). Fails
+  on main: yes, alone, a 25 s run on a worktree of main d839e5d (4
+  cores, no load). Frequency: 2 of 2. Effect: the timed-out run leaves
+  `planetgen:run:active` set in the test Redis, so every later test that
+  starts a run fails with `Busy: run ... is running`; in one gate 170
+  tests (test_galaxy_gen, test_phenomenon_scatter, test_work_units and
+  every browser fixture) failed or errored and the gate's rerun phase
+  kept failing them for two hours. Reproducer: run the test, then
+  `redis-cli get planetgen:run:active` shows a live run id. Do: make the
+  radius-200 case finish inside the limit (or give it the limit its work
+  needs, from the recorded stats, PERF.144), and make the test release
+  the lock when its run times out; PERF.142 covers the lock having no
+  expiry. Done: the test passes alone and leaves no run key behind.
+  Owner: Bug Hunt (proposed).
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): the hung run
+  leaving `planetgen:run:active` set is the same path as PERF.142, and
+  its takeover should clear it after the owner dies; the lane checks the
+  test once that PR is in, and the 10 s hang itself stays this item's.
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
+
+- [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
+  Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
+  must be a full bug hunt audit, and it MUST be done before every single
+  point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are not
+  point releases). One standing item: it stays open and is re-run for
+  each point release, never retired. Scope: the whole product as a user
+  and an admin meets it, not only the diff. Every page and API route is
+  driven on a freshly built galaxy and on a migrated database; every
+  command and CLI path is run end to end (generate, plan, scatter, warm,
+  migrate, update.sh, the maintenance timers); the map at every zoom
+  level and the System, Sector and Galaxy views are opened at the edges
+  of the data (empty sectors, the widest shell, the seam and the black
+  hole); the job and queue paths are killed and resumed (stale locks,
+  dead tasks, planetgen:run:active); the whole test suite runs with
+  `scripts/test.py full --check`, and the flaky and skipped tests are
+  listed and explained; the open bugs in docs/TODO.md and the 'could not
+  reproduce' list are re-tried on the release candidate; the logs of the
+  run are read for warnings and swallowed errors; and a fuzz and
+  property pass covers the inputs the tests do not. Done: for the
+  release, a dated report
+  (/mnt/project-files/reports/release-audit-bug-hunt-<version>.md,
+  linked from the goal issue and logged on this item as 'Release log:
+  <version>, <EDT date and time>, <commit>') that names the commit
+  audited, what was run and what was not, the full-suite result, and
+  every bug found filed as its own item with kind, test, failure text,
+  whether it fails on main, frequency and reproducer; a bug that breaks
+  a headline feature, loses or corrupts data or stops a run blocks the
+  release until fixed and merged, the rest are filed with an owner. The
+  release is not stamped while the report for its version is missing, or
+  while a bug it marks blocking is open. Proposed owner: Bug Hunt (it
+  runs the audit; the fixes go to the owning lanes); the 8.1 pass starts
+  when the whole-sphere audits merge and the security audit has begun.
+  Prerequisites: TEST.159, TEST.160. Related: SEC.33.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21396,6 +21679,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nothing records a cut, so the missing entry in the split text is a
   slip.
   Prerequisites: OPS.57. Related: OPS.28.
+
+- [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
+  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
+  Core 3's note), filed by the TODO thread.
+  `examples/cloud-environment/setup-planetgen-env.sh` (line 260) prints
+  a verify line that imports `flask, pymysql, redis, rq, numba, scipy,
+  skimage, markdown, pytest, xdist, hypothesis, playwright, nltk` and
+  prints the `markdown` version; no requirements file and no code uses
+  `markdown`, so a fresh machine exits 1 at the verify step (the failure
+  that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
+  install markdown`. Do: drop `markdown` from the verify imports and the
+  version line (or add it to the requirements if something needs it); no
+  shim. Done: the script exits 0 on a fresh machine. Owner: not assigned
+  (OPS queue; the environment settings copy of the script is Boss's, so
+  the lane edits the example and tells the coordinator).
+  Prerequisites: none. Related: TEST.254.
 
 ## DOC: Documentation
 

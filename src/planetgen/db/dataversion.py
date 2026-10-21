@@ -33,7 +33,7 @@ import sys
 
 import redis
 
-from planetgen.queue import redisclient
+from planetgen.queue import redisclient, warmstart
 
 TAG_EPOCH = "epoch"
 TAG_SECTOR_SET = "sector-set"
@@ -131,7 +131,8 @@ def versions(database, tags):
 
 def bump(database, *tags):
     """
-    Adds one to each of `tags` for `database`. Returns whether the change is recorded.
+    Adds one to each of `tags` for `database`, then asks for the warm-up (`warmstart.request`). Returns whether the
+    change is recorded.
 
     A Redis that refuses the write (a full `noeviction` server answers OOM to anything that adds data) still
     allows a delete, so the whole version hash is dropped instead: a new incarnation, which makes every copy
@@ -149,7 +150,6 @@ def bump(database, *tags):
             pipe.hincrby(key(database), tag, 1)
         pipe.expire(key(database), KEEP_SECONDS)
         pipe.execute()
-        return True
     except (redis.RedisError, OSError) as exc:
         try:
             _client().delete(key(database))
@@ -159,7 +159,9 @@ def bump(database, *tags):
             return False
         print(f"warning: Redis refused the page cache's data versions ({exc}); every cached page was made stale "
               "instead. If Redis is out of memory, raise maxmemory.", file=sys.stderr)
-        return True
+    # Whatever the page cache cannot serve any more is rebuilt by the warm-up, which starts by itself (PERF.141).
+    warmstart.request(database, tags[0])
+    return True
 
 
 def tags_for_change(kind, sector_id=None, system_id=None, phenomenon=None):

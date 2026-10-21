@@ -2,7 +2,7 @@
 
 planetGen's web interface is one Flask app: every page and the JSON API
 (`/api`). It runs from a git checkout, reads `config.json` at the repo
-root, and talks to one MySQL or MariaDB server and one Redis server
+root, and talks to one MySQL server and one Redis server
 (`redis.url` in [`config.json`](../config.md); the Generate page's jobs,
 the work queue, the rate limits and the login lockouts run on it). This page compares the
 supported ways to host it and covers what they share. Each guide has the
@@ -146,7 +146,7 @@ address, not `127.0.0.1`.
 
 ## MySQL accounts
 
-planetGen needs MySQL 8.0.16 or later, or MariaDB 10.4 or later. One
+planetGen needs MySQL 8.0.19 or later (MariaDB is not supported). One
 account is used everywhere: the generation CLIs, `planetgen.cli.migrate` (run by
 `install.sh` and `update.sh`), and the web app's reads and writes. There
 is no separate read-only or write account to configure:

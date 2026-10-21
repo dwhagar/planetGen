@@ -165,6 +165,8 @@ Regeneration to a specification for every kind of object and region, with the ke
 
 End-to-end and property tests, the admin help, and the items that close ADM.35 and ADM.57.
 
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+
 
 ### Proof and help
 
