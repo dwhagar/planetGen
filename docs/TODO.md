@@ -16176,6 +16176,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and each galaxy-tiles warm unit checks `tilecache.cache_is_full()` and
   reports "N tiles left out, the tile cache is full"; the phases and
   their skipped and rebuilt totals are this item (Core 2's next).
+  Slice 1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
+  reported; release 8.0.1856): the warm-up runs in five named phases
+  with a report line per phase (built, unchanged, left out), `planetgen
+  warm` accepts phase names, a `warm-galaxy-deep-tiles` command exists,
+  and the tile phases stop at `cache.max_mb`. Gate: 3,831 passed, 157
+  skipped in 88 minutes. Still open: slice 2 (the automatic start after
+  generation, `planetgen orbits` and data-version changes) and slice 3
+  (the admin page shows each phase); the list and index half of Boss's
+  no-recompile test waits on DB.79 and PERF.140.
   Prerequisites: PERF.140.
 
 - [ ] **PERF.142 A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug)**
@@ -20678,6 +20687,9 @@ clears each one.
   so it has failed in 7 of 7 loaded gates since 2026-10-18; the memory
   cause above covers it. The same gate's test_system_type_rates failure
   was the catalogue row label my sweep changed, already fixed in #2315.
+  Further sighting from Core 2 (1:50 PM EDT 2026-10-21 as the lane
+  reported, PERF.141's gate): a worker crash in a loaded run; the test
+  passed alone (16 passed). Same cause as above (memory); nothing new.
   Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
 
 - [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
