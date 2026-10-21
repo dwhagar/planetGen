@@ -20532,30 +20532,6 @@ clears each one.
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
-  Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.546 gate 2, 11:38 AM to 1:23 PM EDT), filed by the TODO
-  thread.
-  `src/tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh`
-  failed once with a maximum vertex radius of 1.0288 where the test
-  bounds it by 1.0; it passes alone. A load dependence is unlikely for a
-  mesh radius, so the likelier cause is an unseeded nebula shape whose
-  noise can push a vertex past the unit sphere (inferred, not checked).
-  Fails on main: unknown. Frequency: 1 of 2 gates of Core 4. Reproducer:
-  loop the test alone on idle main with fresh draws and print the shape
-  seed and the largest radius. Do: find whether the shape generator can
-  place a vertex beyond 1.0 for some seeds (then the endpoint promises a
-  bound it does not keep, and the generator or the doc is the bug) or
-  whether the test's bound is too tight; fix without loosening what the
-  test proves; no quarantine. Done: the cause is on this item and the
-  test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
-  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): fix finished and committed, not merged: the
-  cause is that the shape scale is fitted on a 24-cell grid while the
-  mesh is cut on 28, so thin spikes poke out 1.006 to 1.029 radii; the
-  mesh is pulled back to its bounding sphere.
-  Prerequisites: none.
-
 - [ ] **TEST.254 test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug)**
   Found by Core 5 (reported 3:14 PM EDT 2026-10-18 on the lane's clock;
   its PERF.106 slice 5 gate ended about 2:55 PM EDT), filed by the TODO
@@ -20590,51 +20566,11 @@ clears each one.
   earlier. With Bug Hunt's 109 of 109 that is 175 of 175 not reproduced;
   the likely cause stays an unseeded draw of a system with no planets,
   and the assertion should compare against a seeded draw.
+  Bug Hunt's #2332 (2:51 PM EDT 2026-10-21 as the lane reported,
+  releases 8.0.1858 to 8.0.1861) adds a diagnostic only: the test now
+  names the extra system when it fails. Not reproduced in 109 draws, so
+  the item stays open.
   Prerequisites: none. Related: TEST.253.
-
-- [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
-  Found by Core 2 (reported about 3:25 PM EDT 2026-10-18 on the lane's
-  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2) and Blocker 1
-  (reported about 3:34 PM EDT; its GEN.590 gate), filed by the TODO
-  thread.
-  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  failed in both gates and pass alone (3 of 3 runs, about 18 s, on an
-  idle current main at 3:40 PM EDT). Failure text not relayed. TEST.250
-  (retired) had the same two tests failing from the shared inline queue
-  context; its fix #2267 merged 1:27 PM EDT, after Core 2's gate
-  started; whether Blocker 1's tree carried it is not known (its branch
-  merged main at 3:19 PM EDT). Likely cause (inferred, not checked): the
-  two tests use the one real Redis and fixed keys (`workers.WANTED_KEY`,
-  `api_jobs.QUEUE_NAME`) that every gate in the shared environment also
-  uses, so two gates running together delete each other's wanted-worker
-  key or run each other's jobs; the killed-worker case also waits only
-  10 s for a SIGKILLed process under load. Fails on main: not shown,
-  passes alone. Frequency: 2 of 2 gates that ran beside another gate.
-  Reproducer: run `scripts/test.py changed` while a second gate runs in
-  the same environment, or loop the two tests while a second pytest
-  process runs the same file. Do: get the failure text from Core 2's
-  `.test-failures.jsonl`, confirm whether the key collision is the
-  cause, and give each run its own queue name and wanted key (or a Redis
-  database per run); no quarantine. Done: the cause is on this item and
-  both tests pass 20 of 20 runs with a second run of the same file
-  beside them. Owner: Bug Hunt (proposed).
-  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): cause found, fix committed and not merged:
-  the admin's wanted-workers Redis key is shared by every test process;
-  each test now has its own key, `test_wanted_workers_key.py` pins it,
-  and `conftest.py` changed (so the next gate selects all 20,433 tests).
-  This replaces the inferred cause above.
-  Two more sightings (Core 1, 11:28 AM EDT 2026-10-21 as the lane
-  reported; passed alone on rerun, no traceback kept, 1 in 1 full run
-  under 4 workers):
-  `tests/test_work_units.py::test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded`
-  and
-  `tests/test_workers.py::test_lowering_the_count_tells_the_extra_bulk_workers_to_finish_and_exit`.
-  Bug Hunt's per-test wanted-workers key (committed, not merged) may
-  cover them; a traceback is needed if they recur.
-  Prerequisites: none. Related: TEST.250, TEST.254.
 
 - [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
   Found by Core 1 (its GEN.591 gate, reported about 9:09 AM EDT
