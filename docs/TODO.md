@@ -15981,7 +15981,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
   (proposed; the map and cache lane).
-  Prerequisites: PERF.131, PERF.133, PERF.134.
+  Prerequisites: PERF.133, PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
@@ -16005,60 +16005,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward if its cause is the missing cache" is superseded by Boss's
   card on MAP.249 (2026-10-18, about 8:54 AM EDT, "Both, cut payload
   first"): the tile cache work follows MAP.249's payload cut.
-
-- [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Today the stored packed tile is joined per request and Apache
-  compresses the response (`mod_brotli`, else `mod_deflate`), and
-  joining several gzip members in one body was tried and dropped because
-  Chromium decodes only the first member (the docstring of
-  tilecache.py). Done: each tile is stored once packed and once
-  compressed (brotli, with gzip for a client that does not accept it,
-  chosen by measuring the size and the decode cost on a real galaxy and
-  written in the PR), a request for one or more tiles is answered from
-  the stored compressed bytes with `Content-Encoding` and no
-  recompression (tiles that cannot be concatenated stay separate
-  responses or a length-prefixed body of compressed members that the
-  browser unpacks, whichever the measurement favours), the disk size of
-  the cache is reported for both forms, and the response is the same
-  data as today for the same tiles (a test). Owner: Core 2 (proposed).
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
-  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
-  tile cache work follows MAP.249's payload cut, so it starts after Core
-  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
-  Boss (2026-10-18, 5:43 PM EDT): about 10 times the first tile cache's
-  40 MB is acceptable, up to 1 GB by the `cache.max_mb` setting
-  (PERF.139); stored data that can be precomputed and shipped ready
-  should be.
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Storing compressed tiles must not rebuild a
-  tile that is already stored and unchanged; it only re-encodes once,
-  when the format changes.
-  Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
+  Decided (Boss, tapped "Skip it" on the card "Store Galaxy Map tiles
+  compressed (PERF.131), or skip it?" at 11:27 AM EDT 2026-10-21, tap
+  verified on the platform): PERF.131 is skipped and retired. Apache
+  keeps compressing at send time (Core 2 measured under 0.1 s a big
+  view: a 200-tile view is 3.8 MB packed and 0.8 MB gzipped, gzip 0.03
+  to 0.10 s, against 3 to 54 s to build a cold view) and PERF.132
+  (#2298) removed the real waits; no new wire format.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -16372,7 +16325,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and index rebuild half of Boss's no-recompile test (a no-change warm
   rebuilds no stored list or index) waits for PERF.140 and lands with
   this item; the tile half is in PERF.133's part 1 (#2311).
-  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.133.
+  Prerequisites: PERF.139, PERF.140, PERF.133.
 
 ## DB: Database and schema
 
@@ -16635,6 +16588,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   on 2026-10-16 that it is its to fix stays on record, so the two lines
   are not reconciled further here (the recommendation was to ask Boss,
   with Core 1 as the fallback).
+  Decided (Boss, tapped "Core 1" on the DB.33 owner card at 11:29 AM EDT
+  2026-10-21, as the coordinator reported it): Core 1 owns DB.33, after
+  its current queue.
   Prerequisites: none.
 
 - [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
@@ -20675,6 +20631,14 @@ clears each one.
   each test now has its own key, `test_wanted_workers_key.py` pins it,
   and `conftest.py` changed (so the next gate selects all 20,433 tests).
   This replaces the inferred cause above.
+  Two more sightings (Core 1, 11:28 AM EDT 2026-10-21 as the lane
+  reported; passed alone on rerun, no traceback kept, 1 in 1 full run
+  under 4 workers):
+  `tests/test_work_units.py::test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded`
+  and
+  `tests/test_workers.py::test_lowering_the_count_tells_the_extra_bulk_workers_to_finish_and_exit`.
+  Bug Hunt's per-test wanted-workers key (committed, not merged) may
+  cover them; a traceback is needed if they recur.
   Prerequisites: none. Related: TEST.250, TEST.254.
 
 - [ ] **TEST.256 test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug)**
