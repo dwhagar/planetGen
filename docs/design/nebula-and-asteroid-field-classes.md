@@ -306,7 +306,7 @@ components come from the cometary ices list.
 - **Volume backfill**: a nebula that needs certain stars triggers a
   backfill of its volume down to 750 L_sun with the draw skewed to those
   types; existing backfilled stars inside are redrawn in place when a
-  compatible type and brightness exist, and left alone when not. The
+  compatible type and brightness exist, and left alone when not. Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): the 750 L_sun backfill stays for the other stars of a nebula's volume, and the nebula's required stars are real systems made in the same step as the nebula (intergalactic-and-halo-contents.md). The
   stars each class needs and the algorithm are in "Required stars per class
   (GEN.99)" and "Nebula volume backfill (GEN.99)".
 - **Names**: every nebula gets a unique name from its ID (object-ids.md).
@@ -342,7 +342,7 @@ the mesh API and the containment switch are the next two parts of GEN.75.
 All from Boss (2026-10-03 05:38Z) unless dated otherwise; everything in the sections below this one is a recommendation.
 
 - GEN.93: "Account for nebula temperature and conditions when generating planets and calculating surface conditions", with a feasibility study of whether a planet could form in each nebula class and what it would do to the planet.
-- GEN.99: nebulae that need certain stars trigger a backfill of the nebula's volume "down to 750 Solar Luminosities" with probability skewed to the right types; existing backfilled stars are regenerated in place (same position, similar luminosity) when the required class is compatible, and left alone when not. The volume is the nebula's shape.
+- GEN.99: nebulae that need certain stars trigger a backfill of the nebula's volume "down to 750 Solar Luminosities" with probability skewed to the right types; existing backfilled stars are regenerated in place (same position, similar luminosity) when the required class is compatible, and left alone when not. The volume is the nebula's shape. Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): this backfill stays for the other stars of the volume; the required stars are real systems made in the same step as the nebula, not drawn by the backfill.
 - GEN.112: asteroid fields and belts stay one object for position and orbital speed; only rendering generates a system of objects.
 - GEN.110: two colliding rogue gas giants merge and a star that forms "should get no planets and instead should be a planetary nebula" (wording discussed in "Merger of two gas giants").
 - NAV.51 (2026-10-09 01:02Z): "Courses should avoid asteroid fields."

@@ -60,7 +60,8 @@ and the section 2.1 failures were rerun while writing this document.
   speed is mostly a hit-and-run (63 to 75%) or a supercatastrophic disruption
   (22 to 24%), and a merger is 2% or less [C]. But a terrestrial body hitting a
   giant, brown dwarf or star is swallowed with no field, and two giants (at
-  most 26 Mjup) cannot make a star, which needs 78.6 Mjup and so a brown dwarf
+  most 26 Mjup) cannot make a star, which needs the hydrogen-burning limit (78.6 Mjup in the
+  rounded table of section 4.3, `hydrogen_burning_limit_sol(z)` in the build) and so a brown dwarf
   in the pair.
 - "Planetary nebula" is the wrong object: it is the envelope of a dying 1 to 8
   Msun star lit by a 30,000 K or hotter white dwarf [S]; a newly lit 0.075 Msun
@@ -375,10 +376,13 @@ merge, 15% disruption or worse. These are design-grade shares, not predictions.
 1 Mjup = 9.54e-4 Msun [C], so 13 Mjup = 0.0124, 78.6 = 0.075, 80 = 0.0763 Msun.
 The project already uses 13 to 80 Mjup for rogue brown dwarfs
 (`ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER`) and 0.08 Msun as the lowest IMF break
-(`IMF_BREAKS_SOL`, which also floors `star.py`'s initial mass). Recommended
-"lights as a star" line: **0.075 Msun (78.6 Mjup)**, as a setting, flagged
-"borderline" in the report within 3% of it. A merger star of 0.075 to 0.08 Msun
-is below the generator's 0.08 floor, so either lower the floor for merger stars
+(`IMF_BREAKS_SOL`, which also floors `star.py`'s initial mass). The
+"lights as a star" line is **`hydrogen_burning_limit_sol(z)`** (0.074 Msun at solar Z),
+flagged "borderline" in the report within 3% of it. The 0.075 Msun (78.6 Mjup) above is
+the rounded upper end of the solar-metallicity literature range, not a setting, and the
+80 Mjup of `ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER` is a sampling range only. Decided (Boss, contradiction sweep card, 7:29 AM EDT 2026-10-21): one function of
+metallicity, `hydrogen_burning_limit_sol(z)`, feeds GEN.110's fusion check and the brown dwarf split. A merger star between that
+limit and 0.08 Msun is below the generator's 0.08 floor, so either lower the floor for merger stars
 or clamp them to 0.08.
 
 A merger below the line becomes an ordinary **brown dwarf** (deuterium-burning
@@ -434,8 +438,8 @@ R2), and x = Q_R / Q*_RD (section 4.1, interacting mass for grazing hits).
 | T | X | tidal limit (section 2.3) | Tidally disrupted before contact, accreted | none stored | tidal_disruption |
 | G or B | G or B | any | Merge, lose f = clamp(Q_R / (2 Q*_RD), 0.01, 0.5); M_new = (1 - f) M_tot; radius from relation; fast-spin flag; gas lost, no field | none | giant_merger |
 | (merged) | | M_new < 13 Mjup | stays a gas giant (re-pick the bin) | | |
-| (merged) | | 13 <= M_new < 78.6 Mjup | becomes a brown dwarf (mass_bin 'brown-dwarf') | | brown_dwarf_formed |
-| (merged) | | M_new >= 78.6 Mjup | **new star**: no planets, age 0, "merger remnant" flag, admin report | | star_created |
+| (merged) | | 13 <= M_new < L Mjup (L = `hydrogen_burning_limit_sol(z)`, section 4.3) | becomes a brown dwarf (mass_bin 'brown-dwarf') | | brown_dwarf_formed |
+| (merged) | | M_new >= L Mjup | **new star**: no planets, age 0, "merger remnant" flag, admin report | | star_created |
 | S or X | S or X | any | outside Boss's scope; default: merge conserving momentum, log, admin report | | stellar_merger |
 
 If Boss prefers the literal rule, replace the T + T rows with "any contact: both
