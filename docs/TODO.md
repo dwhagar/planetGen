@@ -16462,6 +16462,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.106 (the unit limits).
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
 
+- [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
+  Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of
+  13): 4. Plan the galaxy.' and 'Stage 4 of 13: Plan the galaxy.' right
+  after the banner '=== Stage 4 of 13: Plan the galaxy ===', which
+  already says it; the extra mentions of the stage are redundant and
+  should be removed. The two lines come from `begin` and `_announce` in
+  src/planetgen/generation/stages.py (the stage-list line, with its
+  '(stages 4 to 4 of 13)' wording, and the per-stage announcement built
+  with `stagemark.marker`). Keep one marker per stage (the banner), keep
+  the skipped-stage line with its reason, and keep what the Generate
+  page and the progress file read (`progress_file.set_stage`,
+  `stage_text`); change the tests that assert the old lines
+  (src/tests/test_stages.py asserts the stage-list wording). A command
+  cleanup, not a bug. Done: a run logs each stage once, in the banner,
+  with no 'N stage(s) (stages a to b of c)' line and no repeated 'Stage
+  n of N: label.' line; a skipped stage still says why; the Generate
+  page's stage text and the progress file are unchanged; the tests pass.
+  Owner: Bug Hunt, after PERF.142 and PERF.143 (Boss's item relayed by
+  the coordinator, 5:23 PM EDT).
+  Prerequisites: none. Related: PERF.120.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
