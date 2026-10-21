@@ -15306,6 +15306,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
   Prerequisites: none. Related: GEN.545, GEN.262.
 
+- [ ] **GEN.597 A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug)**
+  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
+  Core 4's note), filed by the TODO thread.
+  `src/tests/test_insolation.py::test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_body`
+  asserts 0.0 <= flux_variation <= 1.0 on every body; a rocky planet
+  (body_type "t") of a wide binary (binary_type "wide") can get a value
+  above 1. Fails on main: yes, at seeds outside the test's own
+  range(60): seed 106 gives 1.72, seed 225 gives 1.10, seed 245 gives
+  2.32 (the test's seeds 0 to 59 pass on main only by the luck of the
+  draws; seed 36 gives 1.63 on Core 4's branch). Frequency: about 3 of
+  240 systems. Reproducer, from src/: `from tests.fuzz_support import
+  deterministic_entropy`; `with deterministic_entropy(seed):
+  draw.set_run_seed(seed); s = StarSystem(SystemConfig(),
+  galactic_center_dist_ly=26000.0)`, then any planet in `s.planets +
+  s.secondary_planets` with body_type != "g" and flux_variation > 1. Do:
+  find why the wide-binary secondary's contribution pushes the ratio of
+  minimum to maximum flux (or the variation fraction) past 1 for a
+  planet in the pair's own orbit around the primary, fix the formula or
+  the clamp's cause, and widen the test's seeds to 240. Done: the
+  reproducer gives no value above 1 in 240 systems. Owner: bug queue
+  (Core 4 does not own it).
+  Prerequisites: none. Related: GEN.545.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17543,6 +17566,28 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   numbers the migration (next free 0113). This replaces the suggested
   owner Core 1 above. Not started.
   Prerequisites: none.
+
+- [ ] **DB.80 `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug)**
+  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
+  Core 4's note: its fresh machine ran MariaDB 10.11.14 and 259 tests
+  failed identically on origin/main), filed by the TODO thread.
+  `src/planetgen/db/region.py` (the key-run list, GEN.276) and
+  `src/planetgen/db/store.py` (the scatter value list, line 9322) build
+  `VALUES ROW(a, b), ROW(c, d)`; that table value constructor is MySQL
+  8.0.19+ syntax and MariaDB does not accept it, while INSTALL.md lists
+  MySQL 8.0.16+ or MariaDB 10.4+. Tests that fail there include
+  test_db_old_schemas, test_galaxy_gen, test_gen_resume and
+  test_parallel_generation. Fails on main: yes on that server; the other
+  lanes' servers are not known to the TODO thread to be a different
+  version, so which server the tests are normally run on is open. Do:
+  pick one with Boss (question put to the coordinator): the default is
+  to rewrite both lists as a portable `SELECT ... UNION ALL SELECT ...`
+  derived table (no backward-compatibility shim), which keeps INSTALL.md
+  true; the other choice is to raise the documented minimum to MySQL
+  8.0.19 and drop MariaDB from INSTALL.md. Done: the affected tests pass
+  on MariaDB 10.4 and MySQL 8.0.19, and INSTALL.md matches. Owner: not
+  assigned (DB queue).
+  Prerequisites: none. Related: GEN.276.
 
 ## API: The JSON API
 
