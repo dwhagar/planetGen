@@ -677,6 +677,29 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     return job_id
 
 
+JOB_FLOOR_SECONDS = 3600
+"""int: The shortest time limit of a job's RQ entry (PERF.144): a job of steps that usually take seconds (a reset, a
+download) is not ended by one slow start."""
+
+JOB_CEILING_SECONDS = 30 * 86400
+"""int: The longest time limit of a job's RQ entry, and the limit of a job whose steps are not all recorded (a fixed
+ceiling, not an estimate): a whole galaxy run takes hours to days."""
+
+
+def job_time_limit(path):
+    """
+    The seconds RQ lets the job in `path` run (PERF.144): `redisqueue.job_timeout` of the time its steps are expected
+    to take (`job_runner.expected_seconds`: the recorded stage times, else what each step took in earlier runs),
+    `JOB_CEILING_SECONDS` when a step has no record.
+    """
+    from planetgen.web import job_runner
+
+    with open(os.path.join(path, "job.json"), "r", encoding="utf-8") as f:
+        job = json.load(f)
+    return redisqueue.job_timeout(job_runner.expected_seconds(job), ceiling=JOB_CEILING_SECONDS,
+                                  floor=JOB_FLOOR_SECONDS)
+
+
 def _spawn(path):
     """Queues the job in `path` on Redis and starts its burst worker.
 
@@ -693,7 +716,7 @@ def _spawn(path):
                       f"start Redis to run jobs: {exc}") from exc
     name = QUEUE_PREFIX + job_id
     redisqueue.queue(name, connection).enqueue(
-        "planetgen.web.job_runner.run", path, job_id=name, job_timeout=-1,
+        "planetgen.web.job_runner.run", path, job_id=name, job_timeout=job_time_limit(path),
         result_ttl=0, failure_ttl=86400,
     )
     _start_detached(path, redisqueue.worker_argv([name], url, name=name, python=python_executable()))

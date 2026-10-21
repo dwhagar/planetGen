@@ -238,7 +238,7 @@ def inline_wiki_queue(monkeypatch):
     from planetgen.queue import api_jobs
     jobs = {}
 
-    def submit(function, *args):
+    def submit(function, *args, **options):
         job_id = "%016x" % len(jobs)
         jobs[job_id] = api_jobs.execute(api_jobs.function_reference(function),
                                         [api_jobs.encode_argument(arg) for arg in args])

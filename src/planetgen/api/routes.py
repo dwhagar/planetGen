@@ -1701,7 +1701,8 @@ def generate_sector_neighborhood_route(sector_id):
         raise ApiError(result["estimate"]["refusal"], status_code=507)
 
     try:
-        job_id = api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config)
+        job_id = api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config,
+                                 expected_seconds=result["estimate"].get("seconds"))
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
     audit(

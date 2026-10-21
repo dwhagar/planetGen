@@ -16,6 +16,7 @@ database's lease still keeps two runs' workers off the machine at once
 import datetime
 import decimal
 import json
+import math
 import queue as queue_module
 import subprocess
 import sys
@@ -89,9 +90,65 @@ def serializer_for(name):
     return JsonSerializer if name.startswith(JSON_QUEUE_PREFIXES) else None
 
 
+TIMEOUT_MULTIPLE = 10
+"""int: How many times its expected seconds a job may run before RQ ends it (PERF.106, PERF.144): work is expected
+to take that long on all its workers, so a job that takes ten times as long is hung or starved, not slow."""
+
+MIN_TIMEOUT_SECONDS = 15 * 60
+"""int: The shortest limit a job gets, so work that is usually quick is not ended by one slow start-up."""
+
+MAX_TIMEOUT_SECONDS = 6 * 3600
+"""int: The longest limit a job gets from `job_timeout`'s defaults, and the one of a job whose work has no
+estimate at all (a fixed ceiling, not an estimate); a site names a different floor, ceiling or `unestimated`
+limit where that fits its work."""
+
+
+def job_timeout(expected_seconds=None, ceiling=MAX_TIMEOUT_SECONDS, floor=MIN_TIMEOUT_SECONDS, unestimated=None):
+    """
+    How long a queued job may run before RQ ends it (PERF.144): `TIMEOUT_MULTIPLE` times the seconds the system
+    expects it to take (recorded timings, then the stage ETAs, then the size of the work: each site's own best
+    estimate), but at least `floor` and at most `ceiling`. Never -1 (no limit).
+
+    Args:
+        expected_seconds (float, optional): The best estimate of the job's run time; `None`, zero, negative or not
+            finite counts as no estimate.
+        ceiling (int): The most seconds.
+        floor (int): The fewest seconds.
+        unestimated (int, optional): The limit of a job with no estimate, a fixed ceiling and not an estimate
+            (default `ceiling`).
+
+    Returns:
+        int: Whole seconds, at least 1.
+    """
+    if expected_seconds is None or not math.isfinite(expected_seconds) or expected_seconds <= 0:
+        return max(int(ceiling if unestimated is None else unestimated), 1)
+    return max(int(min(max(TIMEOUT_MULTIPLE * expected_seconds, floor), ceiling)), 1)
+
+
+class TimedQueue(rq.Queue):
+    """
+    The RQ queue every site uses (`queue`): it refuses a job that has no finite time limit (PERF.144), so RQ always
+    has a deadline to expire the entry of a job whose worker was killed, and a new kind of job cannot skip
+    `job_timeout`. Every way RQ queues a job (`enqueue`, `enqueue_call`, `enqueue_many`, `enqueue_at`) goes through
+    `create_job`.
+    """
+
+    def create_job(self, func, *args, timeout=None, **kwargs):
+        """
+        Raises:
+            ValueError: `timeout` is missing (RQ would then use its default), zero or negative (-1 is RQ's "no
+                limit").
+        """
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or timeout <= 0:
+            raise ValueError(f"a job queued to {self.name} needs a time limit in seconds (redisqueue.job_timeout), "
+                             f"not {timeout!r}")
+        return super().create_job(func, *args, timeout=timeout, **kwargs)
+
+
 def queue(name, connection):
-    """The RQ queue `name` on `connection`, with its serializer (`serializer_for`)."""
-    return rq.Queue(name, connection=connection, serializer=serializer_for(name))
+    """The RQ queue `name` on `connection`, with its serializer (`serializer_for`); jobs on it need a finite
+    time limit (`TimedQueue`)."""
+    return TimedQueue(name, connection=connection, serializer=serializer_for(name))
 
 
 def fetch_job(job_id, connection=None, serializer=None):
@@ -298,12 +355,12 @@ class RQExecutor:
         proc = self._procs.get(name)
         return proc is not None and proc.poll() is not None
 
-    def submit(self, *args):
-        """Queues `task(*args)`; a task that can't be queued (an argument
-        that won't pickle) comes back as an already failed future."""
+    def submit(self, *args, expected_seconds=None):
+        """Queues `task(*args)`, to be ended by RQ after `job_timeout(expected_seconds)`; a task that can't be
+        queued (an argument that won't pickle) comes back as an already failed future."""
         try:
-            job = self.queue.enqueue(self.task, *args, job_timeout=-1, result_ttl=3600, failure_ttl=86400,
-                                     retry=rq.Retry(max=TASK_RETRIES))
+            job = self.queue.enqueue(self.task, *args, job_timeout=job_timeout(expected_seconds), result_ttl=3600,
+                                     failure_ttl=86400, retry=rq.Retry(max=TASK_RETRIES))
         except Exception as exc:  # noqa: BLE001 -- the task's failure, reported like any other
             return RQFuture(error=exc)
         self._fill_workers()

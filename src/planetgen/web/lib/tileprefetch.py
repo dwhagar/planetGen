@@ -38,6 +38,16 @@ from planetgen.web.lib import tilecache
 CHUNK = 16
 """int: Tiles one queued job builds."""
 
+TILE_SECONDS = 2.0
+"""float: What the size of a chunk's work is counted at, for its time limit (PERF.144): the seconds a cold tile is
+expected to take to build, an estimate of the size and not a recorded time (none is recorded for tiles)."""
+
+JOB_START_SECONDS = 30.0
+"""float: What a chunk's start-up (the app a worker builds) is counted at, with `TILE_SECONDS` a tile."""
+
+MIN_JOB_SECONDS = 600
+"""int: The shortest limit of a chunk, and the ceiling is `redisqueue.MAX_TIMEOUT_SECONDS`."""
+
 ZOOM_STEPS = 4
 """int: How many zoom steps ahead (each one fade band closer, `viewport.DISTANCE_CUT_FADE_BAND`) are built."""
 
@@ -159,6 +169,20 @@ def _bounds(db):
     return tile_bounds_pc(shape["edge_pc"] if shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY), shape)
 
 
+def chunk_timeout(count):
+    """The seconds RQ lets a job of `count` tiles run (PERF.144): `redisqueue.job_timeout` of the size of its work,
+    `JOB_START_SECONDS` and `TILE_SECONDS` a tile; at least `MIN_JOB_SECONDS`."""
+    return redisqueue.job_timeout(JOB_START_SECONDS + TILE_SECONDS * count, floor=MIN_JOB_SECONDS)
+
+
+def _enqueue_chunks(queue, db, keys, what):
+    """Queues `keys` as jobs of `CHUNK` tiles each on `queue`, `what` ("prefetch" or "rebuild") in their description."""
+    for start in range(0, len(keys), CHUNK):
+        chunk = keys[start:start + CHUNK]
+        queue.enqueue(JOB, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,
+                      description=f"{what} {len(chunk)} tiles")
+
+
 def schedule(db, keys, at=None):
     """
     Queues the tiles around a request for `keys` that are not stored (see the module's text for the rules).
@@ -213,9 +237,7 @@ def schedule(db, keys, at=None):
         for key in claimed[room:]:
             connection.delete(_claim_name(db, generation, key))
         claimed = claimed[:room]
-        for start in range(0, len(claimed), CHUNK):
-            queue.enqueue(JOB, args=(db, claimed[start:start + CHUNK]), job_timeout=600, result_ttl=0,
-                          failure_ttl=600, description=f"prefetch {len(claimed[start:start + CHUNK])} tiles")
+        _enqueue_chunks(queue, db, claimed, "prefetch")
         if claimed:
             workers.ensure_workers(redisqueue.BULK_QUEUE, connection, redisqueue.redis_url(), count=1)
         return len(claimed)
@@ -259,9 +281,7 @@ def rebuild(db, generation, keys):
         for key in ordered:
             pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
         claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
-        for start in range(0, len(claimed), CHUNK):
-            queue.enqueue(JOB, args=(db, claimed[start:start + CHUNK]), job_timeout=600, result_ttl=0,
-                          failure_ttl=600, description=f"rebuild {len(claimed[start:start + CHUNK])} tiles")
+        _enqueue_chunks(queue, db, claimed, "rebuild")
         if claimed:
             workers.ensure_workers(redisqueue.BULK_QUEUE, connection, redisqueue.redis_url(), count=1)
         return len(claimed)

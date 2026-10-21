@@ -80,7 +80,7 @@ def test_the_neighborhood_route_queues_the_run(admin_client, monkeypatch):
     queued = []
     monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood",
                         lambda *a, **k: {"generated": 0, "estimate": {"refusal": None}})
-    monkeypatch.setattr(api_jobs, "submit", lambda function, *args: queued.append((function, args)) or "ab" * 8)
+    monkeypatch.setattr(api_jobs, "submit", lambda function, *args, **options: queued.append((function, args)) or "ab" * 8)
     sector = _a_sector(admin_client)
     response = admin_client.post(f"/api/sectors/{sector}/generate-neighborhood", json={"radius_ly": 20})
     assert response.status_code == 202
@@ -93,7 +93,7 @@ def test_the_neighborhood_route_refuses_a_run_the_disk_cannot_hold_before_queuei
     from planetgen.generation import run_galaxy
     monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood",
                         lambda *a, **k: {"generated": 0, "estimate": {"refusal": "not enough disk"}})
-    monkeypatch.setattr(api_jobs, "submit", lambda *a: pytest.fail("queued a refused run"))
+    monkeypatch.setattr(api_jobs, "submit", lambda *a, **k: pytest.fail("queued a refused run"))
     response = admin_client.post(f"/api/sectors/{_a_sector(admin_client)}/generate-neighborhood", json={})
     assert response.status_code == 507
 
@@ -103,7 +103,7 @@ def test_the_neighborhood_route_is_503_without_redis(admin_client, monkeypatch):
     monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood",
                         lambda *a, **k: {"generated": 0, "estimate": {"refusal": None}})
 
-    def down(*args):
+    def down(*args, **options):
         raise api_jobs.NoQueue("no Redis server answers")
 
     monkeypatch.setattr(api_jobs, "submit", down)
@@ -136,7 +136,7 @@ def test_a_quick_edit_answers_in_the_same_response(admin_client, redis_server):
 
 
 def test_an_edit_is_503_without_redis(admin_client, monkeypatch):
-    def down(function, *args):
+    def down(function, *args, **options):
         raise api_jobs.NoQueue("no Redis server answers")
 
     monkeypatch.setattr(api_jobs, "submit", down)
@@ -159,7 +159,7 @@ def test_a_command_that_runs_too_long_is_stopped(redis_server):
 def test_a_command_runs_here_without_redis(monkeypatch):
     import sys
 
-    def down(function, *args):
+    def down(function, *args, **options):
         raise api_jobs.NoQueue("no Redis")
 
     monkeypatch.setattr(api_jobs, "submit", down)

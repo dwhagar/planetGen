@@ -39,6 +39,13 @@ QUEUE_NAME = redisqueue.INTERACTIVE_QUEUE
 RESULT_TTL_SECONDS = 86400
 """int: How long a finished job's result or error is kept."""
 
+UNESTIMATED_SECONDS = 3600
+"""int: The time limit of a job with no estimate (PERF.144): a one-system edit, a wiki page upload, a settle of
+the sectors around a change. A fixed ceiling, not an estimate."""
+
+ESTIMATED_CEILING_SECONDS = 7 * 86400
+"""int: The longest limit of a job with an estimate (a neighbourhood of a great many sectors can run for days)."""
+
 JOB_ID_RE = re.compile(r"^[0-9a-f]{16}$")
 """re.Pattern: A job id. Checked before any id from a URL reaches Redis."""
 
@@ -122,11 +129,35 @@ def _connection(url=None):
     return redisqueue.connect(url or redisqueue.redis_url())
 
 
-def submit(function, *args):
+def time_limit(expected_seconds=None):
+    """The seconds RQ lets an API job run (PERF.144): `redisqueue.job_timeout` of `expected_seconds`, at most
+    `ESTIMATED_CEILING_SECONDS`, and `UNESTIMATED_SECONDS` for a job with no estimate."""
+    return redisqueue.job_timeout(expected_seconds, ceiling=ESTIMATED_CEILING_SECONDS, unestimated=UNESTIMATED_SECONDS)
+
+
+def recorded_task_seconds(kind, config=None, workers=1):
+    """
+    How long a task of `kind` (a generation stats kind: `sector`, ...) took a worker in earlier runs
+    (`generation.stats`), the estimate of a job that does one; `None` with nothing recorded or no control
+    database to read (the test suite turns the stats off, as the generation does).
+    """
+    from planetgen.db import store
+    from planetgen.generation import stats
+    if os.environ.get(stats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false"):
+        return None
+    try:
+        return stats.GenerationStats(store.control_mysql_config(config or store.DEFAULT_MYSQL_CONFIG)) \
+            .seconds_per_task(kind, workers)
+    except Exception:  # noqa: BLE001 -- no estimate then: the job gets the fixed limit
+        return None
+
+
+def submit(function, *args, expected_seconds=None):
     """
     Queues `function(*args)` (a module-level function; its arguments and
     return value travel as JSON, `encode_argument`) and starts a worker for it unless
-    enough are serving the queue already (`workers.ensure_workers`).
+    enough are serving the queue already (`workers.ensure_workers`). RQ ends the job after
+    `time_limit(expected_seconds)`, so a job whose worker was killed expires.
 
     Returns:
         str: The job's id, for `status`.
@@ -147,7 +178,8 @@ def submit(function, *args):
                       f"start Redis to run this: {exc}") from exc
     job_id = new_job_id()
     redisqueue.queue(QUEUE_NAME, connection).enqueue(
-        execute, args=(function_reference(function), [encode_argument(arg) for arg in args]), job_id=QUEUE_PREFIX + job_id, job_timeout=-1,
+        execute, args=(function_reference(function), [encode_argument(arg) for arg in args]), job_id=QUEUE_PREFIX + job_id,
+        job_timeout=time_limit(expected_seconds),
         result_ttl=RESULT_TTL_SECONDS, failure_ttl=RESULT_TTL_SECONDS,
     )
     workers.ensure_workers(QUEUE_NAME, connection, url)

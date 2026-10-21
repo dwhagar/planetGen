@@ -126,7 +126,7 @@ def test_the_phenomenon_command_settles_its_sector_unless_told_not_to(mysql_conf
 def test_a_sector_generated_on_the_spot_queues_a_settle_job(mysql_config, monkeypatch):
     a_id, b_id = _two_sectors(mysql_config, monkeypatch)
     submitted = []
-    monkeypatch.setattr(api_jobs, "submit", lambda function, *args: submitted.append((function, args)) or "job1")
+    monkeypatch.setattr(api_jobs, "submit", lambda function, *args, **options: submitted.append((function, args)) or "job1")
     assert run_galaxy.queue_settle(mysql_config, [b_id, a_id]) == "job1"
     assert submitted == [(api_jobs.settle_sectors, ([a_id, b_id], mysql_config))]
     assert _marked(mysql_config, a_id) and _marked(mysql_config, b_id)  # nothing ran yet
@@ -144,7 +144,7 @@ def test_the_settle_job_saves_the_paths_and_without_a_queue_it_runs_inline(mysql
     finally:
         conn.close()
 
-    def no_queue(function, *args):
+    def no_queue(function, *args, **options):
         raise api_jobs.NoQueue("no Redis")
 
     monkeypatch.setattr(api_jobs, "submit", no_queue)

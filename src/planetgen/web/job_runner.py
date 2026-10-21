@@ -67,6 +67,9 @@ page (must match `work.CANCELLED_EXIT_CODE`)."""
 POLL_SECONDS = 0.25
 """float: How often a running step is checked for a cancel request."""
 
+STOP_WAIT_SECONDS = 10
+"""float: How long a step that RQ's time limit ended gets to exit after SIGTERM before it is killed."""
+
 
 def _write_json(path, body):
     directory = os.path.dirname(path)
@@ -90,6 +93,16 @@ def _stop_tree(proc):
         os.killpg(proc.pid, signal.SIGTERM)
     except OSError:
         pass
+
+
+def _reap(proc):
+    """Waits a few seconds for a step `_stop_tree` stopped to be gone, so it is not left a zombie of this process."""
+    if proc is None:
+        return
+    try:
+        proc.wait(timeout=STOP_WAIT_SECONDS)
+    except subprocess.TimeoutExpired:
+        proc.kill()
 
 
 def _worker_pid(job_dir):
@@ -209,6 +222,50 @@ def _step_stage_counts(steps):
     return [max(len(step.get("stages") or []), 1) for step in steps]
 
 
+def step_estimates(conn, steps):
+    """
+    `(per step, per stage)`: the seconds each step and each stage of each step is expected to take (`None` where
+    there is no record), for the overall bar (PERF.55): a `galaxy` or `plan` step from the stored time of each
+    of its stages with the settings it runs with (PERF.56), any other step, or one with a stage not yet
+    recorded, from what the step took in earlier runs. The per-stage list holds one entry for each stage of the
+    job, in order (a step with no stage list counts as one).
+
+    Args:
+        conn: A control database connection.
+        steps (list[dict]): The job's steps.
+    """
+    from planetgen.queue import work
+
+    counts = _step_stage_counts(steps)
+    recorded = work.recorded_step_seconds(conn)
+    per_step, per_stage = [], []
+    for step, count in zip(steps, counts):
+        argv = step.get("argv") or []
+        per_step.append(_stage_estimate(conn, argv) or recorded.get(step["label"]))
+        found = _stage_estimates(conn, argv)
+        per_stage += found if len(found) == count else [per_step[-1]] + [None] * (count - 1)
+    return per_step, per_stage
+
+
+def expected_seconds(job):
+    """
+    How long `job` (as `job.json` holds it) is expected to take (PERF.144): the sum of its steps' expected seconds
+    (`step_estimates`: the recorded stage times, else what the step took in earlier runs); `None` unless every step
+    has one, or without a control database. The web server calls this to give the job's RQ entry a time limit.
+    """
+    try:
+        from planetgen.db import store
+
+        conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
+        try:
+            per_step, _per_stage = step_estimates(conn, job["steps"])
+        finally:
+            conn.close()
+    except Exception:  # noqa: BLE001 -- no estimate: the job gets the fixed limit
+        return None
+    return None if not per_step or any(seconds is None for seconds in per_step) else sum(per_step)
+
+
 class _JobTree:
     """The job's nodes in the control database's job tree, or nothing at
     all when planetGen's modules or the control database aren't there."""
@@ -239,32 +296,20 @@ class _JobTree:
 
     def step_estimates(self, steps):
         """
-        `(per step, per stage)`: the seconds each step and each stage of each step is expected to take (`None` where
-        there is no record), for the overall bar (PERF.55): a `galaxy` or `plan` step from the stored time of each
-        of its stages with the settings it runs with (PERF.56), any other step, or one with a stage not yet
-        recorded, from what the step took in earlier runs. The per-stage list holds one entry for each stage of the
-        job, in order (a step with no stage list counts as one).
+        `(per step, per stage)` for `step_estimates` (the module's), or `None`s where this tree has no control
+        database.
         """
-        labels = [step["label"] for step in steps]
-        counts = _step_stage_counts(steps)
-        nothing = ([None] * len(labels), [None] * sum(counts))
+        nothing = ([None] * len(steps), [None] * sum(_step_stage_counts(steps)))
         if self.queue is None or not self.root.store.available:
             return nothing
         try:
             conn = self.root.store._connect()
             try:
-                recorded = self.queue.recorded_step_seconds(conn)
-                per_step, per_stage = [], []
-                for step, count in zip(steps, counts):
-                    argv = step.get("argv") or []
-                    per_step.append(_stage_estimate(conn, argv) or recorded.get(step["label"]))
-                    found = _stage_estimates(conn, argv)
-                    per_stage += found if len(found) == count else [per_step[-1]] + [None] * (count - 1)
+                return step_estimates(conn, steps)
             finally:
                 conn.close()
         except Exception:  # noqa: BLE001 -- the bar then estimates from the running step alone
             return nothing
-        return per_step, per_stage
 
     def close(self, node, state):
         if self.queue is None or node is None:
@@ -394,8 +439,12 @@ def run(job_dir):
         elif state["status"] == "running":
             state["status"] = "succeeded"
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost
+        # RQ's time limit (`jobs.job_time_limit`) raises in this thread: the step it was waiting on goes with it.
+        _stop_tree(current["proc"])
+        _reap(current["proc"])
         state["status"] = "failed"
-        state["error"] = f"The job runner failed: {exc}"
+        state["error"] = (f"The job ran past its time limit and RQ ended it: {exc}"
+                          if type(exc).__name__ == "JobTimeoutException" else f"The job runner failed: {exc}")
         _log_traceback(job_dir)
     finally:
         state["finished_at"] = time.time()
