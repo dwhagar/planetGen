@@ -16250,10 +16250,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker start), (2) a dead owning run is detected, so the next run
   proceeds without a manual step and the run record is closed as failed,
   (3) the reset command, which is PERF.143. Parts 1 and 2 are this item;
-  the RQ job time limits and the expiry or liveness check of
-  `planetgen:run:active` belong with them. Done also needs: a test kills
+  the liveness check of `planetgen:run:active` belongs with them, and the RQ job time limits are PERF.144 (Boss, 12:44 PM EDT). Done also needs: a test kills
   a worker mid-job and the job is failed or requeued, and a test kills
   the run's owner and the next run starts.
+  Causes found by code and by reproduction (Bug Hunt, reported 12:46 PM
+  EDT 2026-10-21 as the lane reported; the earlier note above gives the
+  second one): (1) the most likely blocker for Boss:
+  `planetgen:run:active` (`queue/runrecord.py` `start_run`, SET NX, no
+  expiry) is freed only by the run's own process in `finish_run`, so a
+  run whose follower process is killed with kill -9, by the OOM killer
+  or by a container restart leaves it set and every new run gets Busy
+  for ever. Fix: runs record their owner process and a heartbeat key,
+  and `start_run` takes over from a dead holder (same host: the pid is
+  gone; otherwise no heartbeat for 120 s; old runs with no owner count
+  as dead). (2) A web or API job queued with `job_timeout=-1` whose
+  worker is killed stays in the RQ started registry for ever; fix:
+  `workers.reap_dead_jobs`, called by the guard and at worker start. The
+  RQ time limit for those jobs is PERF.144, not this item.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
@@ -16289,7 +16302,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   killed run blocks every new run. This item is part 3 of the three-part
   scope on PERF.142 (dead-task management); parts 1 and 2 are on that
   item.
+  Build detail (Bug Hunt, reported 12:46 PM EDT 2026-10-21 as the lane
+  reported): `python3 -m planetgen.cli.reset_jobs` (and `update.sh
+  --reset-jobs`) removes the `rq:*` and `planetgen:run:*` keys, kills
+  local workers, deletes the `work_jobs` rows and frees the work lease;
+  it never touches galaxy data, caches or settings. The name is
+  `reset_jobs`, not `planetgen reset`. Bug Hunt adds the console help
+  list entry if that list is built, and will say if it is not.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
+
+- [ ] **PERF.144 Web and API jobs get an RQ time limit from recorded stats instead of no limit, so a killed worker's entry expires**
+  Boss (2026-10-21, 12:44 PM EDT, in the Bug Hunt thread, as Bug Hunt
+  reported it): "Can we build a time limit to assign to RQ based on
+  stats?". Today the Generate page's job (`web/jobs.py:696`), the API's
+  jobs (`queue/api_jobs.py:150`) and the queue executor
+  (`queue/redisqueue.py:305`) are queued with `job_timeout=-1`, so RQ
+  never expires their entries when a worker dies (PERF.142). Units
+  already get a limit (`units.unit_timeout`: a multiple of the stage's
+  expected seconds, with a floor and a ceiling, never -1). Do: give
+  these jobs a limit the same way, from the recorded timings per kind
+  (`generation_stats`, a multiple with a floor and a ceiling), and a
+  fixed ceiling for API routes that have no timings; no job is queued
+  with -1. Done: a test shows each queue path passes a finite limit, a
+  kind with recorded timings gets the multiple and one without gets the
+  ceiling, and a job over its limit is ended and reported failed. Owner:
+  Bug Hunt, after the PERF.142 and PERF.143 PR. Related: PERF.142,
+  PERF.106 (the unit limits).
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
 
 ## DB: Database and schema
 
