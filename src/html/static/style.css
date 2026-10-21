@@ -4975,3 +4975,26 @@ p.hint a {
 .app .admin-jobstrip-cancel {
   margin: 0;
 }
+
+/* ADM.113: the one-off system's force-or-forbid rows, each a Generator decides / Yes / No choice. */
+.tristate-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 0.5rem 1.5rem;
+}
+
+.tristate-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tristate-row legend {
+  float: left;
+  padding: 0;
+}

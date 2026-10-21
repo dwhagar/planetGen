@@ -216,22 +216,13 @@ def _downloads(document, title):
 
 
 def _page(admin, form=None, result=None, error=None, status=200):
-    return _no_store(render_page(
-        "generate_system.html",
-        title="One-off system",
-        section="admin_generate",
-        breadcrumbs=[crumb("Admin", "admin"), crumb("Generate", "generate"), crumb("One-off system")],
-        description="Generate one star system without saving it to the database.",
-        admin=admin,
-        form=form or {},
-        tristate_fields=TRISTATE_FIELDS,
-        tristate_choices=TRISTATE_CHOICES,
-        system_file_example=SYSTEM_FILE_EXAMPLE,
-        max_num_orbits=MAX_NUM_ORBITS,
-        result=result,
-        error=error,
-        status=status,
-    ))
+    from .generate_flow import render_screen
+
+    return render_screen(
+        "generate_system.html", admin, "One-off system", [crumb("One-off system")], form=form, error=error,
+        status=status, description="Generate one star system without saving it to the database.",
+        tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, system_file_example=SYSTEM_FILE_EXAMPLE,
+        max_num_orbits=MAX_NUM_ORBITS, result=result)
 
 
 @bp.route("/admin/generate/system", methods=["GET", "POST"])

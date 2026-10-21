@@ -99,24 +99,25 @@ def task_entries():
     ]
 
 
-def _render(template, admin, title, crumbs, form=None, error=None, status=200, tab="start", **context):
+def render_screen(template, admin, title, crumbs, form=None, error=None, status=200, tab="start", description=None,
+                  **context):
     """`template` drawn with the shared Generate context; `crumbs` follow Admin and Generate (none: Generate is the
     current page)."""
     context = {**page_context(admin, form=form, error=error, status=status), **context}
     trail = [crumb("Admin", "admin"), crumb("Generate", "generate") if crumbs else crumb("Generate"), *crumbs]
     return _no_store(render_page(
         template, title=title, section="admin_generate", tab=tab, breadcrumbs=trail,
-        description="Generate, plan or reset this site's galaxy.", tasks=TASKS, **context))
+        description=description or "Generate, plan or reset this site's galaxy.", tasks=TASKS, **context))
 
 
 def start_page(admin, error=None, status=200):
     """The Start screen: a card per task."""
-    return _render("generate.html", admin, "Generate", [], error=error, status=status)
+    return render_screen("generate.html", admin, "Generate", [], error=error, status=status)
 
 
 def task_page(admin, task, form=None, error=None, status=200):
     """A task's form, filled from `form` when it is shown again."""
-    return _render("generate_task.html", admin, task.label, [crumb(task.label)], form=form, error=error, status=status,
+    return render_screen("generate_task.html", admin, task.label, [crumb(task.label)], form=form, error=error, status=status,
                    task=task)
 
 
@@ -150,7 +151,7 @@ def review_page(admin, action, kind, title, steps, form, estimate=None):
             "Generate anyway" if estimate and estimate.get("refused") else "Run"),
         "fields": [(name, value) for name, value in form.items(multi=True) if name not in DRAFT_SKIP],
     }
-    return _render("generate_review.html", admin, f"Review: {title}", [crumb(task.label, "generate_task", key=task.key),
+    return render_screen("generate_review.html", admin, f"Review: {title}", [crumb(task.label, "generate_task", key=task.key),
                                                                          crumb("Review")],
                    form=form, task=task, review=review)
 
@@ -187,4 +188,4 @@ def generate_task(key):
 def generate_history():
     """Every recent job, a page at a time."""
     admin, response = _admin_or_redirect()
-    return response or _render("generate_history.html", admin, "Generate history", [crumb("History")], tab="history")
+    return response or render_screen("generate_history.html", admin, "Generate history", [crumb("History")], tab="history")
