@@ -7,8 +7,9 @@ The galaxy's ejecta (GEN.238)
 A neutron star born with a kick above the galaxy's escape speed, and a black hole ejected, leave it and stream out for
 ever: a steady outflow that fills the whole sphere, with a density that falls as `1 / r^2`. The code reads them as one
 population per kind, `ejecta`, apart from the bound stars and their remnants: the unbound share of the kind's galaxy
-total `N` (a share of the neutron stars that the galaxy's escape speed sets, `galaxy.natal_kick`, about 2% of the black holes) leaves at the speed `v` (300 to 500 km/s
-above escape) and has been leaving for `T` (10 Gyr), so
+total `N` (a share of the neutron stars that the galaxy's escape speed sets, `galaxy.natal_kick`, about 2% of the black holes) leaves at the speed `v` (a neutron star's the mean of what
+the kick leaves above the escape speed, `galaxy.natal_kick.ejecta_speeds_kms`; a black hole's the middle of 300 to 500 km/s)
+and has been leaving for `T` (10 Gyr), so
 
     n(r) = N / (4 pi r^2 v T)    for r < v T, and none beyond
 
@@ -62,19 +63,30 @@ def unbound_count(kind, shape, expected_at_density_1, edge_pc):
     return formed * galaxy_systems(shape, expected_at_density_1, edge_pc) * unbound
 
 
-def mean_speed_kms():
-    """The speed the population's density is taken at, km/s: the middle of `EJECTA_SPEED_RANGE_KMS`."""
-    return sum(tuning.EJECTA_SPEED_RANGE_KMS) / 2.0
+def speeds_kms(kind, shape=None):
+    """The far speeds, km/s, of the ejected `kind`: a neutron star's are the quantiles of the galaxy's kick law
+    (`Structure.neutron_star_ejecta_speeds_kms`; the Milky Way structure's without a shape), a black hole's the two ends of
+    `EJECTA_SPEED_RANGE_KMS` (no kick model gives theirs). `()` when the galaxy ejects none."""
+    if kind == "black-hole":
+        return tuning.EJECTA_SPEED_RANGE_KMS
+    from planetgen.galaxy import structure
+    return (structure.REFERENCE_STRUCTURE if shape is None else shape.structure).neutron_star_ejecta_speeds_kms
 
 
-def outer_radius_pc():
-    """Where the population ends, `v T`, parsecs."""
-    return mean_speed_kms() * tuning.EJECTA_AGE_GY * 1.0e9 * physical_constants.SECONDS_PER_YEAR / _KM_PER_PC
+def mean_speed_kms(kind, shape=None):
+    """The speed the population's density is taken at, km/s: the mean of `speeds_kms`, 0 for a galaxy that ejects none."""
+    speeds = speeds_kms(kind, shape)
+    return sum(speeds) / len(speeds) if speeds else 0.0
+
+
+def outer_radius_pc(kind, shape=None):
+    """Where the population of `kind` ends, `v T`, parsecs."""
+    return mean_speed_kms(kind, shape) * tuning.EJECTA_AGE_GY * 1.0e9 * physical_constants.SECONDS_PER_YEAR / _KM_PER_PC
 
 
 def density_pc3(kind, radius_pc, shape, expected_at_density_1, edge_pc):
     """The ejecta of `kind` per cubic parsec `radius_pc` from the galactic centre."""
-    outer = outer_radius_pc()
+    outer = outer_radius_pc(kind, shape)
     if radius_pc >= outer or radius_pc <= 0.0:
         return 0.0
     return unbound_count(kind, shape, expected_at_density_1, edge_pc) / (
@@ -90,12 +102,18 @@ def expected_in_cell(position_pc, volume_pc3, shape, expected_at_density_1, edge
             for kind in KINDS}
 
 
-def draw_velocity_kms(rng=draw):
-    """The velocity of one ejected object, galactic axes, km/s: a speed uniform in `EJECTA_SPEED_RANGE_KMS` along a
-    random direction (`rng` supplies `random`)."""
+def draw_velocity_kms(kind, shape=None, rng=draw):
+    """The velocity of one ejected `kind`, galactic axes, km/s: a speed between two of the galaxy's quantiles
+    (`speeds_kms`; uniform between a black hole's two ends) along a random direction (`rng` supplies `random`)."""
     z = 2.0 * rng.random() - 1.0
     phi = 2.0 * math.pi * rng.random()
     ring = math.sqrt(max(0.0, 1.0 - z * z))
-    low, high = tuning.EJECTA_SPEED_RANGE_KMS
-    speed = low + (high - low) * rng.random()
+    speeds = speeds_kms(kind, shape)
+    if kind == "black-hole":
+        low, high = speeds
+        speed = low + (high - low) * rng.random()
+    else:
+        position = rng.random() * (len(speeds) - 1)
+        index = min(int(position), len(speeds) - 2) if len(speeds) > 1 else 0
+        speed = (speeds[index] + (position - index) * (speeds[index + 1] - speeds[index])) if len(speeds) > 1 else speeds[0]
     return (speed * ring * math.cos(phi), speed * ring * math.sin(phi), speed * z)

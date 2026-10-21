@@ -29,11 +29,20 @@ The old 20% to 40% is a test target for the Milky Way's published masses (27%, i
 - The neutron star count of every place (`remnant_density`) and the ejected count (`ejecta_field`) read the share from the structure, as in slice 1; bound plus ejected is still what the galaxy formed.
 - The black hole share cap (GEN.563 card 5, "Keep the cap") is the Milky Way-like galaxy's, the same for every galaxy: with a derived share a galaxy that ejects more than 59% of its neutron stars would have a cap of 0 and no stellar black holes. The choice is on Boss's card (the cap at the Milky Way-like share is the recommended option, and the one built).
 
+## The ejected stars' speed
+
+A kick speed `s` above the escape speed `v` at the birth radius leaves the neutron star with `sqrt(s^2 - v^2)` far out. The speed
+law is the density of `|V + k|` (the noncentral chi of three degrees of freedom, `_speed_density`), integrated above `v` over the
+same birth radii, and the galaxy's structure holds its 16 equal-share quantiles (`Structure.neutron_star_ejecta_speeds_kms`,
+`ejecta_speeds_kms`). The ejecta population's density takes their mean (`ejecta_field.mean_speed_kms`: 386 km/s for the
+Milky Way-like structure, against the 400 of the old 300 to 500 range) and each object draws a speed between two quantiles.
+A galaxy that ejects none has none. A black hole's speed keeps the range (`EJECTA_SPEED_RANGE_KMS`), a **[stand-in]** with the 2%.
+
 ## Stand-ins and open items
 
 - **[recalled]** The dispersion 265 km/s (Hobbs et al. 2005) is recalled in the repository's notes and not re-read (Boss, 1:17 PM EDT 2026-10-21: use what is included); one Maxwellian stands for what is probably two components **[stand-in]**.
 - The black holes' 2% (`BLACK_HOLE_UNBOUND_FRACTION`, one population synthesis) is not derived: a momentum-conserving kick of `sigma x 1.4 / M` (37 km/s for 10 solar masses) unbinds almost none. It stays a **[placeholder]**.
-- **[stand-in]** Birth in the thin disc only: the bulge's and the halo's neutron stars are born at their own radii, not averaged here. Disc scale lengths a shape fixes by hand keep the seed's drawn length for this share. The speed of an ejected star (`EJECTA_SPEED_RANGE_KMS`) is not yet the kick's tail above the escape speed.
+- **[stand-in]** Birth in the thin disc only: the bulge's and the halo's neutron stars are born at their own radii, not averaged here. Disc scale lengths a shape fixes by hand keep the seed's drawn length for this share. 
 - The potential is spherical and static, and the progenitor's speed is the circular speed with no asymmetric drift.
 
 ## Tests

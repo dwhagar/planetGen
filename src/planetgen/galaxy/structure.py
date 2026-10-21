@@ -57,6 +57,7 @@ Structure = namedtuple(
         "bulge_dispersion_scatter_dex",
         "stellar_mass_solar", "classical_bulge", "black_hole_deviation", "nuclear_cluster_mass_solar",
         "black_hole_solar_share", "black_hole_metal_free_share", "neutron_star_unbound_share",
+        "neutron_star_ejecta_speeds_kms",
     ],
 )
 """A galaxy's thick disk, bar, stellar halo and population motions (not stored; see the module docstring).
@@ -74,7 +75,8 @@ hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` i
 zero for a galaxy that has none (GEN.402); the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
 at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`); `neutron_star_unbound_share` is the share of the
 neutron stars formed that the galaxy ejects (GEN.554, `galaxy.natal_kick`: the kick law against the escape speed), which the black hole
-shares' cap and the neutron stars' bound count both read."""
+shares' cap and the neutron stars' bound count both read; `neutron_star_ejecta_speeds_kms` are the equal-share quantiles of the speed
+those ejected neutron stars have far out (`natal_kick.ejecta_speeds_kms`), empty for a galaxy that ejects none."""
 
 REFERENCE_RADIUS_OVER_TWO_LENGTHS = tuning.REFERENCE_RADIUS_SCALE_LENGTHS / 2.0
 """float: `R / 2 h_R` at the reference radius, the exponent of the fall of the dispersion."""
@@ -106,10 +108,11 @@ def _milky_way_thick_mass_ratio():
 
 _MILKY_WAY_DISC_SCALE_LENGTH_KPC = 2.6
 _MILKY_WAY_HALO_MASS_SOLAR = mass_chain.median_halo_mass(5.0e10)
+_MILKY_WAY_CHAIN = mass_chain.MassChain(
+    5.0e10, _MILKY_WAY_HALO_MASS_SOLAR, mass_chain.virial_radius_kpc(_MILKY_WAY_HALO_MASS_SOLAR),
+    mass_chain.median_concentration(_MILKY_WAY_HALO_MASS_SOLAR))
 _MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE = natal_kick.neutron_star_unbound_share(
-    mass_chain.MassChain(5.0e10, _MILKY_WAY_HALO_MASS_SOLAR, mass_chain.virial_radius_kpc(_MILKY_WAY_HALO_MASS_SOLAR),
-                         mass_chain.median_concentration(_MILKY_WAY_HALO_MASS_SOLAR)),
-    220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC)
+    _MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC)
 _MIDDLE_BLACK_HOLE_SHARES = black_hole_formation.middle_failed_shares(_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE)
 
 REFERENCE_STRUCTURE = Structure(
@@ -124,6 +127,7 @@ REFERENCE_STRUCTURE = Structure(
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
     black_hole_solar_share=_MIDDLE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_MIDDLE_BLACK_HOLE_SHARES[1],
     neutron_star_unbound_share=_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE,
+    neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC),
 )
 """Structure: The Milky Way's published structure, the check target of the math check and the structure of a shape
 built with no seed. The thick disk and the bar are the Bland-Hawthorn and Gerhard 2016 (ARA&A 54:529) and Dwek et al.
