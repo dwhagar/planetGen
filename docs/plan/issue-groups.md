@@ -13,6 +13,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
+| [#2350](https://github.com/dwhagar/planetGen/issues/2350) | open | Admin control suite: one quiet interface for the admin pages, the Generate suite and the settings | ADM.98, ADM.55, ADM.92, ADM.93, ADM.56, ADM.99, ADM.100, UX.125, UX.126, UX.137, ADM.97, PERF.134 |
 | [#2197](https://github.com/dwhagar/planetGen/issues/2197) | closed | The black hole density follows metallicity and the neutron star budget (8.1) | GEN.563 |
 | [#2196](https://github.com/dwhagar/planetGen/issues/2196) | open | A System is a view: the barycentre is the origin, the heaviest branch is the primary, and the point object serves any frame (8.4) | DB.78, DOC.71, GEN.576, GEN.577, GEN.578, GEN.579, GEN.581, GEN.582, GEN.583, GEN.584, MAP.253, TEST.241, TEST.242, TEST.244 |
 | [#2195](https://github.com/dwhagar/planetGen/issues/2195) | open | One unit registry, one Quantity class and one set of declared relations (8.4, exact factors in 8.1) | DB.76, DB.77, DOC.70, GEN.568, GEN.569, GEN.570, GEN.571, GEN.573, GEN.574, GEN.575, GEN.585, GEN.586, GEN.587, GEN.588, UX.139, UX.140 |
@@ -29,7 +30,7 @@ Rules:
 | [#1845](https://github.com/dwhagar/planetGen/issues/1845) | open | One configuration file and the settings page (8.1) | ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303, USR.31 |
 | [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
 | [#1843](https://github.com/dwhagar/planetGen/issues/1843) | open | Roles and permissions: requests, reviews, lifecycle and audit (10.0) | DB.39, DOC.55, TEST.178, TEST.179, USR.12, USR.13, USR.14, USR.15, USR.16, USR.17, USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24, USR.25 |
-| [#1842](https://github.com/dwhagar/planetGen/issues/1842) | open | Edit everything: change plans, regions, regeneration and locks (8.6) | ADM.57, ADM.58, ADM.59, ADM.60, ADM.61, ADM.62, ADM.63, ADM.64, ADM.65, ADM.66, ADM.67, ADM.68, ADM.69, ADM.70, ADM.71, ADM.72, ADM.74, ADM.75, ADM.76, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, ADM.82, ADM.92, ADM.93, ADM.94, API.28, DB.36, DB.37, DB.38, DB.60, DOC.54, DOC.57, GEN.302, MAP.212, MAP.218, TEST.175, TEST.176, TEST.177, ADM.52 |
+| [#1842](https://github.com/dwhagar/planetGen/issues/1842) | open | Edit everything: change plans, regions, regeneration and locks (8.6) | ADM.57, ADM.58, ADM.59, ADM.60, ADM.61, ADM.62, ADM.63, ADM.64, ADM.65, ADM.66, ADM.67, ADM.68, ADM.69, ADM.70, ADM.71, ADM.72, ADM.74, ADM.75, ADM.76, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, ADM.82, ADM.94, API.28, DB.36, DB.37, DB.38, DB.60, DOC.54, DOC.57, GEN.302, MAP.212, MAP.218, TEST.175, TEST.176, TEST.177, ADM.52 |
 | [#1828](https://github.com/dwhagar/planetGen/issues/1828) | closed | Slow pages queue their data in Redis and show a progress bar | UX.118 |
 | [#1750](https://github.com/dwhagar/planetGen/issues/1750) | closed | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
@@ -45,7 +46,7 @@ Rules:
 | [#1691](https://github.com/dwhagar/planetGen/issues/1691) | closed | Documentation corrections and the docs index | DOC.4, DOC.21 |
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58 |
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82, TEST.183, UX.121, UX.122, UX.123, UX.124, UX.125, UX.126, UX.130, UX.131, UX.132 |
-| [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, ADM.92, ADM.93 |
+| [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, TEST.169 |
 | [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.35, DB.29, OPS.61, OPS.62, DB.80, DOC.72 |
 | [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31, DB.43, DB.44, DB.45, DB.46, DB.47, DB.48 |
 | [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.41, GEN.212, UX.136, PERF.137 |

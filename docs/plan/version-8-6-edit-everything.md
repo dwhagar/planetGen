@@ -20,8 +20,6 @@ The foundations every editor stands on: the change plan and its store, the unit 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | UX.115 | Queued admin chain (Boss, 12:52 AM EDT); first of the chain |
-| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.55 | Split from ADM.56. |
 
 ### Existing admin editors
 
@@ -93,8 +91,6 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | ADM.92 | Split from ADM.56. |
-| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.92, ADM.93 | Queued admin chain; the shell the rest of the chain uses |
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | ADM.56, TEST.168 | Quality; queued admin chain |
 
 ### Help framework
