@@ -27,9 +27,8 @@ from planetgen import tuning
 from planetgen.physics import constants as pc
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
+from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
 
 
 AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
@@ -90,7 +89,7 @@ def asteroid_field_designation(field_class, sector_code, index):
     return f"AF {field_class}-{index:02d}"
 
 
-class AsteroidField(LazySaladName):
+class AsteroidField(LazySaladName, MassObject):
     """
     A basic class to store information for a standalone field of asteroid
     debris drifting in open space, bound to no star.
@@ -122,8 +121,7 @@ class AsteroidField(LazySaladName):
 
     SERIALIZABLE_FIELDS = [
         "name", "field_class", "composition_family", "density", "radius_ly",
-        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        *GALACTIC_MOTION_FIELDS,
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
@@ -160,50 +158,26 @@ class AsteroidField(LazySaladName):
         self.radius_ly = draw.uniform(*tuning.ASTEROID_FIELD_RADIUS_RANGE_LY)
         self.field_class = asteroid_field_class(self.composition_family, self.density, self.radius_ly)
 
-        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
-         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
-            generate_galactic_orbit_fields()
+        self.set_galactic_motion()
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this field's properties, per
-        `SERIALIZABLE_FIELDS`, with `composition` stored as a list of
-        2-element lists (JSON has no tuple type) -- mirrors
-        `AsteroidBelt.to_dict`.
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
-                 `composition`.
-        """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+    def _encode(self, data):
+        """`composition` as a list of 2-element lists (JSON has no tuple type), as `AsteroidBelt.to_dict` does."""
         data["composition"] = [list(pair) for pair in self.composition]
-        return data
+
+    def _decode(self, data):
+        self.composition = [tuple(pair) for pair in data["composition"]]
 
     @classmethod
     def from_dict(cls, data, system_config):
-        """
-        Reconstructs an `AsteroidField` from a dict in the shape
-        `to_dict()` produces, without re-running generation (`__init__` is
-        bypassed via `object.__new__`).
-
-        Args:
-            data (dict): A dict in the shape `to_dict()` produces.
-            system_config (SystemConfig): The shared config.
-
-        Returns:
-            AsteroidField: The reconstructed field.
-        """
-        field = object.__new__(cls)
-        field.system_config = system_config
+        """Reconstructs an `AsteroidField` from a dict in the shape `to_dict()` produces, without re-running
+        generation."""
         data = dict(data)
         if data.get("field_class") is None:
             # Saved before classes existed (schema v38): a random mineral
             # mix is honestly "mixed".
             data["composition_family"] = "mixed"
             data["field_class"] = asteroid_field_class("mixed", data["density"], data["radius_ly"])
-        fields_from_dict(field, data, cls.SERIALIZABLE_FIELDS)
-        field.composition = [tuple(pair) for pair in data["composition"]]
-        return field
+        return cls._rebuild(data, system_config)
 
     def get_composition_summary(self):
         """

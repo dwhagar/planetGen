@@ -680,11 +680,17 @@ def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
 _ASKED_ENV = "PLANETGEN_TEST_ASKED_ADDRESSES"
 
 
-def _recording_fill_task(payload):
-    """A `_fill_sector_task` that only records the address it was asked
-    for, in the file `$PLANETGEN_TEST_ASKED_ADDRESSES` names."""
-    worker_patches.append_json(os.environ[_ASKED_ENV], list(payload["address"]))
-    return {"sector_id": 0, "name": "stub", "systems": 0, "phenomena": 0, "summary": ""}
+def _recording_sectors_unit(unit_args, report):
+    """A `generate_sectors_unit` that only records the addresses it was asked for, in the file
+    `$PLANETGEN_TEST_ASKED_ADDRESSES` names."""
+    items = unit_args["items"]
+    done = []
+    for place in range(0, len(items), 3):
+        address = list(items[place:place + 3])
+        worker_patches.append_json(os.environ[_ASKED_ENV], address)
+        done.append({"address": address, "sector_id": 0, "name": "stub", "systems": 0, "stars": 0, "density": 1.0,
+                     "phenomena": 0, "summary": "", "seconds": 0.0})
+    return {"sectors": done, "pid": os.getpid()}
 
 
 @pytest.mark.parametrize("radius,consequence", [
@@ -704,9 +710,9 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
     for are checked."""
     _plan_flat_galaxy(mysql_config)
     center = _placed_sector_id(mysql_config)
-    # The stub is the task itself, so it reaches the workers (PERF.21).
+    # The stub is the unit itself, so it reaches the workers (PERF.21).
     monkeypatch.setenv(_ASKED_ENV, str(tmp_path / "asked.jsonl"))
-    monkeypatch.setattr(run_galaxy, "_fill_sector_task", _recording_fill_task)
+    monkeypatch.setattr(run_galaxy, "generate_sectors_unit", _recording_sectors_unit)
     monkeypatch.setattr(run_galaxy, "_log_saved", lambda *a, **k: None)
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
                   "--num-systems", "1"] + mysql_argv(mysql_config), limit=10)

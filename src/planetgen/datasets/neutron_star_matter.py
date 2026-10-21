@@ -15,7 +15,7 @@ Two sets, both on Zenodo under CC BY 4.0:
   baryon density and pressure at which one gives way to the next, ending at neutron drip. Only the unmagnetised
   (`B0`) files are read.
 
-The readers raise `fetch.StandIn` when the files have not been downloaded.
+The readers raise `fetch.DataMissing` when the files have not been downloaded.
 """
 
 import csv
@@ -65,7 +65,7 @@ DATASET = fetch.Dataset(
                         "b98680f3b1d55786aea7db077e8be9e00f1949925d5b8858104eea4c9839a39c", 1830018),)
     + tuple(fetch.Piece(f"EOS{n}.txt", f"https://zenodo.org/records/10950421/files/EOS{n}.txt?download=1", sha, size)
             for n, (sha, size) in _EOS_SHA.items()),
-    standin="the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note",
+    replaces="the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note",
     fill="SC3",
 )
 
@@ -156,6 +156,12 @@ def outer_crust(model):
 def baryon_density_fm3(mass_density_g_cm3):
     """The baryon number density in fm^-3 of matter at `mass_density_g_cm3`."""
     return mass_density_g_cm3 / _AMU_G * _FM3_PER_CM3
+
+
+def mass_density_g_cm3(baryon_density_fm3):
+    """The mass density in g/cm^3 of matter at the baryon number density `baryon_density_fm3` (the inverse of
+    `baryon_density_fm3`)."""
+    return baryon_density_fm3 / _FM3_PER_CM3 * _AMU_G
 
 
 def crust_nucleus(model, mass_density_g_cm3):

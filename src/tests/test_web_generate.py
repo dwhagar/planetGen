@@ -289,11 +289,12 @@ def _argv(step):
 
 
 def _work_steps(job):
-    """A generating job's steps after its first one, the math check
-    (TEST.68), which this checks is there."""
-    check, *rest = job["steps"]
+    """A generating job's steps after its first two, the math check
+    (TEST.68) and the data check (GEN.590), which this checks are there."""
+    check, data, *rest = job["steps"]
     assert check["label"] == generate_page.MATH_CHECK_LABEL
     assert check["argv"][1:3] == jobs.GENERATE_COMMAND and _argv(check) == ["check-math"]
+    assert data["label"] == generate_page.DATA_CHECK_LABEL and data["argv"][1:] == [*jobs.DATASETS_COMMAND, "status"]
     return rest
 
 
@@ -1290,11 +1291,12 @@ def test_map_generate_target_only_for_a_usable_admin():
     ("bright_band", {"down_to": "100"}),
     ("galaxy", {"mode": "random"}),
 ])
-def test_every_generating_job_checks_the_math_first(action, form):
+def test_every_generating_job_checks_the_math_and_the_data_first(action, form):
     kind, title, steps = generate_page.build_job(action, form, DB)
     assert steps[0]["label"] == generate_page.MATH_CHECK_LABEL
     assert steps[0]["argv"][1:] == [*jobs.GENERATE_COMMAND, "check-math"]
-    assert len(steps) > 1
+    assert steps[1]["label"] == generate_page.DATA_CHECK_LABEL and steps[1]["argv"][1:] == [*jobs.DATASETS_COMMAND, "status"]
+    assert len(steps) > 2
 
 
 def test_a_plain_reset_has_no_math_step():

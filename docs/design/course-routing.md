@@ -631,7 +631,7 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   11), and fill-order-curves-and-core.md shows a cubic index cannot address the
   ring, layer, slot cells. Section 4.2 measures Morton ranges as a nearby-search
   key and finds no gain over the address index. Superseded; add no Morton
-  column. The octree depth and point-mass table material belongs to
+  column. Superseded in turn by the built `cell_key` (a stored Morton number, `galaxy/cellkey.py`; DB.34, DB.35; see `galaxy-coordinate-system.md`, 2026-10-17). The octree depth and point-mass table material belongs to
   `orbital-updates.md`.
 - **The study's range cap and "deep-space hop over 2 sector edges"** are
   superseded by Boss's 2026-10-02 01:53Z decision. Its `lib/navmap.py` is now

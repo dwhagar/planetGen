@@ -12,7 +12,7 @@ oxygen. The core of these models is homogeneous and equimassic carbon and oxygen
 sequences' own assumption, not a measurement, and the readers say so. The sequences are carbon-oxygen white dwarfs;
 a helium-core or an oxygen-neon-core white dwarf is not in them.
 
-The readers raise `fetch.StandIn` when the file has not been downloaded, and answer `None` outside the masses
+The readers raise `fetch.DataMissing` when the file has not been downloaded, and answer `None` outside the masses
 (0.20 to 1.30) of the grid. Temperatures outside a sequence's range are clamped to its ends.
 """
 
@@ -35,7 +35,7 @@ DATASET = fetch.Dataset(
     licence="open; cite Bédard et al. 2020",
     pieces=(fetch.Piece(ARCHIVE, "https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/"
                         + ARCHIVE, "5c99114fcba0087395fcde2779ad7bdc9b7ace224abb71322d45165facae45ac", 2519040),),
-    standin="the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split",
+    replaces="the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split",
     fill="SC2",
 )
 

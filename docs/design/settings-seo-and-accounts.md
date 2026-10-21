@@ -27,11 +27,11 @@ Verified against the code on this branch:
 - About 14 modules import `appconfig`: `api/config.py` freezes most options at import, the rest read per use.
 - `docs/config.md` has a hand-written field table of about 25 rows. Keep its prose, generate the table (A8). `base_url` is documented as "not yet read by any page"; ADM.44 makes it load-bearing, so it needs validation.
 - `base.html` hard-codes the two `theme-color` values and `favicon.svg`.
-- Pydantic is already a dependency (`pydantic>=2.7.0`; `api/schemas.py`, `web/generate_page.py`). `setup.py` says `python_requires='>=3.9'`, so each new dependency needs a 3.9-compatible release.
+- Pydantic is already a dependency (`pydantic>=2.7.0`; `api/schemas.py`, `web/generate_page.py`). `setup.py` said `python_requires='>=3.9'` when this was written, so each new dependency needed a 3.9-compatible release (history: the minimum is Python 3.12 since Boss, 2026-10-14, `python_requires='>=3.12'`).
 
-Library facts (PyPI, 2026-10-09 [S]): pydantic 2.14.0 and pydantic-settings 2.15.0 need Python 3.10, and the last releases for 3.9 are pydantic 2.13.5 (the lock pin) and pydantic-settings 2.11.0. The same split holds for Flask-Limiter (3.11.0 for 3.9; limits 4.2), `webauthn` (2.7.1) and Flask-WTF (1.2.2); `argon2-cffi` 25.1.0 and `pyotp` 2.10.0 support 3.8 and later.
+Library facts for Python 3.9 (history, the minimum is Python 3.12 since Boss, 2026-10-14; PyPI, 2026-10-09 [S]): pydantic 2.14.0 and pydantic-settings 2.15.0 need Python 3.10, and the last releases for 3.9 are pydantic 2.13.5 (the lock pin) and pydantic-settings 2.11.0. The same split holds for Flask-Limiter (3.11.0 for 3.9; limits 4.2), `webauthn` (2.7.1) and Flask-WTF (1.2.2); `argon2-cffi` 25.1.0 and `pyotp` 2.10.0 support 3.8 and later.
 
-pydantic-settings adds python-dotenv and its environment-name mapping does not fit the `PLANETGEN_*` names: with `env_nested_delimiter="_"`, `PLANETGEN_TILE_CACHE_DIR` was applied but `PLANETGEN_TILE_CACHE_MAX_MB` was silently ignored [C]. Declare each option's variable in its field metadata instead. On Python 3.9 write `Optional[str]`, not `str | None`, which raises `TypeError` inside a model unless `eval_type_backport` is installed [C].
+pydantic-settings adds python-dotenv and its environment-name mapping does not fit the `PLANETGEN_*` names: with `env_nested_delimiter="_"`, `PLANETGEN_TILE_CACHE_DIR` was applied but `PLANETGEN_TILE_CACHE_MAX_MB` was silently ignored [C]. Declare each option's variable in its field metadata instead. On Python 3.9 (history; the minimum is 3.12) write `Optional[str]`, not `str | None`, which raises `TypeError` inside a model unless `eval_type_backport` is installed [C].
 
 ### A2. The model, and which file holds what
 
@@ -72,7 +72,7 @@ This enforces "everything except the database" by file permission, not only by h
 
 A Jinja macro walks `Settings.model_fields` and picks a Shoelace widget (UX.49) from the annotation: `sl-switch` for `bool`; `sl-input type=number` with `min`, `max`, `step` and a unit suffix for numbers; `sl-input` for `str`; `sl-select` for `Literal` and `Enum`; `sl-textarea` one per line for `List[str]` (login allowlist) and for long text (robots.txt); a password input where empty means keep, plus a "clear" box, for secrets; `sl-color-picker`; and an upload for icons and the OG image (the setting stores the file name).
 
-- **Field names are dotted paths** (`tile_cache.max_mb`). `ValidationError.errors()` returns `loc` tuples that join to exactly those names, so errors map to fields with no extra code: `site_name | string_too_short`, `debug | bool_parsing`, `mysql.port | less_than_equal`, `unknown | extra_forbidden` [C].
+- **Field names are dotted paths** (`tile_cache.max_mb` here; the one cache size key is `cache.max_mb`, default 1024, since Boss's 2026-10-18, 5:43 PM EDT ruling, PERF.139). `ValidationError.errors()` returns `loc` tuples that join to exactly those names, so errors map to fields with no extra code: `site_name | string_too_short`, `debug | bool_parsing`, `mysql.port | less_than_equal`, `unknown | extra_forbidden` [C].
 - **Re-render the whole form** with submitted values and per-field messages in each control's `help-text` slot, with `aria-invalid`. That works without JavaScript; UX.49's browser test should submit one bad value to prove it.
 - **Missing versus false.** An unchecked checkbox sends nothing, so post a hidden list of the rendered field names and apply only those. Disabled (environment-overridden) and read-only fields are never applied.
 - **Validation layers:** per field (Pydantic); cross field (`model_validator`: `smtp.security=none` with a non-loopback host is refused); environmental checks that only warn (folder writable, Redis answers, SMTP test, PNG decodes), run from "Test" buttons, not on every save.
@@ -89,7 +89,7 @@ The code already splits this way by accident (from the `load_config` call sites,
 | `debug`, `log_file`, `log_dir`, `log_rotation`, `page_cache.*` | at logger or app start | restart (could become live) |
 | `ratelimit.*`, `login_allowlist`, `admin_cookie_insecure`, `secret_key`, `proxy_fix.*`, `api_base_url`, `mysql.*`, `control_database` | at import into `Config` | restart |
 
-1. `get_settings()` returns an immutable validated object cached on `(mtime_ns, size)` of both files plus a hash of the relevant environment variables. A `stat` costs 1.3 microseconds and validating the full model 8.5 microseconds [C], so per-request checking is free and every live field becomes live with no extra code.
+1. `get_settings()` returns an immutable validated object cached on `(mtime_ns, size)` of the one file (`config.json`, Boss, 2026-10-16, 2:25 and 2:26 PM EDT) plus a hash of the relevant environment variables. A `stat` costs 1.3 microseconds and validating the full model 8.5 microseconds [C], so per-request checking is free and every live field becomes live with no extra code.
 2. At start store `STARTUP = get_settings()`. The page lists `x-restart` fields whose current value differs from `STARTUP` ("saved but not yet running: `ratelimit.default` running `200 per day`, saved `500 per day`"). No extra state is persisted.
 3. A bad hand-edited file at runtime logs once and keeps the last good settings; at startup it stops the app with per-field messages (the existing `proxy_fix` behaviour, generalized). Add `python -m planetgen.cli.config check`.
 4. Restart. Under Apache and mod_wsgi daemon mode (the documented setup), touching the WSGI script file restarts the daemon on the next request [S: modwsgi.readthedocs.io]; Unix daemon mode only, and the web user must be able to write the script. gunicorn takes SIGHUP [R]. Show "Restart now" only when the deployment is detected and permitted, otherwise a copy-paste command (`update.sh` already prints `sudo systemctl reload apache2`), and say that a restart drops in-flight requests for a few seconds.
@@ -115,7 +115,7 @@ Rollback lists the backups with diffs and a "restore" button that runs the same 
 
 Versioning: top-level `"config_version": 1` (today's file has none; missing means 1). Migrations are ordered `dict -> dict` functions applied in memory; the file is rewritten at the next save, since the loader may not own it. A test loads every committed fixture of every past version.
 
-Audit: `admin_audit_log` (`action="config.update"`, `target="config:tile_cache.max_mb"`, `detail` JSON `{old,new}`, secrets as `"(changed)"`) and the activity log's `DB` category, as other admin writes do; also `config.restore`, `config.import`, `smtp.test`. The 90-day pruning of failed-login rows does not apply to these.
+Audit: `admin_audit_log` (`action="config.update"`, `target="config:tile_cache.max_mb"` (the example key; `cache.max_mb` after PERF.139, Boss, 2026-10-18, 5:43 PM EDT), `detail` JSON `{old,new}`, secrets as `"(changed)"`) and the activity log's `DB` category, as other admin writes do; also `config.restore`, `config.import`, `smtp.test`. The 90-day pruning of failed-login rows does not apply to these.
 
 Import and export: export downloads the effective settings of the options a web admin may change, with secrets removed. Import runs the migration chain, validates, shows the diff and follows the save pipeline; keys the importer may not edit are rejected with a message. Also write `config.schema.json` from `model_json_schema()` (3.7 ms [C]).
 
@@ -130,7 +130,7 @@ All feed templates and routes at request time, so none needs a restart. Existing
 | Setting | Type, default | Notes |
 |---|---|---|
 | `site.tagline`, `site.language` | str <=120 `""`; `en` | home page title; `<html lang>`, `og:locale` |
-| `web.base_url` | absolute http(s) URL, trailing slash, `http://localhost/` | Owner tier; canonical, OG, sitemap, email links, WebAuthn origin; never derived from the `Host` header |
+| `base_url` (top level, not in `web`) | absolute http(s) URL, trailing slash, `http://localhost/` | Owner tier; canonical, OG, sitemap, email links, WebAuthn origin; never derived from the `Host` header |
 | `web.title_template`, `web.theme_color_light`, `_dark` | `{title} - {site_name}`; `#f6f7fb`, `#14151e` | hard-coded in templates today |
 | `web.assets_dir` | platform default | host-level, file-only |
 | `icons.favicon_svg`, `favicon_png`, `apple_touch_icon` (180x180), `manifest_enabled` | uploads; false | built-in `favicon.svg`; the manifest serves `/site.webmanifest` |
@@ -156,7 +156,7 @@ All feed templates and routes at request time, so none needs a restart. Existing
 - Discordbot fetches when a link is posted and may keep the preview long; sources disagree on whether it obeys robots.txt [S]. Do not `Disallow` page URLs that should unfurl, and add `?v=<content hash>` to `og:image` so a changed card refetches.
 - Admin, account and login pages emit no Open Graph tags.
 
-**Canonical URLs and pagination.** `canonical` is `web.base_url` plus the path with tracking and sort parameters stripped (`needs_canonical_redirect` in `web/searchpage.py` already redirects some old forms). Do not emit `rel=prev/next`; Google dropped it years ago [S]. List pages (`/sectors`, `/systems`, `/species`, `/polities`): page 1 is indexable with a self canonical; `?page=N`, filters and sorts get `noindex,follow` and a self canonical, not a canonical to page 1, which would hide the linked items. The lists reach billions of rows (about 10.5 billion sector rows, see [galaxy-disk-density.md](galaxy-disk-density.md)), so add `Disallow: /*?*page=` to the generated robots.txt (`*` is in RFC 9309).
+**Canonical URLs and pagination.** `canonical` is the top-level `base_url` plus the path with tracking and sort parameters stripped (`needs_canonical_redirect` in `web/searchpage.py` already redirects some old forms). Do not emit `rel=prev/next`; Google dropped it years ago [S]. List pages (`/sectors`, `/systems`, `/species`, `/polities`): page 1 is indexable with a self canonical; `?page=N`, filters and sorts get `noindex,follow` and a self canonical, not a canonical to page 1, which would hide the linked items. The lists reach billions of rows (about 10.5 billion sector rows, see [galaxy-disk-density.md](galaxy-disk-density.md)), so add `Disallow: /*?*page=` to the generated robots.txt (`*` is in RFC 9309).
 
 **Indexing matrix** (defaults):
 
@@ -236,13 +236,13 @@ Extend the existing design (delays that expire, per-IP and per-username limits, 
 
 ### B6. TOTP and WebAuthn
 
-TOTP is done on pyotp (plus or minus one step, no reuse of a step at or before `last_step`); keep it, require it for the Owner and refuse Owner transfer to an account without it. WebAuthn (py_webauthn; Python 3.10 for 3.0.1, 2.7.1 for 3.9; pulls cryptography, pyOpenSSL, cbor2, pyasn1) is in no USR item: defer it to an optional factor after USR.7, with the relying-party origin from `web.base_url` and a `webauthn_credentials` table (credential id, public key, sign count, transports, label, created, last used). The library's source was not reviewed [S: PyPI release dates only].
+TOTP is done on pyotp (plus or minus one step, no reuse of a step at or before `last_step`); keep it, require it for the Owner and refuse Owner transfer to an account without it. WebAuthn (py_webauthn; Python 3.10 for 3.0.1, 2.7.1 for 3.9; pulls cryptography, pyOpenSSL, cbor2, pyasn1) is in no USR item: defer it to an optional factor after USR.7, with the relying-party origin from `base_url` and a `webauthn_credentials` table (credential id, public key, sign count, transports, label, created, last used). The library's source was not reviewed [S: PyPI release dates only].
 
 ### B7. Role model (USR.2)
 
 Answers to USR.2's open questions, with defaults:
 
-- **One table.** Add to `admin_users`: `email VARCHAR(254) NULL` unique, `email_verified_at`, `role ENUM('user','admin','owner') NOT NULL DEFAULT 'admin'` (existing rows are admins), `disabled_at`, `password_changed_at`, `created_by`. Renaming to `accounts` (and `admin_user_id` to `account_id` across six tables) is cleaner but touches every query; add columns now, rename in a follow-up unless Boss wants it in the same PR.
+- **One table.** Add to `admin_users`: `email VARCHAR(254) NULL` unique, `email_verified_at`, `role` as one text column with four valid values (user, moderator, admin, Owner; roles-and-requests.md, Boss, 2026-10-16, 1:43 PM and 1:49 PM EDT) `NOT NULL DEFAULT 'admin'` (existing rows are admins), `disabled_at`, `password_changed_at`, `created_by`. Renaming to `accounts` (and `admin_user_id` to `account_id` across six tables) is cleaner but touches every query; add columns now, rename in a follow-up unless Boss wants it in the same PR.
 - **Exactly one Owner, enforced by the database:** a generated column `owner_flag TINYINT AS (CASE WHEN role='owner' THEN 1 END) VIRTUAL` with a `UNIQUE` index (NULLs may repeat, one `1` only). Not testable here; verify on MySQL 8.4 and MariaDB 11.4 [R].
 - **Which existing account is Owner:** the lowest id (the one `bootstrap_control_schema` seeded). The migration prints its choice and `python -m planetgen.cli.accounts --set-owner USER` (like `planetgen.cli.lockouts`) corrects it.
 - **Demotion:** an admin may demote any other admin except the Owner, never themselves (so the last admin cannot vanish); only Owner transfer changes the top role. Every change is audited.

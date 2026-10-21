@@ -768,6 +768,8 @@ def prune(root, max_bytes=None):
             total += info.st_size
     if total <= max_bytes:
         return
+    from planetgen.web.lib import tileprefetch
+    tileprefetch.mark_full(root)     # the background build waits while the cache is this full (PERF.132)
     target = max_bytes * 0.8
     for _mtime, size, path in sorted(files):
         if total <= target:

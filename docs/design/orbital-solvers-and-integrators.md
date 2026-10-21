@@ -37,7 +37,7 @@ the research scripts and carry their original +-30% timing noise.
   large". An object's influence radius is the Hill sphere of the largest nearby
   object; the point masses of all objects inside it plus the galaxy's smooth
   gradient (GEN.115) give the new vector of each object visited. Section 6
-  applies it.
+  applies it. Superseded for the search radius (Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md, Decided 1): the radius is the largest Hill radius of any object in the galaxy (central black hole left out of the maximum; 64 exact, then one point mass per sector; GEN.370 first).
 - Time step (Boss, 2026-10-07 17:11Z): follow orbits in real time, "Default is 1
   day = 1 day", with an option to advance more in one go.
 - Galactic gradient (Boss, 2026-10-07 12:25Z): it must be "consistent with
@@ -315,10 +315,12 @@ when the cell changes (peculiar and runaway velocity carried, not integrated);
 set-based UPDATE against one global reference time
 (`orbit_simulation_state.last_updated_at`, `get_orbit_epoch_unix`). Each body has
 a `min_update_interval_years` floor (where a phase delta falls below float
-resolution), which is not a `next_update_due`. There is no `next_update_due`
-column and no per-object epoch in the database (`SpatialPosition3D.epoch_unix`
-exists in memory), so with objects updated at different times a global timestamp
-loses time for the rows that were skipped.
+resolution), which is not a `next_update_due`. When this paragraph was written there was no
+`next_update_due` column and no per-object epoch in the database
+(`SpatialPosition3D.epoch_unix` existed in memory), so with objects updated at
+different times a global timestamp lost time for the rows that were skipped;
+GEN.106 is built (schema v66, PR #802, section 5): each moving row has an
+`epoch_unix` and an indexed `next_update_due`.
 
 **Planets and moons** (1 Msun host, circular):
 
@@ -420,6 +422,8 @@ intermediate-mass black hole, a cluster treated as one mass) or at cluster
 density.
 
 ### 6.3 Finding the largest object, cover lists and the cap
+
+Superseded for the search radius (Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md, Decided 1): the radius is the largest Hill radius of any object in the galaxy (central black hole left out of the maximum; 64 exact, then one point mass per sector; GEN.370 first). The cover lists and the 6 pc first scan below describe the nearby-object search it replaces.
 
 - Add `max_mass_kg` and `max_mass_id` to each sector's point-mass table (the
   Full Algorithm already keeps `max_mass`). Take the maximum over the cells

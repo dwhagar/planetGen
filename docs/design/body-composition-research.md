@@ -395,7 +395,7 @@ A row is CONFIRMED only when a source that was read gives the figure or one insi
 | G-3 Cold-end vapour pressure | QCM-corrected N2, CO, CH4, O2, NH3 and Span and Wagner CO2; extends F1 and its test (triple points plus the 1.19 correction as a switch) | F1, cluster 2 | small |
 | G-4 One IW scale | Fix the reference (Hirschmann 2021), store Delta-IW, convert Sossi and Frost buffers; test: CO2/CO and H2O/H2 ratios reproduce Sossi Eq. 4 | F2 | small |
 | G-5 Vapour mean mass | Lava-world vapour species and mean molar mass from T and composition | F3 | medium |
-| G-6 Licence audit | Licence column filled from G4; permission list for NIST, JPL, Leiden, Bremen, Karkoschka | F5 | small |
+| G-6 Licence audit (removed with GEN.500, Boss, 2026-10-17, 2:35 PM EDT) | Licence column filled from G4; permission list for NIST, JPL, Leiden, Bremen, Karkoschka | F5 | small |
 
 ### 15.4 Still unreachable (Boss must research), ranked
 

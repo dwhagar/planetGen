@@ -36,7 +36,7 @@
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
 #      this fixes. The same step downloads the static data sets
 #      (`planetgen.cli.datasets fetch`, GEN.548) into /var/cache/planetgen/datasets;
-#      a host that is down only warns, the generator then uses labelled stand-ins.
+#      a host that is down only warns, and bulk generation then refuses to start until it is fetched.
 #      Then, unless --skip-database, it offers (y/N, 30
 #      seconds, default N; skipped with no terminal) to run the
 #      population pass, `planetgen population`; POPULATION=1 runs it

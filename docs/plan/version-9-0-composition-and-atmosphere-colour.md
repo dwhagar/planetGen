@@ -101,6 +101,7 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 | GEN.518 | Tuned draw builder B10: the chemistry module | GEN.503 | Tunable gaps report: Tuned draw builder B10: the chemistry module. |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
 | GEN.520 | Tuned draw builder B12: the comet sampler | GEN.503, GEN.507 | Tunable gaps report: Tuned draw builder B12: the comet sampler. |
+| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution |  | Boss, 2026-10-18 (fork 8, flagged stand-ins only). |
 | GEN.521 | Tuned draw builder B13: belts | GEN.503 | Tunable gaps report: Tuned draw builder B13: belts. |
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | GEN.503 | Tunable gaps report: Tuned draw builder B14: moons and Kuiper belt objects. |
 | GEN.523 | Tuned draw builder B15: host-star activity | GEN.503 | Tunable gaps report: Tuned draw builder B15: host-star activity. |

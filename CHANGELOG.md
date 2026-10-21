@@ -2,6 +2,115 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1847] - 2026-10-21
+
+**Headline:** The bright-star backfill of `planetgen galaxy` runs on the work queue as a command.
+
+### Changed
+- **`scatter-backfill` is a command (PERF.108).** The backfill after a `galaxy` run finds the sectors to draw once, cuts them into chunks of at least 10,000 sectors (at most 2,000 chunks) and queues them through the wrapper, so the chunks can run on several workers; every sector is drawn from its own seed, so the stars are the same at one and at four workers and whichever way the sectors are cut. The bar counts the sectors visited, the per-shell lines read as before, and the stage's row in the stage history is stored by the unit that completes it. `docs/design/redis-and-the-work-queue.md` describes it.
+
+TODO items resolved: none (the backfill of PERF.108). Added: none.
+
+## [8.0.1846] - 2026-10-21
+
+**Headline:** The sector stages of `planetgen galaxy` run on the work queue as commands.
+
+### Changed
+- **`generate-start-sector`, `generate-neighborhood` and `generate-sectors` are commands (PERF.107).** The starting sector, the neighborhood and every other sector `galaxy` generates (random start, shell, band, wedge, span, course) are cut into static chunks of consecutive sectors, about 4,000 at most, queued through the wrapper and run by the workers; the console still reports each sector as it is saved, and the galaxy holds the same stars, planets and moons at any worker count, as it did before. A failing sector now stops the run with the unit's error, and the sectors already saved stay saved, so a rerun resumes.
+- **`link-neighbours` and `settle-sector-paths` are commands (PERF.107).** The neighbour link and the sector paths run as one unit each on the sectors the run created, found from the database's clock at the start of the run.
+- **The galaxy job tree no longer lists a queue of sector tasks.** The sectors are units of the run record on Redis. `docs/design/redis-and-the-work-queue.md` describes them.
+
+TODO items resolved: none (the sector and link and settle stages of PERF.107; the backfill is PERF.108). Added: none.
+
+## [8.0.1845] - 2026-10-21
+
+**Headline:** The Galaxy Map's server now builds the tiles of the next few zoom steps, and the ones around a view, in the background while a visitor looks.
+
+### Added
+- **The tiles around a visit are built ahead of the visitor's next move (PERF.132).** When the map asks for tiles it now also sends where its camera and target are (`at`), and once the answer has gone the server queues, as low-priority jobs on the bulk queue, the tiles of the cut for the camera one to four fade bands closer along its line (the next zoom steps), then the neighbours of the requested tiles and the next level inside them (for a visitor who pans). A worker builds them into the same disk cache a request fills. It keeps to named limits, new settings of `tile_cache`: `prefetch_per_visit` (128 tiles a request), `prefetch_per_minute` (600) and `prefetch_max_queued` (8 jobs, 16 tiles each); it queues nothing for a tile already stored or already queued, nothing for ten minutes after the cache pruned itself, nothing during an update, and a malformed or missing `at` is ignored, so a visit to a built area queues nothing and a second visitor to the same area causes no build.
+
+TODO items resolved: PERF.132 / Added: none
+
+## [8.0.1844] - 2026-10-21
+
+**Headline:** One function now moves every body with a mass, whether it is a planet, a moon, a comet, a star or a wanderer.
+
+### Changed
+- `MassObject` (`generation/mass_object.py`) holds the state a body has relative to its parent (position and velocity, the pull of what it orbits) and `advance(seconds)`: a planet, moon or comet is stepped on its state vector with the Kepler step, and a star, remnant or wanderer on a circular galactic orbit has its phase advanced by its period. Boss's rule of 5:20 PM EDT: all motion is built into the one set of mass object functions.
+- The `HoldsOrbitPosition` mixin in `physics/position.py` is gone; `Planet` and `Comet` take its methods (`set_position_au`, `set_velocity_kms`, `orbit_from_vector`, `projected_orbit_au`) from the core.
+- No stored value or field changes. The per-class fields that become derived once the stored record is the core's (speed, axial tilt, rotation period, galactic period and phase) are removed in the DB.73 revision (Core 1), not here.
+- `docs/design/mass-object-class.md` section 11 records it.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open) / Added: none
+
+## [8.0.1843] - 2026-10-18
+
+**Headline:** A free-floating brown dwarf is as old as the stars of the place it is in, not any age from 0.1 to 10 billion years.
+
+### Changed
+- A brown dwarf made by a galaxy sector's fill takes a population from the sector's mix, like a star, and its age comes from that population's age window spread by its star formation rate (GEN.546's `age_law`). A brown dwarf in the thin disk's young population is under 100 million years old; one in the halo is 10 to 13 billion. Its radius, temperature and spectral type follow from the age as before.
+- A brown dwarf made without a place (the single-object generator) draws its age over the whole disk's window, 0 to 10 billion years, in place of 0.1 to 10.
+- `FillContext.apply_population` is the part of `FillContext.apply` that gives a body its population, age law, [Fe/H] peaks and place terms. First step of GEN.553; the rest of the body draw follows.
+- `docs/design/brown-dwarf-state.md` describes the rule.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.553 stays open) / Added: none
+
+## [8.0.1842] - 2026-10-18
+
+**Headline:** The shells beyond the galaxy's outline generate in seconds instead of hours, because the polar reach groups no longer take the dense core's nuclear density as their ceiling.
+
+### Changed
+- **A reach group's nuclear bound is read where the group really is** (`generation/object_first.py`, `bright_stars.py`, `phenomenon_reach.py`). A group beyond the outline reaches all the way to the pole, so its smallest cylindrical radius is near zero and the nuclear cluster and nuclear disc were bounded by their central density, thousands of times the density anywhere in the group. The scatter then drew millions of candidates to keep a few. The bound now uses the group's inner spherical radius as well as its cylindrical one, and cuts the height range of the nuclear disc into 12 steps, so the polar groups' bounds sit within 3 times the largest density a group holds. A shell-5 call that took over an hour (still unfinished after 60 minutes) on main now takes 43.5 s for 2,382,680 rows.
+- A looser or tighter bound changes how many candidates are drawn, so the rows a seed places in these shells change; the generator epoch is 35.
+generation-output: changed
+
+### Added
+- `tests/test_gen_reach_groups.py`: a polar group's bound stays within 3 times its largest true value.
+
+TODO items resolved: PERF.138. Added: none.
+
+## [8.0.1841] - 2026-10-18
+
+**Headline:** A double click on the map is told by the time of its two clicks, so a first click the page is slow to answer no longer makes the second one a click again.
+
+### Fixed
+- Map controls: `mapcontrol.js` decided whether a click was the second of a pair by reading the clock when the page got to the event, with the first click's time taken before its handler ran. When the first click's handler (picking the star, drawing its panel) took longer than the 350 ms window, as it can on a busy machine, the second click came out as a single click again and the camera never flew; `test_a_double_click_on_a_star_flies_the_camera_to_it` failed that way once in a loaded gate (TEST.252: camera target unchanged after the double click). The pair is now told by the events' own time stamps. A new browser test stalls the first click for 500 ms and still sees the flight (it failed on the old code), and a unit test pins the rule.
+
+TODO items resolved: TEST.252 / Added: none
+
+## [8.0.1840] - 2026-10-18
+
+**Headline:** Every browser test module that builds its pages from the shared site app now has the slow-page rule pinned off, so a loaded run no longer fails a module's setup with a 202 for /search.
+
+### Fixed
+- Tests: only `test_web_a11y.py` pinned `tuning.SLOW_PAGE_SECONDS` off (TEST.232); the layout, crumbs, edit menu and other browser modules import the same `site_app` and `page_targets` without that module's autouse fixture, so when a loaded machine made the first build of /search slower than 3 s the route was marked slow, the next request answered 202 with the loading state, and the module's `page_targets` fixture failed (`web.search: GET /search answered 202 (anonymous) / 202 (admin)`, Core 3's layout record). The pin now lives in `site_app` itself, for every module that uses it, and a test in the layout module pins it.
+
+TODO items resolved: TEST.246 / Added: none
+
+## [8.0.1839] - 2026-10-18
+
+**Headline:** Every body with a mass now shares one core class for its galactic motion and its save and load, the first step of the one object class for stars, planets, comets and wanderers.
+
+### Changed
+- New `generation/mass_object.py` (`MassObject`) holds what the nine body classes wrote out by hand: the four galactic-motion fields and the draw that sets them, and one `to_dict`/`from_dict` pair driven by each family's `SERIALIZABLE_FIELDS`, with `_encode` and `_decode` hooks for values that are not plain JSON. `Star`, `Planet`, `Comet`, `RoguePlanet`, `InterstellarComet` and `AsteroidField` use it; `BlackHole`, `NeutronStar` and `BinaryStarProxy` inherit it through `Star`, and `CompactRemnant`'s copy of `Star`'s save and load is gone.
+- No stored value, field name or draw changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open) / Added: none
+
+## [8.0.1838] - 2026-10-18
+
+**Headline:** A star's main-sequence track, a white dwarf's radius and layers and a neutron star's crust now come from the downloaded data, and generation will not start without it
+
+### Changed
+
+Star composition reads the data files that `update.sh` downloads (MIST isochrones, white-dwarf cooling sequences, neutron-star crust tables): a main-sequence star gets its luminosity, temperature, radius and lifetime from the MIST grid, a white dwarf its radius at its temperature and its hydrogen, helium, carbon and oxygen layers, and a neutron star the outer crust of one of 20 nuclear mass models. There is no fallback value: while a file is missing, `galaxy`, `plan`, `population` and `sector --num-sectors` above 1 refuse to start and name what is missing, and so do the Sector page's neighbourhood button and the Generate page's jobs, which now begin with a "Check the data" step after "Check the math" and before anything is reset. `update.sh` and `install.sh` warn at the end if a download failed. The older white-dwarf radius table and neutron-star crust list that this replaces were removed. No stored value changes.
+
 ## [8.0.1837] - 2026-10-18
 
 **Headline:** The map luminosity fill, the habitability re-score and the nebula field run on the work queue as commands.

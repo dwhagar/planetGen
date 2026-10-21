@@ -22,7 +22,7 @@ The paper's scatter is its measurement scatter, not a spread of the objects, so 
 ## Where it shows
 
 - **A free-floating brown dwarf** (the `brown-dwarf` fill kind, 0.03 per pc^3, which is 0.21 per star against the census's
-  "1 per 4.7") takes its mass from the census mass function, draws its age, and takes its radius and temperature from the track at that age. Its page names its type
+  "1 per 4.7") takes its mass from the census mass function, draws its age as a star does, and takes its radius and temperature from the track at that age. The age (GEN.553) is the age window of the population the sector fill gives it from its place's mix, spread by that population's star formation rate (`galaxy.age_law`); made without a place it has the whole disk's window, 0 to 10 Gy. Its page names its type
   ("a free-floating T5 brown dwarf", header "Rogue Brown Dwarf, Type T5"). The type is read from the stored effective
   temperature, so there is no new column. It is its own system; its companion (15% of brown dwarfs are in pairs) is
   GEN.275's.
@@ -48,14 +48,14 @@ cool to a plateau near 2,000 K at the hydrogen-burning limit and stay there for 
   which the 2026-10-17 ruling allows (derived values may be committed; the model files stay out of the repository).
   A build-time dataset step (GEN.548) could replace it with the full grid; the functions would not change.
 - **0.072 to 0.0764 solar masses.** In the model these objects are stable stars at the bottom of the main sequence, yet
-  they sit inside the 80 Jupiter mass brown dwarf range, so they stay here as L and late-M dwarfs.
+  they sit inside the 80 Jupiter mass brown dwarf sampling range, so they stay here as L and late-M dwarfs.
 - **The 1,200 K bin** (the L/T transition) comes out at 0.44 of the census's share, below the factor of 2 band the test
   covers; the model has no clouds, so the L/T transition's slow cooling is not there.
 - **Low gravity** lowers the type by up to 300 K (the census) and metallicity is solar.
 - **The stellar mass function is not continued below 0.08 solar masses.** The census's slope joined to it at 0.08 would
   give 0.71 brown dwarfs per star against the observed 0.2; the free-floating rate already carries the observed one.
-- **The hydrogen-burning edge** is a step: a 0.0764 solar mass brown dwarf (80 Jupiter masses) is a cooling body, a 0.08
-  one a star of the main sequence relations.
+- **The hydrogen-burning edge** is a step: a 0.0764 solar mass brown dwarf (80 Jupiter masses, the top of the sampling range, not the burning limit) is a cooling body, a 0.08
+  one a star of the main sequence relations. Decided (Boss, contradiction sweep card, 7:29 AM EDT 2026-10-21): the burning limit itself is `hydrogen_burning_limit_sol(z)` (0.074 solar masses at solar Z), one function that feeds GEN.110's fusion check and the brown dwarf split.
 
 ## Code
 

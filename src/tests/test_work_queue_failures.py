@@ -443,6 +443,11 @@ def _sector_counts(config):
         conn.close()
 
 
+_LAUNCH_GENERATE = ("from planetgen.generation import run_galaxy; run_galaxy.require_datasets = lambda: None; "
+                    "from planetgen.cli import generate; generate.main()")
+"""str: `python -m planetgen.cli.generate` with the data gate (GEN.590) passed: a test machine downloads no datasets."""
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("sig, group", [
     (signal.SIGINT, True),    # Ctrl+C in a terminal reaches the run and its workers
@@ -454,7 +459,7 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
     env.pop(workQueue.PARENT_ENV_VAR, None)
     run = subprocess.Popen(
-        [sys.executable, "-m", "planetgen.cli.generate", "galaxy", "--shell", str(GALAXY_SHELL),
+        [sys.executable, "-c", _LAUNCH_GENERATE, "galaxy", "--shell", str(GALAXY_SHELL),
          "--num-systems", str(NUM_SYSTEMS), "--workers", "2"] + _mysql_argv(control_config),
         cwd=REPO, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, start_new_session=True,
         # A process inherits an ignored Ctrl+C, and the run then leaves it
@@ -485,4 +490,4 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     assert jobs and all(job["state"] == "cancelled" for job in jobs), jobs
     assert _rows(control_config, "SELECT COUNT(*) AS n FROM work_tasks WHERE state IN ('queued', 'running')"
                  )[0]["n"] == 0
-    assert _rows(control_config, "SELECT holder FROM work_lease")[0]["holder"] is None
+    assert all(row["holder"] is None for row in _rows(control_config, "SELECT holder FROM work_lease"))

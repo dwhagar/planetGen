@@ -132,7 +132,7 @@ multi-row INSERT 10.1 us per row (client formatting 3.4 against 1.9 us); the sam
 escaping is about a quarter of the insert and the index does not matter at this size.
 
 Row layout: `kind` VARCHAR(24), three BIGINT positions, three nullable DOUBLE velocities,
-an 8-byte seed per row, ring/layer/slot columns; 1559 MB data plus 807 MB index for 17.9M
+an 8-byte seed per row, ring/layer/slot columns (cylindrical until 2026-10-15; shell, band and wedge since); 1559 MB data plus 807 MB index for 17.9M
 rows (138 bytes a row) [C]. Most rows are neutron stars and black holes whose velocity columns
 are NULL or derivable.
 

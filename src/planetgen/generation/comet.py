@@ -39,14 +39,14 @@ import math
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler, spin
-from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
+from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.names.wordsalad import LazySaladName
+from planetgen.generation.mass_object import MassObject
 from planetgen.physics.orbits import minimum_update_interval_years
 
 PERIOD_CLASS_LABELS = {
@@ -122,7 +122,7 @@ def _activity_chance(perihelion_distance_au):
     return max_chance - fraction * (max_chance - min_chance)
 
 
-class Comet(LazySaladName, HoldsOrbitPosition):
+class Comet(LazySaladName, MassObject):
     """
     A comet gravitationally bound to a star, on either a periodic
     elliptical orbit or a single-apparition parabolic one (see this
@@ -318,38 +318,11 @@ class Comet(LazySaladName, HoldsOrbitPosition):
         self.set_velocity_kms(state["velocity_x_au_per_year"] * to_kms, state["velocity_y_au_per_year"] * to_kms,
                               state["velocity_z_au_per_year"] * to_kms)
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this comet's properties, per
-        `SERIALIZABLE_FIELDS`, plus `composition`.
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
-                 `composition`.
-        """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+    def _encode(self, data):
         data["composition"] = list(self.composition)
-        return data
 
-    @classmethod
-    def from_dict(cls, data, system_config):
-        """
-        Reconstructs a `Comet` from a dict in the shape `to_dict()`
-        produces, without re-running generation (`__init__` is bypassed
-        via `object.__new__`).
-
-        Args:
-            data (dict): A dict in the shape `to_dict()` produces.
-            system_config (SystemConfig): The shared config.
-
-        Returns:
-            Comet: The reconstructed comet.
-        """
-        comet = object.__new__(cls)
-        comet.system_config = system_config
-        fields_from_dict(comet, data, cls.SERIALIZABLE_FIELDS)
-        comet.composition = list(data["composition"])
-        return comet
+    def _decode(self, data):
+        self.composition = list(data["composition"])
 
     def get_composition_summary(self):
         """

@@ -10,9 +10,11 @@
 
 Evidence tags: [S] read in the repository; [C] computed here; [R] recalled and not verified (a lane verifies each before use, under the standing source rules). Standing rules kept: nothing fixed or copied from the Solar System or the Milky Way, the DB schema is not a constraint, no backward-compatibility shims, every draw through the one wrapper `util/draw.py` (GEN.56).
 
+**Standing rule (Boss, 5:20 PM EDT on 2026-10-18):** every object with mass follows the same trajectory rules, galactic, planetary and lunar alike, built into the mass object functions; see [mass-object-class.md](mass-object-class.md).
+
 ## 1. Summary
 
-1. **The ask in one sentence.** One recursive routine, `populate(host)`, that works for any body or group of bodies that can be orbited: a group of star-like objects, a star-like object, a planet, a rogue planet, a brown dwarf. It draws the host's own properties from one chain, then what orbits it, then calls itself for each thing that orbits. Moons are the lowest level, so the recursion has three working depths: group, star-like object or planet, moon.
+1. **The ask in one sentence.** One recursive routine, `populate(host)`, that works for any body or group of bodies that can be orbited: a group of star-like objects, a star-like object, a planet, a rogue planet, a brown dwarf. It draws the host's own properties from one chain, then what orbits it, then calls itself for each thing that orbits. Moons were the lowest level, so the recursion had three working depths: group, star-like object or planet, moon; moons may have satellites through the same hosting gate (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18), so a moon is a host too.
 2. **It is mostly three half-built pieces joined, not new science.**
    - The scatter side already draws a hierarchy of up to twelve star-like members with stability checks (`multistar.draw_member_tree`) [S], but no fill code reads it (the fill builds only one or two stars with the older `StarSystem._companion`) [S]. GEN.264 and GEN.315 are the open items that join them.
    - The orbit tree tables (`orbit_nodes`, `stars.parent_node_id`, `planets.host_node_id`) exist since migration 0104 and nothing writes them [S].
@@ -59,7 +61,7 @@ Other facts the design depends on:
 - **Body:** anything with a mass that can be orbited or can orbit: a star-like object (protostar, pre-main-sequence star, main-sequence star, giant, white dwarf, neutron star, black hole, brown dwarf), a planet, a moon, a small body (comet, asteroid, belt object).
 - **Node:** the barycentre of two children (the existing `close`, `wide`, `compact` and `group` nodes, with up to 12 members as decided earlier; Boss's "7" is read as "the largest group the generator makes", and the cap of 12 stands: Boss tapped 'Keep 12' at 12:44 AM EDT on 2026-10-18, as the coordinator relayed).
 - **Host:** a body or a node that has orbiters. A host is either top-level (no parent: a wanderer or the head of a system) or it is itself an orbiter of another host.
-- **Level:** group, member, planet, moon. A moon is the lowest level by Boss's rule, so no host class lists "moon" among its orbiters.
+- **Level:** group, member, planet, moon. A moon was the lowest level by Boss's earlier rule; superseded (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18): moons may have satellites through the same hosting gate, so a moon can be a host.
 
 ### 3.2 One body draw
 
@@ -84,7 +86,7 @@ One registry row per host class, extending `phenomena/registry.py`. The row's `s
 | Remnant | as a star-like object, with the compact filters (Peters time, direct collapse, kick survival) [S] | millisecond pulsar planets 0.7%, white dwarf survivors outside 1.5 AU [S] |
 | Brown dwarf | its 15% pairs and wide companions (GEN.331) | disk-limited zone; planets and moons, a few percent [R] |
 | Planet (bound or free) | planet pairs (GEN.332) | moons: Roche limit to 0.4895 of the Hill radius, prograde [S]; for a free planet the limit is set by its history (3.5) |
-| Moon | none | none (Boss: lowest level) |
+| Moon | none | satellites through the same hosting gate (Boss, card S6, 12:10 to 12:13 AM EDT, 2026-10-18; it was "lowest level") |
 
 The routine itself is short:
 
@@ -233,7 +235,7 @@ Epoch and migrations: every item that changes a drawn value bumps the generator 
 2. Off by default with a plan-configuration switch, like the halo and satellite switches (GEN.537).
 3. On without a measurement.
 
-Two points that I read as decided and did not make cards for: the group cap stays 12 (decided earlier and confirmed by Boss's 'Keep 12' card, 12:44 AM EDT on 2026-10-18; he wrote 7 as a typical group), and moons are the lowest level (Boss's words), so moons of moons are not generated and the sub-moon stability question is not opened.
+Two points that I read as decided and did not make cards for: the group cap stays 12 (decided earlier and confirmed by Boss's 'Keep 12' card, 12:44 AM EDT on 2026-10-18; he wrote 7 as a typical group), and moons were the lowest level (Boss's words), so moons of moons were not generated; superseded (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18): moons may have satellites through the same hosting gate, and the sub-moon stability question is open (unified-system-barycentre.md section 4.5).
 
 ## 7. Proposed items, in order
 
@@ -263,7 +265,7 @@ Order: U1, then U15 and U3 in parallel with U2; then U4, U6, U11; then U5; then 
 
 - It does not change what a user sees in 8.1, and adds nothing to the 8.1 headline chain except GEN.315's interface note.
 - It does not generate planets or moons at scatter time: companions of stars and star-like objects stay at scatter time, planets, moons and belts at fill (Boss, 5:51 PM EDT on 2026-10-15).
-- It does not make moons of moons.
+- It did not make moons of moons; superseded (Boss, card S6 of unified-system-barycentre.md, 12:10 to 12:13 AM EDT, 2026-10-18): moons may have satellites through the same hosting gate.
 - It does not fix any number: every rate and law above is either a cited input (already in the repository), a value to derive, or a labelled placeholder until a verified source replaces it.
 - It makes no claim about cost; the PERF item U14 exists because rogue planets with moons may be the heaviest new part of the fill and nothing here measured it.
 

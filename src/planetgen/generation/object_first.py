@@ -114,15 +114,45 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     """
     inner, z_near, z_far = band_geometry(shell, high_band, edge_pc)
     outer = spherical.shell_bounds_pc(shell, edge_pc)[1]
-    return extent_majorants(shape, inner, z_near, z_far, fractions, outer)
+    r_in = spherical.shell_bounds_pc(shell, edge_pc)[0]
+    return extent_majorants(shape, inner, z_near, z_far, fractions, outer, r_near=r_in)
 
 
-def extent_majorants(shape, inner, z_near, z_far, fractions, outer):
+def _nuclear_bounds(terms, inner, z_near, z_far, r_near):
+    """
+    The nuclear cluster's and the nuclear disc's density bounds (unnormalized) over a region whose smallest
+    cylindrical radius is `inner`, whose `|z|` runs from `z_near` to `z_far` and whose smallest spherical radius is
+    `r_near` (PERF.138). The cluster falls with the spherical radius alone, so it is bounded at the larger of `r_near`
+    and the distance of the point `(inner, z_near)`. The disc falls with the cylindrical radius and the height each;
+    the nearest point `(inner, z_near)` alone is far inside the region when the two ends come from different cells (a
+    polar group has `inner` 0 beside a `z_near` far under its shell's radius), so the heights are cut into
+    `NUCLEAR_BOUND_CUTS` slices and each slice is bounded at its lowest height with the smallest radius a point of it
+    can have: `rho >= sqrt(r_near^2 - z_top^2)` for a slice that ends at `z_top`. The largest slice bounds the region.
+    """
+    reach = np.maximum(np.sqrt(inner ** 2 + z_near ** 2), r_near)
+    cluster = density._nuclear_cluster_array(reach, terms)
+    steps = (np.arange(1, NUCLEAR_BOUND_CUTS + 1) / NUCLEAR_BOUND_CUTS) ** 2
+    disc = np.zeros(np.shape(inner))
+    low = z_near
+    for step in steps:
+        top = z_near + (z_far - z_near) * step
+        rho_low = np.maximum(inner, np.sqrt(np.maximum(r_near ** 2 - top ** 2, 0.0)))
+        disc = np.maximum(disc, density._nuclear_disc_array(rho_low, low, terms))
+        low = top
+    return cluster, disc
+
+
+NUCLEAR_BOUND_CUTS = 12
+"""int: How many slices of height `_nuclear_bounds` cuts a region into for the nuclear disc."""
+
+
+def extent_majorants(shape, inner, z_near, z_far, fractions, outer, r_near=0.0):
     """
     `band_majorants` for any extents (arrays): an upper bound on `sum_p density_p * fractions[p]` in a region
     whose smallest cylindrical radius is `inner`, whose largest is at most `outer` (its outer spherical radius is
     one) and whose `|z|` runs from `z_near` to `z_far`. A band is one such region and a group of bands
-    (`ReachGroups`) another, bounded at its nearest point.
+    (`ReachGroups`) another, bounded at its nearest point. `r_near` (arrays too) is the region's smallest spherical
+    radius where it is known (a shell's, a group's `r_in`); the nuclear terms use it (`_nuclear_bounds`).
     """
     terms = density.model_terms(shape)
     thin = np.exp(-inner / shape.disk_scale_length_pc) * _vertical(z_near, shape.disk_scale_height_pc)
@@ -135,10 +165,7 @@ def extent_majorants(shape, inner, z_near, z_far, fractions, outer):
     disk_share = _disk_share_bound(shape, z_near, z_far, fractions, inner, outer)
     k = shape.k_norm
     halo = density._halo(inner, z_near, density.halo_terms(shape))
-    # Both nuclear terms fall with the radius or the height alone, so the region's nearest point bounds them
-    # (`sqrt(inner^2 + z_near^2)` is no farther from the centre than any point of the region).
-    nuclear_cluster = density._nuclear_cluster_array(np.sqrt(inner ** 2 + z_near ** 2), terms)
-    nuclear_disc = density._nuclear_disc_array(inner, z_near, terms)
+    nuclear_cluster, nuclear_disc = _nuclear_bounds(terms, inner, z_near, z_far, r_near)
     bound = (np.maximum(k * bulge, 0.0) * fractions["bulge"]
              + np.maximum(k * nuclear_cluster, 0.0) * fractions["nuclear_cluster"]
              + np.maximum(k * nuclear_disc, 0.0) * fractions["nuclear_disc"]

@@ -191,6 +191,11 @@ check-math`. A failure stops the job there, before anything is written."""
 """str: The step that pre-places every bright star
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
+DATA_CHECK_LABEL = "Check the data"
+"""str: Every generating job's second step (GEN.590): `python -m planetgen.cli.datasets
+status`, which exits 1 while a downloaded data file is missing. A failure stops the job
+there, before the reset or anything else is written."""
+
 
 ESTIMATE_TIMEOUT_S = 120
 """int: How long the page waits for `planetgen galaxy --estimate-only`."""
@@ -827,8 +832,8 @@ def plan_steps(generate, form):
 def build_job(action, form, database, edge_pc=None):
     """
     The job a form asks for (`edge_pc`: see `galaxy_argv`). Every job
-    that generates starts with the math check (`MATH_CHECK_LABEL`); a
-    plain reset and a database check don't.
+    that generates starts with the math check (`MATH_CHECK_LABEL`) and the
+    data check (`DATA_CHECK_LABEL`); a plain reset and a database check don't.
 
     Returns:
         tuple: `(kind, title, steps)` for `jobs.start_job`.
@@ -842,7 +847,8 @@ def build_job(action, form, database, edge_pc=None):
         kind, title, steps = _build_job_steps(action, form, edge_pc)
     if kind not in ("reset", "check_db"):
         python = jobs.python_executable()
-        steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]}, *steps]
+        steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]},
+                 {"label": DATA_CHECK_LABEL, "argv": [python, *jobs.DATASETS_COMMAND, "status"]}, *steps]
     for step in steps:
         step["stages"] = step_stages(step, form)
     return kind, title, steps

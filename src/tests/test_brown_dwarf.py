@@ -191,3 +191,77 @@ def test_the_members_page_names_a_brown_dwarfs_type():
             "nodes": []}
     labels = [row[1] for row in scatter_members_view.members_view(tree)["members"]]
     assert labels == ["Main-sequence star", "Brown dwarf (T5)", "Brown dwarf"]
+
+
+def _ages(population=None, age_law=None, count=60):
+    config = SystemConfig()
+    config.POPULATION = population
+    config.AGE_LAW = age_law
+    with draw.bound(553):
+        return [RoguePlanet(config, mass_bin="brown-dwarf").age_gy for _ in range(count)]
+
+
+@pytest.mark.parametrize("population", ["young", "intermediate", "old", "bulge", "halo"])
+def test_a_free_brown_dwarf_takes_the_age_window_of_its_population(population):
+    low, high = tuning.STELLAR_POPULATION_AGE_RANGES_GY[population]
+    ages = _ages(population)
+    assert all(low <= age <= high for age in ages)
+    assert max(ages) - min(ages) > 0.3 * (high - low)
+
+
+def test_a_free_brown_dwarf_made_without_a_place_has_the_whole_disks_window():
+    low, high = tuning.STAR_FORMATION_AGE_RANGE_GY
+    ages = _ages()
+    assert all(low <= age <= high for age in ages) and max(ages) > 0.8 * high
+
+
+def test_a_free_brown_dwarfs_age_follows_the_populations_age_law():
+    from planetgen.galaxy.age_law import AgeLaw
+    window = tuning.STELLAR_POPULATION_AGE_RANGES_GY["old"]
+    front = AgeLaw(ages=(window[0], window[1]), rates=(1.0, 0.0))     # all the rate at the young edge
+    ages = _ages("old", front, count=200)
+    assert sum(ages) / len(ages) < window[0] + 0.4 * (window[1] - window[0])
+    flat = _ages("old", None, count=200)
+    assert sum(flat) / len(flat) > window[0] + 0.4 * (window[1] - window[0])
+
+
+def test_a_galaxy_sectors_brown_dwarfs_take_the_populations_of_its_place(monkeypatch):
+    """GEN.553: the sector fill gives each brown dwarf a population from the place's mix, and so an age inside that
+    population's window; the other kinds are built from the bare config as before."""
+    import math
+    from types import SimpleNamespace
+    from planetgen.galaxy import profile
+    from planetgen.galaxy.density import build_galaxy_shape
+    from planetgen.galaxy.skeleton import expected_system_count_at_density_1
+    from planetgen.generation import bright_stars, run_sector
+    from planetgen.physics.units import ly_to_pc
+
+    shape = build_galaxy_shape(
+        disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
+        arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
+    edge_pc = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
+    here = profile.profile_at((8128.0, 0.0, 0.0), shape, edge_pc, expected_system_count_at_density_1(
+        tuning.DEFAULT_SECTOR_EDGE_LY))
+    fill = bright_stars.FillContext(here)
+    made = []
+
+    def build(config, _distance):
+        dwarf = RoguePlanet(config, mass_bin="brown-dwarf")
+        made.append((config.POPULATION, dwarf.age_gy))
+        return dwarf
+
+    sector = SimpleNamespace(entries=[SimpleNamespace(star_system=SimpleNamespace(stars=[0] * 400))], stage_base=None)
+    monkeypatch.setattr(run_sector, "SECTOR_PHENOMENON_KINDS", (("brown-dwarf", "rogue-planet", build),))
+
+    def not_placed(*args, **kwargs):
+        raise ValueError("no room")      # the draw is what is read; placing the dwarf is not needed
+
+    sector.add_phenomenon = not_placed
+    monkeypatch.setattr(run_sector, "add_star_hosted_nebulae", lambda *args, **kwargs: [])
+    with draw.bound(553):
+        run_sector.generate_sector_phenomena(sector, None, fill=fill, scattered=False)
+    assert len(made) >= 30
+    for population, age in made:
+        low, high = tuning.STELLAR_POPULATION_AGE_RANGES_GY[population]
+        assert low <= age <= high
+    assert len({population for population, _age in made}) > 1
