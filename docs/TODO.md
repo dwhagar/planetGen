@@ -13423,6 +13423,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pc of relative density, and the reference galaxy outline reaches shell
   3,596 (was 3,147). The remaining gap is the mean system mass
   (`tuning.MEAN_SYSTEM_MASS_SOLAR` 0.4), which this item derives.
+  Core 1 (2:02 PM EDT 2026-10-21 as the lane reported): the derived mean
+  system mass is 0.51 solar masses, not the recalled 0.4, so the
+  reference galaxy's system count goes down about 21%; Core 1 proceeds
+  with the approved default (derive it; generator epoch 42).
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -15308,6 +15312,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its test (TEST.215) still passing. Suggested owner: a research
   thread, then Core 4 (the comet sampler lane); version 8.4.
   Prerequisites: none.
+
+- [ ] **GEN.596 A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug)**
+  Found by Core 1 (2:02 PM EDT 2026-10-21 as the lane reported; relayed
+  by the coordinator at 2:02 PM EDT), filed by the TODO thread.
+  `multistar.draw_member_tree` (src/planetgen/generation/multistar.py)
+  raises `ValueError: no cooling track for ... solar masses`
+  (src/planetgen/physics/brown_dwarf.py, the models run from their
+  lowest tabulated mass) when a companion is drawn below 0.01 solar
+  masses. Frequency: 21 of 3,000 trees (0.7%) for a 0.085 solar mass
+  primary. Fails on main: yes, Core 1 reproduced it on current main.
+  Reproducer: `Placed("star", 0.085)`, age 5e9 years, streams b"f0" to
+  b"f2999"; 21 of 3,000 fail. Do: find where the companion mass is drawn
+  below the cooling table's lowest mass and either clamp the draw to the
+  table's range (the draw's own lower limit) or take the planetary-mass
+  branch, whichever the mass function's design says; no try/except that
+  hides it. Done: the reproducer gives 0 failures in 3,000 and a test
+  covers a primary near the hydrogen-burning limit. Owner: proposed Core
+  4 (multistar and the cooling tracks are its area), bug queue
+  otherwise.
+  Prerequisites: none. Related: GEN.545, GEN.262.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
