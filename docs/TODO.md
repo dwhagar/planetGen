@@ -186,6 +186,14 @@ headline with all the open items it needs in build order. Every release in
 CHANGELOG.md opens with a **Headline:** line (Boss, 2026-10-10); the TODO
 thread adds one to each newly stamped release.
 
+Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+"Apply all 29", as the coordinator reported it): the "position N of M"
+numbers are dropped from every owner line that cited the lane assignment
+of 2026-10-17, 10:06 AM EDT (105 owner lines); the lanes report
+/mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md holds the
+order, and the TODO owner lines no longer repeat it, because the numbers
+there disagreed with the report's rows after its revisions.
+
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
 became these items:
@@ -267,8 +275,7 @@ with `clamp()`.
   no-JS posting check).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 18 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: UX.124, UX.125, UX.126.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
@@ -359,6 +366,11 @@ with `clamp()`.
     charted space and wants colour and opacity highlighting instead, so
     the region highlight here is a fill (the same as MAP.238), not an
     outline.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Drop it", as the coordinator reported it): MAP.190 no longer
+  returns an outline edge set, so the highlight here is only the fill
+  (as MAP.238) from the region's sectors and bounding box; the
+  "coplanar-merged edge set" outline text above no longer applies.
     Prerequisites: UX.47, MAP.190. Related: MAP.237.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
@@ -475,7 +487,7 @@ with `clamp()`.
   update.sh output, admin log pages) with an enforcement test: weeks of
   work across Python, web and shell, none of it one PR.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 19 of 53).
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
@@ -509,8 +521,7 @@ with `clamp()`.
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 51 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
@@ -530,7 +541,7 @@ with `clamp()`.
   tests that the same records give a file line and a display line that
   agree.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 8 of 53).
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
@@ -544,7 +555,7 @@ with `clamp()`.
   CLI text, its log file and its download agree line for line; tests for
   each command family.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 14 of 53).
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
@@ -558,7 +569,7 @@ with `clamp()`.
   Done: the screen and the downloaded log show the same lines; update.sh
   prints the same timestamp and marker forms; browser and shell tests.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 15 of 53).
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
@@ -580,8 +591,7 @@ with `clamp()`.
   dark and at phone width.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 7 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.125 The Generate page and the one-off system page on the field macro**
@@ -593,8 +603,7 @@ with `clamp()`.
   and at phone width; keyboard use and labels unchanged.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 12 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
@@ -607,8 +616,7 @@ with `clamp()`.
   form of each kind is submitted in a test.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 13 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
@@ -621,8 +629,7 @@ with `clamp()`.
   and sees it disabled while a run is active.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 39 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.310. Related: GEN.231.
 
 - [ ] **UX.128 Map side panels and other browser call sites take Quantity**
@@ -879,8 +886,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dirty-flag and `camera.layers` rules.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 43 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.119 Expected star density editable by admins on the Galaxy Map**
   Boss (2026-10-03 05:38Z): "In the galaxy view, the expected star
@@ -950,8 +956,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   once.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 34 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   MAP.228 merged (#2032): the address holds the camera, so region
   stepping reads and writes the camera address, not the old window
   address.
@@ -1042,8 +1047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   empty panel are the places to put the selection basics and menu items.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 44 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -1065,8 +1069,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on every map (2026-10-16).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 45 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.141 Context around the selection: faint neighbours, and the sectors above and below**
   Boss (GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716)): "When selecting a slab we should
@@ -1095,8 +1098,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   review).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 46 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
   Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
@@ -1233,8 +1235,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.29.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 47 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
   Source: docs/design/galaxy-map-wire-format.md (section 5, from section
@@ -1254,8 +1255,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per generated star. Optional.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 48 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
@@ -1364,8 +1364,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Key unstored clouds by (cell_i, cell_j, cell_k, n).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 38 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.172 Nebula cell aggregates in the region pyramid**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -1380,8 +1379,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the true cover. Owner: Foundations lane 1, with MAP.151.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 35 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisite: none. Related: MAP.151 (done, PR #1539), MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -1405,8 +1403,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   review).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 37 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.174 Nebula cover in the stage-view cell statistics, for filled and unfilled cells**
@@ -1427,8 +1424,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the field) plus the filled-versus-unfilled agreement test.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 36 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
@@ -1570,8 +1566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier text that MAP.190 needs this item is gone.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 41 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
@@ -1593,8 +1588,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2 reads both together).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 40 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Drop it", as the coordinator reported it): the region outline
+  edge set is dropped from `GET /api/galaxy/regions` (no named use
+  remains: MAP.237 draws no outline); the endpoint returns each region's
+  sectors and bounding box, with the one face-adjacency contiguity rule.
   Prerequisites: none. Related: MAP.189, MAP.151 (done, PR #1539).
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
@@ -1688,8 +1687,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.171, MAP.195, MAP.173 (one cache-stamp bump) (2026-10-16 review).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 39 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
 - [ ] **MAP.207 The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline**
@@ -1810,8 +1808,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default, and a browser test checks the default.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 42 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: MAP.191.
 
 - [ ] **MAP.215 Nebulae tint the stars seen through them, with soft translucent boundaries**
@@ -2911,7 +2908,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   consistent at the outer edge of the habitable zone. Evidence: the
   planet class gap report
   (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
-  Prerequisites: GEN.146.
+  Prerequisites: GEN.146, GEN.428, GEN.411.
   Plan (2026-10-07): Moved to phase 2 under GEN.90.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -2920,6 +2917,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
+  are added to this item's Prerequisites line, so the build reads the
+  wait that the 2026-10-16, 11:58 PM EDT sweep text names.
   Related: GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
@@ -3106,8 +3107,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the backfill, and an addition to another item's golden test.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 33 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.309, TEST.182.
 
 - [ ] **GEN.55 Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal)**
@@ -3159,9 +3159,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     neighbours exist yet. Done: a sector's contents (as docs/design/reproducible-galaxies.md defines
     them; ids and timestamps excluded) come out the same whichever
     sectors were generated before it, at any worker count; names, seeds
-    and skips key on addresses and the galaxy seed, not on ids or arrival
-    order: in a name collision the sector with the lower address keeps
-    the name and the other is renamed from its own seeded stream;
+    and skips key on addresses and the galaxy seed, not on ids or arrival order;
     nearest-system links are rebuilt from content, so they are left out
     of the comparison; and a test generates the same sectors at 1 and 4
     workers and in two orders and compares fingerprints (GEN.58).
@@ -3188,7 +3186,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     from IDs), so the name part of this item is dropped, and GEN.63 with
     it.
     Note (2026-10-09): order: it must land before TEST.77 (open order
-    dependencies: name collisions by save order, the ID-cell counter,
+    dependencies: the ID-cell counter,
     population seeds keyed on database ids, nearest links). Research
     Lane 1 also notes the admin regenerate paths for planets, moons and
     belts (`admin/edits.py`) draw from the ambient process stream, so an
@@ -3205,6 +3203,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     address, the directive digest and the attempt number
     (`generation/directives.py` seeds attempt a >= 1 from the
     directives' digest).
+    Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT
+    2026-10-21 "Apply all 29", as the coordinator reported it): name
+    collisions are dropped from this item (names come from IDs, GEN.67):
+    the lower-address rename rule is removed from the Done text and name
+    collisions from the list of open order dependencies. What stays is
+    covered by the subitems GEN.306 (population seeds), GEN.307 (the
+    ID-cell counter) and TEST.181.
     Prerequisites: GEN.307, TEST.181.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
@@ -3232,7 +3237,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     any later daily step). Decided (Boss, 2026-10-09 20:52Z): keep the
     daily positional update.
     Done: `scripts/maintenance.sh` (Linux and macOS) runs once a day:
-    the positional update (`planetgen.cli.orbits`). A lock keeps two
+    the positional update (a step list of the PERF.118 wrapper, replacing `planetgen.cli.orbits`). A lock keeps two
     runs
     from overlapping, every step logs to the normal log, and the script
     exits non-zero on any failure. Optionally it also runs OPS.15's
@@ -3245,7 +3250,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     refiles systems and phenomena into other sectors, so sector
     membership of placed objects changes daily.
     Research (2026-10-09, ops-scheduling-and-rotation.md): restructure:
-    implement the logic once in `planetgen.cli.nightly`
+    implement the logic once as a step list of the PERF.118 wrapper (this research named `planetgen.cli.nightly`; see the Decided note below)
     (`planetgen.cli.maintenance` already exists: maintenance mode on and
     off, UX.112) (steps,
     lock, `--if-due`, `--dry-run`, `--only STEP`, rotating log file,
@@ -3269,6 +3274,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     file, `timeout=0` helpers and `PermissionError` handling, plus a
     two-process test on Linux and macOS (the Windows parts are dropped
     by OPS.39).
+    Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT
+    2026-10-21 "Apply all 29", as the coordinator reported it): the
+    nightly run is not a `planetgen.cli.nightly` command and not
+    `cli.orbits`: it is a step list of the PERF.118 wrapper, and the
+    steps are the single-purpose commands that replace `cli.orbits` (the
+    orbital update of GEN.105 and the other one-job commands of
+    docs/design/command-inventory.md). `scripts/maintenance.sh` stays a
+    thin launcher of that wrapper run; `cli.nightly` is not built as
+    a second wrapper. The decision of Boss, 2026-10-17, 4:19 PM EDT
+    (every command does one thing, the order lives only in the wrapper
+    step list) is filed on GEN.105.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
@@ -3358,8 +3374,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     server and comparing) (2026-10-16 review).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 14 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
@@ -3538,12 +3553,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own enclosed mass. F2: step 4 runs for every object through the one
   core function (amends card S13: a bound planet or moon works in its
   host's frame with the host's pull taken out; the tide screens stay as
-  validity checks). F3 order: per object steps, each object moves and
-  then gets its vector in turn, not two phases; Boss's "position
-  changes first" is read as position before vector within each object,
-  so later objects see a mix of old and new positions of the others
-  (the result depends on the order rows are visited, so the order must
-  be fixed and tested). F4 next due: the speed from the new vector,
+  validity checks). F3 order: each object moves and then gets its vector in turn, not two phases (Boss's "position changes first" is read as position before vector within each object), in the chunk order set below (tier, then mass band), each chunk reading the state at its start, so the row order inside a chunk does not matter (reworded 2026-10-21, 7:45 AM EDT, to match the sweep answers on this item). F4 next due: the speed from the new vector,
   capped at the time for the influence set to change. F5 new records:
   always visited, the position advances only from the record's own
   epoch, then the next-update value is set. The last card, "Is the
@@ -3659,6 +3669,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   9:43 PM EDT): the galaxy stores no home or Sun position and no value
   places the Sun in the density model; 8.128 kpc stays only as the Milky
   Way test reference.
+  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
+  and "Derive from the galaxy", as the coordinator reported it): the
+  potential's masses and scale lengths are derived from the generated
+  galaxy; 2,600 pc and 1,580 pc (and 229.3 km/s) stay test references
+  only, never defaults (GEN.338 carries the rewrite).
     Prerequisites: GEN.338, GEN.339, GEN.340.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -3752,6 +3767,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the long force sums here use compensated summation (Neumaier or fsum,
     or mpmath for the long integrations from the galactic centre); the audit
     decided they wait for this item, not before.
+  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
+  EDT; GEN.105's Decided notes win where this item's older text
+  differs): the influence radius is the single largest Hill radius of
+  any object in the galaxy (one stored number, Sgr A* left out of that
+  maximum, GEN.370 first), the nearest 64 are summed exactly and the
+  rest as one point mass per sector (the older wording about "nearby"
+  and per-ring cover lists is superseded), every due object goes through
+  the one core function, sectors are shells, bands and wedges (not
+  rings, layers and slots), and the visit order is tier, then mass, in
+  chunks that each read the state at their start.
     Prerequisites: GEN.341, GEN.342, GEN.343, GEN.344.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -3801,11 +3826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (2026-10-16 review).
   Prerequisites keep the umbrellas; each umbrella closes with its
   children (2026-10-16 review).
-  Decided (Boss, 2026-10-17, 4:19 PM EDT): every command does one and
-  only one thing and the order lives only in the wrapper's step list
-  (PERF.118, PERF.120); the nightly run of this item follows that and
-  replaces `cli.orbits`, which advances planets, moons, stars and
-  binaries in one command.
   Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
   2026-10-18, as the coordinator reported them): fork 3, "Chunk start
   state": every object in one chunk (tier, then mass band) reads the
@@ -3819,6 +3839,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value for every object step 4 touches; positions stay derived lazily
   from the parent chain. Where GEN.197 says the update writes nothing
   but the top barycentre's point, this wins.
+  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
+  and "One function of metallicity", as the coordinator reported it):
+  the hydrogen-burning limit is one function of metallicity
+  (`hydrogen_burning_limit_sol(z)`, 0.074 solar masses at solar Z) that
+  feeds this item's fusion check and the brown dwarf split; the 0.075
+  Msun (78.6 Mjup) setting above is that function's solar value and 80
+  Jupiter masses stays a sampling range only.
+  Decided (Boss, contradiction sweep card, tapped 7:30 AM EDT 2026-10-21
+  and "Chunk-start rule only", as the coordinator reported it): the
+  chunk-start rule (tier, then mass band, each chunk reading the state
+  at its start) is the only update-order rule; the earlier "later
+  objects see a mix of old and new positions" wording is removed from
+  the design note docs/design/orbital-update-check-2026-10-18.md.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the decision of Boss,
+  2026-10-17, 4:19 PM EDT, filed earlier under GEN.110, belongs here:
+  every command does one and only one thing and the order lives only in
+  the wrapper's step list (PERF.118, PERF.120); the nightly orbital
+  update of this item follows that and replaces `cli.orbits`, which
+  advanced planets, moons, stars and binaries in one command. OPS.16's
+  nightly run is a step list of that wrapper.
     Prerequisites: GEN.345, GEN.346.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -4124,8 +4165,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   things nobody else waits for: a schema change and the save-time tree.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 7 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.304, DB.49, GEN.305.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
@@ -4178,31 +4218,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   into its guards (2026-10-16 review).
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
-
-- [ ] **GEN.142 Peculiar velocity for rogue planets and asteroid fields**
-  `rogue_planets` and `asteroid_fields` have no velocity, so the
-  co-rotation model gives neighbouring rogues near-zero relative speed
-  and any collision test on current data finds nothing. Done: velocity
-  columns on both, drawn per body at generation from the age and
-  population dispersion (default thin disc (35, 25, 20) km/s per axis,
-  thick disc (60, 40, 35), bulge isotropic about 110 km/s). Rogue
-  positions are absolute float64 parsec values good to about 14 km at 8
-  kpc, unusable for small-body collision tests; compute differences from
-  sector-relative values. Decided (Boss, 2026-10-10 18:44Z, defaults
-  approved; default yes).
-  Narrowed (2026-10-16 review): draws the peculiar velocities at
-  generation (thin and thick disc and bulge dispersions); the velocity
-  and mass columns and the rogue sector-relative offsets come from the
-  second and third children of GEN.294. Needs GEN.294:b, placed after
-  them.
-  Unified orbited-body design (GEN.550, design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md,
-  coordinator 2026-10-17, 11:29 PM EDT as relayed): superseded by
-  GEN.557: the wanderer's motion (population dispersion plus an ejection
-  speed) is a step of the body draw. Fold this item into it when the
-  design is approved; it is not retired yet.
-  Prerequisites: none.
-  Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
 
 - [ ] **GEN.143 The orbital-event admin report, the last-collisions view and a test that runs the whole collision path**
   The admin report in design section 7 and a "last collisions" admin
@@ -4268,7 +4283,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.355.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
+  are added to this item's Prerequisites line, so the build reads the
+  wait that the 2026-10-16, 11:58 PM EDT sweep text names.
+  Prerequisites: GEN.355, GEN.428, GEN.411.
   Related: GEN.412, GEN.423, GEN.428.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
@@ -4292,14 +4311,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checked against McConnachie 2012 (VizieR J/AJ/144/4) and NED. Hold
   absolute magnitude and distance, never a hand-keyed apparent magnitude
   (the draft's recalled values were off by 0.7 to 1.9 mag). The layout
-  already has Mpc and Gpc units, so a galaxy's centre fits the 76-bit
-  position ID; add type code 13 `galaxy` in `names/object_id.py` only if
+  already has Mpc and Gpc units, so a galaxy's centre fits the 76-bit position ID (the position part of the 96-bit object ID); add type code 13 `galaxy` in `names/object_id.py` only if
   the neighbours use it as their `uid`.
   Scope after the review (2026-10-16 review): the `neighbor_galaxies`
   table and data file for M31 and its group, the other Local Group
   members and the galaxies beyond (M81, M82, NGC 253, Centaurus A, M83,
   IC 342, Maffei 1, Virgo as one object); the nine Milky Way satellites
   are in `galaxy_components` (GEN.237).
+  Decided (Boss, contradiction sweep card, tapped 7:30 AM EDT 2026-10-21
+  and "Drawn from the seed", as the coordinator reported it): neighbour
+  galaxies (the Local Group) are drawn from the seed by default; the
+  real Local Group table is a test reference only and ships as no
+  content.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the 76-bit figure is
+  the position part of the 96-bit object ID, not a separate ID; the
+  object ID is 96 bits.
   Prerequisites: none.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
@@ -4418,8 +4445,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   show what was asked and what was drawn.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 17 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.96, GEN.97.
 
 - [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front**
@@ -4436,8 +4462,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stores the `met_forced` status in its attempt record.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 20 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
   three small lane reorderings?", tapped "Apply all three", relayed in
   words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
@@ -4448,7 +4473,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.197 Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split**
   Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: 80-bit birth-location ID). Left over from GEN.172
+  2026-10-09 22:39Z: 80-bit birth-location ID, the birth-location part of the 96-bit object ID). Left over from GEN.172
   and TEST.110 when Foundations lane 1 merged them (PR #1075). Done: the
   orbital-update events that create these cases apply the ID rules: an
   ejected planet keeps its ID and becomes a rogue-planet row; a merge
@@ -4489,6 +4514,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value for every object step 4 touches; positions stay derived lazily
   from the parent chain. Where GEN.197 says the update writes nothing
   but the top barycentre's point, this wins.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the 80-bit figure is
+  the birth-location part of the 96-bit object ID, not a separate ID; the
+  object ID is 96 bits.
   Prerequisites: DB.56. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -4564,8 +4593,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a test shows it. Owner: Foundations lane 1.
   Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 48). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4633,8 +4661,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 1, in its bug phase.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 21 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
   three small lane reorderings?", tapped "Apply all three", relayed in
   words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
@@ -4672,8 +4699,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change owned by two lanes.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 40 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.310, UX.127. Related: GEN.101, MAP.120.
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4854,13 +4880,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   giant molecular cloud holds embedded Q-type groups of protostars and
   the count reaches the expectation, or Boss accepts the shortfall.
   Later. Owner: Core, later (2026-10-15).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report); held until its blocker
   merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the owner stays Core
+  4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
+  owner lines are deleted.
   Prerequisites: none. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4959,13 +4985,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   allows several hundred; the 1.1e6 to 1.1e2 systems of N = 8 to 12 in
   the default galaxy are in the tail table). A directive may still raise
   it.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
   after Core 3 merges UX.116 (Generate page)).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the owner stays Core
+  4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
+  owner lines are deleted.
   Prerequisites: none. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -5007,8 +5033,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics/roche.py, the interaction classifier on every pair, the member
   flags, a rejuvenated merger-product age and the new kinds
   stripped-helium, thorne-zytkow and wolf-rayet with labels. Still open:
-  storing interaction on scatter_nodes and orbit_nodes, which waits on
-  GEN.260 (migration 0093); exotic-star draws and rate alignment stay
+  storing interaction on scatter_nodes and orbit_nodes, which comes from DB.53, the first child of GEN.129 (no revision of its own); exotic-star draws and rate alignment stay
   with GEN.270.
   Prerequisites: none. Related: GEN.268, GEN.243, GEN.242,
   GEN.270, GEN.271, GEN.272. Finding from Core 2 (2026-10-16, 4:58 AM
@@ -5027,6 +5052,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the interaction
+  storage names DB.53, the first child of GEN.129 and its provider of
+  the interaction and flag columns; the older "waits on GEN.260
+  (migration 0093)" line is replaced (GEN.260 is done).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -5342,6 +5372,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first, the system-radius filter from the first child of GEN.109), the
   cost estimate on the benchmark galaxy and the seeded black-hole test;
   the closest-approach maths comes from the library.
+  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
+  EDT; GEN.105's Decided notes win where this item's older text
+  differs): the encounter search runs inside the same visit order (tier,
+  then mass band, chunk-start state) and uses the one global search
+  radius (largest Hill radius, GEN.370 first) to decide who joins a
+  system's set; a bound planet or moon works in its host's frame with
+  the host's pull taken out (F2).
 
 - [ ] **GEN.291 A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log**
   Finding (orbital-encounters research, 2026-10-15, kind: missing
@@ -5524,7 +5561,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are built. Done: the Harris file (kept at
   /mnt/project-files/data/harris/mwgc.dat) is read by a reference reader
   used by the tests and the design note, never loaded into a galaxy; the
-  generator's laws (the count from the halo and bulge mass, the mass
+  generator's laws (the count from the halo mass, the mass
   function, the radial profiles of the halo and bulge groups, the
   bimodal [Fe/H], the King concentration, the age spread) are calculated
   or derived from published science and checked against the file's
@@ -5565,6 +5602,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius, surface brightness and host colour, red about 17 percent
   smaller than blue (Jordan 2005); invariance holds over a factor of
   about 350 in host luminosity, not 10^5.
+  Decided (Boss, contradiction sweep card, tapped 7:28 AM EDT 2026-10-21
+  and "Halo mass only", as the coordinator reported it): the cluster
+  count law is the halo mass alone (GEN.403); "and bulge mass" is
+  dropped from the generator's laws above.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
@@ -5718,7 +5759,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.303 Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000**
   Boss (2026-10-16, 1:47 PM EDT, in the GEN.280 thread): "cell cap
   should be a configuration option." The per-cell cap of systems
-  (GEN.281, now the adaptive cap that GEN.280 builds) becomes one named
+  (GEN.281, the adaptive cap that GEN.364 builds) becomes one named
   option `generation.cell_cap` in the ADM.42 model: default 5,000,
   lowest 500, highest 50,000, with help text that says what it limits
   and that changing it affects only later fills, not stored cells. The
@@ -5735,8 +5776,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.84 for the settings page and needs no new migration.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 43 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): GEN.364 is the
+  builder of the adaptive per-cell cap (GEN.280 is the core density);
+  the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
 
 - [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
@@ -5759,8 +5803,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   deleted and its tests moved.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 4 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
 
 - [ ] **GEN.305 Store a leaf digest at save time and build the tree: roots and region digests**
@@ -5777,8 +5820,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 6 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.304, DB.49. Related: GEN.136.
 
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
@@ -5795,8 +5837,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   either save order; a test says so.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 15 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.57.
 
 - [ ] **GEN.309 The backfill picks the draw path per block and gives the same stars wherever it lands**
@@ -5812,8 +5853,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   goes in the PR.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 32 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: PERF.108. Related: GEN.42.
 
 - [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
@@ -5831,8 +5871,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command and the route.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 38 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: PERF.99. Related: GEN.231.
 
 - [ ] **GEN.311 Built systems store and load their orbit tree: insert_star_system, load_star_system and serialization read and write orbit_nodes**
@@ -5980,6 +6019,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   out: eccentricity excitation, the swallowed-giant flag, the rare close
   giant.
   Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
+  Lane report (Core 3, 7:34 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): coded and rebased on main with the epoch
+  renumbered to 37; changed gate started 7:05 AM EDT, expected end about
+  8:50 AM EDT, merge right after if green.
   Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -6253,6 +6296,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lz is conserved to 1e-10, one century in one step agrees with a
   hundred one-year steps for stars without an encounter, and sector
   refiling is untouched.
+  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
+  EDT; GEN.105's Decided notes win where this item's older text
+  differs): the stepper is the integration used by the one core function
+  that every due object goes through (F2); it reads the chunk-start
+  state of the others, and its next-update value comes from the speed of
+  the new vector, capped at the time for the influence set to change
+  (F4).
   Prerequisites: GEN.338, GEN.139. Related: GEN.115.
 
 - [ ] **GEN.341 Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check**
@@ -6278,6 +6328,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object scan and its cover lists; the cap of 64 exact members with one
   point mass per sector for the rest stays. GEN.370 comes first. Full
   wording on GEN.105.
+  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
+  EDT; GEN.105's Decided notes win where this item's older text
+  differs): the global largest-Hill-radius search (Sgr A* excluded, 64
+  exact then one point mass per sector) is built here after GEN.370, and
+  the order of work is GEN.370, GEN.341, GEN.342 on Core 3 after its 8.1
+  queue.
   Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
@@ -6314,6 +6370,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chunks, so the row order inside a chunk does not matter; this replaces
   the earlier "later objects see a mix of old and new positions"
   sentence (F3).
+  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
+  EDT; GEN.105's Decided notes win where this item's older text
+  differs): the run applies the chunk order (tier, then mass band,
+  stable sort on tier, mass heaviest first, ties by id) with each chunk
+  reading the state at its start; new records are always visited and
+  advance only from their own epoch (F5).
   Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
@@ -6363,6 +6425,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (rocky 1.26). Done: a table-driven test for every row, mass and
   momentum conserved to a stated tolerance, the same input gives the
   same outcome, a borderline-within-3-percent flag; no database.
+  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
+  and "One function of metallicity", as the coordinator reported it):
+  the fusion check reads the one metallicity function for the
+  hydrogen-burning limit (0.074 solar masses at solar Z); the 0.075 to
+  0.08 figures above are the old settings and the sampling range, not
+  the limit.
   Prerequisites: none. Related: GEN.110.
 
 - [ ] **GEN.346 Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events**
@@ -6385,7 +6453,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator 2026-10-17, 11:29 PM EDT as relayed): gets simpler in the
   same way as GEN.291: an unbinding changes the parent link only
   (storage item DB.73).
-  Prerequisites: GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197.
+  Prerequisites: GEN.345, GEN.334, GEN.341, DB.56, GEN.197.
   Related: GEN.110.
 
 - [ ] **GEN.347 The last-collisions admin view and the test that runs the whole collision path**
@@ -6679,8 +6747,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from L and T.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 42 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.149.
 
 - [ ] **GEN.366 Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible**
@@ -6898,6 +6965,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows a galaxy twice the size changes the Hill
   radius. Fails on main: no failure, a fixed assumption. Related:
   GEN.368, GEN.285.
+  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
+  and "GEN.370 wins", as the coordinator reported it): the galaxy's own
+  enclosed mass and the cell's own distance replace the
+  whole-galaxy-mass radius everywhere, so
+  docs/design/course-avoidance.md's "do not change this for routing" is
+  superseded; the placement keep-apart fill (6 percent at the old radius
+  against up to 108 percent at 1.4 pc) is rechecked in this item's gate
+  and the result is stated in its PR.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -7391,8 +7466,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design sets the strengths, not these choices.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 35 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **GEN.392 A bubble field handle on the galaxy shape: seed-carried bubbles with a box cut, a certified maximum factor and a bubble-free density read**
@@ -7418,8 +7492,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   calculated or drawn law with its source named.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 36 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.391. Related: GEN.254, GEN.393.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -7447,8 +7520,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   strength is a calculated or drawn law with its source named.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 37 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.392. Related: GEN.379, GEN.134, GEN.322.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -7476,8 +7548,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.377.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 38 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **GEN.395 Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query**
@@ -7504,8 +7575,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   intermediate populations follow the bubbles; old stars stay uniform.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 39 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.393. Related: DB.38, ADM.94, GEN.298.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -7526,8 +7596,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   left the table alone.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 18 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
 
 - [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
@@ -7550,8 +7619,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   uses the better estimate; the test stays.
   Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 48). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
 
 - [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
@@ -7617,8 +7685,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table (2026-10-16, 10:11 PM EDT); GEN.164's older S_N-by-morphology
   count is superseded by it. Owner: Core 1 (Boss's lanes to 8.1,
   2026-10-17, 10:06 AM EDT; lane assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 3 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
   docs/design/galaxy-laws-research.md, sections Q3, Q4, Q6, Q8): the
   cluster system radius and profile, the dwarf-end count and the
@@ -7787,8 +7854,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   about 8 percent for codes that mix conventions; CO uses the Allen/Cox
   form (n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K), not the
   coded Sneep and Ubachs form; H2 and He use the cross-section laws of
-  Dalgarno and Williams and of Kurucz/Dalgarno; the CH4 value is 15
-  percent high in the Sneep and Ubachs formalism; water vapour uses the
+  Dalgarno and Williams and of Kurucz/Dalgarno; the CH4 value is 15 percent high in the Sneep and Ubachs formalism (the 30 percent given below is a different comparison, see the Decided note); water vapour uses the
   vapour depolarization 2.99e-4, not the liquid's 0.17; H2S, SO2 and the
   King factor of NH3 are not found and stay marked open. Done: a test
   fails when a gas named anywhere in the code is missing from the table;
@@ -7921,6 +7987,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
   needed), PubChem and USGS are public domain. The licence column is a
   record only (Boss, 2:35 PM EDT).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the two CH4 Rayleigh
+  errors name different quantities and both stay: the 15 percent is the
+  CH4 value in the Sneep and Ubachs formalism; the 30 percent is the
+  older coded refractivity form against the measured value.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8142,6 +8213,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and dataset he acquired is usable and no licence audit gates the
   table; the fitted table may stand only for another stated reason
   (size, fit quality).
+  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
+  and "Fetch at setup only", as the coordinator reported it): line-list
+  grids are fetched at setup (update.sh) and nothing from them is stored
+  in the repository; Boss's 2:35 PM EDT 2026-10-17 "fine to publish" is
+  about licence only, not about committing the grids.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8369,6 +8445,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Standard, read from Boss's papers, GEN.422, 2026-10-17, 12:10 to 12:13
   PM EDT), replacing the computed 0.0969, at the same 2 percent
   tolerance.
+  Decided (Boss, contradiction sweep card, tapped 7:23 AM EDT 2026-10-21
+  and "Store both, use spread", as the coordinator reported it): the CO2
+  Rayleigh cross section at 532 nm stores both values (He 2021,
+  13.3e-27; Sneep and Ubachs, 12.4e-27) and the draw uses the spread
+  between them.
   Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -9064,6 +9145,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wins": for editions of one work the newest verified edition wins (BC4:
   the 2014 edition over 2003); Boss's widest-range rule applies between
   independent sources, not between editions of the same work.
+  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
+  and "Default 0.14 to 0.39", as the coordinator reported it): the water
+  share beyond the snow line defaults to 0.14 to 0.39 (with the keep
+  switch of GEN.468); ice-to-rock 1 +/- 0.5 becomes a convention
+  setting, not the default.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9501,6 +9587,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
+  and "Close from IAEA", as the coordinator reported it): BC13
+  (effective-dose weights and limits) is closed from the free IAEA GSR
+  Part 3 except the neutron weighting function; ICRP 103 is not needed.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9774,7 +9864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that the secondary supplementary table has coefficient sign and
   precision errors below 50 K. The Atmosphere research lane found the
   same two typos and that Fray and Schmitt exceeds the laboratory curves
-  by up to 6 times below 40 K; the design checks the Boss-supplied
+  by up to 6 times below 40 K across the gases (about 15 times for CO near 25 K, the Body composition lane's figure below); the design checks the Boss-supplied
   coefficients against the lane's table before they replace anything.
   Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 2026-10-17,
@@ -9822,6 +9912,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in 8.1, and only scatter-level changes (nebula radius, remnants above
   the mass cut) need a rescatter. Where this item says it "joins the one
   rescatter of 8.4", this wins.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the two Fray and
+  Schmitt overshoot figures are different measures and both stay: up to
+  6 times below 40 K across the gases (Atmosphere lane) and about 15
+  times for CO near 25 K (Body composition lane).
 
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9896,6 +9991,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
+  and "Close from IAEA", as the coordinator reported it): the radiation
+  weights and dose limits come from IAEA GSR Part 3 (BC13 closed except
+  the neutron weighting function); ICRP 103 is not needed.
 
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9974,6 +10073,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Teq threshold, Kzz nuisance", as the coordinator reported it):
+  the quench level comes from an equilibrium-temperature threshold and
+  Kzz is a nuisance parameter under the Brande prior, not a seeded
+  quench range (GEN.519's D5 row follows).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): GEN.460 draws the
+  giants' heavy-element mass M_Z and this item reads it (see GEN.460);
+  the Prerequisites line already names GEN.460.
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10201,8 +10309,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   comet population table of GEN.495; 67P stays a test target.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 30 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
@@ -10465,8 +10572,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table: the giants' radius and heavy-element content
-  follow the checked laws; the recipe weights of GEN.454 supply its
-  heavy-element mass.
+  follow the checked laws; this item draws the heavy-element mass M_Z and GEN.454 reads it.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
@@ -10523,6 +10629,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in 8.1, and only scatter-level changes (nebula radius, remnants above
   the mass cut) need a rescatter. Where this item says it "joins the one
   rescatter of 8.4", this wins.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): this item draws the
+  heavy-element mass M_Z (and the envelope metallicity) and GEN.454
+  reads it; the circular reading, where the recipe weights of GEN.454
+  supply M_Z, is removed. GEN.454 already lists GEN.460 under
+  Prerequisites and this item does not list GEN.454, so no prerequisite
+  changes.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10690,8 +10803,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.457.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 28 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.466 Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10792,8 +10904,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 29 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
   papers he can download himself, the coordinator posted the list at
@@ -10827,8 +10938,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fray and Schmitt 2009 polynomials `ln P[bar] = A0 + sum A_i / T^i`
   transcribed from the image of Table 2 of the supplement of the
   Arrokoth and Pluto ices paper (NTRS 20210019502); every polynomial
-  reproduces its NIST triple-point pressure within 3 percent (the 4
-  percent case is the low-temperature CO2 polynomial), which proves the
+  reproduces its NIST triple-point pressure within 3 percent (GEN.497 replaces solid CO2 by Span and Wagner equation 3.12, so no 4 percent case remains), which proves the
   units and the exponent layout and does not verify the cold end below
   50 K or the validity range and the choice between the two polynomials
   of N2, CO, CO2 and H2S, for which the primary paper (Planet. Space
@@ -10897,8 +11007,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Jager and Span's narrower range.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 37 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
@@ -10913,6 +11022,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is paid and was not uploaded; the stand-in of each fit inside its
   window with Clausius-Clapeyron beyond, flagged and doubled in width,
   stays.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the tolerance is 3
+  percent for every ice; GEN.497 removes the 4 percent case.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -12384,7 +12496,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the TODO thread. Builder group B1 of section 4 (one worker). Rows: e1,
   e2, e-link. Shared data and fit: CKS DR1/DR2/Gaia tables, Kepler DR25
   injections, Petigura detection model, Rogers and Owen and Ho 2024
-  targets. Needs: injection-recovery selection module (shared with B2);
+  targets. Needs: injection-recovery selection module;
   decision D2; Lopez and Fortney 2014 radius law. Decision D2 (default,
   Decided unless Boss says otherwise): XUV energy-limited loss with
   variable efficiency (Owen and Wu, the repo's choice), a core-mass
@@ -12402,6 +12514,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alone, and the part 09 row carries its state (Decided 3:02 AM EDT
   rule). A retune changes the table version and is a generator epoch
   bump. Owner: Core 4 (proposed, with the composition chain).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): "shared with B2" is
+  dropped from the Needs line: GEN.504 serves B1 and its period, radius
+  and mass cuts, and GEN.510 (B2) does not list it.
   Prerequisites: GEN.503, GEN.504. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12520,7 +12636,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the TODO thread. Builder group B6 of section 4 (one worker). Rows: o2,
   o3, o4, o6, T23. Shared data and fit: Hypatia API (Th, Eu, K),
   Botelho, Mors-style cluster results (Lichtenberg 2016), Th/U formula.
-  Needs: Hypatia licence; a chemical-evolution r-process history.
+  Needs: record the Hypatia licence, no audit; a chemical-evolution r-process history.
   Findings: the o6 Al-26 range is a mixture (enriched flag) and not
   log-uniform around the Solar System value (arXiv 2206.09675,
   1608.01435); o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value, derive it
@@ -12537,6 +12653,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alone, and the part 09 row carries its state (Decided 3:02 AM EDT
   rule). A retune changes the table version and is a generator epoch
   bump. Owner: Core 4 (proposed, with the composition chain).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the "Needs: Hypatia
+  licence" blocker becomes "record the licence, no audit" (no licence audit gates the data, Boss, 2026-10-17, 2:35 PM EDT, as GEN.410 records it).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12616,8 +12735,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the coordinator reported; docs/design/tunable-gaps.md), filed by
   the TODO thread. Builder group B10 of section 4 (one worker). Rows:
   h2, h3, n6 crossover, f8, m7 to m9, n1 to n4, m2. Shared data and fit:
-  easyCHEM or own Gibbs solver with NASA-format polynomials. Needs:
-  licence check on the polynomial source. Finding: the 1500 K and 2200 K
+  easyCHEM or own Gibbs solver with NASA-format polynomials. Needs: record the licence of the polynomial source, no audit. Finding: the 1500 K and 2200 K
   edges are pressure-dependent outputs (CH4 = CO at 966 to 1907 K for
   0.1 to 100 bar; half the water dissociated at 2570 to 3600 K for 1
   mbar to 1 bar), computed by a Gibbs solver and not fixed edges. Do:
@@ -12634,6 +12752,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state (Decided 3:02 AM EDT rule). A retune changes the table version
   and is a generator epoch bump. Owner: Core 4 (proposed, with the
   composition chain).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the "Needs: licence
+  check on the polynomial source" blocker becomes "record the licence,
+  no audit" (no licence audit gates the data, Boss, 2026-10-17, 2:35 PM EDT, as GEN.410 records it).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12663,6 +12785,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): AT.n7 haze yield: ships as
   a labelled placeholder, log-uniform.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Teq threshold, Kzz nuisance", as the coordinator reported it):
+  quench and Kzz follow GEN.454: quench level from a Teq threshold, Kzz
+  a nuisance parameter under the Brande prior; the D5 row draws no
+  seeded quench range.
   Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12706,8 +12833,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.521 Tuned draw builder B13: belts**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/tunable-gaps.md), filed by
-  the TODO thread. Builder group B13 of section 4 (one worker). Rows:
-  T13, T14, E2, E3, R1, R3. Shared data and fit: DeMeo and Carry Table
+  the TODO thread. Builder group B13 of section 4 (one worker). Rows: T13, T14, E2, R1, R3. Shared data and fit: DeMeo and Carry Table
   6, fall shares, Mulders. Needs: stand-in flags only.  Do: replace the
   seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
   draw whose knobs are tuned through the harness to the published
@@ -12721,14 +12847,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alone, and the part 09 row carries its state (Decided 3:02 AM EDT
   rule). A retune changes the table version and is a generator epoch
   bump. Owner: Core 4 (proposed, with the composition chain).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): each row belongs to
+  one builder: E3 is a stand-in-only row and moves to B17 (GEN.525), so
+  this item's Rows line no longer lists it.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
 - [ ] **GEN.522 Tuned draw builder B14: moons and Kuiper belt objects**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/tunable-gaps.md), filed by
-  the TODO thread. Builder group B14 of section 4 (one worker). Rows:
-  T17, T18, T19. Shared data and fit: Canup and Ward, Sasaki, Cilibrasi,
+  the TODO thread. Builder group B14 of section 4 (one worker). Rows: T19. Shared data and fit: Canup and Ward, Sasaki, Cilibrasi,
   Quintana, Brown, Barr and Schwamb. Needs: Bierson and Nimmo.  Do:
   replace the seeded bracket of each DESIGN row of GEN.478 in these rows
   by a seeded draw whose knobs are tuned through the harness to the
@@ -12743,6 +12872,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state (Decided 3:02 AM EDT rule). A retune changes the table version
   and is a generator epoch bump. Owner: Core 4 (proposed, with the
   composition chain).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): each row belongs to
+  one builder: T17 and T18 are stand-in-only rows and move to B17
+  (GEN.525), so this item's Rows line keeps only T19.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12815,6 +12948,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
   outputs of the escape and retention physics, not design flags; the
   design-flag rows left in B17 are m3, m4 and m11.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): each row belongs to
+  one builder: E3, T17 and T18 (stand-in-only rows) are held here and
+  are removed from B13 (GEN.521) and B14 (GEN.522); j2 to j4 are assigned once, here
+  (the fork 7 note above makes them physics outputs, not design flags).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12874,8 +13012,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is answered by a read source (or Boss says to keep the placeholder),
   the number goes to the item named and the note's status moves from
   placeholder to verified. It does not gate GEN.301: the placeholders
-  are labelled and the laws build on them. Owner: Boss (a research list;
-  a read-only research thread reads each source on request).
+  are labelled and the laws build on them. Owner: the research lane (a research list; a read-only research thread reads each source on request; Boss supplies sources only).
   Prerequisites: none. Related: GEN.401, GEN.403, GEN.405, GEN.369,
   GEN.386, GEN.447, GEN.297, GEN.280. Boss (2026-10-17, 10:44 AM EDT,
   typed in the project chat; relayed by the coordinator): some things
@@ -13000,8 +13137,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Toon, Clegg and Hamill, GRL 24, 1931); JPL 19-5 is Burkholder et al.
   2020; the ICRP 103 free extract stops before the wR and wT tables
   (section 4, pages 61 to 78). Not for Boss: these are on arXiv, so a
-  research thread reads them and R4, R6 and R15 move from class B to
-  class A: Aumer and Binney 2009 (0905.2512), Haywood 2013 (1305.4663),
+  research thread reads them and R4 (beyond the Milky Way), R6 and R15 move from class B to class A: Aumer and Binney 2009 (0905.2512), Haywood 2013 (1305.4663),
   Bensby 2014 (1309.2631), Pinna 2019a and b (1901.04310, 1904.01260),
   Graus 2019 (1808.03654, an inference) and Graus's FIRE age-gradient
   paper (1901.05487). Free copies exist for Lodders 2003 (IOP, BC1),
@@ -13136,6 +13272,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   free from IAEA GSR Part 3 (only the neutron weighting function stays
   open), and AD1 methane is filled; the AD1 papers are not requests to
   Boss (Boss, 2026-10-18, 3:07 PM EDT).
+  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
+  and "Relabel / Use 1.45 / Close from IAEA", as the coordinator
+  reported it): (1) GR4 keeps the value 0.54 and is relabelled
+  sigma_z/sigma_R = 0.54 (7:29 AM, "Relabel as sigma_z/sigma_R"); (2)
+  the HB to RGB ratio is 1.45 (measured 1.47 +- 0.025), the open-gaps
+  note corrected (7:29 AM, "Use 1.45"); (3) BC13 weights and limits are
+  closed from IAEA GSR Part 3 except the neutron function (7:29 AM,
+  "Close from IAEA"); (4) the stellar halo mass keeps the GEN.532
+  placeholder as a labelled stand-in, the "fixed 1.5e9 anchor" wording
+  reworded (7:30 AM, "Keep placeholder"); (5) the 750 solar luminosity
+  nebula backfill of GEN.99 is kept for the other stars of a nebula's
+  volume (7:29 AM, "Keep for other stars").
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): (1) the owner is the
+  research lane, and "Boss's list" means the sources Boss supplies, not
+  research Boss does himself; the "Owner: Boss" line is replaced. (2)
+  The class B search list reads R4 beyond the Milky Way (R4 for the
+  Milky Way is already done), so the second list says "R4 (beyond the
+  Milky Way), R6 and R15 move from class B to class A".
 
 - [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**
   Residual of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM EDT as
@@ -13439,6 +13594,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands as the decision; Boss expects GEN.544 and GEN.545 together to
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
+  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): edits drafted, not tested: the thin and
+  thick disc vertical profile changes from sech^2 to exp(-|z|/h) (the
+  form the survey scale heights are fitted with) with the column (mass)
+  kept, so the midplane density doubles and column integrals become 2h
+  instead of 4h; open-cluster heights and the remnant height factor
+  follow the stars' profile; the nuclear disc keeps its isothermal
+  sheet. It needs a generator epoch (the next free one after GEN.591's),
+  and docs/design/galaxy-disk-density.md gets the old and new local
+  density.
   Prerequisites: none. Related: GEN.404, GEN.134, GEN.401.
 
 - [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
@@ -13572,9 +13737,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-verify each line, no code was run)): a refill, not a rescatter, is
   enough for every fill-level 8.4 item (stars, systems, planets, moons,
   belts, comets, rogue planets, free brown dwarfs), and no scatter row
-  depends on fill draws; but the existing regenerate path leaves four
-  gaps (phenomena built flags, sector-less uncharted systems, population
-  rerun, body UIDs shifting when counts change), filed as GEN.564.
+  depends on fill draws; but the existing regenerate path leaves five gaps (phenomena built flags, sector-less uncharted systems, population rerun, body UIDs shifting when counts change, and the generator epoch never compared at runtime), filed as GEN.564.
   Migration without a wipe: yes (details on DB.73).
   Mass object class (design docs/design/mass-object-class.md, decided:
   Boss's cards, as the coordinator relayed with the wake times
@@ -13652,6 +13815,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in 8.1, and only scatter-level changes (nebula radius, remnants above
   the mass cut) need a rescatter. Where this item says it "joins the one
   rescatter of 8.4", this wins.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): (1) the refill audit
+  leaves five gaps, not four: the four listed plus the generator epoch
+  never being compared at runtime (gap (E) of GEN.564). (2) The default
+  mass cut is 14 solar masses, as in the code; the design note
+  docs/design/phenomenon-scatter-mass-cut.md is to be corrected to 14
+  with that source wherever it still prints 20 or 8.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13721,6 +13891,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   out; docs/design/brown-dwarf-state.md updated). Still open: remnant
   birth, [Fe/H], the composition hook, and the brown dwarf leaving
   `rogue_planets`.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
+  Lane report (Core 4, 7:36 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): slice 2 is PR #2303 (draft, claims epoch
+  37, gate started 7:17 AM EDT, 42% at 7:36 AM EDT): a neutron star's or
+  stellar black hole's age follows its population (progenitor from the
+  IMF over its range, birth age from the population's window and age
+  law, less the time to collapse); intermediate and supermassive black
+  holes and given ages keep theirs; `youngest_progenitor_sol` moves from
+  multistar into stellar_evolution and the three progenitor ranges move
+  into tuning; new note docs/design/remnant-age.md. Still open: the
+  remnant row as star state, [Fe/H], the composition hook (GEN.439,
+  GEN.440), the free brown dwarf leaving `rogue_planets` (needs Core 1's
+  DB.73 and DB.74 shape), motion and kick.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13768,6 +13957,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
   2026-10-17, 11:55 PM EDT); "recalled and unverified" no longer applies
   to them. The kick-escape share stays unverified.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13802,6 +13998,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the primary-first step (GEN.581) is the first action of its
   validation. Done also requires: a pair re-primaried gives identical
   absolute positions.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
 
 - [ ] **GEN.556 `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13843,6 +14046,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the primary-first step (GEN.581) is the first action of its
   validation. Done also requires: a pair re-primaried gives identical
   absolute positions.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
 
 - [ ] **GEN.557 Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13876,9 +14086,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `util/draw.py` (GEN.56), every recalled source verified by a lane
   before use under the standing source rules, and any change to a drawn
   value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.553, DB.73, GEN.565. Related: GEN.550, GEN.142,
+  Prerequisites: GEN.553, DB.73, GEN.565. Related: GEN.550,
   GEN.428,
   GEN.458, GEN.291.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
 
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13906,6 +14123,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one wrapper `util/draw.py` (GEN.56), every recalled source
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
   Prerequisites: GEN.556, GEN.557, GEN.466. Related: GEN.550, GEN.457.
 
 - [ ] **GEN.559 Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity**
@@ -13936,6 +14160,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every recalled source verified by a lane before use under the standing
   source rules, and any change to a drawn value bumps the generator
   epoch (OPS.56 rule).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
   Prerequisites: GEN.557, GEN.495, GEN.442. Related: GEN.550, GEN.520.
 
 - [ ] **GEN.560 Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects**
@@ -14217,6 +14448,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state": a free-floating brown dwarf is a StellarObject state, not a
   PlanetaryObject; the brown dwarf row is removed from the
   PlanetaryObject text.
+  Lane report (Core 4, 7:36 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): 565c (the planetary, small-body and stellar
+  families folding CompactRemnant, BlackHole, NeutronStar and
+  BinaryStarProxy, and the S16 record declared with spin axis and rate
+  in rad/s and next-due) waits on Core 1's storage shape (DB.74);
+  position, velocity, mass, mu and epoch already sit on
+  `SpatialPosition3D`.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -15200,6 +15438,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch at its merge, 33 unless another lane merges first (Core 3's
   GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
   Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
+  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): fix done and tested: `Comet` takes
+  `ceiling_au` and cuts the eccentricity range at the aphelion limit; a
+  single star or close pair gets its Hill sphere from
+  `validation.orbit_ceiling_au`, a wide pair keeps its tighter stable
+  limit, parabolic comets read none; the bound test passes 100 of 100
+  loop runs and a system-level test is added. It claims epoch 37
+  (GEN.318 and GEN.553's second slice claim 37 too: the first to merge
+  takes it, the others renumber at merge); gate running since 7:06 AM
+  EDT, expected end about 9:10 AM EDT.
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -15305,8 +15553,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 34 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.309.
   Design: [docs/design/sampling-backfill-and-resume.md](design/sampling-backfill-and-resume.md)
 
@@ -15320,8 +15567,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more than a minute.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 4 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
   coordinator): waits on Boss's cold-rebuild time before it can be done.
   Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
@@ -15392,8 +15638,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   step 6.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 28 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Decided (Boss, 2026-10-17, 4:12 PM EDT): every part of the generate
   process, all the scatter phases included, is an individual command,
   and a general process wrapper makes the list of the commands to run
@@ -15436,8 +15681,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 36 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
   registered with the wrapper of PERF.118, and the wrapper builds the
   command list, each command is one queue item; the stages are not wired
@@ -15472,8 +15716,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 37 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
@@ -15506,8 +15749,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 42 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
@@ -15533,8 +15775,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each stage.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 30 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
   registered with the wrapper of PERF.118, and the wrapper builds the
   command list, each command is one queue item; the stages are not wired
@@ -15546,6 +15787,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
   and only one thing and knows nothing of the other stages or the order;
   the order lives only in the wrapper's step list (PERF.118).
+  Lane report (Core 5, 7:34 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): coded and committed together with PERF.108
+  on one branch (main 8.0.1843 merged in); gate started 7:09 AM EDT, 73%
+  at 7:34 AM EDT, expected end about 8:45 AM EDT; a SIGTERM now ends a
+  run as cancelled (`wrapper.run`) and the galaxy tests no longer read
+  the old lease and queue node.
   Prerequisites: none. Related: PERF.98.
 
 - [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
@@ -15573,8 +15820,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation-performance-study.md.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 31 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
   registered with the wrapper of PERF.118, and the wrapper builds the
   command list, each command is one queue item; the stages are not wired
@@ -15836,6 +16082,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `planetgen clear-scatter` command, not a `--redo` flag (this is against
   Core 5's recommendation, and Boss's answer stands); `--redo-scatters`
   is removed with no shim.
+  Lane report (Core 5, 7:34 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): coded in a side worktree and uncommitted,
+  per the F5 to F7 answers: `scatter` takes exactly one kind flag and
+  refuses while that kind is stored; `fill-map-luminosity`,
+  `rescore-habitability` and `clean-nebula-field` (dry run, `--apply`)
+  are one root each; F7 is a separate `clear-scatter` command with
+  `--redo-scatters` removed and no shim. Pure-Python tests pass (398);
+  the DB tests, the same-galaxy equivalence check and the gate come
+  after the PERF.107 and PERF.108 merge.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -16134,6 +16389,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator reported them): fork 11, "Required
   prerequisite": PERF.41 (the TILE_FORMAT stamp) is a prerequisite of
   this item.
+  Lane report (Core 2, 7:35 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): part 1 is committed (branch perf133, gate
+  started 7:23 AM EDT): stored tiles are keyed by a new `tile_stamp`
+  (shape, bright seed, naming key, `query.TILE_FORMAT` = 1, generator
+  epoch, change counters) with the release number out of it, so a
+  release alone keeps every stored tile (the page cache and counts still
+  follow `stamp`); `/api/galaxy/changes` gains `tile_stamp` and
+  `tile_full`; a change deletes only the tiles holding the sector and
+  queues the stored ones for rebuild at once (`tilecache.take_rebuilds`,
+  `tileprefetch.rebuild`, coarsest first, at most 2,048, off with
+  `prefetch_per_minute` 0, during an update or with the cache full); the
+  tests (no change builds zero tiles, a one-sector change rebuilds only
+  its tiles, a release alone rebuilds nothing, a TILE_FORMAT bump
+  rebuilds all) are in test_cache_warmup.py and test_tile_format.py pins
+  one tile's bytes. Not in part 1: the zero-list and index rebuild half
+  (waits for PERF.140 and PERF.141) and eviction by least recently
+  visited at the budget, which Core 2 builds with PERF.139 as its next
+  PR.
   Prerequisites: PERF.41. Related: PERF.129, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -16258,6 +16531,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built-ahead tiles stay, only the least recently visited on-demand
   tiles are dropped (PERF.133 amended); the budget is short: indexes and
   stored lists first, tiles take the rest.
+  Lane report (Core 2, 7:35 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): next PR after PERF.133 part 1:
+  `cache.max_mb` default 1024 replaces `tile_cache.max_mb` with no shim
+  (environment variable PLANETGEN_CACHE_MAX_MB; settings.py, config
+  docs, schema and example, deploy-paths.py, create-cache-dir.sh and
+  about 10 tests), with eviction of the least recently visited tiles
+  when the budget is full.
   Prerequisites: none.
 
 - [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
@@ -16403,8 +16683,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DB.8 only.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 29 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.43, DB.44, DB.45, DB.46, DB.47, DB.48.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -16419,8 +16698,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration, per db-check-and-parity-repair.md.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 11 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -16445,8 +16723,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (2026-10-16 review).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 30 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.47, GEN.179.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
@@ -16495,8 +16772,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   load flakes). Fix the cause; no skipping or quarantine.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 41 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
@@ -16504,7 +16780,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
   Needed by POP.12 (done, PR #1554; Generate), same rule as DB.27 and
-  DB.28: only Database adds migrations. Add the columns or
+  DB.28: any lane writes its own migration and Core 1 settles the revision number. Add the columns or
   the table that hold each species' own environment limits, one value
   per row of `LIMIT_ROWS` in `planetgen/physics/protection_limits.py`
   (pressure, oxygen, temperature, wet-bulb, dose and the other rows it
@@ -16518,8 +16794,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   queue thread before PERF.100, and DB.30 is the urgent one for POP.12.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 21 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the rule "only
+  Database adds migrations" becomes "any lane writes its own migration,
+  and Core 1 settles the revision number", which matches Core 4 owning
+  this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
 - [ ] **DB.31 Store structure, not prose, for life and flavour**
@@ -16543,8 +16823,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations Wording writes the code against it').
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 17 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
@@ -16592,6 +16871,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   order set at 3:00 PM EDT: non-test bugs, then the database-version
   test failures, then the failures that hit full runs, then the one-off
   load flakes). Fix the cause; no skipping or quarantine.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the owner is Core 1
+  (the lane named in Boss's order of 2026-10-16, 2:43 PM and 3:00 PM
+  EDT), unless Core 2 takes it; Core 2's own confirmation of 9:17 PM EDT
+  on 2026-10-16 that it is its to fix stays on record, so the two lines
+  are not reconciled further here (the recommendation was to ask Boss,
+  with Core 1 as the fallback).
   Prerequisites: none.
 
 - [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
@@ -16738,8 +17024,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   KB blocks is recorded in the PR.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 23 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.44 Migration only: the sector storage checksum and the parity dirty flag**
@@ -16755,8 +17040,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   code reads the columns yet.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 24 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
@@ -16778,8 +17062,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   sector as unprotected.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 25 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.44. Related: DB.9.
 
 - [ ] **DB.46 The parity file: groups, records, a delta update on every save and the stale-record rule**
@@ -16803,8 +17086,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   overhead is about 7 percent on a 1,000-sector fixture.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 26 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.43, DB.45. Related: DB.9.
 
 - [ ] **DB.47 planetgen repair-db: rebuild damaged sectors from the parity file**
@@ -16822,8 +17104,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   listed, not guessed.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 27 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.46. Related: DB.9.
 
 - [ ] **DB.48 repair-db: rebuild the table when a clustered-index page is unreadable**
@@ -16841,8 +17122,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   present.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 28 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.47. Related: DB.9.
 
 - [ ] **DB.49 Migration only: the leaf digest column and the shell-band tree table**
@@ -16856,8 +17136,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   idempotent upgrade and a round-trip test; no code reads them yet.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 5 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
@@ -17318,6 +17597,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   table. Derived, and their columns dropped in the DB.73 revision:
   speed, axial tilt, rotation period, a*, ms period, galactic orbital
   speed, period and phase, and min_update_interval_years.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -17740,8 +18026,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   hand, with a CI check against the OpenAPI file.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 16 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: API.26.
 
 - [ ] **API.5 API version and compatibility checking**
@@ -17834,8 +18119,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   unchanged.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 10 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
 - [ ] **API.8 Verify uploaded data before it is finalized**
   Boss (2026-10-01 19:32Z): "the API will have to have a reliable method
@@ -17937,8 +18221,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the only user, so no 3 route is kept). Not a bug.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: API.4.
 
 - [ ] **API.28 Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects**
@@ -19073,6 +19356,11 @@ clears each one.
   is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
   earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
   has been idle since 12:40 AM EDT on 2026-10-16.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the item closes after
+  5 clean full runs, as for its sibling test-bug items; the status line
+  "It closes unless a traceback shows up" (2026-10-16, 11:43 PM EDT)
+  does not replace that rule.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -19133,39 +19421,6 @@ clears each one.
   has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
-- [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
-  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the CI
-  run on main after PR #1161 (MySQL 8.4 leg; not caused by PERF.64):
-  test_admin_script_cli.py::test_update_orbits_never_moves_backwards_when_the_clock_goes_back
-  and
-  test_edge_admin_scripts.py::test_update_orbits_first_run_sets_a_starting_point_then_advances.
-  On MySQL 8.4 the stored last_updated_at rounds up, so it reads
-  '0.000000 years in the future' and the elapsed time is -1 s; the
-  second test expects 'years elapsed' and gets the clock-moved-back
-  message. Likely cause: fractional-second rounding of NOW() in the
-  orbit update (MariaDB truncates, MySQL 8.4 rounds). Done: the orbit
-  update stores and compares a time that both servers treat the same way
-  (truncate to the column's precision before comparing, or use the same
-  clock on both sides), checked on MySQL 8.4 and MariaDB; a product bug
-  if a real run could see a negative elapsed time. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 4 in the thread's order; the stored
-  last-updated time is compared the way MySQL 8.4 rounds it; the thread
-  installs MySQL 8.4 to verify. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Status (2026-10-09): Fixed by the Test Suite Rebuild thread
-  (2026-10-14, #1313, suite green): the stored last-updated time is
-  compared the way MySQL 8.4 rounds it. Retire this item once the
-  scheduled MySQL 8.4 CI run on main is green.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Prerequisites: none. Related: TEST.116, TEST.126.
-
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
   Reported by Foundations lane 1 (2026-10-10 20:55Z), from the CI
   run on main after PR #1161:
@@ -19211,8 +19466,7 @@ clears each one.
   Foundations lane 1 drops it from its queue. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 49 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: MAP.172, MAP.173, GEN.202. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -19331,8 +19585,7 @@ clears each one.
   the headline can close.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 51 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: TEST.184, TEST.185. Related: TEST.156.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -19351,8 +19604,7 @@ clears each one.
   "all types represented" is pending; default is audited frequency.
   Done: the audit runs in the suite in a few minutes and as a report.
   Owner: Quality (all TEST items are Quality's). Boss's rules
-  (2026-10-15 5:39 PM EDT): scatters and backscatters carry no systems,
-  planets or moons; nebulae need stars and phenomena, not planets;
+  (2026-10-15 5:39 PM EDT): scatters and backscatters carry no planets, moons or belts (stellar companions are allowed at scatter time, Boss 2026-10-15, 5:51 PM EDT); nebulae need stars and phenomena, not planets;
   planets and moons only when a sector is filled with everything; a fill
   represents every kind and builds the systems phenomena can have at
   real-world odds.
@@ -19377,8 +19629,13 @@ clears each one.
   the headline can close.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 52 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the rule of 2026-10-15, 5:39 PM EDT,
+  is amended to "no planets, moons or belts": stellar companions of
+  stars and star-like objects, including neutron star and black hole
+  pairs, are generated at scatter time (Boss, 2026-10-15, 5:51 PM EDT),
+  so the audit expects them there.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -19396,8 +19653,10 @@ clears each one.
   merges: TEST.186 (Core 3). Core 4 takes it when it unblocks.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 45 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
+  owner line; TEST.186 is merged, PR #2040).
   Prerequisites: none. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -19429,8 +19688,7 @@ clears each one.
   unblocks.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 46 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.315. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -19453,8 +19711,7 @@ clears each one.
   our generator throughout to match as close as possible to observed and
   theoretical probabilities (observed are best, theoretical are good
   too)".
-  Prerequisites: GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327,
-  GEN.329. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -19463,8 +19720,10 @@ clears each one.
   it unblocks.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 47 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
+  owner line; TEST.186 is merged, PR #2040).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **TEST.165 Re-measure the region query on a real generated galaxy, warm and cold**
@@ -19488,8 +19747,10 @@ clears each one.
   merges: GEN.276 (Core 2). Core 4 takes it when it unblocks.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 48 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): GEN.276 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
+  owner line; GEN.276 is merged, PR #1966).
   Prerequisites: none. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -19515,8 +19776,7 @@ clears each one.
   test_web_browser_maps.py.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 52 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisite: UX.115. Related: TEST.163, TEST.156, TEST.169.
 
 - [ ] **TEST.169 Admin page browser tests: every admin page and task works end to end after the streamline**
@@ -19575,8 +19835,7 @@ clears each one.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **TEST.178 Roles end to end: user, moderator and admin through the whole request chain**
-  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
-  roles, User, Moderator and Admin; users submit edit requests,
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three roles, User, Moderator and Admin (plus the Owner tier above Admin); users submit edit requests,
   moderators approve user requests, admins approve moderator requests,
   and an admin's own edits need no approval (only the preview and
   confirm of ADM.66). Build on the accounts of 8.2 and the change plans
@@ -19585,13 +19844,17 @@ clears each one.
   approve; an admin edits with preview and confirm and no second
   approver; a self-approval is refused; a role change takes effect at
   once; a hidden request stays hidden. Done: one test per case.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): say "three roles plus
+  the Owner tier": User, Moderator and Admin are the roles, and the
+  Owner is an account tier above Admin (ADM.86, USR.2), not a fourth
+  role.
   Prerequisites: USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24.
   Related: USR.25.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 - [ ] **TEST.179 Permission matrix test: every route and page checked for every role against the catalogue**
-  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
-  roles, User, Moderator and Admin; users submit edit requests,
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three roles, User, Moderator and Admin (plus the Owner tier above Admin); users submit edit requests,
   moderators approve user requests, admins approve moderator requests,
   and an admin's own edits need no approval (only the preview and
   confirm of ADM.66). Build on the accounts of 8.2 and the change plans
@@ -19599,6 +19862,11 @@ clears each one.
   asserts the response for user, moderator, admin and Owner matches the
   catalogue, so a new route without a permission fails. Done: the test
   in the gate.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): say "three roles plus
+  the Owner tier": User, Moderator and Admin are the roles, and the
+  Owner is an account tier above Admin (ADM.86, USR.2), not a fourth
+  role.
   Prerequisites: USR.14. Related: USR.25.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
@@ -19635,8 +19903,7 @@ clears each one.
   a or b is reverted.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 16 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.307. Related: GEN.57.
 
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
@@ -19649,8 +19916,7 @@ clears each one.
   path's draws change.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 35 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.309. Related: GEN.42.
 
 - [ ] **TEST.183 A test that fails when a new output path formats its own lines**
@@ -19661,7 +19927,7 @@ clears each one.
   Done: the test, with the allow-list empty except for named exceptions
   with a reason.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 17 of 53).
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
@@ -19694,8 +19960,7 @@ clears each one.
   TEST.186's census) measures it.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 49 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
@@ -19716,8 +19981,7 @@ clears each one.
   the headline can close.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 50 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: TEST.159.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
@@ -19814,6 +20078,13 @@ clears each one.
   relayed by the coordinator): "I approve all your defaults". This
   approves the default on this item: the flatness edge is widened to the
   range the sources give.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Ratios, report levels", as the coordinator reported it): the star
+  metallicity check compares ratios and reports the absolute levels
+  without failing on them; only the ratio comparison can fail.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (this item says itself that the check
+  cannot be built without it; TEST.186 is merged, PR #2040).
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
@@ -19889,8 +20160,7 @@ clears each one.
   cluster and satellite counts must equal the bubble-free control.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 40 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.394, GEN.395. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -20088,6 +20358,11 @@ clears each one.
   sourced row. GEN.520 D6 (the Solar System population as the
   within-system comet shape) is kept as a flagged stand-in with the
   replacement item GEN.595.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Weights pick the row", as the coordinator reported it): the
+  weights pick the row; the proportions inside a drawn row come from the
+  row's own sourced kernel, or a Dirichlet draw where only a range
+  exists, so the 1:40 AM and 1:51 AM EDT 2026-10-17 texts agree.
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
   Body composition research lane, section 14.4 of
@@ -20108,8 +20383,7 @@ clears each one.
   GEN.472.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 52 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
   2026-10-18, as the coordinator reported them): fork 8, "Flagged
   stand-ins only": a measured Solar System shape may enter a generator
@@ -20379,6 +20653,13 @@ clears each one.
   value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.554, GEN.558, GEN.559. Related: GEN.550, TEST.159,
   TEST.160, TEST.162, TEST.211.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the Owner line's
+  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
+  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
+  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
+  (reported 4:33 PM EDT 2026-10-18).
 
 - [ ] **TEST.240 Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -20560,6 +20841,11 @@ clears each one.
   whether the test's bound is too tight; fix without loosening what the
   test proves; no quarantine. Done: the cause is on this item and the
   test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
+  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): fix finished and committed, not merged: the
+  cause is that the shape scale is fitted on a 24-cell grid while the
+  mesh is cut on 28, so thin spikes poke out 1.006 to 1.029 radii; the
+  mesh is pulled back to its bounding sphere.
   Prerequisites: none.
 
 - [ ] **TEST.254 test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug)**
@@ -20584,6 +20870,11 @@ clears each one.
   system is correct for those seeds; no quarantine. Done: the cause is
   on this item and the test passes 30 of 30 fresh draws. Owner: Bug Hunt
   (proposed).
+  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): not reproduced: 109 of 109 draws on current
+  main, including the 40-process reproducer; the assertion now prints
+  the extra system rows and the seed. Kept open as not reproduced (dated
+  comment and the "could not reproduce" label on #1694).
   Prerequisites: none. Related: TEST.253.
 
 - [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
@@ -20614,7 +20905,37 @@ clears each one.
   database per run); no quarantine. Done: the cause is on this item and
   both tests pass 20 of 20 runs with a second run of the same file
   beside them. Owner: Bug Hunt (proposed).
+  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
+  filed by the TODO thread): cause found, fix committed and not merged:
+  the admin's wanted-workers Redis key is shared by every test process;
+  each test now has its own key, `test_wanted_workers_key.py` pins it,
+  and `conftest.py` changed (so the next gate selects all 20,433 tests).
+  This replaces the inferred cause above.
   Prerequisites: none. Related: TEST.250, TEST.254.
+
+- [ ] **TEST.256 test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug)**
+  Found by Core 2 (its PERF.132 gate, 4:02 to 5:40 PM EDT 2026-10-18,
+  one failure inside the loaded gate), Core 3 (its gate: timed out at
+  900 s) and Bug Hunt (its full gate of 2026-10-18: 20,277 passed, 1
+  failed), reported 7:34 to 7:35 AM EDT 2026-10-21 on the lanes' clocks,
+  filed by the TODO thread.
+  `src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
+  (GEN.563's test, Core 3's area) fails in loaded or full gates and
+  passes alone (16 of 16 for Bug Hunt). Failure text: not relayed (Core
+  3's gate recorded a 900 s timeout; the other two a plain failure).
+  Fails on main: not shown, passes alone. Frequency: 3 of 3 gates that
+  ran it loaded or in the full run. Reproducer (Bug Hunt is trying it):
+  run the scatter test modules in one process before this test, or run
+  `scripts/test.py full` and read its `.test-failures.jsonl`. Likely
+  cause (inferred, not checked): an order dependence between scatter
+  modules in one process (shared random-stream or cache state) or a slow
+  scatter under load. Do: get the failure text, find the order
+  dependence or the slow step, fix the test or the code; no quarantine.
+  Done: the cause is on this item and the test passes in a full run and
+  in a gate beside another gate. Owner: Bug Hunt (proposed; it reports
+  it is reproducing the order dependence and will say if the cause is
+  Core 3's).
+  Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
 
 ## USR: User accounts
 
@@ -21265,8 +21586,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the update script).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 10 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: OPS.57, OPS.58.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -21289,8 +21609,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   non-zero on a failed reload).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 13 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
@@ -21302,8 +21621,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Shoelace (Lit, floating-ui, tinycolor).
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 11 of 53). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
@@ -21324,8 +21642,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   for the same seed.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 12 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
 
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
@@ -21372,8 +21689,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   digest.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the
   fingerprint encoder is GEN.304's (split from GEN.136, 2026-10-16), not
@@ -21384,8 +21700,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). The `version_key_history` row
   (control schema v11, OPS.13) also holds `generator_epoch`, the battery
-  digest, the lock-file hash and an environment JSON (libc, numpy,
-  scipy, scikit-image versions): a control-database migration plus
+  digest, the lock-file hash and an environment JSON (libc, numpy, astropy, scipy, scikit-image versions): a control-database migration plus
   `planetgen.cli.version_history`. A row is added only when the key or a
   hash differs from the newest row (an unchanged update refreshes its
   last-seen date), the last 10 per galaxy are kept, and
@@ -21404,8 +21719,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   should carry the epoch per pass.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): the environment JSON
+  keeps astropy, as OPS.28 names it (Boss, 2026-10-10, 2:44 PM EDT,
+  defaults approved);
+  nothing records a cut, so the missing entry in the split text is a
+  slip.
   Prerequisites: OPS.57. Related: OPS.28.
 
 ## DOC: Documentation
@@ -21574,8 +21894,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (2026-10-16 review).
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 54 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
   project chat, relayed by the coordinator): 'Sweep first': DOC.19 is
   dropped from this sweep's prerequisites, so the sweep runs without it;
@@ -21592,7 +21911,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   need a short section on it. Done: the standard is described once and
   the three docs link to it.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 20 of 53).
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
@@ -21618,8 +21937,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   all of them describe the queue as built.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 43 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisite: PERF.86.
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
@@ -21640,8 +21958,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   carries the rest.
   Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 47 of 48). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -21673,8 +21990,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   after, not in parallel.
   Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 48 of 48). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **DOC.51 Docs: the API reference states the cap and the ladder (the cell key docs and the region note are done)**
@@ -21690,8 +22006,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is live.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 15 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
   coordinator): the API cap and ladder sentence waits for NAV.61; the
   rest of the item ships in Core 5's next PR.
@@ -21765,6 +22080,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   still without a page (DOC.7 to DOC.16 burn it down); a feature item is
   not done until its help text is, which needs the framework before 8.7
   (2026-10-16 review).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): this item ships the
+  route-to-help coverage test together with the burn-down allowlist of
+  routes still without a page; DOC.58 removes that allowlist.
   Prerequisites: none. Related: DOC.6.
 
 - [ ] **DOC.58 Help coverage test: every user-facing route has a help page and every help page has a route**
@@ -21772,13 +22091,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   smaller chunks and shared work). A test lists every user-facing route
   (the route map the app already has) and fails when a route has no help
   page or a help page has no route; admin routes are covered by the
-  admin pages. It runs in the gate. Done: the test, green once DOC.7 to
-  DOC.16 and DOC.54 exist, with an allow-list file for routes that are
-  deliberately undocumented (each entry needs a reason).
+  admin pages. It runs in the gate. Done: the burn-down allowlist that DOC.57 ships is removed once DOC.7 to DOC.16 and DOC.54 exist, leaving only the allow-list file for routes that are deliberately undocumented (each entry needs a reason); the test itself is DOC.57's.
   Prerequisites: DOC.57, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12,
   DOC.13, DOC.14, DOC.15, DOC.16, DOC.54. Related: DOC.6.
   The coverage test runs without the allowlist once every page exists
   (2026-10-16 review).
+  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
+  "Apply all 29", as the coordinator reported it): DOC.57 ships the
+  coverage test with the burn-down allowlist, and this item removes the
+  allowlist and keeps only the allow-list file of deliberately
+  undocumented routes, each with a reason.
 
 - [ ] **DOC.59 Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -21801,8 +22123,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is described as the optional overlay it is. Docs only.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 41 of 43). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.395. Related: GEN.391, DOC.52.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -22296,5 +22617,4 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   and #1524).
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 22 of 54). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.

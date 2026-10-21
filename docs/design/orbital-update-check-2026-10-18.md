@@ -105,7 +105,7 @@ Card taps between 5:30 and 5:33 PM EDT, as the coordinator reported them to the 
 
 1. Search radius: option (a), the largest Hill radius of any object in the galaxy, central black hole left out of the maximum, 64 exact then one point mass per sector, GEN.370 first.
 2. Who gets the vector change: option (a), every object through the one core function (amends card S13).
-3. Order: per object steps (option (b)): each object moves, then gets its vector, in turn. Later objects see a mix of old and new positions, so the visit order must be fixed and tested. The recommended two-phase option was not chosen.
+3. Order: per object steps (option (b)): each object moves, then gets its vector, in turn. The visit order is tier, then mass, and each chunk reads the state at its start; that chunk-start rule is the only rule (section "Decided: visit order"), so the visit order must be fixed and tested. Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): the chunk-start rule stands and the "mix of old and new positions" wording is removed. The recommended two-phase option was not chosen.
 4. Next due: option (a), speed from the new vector, capped at the time for the influence set to change.
 5. New records: option (a), always visited, position advanced only from the record's own epoch, then next-update set.
 

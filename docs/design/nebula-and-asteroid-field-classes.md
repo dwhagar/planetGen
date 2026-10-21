@@ -110,7 +110,7 @@ remnant's morphology. The old `NEBULA_TYPES` constant is gone.
 | U | Composite remnant | shell plus pulsar wind nebula | 0.1-10 | pulsar |
 | V | Old radiative remnant | cooling shell merging with the ISM | 1-10^2 | neutron star, far off-center, or none |
 | W | Thermonuclear remnant | Fe-rich, no hydrogen | 0.1-10 | none |
-| X, Y, Z | Reserved | (hypernova remnant, tidal-disruption debris, fiction) | | |
+| Y, Z | Reserved | (hypernova remnant, tidal-disruption debris, fiction; class X is taken by the Wolf-Rayet ring nebula, GEN.243, intergalactic-and-halo-contents.md) | | |
 
 Each class carries, like a planet class: description, composition,
 radius range, density range, temperature range, extinction, central
@@ -306,7 +306,7 @@ components come from the cometary ices list.
 - **Volume backfill**: a nebula that needs certain stars triggers a
   backfill of its volume down to 750 L_sun with the draw skewed to those
   types; existing backfilled stars inside are redrawn in place when a
-  compatible type and brightness exist, and left alone when not. The
+  compatible type and brightness exist, and left alone when not. Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): the 750 L_sun backfill stays for the other stars of a nebula's volume, and the nebula's required stars are real systems made in the same step as the nebula (intergalactic-and-halo-contents.md). The
   stars each class needs and the algorithm are in "Required stars per class
   (GEN.99)" and "Nebula volume backfill (GEN.99)".
 - **Names**: every nebula gets a unique name from its ID (object-ids.md).
@@ -342,7 +342,7 @@ the mesh API and the containment switch are the next two parts of GEN.75.
 All from Boss (2026-10-03 05:38Z) unless dated otherwise; everything in the sections below this one is a recommendation.
 
 - GEN.93: "Account for nebula temperature and conditions when generating planets and calculating surface conditions", with a feasibility study of whether a planet could form in each nebula class and what it would do to the planet.
-- GEN.99: nebulae that need certain stars trigger a backfill of the nebula's volume "down to 750 Solar Luminosities" with probability skewed to the right types; existing backfilled stars are regenerated in place (same position, similar luminosity) when the required class is compatible, and left alone when not. The volume is the nebula's shape.
+- GEN.99: nebulae that need certain stars trigger a backfill of the nebula's volume "down to 750 Solar Luminosities" with probability skewed to the right types; existing backfilled stars are regenerated in place (same position, similar luminosity) when the required class is compatible, and left alone when not. The volume is the nebula's shape. Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): this backfill stays for the other stars of the volume; the required stars are real systems made in the same step as the nebula, not drawn by the backfill.
 - GEN.112: asteroid fields and belts stay one object for position and orbital speed; only rendering generates a system of objects.
 - GEN.110: two colliding rogue gas giants merge and a star that forms "should get no planets and instead should be a planetary nebula" (wording discussed in "Merger of two gas giants").
 - NAV.51 (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
@@ -622,7 +622,7 @@ MAP.142 hint: alpha from the field value, `alpha = smoothstep(iso, iso + w, f)` 
 
 ## Merger of two gas giants (GEN.110)
 
-Boss's wording makes the merged star "a planetary nebula". Physically a planetary nebula is the ejected envelope of a dying 0.8 to 8 Msun star around a hot core, so a merger product is not one: it is an M dwarf or brown dwarf at birth, with at most a short-lived debris shell like a luminous red nova [R]. The project's gas giants reach 13 Jupiter masses, so two make at most 26, a brown dwarf; hydrogen fusion needs about 0.075 Msun (78.6 Jupiter masses) [R], so only two rogue brown dwarfs (13 to 80 Jupiter masses) can reach it. Such collisions essentially never happen: a physical-radius cross-section (2 R_J) at the project's 0.9 rogue planets per pc^3 gives about 2e-21 per object per year, 2e-11 per object in 10 Gyr, and about 1e-13 for giants [C]. The handler is for extremely rare events (dense nebulae or hand-made scenarios). Recommended: do not call the result a planetary nebula (the class rule needs a white dwarf and a bright hot core); use the reserved class X as "Merger remnant nebula" (faint shell, 0.01 to 0.3 ly, 1e3 to 1e5 yr) or a "merger glow" text on the star page; state the fusion test as a 0.075 Msun threshold, brown dwarf below, new M-dwarf star at or above.
+Boss's wording makes the merged star "a planetary nebula". Physically a planetary nebula is the ejected envelope of a dying 0.8 to 8 Msun star around a hot core, so a merger product is not one: it is an M dwarf or brown dwarf at birth, with at most a short-lived debris shell like a luminous red nova [R]. The project's gas giants reach 13 Jupiter masses, so two make at most 26, a brown dwarf; hydrogen fusion needs about 0.075 Msun (78.6 Jupiter masses) [R], so only two rogue brown dwarfs (13 to 80 Jupiter masses) can reach it. Such collisions essentially never happen: a physical-radius cross-section (2 R_J) at the project's 0.9 rogue planets per pc^3 gives about 2e-21 per object per year, 2e-11 per object in 10 Gyr, and about 1e-13 for giants [C]. The handler is for extremely rare events (dense nebulae or hand-made scenarios). Recommended: do not call the result a planetary nebula (the class rule needs a white dwarf and a bright hot core); use a reserved class other than X (X is taken by the Wolf-Rayet ring nebula, GEN.243; Y or Z remain) as "Merger remnant nebula" (faint shell, 0.01 to 0.3 ly, 1e3 to 1e5 yr) or a "merger glow" text on the star page; state the fusion test as a 0.075 Msun threshold, brown dwarf below, new M-dwarf star at or above.
 
 ## Asteroid fields and belts as rendered object systems (GEN.112)
 

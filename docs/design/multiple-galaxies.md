@@ -10,7 +10,7 @@ Evidence tags: [S] seen in a search result (mostly Wikipedia pages, URLs in Sour
 
 ## Summary
 
-- **Defaults for GEN.9:** (1) neighbouring galaxies are the real Local Group, a hand-built table of about 25 rows shipped as a data file and loaded into a `neighbor_galaxies` table by `planetgen plan`, with an option to draw fictional ones from the seed; (2) no `galaxy_id` on any row, because (3) a second galaxy is a second database, which is already how the project works (`?db=`, `list_databases`, `galaxy_naming` keyed per database, Alembic per database, `galaxy_shape` a singleton). The only schema change for stage 1 or stage 2 is one new table.
+- **Defaults for GEN.9:** (1) neighbouring galaxies are drawn from the seed by default and written into a `neighbor_galaxies` table by `planetgen plan`; the real Local Group, a hand-built table of about 25 rows, is a test reference only and is not shipped as content (Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): drawn from the seed by default, the real table for tests only); (2) no `galaxy_id` on any row, because (3) a second galaxy is a second database, which is already how the project works (`?db=`, `list_databases`, `galaxy_naming` keyed per database, Alembic per database, `galaxy_shape` a singleton). The only schema change for stage 1 or stage 2 is one new table.
 - **Do not hand-key magnitudes from memory.** Recalled apparent magnitudes were wrong by 0.7 mag (IC 1613: 9.2 recalled, 9.9 found [S]) and 1.9 mag (Fornax: 7.4 recalled, 9.3 found [S]). Store absolute magnitude and distance, compute the apparent value, and check every row against McConnachie 2012.
 - M31, M33 and farther objects look the same from anywhere in the Milky Way to within 5% in size and 0.1 mag. The Magellanic Clouds and the Milky Way's other satellites change a great deal and must be 3D objects whose direction, size and brightness are recomputed per observer [C].
 - **The generated galaxy rotates the opposite way to the real one** (counterclockwise from +Z against clockwise from the real north pole, [galactic-potential.md](galactic-potential.md) section 5). Placing real neighbours by their galactic (l, b) therefore needs a defined embedding; section 2.2 gives the proper one (b flipped, longitude 90 along the rotation) and shows the plain one (b kept) is a mirror image.
@@ -51,7 +51,7 @@ Mean surface brightness is `V + 2.5 log10(area in arcsec^2)` over the quoted ell
 
 ### 2.2 Placing real neighbours in the generated frame
 
-The generated galaxy is a Milky Way analogue with a fixed Sun: R0 = 8.2 kpc at the inter-arm azimuth `model_terms(shape)['reference_angle_rad']` (5.8575 rad for the default shape [C]). Define `ex` as the unit vector from that Sun to the core and `ez = +Z`. A neighbour at galactic longitude `l`, latitude `b` and distance `d` sits at `sun + d (cos b cos l ex + cos b sin l ey + sin b ez)`, with `ey` and the sign of `b` set as follows.
+Superseded in part (Boss, 2026-10-16, 9:43 PM EDT, GEN.144): the galaxy stores no home or Sun position, so there is no derived home position either; the "Sun" below is only the example's observer position, and R0 = 8.2 kpc at the inter-arm azimuth `model_terms(shape)['reference_angle_rad']` (5.8575 rad for the default shape [C]) was the first run's example. Define `ex` as the unit vector from that observer to the core and `ez = +Z`. A neighbour at galactic longitude `l`, latitude `b` and distance `d` sits at `sun + d (cos b cos l ex + cos b sin l ey + sin b ez)`, with `ey` and the sign of `b` set as follows.
 
 - In the real galaxy longitude 90 points along the Sun's motion, which is the direction of rotation. In the generated frame the rotation at the Sun is `ez x sun_hat`, which equals `-(ez x ex)`. The first research run used `ey = ez x ex` and kept `b`; that has longitude 90 pointing against the rotation (dot product -1 [C]), a mirror image of the real sky.
 - The proper embedding is a 180-degree rotation about the Sun-core axis: `ey = ex x ez` (dot product +1 with the rotation [C]) and `b -> -b`, so the project's +Z plays the real galaxy's south. M31 (l = 121, b = -21.6) then lies north of the generated plane. Distances from observers on the Sun-core line are unchanged by the choice; distances from an observer off that line (above the plane, for instance) change with it.
@@ -113,7 +113,7 @@ Geometry. The apparent ellipse from any place comes from the disc normal `n` and
 
 ## 4. Data source: a hand-built table
 
-A hand-built, version-controlled data file (JSON or CSV) of about 25 rows, for example `src/planetgen/data/neighbor_galaxies.json`, loaded by `planetgen plan` into `neighbor_galaxies`. The version key then covers the file by hash and Boss can edit a row. No runtime lookup of an external catalogue (no network).
+The real Local Group is a hand-built, version-controlled test reference file (JSON or CSV) of about 25 rows, for example `src/planetgen/data/neighbor_galaxies.json`, which a test can load into `neighbor_galaxies`; the generated neighbours of a plan are drawn from the seed and do not read it. The version key then covers the file by hash and Boss can edit a row. No runtime lookup of an external catalogue (no network).
 
 Suggested contents; every value is [R] unless confirmed in section 2.1:
 
@@ -158,7 +158,7 @@ Keep each galaxy's own frame (origin at its core, +Z its north, +X its zero meri
 
 ## 8. GEN.9's three questions
 
-1. **Real or generated neighbours?** The real Local Group (about 25 rows): Boss asked for "Andromeda from Earth", the generated galaxy is a Milky Way analogue with a fixed Sun position, and the real positions are free. Offer generated neighbours as a per-plan option; a second generated galaxy is one neighbour promoted to `linked`.
+1. **Real or generated neighbours?** Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): generated from the seed by default; the real Local Group (about 25 rows) is a test reference only. The case for the real table: Boss asked for "Andromeda from Earth", the first run assumed a Milky Way analogue with a fixed Sun position (the galaxy stores no Sun position since Boss, 2026-10-16, 9:43 PM EDT), and the real positions are free. The generated neighbours are the plan's default; a second generated galaxy is one neighbour promoted to `linked`.
 2. **A galaxy id on every row, or top-level only?** Neither: with a database per galaxy there is no `galaxy_id`. If one database is insisted on, top-level only (the list in 5.1), with galaxy bits added to the sector uid.
 3. **Same database, or a second one chosen at login?** A second database, chosen by `?db=` (the existing mechanism), not at login: admin sessions are deployment-wide and the pages already carry the schema in the URL. A per-session default galaxy can be a control-database setting later.
 
