@@ -4001,147 +4001,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313.
 
-- [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
-  Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
-  have black holes, neutron stars, or similar as the central star for
-  systems, binary systems." Done as GEN.128's design says: generation
-  can make a system or binary whose primary is a black hole, neutron
-  star or similar compact object, with the planets, belts and radiation
-  environment that follow; GEN.100's galaxy-wide scatter supplies the
-  compact objects.
-  Research (2026-10-09, multistar-and-compact-systems.md): split into
-  (a) collapsed leaves in the tree with the survival check, (b) NS/BH/WD
-  presets, (c) radiation fields; planets around young pulsars and black
-  hole debris disks are out of scope. Compact-object habitability: the
-  lowest tier for every pulsar, black hole and X-ray-binary planet, a
-  normal score for cool white dwarf planets in the narrow zone (open
-  question for Boss, default as stated). Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default: only through GEN.100's scatter,
-  which promotes a scattered
-  remnant to a system when it draws a bound companion or planets, at the
-  design 7.3 fractions): do neutron star and black hole systems appear
-  in normal fills at their real rate?
-  Research (2026-10-09,
-  exotic-environments-planets-and-compact-binaries.md): Millisecond
-  pulsars get planets with probability 0.7% (upper bound 1%), in three
-  types: disc 25%, captured circumbinary giant 25% (only in globular
-  clusters), ablated companion 50%; young pulsars get none; pulsar
-  planets are carbon rich with no atmosphere and radiation tier 3.
-  Checks to add: reject a compact-compact binary whose
-  gravitational-wave inspiral time (Peters) at its drawn separation and
-  eccentricity is shorter than the system's age; allow a bound companion
-  beyond about 1,000 AU around a black hole or neutron star only for
-  direct-collapse black holes. Slices (a) to (c) as in
-  multistar-and-compact-systems.md section 8. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; defaults taken): a globular-cluster model
-  does not exist, so the
-  captured-giant type is left out until clusters are modelled; the 0.7%
-  rate for millisecond pulsars is accepted.
-  Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
-  accepted (millisecond-pulsar rate 0.7%, no globular-cluster model so
-  the captured-giant type stays out). Where a formula is needed, use
-  the verified published forms: Peters for the gravitational-wave
-  inspiral time, and the Mardling-Aarseth and Eggleton-Kiseleva
-  criteria for triple stability (see GEN.129).
-  Research (2026-10-09, globular-clusters.md): the captured-giant type
-  (type B) is enabled once clusters exist, as GEN.163; Boss's 18:37Z
-  decision (left out until clusters are modelled) holds today.
-  Boss asked (2026-10-15) whether a black hole or neutron star can have
-  a star system. Today a scattered or rolled one is a standalone row
-  with no system (`run_sector.py:449`); a system is built around one
-  only on request with `phenomenon --anchor-system`, and a remnant
-  passed to `StarSystem` skips binary generation (`system.py:255`). The
-  design note (section 5.12) points at this item for the rules: this
-  item decides the company a black hole or neutron star keeps (white
-  dwarf, young neutron star none, millisecond pulsar 1% with planets,
-  dormant black hole with a Gaia-type companion), so a scattered remnant
-  can be promoted to a system. Nothing in the whole-sphere train waits
-  on it.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: the company a black hole or neutron star keeps (companions,
-  disk, planets) is decided when its sector fills, at the real-world
-  fractions, and a fill that already holds such a phenomenon builds its
-  system if it draws one; a scattered row never carries one, so
-  promoting a remnant at scatter time (the earlier default) no longer
-  applies. Boss has ordered the phenomena catalogue and fill rules
-  (docs/design/phenomena-catalogue-and-fill.md, in research); items
-  follow from it.
-  Rescoped (catalogue section 8 item 3, Boss's rules of 2026-10-15):
-  this is now the compact-remnant content of the system pass of the
-  fill-stages item, not a scatter-time promotion. Slices (a) to (c)
-  above become what the pass builds for neutron stars, millisecond
-  pulsars and stellar black holes at the probabilities of catalogue
-  section 5: the companion, the kick-and-survival check, the
-  Holman-Wiegert zones, pulsar planets at 0.7%. Done: a filled sector
-  holding a black hole or neutron star gives it a system at those odds,
-  and a scattered one never has one before the fill. The white-dwarf and
-  planetary-nebula-star rows belong to the fill-stages item. Owner: Core
-  (2026-10-15).
-  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
-  scatters still carry no planets or moons, but the stellar companions
-  of stars and star-like objects (stars, former stars, protostars,
-  neutron stars, black holes), including neutron star pairs, black hole
-  and neutron star pairs, black hole pairs and stars with neutron star
-  or black hole companions, are generated at scatter time, because such
-  systems matter for gravity; planets and moons still come only at
-  sector fill. Multi-star research is under way (docs to follow; the
-  coordinator relays its items). For this item: the companions of
-  neutron stars and black holes (white dwarf, main-sequence or giant
-  companions, neutron star and black hole partners) are decided when the
-  object is scattered, at the observed fractions; pulsar planets stay at
-  sector fill.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. The companion orbit laws of neutron stars and
-  black holes (including their pairs) move into GEN.266 and the
-  member-tree generator GEN.261; neutron star and black hole companions
-  are drawn at scatter time (GEN.262, GEN.263), and the black hole
-  companion fraction is 1.25%, not 10% to 30%. What stays here: the
-  white dwarf and planetary-nebula-star rows of the system pass, pulsar
-  planets at fill (0.7% for millisecond pulsars) and the radiation
-  environment.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): slice (c), the
-  accretion luminosity and the accreting compact pair, is built by
-  GEN.272 (X-ray binaries, microquasars, spider pulsars), which reads
-  GEN.269's interaction states.
-  Built-on note (Core 1, 2026-10-16, 8:41 AM EDT, GEN.251 merged as
-  #1815): the planet model gives a recycled pulsar up to about 10
-  planets, and a planetary nebula's circumbinary disk is not modelled;
-  both belong to this item. The system pass (generation/system_pass.py,
-  tuning.SYSTEM_PASS_ODDS) already rolls a millisecond pulsar's planets
-  at 0.7% on its own seed.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.317, GEN.318. After the rescopes, GEN.130
-  holds two unrelated rows of the system pass: the neutron-star side
-  (pulsar planets and the radiation environment) and the white-dwarf and
-  planetary-nebula-star side.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): where the
-  Rescoped Done line says a scattered neutron star or black hole never
-  has a system before the fill, Boss's 2026-10-15, 5:51 PM EDT
-  refinement wins: stellar companions of neutron stars and black holes
-  are decided when the object is scattered, at the observed fractions;
-  only pulsar planets and the system pass are decided at fill.
-  Prerequisites: GEN.318.
-
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
   rounding to 9 significant digits (generation-determinism.md section
@@ -4769,7 +4628,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites become the cataclysmic and symbiotic rows (GEN.271,
   GEN.272): the Type Ia progenitor share is read from them, and if it
   can be read without a new field this item closes (2026-10-16 review).
-  Prerequisites: GEN.271, GEN.272, GEN.318. Related: GEN.241.
+  Prerequisites: GEN.271, GEN.272. Related: GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.248 Tidal streams as placed components of the halo (later)**
@@ -4820,10 +4679,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.318 merged, #2307). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.318.
+  Prerequisites: none.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -5854,7 +5713,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: PERF.108. Related: GEN.42.
+  Prerequisites: none. Related: GEN.42.
 
 - [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5991,39 +5850,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only the tree's copy in `multistar._Builder.place`, which becomes a
   caller of `primary_first` (GEN.581) later. No new copy is added.
   Prerequisites: GEN.315. Related: GEN.264.
-
-- [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
-  Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The white dwarf and the planetary
-  nebula's central star take their planets from the star model today and
-  have no row in tuning.SYSTEM_PASS_ODDS, and a planetary nebula's
-  circumbinary disk is not modelled (Core 1's note on GEN.251). Add the
-  rows: planets around a white dwarf with engulfment removing the inner
-  ones, the central star's close companion as already drawn at scatter
-  (20%), and the circumbinary disk as the disk descriptor of GEN.129:a
-  with no bodies. Done: a planetary nebula's white dwarf has its row, an
-  engulfed planet is absent, a circumbinary disk is stored and shown,
-  and the white-dwarf fractions of the catalogue hold within Poisson
-  bounds.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Build state (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's
-  clock): coded and rebased on release 8.0.1828, epoch 33 pending,
-  changed gate started 1:16 PM EDT. The white dwarf engulfment radius
-  follows the progenitor mass (1.5 + 0.8 (M - 1) AU, replacing
-  `WD_PROGENITOR_ENGULFMENT_AU`), the survivors' orbits widen by
-  M_formation / M_now, and a planetary nebula's close pair gets a
-  post-AGB circumbinary disk descriptor and no planets. Stand-ins left
-  out: eccentricity excitation, the swallowed-giant flag, the rare close
-  giant.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
-  Lane report (Core 3, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): coded and rebased on main with the epoch
-  renumbered to 37; changed gate started 7:05 AM EDT, expected end about
-  8:50 AM EDT, merge right after if green.
-  Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13601,7 +13427,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kept, so the midplane density doubles and column integrals become 2h
   instead of 4h; open-cluster heights and the remnant height factor
   follow the stars' profile; the nuclear disc keeps its isothermal
-  sheet. It needs a generator epoch (the next free one after GEN.591's),
+  sheet. It needs a generator epoch (the next free one, 40, after GEN.553's second slice),
   and docs/design/galaxy-disk-density.md gets the old and new local
   density.
   Prerequisites: none. Related: GEN.404, GEN.134, GEN.401.
@@ -13910,6 +13736,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   remnant row as star state, [Fe/H], the composition hook (GEN.439,
   GEN.440), the free brown dwarf leaving `rogue_planets` (needs Core 1's
   DB.73 and DB.74 shape), motion and kick.
+  Merged in part: the second slice (Core 4, #2303, about 9:11 AM EDT
+  2026-10-21 as the lane reported, generator epoch 39, pending until a
+  release stamps it): a neutron star's or stellar black hole's age
+  follows its population (progenitor from the IMF over its range, birth
+  age from the population's window and age law, less the time to
+  collapse); intermediate and supermassive black holes and given ages
+  keep theirs; new note docs/design/remnant-age.md. Epochs through 39
+  are taken (37 GEN.591, 8.0.1848; 38 GEN.318, 8.0.1849), so the next
+  free epoch is 40.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15394,62 +15229,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
-  Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
-  clock), filed by the TODO thread.
-  `src/tests/test_comet_data.py::test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere`
-  fails with `AssertionError: (0.08, 0.998818116460001,
-  6159.290676884793, 5814.6170006007005)`: an elliptical comet's
-  aphelion is 6159 AU, above the 5815 AU Hill sphere of a 0.08
-  solar-mass star at 2000 pc. Fails on main: yes. Bug Hunt's tree failed
-  17 of 120 fresh runs alone at idle (14%); the TODO thread's re-run on
-  main d6367912 at 7:41 to 7:43 AM EDT failed 3 of 30 (10%). So it is
-  unseeded draws, not load. Reading of the code (TODO thread, not yet
-  traced to a commit): `generation/comet.py` draws the eccentricity from
-  the period class's range and sets no cap from the star's Hill sphere,
-  while the test takes the Hill radius from
-  `mass_chain.current_central_mass_kg()` (the galaxy's virial mass,
-  GEN.400); a lighter galaxy gives a smaller Hill sphere, so the
-  tightest star (0.08 solar masses at the inner edge) can have a
-  long-period comet that leaves it. Either the generator must cap a
-  closed orbit's aphelion at the Hill sphere of its star (GEN.182 says a
-  closed orbit never leaves its star), or the test's bound must be the
-  one the generator uses; Bug Hunt suggests it started after GEN.402
-  (#2224). Frequency: 10 to 14% of runs alone. Reproducer: `for i in
-  $(seq 1 120); do python3 -m pytest src/tests/test_comet_data.py -k
-  bound_and_stays_inside -q; done`. Done: an elliptical comet's aphelion
-  is below its star's Hill sphere for every draw, by a cap in the
-  generator (an epoch if values change) or by a corrected bound, and the
-  test passes 300 of 300 fresh runs with no quarantine. Owner: Core 1
-  (proposed by Bug Hunt; GEN.400 and GEN.402 are its mass chain).
-  Epoch note (8:08 AM EDT 2026-10-18): if a generator cap changes values
-  this item takes the epoch after GEN.404's and GEN.549's (29 or later;
-  27 is stamped).
-  Epoch note (9:25 AM EDT 2026-10-18): 28 is stamped by GEN.549, so a
-  generator cap that changes values takes the epoch after GEN.404's and
-  GEN.244's (30 or later).
-  Epoch note (11:12 AM EDT 2026-10-18): epochs 29, 30 and 31 are stamped
-  by GEN.244 (release 8.0.1819), GEN.282 (8.0.1820) and GEN.563
-  (8.0.1821), so a change here takes the next free epoch at its merge,
-  32 unless another lane merges first; Alembic head is 0112 and the next
-  free id is 0113.
-  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
-  by GEN.317 (release 8.0.1828), so a change here takes the next free
-  epoch at its merge, 33 unless another lane merges first (Core 3's
-  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
-  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): fix done and tested: `Comet` takes
-  `ceiling_au` and cuts the eccentricity range at the aphelion limit; a
-  single star or close pair gets its Hill sphere from
-  `validation.orbit_ceiling_au`, a wide pair keeps its tighter stable
-  limit, parabolic comets read none; the bound test passes 100 of 100
-  loop runs and a system-level test is added. It claims epoch 37
-  (GEN.318 and GEN.553's second slice claim 37 too: the first to merge
-  takes it, the others renumber at merge); gate running since 7:06 AM
-  EDT, expected end about 9:10 AM EDT.
-  Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
-
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
   Observation by Bug Hunt (reported 8:51 AM EDT 2026-10-18 on the lane's
   clock; not yet traced), filed by the TODO thread. In a galaxy run that
@@ -15687,7 +15466,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command list, each command is one queue item; the stages are not wired
   in any other way. PERF.118 (the wrapper) comes first and PERF.119
   (every start path uses it) comes after this umbrella.
-  Prerequisites: PERF.107, PERF.108. Related: PERF.86.
+  Subitems merged (Core 5, 9:08 AM EDT 2026-10-21 as the lane reported):
+  PERF.107 (#2305, release 8.0.1846) and PERF.108 (#2305, release
+  8.0.1847) join PERF.106 (slices 1 to 5, #2259 to #2278), so every
+  subitem named above is done. This umbrella stays open until Core 5
+  confirms that the old executor is unused (its "done when" line); the
+  TODO thread asked at 9:15 AM EDT.
+  Prerequisites: none. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -15762,78 +15547,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   delete list and the "no old code" Done line carry that exception.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
-  Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Move the `galaxy` command's
-  sector stages (`start`, `neighborhood`, `sectors`) to units that are
-  static chunks of sectors (about 4,000 units per stage at most, JSON
-  arguments, the run's seed independent of worker count), and `link`,
-  `population` and `settle` as one-shot units, all on the run record
-  with the done-set barrier. Done: `planetgen galaxy` without the
-  backfill runs on the new queue and gives the same sectors for the same
-  seed at 1 and 4 workers; `--workers 1` uses the same path; test for
-  each stage.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
-  luminosity, phenomena, nebula field, backfill and the rest) is its own
-  command with its own parameters, never one command that groups
-  scatters; see PERF.118.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
-  and only one thing and knows nothing of the other stages or the order;
-  the order lives only in the wrapper's step list (PERF.118).
-  Lane report (Core 5, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): coded and committed together with PERF.108
-  on one branch (main 8.0.1843 merged in); gate started 7:09 AM EDT, 73%
-  at 7:34 AM EDT, expected end about 8:45 AM EDT; a SIGTERM now ends a
-  run as cancelled (`wrapper.run`) and the galaxy tests no longer read
-  the old lease and queue node.
-  Prerequisites: none. Related: PERF.98.
-
-- [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
-  Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Move the `backfill` stage and its
-  units onto the new queue: the unit is a chunk of the backfill's target
-  sectors of at least about 10^4 cells (the per-cell draw is about 0.06
-  ms, so smaller units are all overhead); the target set is enumerated
-  once around the run's boundary and filtered by tier radius, not once
-  per block (the 60-fold redundant list); the band and mass tables stay
-  pre-warmed in the worker (`cli/worker.py`, PERF.42). This is PERF.18's
-  remaining work, the old queue pointers of which
-  (`stellarObjects/workQueue.py`, in-request backfills that no longer
-  exist in `web/` or `api/`) are gone. Done: `planetgen galaxy` with the
-  backfill runs wholly on the new queue and gives the same stars for the
-  same seed at any worker count; the old executor is unused by any
-  generation command; a test with a backfill of at least two chunks.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): PERF.18 folded in. Boss's order of 2026-10-01 stays: the
-  backfill runs as tasks on the work queue with the run's worker count
-  and gives the same stars as the one-process backfill for the same
-  seed; the research on the per-job band-table rebuild and the 60-fold
-  redundant enumeration is in
-  docs/design/sampling-backfill-and-resume.md and
-  generation-performance-study.md.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
-  luminosity, phenomena, nebula field, backfill and the rest) is its own
-  command with its own parameters, never one command that groups
-  scatters; see PERF.118.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
-  and only one thing and knows nothing of the other stages or the order;
-  the order lives only in the wrapper's step list (PERF.118).
-  Prerequisites: PERF.107. Related: PERF.98.
-
 - [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
   Found by Core 2 (2026-10-17, 6:31 AM EDT as the lane reported, MAP.217
   gate unit phase), filed by the TODO thread, who read the code.
@@ -15883,7 +15596,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seed at 1 and at 4 workers (a test that compares the stored rows), and
   the units are static chunks, not a work-stealing split, so a rerun
   gives the same chunks.
-  Prerequisites: PERF.107. Related: PERF.98, PERF.107.
+  Prerequisites: none. Related: PERF.98, PERF.107.
 
 - [ ] **PERF.114 The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -15902,7 +15615,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   result must be identical for the same seed at 1 and at 4 workers (a
   test that compares the stored rows), and the units are static chunks,
   not a work-stealing split, so a rerun gives the same chunks.
-  Prerequisites: PERF.107. Related: PERF.98, PERF.107.
+  Prerequisites: none. Related: PERF.98, PERF.107.
 
 - [ ] **PERF.115 The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -15924,7 +15637,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seed at 1 and at 4 workers (a test that compares the stored rows), and
   the units are static chunks, not a work-stealing split, so a rerun
   gives the same chunks.
-  Prerequisites: PERF.107. Related: PERF.98, PERF.107, PERF.80.
+  Prerequisites: none. Related: PERF.98, PERF.107, PERF.80.
 
 - [ ] **PERF.116 The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -16137,7 +15850,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill, population, settle) and prints it with `--estimate-only`;
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.107, PERF.108, PERF.121. Related: PERF.107,
+  Prerequisites: PERF.121. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -16180,7 +15893,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the wrapper and runnable alone, with `--territories-only` removed
   and no shim; the same stored rows as today for the same seed. Owner:
   Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.107, PERF.120. Related: PERF.107, PERF.114,
+  Prerequisites: PERF.120. Related: PERF.107, PERF.114,
   PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -20875,6 +20588,13 @@ clears each one.
   main, including the 40-process reproducer; the assertion now prints
   the extra system rows and the seed. Kept open as not reproduced (dated
   comment and the "could not reproduce" label on #1694).
+  Second sighting (Core 5, 9:08 AM EDT 2026-10-21 as the lane reported):
+  `assert planets >= systems` failed "2 >= 3" once in its gate 3 (galaxy
+  shell 0, 3 systems, PLANETS forced); looped 30 times on main 8ad9099
+  and 30 on its branch on an idle machine, 60 of 60 passed, plus 6 of 6
+  earlier. With Bug Hunt's 109 of 109 that is 175 of 175 not reproduced;
+  the likely cause stays an unseeded draw of a system with no planets,
+  and the assertion should compare against a seeded draw.
   Prerequisites: none. Related: TEST.253.
 
 - [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
@@ -20935,6 +20655,21 @@ clears each one.
   in a gate beside another gate. Owner: Bug Hunt (proposed; it reports
   it is reproducing the order dependence and will say if the cause is
   Core 3's).
+  Cause found by Core 5 (9:08 AM EDT 2026-10-21 as the lane reported;
+  its gate 3 `changed` on PERF.107 and PERF.108: 6,740 passed, 2 failed,
+  neither from its branch): memory, not an order dependence. The test
+  alone peaks at 10.9 GB resident on main 8ad9099 and on Core 5's branch
+  (91 s and 93 s), so a gate with 4 workers on the 16 GB machine has the
+  kernel OOM-kill a worker ("worker 'gwN' crashed"; dmesg shows the
+  kill; gate 2 on 2026-10-18 and gate 3 both crashed on it). Reproducer:
+  `python3 -m pytest -n0
+  src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
+  and read ru_maxrss. Do (changed): shrink the test's scatter (shell 4,
+  rate for 3 solar masses, minimum mass 1.0, as Core 5 suggested) or use
+  a lower-memory path, so it peaks well under 2 GB, keeping what it
+  proves (each class draws from its own stream). This replaces the
+  inferred order-dependence cause above; owner stays Bug Hunt, with Core
+  3 consulted because it is GEN.563's test.
   Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
 
 ## USR: User accounts
@@ -21977,7 +21712,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `phenomena-catalogue-and-fill.md` section 4 to the catalogue sections
   13 to 16, and the cap of twelve. Runs after the catalogue code and
   audit.
-  Prerequisites: GEN.264, TEST.164, GEN.130.
+  Prerequisites: GEN.264, TEST.164.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): DOC.49 folded in. This item also points the rate,
   anomaly, multi-star and nebula notes (`interstellar-object-rates.md`,

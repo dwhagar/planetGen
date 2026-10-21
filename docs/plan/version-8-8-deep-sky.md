@@ -54,7 +54,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 |---|---|---|---|
 | GEN.245 | Debris disks around A and F stars (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.246 | Luminous blue variables and hypergiants (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
-| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.271, GEN.272, GEN.318 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.271, GEN.272 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | GEN.270 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes |  | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars |  | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
