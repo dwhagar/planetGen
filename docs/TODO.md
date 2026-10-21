@@ -15706,6 +15706,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry row, or exists without one; an out-of-range value on the
   command line is refused with the allowed range and its source; no row
   has a default other than Auto.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
 
 - [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
@@ -15733,6 +15735,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   identical to today's for the same seed (a golden test; if any default
   draw changes, the change takes the next free generator epoch and says
   so); each new flag has a test that pins it alone.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.611, ADM.110.
 
 - [ ] **GEN.603 Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown**
@@ -15763,6 +15767,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerance; the refusal and its message; same seed, mass doubled, gives
   the same size sigma and thick disc sigma; no pin gives today's galaxy
   exactly.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609.
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
@@ -15789,6 +15795,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on Auto the shape is unchanged; raising mass with a pinned flatness
   keeps the ratio; a bulge share of 0 gives a disc with no bulge
   density.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.382, GEN.603, GEN.610.
 
 - [ ] **GEN.605 Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan**
@@ -15815,6 +15823,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   form's tests; the radius and the counts are shown; Auto gives today's
   one-system-per-sector threshold; `--max-shell` is gone. Blocked until
   Boss answers the edge-form card.
+  Owner: none yet; it waits on Boss's edge-form card (the coordinator,
+  6:55 PM EDT 2026-10-21). The Galaxy dials lane takes it after the
+  card.
   Prerequisites: GEN.601. Related: GEN.603, ADM.109, GEN.538, PERF.121.
 
 - [ ] **GEN.606 Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning**
@@ -15841,6 +15852,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the total mass and nothing in the disc; the stellar halo share changes
   only the halo's light; the warning fires on a deliberately odd galaxy
   and does not block it.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.297, GEN.380, GEN.603, GEN.539.
 
 - [ ] **GEN.607 Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default**
@@ -15864,6 +15877,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   settled. Done: the slider is tested alone; Auto gives GEN.545's
   derived value; the system count scales as stated; hidden unless
   Advanced is shown.
+  Owner: none yet; it waits on GEN.545 and Boss's richness card (the
+  coordinator, 6:55 PM EDT 2026-10-21).
   Prerequisites: GEN.601, GEN.545. Related: GEN.603.
 
 - [ ] **GEN.608 Shape dials: the Shape selector, added to the table and the Generate form unfilled: key `spiral`, flag `--shape`, one option for now**
@@ -15886,6 +15901,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing about the generated galaxy changes.
   Prerequisites: GEN.601. Related: UX.134, GEN.389, GEN.380, GEN.382,
   GEN.378, UX.135.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
 
 - [ ] **GEN.609 Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder**
   Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
@@ -15914,6 +15931,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   source stays a labelled placeholder and the slider still ships. Done:
   every registry row has a source and a label; a test fails on a row
   with neither.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: none.
 
 - [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
@@ -15926,6 +15945,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn from a law with a source, advanced and hidden by default in the
   table; update the help text. Done: no nuclear value in the code or the
   help is a Milky Way number; a test scans for the two constants.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.602, GEN.604.
 
 - [ ] **GEN.611 Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities**
@@ -15951,6 +15972,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until then is for the coordinator to confirm. Done: the contrast
   slider alone is tested; Auto gives today's arm look; the retired pair
   is refused.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.602, GEN.382.
 
 
@@ -18278,6 +18301,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Auto; the galaxy page shows the pinned and drawn split; the migration
   takes the next free Alembic revision at merge. The Shape selector is
   stored with the family column in DB.66, not here.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
   Prerequisites: GEN.601. Related: GEN.603, DB.66.
 
 ## API: The JSON API
@@ -20003,8 +20028,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   browser test moves each slider, pins and unpins it, and sees the argv
   in the Review step; the form never offers a value the command line
   refuses; works in both themes, without script and at phone width.
-  Owner: the admin redesign thread (the Generate suite); the lever table
-  items have no owner yet.
+  Owner: the admin redesign thread (the Generate suite); the lever table items belong to the Galaxy dials lane.
   Prerequisites: GEN.601, GEN.602, GEN.603, GEN.604, GEN.608, ADM.108.
   Related: ADM.99, ADM.112, DB.81.
 
