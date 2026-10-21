@@ -126,12 +126,27 @@ def test_open_map_menus_hold_no_overlap(browser, base_url, page_targets, admin_t
             if not menu.is_visible():
                 continue
             menu.locator("summary").first.click()
-            page.wait_for_timeout(150)
+            # measured when the open panel has stopped moving (three animation frames with the same boxes),
+            # not after a fixed 150 ms: a loaded machine left the panel's first control still over the "Menu" button
+            # (59x16, the button's own box) once in a 20,000-test gate.
             problems += page.evaluate(
-                """([popovers, index, selector]) => {
+                """async ([popovers, index, selector]) => {
                   const menu = document.querySelectorAll(popovers)[index];
+                  const boxes = () => [...menu.querySelectorAll(selector)].map((el) => {
+                    const r = el.getBoundingClientRect();
+                    return [r.left, r.top, r.width, r.height].map(Math.round).join(",");
+                  }).join(";");
+                  let last = null, same = 0;
+                  for (let frame = 0; frame < 300 && same < 3; frame++) {
+                    await new Promise((resolve) => requestAnimationFrame(resolve));
+                    const now = boxes();
+                    same = now === last ? same + 1 : 0;
+                    last = now;
+                  }
                   menu.setAttribute("data-audit", "1");
-                  return (""" + MENU_OVERLAPS + """)(['[data-audit]', selector]);
+                  const found = (""" + MENU_OVERLAPS + """)(['[data-audit]', selector]);
+                  menu.removeAttribute("data-audit");     // the next menu is audited, not the first marked one
+                  return found;
                 }""", [POPOVER_MENUS, index, CONTROLS])
             # Closed in the page, not by a click: under load the open panel can still be
             # settling over the button, and the overlap was already measured above.
