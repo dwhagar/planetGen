@@ -16479,6 +16479,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with no 'N stage(s) (stages a to b of c)' line and no repeated 'Stage
   n of N: label.' line; a skipped stage still says why; the Generate
   page's stage text and the progress file are unchanged; the tests pass.
+  Bug Hunt's reading (5:24 PM EDT as the lane reported): it applies to
+  every stage of every command, a line that carries information the
+  banner does not stays, and a test covers it.
   Owner: Bug Hunt, after PERF.142 and PERF.143 (Boss's item relayed by
   the coordinator, 5:23 PM EDT).
   Prerequisites: none. Related: PERF.120.
