@@ -16227,6 +16227,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from a crash. Owner: Bug Hunt (the coordinator gave it the report at
   12:32 PM EDT). Related: PERF.99 (the stale-run Clear action),
   PERF.100.
+  Cause found (Bug Hunt, reported 12:45 PM EDT 2026-10-21 as the lane
+  reported; kind bug, test none yet, fails on main: yes, frequency:
+  every time a worker dies mid-job): a queued job whose worker was
+  killed stays "running" in Redis forever. Reproduced by script: enqueue
+  on `planetgen-interactive` with `job_timeout=-1` as
+  `queue/redisqueue.py` does, start `planetgen.cli.worker`, `kill -9`
+  the worker; the job stays in the started registry, RQ's own cleanup
+  leaves it (score +inf). Effect: `admin/updateguard.py`
+  `QueuedJobSource` lists it as running, `workers.cancel_now` cannot
+  stop it, `wait_until_idle` waits 600 s and `update.sh` refuses to go
+  on. Bug Hunt's fix: reap jobs of dead workers in the guard and at
+  worker start, with a test. This is the cause of this item, not a
+  separate item; Done stays as written.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
@@ -16250,6 +16263,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: the stale-job bug filed with this item, PERF.99 (the Clear
   action on the Generate page covers the same ground in the page),
   PERF.100.
+  Bug Hunt (reported 12:45 PM EDT 2026-10-21 as the lane reported) is
+  building it as `planetgen.cli.reset_jobs` and `update.sh
+  --reset-jobs`, clearing work_jobs and work_lease, the Redis `rq:*`
+  keys and stray workers, with a test.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 ## DB: Database and schema
