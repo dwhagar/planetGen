@@ -737,14 +737,14 @@ python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
 
 `config.json` is the one file that holds all program configuration, your own copy of `config.json.example`. `check` validates it the way the app reads it (an unknown key is an error) and exits 1 naming every field that does not fit. `docs` rewrites the generated parts, the option table in [config.md](config.md), `config.json.example` and `config.schema.json`, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.
 
-`get [OPTION]` prints the value that applies and where it comes from (default, `config.json` or an environment variable; a secret shows only `(set)` or `(empty)`). `set OPTION=VALUE ...` and `unset OPTION ...` change `config.json` through the same writer as the Admin settings page ([config.md](config.md#saving-settings)): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, `true` or a list and as text otherwise (`set site_name="My galaxy" tile_cache.max_mb=300`); `OPTION=-` reads it from standard input, which keeps a secret out of the shell history. `restore ARCHIVE` puts the settings of a backup archive back (`planetgen.cli.backup list` shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If `config.json` does not exist the command says so and creates nothing.
+`get [OPTION]` prints the value that applies and where it comes from (default, `config.json` or an environment variable; a secret shows only `(set)` or `(empty)`). `set OPTION=VALUE ...` and `unset OPTION ...` change `config.json` through the same writer as the Admin settings page ([config.md](config.md#saving-settings)): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, `true` or a list and as text otherwise (`set site_name="My galaxy" cache.max_mb=300`); `OPTION=-` reads it from standard input, which keeps a secret out of the shell history. `restore ARCHIVE` puts the settings of a backup archive back (`planetgen.cli.backup list` shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If `config.json` does not exist the command says so and creates nothing.
 
 ```bash
 python3 -m planetgen.cli.config check
 python3 -m planetgen.cli.config docs
-python3 -m planetgen.cli.config get tile_cache.max_mb
-python3 -m planetgen.cli.config set tile_cache.max_mb=300 site_name="My galaxy"
-python3 -m planetgen.cli.config unset tile_cache.max_mb
+python3 -m planetgen.cli.config get cache.max_mb
+python3 -m planetgen.cli.config set cache.max_mb=300 site_name="My galaxy"
+python3 -m planetgen.cli.config unset cache.max_mb
 python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
 ```
 

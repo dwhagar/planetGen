@@ -132,7 +132,7 @@ def site(mysql_config, tmp_path, monkeypatch):
     monkeypatch.setattr(apiclient, "_http_transport", no_http)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.delenv("PLANETGEN_PAGE_CACHE", raising=False)
-    monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+    monkeypatch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
     tile_root = tmp_path / "tiles"
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tile_root))
     app = create_app(RealConfig)

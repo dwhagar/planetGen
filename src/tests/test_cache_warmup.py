@@ -255,6 +255,31 @@ def _rename_sector(galaxy, sector_id):
         conn.close()
 
 
+def test_the_warm_up_stops_when_the_cache_is_full_and_what_it_built_stays(galaxy, tile_levels, monkeypatch):
+    """PERF.139 / PERF.133 (Boss, 2026-10-18, 5:56 PM EDT): at the `cache.max_mb` budget the warm-up builds nothing
+    more, says how many tiles it left out, and `prune` keeps the tiles it built."""
+    monkeypatch.setattr(warmup, "TILE_CHUNK", 4)
+    monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0.0004")               # about 400 bytes: the first chunk fills it
+    expansion = commands.expand_function("warm-galaxy-tiles")({"database": galaxy.config.database, "cap": None})
+    assert len(expansion.units) > 3
+    results = [commands.run_alone("warm-galaxy-tiles", args) for args, _cost in expansion.units]
+    built = [result for result in results if result["built"]]
+    left_out = [result for result in results if result["left_out"]]
+    assert built and left_out and results.index(left_out[0]) > results.index(built[0]), "full after some, not before"
+    assert all(not result["warmed"] for result in left_out) and "cache is full" in left_out[0]["line"]
+    assert sum(result["built"] for result in results) < sum(len(args["keys"]) for args, _cost in expansion.units)
+    root = tilecache.cache_dir()
+    before = sorted(path for path, _size, _mtime, _ahead in tilecache.cache_files(root))
+    assert tilecache.cache_is_full(root)
+    tilecache.prune(root)
+    assert sorted(path for path, _size, _mtime, _ahead in tilecache.cache_files(root)) == before, "built ahead, kept"
+
+
+def test_a_cache_with_room_warms_everything_and_says_nothing_was_left_out(galaxy, tile_levels):
+    _expansion, results = _run_tile_units(galaxy)
+    assert sum(result["left_out"] for result in results) == 0
+
+
 def test_a_second_warm_up_with_nothing_changed_builds_no_tile(galaxy, tile_levels, monkeypatch):
     """PERF.133 / Boss 2026-10-18 6:05 PM EDT: a tile is not compiled again when nothing it holds has changed."""
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)   # every call asks the API what changed

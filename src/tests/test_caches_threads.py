@@ -254,7 +254,7 @@ def test_two_requests_writing_one_tile_leave_one_whole_tile(monkeypatch, tmp_pat
     # With no lock service both requests build (the single flight, PERF.38, fails open).
     monkeypatch.setattr(tilecache.singleflight, "claim", lambda names: (list(names), []))
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
-    monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+    monkeypatch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
     key = "12/1/2/3"
     tilecache.current_stamp("mydb", tilecache.cache_dir())  # stamp.json first, as a warm cache has
     results = []

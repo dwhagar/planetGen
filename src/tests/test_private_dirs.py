@@ -80,7 +80,7 @@ def fallback_tmp(tmp_path, monkeypatch):
     monkeypatch.setattr(tilecache, "DEFAULT_CACHE_DIR", UNCREATABLE)
     monkeypatch.setattr(jobs, "_config", lambda: settings_model.Jobs())
     monkeypatch.setattr(tilecache, "_config", lambda: settings_model.TileCache())
-    for var in ("PLANETGEN_JOBS_DIR", "PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_TILE_CACHE_MAX_MB"):
+    for var in ("PLANETGEN_JOBS_DIR", "PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_CACHE_MAX_MB"):
         monkeypatch.delenv(var, raising=False)
     return tmp_path
 

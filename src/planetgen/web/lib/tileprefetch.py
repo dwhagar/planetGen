@@ -282,5 +282,5 @@ def build_tiles(db, keys):
     from planetgen.web import warmup
     app = warmup.build_app()
     with app.test_request_context("/"):
-        result = tilecache.fetch_tiles(db, list(keys))
+        result = tilecache.fetch_tiles(db, list(keys), ahead=True)
     return {"tiles": len(keys), "built": len(keys) - result["cached"]}

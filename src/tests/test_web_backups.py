@@ -261,15 +261,15 @@ def test_an_export_holds_only_what_an_admin_may_change_and_no_secret(site, confi
 
 
 def test_importing_an_export_sets_what_it_names_and_leaves_the_rest(site, config):
-    document = {"config_version": 1, "site_name": "Imported", "tile_cache": {"max_mb": 99}}
+    document = {"config_version": 1, "site_name": "Imported", "cache": {"max_mb": 99}}
     checked = site.post("/api/admin/settings/import", json={"document": document, "check_only": True}).get_json()
     assert checked["ok"] and not checked["saved"] and {c["path"] for c in checked["changes"]} == {
-        "site_name", "tile_cache.max_mb"}
+        "site_name", "cache.max_mb"}
     assert _doc(config)["site_name"] == "Mine"
     saved = site.post("/api/admin/settings/import", json={"document": document, "expect_hash": checked["file_hash"]}
                       ).get_json()
     assert saved["saved"] and saved["backup"]
-    assert _doc(config)["site_name"] == "Imported" and _doc(config)["tile_cache"] == {"max_mb": 99}
+    assert _doc(config)["site_name"] == "Imported" and _doc(config)["cache"] == {"max_mb": 99}
     assert _doc(config)["jobs"] == {"keep": 12} and _doc(config)["mysql"]["password"] == "db-secret"
     assert ("config.import", "config:site_name", {"old": "Mine", "new": "Imported"}) in _audit_rows(site)
 

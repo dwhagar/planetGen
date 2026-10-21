@@ -29,7 +29,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, tilecache
 from planetgen.web.lib.tilecache import fetch_stage, fetch_tiles
 from planetgen.web.maps.galaxymap3d import (
     CAMERA_START_PHI_DEG, CAMERA_START_THETA_DEG, camera_position_pc, initial_tile_request, tile_bounds_pc,
@@ -426,10 +426,18 @@ def warm_galaxy_tiles_unit(args, report):
         report (callable): Called with `(done, estimate)` when the chunk is built.
     """
     started = time.monotonic()
+    count = len(args["keys"])
+    if tilecache.cache_is_full():
+        # The cache is at its budget (`cache.max_mb`): nothing more is built, the tiles built ahead stay (PERF.133).
+        report(count, count)
+        return {"family": "galaxy-tiles", "warmed": 0, "noun": "tiles", "cached": 0, "built": 0, "left_out": count,
+                "seconds": 0.0,
+                "line": f"galaxy-tiles: {count} tiles left out, " + (
+                    "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
+                    f"the tile cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)")}
     app = build_app()
     with app.test_request_context("/"):
-        result = fetch_tiles(args["database"], args["keys"])
-    count = len(args["keys"])
+        result = fetch_tiles(args["database"], args["keys"], ahead=True)
     report(count, count)
     seconds = time.monotonic() - started
     built = count - result["cached"]
