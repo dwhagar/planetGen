@@ -731,13 +731,31 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # drawn around a star younger than LIFE_MIN_STAR_AGE_GY (a crust and
 # oceans take ~0.1 Gy). A giant engulfs planets inside
 # GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
-# reaches a few stellar radii), and a population-model white dwarf's
-# progenitor, on its asymptotic giant branch, engulfed or drove off
-# everything inside WD_PROGENITOR_ENGULFMENT_AU.
+# reaches a few stellar radii), and a white dwarf's progenitor, on its
+# asymptotic giant branch, engulfed or drove off everything inside
+# WD_ENGULFMENT_BASE_AU + WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (M - 1) AU
+# for a progenitor of M solar masses (GEN.318, docs/design/
+# exotic-environments-planets-and-compact-binaries.md 1.2: 1.5 AU for a
+# solar-mass star, as the generator had it, growing with the progenitor's
+# size). A white dwarf without a model progenitor mass (a forced type, a
+# planetary nebula's central star) takes the mass that leaves it
+# (WHITE_DWARF_REMNANT_MASS_SOL inverted), kept inside
+# WD_PROGENITOR_MASS_RANGE_SOL: nothing under a solar mass has had time to
+# become one, and above 8 the relation hands over to neutron stars.
 PLANET_MIN_STAR_AGE_GY = 0.01
 LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
-WD_PROGENITOR_ENGULFMENT_AU = 1.5
+WD_ENGULFMENT_BASE_AU = 1.5
+WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
+WD_PROGENITOR_MASS_RANGE_SOL = (1.0, 8.0)
+
+# A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
+# pair); such a pair still inside its ejecta holds a circumbinary disk and no planets (GEN.318, design note 1.3). A white
+# dwarf at least this hot (the coolest central star type, B0VII) belongs to such a pair; the disk's mass is a stand-in
+# bracket, the two figures the note gives (a disk approaching 0.1 solar masses can trigger the streaming instability, one of 0.01
+# cannot), and its outer edge the young stars' range, since these disks look like young protoplanetary ones.
+PLANETARY_NEBULA_CENTRAL_MIN_TEMPERATURE_K = 30000.0
+POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 
 # The pre-main-sequence state (GEN.242, GEN.529, physics/pre_main_sequence.py).
 # A star below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time
