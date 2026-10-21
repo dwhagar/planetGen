@@ -15325,8 +15325,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   minimum to maximum flux (or the variation fraction) past 1 for a
   planet in the pair's own orbit around the primary, fix the formula or
   the clamp's cause, and widen the test's seeds to 240. Done: the
-  reproducer gives no value above 1 in 240 systems. Owner: bug queue
-  (Core 4 does not own it).
+  reproducer gives no value above 1 in 240 systems. Owner: Bug Hunt (routed by the coordinator, 3:46 PM EDT 2026-10-21).
   Prerequisites: none. Related: GEN.545.
 
 
@@ -16271,6 +16270,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker is killed stays in the RQ started registry for ever; fix:
   `workers.reap_dead_jobs`, called by the guard and at worker start. The
   RQ time limit for those jobs is PERF.144, not this item.
+  Test-side reproducer from Core 3 (4:23 PM EDT 2026-10-21 as the
+  coordinator relayed): a timed-out
+  `test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0]`
+  (TEST.260) leaves `planetgen:run:active` set in the test Redis, and
+  170 later tests fail with `Busy: run ... is running`.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
@@ -16313,6 +16317,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it never touches galaxy data, caches or settings. The name is
   `reset_jobs`, not `planetgen reset`. Bug Hunt adds the console help
   list entry if that list is built, and will say if it is not.
+  Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed): rerunning
+  a gate meant deleting the `planetgen:run:*` keys by hand (a shell
+  xargs delete was refused by the permission classifier, a
+  scan-and-delete in Python worked), so `reset_jobs` should clear the
+  run keys too, and the test fixtures should be able to call it.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.144 Web and API jobs get an RQ time limit from recorded stats instead of no limit, so a killed worker's entry expires**
@@ -20651,6 +20660,29 @@ clears each one.
   symptom is a loaded-gate failure).
   Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
 
+- [ ] **TEST.260 test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug)**
+  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
+  Core 3's note, in its `scripts/test.py changed` gate), filed by the
+  TODO thread. Kind: test infrastructure, the PERF.142 family.
+  `src/tests/test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-the
+  largest allowed radius, wider than the test galaxy]` fails with `hang:
+  planetgen galaxy --quiet --center-sector 1 --radius-pc 200.0 ... did
+  not finish within 10s` (`_Timeout` at units.py `follow_stage`). Fails
+  on main: yes, alone, a 25 s run on a worktree of main d839e5d (4
+  cores, no load). Frequency: 2 of 2. Effect: the timed-out run leaves
+  `planetgen:run:active` set in the test Redis, so every later test that
+  starts a run fails with `Busy: run ... is running`; in one gate 170
+  tests (test_galaxy_gen, test_phenomenon_scatter, test_work_units and
+  every browser fixture) failed or errored and the gate's rerun phase
+  kept failing them for two hours. Reproducer: run the test, then
+  `redis-cli get planetgen:run:active` shows a live run id. Do: make the
+  radius-200 case finish inside the limit (or give it the limit its work
+  needs, from the recorded stats, PERF.144), and make the test release
+  the lock when its run times out; PERF.142 covers the lock having no
+  expiry. Done: the test passes alone and leaves no run key behind.
+  Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21441,6 +21473,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nothing records a cut, so the missing entry in the split text is a
   slip.
   Prerequisites: OPS.57. Related: OPS.28.
+
+- [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
+  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
+  Core 3's note), filed by the TODO thread.
+  `examples/cloud-environment/setup-planetgen-env.sh` (line 260) prints
+  a verify line that imports `flask, pymysql, redis, rq, numba, scipy,
+  skimage, markdown, pytest, xdist, hypothesis, playwright, nltk` and
+  prints the `markdown` version; no requirements file and no code uses
+  `markdown`, so a fresh machine exits 1 at the verify step (the failure
+  that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
+  install markdown`. Do: drop `markdown` from the verify imports and the
+  version line (or add it to the requirements if something needs it); no
+  shim. Done: the script exits 0 on a fresh machine. Owner: not assigned
+  (OPS queue; the environment settings copy of the script is Boss's, so
+  the lane edits the example and tells the coordinator).
+  Prerequisites: none. Related: TEST.254.
 
 ## DOC: Documentation
 
