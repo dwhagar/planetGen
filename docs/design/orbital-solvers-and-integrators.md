@@ -521,6 +521,31 @@ read.
 | Non-finite values | NaN, inf, e < 0 | `finite_domain` decorators and `ValueError` raises; test each |
 | Ill-conditioned solves, trajectory fits, rotation drift | element growth; BFGS curvature turns non-positive; round-off leaves rotation matrices non-orthonormal | LU with partial pivoting, then rook pivoting or Householder QR (growth 1), then equilibrate and mpmath; Wolfe line search, Powell's damped update, reset to steepest descent; re-orthonormalise (SVD or quaternion) on every save |
 
+**Checked against the table (GEN.140).** Each row of this section is either built and held by a test, or waits on
+code that is not written yet:
+
+- Series Stumpff functions below `|z| = 1` (`kepler.STUMPFF_SERIES_LIMIT`, ten terms), in `kepler.stumpff_c2_c3` and the
+  compiled `state_kernel._stumpff`: 1e-17 to 1e-16 relative everywhere in the range against exact rational arithmetic
+  (the closed forms the first build used below `|z| = 1e-3` were off by 4e-13 for a hyperbolic `c3` at 1e-3 and by
+  1e-14 to 1e-15 up to 0.1). `tests/test_orbital_limits.py` holds the accuracy, the join at the limit and the compiled
+  copy equal to the Python one.
+- The `fmod` phase form: `universal_step` drops whole orbits with `math.fmod(dt, period)` and `store._phase_turn_sql`
+  does the same in SQL. Both held by tests of a million orbits.
+- DOUBLE period and phase columns: a test walks every table and fails on any narrower float in a column named for a
+  period, phase, anomaly, epoch, longitude, periapsis or node. The only FLOAT in the schema is `map_luminosity_sol`.
+- Radial orbits (h = 0): the elements are undefined and `elements_from_state` still refuses, as the display
+  functions say. Motion does not need them: `universal_step` moves a radial body on its line (below, at and above the
+  escape speed, forward and back) and keeps its energy; the test shows both.
+- Retrograde equatorial equinoctial elements: `equinoctial_from_state` raises and the caller propagates the state
+  vector (tested).
+- `r = 0`: `universal_step` and the compiled kernel refuse a body on its primary (`BAD_INPUT`).
+- `b = 0` (a head-on pass): `classify_encounter` calls a closest approach of 0 a collision, and `closest_approach.sweep`
+  returns a hit at 0. The hyperbolic deflection formula for a pass at impact parameter 0 is not written (its item
+  carries the `b = 0` case with it).
+- The galactic centre: `calculate_galactic_orbit` keeps the core's solid-body turn (finite at 0) and
+  `sector_path.integrate_path` softens each point mass at 1 pc and takes steps a fraction of the shortest dynamical
+  time, so no step shrinks to nothing. The finite-acceleration test at `(0, 0, 0)` is GEN.115's first child.
+
 ## 8. Hill-radius warnings and the admin email (GEN.111)
 
 - No library needed: standard `smtplib` with `email.message.EmailMessage`,

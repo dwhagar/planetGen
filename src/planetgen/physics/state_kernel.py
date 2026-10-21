@@ -22,6 +22,8 @@ import math
 import numpy as np
 from numba import njit
 
+from planetgen.physics import kepler
+
 TOLERANCE = 1e-13
 """float: `kepler.UNIVERSAL_TOLERANCE`."""
 
@@ -38,11 +40,21 @@ NO_CONVERGENCE = 2
 """int: The status of a row whose iteration reached `MAX_ITERATIONS`."""
 
 
+_C2_COEFFICIENTS = tuple(1.0 / math.factorial(2 * k + 2) for k in range(kepler.STUMPFF_SERIES_TERMS))
+_C3_COEFFICIENTS = tuple(1.0 / math.factorial(2 * k + 3) for k in range(kepler.STUMPFF_SERIES_TERMS))
+_SERIES_LIMIT = kepler.STUMPFF_SERIES_LIMIT
+_SERIES_TERMS = kepler.STUMPFF_SERIES_TERMS
+
+
 @njit(cache=True)
 def _stumpff(z):
-    if abs(z) < 1e-3:
-        c2 = 1 / 2 - z / 24 + z * z / 720 - z ** 3 / 40320 + z ** 4 / 3628800 - z ** 5 / 479001600
-        c3 = 1 / 6 - z / 120 + z * z / 5040 - z ** 3 / 362880 + z ** 4 / 39916800 - z ** 5 / 6227020800
+    """`kepler.stumpff_c2_c3`, compiled: the series below `kepler.STUMPFF_SERIES_LIMIT`, the closed forms beyond."""
+    if abs(z) < _SERIES_LIMIT:
+        c2 = 0.0
+        c3 = 0.0
+        for k in range(_SERIES_TERMS - 1, -1, -1):
+            c2 = c2 * -z + _C2_COEFFICIENTS[k]
+            c3 = c3 * -z + _C3_COEFFICIENTS[k]
         return c2, c3
     if z > 0:
         root = math.sqrt(z)
