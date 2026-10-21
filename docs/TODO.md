@@ -5550,7 +5550,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
-  GEN.530.
+  GEN.530, SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -18995,6 +18995,38 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
 
+- [ ] **SEC.33 Release gate: a full security code audit of the whole code base, done before every point release (8.1 first)**
+  Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
+  must be a full security code audit, and it MUST be done before every
+  single point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are
+  not point releases). One standing item: it stays open and is re-run
+  for each point release, never retired. Scope: every route, API
+  endpoint and form; sign-in, sessions, cookies, CSRF, rate limits and
+  lockouts; authorization and every admin page; all SQL and any string
+  built into a query; file, path and upload handling and the tile cache
+  and jobs directory; the stored-XSS and output-escaping paths in
+  templates and JavaScript; the Content-Security-Policy and headers;
+  secrets, config and settings handling; the dependency list and its
+  known vulnerabilities (pip and npm lockfiles); the install, update and
+  deployment scripts and the systemd and Apache or nginx examples; the
+  Redis and job-queue inputs; and anything new since the last pass (use
+  git log since the last audited release). Run the repository's own
+  static checks and add a scanner pass where one can run without the
+  network. Done: for the release, a dated report
+  (/mnt/project-files/reports/release-audit-security-<version>.md,
+  linked from the goal issue and logged on this item as 'Release log:
+  <version>, <EDT date and time>, <commit>') that names the commit
+  audited, lists what was covered and what was not, and files every
+  finding as its own item (a high or critical finding blocks the release
+  until fixed and merged; the rest are filed with an owner). The release
+  is not stamped while the report for its version is missing, or while a
+  finding it marks blocking is open. Proposed owner: its own thread,
+  started when the version nears close (8.1: after the whole-sphere
+  audits TEST.185, TEST.184, TEST.159 and TEST.160 merge, so the audit
+  sees the final code); it must not be the lane that wrote the code
+  under audit.
+  Prerequisites: TEST.159, TEST.160. Related: TEST.261.
+
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -20822,6 +20854,40 @@ clears each one.
   its takeover should clear it after the owner dies; the lane checks the
   test once that PR is in, and the 10 s hang itself stays this item's.
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
+
+- [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
+  Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
+  must be a full bug hunt audit, and it MUST be done before every single
+  point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are not
+  point releases). One standing item: it stays open and is re-run for
+  each point release, never retired. Scope: the whole product as a user
+  and an admin meets it, not only the diff. Every page and API route is
+  driven on a freshly built galaxy and on a migrated database; every
+  command and CLI path is run end to end (generate, plan, scatter, warm,
+  migrate, update.sh, the maintenance timers); the map at every zoom
+  level and the System, Sector and Galaxy views are opened at the edges
+  of the data (empty sectors, the widest shell, the seam and the black
+  hole); the job and queue paths are killed and resumed (stale locks,
+  dead tasks, planetgen:run:active); the whole test suite runs with
+  `scripts/test.py full --check`, and the flaky and skipped tests are
+  listed and explained; the open bugs in docs/TODO.md and the 'could not
+  reproduce' list are re-tried on the release candidate; the logs of the
+  run are read for warnings and swallowed errors; and a fuzz and
+  property pass covers the inputs the tests do not. Done: for the
+  release, a dated report
+  (/mnt/project-files/reports/release-audit-bug-hunt-<version>.md,
+  linked from the goal issue and logged on this item as 'Release log:
+  <version>, <EDT date and time>, <commit>') that names the commit
+  audited, what was run and what was not, the full-suite result, and
+  every bug found filed as its own item with kind, test, failure text,
+  whether it fails on main, frequency and reproducer; a bug that breaks
+  a headline feature, loses or corrupts data or stops a run blocks the
+  release until fixed and merged, the rest are filed with an owner. The
+  release is not stamped while the report for its version is missing, or
+  while a bug it marks blocking is open. Proposed owner: Bug Hunt (it
+  runs the audit; the fixes go to the owning lanes); the 8.1 pass starts
+  when the whole-sphere audits merge and the security audit has begun.
+  Prerequisites: TEST.159, TEST.160. Related: SEC.33.
 
 ## USR: User accounts
 

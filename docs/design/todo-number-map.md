@@ -21,8 +21,8 @@ release is stamped.
 | DB | DB.81 |
 | API | API.32 |
 | ADM | ADM.98 |
-| SEC | SEC.33 |
-| TEST | TEST.261 |
+| SEC | SEC.34 |
+| TEST | TEST.262 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.72 |
@@ -1833,6 +1833,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | done, PR #643 |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | open |
+| SEC.33 | Release gate: a full security code audit of the whole code base, done before every point release (8.1 first) | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -2371,6 +2372,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | open |
 | TEST.259 | test_open_map_menus_hold_no_overlap audits the menu boxes while the open animation is still moving and reports an overlap that is gone a frame later (bug) | none | done, PR #2332 |
 | TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) | none | open |
+| TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

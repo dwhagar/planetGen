@@ -9,3 +9,5 @@ Version: 9.2
 ## Goal
 
 Territories that grow and shift over time on the map, with borders drawn and polities that trade. Boss (2026-10-16): politics and territories come before ships and stations. No items exist yet beyond the population design note.
+
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.

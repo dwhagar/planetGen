@@ -112,6 +112,8 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 
 The radiation sweep, the documents of the whole composition model and the headline.
 
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+
 ### The headline
 
 | ID | Item | Needs | Note |
