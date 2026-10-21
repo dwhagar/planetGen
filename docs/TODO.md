@@ -13737,8 +13737,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.440), the free brown dwarf leaving `rogue_planets` (needs Core 1's
   DB.73 and DB.74 shape), motion and kick.
   Merged in part: the second slice (Core 4, #2303, about 9:11 AM EDT
-  2026-10-21 as the lane reported, generator epoch 39, pending until a
-  release stamps it): a neutron star's or stellar black hole's age
+  2026-10-21 as the lane reported, generator epoch 39, stamped by release 8.0.1850): a neutron star's or stellar black hole's age
   follows its population (progenitor from the IMF over its range, birth
   age from the population's window and age law, less the time to
   collapse); intermediate and supermassive black holes and given ages
