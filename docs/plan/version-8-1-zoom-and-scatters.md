@@ -412,6 +412,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 The last audits and the headline: they test the component pass, the core and the halo, so they come after phases 4 and 5.
 
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+
 ### The headline closes
 
 | ID | Item | Needs | Note |
@@ -420,4 +422,6 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked |  | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged |  | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.284, TEST.159, TEST.160, TEST.196, GEN.450, GEN.530 |  |
+| TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | TEST.159, TEST.160 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
+| SEC.33 | Release gate: a full security code audit of the whole code base, done before every point release (8.1 first) | TEST.159, TEST.160 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.284, TEST.159, TEST.160, TEST.196, GEN.450, GEN.530, SEC.33, TEST.261 |  |

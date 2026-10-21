@@ -70,6 +70,8 @@ The approver screen, comments, the request lifecycle, limits, email notices and 
 
 End-to-end and matrix tests, the help page and the headline.
 
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+
 ### Proof and help
 
 | ID | Item | Needs | Note |

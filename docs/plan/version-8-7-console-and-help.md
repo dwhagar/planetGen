@@ -14,6 +14,8 @@ A built-in help section and the pilot's starmap look. Proposed by the TODO threa
 
 The help pages and the console design.
 
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+
 ### Help section
 
 | ID | Item | Needs | Note |
