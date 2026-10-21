@@ -34,6 +34,7 @@ from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.web.lib import tilepack
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.web.lib import tileprefetch
+from planetgen.web.lib import tilecache
 from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire, fetch_window
 
 from planetgen.api.limiter import page_limit
@@ -348,6 +349,9 @@ def _prefetch_around(app, db, tile_keys, at=None):
     visitor."""
     try:
         with app.test_request_context("/"):
+            generation, changed = tilecache.take_rebuilds(db)
+            if changed:
+                tileprefetch.rebuild(db, generation, changed)      # what a change touched, built again at once
             tileprefetch.schedule(db, tile_keys, at)
     except Exception as exc:  # noqa: BLE001 -- a background nicety, never a failure of the request
         log.debug(f"Tile prefetch: not scheduled ({exc}).")

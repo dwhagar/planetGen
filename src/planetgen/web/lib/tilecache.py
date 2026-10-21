@@ -7,8 +7,9 @@ camera moves.
 
 A tile's contents (see `planetgen.galaxy.viewport`'s "Cube tiles"
 section and `planetgen.db.query.galaxy_tiles`) depend only on its key and on the
-database's contents, which `planetgen.db.query.galaxy_content_stamp` summarizes as a
-short "stamp". Tiles are cached as `<cache dir>/<db>/<generation>/
+database's contents, which `planetgen.db.query.galaxy_tile_stamp` summarizes as a
+short "stamp" (it leaves the release number out: a release that changes neither `query.TILE_FORMAT` nor the generator
+epoch keeps every stored tile, PERF.133). Tiles are cached as `<cache dir>/<db>/<generation>/
 <tile>.bin` (the finished, trimmed and packed bytes, see `trim_tile` and `tilepack`), where the generation is the stamp at the last time every
 tile went stale. `fetch_tiles` asks the API only for the tiles it doesn't
 already have, and when every tile is cached it doesn't call the API for
@@ -20,7 +21,7 @@ with one cheap API call (`GET /api/galaxy/changes`, see
 columns and answers which tiles changed since the last check. Only those
 tile files are deleted, so renaming a sector refetches the dozen tiles
 holding it rather than the whole map. A change that can't be pinned to
-tiles (a deleted sector, a re-planned galaxy, a new planetGen release)
+tiles (a deleted sector, a re-planned galaxy, a new tile format or generator epoch)
 answers `full`, and a new generation starts with nothing cached.
 
 A request is answered by joining those stored bytes, never by unpacking and
@@ -46,6 +47,7 @@ import os
 import random
 import re
 import tempfile
+import threading
 import time
 
 from planetgen.web.lib import apiclient, singleflight, tilepack
@@ -232,6 +234,8 @@ def _read_remembered(db_dir):
 
 
 def _delete_tiles(generation_dir, tile_keys):
+    """Deletes the stored files of `tile_keys`; returns the keys that were stored (and are gone now)."""
+    removed = []
     for key in tile_keys:
         try:
             path = os.path.join(generation_dir, _tile_filename("t", key))
@@ -239,8 +243,34 @@ def _delete_tiles(generation_dir, tile_keys):
             continue
         try:
             os.unlink(path)
+            removed.append(key)
         except OSError:
             pass
+    return removed
+
+
+_owed = {}
+_owed_lock = threading.Lock()
+
+
+def _owe_rebuild(db, generation, keys):
+    """Remembers the stored tiles a change deleted, for `take_rebuilds` (PERF.133)."""
+    with _owed_lock:
+        had_generation, had = _owed.get(db, (generation, []))
+        _owed[db] = (generation, (had if had_generation == generation else []) + list(keys))
+
+
+def take_rebuilds(db):
+    """
+    The stored tiles of `db` that changes deleted since the last call, so they can be built again at once, in the
+    background (PERF.133, `tileprefetch.rebuild`), not on the next visit that wants them.
+
+    Returns:
+        tuple: `(generation, keys)`, or `(None, [])` when no stored tile was deleted.
+    """
+    with _owed_lock:
+        generation, keys = _owed.pop(db, (None, []))
+    return generation, list(dict.fromkeys(keys))
 
 
 def _stage_filename(key):
@@ -287,7 +317,8 @@ def current_stamp(db, root=None):
             found).
     """
     if root is None:
-        return {"stamp": get_galaxy_changes(db)["stamp"], "generation": None, "history": []}
+        changes = get_galaxy_changes(db)
+        return {"stamp": changes.get("tile_stamp") or changes["stamp"], "generation": None, "history": []}
 
     db_dir = _db_dir(root, db)
     stamp_path = os.path.join(db_dir, "stamp.json")
@@ -311,7 +342,8 @@ def current_stamp(db, root=None):
         _failed_checks[db] = time.monotonic()
         return remembered
     _failed_checks.pop(db, None)
-    stamp = changes.get("stamp")
+    stamp = changes.get("tile_stamp") or changes.get("stamp")
+    full = changes.get("tile_full", changes.get("full"))
     if changes.get("busy") and remembered is not None:
         generation_age = time.time() - float(remembered.get("started") or 0)
         if 0 <= generation_age < BUSY_KEEP_SECONDS:
@@ -325,7 +357,7 @@ def current_stamp(db, root=None):
     stale = []
     stale_stages = []
     started = time.time()
-    if remembered is not None and not changes.get("full"):
+    if remembered is not None and not full:
         generation = remembered["generation"]
         started = remembered.get("started") or started
         history = remembered["history"]
@@ -344,11 +376,13 @@ def current_stamp(db, root=None):
     # still working under the old stamp checks it before writing a tile
     # (see `fetch_tiles`), so whichever side of the write it lands on, a
     # tile fetched before the change doesn't survive it.
-    _delete_tiles(generation_dir, stale)
+    removed = _delete_tiles(generation_dir, stale)
     _delete_stages(generation_dir, stale_stages)
     _write_json(stamp_path, info)
-    _delete_tiles(generation_dir, stale)
+    removed = list(dict.fromkeys(removed + _delete_tiles(generation_dir, stale)))
     _delete_stages(generation_dir, stale_stages)
+    if removed:
+        _owe_rebuild(db, generation, removed)
     try:
         for entry in os.scandir(db_dir):
             if entry.is_dir() and entry.name != generation:
