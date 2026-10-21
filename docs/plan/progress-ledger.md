@@ -907,3 +907,9 @@ Baseline: PR #1817.
 | PERF.130 | 8.2 | Robust tile caching |
 | PERF.106 | 8.1 | Queue, caches and performance |
 | GEN.590 | 8.1 | Multi-star and compact systems |
+| TEST.246 | 8.1 | Bugs and flaky tests |
+| TEST.252 | 8.1 | Bugs and flaky tests |
+| TEST.224 | 8.1 | Bugs and flaky tests |
+| TEST.227 | 8.1 | Bugs and flaky tests |
+| TEST.243 | 8.1 | Bugs and flaky tests |
+| PERF.138 | 8.1 | Multi-star and compact systems |

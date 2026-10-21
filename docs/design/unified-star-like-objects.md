@@ -10,6 +10,8 @@
 
 Evidence tags: [S] read in the repository; [C] computed here; [R] recalled and not verified (a lane verifies each before use, under the standing source rules). Standing rules kept: nothing fixed or copied from the Solar System or the Milky Way, the DB schema is not a constraint, no backward-compatibility shims, every draw through the one wrapper `util/draw.py` (GEN.56).
 
+**Standing rule (Boss, 5:20 PM EDT on 2026-10-18):** every object with mass follows the same trajectory rules, galactic, planetary and lunar alike, built into the mass object functions; see [mass-object-class.md](mass-object-class.md).
+
 ## 1. Summary
 
 1. **The ask in one sentence.** One recursive routine, `populate(host)`, that works for any body or group of bodies that can be orbited: a group of star-like objects, a star-like object, a planet, a rogue planet, a brown dwarf. It draws the host's own properties from one chain, then what orbits it, then calls itself for each thing that orbits. Moons are the lowest level, so the recursion has three working depths: group, star-like object or planet, moon.

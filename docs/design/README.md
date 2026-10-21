@@ -121,6 +121,7 @@ A note's own status line, at its top, is the authority; this page only points at
 |---|---|---|
 | [orbital-updates.md](orbital-updates.md) | Moving things: positions, thresholds, gravity, collisions and spin | partly built |
 | [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md) | Kepler solvers, integrators, thresholds and the influence search | research |
+| [orbital-update-check-2026-10-18.md](orbital-update-check-2026-10-18.md) | Boss's four orbital motion update steps checked against the design, with the F1 to F5 answers | research |
 | [galactic-potential.md](galactic-potential.md) | The galaxy's own gravity and galactic orbits | research |
 | [collisions-and-mergers.md](collisions-and-mergers.md) | How often bodies collide and how to detect it | research |
 | [navigation-frames.md](navigation-frames.md) | Nested navigation frames, bearing, mark and warp speed | built |

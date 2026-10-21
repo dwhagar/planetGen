@@ -99,7 +99,8 @@ def _points_in(groups, index, rng, count):
 def test_a_groups_bound_is_never_below_the_density_inside_it(make):
     groups = make()
     fractions = brightStars.band_fractions(FLOOR)
-    bound = object_first.extent_majorants(SHAPE, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out)
+    bound = object_first.extent_majorants(SHAPE, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out,
+                                          r_near=groups.r_in)
     rng = np.random.default_rng(7)
     for index in rng.choice(len(groups), size=min(len(groups), 40), replace=False):
         plane, z = _points_in(groups, index, rng, 60)
@@ -199,3 +200,24 @@ def test_a_plan_scatter_covers_the_reach_and_a_pre_placed_star_is_never_drawn_tw
     assert max(row["shell_index"] for row in rows) > 8
     assert all(row["shell_index"] <= 12 for row in rows)
     assert any(row["shell_index"] in high and abs(row["band_index"]) > high[row["shell_index"]] for row in rows)
+
+
+def test_a_polar_groups_nuclear_bound_is_taken_at_its_shell_not_at_the_axis_and_the_nearest_height():
+    """PERF.138: a group on the axis has `inner` 0 and a `z_near` far under its shell's radius, so the point
+    `(inner, z_near)` sits inside the nuclear disc and cluster. The bound uses the shell's radius too and stays within a
+    few times the true largest of the two terms on the shell."""
+    from planetgen.galaxy import density
+    groups = object_first.ReachGroups.for_shell(5, -1, EDGE_PC)
+    only = {name: 0.0 for name in brightStars.SCATTERED_POPULATIONS}
+    only.update(nuclear_cluster=1.0, nuclear_disc=1.0)
+    terms = density.model_terms(SHAPE)
+    for index in range(len(groups)):
+        bound = object_first.extent_majorants(SHAPE, groups.inner[index:index + 1], groups.z_near[index:index + 1],
+                                              groups.z_far[index:index + 1], only, groups.r_out[index:index + 1],
+                                              r_near=groups.r_in[index:index + 1])[0]
+        radius = groups.r_in[index]
+        largest = max(
+            SHAPE.k_norm * (float(density._nuclear_cluster_array(radius, terms))
+                            + float(density._nuclear_disc_array(radius * math.sqrt(1.0 - c * c), abs(radius * c), terms)))
+            for c in np.linspace(groups.cos_low[index], groups.cos_high[index], 200))
+        assert largest <= bound <= 3.0 * largest, (index, bound, largest)

@@ -2250,6 +2250,10 @@ function initGalaxyMap3d(canvasEl, data) {
     if (currentStamp) {
       params.set("stamp", currentStamp);
     }
+    // Where the camera is and what it looks at, so the server can build the next zoom steps' tiles ahead (PERF.132).
+    params.set("at", cameraAtRadius(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, orbit.radius)))
+      .concat([target.x, target.y, target.z])
+      .map(function (value) { return Math.round(value * 10) / 10; }).join(","));
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {

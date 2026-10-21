@@ -39,7 +39,7 @@ import math
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler, spin
-from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
+from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -122,7 +122,7 @@ def _activity_chance(perihelion_distance_au):
     return max_chance - fraction * (max_chance - min_chance)
 
 
-class Comet(LazySaladName, MassObject, HoldsOrbitPosition):
+class Comet(LazySaladName, MassObject):
     """
     A comet gravitationally bound to a star, on either a periodic
     elliptical orbit or a single-apparition parabolic one (see this

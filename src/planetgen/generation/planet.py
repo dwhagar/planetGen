@@ -26,7 +26,7 @@ import math
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
-from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
+from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.generation.mass_object import MassObject
@@ -35,7 +35,7 @@ from planetgen.util.format import (
 )
 
 
-class Planet(MassObject, HoldsOrbitPosition):
+class Planet(MassObject):
     """
     A class representing a single planet or moon and all of its properties.
 
