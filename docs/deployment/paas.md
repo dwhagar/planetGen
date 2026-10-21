@@ -5,8 +5,8 @@
 A small virtual server from any provider, running Debian or Ubuntu, is
 the simplest place to host planetGen. Follow one of the Linux guides
 ([Apache](apache.md), [nginx](nginx.md) or [Caddy](caddy.md)) exactly as
-on your own hardware. MySQL or MariaDB can run on the same server, or you
-can use the provider's managed MySQL (MySQL 8.0.16+ or MariaDB 10.4+).
+on your own hardware. MySQL can run on the same server, or you
+can use the provider's managed MySQL (MySQL 8.0.19+; MariaDB is not supported).
 
 The app runs as one process with five threads. Generating sectors from
 the admin Generate page is the heaviest work it does; the Galaxy Map's
@@ -20,7 +20,7 @@ private network if it runs elsewhere.
 planetGen needs four things a typical platform-as-a-service makes
 awkward:
 
-- MySQL or MariaDB;
+- MySQL 8.0.19 or later;
 - a Redis server (the Generate page's jobs, the work queue and the rate
   limits run on it; set `PLANETGEN_REDIS_URL` to its address);
 - a persistent disk for the Generate jobs directory (and, less

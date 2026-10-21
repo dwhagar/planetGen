@@ -107,7 +107,7 @@ build order).
 ## Requirements
 
 - Python 3.12 or later, with numba (the compiled numeric kernels; `install.sh` and `update.sh` install it, and there is no fallback without it). This replaced the old Python 3.9 minimum with numba (OPS.42).
-- MySQL 8.0.16+ or MariaDB 10.4+.
+- MySQL 8.0.19+ (MariaDB is not supported).
 - Redis (any recent version): the Generate page's jobs, the work queue behind `--workers` above 1, the rate limits and the login lockouts run on it. `install.sh` and `update.sh` install and start it on Debian and Ubuntu and check its settings.
 - For the website, a web server: Apache2 with mod_wsgi on Debian or
   Ubuntu (the reference setup), nginx or Caddy on Linux, or nginx on
@@ -270,7 +270,7 @@ Every pull request adds a release note under [`changes/`](changes/README.md)
 instead of bumping the version; a workflow stamps the version after
 merge. A change that alters what a seed generates also bumps the generator epoch
 (`python -m tests.golden_update --reason "..."`, [`changes/README.md`](changes/README.md)). Run the tests with `scripts/test.py changed` while you work and `scripts/test.py full --check` before
-merging a finished piece of work; both need MySQL or MariaDB and Redis ([`docs/testing.md`](docs/testing.md)).
+merging a finished piece of work; both need MySQL and Redis ([`docs/testing.md`](docs/testing.md)).
 Plain `pytest -n auto` still works.
 
 ## License
