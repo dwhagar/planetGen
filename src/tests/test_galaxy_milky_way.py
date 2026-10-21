@@ -45,7 +45,7 @@ def _local_scale(profile, a, b):
 
 def test_the_reference_shape_is_the_milky_ways_published_one():
     assert (SHAPE.disk_scale_length_pc, SHAPE.disk_scale_height_pc, SHAPE.bulge_scale_radius_pc,
-            SHAPE.bulge_amplitude, SHAPE.arm_count) == (2600.0, 300.0, 1580.0, 3.11, 2)
+            SHAPE.bulge_amplitude, SHAPE.arm_count) == (2600.0, 300.0, 1580.0, mathcheck.REFERENCE_BULGE_AMPLITUDE, 2)
     assert math.degrees(SHAPE.pitch_angle_rad) == pytest.approx(15.0)
 
 
@@ -182,3 +182,21 @@ def test_the_bulge_stands_out_edge_on():
     angle = TERMS["reference_angle_rad"]
     bulge = sum(density._components(_at(y, angle, 600.0), SHAPE)[0] for y in range(-20000, 20001, 50))
     assert SHAPE.k_norm * bulge > 0.5 * _edge_on_column(0.0, 600.0)
+
+
+def test_the_thin_disks_midplane_is_the_exponential_fits_for_its_column():
+    """GEN.544: the thin disk's height is the exponential the scale height is fitted with, so its column is 2 h times
+    its midplane density (the isothermal sheet it replaced gave 4 h: half the fits' midplane for the same mass), and the
+    galaxy's midplane density at the reference radius is twice the GEN.404 value (0.376 of the density the earlier
+    calibration pinned) while its column does not move."""
+    angle = density._interarm_angle(SOLAR_RADIUS_PC, SHAPE)
+
+    def at(z):
+        return _at(SOLAR_RADIUS_PC, angle, z)
+
+    thin = lambda z: density._components(at(z), SHAPE)[1]
+    thin_column = 2.0 * sum(thin(z + 2.5) for z in range(0, 12000, 5)) * 5
+    assert thin_column / thin(0.0) == pytest.approx(2.0 * SHAPE.disk_scale_height_pc, rel=0.01)
+    assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.75, abs=0.02)
+    column = 2.0 * sum(density.relative_density(at(z + 2.5), SHAPE) for z in range(0, 12000, 5)) * 5
+    assert column == pytest.approx(524.26, rel=0.001)    # parsecs of relative density; the same 524.26 with the isothermal disk

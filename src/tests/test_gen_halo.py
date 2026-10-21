@@ -150,13 +150,13 @@ def test_no_cell_beyond_the_halos_dense_core_expects_a_whole_system():
 
 def test_the_halo_does_not_widen_the_outline():
     # The outline reads the disk and bulge only (`skeleton._bound_raw_density_at`), and the halo is under 0.3% of the
-    # one-star threshold where it ends. The galaxy holds the systems its stellar mass makes (GEN.404), 2.6 times
-    # fewer than the density tuned to the real count at the Sun gave, so the reference galaxy's edge sits at shell
-    # 3,127 (it was 3,762).
+    # one-star threshold where it ends. The galaxy holds the systems its stellar mass makes (GEN.404) over an
+    # exponential disk (GEN.544), so the reference galaxy's edge sits at shell 3,576 (it was 3,762 for the density
+    # tuned to the real count at the Sun, 3,127 with the isothermal disk).
     extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
-    assert outer == 3127
-    assert len(extents) == 3128
-    assert sum(high for _shell, high in extents) == 1101636
+    assert outer == 3576
+    assert len(extents) == 3577
+    assert sum(high for _shell, high in extents) == 932642
 
 
 def _halo_and_edge_cells(shape):

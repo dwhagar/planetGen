@@ -154,10 +154,10 @@ def pitch_median_deg(stellar_mass_solar):
 
 
 def disk_masses(disk_scale_length_pc, disk_scale_height_pc, structure, arm_level=1.0):
-    """`(thin, thick)` disk masses in the model's units (central thin density 1): `2 pi L^2 x 4 h` for the thin
-    disk (its `sech^2` profile integrates to `4 h`) times its level, and the thick disk's, whose mass is the
+    """`(thin, thick)` disk masses in the model's units (central thin density 1): `2 pi L^2 x 2 h` for the thin
+    disk (its `exp(-|z| / h)` profile integrates to `2 h`, GEN.544) times its level, and the thick disk's, whose mass is the
     structure's ratio to the thin disk's (`density.thick_disk_amplitude`)."""
-    thin = arm_level * 2.0 * math.pi * disk_scale_length_pc ** 2 * 4.0 * disk_scale_height_pc
+    thin = arm_level * 2.0 * math.pi * disk_scale_length_pc ** 2 * 2.0 * disk_scale_height_pc
     return thin, thin * structure.thick_mass_ratio
 
 
