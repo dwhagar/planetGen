@@ -22183,6 +22183,33 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
+- [ ] **DOC.72 The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete**
+  Boss, 2026-10-21, 5:44 PM EDT: "Add DOCS item that the README will say
+  what URL's and how to install the external files that are needed to
+  run." Today the downloaded datasets, line lists and data files that
+  the setup step fetches (the shared download step GEN.548, `python3 -m
+  planetgen.cli.datasets fetch`, run by `install.sh` and `update.sh`) or
+  that must be provided by hand (files Boss supplies, papers or datasets
+  that cannot be fetched) are known only from the catalogue in
+  src/planetgen/datasets/catalogue.py. Do: add a README section
+  'External files' that lists every one, with its source URL, the
+  licence note, the cache folder it goes to (`PLANETGEN_DATA_DIR`, else
+  `/var/cache/planetgen/datasets`), the command that fetches it, how to
+  install it by hand when the host is down or the machine has no network
+  (download the URL, check the sha256, put it in the folder), and what
+  stops working while it is missing (the 'replaces' text the catalogue
+  already carries); say which files are fetched at setup and which must
+  be provided by hand; add the same table to docs/deployment/README.md
+  or link to it. Done: the README lists every dataset in the catalogue
+  with its URL and install step, and a test compares the README list
+  with the catalogue (every key and URL appears, nothing extra) so a new
+  dataset cannot skip it; a dataset added by an AD item (AD1 to AD8,
+  GEN.594) fails that test until its README row exists; the install
+  steps are followed once on a clean cache and work. Owner: TODO thread
+  proposes a docs lane or Core 5 after the 8.1 closing audits (not
+  urgent).
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**

@@ -46,7 +46,7 @@ Rules:
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58 |
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82, TEST.183, UX.121, UX.122, UX.123, UX.124, UX.125, UX.126, UX.130, UX.131, UX.132 |
 | [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, ADM.92, ADM.93 |
-| [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.35, DB.29, OPS.61, OPS.62, DB.80 |
+| [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.35, DB.29, OPS.61, OPS.62, DB.80, DOC.72 |
 | [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31, DB.43, DB.44, DB.45, DB.46, DB.47, DB.48 |
 | [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.41, GEN.212, UX.136, PERF.137 |
 | [#1684](https://github.com/dwhagar/planetGen/issues/1684) | open | API keys, call log and compatibility data | API.4, API.6, API.15, API.31 |

@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.263 |
 | USR | USR.32 |
 | OPS | OPS.63 |
-| DOC | DOC.72 |
+| DOC | DOC.73 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
 
@@ -668,6 +668,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.69 | Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one | none | done, PR #2172 |
 | DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header | none | open |
 | DOC.71 | Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py | none | open |
+| DOC.72 | The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
