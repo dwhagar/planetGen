@@ -97,6 +97,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | API.4 | API compatibility data in the docs | API.26 | Docs and version number. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version |  | Needs nothing. Boss, 2026-10-17, 11:33 AM EDT. |
+| USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 |  | Boss, 2026-10-18 (fork 9, stay in 8.1). |
+| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | USR.31 | Boss 1:43 PM EDT 2026-10-16: the settings page is 8.1; stays in 8.1 with the Owner stub (Boss, fork 9, 2026-10-18). |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields |  | Split from UX.49. |
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do |  |  |
@@ -300,7 +302,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 |---|---|---|---|
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named |  | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
-| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
+| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option |  | Core 1; Boss 4:01 PM EDT: Draw them. |
 | GEN.535 | Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I) |  | Open inferences of GEN.528: gas fraction, low LMC remnant count, Leo I gas. |
 | GEN.534 | A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young` |  | Residual of GEN.528: the system-type tables do not name satellite_young. Core 3 proposed. |
 | GEN.530 | A pre-placed star's hosted nebula shows from its scatter row on the maps and pages |  | Residual of GEN.320: the hosted nebula of a pre-placed star from its scatter row. |
