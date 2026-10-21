@@ -197,8 +197,8 @@
     },
     {
       "epoch": 40,
-      "pending": true,
-      "reason": "A galaxy's neutron star count is what its massive stars leave when they do not become black holes: the black hole sum with the survivors of the failed share and the bound share, replacing the fixed rate per star (GEN.554)"
+      "reason": "A galaxy's neutron star count is what its massive stars leave when they do not become black holes: the black hole sum with the survivors of the failed share and the bound share, replacing the fixed rate per star (GEN.554)",
+      "first_release": "8.0.1854"
     }
   ]
 }
