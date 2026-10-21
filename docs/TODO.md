@@ -3806,6 +3806,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (PERF.118, PERF.120); the nightly run of this item follows that and
   replaces `cli.orbits`, which advances planets, moons, stars and
   binaries in one command.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 3, "Chunk start
+  state": every object in one chunk (tier, then mass band) reads the
+  state at the chunk start, and a chunk sees the results of the earlier
+  chunks, so the row order inside a chunk does not matter; this replaces
+  the earlier "later objects see a mix of old and new positions"
+  sentence (F3).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 4, "Every object
+  touched": the orbital update writes a motion vector and a next-update
+  value for every object step 4 touches; positions stay derived lazily
+  from the parent chain. Where GEN.197 says the update writes nothing
+  but the top barycentre's point, this wins.
     Prerequisites: GEN.345, GEN.346.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -4470,6 +4483,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-step check is needed. Spin changes (tidal evolution, magnetic
   braking) are not modelled in the update and stay a later research
   item.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 4, "Every object
+  touched": the orbital update writes a motion vector and a next-update
+  value for every object step 4 touches; positions stay derived lazily
+  from the parent chain. Where GEN.197 says the update writes nothing
+  but the top barycentre's point, this wins.
   Prerequisites: DB.56. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -5960,7 +5979,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   post-AGB circumbinary disk descriptor and no planets. Stand-ins left
   out: eccentricity excitation, the swallowed-giant flag, the rare close
   giant.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 35 is stamped by PERF.138 (release 8.0.1842, #2297; 34 by GEN.404, 8.0.1831, #2270), so a change here takes the next free epoch at its merge, 36 unless another lane merges first (Core 3's GEN.318 renumbers to 36); Alembic head is 0112, next free 0113.
+  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -6288,6 +6307,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
   ties by id); tier names are labels only. Sort cost on millions of due
   rows is an open measurement.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 3, "Chunk start
+  state": every object in one chunk (tier, then mass band) reads the
+  state at the chunk start, and a chunk sees the results of the earlier
+  chunks, so the row order inside a chunk does not matter; this replaces
+  the earlier "later objects see a mix of old and new positions"
+  sentence (F3).
   Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
@@ -6718,7 +6744,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as an output, drawn from the galaxy's potential; the potential module
   is GEN.338 (8.3), so the velocities arrive with GEN.339 (8.3), not with
   this item's 8.1 build, which keeps them at rest and says so.
-  Prerequisites: GEN.371. Related: GEN.237, GEN.366, GEN.324,
+  Prerequisites: none. Related: GEN.371, GEN.237, GEN.366, GEN.324,
   GEN.297.
   Waits on GEN.371, the feasibility study of generating satellites
   through the scatter (Boss, 2026-10-16, 4:02 PM EDT); if the study
@@ -6851,6 +6877,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 0.25 dex) is confirmed and not tightened. No reionization redshift
   is used, so GR12 is not served; the v1 numbers may differ from the
   published MNRAS 488, 4585.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 13, "Drop GEN.371
+  as prerequisite": GEN.371 is no longer a prerequisite (it is Related);
+  this item builds the drawn population first, and GEN.371 decides later
+  whether the scatter makes the cells.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -6919,6 +6950,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
   the coordinator): Core 1 does it right after GEN.369 (order: GEN.368,
   GEN.369, GEN.371, GEN.366). Owner: Core 1.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 13: GEN.369 no
+  longer waits on this study.
   Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7650,6 +7684,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   we're good for now. We can tune it later.' The cluster system mass
   fraction eta keeps the widest range, 2.9e-5 to 6e-5 with all three
   sources, as applied above; no card; he tunes it later.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 6, "Newest edition
+  wins": for editions of one work the newest verified edition wins (BC4:
+  the 2014 edition over 2003); Boss's widest-range rule applies between
+  independent sources, not between editions of the same work.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
@@ -7947,6 +7986,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
   by the TODO thread. Its recipes are the rows of the atmosphere tables
   of GEN.478 (part 09 categories c, d, j and m).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8567,6 +8612,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8820,6 +8871,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
   needed), PubChem and USGS are public domain. The licence column is a
   record only (Boss, 2:35 PM EDT).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8996,6 +9053,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item follows or joins GEN.557 (wanderers); GEN.557 is now one of its
   prerequisites. It may be built in one go with GEN.557 by the same lane
   (Core 4).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 6, "Newest edition
+  wins": for editions of one work the newest verified edition wins (BC4:
+  the 2014 edition over 2003); Boss's widest-range rule applies between
+  independent sources, not between editions of the same work.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9049,6 +9117,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.461, and the steam-atmosphere radius of irradiated water worlds
   (Turbet 2020) joins this solver. Test target: a class D body's density
   follows from its rock fraction (finding F3).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
   Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
 
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
@@ -9083,6 +9157,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code; the planet classes' fixed composition strings are replaced by
   the drawn mixture and the class label becomes a summary derived from
   it.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9152,6 +9232,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gated by class; there are no separate component lists per kind. The
   surface rows draw their minerals and ices from the shared table of
   GEN.427.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9268,6 +9354,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which would make porosity grow, and the file carries the note 'error
   in equation 2b': check against Besserer 2013 or the published version
   before coding it. Fray and Schmitt (paid) is still missing.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9403,6 +9495,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   labelled stand-in until the full report is uploaded. They do hold
   Q(L): 1 below 10 keV/micron, 0.32 L - 2.2 for 10 to 100, 300/sqrt(L)
   above 100, and about 5 percent per Sv.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9623,6 +9721,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
   (core formation) scale differs from the surface magma-ocean scale and
   needs a conversion test.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
 
 - [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9702,6 +9808,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/atmosphere-colour.md. Approved by Boss as recommended
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
 
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9770,6 +9890,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/radiation-model.md. Approved by Boss as recommended
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9842,6 +9968,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "uncovered brown-dwarf range of 500 to 700 K" is superseded by GEN.494
   (Kirkpatrick 2021 Table 13: 500 to 700 K is T8 to T9, Y0 is 371 to 510
   K).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9923,6 +10055,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers, GEN.488 and GEN.495, 2026-10-17, 12:10 to 12:13 PM EDT; the
   3.6 percent bound is unsupported), flagged a stand-in at the widest
   bracket.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9994,6 +10132,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10A to 10D of atmosphere-composition.md): lava vapour as in GEN.422:
   Na-dominated to about 2700 K, no 40 to 60 g/mol mean (the Body lane
   reads 25 to 33 g/mol, see GEN.499).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10111,6 +10255,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class solver test comes before the 1e20 kg to 0.1 Earth mass range is
   called validated; viscous compaction can replace the hand-over later
   once the Eq. 3 sign check passes.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 15, "0.5 to 0.85,
+  Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
+  bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
+  a labelled stand-in replaced when a measurement exists.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -10150,6 +10299,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 16, "Keep 170 K
+  centre": the snow line keeps the 170 K blackbody centre
+  (`SNOW_LINE_AU_AT_1_LSUN = 2.7`) with 0.2 dex of scatter; 150 K lies
+  inside that scatter and is noted, not a second centre.
 
 - [ ] **GEN.459 One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10235,6 +10403,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10A to 10D of atmosphere-composition.md): Venus K/U 6 to 8 thousand;
   MORB Th/U about 3.0 (the radioisotope Th/U range needs a lower tail);
   Solar System reservoirs stay test targets.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
 
 - [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10327,6 +10509,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fits that disagree: the newest wins, Chachan 2025; Thorngren stays in
   the record and as a bracket end). Chachan's coefficients are not yet
   in the item and must be read first.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10372,6 +10568,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test TEST.214): no table of its own: the hydrosphere reads the water
   fraction of the drawn bulk recipe (GEN.428) and the surface rows of
   GEN.441.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.462 Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10404,6 +10606,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test TEST.214): no table of its own: the ground albedo by band is the
   area-weighted result of the drawn surface rows (GEN.441), each
   carrying the band albedo of its material row in GEN.427.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10441,6 +10649,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope
   -0.338 +/- 0.049) and U is not measured in disc stars (part G2), so
   the solids law does not take a Th or U trend from the note.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
   Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
 - [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
@@ -10532,6 +10754,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. BC6, moon
   composition against distance and origin: no confirmed exomoon.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 15, "0.5 to 0.85,
+  Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
+  bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
+  a labelled stand-in replaced when a measurement exists.
 
 - [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10575,6 +10808,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (all-methane limit 0.54), and the ice forms near 150 K by
   Clausius-Clapeyron at nebular pressure. The keep-the-switch decision
   stands.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 16, "Keep 170 K
+  centre": the snow line keeps the 170 K blackbody centre
+  (`SNOW_LINE_AU_AT_1_LSUN = 2.7`) with 0.2 dex of scatter; 150 K lies
+  inside that scatter and is noted, not a second centre.
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
 
 - [ ] **GEN.470 One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests**
@@ -10753,6 +10991,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
   prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
   Kulmala-Laaksonen form already in the files; the stand-in stays.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -10823,6 +11067,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distance, DC13 Table 6), no extrasolar ensemble: rule M, the widest.
   Zoning boundary at the star's snow line, width 0.3 in log AU
   (placeholder).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 8, "Flagged
+  stand-ins only": a measured Solar System shape may enter a generator
+  table only as a row flagged `stand-in` that names an existing
+  replacement item; unflagged Solar System sourced rows and the
+  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
+  never a table source. TEST.215's assertion exempts rows flagged
+  `stand-in` with a replacement item and fails on any other Solar System
+  sourced row. GEN.520 D6 (the Solar System population as the
+  within-system comet shape) is kept as a flagged stand-in with the
+  replacement item GEN.595.
 
 - [ ] **GEN.474 Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -10990,6 +11245,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shared-vocabulary point (2026-10-17, 1:47 AM EDT)
   `ASTEROID_COMPONENTS` and the per-family lists go, and component names
   come from the shared GEN.427 table through the class gate.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.478 The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11063,6 +11324,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   +/- 1.3 for 0.1 to 0.2). Tuning and its harness are GEN.503 and the
   builders GEN.509 to GEN.525; the six defaults D1 to D6 stand as
   Decided (composition-model.md section 4a item 11).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 7, "Derived from
+  physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
+  outputs of the escape and retention physics, not design flags; the
+  design-flag rows left in B17 are m3, m4 and m11.
 
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11106,6 +11378,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.0 on the stored Hirschmann 2021 scale (GEN.498, 2026-10-17, 2:43 AM
   EDT): the generator fixes one reference and keeps +0.5 as a Sossi
   scale calibration target only.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11415,6 +11693,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Pluto-like occurrence: an output of the escape and retention
   physics, with the environment drawn from the halo mass and no
   environment concept added now.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 7, "Derived from
+  physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
+  outputs of the escape and retention physics, not design flags; the
+  design-flag rows left in B17 are m3, m4 and m11.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.488 Source the comet coma classes and their volatile ratios (AR9)**
@@ -12406,6 +12689,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   part 09 row carries its state (Decided 3:02 AM EDT rule). A retune
   changes the table version and is a generator epoch bump. Owner: Core 4
   (proposed, with the composition chain).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 8, "Flagged
+  stand-ins only": a measured Solar System shape may enter a generator
+  table only as a row flagged `stand-in` that names an existing
+  replacement item; unflagged Solar System sourced rows and the
+  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
+  never a table source. TEST.215's assertion exempts rows flagged
+  `stand-in` with a replacement item and fails on any other Solar System
+  sourced row. GEN.520 D6 (the Solar System population as the
+  within-system comet shape) is kept as a flagged stand-in with the
+  replacement item GEN.595.
   Prerequisites: GEN.503, GEN.507. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12516,6 +12810,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-flag row of GEN.478 is in the registry with its default state,
   the loader reports them, and no knob of these rows is tuned to a Solar
   System value. Owner: Core 4 (proposed, with the composition chain).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 7, "Derived from
+  physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
+  outputs of the escape and retention physics, not design flags; the
+  design-flag rows left in B17 are m3, m4 and m11.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -13345,6 +13644,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   everywhere in this plan (the tree builder, the host chain, GEN.552,
   GEN.576); 'a group of up to 7 star-like objects' in his first message
   is read as a typical group, not a limit.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13407,6 +13714,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table shape agreed first; (4) GEN.554 after GEN.553, with the
   explosion-map sources verified before use. Core 4 will not touch
   GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  Merged in part: the first slice (Core 4, #2284, release 8.0.1843,
+  reported 6:11 PM EDT 2026-10-18 on the lane's clock, generator epoch
+  36 stamped): a free-floating brown dwarf gets its age from its place's
+  population window and age law (`FillContext.apply_population` split
+  out; docs/design/brown-dwarf-state.md updated). Still open: remnant
+  birth, [Fe/H], the composition hook, and the brown dwarf leaving
+  `rogue_planets`.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13748,6 +14062,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item: a refill must not renumber the bodies of a system whose
   planet or moon count changes, and a body that changes parent keeps its
   ID.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
+  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
+  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
+  in 8.1, and only scatter-level changes (nebula radius, remnants above
+  the mass cut) need a rescatter. Where this item says it "joins the one
+  rescatter of 8.4", this wins.
   Prerequisites: DB.75. Related: GEN.550, GEN.315, DB.73.
 
 - [ ] **GEN.565 The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes**
@@ -13769,8 +14091,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the brown dwarf fold into it as states: protostar,
   pre-main-sequence, main sequence, giant, white dwarf, neutron star,
   black hole, brown dwarf; the `_skip_property_init` workaround goes),
-  `PlanetaryObject` (`Planet` with its `is_moon`, `RoguePlanet` and the
-  brown dwarf row: a moon is a planetary object whose parent is a
+  `PlanetaryObject` (`Planet` with its `is_moon`, `RoguePlanet`: a moon is a planetary object whose parent is a
   planet, a rogue planet one with no parent), `SmallBody` (`Comet`,
   `InterstellarComet`, belt and field members). Rule: subclass only
   where behaviour differs and the object never changes kind; anything
@@ -13877,6 +14198,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `HoldsOrbitPosition` folds into `MassObject`. The family classes
   follow after that slice. No output change in this slice. GEN.584,
   DB.73 and DB.74 (Core 1) should store this same state vector.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5, "Keep the full
+  S16 record": the stored point record is the full S16 kinematic record
+  (position, velocity, spin axis and rate, member mass with mu, epoch
+  and next-due); Core 4's narrower state vector of 5:25 PM EDT
+  2026-10-18 (position, velocity, epoch, parent mass) is overruled. The
+  standing rule that all motion runs through the one set of mass object
+  functions stands.
+  Merged in part: GEN.565b (Core 4, #2300, reported about 7:05 AM EDT
+  2026-10-21 on the lane's clock): the full stored kinematic record in
+  the mass object core (mass and mu, position and velocity relative to
+  the parent, spin axis and rate, epoch, next-due) with the `advance`
+  step; no generator epoch. Next: GEN.565c, the planetary and small-body
+  families on the core.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 14, "A stellar
+  state": a free-floating brown dwarf is a StellarObject state, not a
+  PlanetaryObject; the brown dwarf row is removed from the
+  PlanetaryObject text.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14630,6 +14970,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `advance(seconds)` on `kepler.universal_step` for every body (parent =
   star, planet or the galaxy). This item, DB.73 and DB.74 store that
   same state vector.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5, "Keep the full
+  S16 record": the stored point record is the full S16 kinematic record
+  (position, velocity, spin axis and rate, member mass with mu, epoch
+  and next-due); Core 4's narrower state vector of 5:25 PM EDT
+  2026-10-18 (position, velocity, epoch, parent mass) is overruled. The
+  standing rule that all motion runs through the one set of mass object
+  functions stands.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5 stands (Core 4's
+  detail, 6:16 PM EDT 2026-10-18 on the lane's clock, after Boss's fork
+  5 "Keep the full S16 record"): the core stores for every mass object
+  mass_kg and mu_m3_s2, position and velocity relative to the parent,
+  spin_axis (unit) and spin_rate_rad_s, epoch_unix and next_update_due,
+  with identity, radius and age beside it; spin is not in a profile
+  table. Derived, and their columns dropped in the DB.73 revision:
+  speed, axial tilt, rotation period, a*, ms period, galactic orbital
+  speed, period and phase, and min_update_interval_years.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
@@ -14841,7 +15199,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by GEN.317 (release 8.0.1828), so a change here takes the next free
   epoch at its merge, 33 unless another lane merges first (Core 3's
   GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 35 is stamped by PERF.138 (release 8.0.1842, #2297; 34 by GEN.404, 8.0.1831, #2270), so a change here takes the next free epoch at its merge, 36 unless another lane merges first (Core 3's GEN.318 renumbers to 36); Alembic head is 0112, next free 0113.
+  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -14923,6 +15281,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   AD1 data he can (3:07 PM EDT 2026-10-18).
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.422.
 
+- [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
+  Filed from Boss's sweep answer on fork 8 (6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported it): GEN.520 D6 accepts the
+  Solar System population as the within-system comet shape plus a
+  per-system offset knob bracketed by the two interstellar objects; that
+  row stays only as a flagged `stand-in`. Do: find the published size,
+  orbit and composition distributions of long and short period comets
+  and the interstellar objects, derive the within-system shape from
+  them, and replace the stand-in row. Done: the row no longer names a
+  Solar System body as its only source and the stand-in flag is cleared,
+  with its test (TEST.215) still passing. Suggested owner: a research
+  thread, then Core 4 (the comet sampler lane); version 8.4.
+  Prerequisites: none.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14952,6 +15324,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position 4 of 54). This replaces any earlier owner line on this item.
   Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
   coordinator): waits on Boss's cold-rebuild time before it can be done.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 11, "Required
+  prerequisite": this item is no longer optional; it is a prerequisite
+  of PERF.133 (keeping a tile until the data changes cannot work with a
+  per-version stamp). The condition "decide after PERF.31 shows the cold
+  rebuild cost" no longer applies.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
@@ -15803,7 +16181,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   warm-up with no change builds nothing. A tile is also not rebuilt when
   only a release stamp changes and the tile format and generator epoch
   do not (PERF.41).
-  Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 11, "Required
+  prerequisite": PERF.41 (the TILE_FORMAT stamp) is a prerequisite of
+  this item.
+  Prerequisites: PERF.41. Related: PERF.129, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -16800,6 +17182,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   revision is part of the ONE 8.4 revision of DB.73 (Boss, 2026-10-17,
   11:38 PM EDT); "follows the DB.65 and DB.67 ones in the queue" is
   superseded.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 1, "One bump for
+  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
+  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
+  this item says it "ships with a generator epoch bump" it rides that
+  one bump and does not take an epoch of its own.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -16963,6 +17351,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   order, DB.71's "revision after the DB.67 one", and DB.69's "follows
   the DB.65 and DB.67 ones" are superseded. DB.67's "Boss wipes and
   rebuilds" describes a different revision and is left as written.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5, "Keep the full
+  S16 record": the stored point record is the full S16 kinematic record
+  (position, velocity, spin axis and rate, member mass with mu, epoch
+  and next-due); Core 4's narrower state vector of 5:25 PM EDT
+  2026-10-18 (position, velocity, epoch, parent mass) is overruled. The
+  standing rule that all motion runs through the one set of mass object
+  functions stands.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5 stands (Core 4's
+  detail, 6:16 PM EDT 2026-10-18 on the lane's clock, after Boss's fork
+  5 "Keep the full S16 record"): the core stores for every mass object
+  mass_kg and mu_m3_s2, position and velocity relative to the parent,
+  spin_axis (unit) and spin_rate_rad_s, epoch_unix and next_update_due,
+  with identity, radius and age beside it; spin is not in a profile
+  table. Derived, and their columns dropped in the DB.73 revision:
+  speed, axial tilt, rotation period, a*, ms period, galactic orbital
+  speed, period and phase, and min_update_interval_years.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -17013,6 +17419,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and parent mass, advanced by one `advance(seconds)` for every body,
   galactic, planetary and lunar. Storage here should hold that same
   state vector (with GEN.584).
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5, "Keep the full
+  S16 record": the stored point record is the full S16 kinematic record
+  (position, velocity, spin axis and rate, member mass with mu, epoch
+  and next-due); Core 4's narrower state vector of 5:25 PM EDT
+  2026-10-18 (position, velocity, epoch, parent mass) is overruled. The
+  standing rule that all motion runs through the one set of mass object
+  functions stands.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 5 stands (Core 4's
+  detail, 6:16 PM EDT 2026-10-18 on the lane's clock, after Boss's fork
+  5 "Keep the full S16 record"): the core stores for every mass object
+  mass_kg and mu_m3_s2, position and velocity relative to the parent,
+  spin_axis (unit) and spin_rate_rad_s, epoch_unix and next_update_due,
+  with identity, radius and age beside it; spin is not in a profile
+  table. Derived, and their columns dropped in the DB.73 revision:
+  speed, axial tilt, rotation period, a*, ms period, galactic orbital
+  speed, period and phase, and min_update_interval_years.
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -17332,6 +17756,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   for the same commands as a local run (child a), and a remote run shown
   as a job in the job tree and on the job page with its progress and
   report (child b).
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 10, "Sector and
+  galaxy first": the first version of the remote mode covers the
+  `sector` and `galaxy` commands (API.30); `plan`, the bright-star
+  scatter and backfill and `population` follow in later phases and
+  refuse with a clear message until then. Where the Done text says "the
+  same commands as a local run", it means in phases.
 
 - [ ] **API.4 API compatibility data in the docs**
   Boss (2026-10-01 19:28Z): "let's make API compatibility data and put
@@ -17613,6 +18044,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   default: sector and galaxy first). Done: a remote run against a test
   server fills the same sectors a local run does, survives a killed
   client and a restarted server, and a refused unit is reported.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 10, "Sector and
+  galaxy first": confirmed as the first version of the remote mode; the
+  other commands refuse with a clear message until a later phase.
   Prerequisites: API.5, API.8. Related: API.3.
 
 - [ ] **API.31 Every outgoing web request sends a standard User-Agent with the software, its version and the API version**
@@ -18215,7 +18650,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner account that USR.2 creates, so it belongs to 8.2 and not to the
   umbrella ADM.43. Done: the prompt, the tier check in the writer, and
   tests that an admin and a stale-password Owner are both refused.
-  Prerequisites: USR.26. Related: ADM.43, USR.3.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 9, "Stay in 8.1":
+  this item stays in 8.1 phase 1 with only the Owner account stub USR.31
+  pulled in; the full accounts (USR.2, USR.26) stay in 8.2 and replace
+  the stub. Where the text above says it "belongs to 8.2", this wins.
+  Prerequisites: USR.31. Related: ADM.43, USR.3, USR.26.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -19688,6 +20128,17 @@ clears each one.
   relayed it): the table weights are the odds of picking a possibility,
   the fractions inside the drawn row are normalised separately, and both
   sums are tested.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 8, "Flagged
+  stand-ins only": a measured Solar System shape may enter a generator
+  table only as a row flagged `stand-in` that names an existing
+  replacement item; unflagged Solar System sourced rows and the
+  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
+  never a table source. TEST.215's assertion exempts rows flagged
+  `stand-in` with a replacement item and fails on any other Solar System
+  sourced row. GEN.520 D6 (the Solar System population as the
+  within-system comet shape) is kept as a flagged stand-in with the
+  replacement item GEN.595.
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
   Body composition research lane, section 14.4 of
@@ -19710,6 +20161,17 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 52 of 54). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
+  2026-10-18, as the coordinator reported them): fork 8, "Flagged
+  stand-ins only": a measured Solar System shape may enter a generator
+  table only as a row flagged `stand-in` that names an existing
+  replacement item; unflagged Solar System sourced rows and the
+  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
+  never a table source. TEST.215's assertion exempts rows flagged
+  `stand-in` with a replacement item and fails on any other Solar System
+  sourced row. GEN.520 D6 (the Solar System population as the
+  within-system comet shape) is kept as a flagged stand-in with the
+  replacement item GEN.595.
 
 - [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
@@ -20286,6 +20748,10 @@ clears each one.
     role model in sessions, API keys and guards (which USR.3, USR.4,
     USR.5, USR.7, USR.8 and API.6 actually wait for), an admin page and
     a console CLI.
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
+  8.1 on the Owner account stub USR.31; the full accounts of this item
+  replace the stub in 8.2.
     Prerequisites: DB.58, USR.26, USR.27.
 
   - [ ] **USR.3 SMTP settings in the admin config**
@@ -20464,6 +20930,12 @@ clears each one.
   is USR.2, then USR.3, then USR.5, then USR.4, then USR.6 and USR.7
   (USR.4 is placed after USR.5, 2026-10-16 review; USR.28 first, with
   USR.26 and USR.27 under USR.2).
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 12, "Control
+  database plus cap": the one-off generation limit store is the control
+  database as decided on 2026-10-10 18:44Z, plus the concurrency cap and
+  the two settings from the 2026-10-09 research; Redis through
+  Flask-Limiter is not used for this limit.
     Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -20737,6 +21209,10 @@ clears each one.
   Includes the role-aware session lifetime (users 30 days, admins 12
   hours; Boss, 2026-10-10 18:44Z, default approved), moved from USR.8
   (2026-10-16 review).
+  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
+  2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
+  8.1 on the Owner account stub USR.31; this item replaces the stub with
+  the full roles in 8.2.
   Prerequisites: DB.58, SEC.32. Related: USR.2.
 
 - [ ] **USR.27 Admin Users page: list accounts, promote, demote, disable and delete**
@@ -20787,6 +21263,21 @@ clears each one.
   test that adds a ship, sees it on the Sector Map and sees its track
   grow after an orbital update.
   Prerequisites: USR.29. Related: USR.10.
+
+- [ ] **USR.31 The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1**
+  Filed from Boss's sweep answer on fork 9, "Stay in 8.1" (6:10 PM EDT
+  2026-10-18, as the coordinator reported it): ADM.86 stays in 8.1 and
+  the Owner account it needs is pulled in as a stub before the full
+  accounts of 8.2 (USR.2, USR.26). Do: one Owner row in the control
+  database (created by the accounts CLI recovery path `--set-owner`), a
+  role check the settings writer can call (owner or not), and the
+  recent-password re-entry state; nothing of the sign-up, invitations,
+  Users page or session roles. Done: ADM.86's prompt and tier check run
+  against this stub, a test that a non-Owner and a stale-password Owner
+  are both refused, and USR.26 replaces the stub with the full roles
+  without changing ADM.86's call. Suggested owner: the lane that owns
+  ADM.43 (Core 5 proposed); version 8.1.
+  Prerequisites: none.
 
 ## OPS: Installers, hosting, CI, releases
 

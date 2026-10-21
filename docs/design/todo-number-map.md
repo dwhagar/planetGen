@@ -16,14 +16,14 @@ release is stamped.
 | UX | UX.142 |
 | MAP | MAP.254 |
 | NAV | NAV.63 |
-| GEN | GEN.595 |
+| GEN | GEN.596 |
 | PERF | PERF.142 |
 | DB | DB.80 |
 | API | API.32 |
 | ADM | ADM.98 |
 | SEC | SEC.33 |
 | TEST | TEST.256 |
-| USR | USR.31 |
+| USR | USR.32 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
 | VIEW | VIEW.19 |
@@ -1261,6 +1261,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | open |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | none | open |
 | GEN.594 | Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in | none | open |
+| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1854,6 +1855,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links | none | open |
 | USR.29 | Vessel and station objects: add, move along a course and list, with ownership | none | open |
 | USR.30 | Add a ship or station from a page and see it and its track on the maps | none | open |
+| USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
