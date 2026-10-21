@@ -38,7 +38,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.309 | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.309 | Research: ledger size at full galaxy. |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
-| PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires |  |  |
 | PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner |  |  |
 | GEN.600 | The updater and the downloader print the URL of every file they load |  |  |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header |  |  |
