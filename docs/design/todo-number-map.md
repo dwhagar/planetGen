@@ -13,8 +13,8 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.142 |
-| MAP | MAP.254 |
+| UX | UX.145 |
+| MAP | MAP.255 |
 | NAV | NAV.63 |
 | GEN | GEN.601 |
 | PERF | PERF.146 |
@@ -1548,6 +1548,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | open |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | done, PR #2252 |
 | MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
+| MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2037,6 +2038,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | open |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | open |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | open |
+| UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |
+| UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
+| UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

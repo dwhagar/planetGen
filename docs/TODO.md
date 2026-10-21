@@ -904,6 +904,75 @@ with `clamp()`.
   tile cache; their index is kept first when the shared budget is short.
   Prerequisites: PERF.140. Related: PERF.137.
 
+- [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
+  Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
+  for 8.2): "we need to scale and size the viewing windows for the
+  browser window size, so that the user doesn't have to scroll to see
+  the controls". Do: size the Galaxy Map, the Sector Map and scene, the
+  System Map and scene and the navigation chart to the space the window
+  leaves after the header and the controls (dynamic viewport height,
+  flex or grid rows, resize and orientation changes handled), put the
+  controls in the same view (a side panel on wide windows, a bottom
+  sheet or toolbar on narrow ones) and let a long panel scroll inside
+  itself, never the whole page. The admin pages follow the same rule:
+  the admin shell (ADM.92) keeps its content region inside the window
+  and long tables scroll in their own region. Done: a browser test at
+  1280x720, 1366x768, 1440x900, 1920x1080, a 768x1024 tablet and a
+  390x844 phone (both orientations) shows, on each viewer page, that the
+  viewer and all its controls are visible with no vertical page scroll
+  (document height equals the window height) and none of the controls is
+  clipped; resizing the window re-fits without a reload; works in both
+  themes. Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2
+  design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the
+  viewers, so Core 2 is the natural pick once its queue allows, the
+  coordinator decides).
+  Prerequisites: none. Related: MAP.139, UX.115, ADM.92, MAP.65.
+
+- [ ] **UX.143 A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID**
+  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
+  "there should be a 'view' button to view a dedicated page for every
+  possible item with detailed information on that specific item". Today
+  there are pages for a sector (`/sector/<id>`), a system
+  (`/system/<id>`), a phenomenon, an uncharted star and phenomenon, a
+  class, a polity and a species, and `/object/<ref>`
+  (src/planetgen/web/system_pages.py) resolves some object references.
+  Do: one registry of every object kind the site draws or lists (the
+  kinds of the object index, DB.79: star, planet, moon, belt, comet,
+  asteroid field, each phenomenon type, nebula, cluster, system, sector,
+  region), one route that takes the 96-bit Object ID and renders that
+  kind's page, and one detail template per kind with the detailed
+  information of that item (all stored and derived facts in plain words
+  with units from the unit registry, no fixed content, the description
+  text), so nothing the maps can select is without a page. Done: a test
+  fails for any kind in the registry without a page; every kind's page
+  renders for a generated example and for an unknown ID (a clear
+  not-found page); the page shows the item's name, kind, ID and facts;
+  the docs list the routes. Phase: 8.2 phase 2. Owner: none yet (filed
+  from Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map
+  lane owns the viewers, so Core 2 is the natural pick once its queue
+  allows, the coordinator decides).
+  Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
+
+- [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
+  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2): the
+  dedicated page has "links to where it is (i.e. sector, system, but
+  also if it's in a nebula)". Do: a Location block on every item page
+  (UX.143): the breadcrumb chain from the galaxy down through the sector
+  and system to the item's parent, each a link to that page, and a line
+  'Inside: <nebula, cluster or region name>' linking to the containing
+  nebula, globular cluster, superbubble or other region, from the region
+  query (the region pyramid and cell aggregates), and for a nebula or
+  region page the list of what it contains with links. Done: for a star
+  inside a nebula, a planet of a star in a cluster, a moon, a belt and a
+  free-floating object, the Location block shows the right chain and the
+  containing region (a test per case on a generated galaxy); a link on
+  each name opens that page; an item outside every region says so.
+  Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2 design
+  notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the viewers,
+  so Core 2 is the natural pick once its queue allows, the coordinator
+  decides).
+  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
+
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1081,6 +1150,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Overlap (6:40 PM EDT 2026-10-21): this item's Galaxy View info box
+  with a Details link is extended to every view and every kind by
+  MAP.254 (one shared info box with a View button to the item page
+  UX.143); build MAP.139 on the shared component so MAP.254 does not
+  redo it.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -2496,6 +2570,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.576, DB.78, GEN.577. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **MAP.254 One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page**
+  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
+  "selecting something anywhere in the current view pulls up the same
+  infobox on it everywhere, there should be a 'view' button to view a
+  dedicated page for every possible item". MAP.65 (done, PR #521) gave
+  one picking, hover and info-panel layer and MAP.139 (8.1, Core 2) adds
+  the info box with a Details link on the Galaxy View only. Do: extend
+  that one component to every view (Galaxy Map, Sector Map and scene,
+  System Map and scene, the navigation chart, the list and search
+  results) and every selectable kind, with one content model per kind
+  (name, kind, Object ID, parent, the few key facts) and the same
+  actions everywhere: View (to the page of UX.143), Go to, Bookmark,
+  Copy ID; no view keeps its own copy of the box. Done: for each kind on
+  each view that can show it, selecting the thing shows the same
+  component with the same fields and a View button that opens the right
+  page (a browser test table of kinds by views); a test fails if a view
+  renders its own info box; works on touch (tap) and with the keyboard;
+  fits the window without page scroll (UX.142). Phase: 8.2 phase 2.
+  Owner: none yet (filed from Boss's 8.2 design notes, 6:10 and 6:12 PM
+  EDT 2026-10-21; the map lane owns the viewers, so Core 2 is the
+  natural pick once its queue allows, the coordinator decides).
+  Prerequisites: UX.143. Related: MAP.65, MAP.139, MAP.140, UX.142,
+  UX.143, UX.144.
 
 
 ## NAV: Navigation and courses
@@ -18997,6 +19095,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the shell, job strip and palette, then Generate; every admin page goes
   onto the one shell once. Key K2 of the report; its prerequisites are
   the admin registry (ADM.118) and the research (ADM.98).
+  Fit-the-window rule (Boss, 2026-10-21, 6:10 PM EDT, as the coordinator
+  relayed): the shell's content region stays inside the browser window
+  and a long table or panel scrolls in its own region, the same rule as
+  the viewers (UX.142); the shell's browser test runs at those window
+  sizes.
   Prerequisites: ADM.118, ADM.98. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
