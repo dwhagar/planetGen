@@ -28,7 +28,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
-from planetgen.galaxy import mass_chain, scales
+from planetgen.galaxy import enclosed_mass, scales
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
@@ -624,8 +624,8 @@ class Star(LazySaladName, MassObject):
         gravity than by the star's, making it unlikely to be gravitationally
         bound to the star system.
 
-        This method uses the star's mass, the estimated mass of the Milky Way,
-        and the star's distance from the galactic center to compute this boundary.
+        This method uses the star's mass, the mass of its galaxy inside the star's own distance from the
+        galactic center (`galaxy.enclosed_mass`, GEN.370) and that distance to compute this boundary.
         The result is converted from meters to Astronomical Units (AU) for
         convenience and consistency with other system-scale measurements.
 
@@ -646,7 +646,7 @@ class Star(LazySaladName, MassObject):
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = scales.default_galactocentric_ly()
         galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, mass_chain.current_central_mass_kg())
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, enclosed_mass.current_enclosed_mass_kg(galactic_center_dist_m / constants.PARSEC_M))
         return hill_radius_m / constants.AU_TO_M
 
     def calculate_galactic_orbit(self, galactic_center_dist_ly=None):

@@ -1,16 +1,13 @@
 # tests/test_mass_chain.py
 
 """GEN.400: the galaxy's mass chain (stellar mass function, stellar-to-halo relation, virial radius, concentration),
-drawn from the galaxy seed, and the Hill spheres that read its virial mass."""
+drawn from the galaxy seed (the Hill spheres read the mass enclosed inside their radius, `test_enclosed_mass.py`)."""
 
 import math
 
 import pytest
 
 from planetgen.galaxy import keepout, mass_chain, seed as galaxySeed
-from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation.config import SystemConfig
-from planetgen.generation.star import Star
 from planetgen.physics import constants
 from planetgen.physics.orbits import calculate_hill_sphere
 
@@ -115,27 +112,6 @@ def test_the_virial_radius_is_the_radius_of_two_hundred_critical_densities():
     mean = mass_kg / (4.0 / 3.0 * math.pi * radius_m ** 3)
     assert mean == pytest.approx(200.0 * mass_chain.CRITICAL_DENSITY_KG_M3, rel=1e-9)
     assert mass_chain.CRITICAL_DENSITY_KG_M3 == pytest.approx(1.878e-26 * mass_chain.HUBBLE_H ** 2, rel=1e-3)
-
-
-def test_a_star_and_a_pair_take_their_hill_spheres_from_the_galaxys_virial_mass():
-    cfg = SystemConfig()
-    star = Star(cfg)
-    distance_ly = 26000.0
-    seed_a, seed_b = _seed(11), _seed(12)
-    with galaxySeed.seeded(seed_a, "sector", "1/1/1"):
-        a = star.calculate_system_perimeter(distance_ly)
-        pair = BinaryStarProxy._calculate_system_perimeter_static(star.mass, distance_ly)
-    with galaxySeed.seeded(seed_b, "sector", "1/1/1"):
-        b = star.calculate_system_perimeter(distance_ly)
-    expected = calculate_hill_sphere(distance_ly * constants.LY_TO_M, star.mass, mass_chain.central_mass_kg(seed_a)) / constants.AU_TO_M
-    assert a == pytest.approx(expected, rel=1e-12)
-    assert pair == pytest.approx(a, rel=1e-12)
-    ratio = mass_chain.central_mass_kg(seed_a) / mass_chain.central_mass_kg(seed_b)
-    assert a / b == pytest.approx(ratio ** (-1.0 / 3.0), rel=1e-9)
-    # Outside any unit the fallback seed's galaxy is used, the same one every time.
-    assert star.calculate_system_perimeter(distance_ly) == pytest.approx(
-        calculate_hill_sphere(distance_ly * constants.LY_TO_M, star.mass,
-                              mass_chain.central_mass_kg(None)) / constants.AU_TO_M, rel=1e-12)
 
 
 def test_the_unit_seed_is_restored_after_a_unit():

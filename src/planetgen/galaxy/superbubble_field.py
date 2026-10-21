@@ -84,7 +84,7 @@ def cell_bubbles(galaxy_seed, shape, index):
     middle = (low[0] + edge / 2, low[1] + edge / 2, 0.0)
     mean = centres_per_pc2() * edge * edge * nebula_field.gas_factor(middle, shape)
     bubbles = []
-    with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "superbubble-cell", index):
+    with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "superbubble-cell", index, shape=shape):
         for n in range(_sample_poisson_count(mean)):
             x, y = low[0] + draw.uniform(0.0, edge), low[1] + draw.uniform(0.0, edge)
             z = draw.gauss(0.0, tuning.SUPERBUBBLE_CENTRE_HEIGHT_SIGMA_PC)

@@ -61,7 +61,7 @@ from planetgen.galaxy.spherical import (
     provisional_sector_designation, sector_cell_vertices_pc, sector_position_pc,
 )
 
-from planetgen.galaxy import keepout, mass_chain
+from planetgen.galaxy import enclosed_mass, keepout, mass_chain, shape_draw
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import object_uid
 from planetgen.names import naming_key
@@ -2501,13 +2501,14 @@ def _sibling_refs(conn, kind, table, where, params, object_id):
     return refs, len(rows) > OBJECT_SIBLING_LIMIT
 
 
-def _central_mass_kg(conn):
-    """The mass, kg, the galaxy's tidal field acts as if centred at its middle: the virial mass of the mass chain the
-    stored galaxy seed draws, at the stellar mass the plan pinned when it did (`mass_chain.central_mass_kg`)."""
-    row = conn.execute("SELECT galaxy_seed, pinned_stellar_mass_solar FROM galaxy_shape WHERE id = 1").fetchone()
-    seed = bytes(row["galaxy_seed"]) if row and row["galaxy_seed"] else None
-    stellar = row["pinned_stellar_mass_solar"] if row else None
-    return mass_chain.central_mass_kg(seed, stellar, halo_mass_pinned(seed, stellar, get_galaxy_shape_pins(conn)))
+def _enclosed_mass_kg(conn, radius_pc):
+    """The mass, kg, the stored galaxy holds inside `radius_pc` of its centre (`galaxy.enclosed_mass`, GEN.370): from
+    its stored shape and seed, or the shape the fallback seed draws when no skeleton is stored."""
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None:
+        return enclosed_mass.enclosed_mass_kg(
+            shape_draw.default_shape(None), mass_chain.FALLBACK_SEED, radius_pc)
+    return enclosed_mass.enclosed_mass_kg(skeleton.shape, skeleton.galaxy_seed, radius_pc)
 
 
 def keep_out_radius(conn, kind, object_id):
@@ -2556,7 +2557,7 @@ def keep_out_radius(conn, kind, object_id):
             return keepout.NO_KEEP_OUT  # never placed in the galaxy: nowhere to measure from
         return keepout.compact_keep_out(
             body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"],
-            _central_mass_kg(conn))
+            _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
     if kind in ("quasar", "rogue_planet"):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
         body = row(table, "black_hole_mass_solar * " + str(constants.SOLAR_MASS_TO_KG)
@@ -2565,7 +2566,8 @@ def keep_out_radius(conn, kind, object_id):
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT
         return keepout.compact_keep_out(
-            body["mass_kg"], body["galactic_radius_pc"], body["radius_km"], _central_mass_kg(conn))
+            body["mass_kg"], body["galactic_radius_pc"], body["radius_km"],
+            _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
     if kind in ("nebula", "supernova_remnant", "asteroid_field"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
