@@ -192,6 +192,28 @@ def test_the_sql_phase_turn_drops_whole_orbits(mysql_config):
         conn.close()
 
 
+@pytest.mark.parametrize("period, elapsed", [(0.319, 1e9), (0.319, -1e9), (1.0, 3.0e6), (11.86, 2.5e8), (4.5e9, 1.0e6)])
+def test_the_wrapped_turn_is_exact_where_the_plain_ratio_is_not(period, elapsed):
+    """`fmod(t, P) / P` against exact rational arithmetic on the same two floats (GEN.374; Io's period over 1e9 days)."""
+    exact = 360.0 * float((Fraction(elapsed) % Fraction(period)) / Fraction(period))
+    assert (kepler.wrapped_turn_deg(elapsed, period) - exact + 180.0) % 360.0 - 180.0 == pytest.approx(0.0, abs=1e-12)
+    if (period, elapsed) == (0.319, 1e9):
+        plain = (360.0 * elapsed / period) % 360.0
+        assert abs(plain - exact) > 1e-5  # the plain form has lost the fraction (about 1e-4 degrees)
+    assert kepler.wrapped_turn_deg(elapsed, 0.0) == 0.0
+
+
+def test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it():
+    from planetgen.physics.body_positions import _relative_circular_km
+    orbit = {"period_years": 0.319 / 365.25, "phase_deg": 40.0, "distance_km": 1.8e6, "inclination_deg": 3.0,
+             "ascending_node_deg": 10.0}
+    years = 1.0e9 / 365.25
+    turn = kepler.wrapped_turn_deg(years, orbit["period_years"])
+    same = _relative_circular_km(orbit, years)
+    near = _relative_circular_km({**orbit, "phase_deg": 40.0 + turn}, 0.0)
+    assert same == pytest.approx(near, abs=1e-6)
+
+
 def test_a_universal_step_of_many_orbits_lands_where_the_remainder_does():
     position, velocity = _state(1.0, 0.3, 0.4)
     period = 2 * math.pi * math.sqrt((1.0 / 0.7) ** 3 / MU_SUN)

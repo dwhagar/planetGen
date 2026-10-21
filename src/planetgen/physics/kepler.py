@@ -373,6 +373,17 @@ UNIVERSAL_MAX_ITERATIONS = 60
 caller), never returns a guess."""
 
 
+def wrapped_turn_deg(elapsed, period):
+    """
+    The degrees an orbit of `period` turns in `elapsed` (the same unit), whole orbits dropped first (GEN.374): the
+    remainder `fmod(elapsed, period)` is exact in IEEE arithmetic, where `360 * elapsed / period` of a long step
+    leaves few digits for the fraction (1.7e-6 rad at 1e9 days of a 0.319 day period against 0). Zero for no period.
+    """
+    if not period:
+        return 0.0
+    return 360.0 * (math.fmod(elapsed, period) / period)
+
+
 STUMPFF_SERIES_LIMIT = 1.0
 """float: `stumpff_c2_c3` sums its series below this `abs(z)`. The closed forms keep 13 digits at `abs(z)` = 1e-3 (the
 `sin` and `cosh` differences cancel; a hyperbolic `c3` is off by 4e-13 there) and all 16 only from about `abs(z)` = 1

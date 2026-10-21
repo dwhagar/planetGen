@@ -529,8 +529,12 @@ code that is not written yet:
   (the closed forms the first build used below `|z| = 1e-3` were off by 4e-13 for a hyperbolic `c3` at 1e-3 and by
   1e-14 to 1e-15 up to 0.1). `tests/test_orbital_limits.py` holds the accuracy, the join at the limit and the compiled
   copy equal to the Python one.
-- The `fmod` phase form: `universal_step` drops whole orbits with `math.fmod(dt, period)` and `store._phase_turn_sql`
-  does the same in SQL. Both held by tests of a million orbits.
+- The `fmod` phase form: `universal_step` drops whole orbits with `math.fmod(dt, period)`, `store._phase_turn_sql` does the
+  same in SQL, and `kepler.wrapped_turn_deg` (GEN.374) is the phase form of `body_positions`, `system_tree` and
+  `orbitpositions.js` (`wrappedTurnDeg`); the JavaScript Kepler solver's tolerance is 1e-12 as the Python one's. Tests hold
+  each against exact arithmetic, and the browser copy against Python at 3,000 to 100,000 years. Past about 1e6 orbits the
+  two copies of the universal step differ by rounding of the period itself (4e-8 relative at 1e7 years of a one-year
+  orbit), which is the period's 1e-16, not the form.
 - DOUBLE period and phase columns: a test walks every table and fails on any narrower float in a column named for a
   period, phase, anomaly, epoch, longitude, periapsis or node. The only FLOAT in the schema is `map_luminosity_sol`.
 - Radial orbits (h = 0): the elements are undefined and `elements_from_state` still refuses, as the display
