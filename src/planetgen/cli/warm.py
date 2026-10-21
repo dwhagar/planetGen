@@ -8,6 +8,11 @@ run it by hand after clearing a cache. Run it as the web server's user so the fi
 
     planetgen warm [FAMILY|PHASE ...] [--cap N]
 
+The warm-up also starts by itself (`planetgen.queue.warmstart`, PERF.141): after a generation run, `planetgen orbits`,
+an edit or anything else that moves a data version tag, a background `planetgen warm --on-change DATABASE` waits
+`cache.warm_settle_seconds` for more changes, then warms once (and again if more came meanwhile). Nothing starts during
+an update (it warms at its end) or with `cache.warm_on_change` off.
+
 The warm-up runs in five phases (`planetgen.web.warmup.PHASES`, PERF.141), each stopping at the cache budget
 (`cache.max_mb`): (1) `opening`: the opening views and the first page of each list, (2) `built-levels`: the Galaxy
 Map's tiles to the built levels, (3) `deep-tiles`: the deep tiles along the zoom run, (4) `objects`: the sector, system
@@ -36,7 +41,7 @@ import sys
 import time
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, runrecord, units, wrapper
+from planetgen.queue import redisqueue, runrecord, units, warmstart, wrapper
 from planetgen.util import log
 
 UPDATE_WAIT_SECONDS = 1200
@@ -54,6 +59,10 @@ def add_warm_arguments(parser):
                              "its families; see 'planetgen commands' for the warm-* commands)")
     parser.add_argument("--cap", type=int, default=None,
                         help="most sector, system and phenomenon pages to warm (default page_cache.warm_max_objects)")
+    parser.add_argument("--on-change", metavar="DATABASE", default=None,
+                        help="what a change starts (warmstart.request): wait cache.warm_settle_seconds, then warm once "
+                             "for each time DATABASE was changed meanwhile; does nothing when DATABASE is not the one "
+                             "the site shows")
 
 
 def _wait_for_update():
@@ -83,18 +92,20 @@ def _stop_on_sigterm():
     signal.signal(signal.SIGTERM, on_term)
 
 
-def run_warm(args):
+def _warm_once(args):
     """
-    `planetgen warm`: builds the list of cache-warming commands the arguments ask for and runs it through the wrapper,
-    printing each command's line. Exits 1 on any failure.
+    Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
+    command's line.
+
+    Raises:
+        Failed: A command failed, Redis did not answer or another warm-up runs.
+        SystemExit: The arguments name no such family or phase.
     """
     from planetgen.web import warmup
-    args.database = _site_database()
     try:
         steps = wrapper.steps_for("warm", args)
     except ValueError as exc:
         raise SystemExit(f"warm: {exc}")
-    _stop_on_sigterm()
     # Registered for the update guard (OPS.53), which lists it and stops it, the caches being safe to build again.
     with updateguard.running("warm-map", "Site cache warm-up"):
         try:
@@ -114,8 +125,47 @@ def run_warm(args):
                         argv=sys.argv[1:], kind=runrecord.MAINTENANCE, workers_count=1)
             for line in tally.finish():
                 log.normal(line)
-        except (Failed, redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-            log.error(f"error: the cache warm-up stopped: {exc}")
-            raise SystemExit(1)
+        except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+            raise Failed(str(exc)) from exc
     warmed = [step.key for step in steps if step.key in warmup.FAMILIES]
     log.normal(f"Cache warm-up done: {len(warmed)} families.")
+
+
+def _warm_on_change(args):
+    """
+    `planetgen warm --on-change DATABASE` (what `warmstart.request` starts): waits for more changes, then warms once
+    for each batch of changes (`warmstart.drain`). Does nothing when `DATABASE` is not the one the site shows. A
+    failed run stops it, said in the log; the next change starts it again.
+    """
+    if args.on_change != args.database:
+        log.normal(f"The change was on {args.on_change}, the site shows {args.database}: no warm-up.")
+        warmstart.release(args.on_change)
+        return
+
+    def run(kinds):
+        log.normal(f"Warming after a change ({', '.join(kinds)}).")
+        _warm_once(args)
+
+    try:
+        rounds = warmstart.drain(args.on_change, run)
+    except Failed as exc:
+        log.error(f"error: the cache warm-up after a change stopped: {exc}")
+        raise SystemExit(1)
+    log.normal(f"The warm-up after a change ran {rounds} time{'' if rounds == 1 else 's'}.")
+
+
+def run_warm(args):
+    """
+    `planetgen warm`: runs the cache-warming commands the arguments ask for (`_warm_once`), or with `--on-change`
+    what a change asks for (`_warm_on_change`). Exits 1 on any failure.
+    """
+    args.database = _site_database()
+    _stop_on_sigterm()
+    if args.on_change is not None:
+        _warm_on_change(args)
+        return
+    try:
+        _warm_once(args)
+    except Failed as exc:
+        log.error(f"error: the cache warm-up stopped: {exc}")
+        raise SystemExit(1)
