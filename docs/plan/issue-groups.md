@@ -13,7 +13,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#2350](https://github.com/dwhagar/planetGen/issues/2350) | open | Admin control suite: one quiet interface for the admin pages, the Generate suite and the settings | ADM.98, ADM.55, ADM.92, ADM.93, ADM.56, ADM.99, ADM.100, UX.125, UX.126, UX.137, ADM.97, PERF.134 |
+| [#2350](https://github.com/dwhagar/planetGen/issues/2350) | open | Admin control suite: one quiet interface for the admin pages, the Generate suite and the settings | ADM.98, ADM.55, ADM.92, ADM.93, ADM.56, ADM.99, ADM.100, ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106, ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.118, ADM.119, ADM.120, ADM.121, ADM.122, ADM.123, UX.125, UX.126, UX.137, ADM.97, PERF.134 |
 | [#2197](https://github.com/dwhagar/planetGen/issues/2197) | closed | The black hole density follows metallicity and the neutron star budget (8.1) | GEN.563 |
 | [#2196](https://github.com/dwhagar/planetGen/issues/2196) | open | A System is a view: the barycentre is the origin, the heaviest branch is the primary, and the point object serves any frame (8.4) | DB.78, DOC.71, GEN.576, GEN.577, GEN.578, GEN.579, GEN.581, GEN.582, GEN.583, GEN.584, MAP.253, TEST.241, TEST.242, TEST.244 |
 | [#2195](https://github.com/dwhagar/planetGen/issues/2195) | open | One unit registry, one Quantity class and one set of declared relations (8.4, exact factors in 8.1) | DB.76, DB.77, DOC.70, GEN.568, GEN.569, GEN.570, GEN.571, GEN.573, GEN.574, GEN.575, GEN.585, GEN.586, GEN.587, GEN.588, UX.139, UX.140 |

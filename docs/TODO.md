@@ -610,6 +610,13 @@ with `clamp()`.
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
   PM EDT as the lane reported; the Generate page conversion now rides
   ADM.99).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. The Generate page conversion becomes part of
+  ADM.108 (G2).
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
@@ -628,6 +635,13 @@ with `clamp()`.
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
   PM EDT as the lane reported; the admin page conversion now rides
   ADM.56 and ADM.93).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. The settings page is covered by ADM.103 (S3);
+  the other admin pages move with ADM.93.
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
@@ -721,7 +735,9 @@ with `clamp()`.
   drawn-family read-out show each family's outline from UX.135 beside
   its name, so the user sees roughly what the model looks like before
   creating the galaxy.
-  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13.
+  Lands in the Start a new galaxy task of the admin control suite: needs
+  ADM.110.
+  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13, ADM.110.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
@@ -782,7 +798,9 @@ with `clamp()`.
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
   PM EDT as the lane reported; the row stays in 8.5).
-  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116.
+  Needs the Generate tasks it lands in: ADM.110 (Start a new galaxy) and
+  ADM.111 (Scatter), per the admin control suite report.
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116, ADM.110, ADM.111.
 
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -18400,6 +18418,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it had none).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. This audit narrows to the pages other than
+  Generate and Settings (key K8); the Generate and Settings audit is the
+  report.
   Prerequisites: none (UX.115 dropped, Boss 6:01 PM EDT 2026-10-21: the redesign starts now). Related: ADM.98, ADM.56, ADM.43, ADM.35, UX.102, UX.115.
 
 - [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
@@ -18432,6 +18458,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it had none).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once.
 
 - [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
   Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
@@ -18958,7 +18990,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it had none).
-  Prerequisites: ADM.55, ADM.98. Related: ADM.56.
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Key K2 of the report; its prerequisites are
+  the admin registry (ADM.118) and the research (ADM.98).
+  Prerequisites: ADM.118, ADM.98. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -18976,7 +19015,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it had none).
-  Prerequisites: ADM.92. Related: ADM.56.
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Key K7 of the report; one change per
+  destination: Overview, Jobs, Data, Account.
+  Prerequisites: ADM.92, ADM.55. Related: ADM.56.
 
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -19046,7 +19092,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
   PM EDT as the lane reported).
-  Prerequisites: none.
+  Folded into ADM.104 (S4, the settings controls): the slider is built
+  there; this item closes with it (admin redesign thread, 6:12 PM EDT as
+  the thread reported).
+  Prerequisites: ADM.104.
 
 - [ ] **ADM.98 Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built**
   Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
@@ -19111,8 +19160,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   advanced job in both themes and at phone width, and the page help
   (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
   the cards of ADM.98.
-  Prerequisites: ADM.98, ADM.92. Related: UX.125, UX.134, UX.137,
+  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117. Related: UX.125, UX.134, UX.137,
   DOC.13, GEN.599.
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Closes with its children ADM.107 to ADM.117
+  (G1 to G11) and the shared suite items ADM.118 to ADM.123.
 
 - [ ] **ADM.100 Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default**
   Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
@@ -19145,8 +19201,304 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed shows while the toggle is on, a browser test covers the toggle
   both ways and a change that saves, and docs/config.md matches. Owner:
   the admin redesign thread, after Boss answers the cards of ADM.98.
-  Prerequisites: ADM.98, ADM.92. Related: ADM.43, ADM.44, ADM.86,
+  Prerequisites: ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106. Related: ADM.43, ADM.44, ADM.86,
   ADM.97, UX.137.
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Closes with its children ADM.101 to ADM.106
+  (S1 to S6).
+
+- [ ] **ADM.101 Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S1).
+  Add `x-label`, `x-group`, `x-control` and `x-advanced` to every option
+  in `settings.opt`; the long help becomes a Details text; the path-made
+  titles go; the `x-category` list is replaced by groups. Done: a test
+  fails for any option without a label, group and summary; no label
+  equals its path text; docs/config.md, config.json.example and
+  config.schema.json regenerate; the wording is reviewed in a short list
+  Boss can read. Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: none. Related: ADM.100, ADM.43.
+
+- [ ] **ADM.102 Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S2).
+  `settings_view.describe` returns `class` (editable, owner, server,
+  overridden) and `fixed_reason`, plus counts; the page, the API and the
+  command line share it. Done: unit tests for each class on a fixture
+  model; the API returns them; the count of fixed options matches
+  `iter_fields`. Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: ADM.101. Related: ADM.100.
+
+- [ ] **ADM.103 Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S3).
+  Boss's answers 7, 8 and 9: grouped rows with the two-step review kept,
+  settings the web cannot change hidden by default and remembered in
+  this browser and the URL, environment-overridden settings shown with a
+  warning badge. Owner-only options stay hidden with the fixed ones
+  until the Owner account exists (ADM.86, USR.31). Done: a browser test:
+  the page loads with the fixed options hidden, the switch shows them
+  with their reasons, search filters rows and groups, a change enables
+  the save bar; works with script off, in both themes, keyboard only.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.101, ADM.102, UX.124. Related: ADM.100, ADM.86,
+  UX.126.
+
+- [ ] **ADM.104 Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S4).
+  Absorbs ADM.97 (the cache size is the first slider); reuses the UX.116
+  limit sliders (`limit_slider`). Done: each control round-trips its
+  value through `collect` and the writer; a rate string stays valid for
+  the limiter; invalid input shows its error at the row. Owner: the
+  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
+  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
+  then Generate).
+  Prerequisites: ADM.103. Related: ADM.100, ADM.97, UX.116.
+
+- [ ] **ADM.105 Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S5).
+  Keeps the two-step review (answer 7). Done: review tests are updated;
+  the audit rows and the backup are byte-identical to today's. Owner:
+  the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
+  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
+  then Generate).
+  Prerequisites: ADM.103. Related: ADM.100.
+
+- [ ] **ADM.106 Settings: the server-files disclosure and the overridden-option badge**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S6).
+  Says in words which options live only in server files and names the
+  exact command; secrets show only set or empty. Done: the text names
+  the exact command; secrets show only 'set' or 'empty'. Owner: the
+  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
+  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
+  then Generate).
+  Prerequisites: ADM.102. Related: ADM.100.
+
+- [ ] **ADM.107 Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G1).
+  The shared frame of every Generate screen; its job panel becomes the
+  shared job strip (the strip item of the suite). Done: a browser test
+  opens a running job from every Generate screen; Cancel works; the idle
+  panel shows Run again. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: none. Related: ADM.99.
+
+- [ ] **ADM.108 Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G2).
+  Every task is the same five steps. The Run step shows the data check
+  and keeps the rule that a run refuses on missing downloaded files
+  unless told to disregard them (GEN.599, Boss 5:53 PM EDT). Replaces
+  UX.125 for the Generate page. Uses the queue-one-next-job slot (Boss's
+  answer 10). Done: any task reaches Review and Back keeps every value;
+  works without script; the estimate refusal and 'Generate anyway' still
+  work (ADM.33). Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: ADM.107, UX.125, ADM.123. Related: ADM.99, UX.125,
+  GEN.599.
+
+- [ ] **ADM.109 Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G3).
+  Boss's answer 12. Done: the argv for every old mode and centre choice
+  is reproduced byte for byte by a test table; the finder still lists
+  filled sectors. Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: ADM.108. Related: ADM.99.
+
+- [ ] **ADM.110 Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G4).
+  UX.134 and UX.137 add their controls here. Done: pinned and unpinned
+  fields produce the same argv as today's blank and filled boxes; the
+  confirmation refuses a wrong name. Owner: the admin redesign thread
+  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.108. Related: ADM.99, UX.134, UX.137.
+
+- [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G5).
+  One reset and the stored values shown; the controls GEN.301 adds are
+  placed in this block by their own items. Done: one definition of each
+  limit renders once; Reset all restores the defaults; the three old
+  actions build the same jobs as before. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.108. Related: ADM.99, UX.116, UX.137, GEN.301.
+
+- [ ] **ADM.112 Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G6).
+  One definition used by Add sectors and Start a new galaxy. Done: the
+  100 percent total checker works; the 'usual' values are shown; Add
+  sectors and Start a new galaxy use the one block. Owner: the admin
+  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
+  (Boss's answer 1: Settings first, then the shell and palette, then
+  Generate).
+  Prerequisites: ADM.108. Related: ADM.99, ADM.16, ADM.45.
+
+- [ ] **ADM.113 Generate: the one-off system on the frame, with tri-state rows as segmented controls**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G7).
+  Done: `test_web_generate`'s tri-state field test still matches the CLI
+  list. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
+  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
+  shell and palette, then Generate).
+  Prerequisites: ADM.107, UX.125. Related: ADM.99, UX.125.
+
+- [ ] **ADM.114 Generate: the Check and Wipe tasks and the History tab**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G8).
+  Wipe is last, red and needs the typed database name (Reset and New
+  galaxy always do). Done: Wipe needs the typed name; History lists the
+  same rows as Recent jobs. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.107. Related: ADM.99.
+
+- [ ] **ADM.115 Generate: Run again from History, and named recipes saved per admin in the control database**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G9).
+  Boss's answer 11. The job record must hold the form. Done: Run again
+  re-runs a finished job with its stored settings; a failed job's Run
+  again goes back to its Review step; a recipe saves, lists, runs and
+  deletes per admin in the control database. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.108, ADM.114. Related: ADM.99.
+
+- [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G10).
+  Done: the removed files are gone; no unused CSS; the docs match.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Related: ADM.99.
+
+- [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G11).
+  Joins TEST.168 and TEST.169 as the Generate share. Done: a failing
+  step fails the test with a screenshot. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Related: ADM.99, TEST.168, TEST.169.
+
+- [ ] **ADM.118 Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K1).
+  Done: a test fails for any admin route missing from the registry; the
+  settings entries come from the settings model with no second list.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.101. Related: ADM.92.
+
+- [ ] **ADM.119 Job strip on every admin page: a thin strip that shows a running job, Cancel and the log**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K3).
+  Boss's answer 5. Replaces G1's current-job panel as the shared part.
+  Done: the strip shows a running job from every page, Cancel works, the
+  log opens from it, there is one SSE stream per page and none when
+  idle. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
+  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
+  shell and palette, then Generate).
+  Prerequisites: ADM.92. Related: ADM.92, ADM.107.
+
+- [ ] **ADM.120 Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K4).
+  Boss's answer 3: the palette plus the visible rail, with the plain
+  search page for no-script use. Done: a screen-reader pattern test;
+  works with script off through the search page; a restart-only or
+  overridden setting says so in its result. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.118, ADM.92. Related: ADM.92.
+
+- [ ] **ADM.121 Typed commands that open a task's Review step pre-filled and never run by themselves**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K5).
+  Boss's answer 4. Done: a table of command strings to argv, byte for
+  byte against the old forms; ambiguous input is refused with a message.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.120, ADM.108. Related: ADM.92.
+
+- [ ] **ADM.122 Admin keyboard set and a help overlay**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K6).
+  Boss's answer 6: the small set. Done: shortcuts are off inside fields;
+  the overlay lists every shortcut; a test for each. Owner: the admin
+  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
+  (Boss's answer 1: Settings first, then the shell and palette, then
+  Generate).
+  Prerequisites: ADM.92. Related: ADM.92.
+
+- [ ] **ADM.123 Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K9).
+  Boss's answer 10 (his pick over the recommended lock-forms option):
+  forms stay usable while a job runs and Run queues one job behind it.
+  Today the runner allows exactly one active job (`web/jobs.py`, the
+  `active` lock file); this adds one 'next' slot beside the lock,
+  started by the runner when the active job ends, refused when full; one
+  job still runs at a time. Settle in the build: the queued job re-runs
+  its estimate check at start and refuses if the disk no longer fits; a
+  queued Wipe or New galaxy is allowed only with its typed confirmation
+  already given; a failed job cancels the queued one with a visible
+  reason unless the admin chose otherwise. Done: a second submit while a
+  job runs queues and a third is refused; finishing starts it; a failure
+  or Cancel clears it with a visible reason; a destructive job queued
+  without its confirmation is refused. Owner: the admin redesign thread
+  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.119. Related: ADM.99, PERF.99.
 
 ## SEC: Security
 

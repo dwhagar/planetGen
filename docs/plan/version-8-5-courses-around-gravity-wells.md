@@ -35,7 +35,7 @@ The saved course record and its list, open and rename.
 | GEN.539 | The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches | GEN.538, PERF.121 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
 | GEN.540 | The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo | GEN.538, PERF.121 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
 | MAP.248 | The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries | GEN.538, GEN.539, GEN.540 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
-| UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | GEN.539, GEN.540 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | GEN.539, GEN.540, ADM.110, ADM.111 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
 | TEST.226 | Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case | GEN.538, GEN.539, GEN.540 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
 
 ## Phase 2: Courses on the maps and around wells
