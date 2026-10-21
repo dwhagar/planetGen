@@ -7124,6 +7124,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 1's, proposed).
+  Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
+  make the default size level to be on the smaller size, still a spiral,
+  just a smaller one no more than half the size of the milky way. That
+  is still more than enough space for a role play." The design's draw
+  order gives the default (Auto) spiral draw a size cap (GEN.603); the
+  family's full mass range remains reachable by pinning.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -15708,6 +15714,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has a default other than Auto.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
+  Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
+  make the default size level to be on the smaller size, still a spiral,
+  just a smaller one no more than half the size of the milky way. That
+  is still more than enough space for a role play." The Auto default of
+  the Scale rows follows this rule (GEN.603 holds the number and its
+  tests); the registry records the Auto cap beside the range, so the
+  Generate form can show 'Auto: up to X' and the pinned range
+  separately.
   Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
 
 - [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
@@ -15769,6 +15783,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exactly.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
+  Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
+  make the default size level to be on the smaller size, still a spiral,
+  just a smaller one no more than half the size of the milky way. That
+  is still more than enough space for a role play." Stated as a plain
+  number with no Milky Way preset (the no-fixed-content rule): the
+  default (Auto) draw never gives a disc scale length above 1,300 pc,
+  half of the 2,600 pc the code's fixed default used until now; this is
+  the reading of 'size' the TODO thread took (the scale length, which
+  sets the extent), to be confirmed with Boss or the coordinator if
+  another reading is meant. The cap applies to the Auto draw only: the
+  lane designs how (a lower default mass range, a truncated size draw,
+  or both; the first family's mass range 3e9 to 2e11 of GEN.378 stays
+  the range a pin can reach). Done (added): over many seeds the Auto
+  draw never exceeds the cap and its median is below it; pinning mass,
+  compactness or the absolute scale length reaches the dial's full
+  range, including galaxies larger than the cap; the cap lives in one
+  named constant with this note as its source. Effect: every default
+  galaxy changes, so the change takes the next free generator epoch and
+  the golden files are regenerated; system counts and the cost of a full
+  generation drop (check against GEN.545's mean system mass and measure
+  with PERF.146).
   Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609.
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
@@ -17004,6 +17039,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: TEST.159, TEST.160. Related: PERF.31, PERF.56,
   PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
   SEC.33, TEST.261.
+  Note (TODO thread, 2026-10-21): the default galaxy becomes smaller
+  (Boss, 6:57 PM EDT; GEN.603), so measure the generation options on
+  both a default-size galaxy and a pinned large one; cost per option and
+  the sector and system counts will differ.
 
 ## DB: Database and schema
 
