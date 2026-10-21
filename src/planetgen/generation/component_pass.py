@@ -31,7 +31,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.generation import bright_stars, phenomenon_reach, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
-from planetgen.galaxy import black_hole_density, component_field, components as component_table, nebula_field, profile
+from planetgen.galaxy import remnant_density, component_field, components as component_table, nebula_field, profile
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.physics import component_profiles
 from planetgen.util import draw
@@ -203,7 +203,7 @@ def _class_mean(component, kind, subtype, rate, shape):
     (`scatter_phenomena`)."""
     mean = systems_of(component) * rate
     if kind == "black-hole" and subtype == "stellar":
-        mean *= black_hole_density.component_factor(component_field.population_shares(component),
+        mean *= remnant_density.component_factor(component_field.population_shares(component),
                                                     None if shape is None else shape.structure)
     if kind == phenomenon_scatter.OLD_STAR_KIND:
         mean *= planetary_nebula_factor(component, shape)

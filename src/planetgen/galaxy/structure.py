@@ -55,7 +55,7 @@ Structure = namedtuple(
         "disc_gas_dispersion_kms", "disc_central_dispersion_kms", "disc_age_exponent",
         "bulge_dispersion_scatter_dex",
         "stellar_mass_solar", "classical_bulge", "black_hole_deviation", "nuclear_cluster_mass_solar",
-        "black_hole_solar_share", "black_hole_metal_free_share",
+        "black_hole_solar_share", "black_hole_metal_free_share", "neutron_star_unbound_share",
     ],
 )
 """A galaxy's thick disk, bar, stellar halo and population motions (not stored; see the module docstring).
@@ -71,7 +71,9 @@ exponent of its heating; `bulge_dispersion_scatter_dex` is the bulge's dispersio
 black hole follows the bulge's mass) or not (it follows the stellar mass); `black_hole_deviation` is the central black
 hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` is the nuclear star cluster's mass,
 zero for a galaxy that has none (GEN.402); the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
-at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`)."""
+at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`); `neutron_star_unbound_share` is the share of the
+neutron stars formed that the galaxy ejects (GEN.554, `tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE`), which the black hole
+shares' cap and the neutron stars' bound count both read."""
 
 REFERENCE_RADIUS_OVER_TWO_LENGTHS = tuning.REFERENCE_RADIUS_SCALE_LENGTHS / 2.0
 """float: `R / 2 h_R` at the reference radius, the exponent of the fall of the dispersion."""
@@ -114,6 +116,7 @@ REFERENCE_STRUCTURE = Structure(
     bulge_dispersion_scatter_dex=0.0,
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
     black_hole_solar_share=_MIDDLE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_MIDDLE_BLACK_HOLE_SHARES[1],
+    neutron_star_unbound_share=sum(tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE) / 2.0,
 )
 """Structure: The Milky Way's published structure, the check target of the math check and the structure of a shape
 built with no seed. The thick disk and the bar are the Bland-Hawthorn and Gerhard 2016 (ARA&A 54:529) and Dwek et al.
