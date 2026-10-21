@@ -13386,52 +13386,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
-  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
-  lane reported), filed by the TODO thread. Design gap, a consequence of
-  GEN.404's "Mass sets count" decision (Boss, card in Core 1's thread):
-  `galaxy/density.py` `_vertical` uses sech^2(z / 2h), and with the
-  density normalised to the galaxy's mass the reference structure (5e10
-  solar masses) has 0.037 systems per pc^3 at the reference radius, 0.38
-  of the old pinned local density (0.0985). The thin disc holds the
-  right column there (about 30 solar masses per pc^2 against 35
-  observed), but a sech^2 core has half the midplane density of the
-  exponential fits the scale heights were measured against, so the
-  midplane is too sparse and the 2.6 times sparser result of GEN.404 is
-  partly this profile and not only the mass law. Fails on main: no (it
-  appears with GEN.404's normalisation). Frequency: every galaxy.
-  Reproducer: `build_galaxy_shape` with the BHG16 shape,
-  `relative_density` at 3.15 scale lengths. Do: decide the profile with
-  the sources the scale heights come from (an exponential or a sum of
-  thin populations by age, GEN.134's young share and the thick disc
-  ratios decide the sum), keep the column density, change the midplane,
-  and say in the design note what the old and new local density are.
-  Default (stands unless Boss overrules): keep the column (about 30
-  against 35 observed) and match the midplane of the exponential fits,
-  with the thin populations summed if one profile cannot do both. Done:
-  the midplane density at the reference radius matches the fits within
-  the derived scatter, the column density does not move, and a test pins
-  both. A change that alters the generator output follows the epoch
-  rule. Owner: Core 1 proposed (it owns the code GEN.404 changes), after
-  GEN.404 merges.
-  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
-  relayed by the coordinator): "No that is approved, sounds like the two
-  new items will fix the star count drop". The default on this item
-  stands as the decision; Boss expects GEN.544 and GEN.545 together to
-  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
-  follow GEN.404).
-  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): edits drafted, not tested: the thin and
-  thick disc vertical profile changes from sech^2 to exp(-|z|/h) (the
-  form the survey scale heights are fitted with) with the column (mass)
-  kept, so the midplane density doubles and column integrals become 2h
-  instead of 4h; open-cluster heights and the remnant height factor
-  follow the stars' profile; the nuclear disc keeps its isothermal
-  sheet. It needs a generator epoch (the next free one, 40, after GEN.553's second slice),
-  and docs/design/galaxy-disk-density.md gets the old and new local
-  density.
-  Prerequisites: none. Related: GEN.404, GEN.134, GEN.401.
-
 - [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
   lane reported), filed by the TODO thread.
@@ -13462,6 +13416,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands as the decision; Boss expects GEN.544 and GEN.545 together to
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
+  Core 1 after GEN.544 merged (#2323, 1:43 PM EDT 2026-10-21 as the lane
+  reported, epoch 41): the density at the reference radius is now 0.75
+  of the old pinned value (0.376 of it under GEN.404, which is twice the
+  GEN.404 value), the column through that point is unchanged at 524.26
+  pc of relative density, and the reference galaxy outline reaches shell
+  3,596 (was 3,147). The remaining gap is the mean system mass
+  (`tuning.MEAN_SYSTEM_MASS_SOLAR` 0.4), which this item derives.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
