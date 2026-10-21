@@ -116,6 +116,12 @@ def orbit_normal(inclination_deg, ascending_node_deg):
     return (math.sin(node) * math.sin(i), -math.cos(node) * math.sin(i), math.cos(i))
 
 
+def orbit_normal_from_state(position, velocity):
+    """The unit normal of the orbit a body on this position and velocity (about its primary) is on: `r x v`, in the same
+    frame. Raises `ZeroDivisionError` for a body moving straight at or away from its primary."""
+    return _unit(_cross(position, velocity))
+
+
 def tilted_axis(normal, obliquity_deg, precession_rad):
     """`cos e n + sin e (cos phi u + sin phi v)`, with `u`, `v` completing
     an orthonormal frame round the unit `normal`."""
