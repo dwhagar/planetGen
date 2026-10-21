@@ -24,6 +24,7 @@ from planetgen.cli import warm as warm_cli
 from planetgen.db import dataversion, store
 from planetgen.galaxy import viewport
 from planetgen.galaxy.sector import SpaceSector
+from planetgen.util.settings import get_settings
 from planetgen.queue import commands, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
 from planetgen.web.app import create_app
@@ -201,7 +202,7 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
-        if family == "galaxy-tiles":
+        if family in ("galaxy-tiles", "galaxy-deep-tiles"):
             continue   # many units, one a chunk of tiles: its own tests below
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
@@ -320,6 +321,124 @@ def test_a_release_alone_does_not_rebuild_a_tile(galaxy, tile_levels, monkeypatc
     monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
     _expansion, after_format = _run_tile_units(galaxy)
     assert sum(result["built"] for result in after_format) == sum(result["warmed"] for result in first)
+
+
+def _all_settings(monkeypatch, levels):
+    """The warm-up's settings as they are, except the small tile octree of `tile_levels` (which fakes the whole lot)."""
+    real = get_settings()
+
+    class Settings:
+        tile_cache = levels
+
+        def __getattr__(self, name):
+            return getattr(real, name)
+
+    monkeypatch.setattr(warmup, "get_settings", lambda: Settings())
+
+
+def _phase_lines(caplog):
+    return [record.getMessage() for record in caplog.records if record.getMessage().startswith("Phase ")]
+
+
+def test_a_small_galaxy_runs_through_every_phase_and_a_second_run_changes_nothing(galaxy, tile_levels, monkeypatch,
+                                                                                 caplog):
+    """PERF.141 / Boss's no-recompile rule: a warm-up over a galaxy that has not changed builds nothing, and every
+    phase says so."""
+    import logging
+    caplog.set_level(logging.INFO)
+    _all_settings(monkeypatch, tile_levels)
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    warm_cli.run_warm(_args())
+    first = _phase_lines(caplog)
+    assert [line.split(":")[0] for line in first] == [
+        "Phase 1 of 5, opening", "Phase 2 of 5, built-levels", "Phase 3 of 5, deep-tiles", "Phase 4 of 5, objects",
+        "Phase 5 of 5, search"]
+    assert "built" in first[1] and "unchanged" not in first[1] and "unchanged" not in first[2]
+    caplog.clear()
+    warm_cli.run_warm(_args())
+    again = _phase_lines(caplog)
+    assert len(again) == 5 and all(": unchanged, nothing built" in line for line in again), again
+
+
+def test_a_change_in_one_sector_rebuilds_only_the_tiles_holding_it_in_the_phases_that_hold_them(
+        galaxy, tile_levels, monkeypatch, caplog):
+    import logging
+    caplog.set_level(logging.INFO)
+    centre = (5.0, 1.0, 2.0)
+    placed = _place_sector(galaxy.config, "Placed", centre)
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    warm_cli.run_warm(_args("built-levels", "deep-tiles"))
+    caplog.clear()
+    time.sleep(0.01)
+    _rename_sector(galaxy, placed)
+    warm_cli.run_warm(_args("built-levels", "deep-tiles"))
+    built = {line.split(":")[0]: line for line in _phase_lines(caplog)}
+    holding = set(viewport.tile_keys_containing(centre))
+    expected_built = len(holding & set(warmup.tiles_to_warm(None, 3, 5, deep=False)))
+    expected_deep = len(holding & set(warmup.tiles_to_warm(None, 3, 5, deep=True)))
+    assert f"{expected_built} built" in built["Phase 2 of 5, built-levels"], built
+    assert f"{expected_deep} built" in built["Phase 3 of 5, deep-tiles"], built
+
+
+def test_a_run_stops_cleanly_at_a_small_budget_and_the_tile_phases_say_so(galaxy, tile_levels, monkeypatch, caplog):
+    import logging
+    caplog.set_level(logging.INFO)
+    _all_settings(monkeypatch, tile_levels)
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
+    monkeypatch.setattr(warmup, "TILE_CHUNK", 4)
+    monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0.0004")      # about 400 bytes: the first chunk fills it
+    warm_cli.run_warm(_args("built-levels", "deep-tiles"))
+    lines = {line.split(":")[0]: line for line in _phase_lines(caplog)}
+    assert "left out" in lines["Phase 2 of 5, built-levels"] and lines["Phase 2 of 5, built-levels"].endswith(
+        "stopped at the cache budget.")
+    assert "0 built, 0 already stored" in lines["Phase 3 of 5, deep-tiles"]
+    assert "Cache warm-up done" in caplog.text, "stopping at the budget is not a failure"
+
+
+def test_the_phases_hold_every_family_once_in_the_order_they_run():
+    assert [name for name, _text, _families in warmup.PHASES] == [
+        "opening", "built-levels", "deep-tiles", "objects", "search"]
+    assert [family for _name, _text, families in warmup.PHASES for family in families] == list(warmup.FAMILIES)
+    assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
+    assert warmup.phase_of("systems") == "objects" and warmup.phase_of("galaxy-deep-tiles") == "deep-tiles"
+
+
+def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
+    assert warmup.expand_phases(["objects"]) == ["sectors", "systems", "phenomena"]
+    assert warmup.expand_phases(["search", "lists", "deep-tiles", "lists"]) == [
+        "lists", "galaxy-deep-tiles", "search"]
+    steps = wrapper.steps_for("warm", _args("deep-tiles", "opening"))
+    assert [step.kind for step in steps] == ["warm-galaxy-map", "warm-lists", "warm-galaxy-deep-tiles"]
+    with pytest.raises(ValueError, match="no such cache family or phase"):
+        warmup.expand_phases(["phase-seven"])
+
+
+def test_the_built_levels_and_the_deep_tiles_are_two_lists_that_make_up_the_old_one():
+    built = warmup.tiles_to_warm(None, 3, 6, deep=False)
+    deep = warmup.tiles_to_warm(None, 3, 6, deep=True)
+    assert built and deep and not set(built) & set(deep)
+    assert built + deep == warmup.tiles_to_warm(None, 3, 6)
+    assert max(viewport.parse_tile_key(key)[0] for key in built) == 3
+    assert min(viewport.parse_tile_key(key)[0] for key in deep) > 3
+    assert warmup.tiles_to_warm(None, 3, 3, deep=True) == [], "no zoom run finer than the built levels, no deep tiles"
+
+
+def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_many_were_left_out():
+    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "search"])
+    tally.add("galaxy-map", {"built": 0, "cached": 4, "warmed": 4, "seconds": 0.5})
+    tally.add("lists", {"built": 0, "cached": 20, "warmed": 20, "seconds": 1.0})
+    assert tally.start("lists") == []
+    assert tally.start("galaxy-tiles") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 1.5 s."]
+    tally.add("galaxy-tiles", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
+    tally.add("galaxy-deep-tiles", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
+    assert tally.start("galaxy-deep-tiles") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s."]
+    tally.add("search", {"built": 0, "cached": 1, "warmed": 1, "seconds": 0.1})
+    assert tally.start("search") == [
+        "Phase 3 of 5, deep-tiles: 0 built, 0 already stored, 128 left out in 0.0 s; stopped at the cache budget."]
+    assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 0.1 s."]
+    assert tally.finish() == [], "each phase is reported once"
 
 
 def test_the_tile_command_is_cut_into_chunks_and_the_map_then_finds_every_tile_stored(galaxy, tile_levels,
@@ -571,7 +690,7 @@ def test_a_part_of_the_families_is_in_the_order_of_the_families_and_does_not_ope
     steps = wrapper.steps_for("warm", _args("search", "lists", "--cap", "7"))
     assert [step.kind for step in steps] == ["warm-lists", "warm-search"]
     assert all(step.params == {"database": "x", "cap": 7} for step in steps)
-    with pytest.raises(ValueError, match="no such cache family 'nonsense'"):
+    with pytest.raises(ValueError, match="no such cache family or phase 'nonsense'"):
         wrapper.steps_for("warm", _args("nonsense"))
 
 
@@ -598,7 +717,7 @@ def script(monkeypatch, redis_server):
         Plan.ran.append((family, cap, db))
         if family in Plan.failing:
             raise warmup.WarmupFailed(Plan.failing[family])
-        return {"family": family, "warmed": 3, "left_out": 0, "seconds": 0.1,
+        return {"family": family, "warmed": 3, "cached": 3, "built": 0, "left_out": 0, "seconds": 0.1,
                 "line": f"{family}: 3 pages warmed (0 answers built, 3 already cached, 0 left out by the cap) in 0.1 s"}
 
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
@@ -607,6 +726,10 @@ def script(monkeypatch, redis_server):
     monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_tiles", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(warmup, "warm_galaxy_deep_tiles_unit",
+                        lambda args, report: warmup._warm_unit("galaxy-deep-tiles", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
@@ -627,8 +750,9 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 4 failed: WarmupFailed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap, _db in script.ran] == ["galaxy-map", "galaxy-tiles", "lists", "sectors", "systems"], \
+    assert "the cache warm-up stopped: unit 0 of stage 5 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert [family for family, _cap, _db in script.ran] == ["galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "sectors",
+                                                            "systems"], \
         "the wrapper's list stops at the failing command"
 
 
@@ -638,7 +762,7 @@ def test_the_families_and_the_cap_are_passed_on(script):
 
 
 def test_an_unknown_family_is_an_error_before_anything_runs(script):
-    with pytest.raises(SystemExit, match="no such cache family 'nonsense'"):
+    with pytest.raises(SystemExit, match="no such cache family or phase 'nonsense'"):
         warm_cli.run_warm(_args("nonsense"))
     assert script.ran == []
 

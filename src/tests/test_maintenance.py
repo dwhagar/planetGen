@@ -223,6 +223,10 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_tiles", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(warmup, "warm_galaxy_deep_tiles_unit",
+                        lambda args, report: warmup._warm_unit("galaxy-deep-tiles", args))
     parser, _parsers = generate_cli.build_parser()
     with pytest.raises(SystemExit) as exit_info:
         warm_cli.run_warm(parser.parse_args(["warm"]))

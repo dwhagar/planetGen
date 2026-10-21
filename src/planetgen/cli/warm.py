@@ -6,7 +6,14 @@ opening view, every list, every sector, system and phenomenon page, and the sear
 (or after a cache was cleared) isn't the one who waits for it. update.sh runs it in the background after every update;
 run it by hand after clearing a cache. Run it as the web server's user so the files it writes are readable by Apache.
 
-    planetgen warm [FAMILY ...] [--cap N]
+    planetgen warm [FAMILY|PHASE ...] [--cap N]
+
+The warm-up runs in five phases (`planetgen.web.warmup.PHASES`, PERF.141), each stopping at the cache budget
+(`cache.max_mb`): (1) `opening`: the opening views and the first page of each list, (2) `built-levels`: the Galaxy
+Map's tiles to the built levels, (3) `deep-tiles`: the deep tiles along the zoom run, (4) `objects`: the sector, system
+and phenomenon pages, (5) `search`: the search page. After each phase it prints one line: what it built, what was
+already stored, what the budget or a cap left out, or `unchanged, nothing built`. A phase name stands for all of its
+families.
 
 Each family (`planetgen.web.warmup.FAMILIES`) is a command of its own (`warm-galaxy-map`, `warm-lists`, ... listed by
 `planetgen commands`) that warms that family and nothing else, and can run alone (`planetgen command-run`). This
@@ -43,8 +50,8 @@ class Failed(Exception):
 def add_warm_arguments(parser):
     """Adds the `warm` subcommand's options: the families to warm and the cap."""
     parser.add_argument("families", nargs="*", metavar="FAMILY",
-                        help="the cache families to warm, in order (default: every family; see 'planetgen commands' "
-                             "for the warm-* commands)")
+                        help="the cache families or phases to warm, in order (default: every family; a phase is all "
+                             "its families; see 'planetgen commands' for the warm-* commands)")
     parser.add_argument("--cap", type=int, default=None,
                         help="most sector, system and phenomenon pages to warm (default page_cache.warm_max_objects)")
 
@@ -92,14 +99,21 @@ def run_warm(args):
     with updateguard.running("warm-map", "Site cache warm-up"):
         try:
             _wait_for_update()
-            results = {}
+            tally = warmup.PhaseTally([step.key for step in steps])
+
+            def on_plan(index, _plan):
+                for line in tally.start(steps[index].key):
+                    log.normal(line)
 
             def on_result(index, _unit, result):
-                results[steps[index].key] = result
+                if steps[index].key in tally.totals:
+                    tally.add(steps[index].key, result)
                 log.normal(result["line"])
 
-            wrapper.run("Cache warm-up", steps, lambda index, plan: None, on_result, database=args.database,
+            wrapper.run("Cache warm-up", steps, on_plan, on_result, database=args.database,
                         argv=sys.argv[1:], kind=runrecord.MAINTENANCE, workers_count=1)
+            for line in tally.finish():
+                log.normal(line)
         except (Failed, redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
             log.error(f"error: the cache warm-up stopped: {exc}")
             raise SystemExit(1)
