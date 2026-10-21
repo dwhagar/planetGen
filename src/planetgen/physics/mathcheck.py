@@ -288,9 +288,11 @@ def _schwarzschild_radius_km(mass_solar):
     return 2 * pc.G * mass_solar * pc.SOLAR_MASS_TO_KG / pc.SPEED_OF_LIGHT_M_S ** 2 / 1000
 
 
-SUN_REFERENCE_RADIUS_PC = 8200.0
-"""float: The Sun's distance from the galactic centre, 8.2 kpc (GRAVITY Collaboration 2019): the radius the Sun's own
-galactic orbit is checked at. A test reference only; no generation reads a Sun position (GEN.404)."""
+SUN_REFERENCE_RADIUS_PC = 8128.0
+"""float: The Sun's distance from the galactic centre, 8.128 kpc (the Gaia rotation curve fit; GEN.144 made it the one named
+value for the Milky Way plausibility tests, the 8.2 kpc of GRAVITY Collaboration 2019 and the 7.91 kpc of the old constant
+are not kept): the radius the Sun's own galactic orbit is checked at. A test reference only; no generation reads a Sun
+position (GEN.404)."""
 
 
 def _reference_checks():
