@@ -253,6 +253,6 @@ def test_the_bright_fraction_still_matches_a_brute_force_draw_of_the_whole_popul
 
 def test_the_youngest_progenitor_of_a_remnant_accounts_for_the_helium_burning_phases():
     for age_yr in (1.0e10, 1.3e10, 5.0e8):
-        mass = multistar._youngest_progenitor_sol(age_yr)
+        mass = se.youngest_progenitor_sol(age_yr)
         lifetime = se.main_sequence_lifetime_gy(mass) * se.remnant_age_fraction(mass) * 1.0e9
         assert lifetime == pytest.approx(age_yr, rel=1e-6)

@@ -123,6 +123,7 @@ def test_a_neutron_star_names_its_pulsar_type():
     for seed in range(60):
         draw.set_run_seed(seed)
         config = SystemConfig()
+        config.POPULATION = "young"    # a young population's neutron stars still pulse (GEN.553); an old one's do not
         star = NeutronStar(config)
         section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=star)))
                        if s["kind"] == "neutron-star")

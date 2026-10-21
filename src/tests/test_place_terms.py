@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import companion_classes, multistar, place_terms
+from planetgen.generation import companion_classes, place_terms
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -84,8 +84,8 @@ def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     (Sukhbold et al. 2016, Table 4: 26 to 45 percent), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
     Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
-    low, high = multistar.BLACK_HOLE_PROGENITOR_SOL[0], tuning.IMF_BREAKS_SOL[-1]
-    collapse = place_terms._imf_integral(0.0, multistar.NEUTRON_STAR_PROGENITOR_SOL[0], high)
+    low, high = tuning.BLACK_HOLE_PROGENITOR_SOL[0], tuning.IMF_BREAKS_SOL[-1]
+    collapse = place_terms._imf_integral(0.0, tuning.NEUTRON_STAR_PROGENITOR_SOL[0], high)
     assert 0.26 <= place_terms._imf_integral(0.0, low, high) / collapse <= 0.45
     assert 9.0 <= sum(tuning.BLACK_HOLE_MASS_RANGE_SOLAR) / 2.0 <= 14.2
     per_solar_mass_formed = place_terms._imf_integral(0.0, low, high) / place_terms._imf_integral(

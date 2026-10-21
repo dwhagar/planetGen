@@ -47,10 +47,12 @@ from planetgen.physics import activity, constants, neutron_star, remnant_mass, s
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.generation.mass_object import MassObject
 from planetgen.generation.star import Star
 from planetgen.galaxy import shape_draw as shapeDraw, structure as galaxyStructure
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.physics.orbits import calculate_habitable_zone
+from planetgen.physics.stellar_evolution import collapse_age_gy
 from planetgen.util.random import log_uniform
 
 
@@ -127,11 +129,15 @@ class CompactRemnant(Star):
         self.galactic_orbital_speed_kms = self.galactic_orbital_period_gy = None
         self.galactic_orbital_phase_deg = self.galactic_min_update_interval_years = None
 
-    def _generate_remnant_age_and_lifespan(self):
+    def _generate_remnant_age_and_lifespan(self, kind=None):
         """
         Draws an age since the core-collapse supernova that formed this
-        remnant, in billions of years
-        (`tuning.COMPACT_REMNANT_AGE_RANGE_GY`). Lifespan is
+        remnant, in billions of years. A neutron star or stellar black hole
+        (`kind`, GEN.553) takes the age of a remnant in its population: the
+        progenitor's birth from the population's star formation history less
+        the time it took to collapse (`stellar_evolution.collapse_age_gy`); a
+        black hole of another class, which no star collapsed to, draws one
+        uniform over `tuning.COMPACT_REMNANT_AGE_RANGE_GY`. Lifespan is
         `float('inf')` -- the same convention `Star` uses for white dwarfs
         -- since a black hole/neutron star doesn't have a further
         evolutionary endpoint this generator models; it simply persists.
@@ -139,7 +145,12 @@ class CompactRemnant(Star):
         Returns:
             tuple: `(age_gy, lifespan_gy)`.
         """
-        age = draw.uniform(*tuning.COMPACT_REMNANT_AGE_RANGE_GY)
+        config = self.system_config
+        if kind is None:
+            age = draw.uniform(*tuning.COMPACT_REMNANT_AGE_RANGE_GY)
+        else:
+            age = collapse_age_gy(kind, config.AGE, draw, getattr(config, "POPULATION", None),
+                                  getattr(config, "AGE_LAW", None))
         return age, float('inf')
 
     def _finish_init(self, galactic_orbital_phase_deg=None):
@@ -294,7 +305,8 @@ class BlackHole(CompactRemnant):
         self.type = f"{self.mass_class_label} Black Hole"
         self.yerkes_class = "BH"
 
-        self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
+        self.age, self.lifespan = self._generate_remnant_age_and_lifespan(
+            "black-hole" if self.mass_class == "stellar" else None)
         self._finish_init(galactic_orbital_phase_deg)
         if self.mass_class == "supermassive":
             # The galaxy's center: nothing to orbit, and its reach is its
@@ -318,6 +330,11 @@ class BlackHole(CompactRemnant):
         if getattr(black_hole, "mass_class", None) is None:
             black_hole.mass_class = infer_black_hole_mass_class(black_hole.mass_solar)
         return black_hole
+
+    @property
+    def spin_rate_rad_s(self):
+        """The horizon's rotation rate, rad/s; zero for a* = 0 (no rotation)."""
+        return MassObject.spin_rate_rad_s.fget(self) or 0.0
 
     def _rotation_period_hours(self):
         """The horizon's rotation period, hours; `None` for a* = 0 (no
@@ -383,7 +400,7 @@ class NeutronStar(CompactRemnant):
         if age_gy is None and magnetar:
             self.age, self.lifespan = draw.uniform(*tuning.MAGNETAR_AGE_RANGE_GY), float('inf')
         elif age_gy is None:
-            self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
+            self.age, self.lifespan = self._generate_remnant_age_and_lifespan("neutron-star")
         else:
             self.age, self.lifespan = age_gy, float('inf')
 

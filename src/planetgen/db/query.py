@@ -52,6 +52,7 @@ from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
+from planetgen.util import generator_epoch
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.frame import binary_companion_offset_pc
@@ -5457,19 +5458,26 @@ def galaxy_stage_keys(shell, band, wedge):
     return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)[:-1]]
 
 
+TILE_FORMAT = 1
+"""int: The version of what the Galaxy Map's stored tiles and drill-down stages hold and how they are packed
+(`web/lib/tilecache.trim_tile`, `tilepack`, `galaxy_tiles`, `galaxy_stage`). A change that alters those bytes for the
+same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored tiles are rebuilt once;
+a release that does not alter them leaves every stored tile valid (PERF.133)."""
+
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists tiles for. More than
 that (a big generation run, say) reports `full` instead -- refetching
 everything is cheaper than invalidating tens of thousands of tiles one
 by one."""
 
-_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)\.(\d+)$")
+_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)\.(\d+)$")
 
 
 def _state_token(state):
     """`galaxy_content_state`'s dict as the opaque string the API hands
     out and `galaxy_changes` reads back."""
-    return "{base}.{deletions}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
+    return ("{base}.{tile_base}.{deletions}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}"
+            .format(**state))
 
 
 def _parse_state_token(token):
@@ -5477,9 +5485,9 @@ def _parse_state_token(token):
     match = _STATE_TOKEN_RE.match(str(token or ""))
     if not match:
         return None
-    base, deletions, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
+    base, tile_base, deletions, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
     return {
-        "base": base, "deletions": int(deletions), "sector_max_id": int(sector_max_id),
+        "base": base, "tile_base": tile_base, "deletions": int(deletions), "sector_max_id": int(sector_max_id),
         "sector_modified": sector_modified, "system_max_id": int(system_max_id),
         "bright_max_id": int(bright_max_id),
     }
@@ -5512,9 +5520,13 @@ def galaxy_content_state(conn):
     - `base`: a hash of the stored galaxy shape, the bright-star scatter
       (`bright_stars`' highest id and the scatter's seed) and this code's
       version. Planned slots, density clouds, `edge_pc` and `has_shape`
-      depend on the shape, every tile's `stars` on the scatter, and a
-      release may change the tile format, so a new `base` means every
-      tile is stale.
+      depend on the shape, every tile's `stars` on the scatter, so a new
+      `base` means every page and count cached by the stamp is stale.
+    - `tile_base`: the same without the release: the shape, the scatter's
+      seed, the naming key, `TILE_FORMAT` and the generator epoch. The
+      stored tiles follow this one, so a release that changes neither the
+      tile format nor what the generator makes keeps every stored tile
+      (PERF.133).
     - `deletions`/`sector_max_id`: the deletion epoch (`store.
       note_sector_deleted`, PERF.38: it goes up with every sector deleted,
       where a count of the placed sectors cost 0.13 s per million of them
@@ -5551,8 +5563,13 @@ def galaxy_content_state(conn):
          # GEN.70: the naming key renames the codec-named objects in every tile and page.
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
+    tile_base = hashlib.sha256(json.dumps(
+        {"shape": galaxy_density_shape(conn), "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+         "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
+    ).encode("utf-8")).hexdigest()[:16]
     return {
         "base": base,
+        "tile_base": tile_base,
         "deletions": sector_deletions(conn),
         "sector_max_id": int(maxima["sector_max_id"]),
         "sector_modified": _timestamp_digits(maxima["sector_modified"]),
@@ -5579,6 +5596,21 @@ def galaxy_content_stamp(conn, state=None):
     return hashlib.sha256(_state_token(state).encode("utf-8")).hexdigest()[:16]
 
 
+def galaxy_tile_stamp(state):
+    """
+    `galaxy_content_stamp`'s counterpart for the stored tiles: it changes when a tile could change, and not with the
+    release alone (see `galaxy_content_state`'s `tile_base`).
+
+    Args:
+        state (dict): A `galaxy_content_state`.
+
+    Returns:
+        str: 16 hex characters.
+    """
+    token = "{tile_base}.{deletions}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()[:16]
+
+
 def galaxy_changes(conn, since=None):
     """
     What changed in the galaxy's tiles since an earlier state -- how the
@@ -5593,8 +5625,9 @@ def galaxy_changes(conn, since=None):
 
     Deletions leave no row behind, so a deleted sector can't be located;
     the deletion epoch moves, and the answer is `full` instead. So is a new
-    shape or release (`base`), an unreadable `since`, or more than
-    `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
+    shape, tile format or generator epoch (`tile_base`), an unreadable `since`, or more than
+    `GALAXY_CHANGES_MAX_SECTORS` changed sectors. A new release alone (`base`) makes `full` true for what is cached by
+    `stamp` (pages, counts) but not `tile_full`, which is what the stored tiles follow (PERF.133).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -5602,12 +5635,14 @@ def galaxy_changes(conn, since=None):
             `GET /api/galaxy/stamp`), or `None`.
 
     Returns:
-        dict: `stamp` (`galaxy_content_stamp` at the call), `state` (the token to
-            pass as `since` next time), `full` (every tile may have
-            changed), `tiles` (sorted keys of the changed tiles; empty
-            when `full`), and `stages` (sorted keys of the drill-down
-            stages whose counts changed, `galaxy_stage_keys`; empty when
-            `full`), and, only when true, `busy`: `full` because so much
+        dict: `stamp` (`galaxy_content_stamp` at the call), `tile_stamp`
+            (`galaxy_tile_stamp`: what the stored tiles are keyed by),
+            `state` (the token to pass as `since` next time), `full`
+            (everything cached by `stamp` may have changed), `tile_full`
+            (every tile may have changed), `tiles` (sorted keys of the
+            changed tiles; empty when `tile_full`), and `stages` (sorted
+            keys of the drill-down stages whose counts changed,
+            `galaxy_stage_keys`; empty when `tile_full`), and, only when true, `busy`: `full` because so much
             changed at once (a generation run, a backfill), not because
             something was deleted, so a cache may keep its tiles a while
             longer instead of refetching all of them under that load
@@ -5618,24 +5653,33 @@ def galaxy_changes(conn, since=None):
     """
     state = galaxy_content_state(conn)
     result = {
-        "stamp": galaxy_content_stamp(conn, state), "state": _state_token(state), "full": False, "tiles": [],
-        "stages": [],
+        "stamp": galaxy_content_stamp(conn, state), "tile_stamp": galaxy_tile_stamp(state),
+        "state": _state_token(state), "full": False, "tile_full": False, "tiles": [], "stages": [],
     }
-    previous = _parse_state_token(since)
-    if previous is None or previous["base"] != state["base"]:
-        result["full"] = True
+
+    def everything(busy=False):
+        result["full"] = result["tile_full"] = True
+        if busy:
+            result["busy"] = True
         return result
+
+    previous = _parse_state_token(since)
+    if previous is None or previous["tile_base"] != state["tile_base"]:
+        return everything()
+    if previous["base"] != state["base"]:
+        # A release that changes neither the tile format nor the generator epoch: whatever else is cached by
+        # `stamp` (pages, counts) is stale, the stored tiles are not (PERF.133). The tiles that changed are
+        # still listed below.
+        result["full"] = True
     if previous == state:
         return result
     if previous["bright_max_id"] != state["bright_max_id"]:
         # A backfill is adding stars to cells all over (PERF.34): which
         # tiles they touch isn't worked out, so everything counts as changed.
-        result["full"] = result["busy"] = True
-        return result
+        return everything(busy=True)
 
     if previous["deletions"] != state["deletions"]:
-        result["full"] = True
-        return result
+        return everything()
 
     rows = conn.execute(
         """
@@ -5652,8 +5696,7 @@ def galaxy_changes(conn, since=None):
         ),
     ).fetchall()
     if len(rows) > GALAXY_CHANGES_MAX_SECTORS:
-        result["full"] = result["busy"] = True
-        return result
+        return everything(busy=True)
 
     keys = set()
     stages = set()
@@ -5667,9 +5710,8 @@ def galaxy_changes(conn, since=None):
         (previous["sector_max_id"], _timestamp_literal(previous["sector_modified"]),
          previous["system_max_id"], GALAXY_CHANGES_MAX_SECTORS + 1)).fetchall())
     if len(result["sector_ids"]) > GALAXY_CHANGES_MAX_SECTORS:
-        result["full"] = result["busy"] = True
         result["sector_ids"] = []
-        return result
+        return everything(busy=True)
     result["grew"] = (previous["sector_max_id"] != state["sector_max_id"]
                       or previous["system_max_id"] != state["system_max_id"])
     for r in rows:
