@@ -17,6 +17,8 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen import tuning
+from planetgen.generation import multistar
+from planetgen.generation.phenomena import hosts
 from planetgen.physics import constants, ms_lifetime, remnant_mass
 
 
@@ -31,6 +33,12 @@ _COHORT_AGES = 24
 
 _REMNANT_GRID_POINTS = 400
 """int: Points of the log grid the white dwarf masses are integrated on (the initial-final relation is clipped)."""
+
+_PRIMARY_GRID_CELLS = 4000
+"""int: Cells of the log grid of the placed star's initial mass, over the whole of the IMF (`mean_system_mass_solar`)."""
+
+_COMPANION_RATIO_POINTS = 24
+"""int: Points of the midpoint rule over a companion's mass ratio, uniform over `multistar.COMPANION_RATIO_RANGE`."""
 
 
 def _imf_segments():
@@ -125,7 +133,122 @@ def mass_weighted_perturber_mass_solar(populations, remnants=True):
         mass, square = _cohort_moments(round(float(age_low), 6), round(float(age_high), 6), remnants)
         first += weight * mass
         second += weight * square
-    return second / first if first > 0.0 else tuning.MEAN_SYSTEM_MASS_SOLAR
+    if first <= 0.0:
+        return mass_weighted_perturber_mass_solar([(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)], remnants)
+    return second / first
+
+
+def _imf_numbers(edges):
+    """The number of stars in each cell of a mass grid, per unit of the IMF's number (`_imf_integral` at power 0 over
+    every cell of `edges` at once)."""
+    low, high = edges[:-1], edges[1:]
+    numbers = np.zeros(len(low))
+    for seg_low, seg_high, alpha, k in _imf_segments():
+        a, b = np.maximum(low, seg_low), np.minimum(high, seg_high)
+        inside = a < b
+        exponent = 1.0 - alpha
+        numbers[inside] += k * (np.log(b[inside] / a[inside]) if exponent == 0.0
+                                else (b[inside] ** exponent - a[inside] ** exponent) / exponent)
+    return numbers
+
+
+def _expected_stars(body_class):
+    """The stars a system of this `star-count` table class holds on average: the table's 1 to 7 and the tail past 7 that
+    `multistar._draw_star_count` adds (up to its 12), with the table's own prevalence."""
+    weights = hosts.star_count_weights(body_class)
+    total = sum(weights)
+    first, later = multistar.TAIL_RATIOS
+    chance, tail = first, 0.0
+    for _ in range(multistar.MAX_STARS - 7):
+        tail += chance
+        chance *= later
+    return (sum((i + 1) * w for i, w in enumerate(weights[:6])) + weights[6] * (7.0 + tail)) / total
+
+
+def _present_mass_sol(initial_sol, turn_off_sol):
+    """
+    What a star of each initial mass weighs when the main-sequence turn-off is at `turn_off_sol` (an array of masses in,
+    one out): the star itself while it is alive (its mass loss before the end of its life is not counted, as in
+    `_present_day_moments`), the remnant it left once past the turn-off, by the same progenitor ranges and mass rules
+    (a white dwarf by the initial-final relation, a neutron star or black hole its range's mean).
+    """
+    initial = np.asarray(initial_sol, dtype=float)
+    present = initial.copy()
+    dead = initial > turn_off_sol
+    wd_low, wd_high = tuning.WHITE_DWARF_PROGENITOR_SOL
+    bh_low = tuning.BLACK_HOLE_PROGENITOR_SOL[0]
+    white_dwarf = dead & (initial >= wd_low) & (initial < wd_high)
+    present[white_dwarf] = remnant_mass.white_dwarf_mass_sol(initial[white_dwarf])
+    present[dead & (initial >= wd_high) & (initial < bh_low)] = remnant_mass.uniform_moments("neutron-star")[0]
+    present[dead & (initial >= bh_low)] = remnant_mass.uniform_moments("black-hole")[0]
+    return present
+
+
+@functools.lru_cache(maxsize=1)
+def _primary_grid():
+    """`(initial masses, numbers, companions each)` over the IMF: a log grid of the placed star's initial mass, the
+    stars the IMF puts in each cell, and the companions a system of that star's `star-count` class holds."""
+    edges = np.geomspace(tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1], _PRIMARY_GRID_CELLS + 1)
+    masses = np.sqrt(edges[:-1] * edges[1:])
+    by_class = {}
+    companions = np.empty(len(masses))
+    for i, mass in enumerate(masses):
+        name = multistar.companion_class(float(mass))
+        if name not in by_class:
+            by_class[name] = _expected_stars(name) - 1.0
+        companions[i] = by_class[name]
+    return masses, _imf_numbers(edges), companions
+
+
+@functools.lru_cache(maxsize=256)
+def _system_mass_at(age_gy):
+    """The mean mass of a system whose stars all formed `age_gy` ago, solar masses (see `mean_system_mass_solar`)."""
+    turn_off = ms_lifetime.mass_for_lifetime_gy(age_gy)
+    masses, numbers, companions = _primary_grid()
+    low, high = multistar.COMPANION_RATIO_RANGE
+    ratios = low + (high - low) * (np.arange(_COMPANION_RATIO_POINTS) + 0.5) / _COMPANION_RATIO_POINTS
+    primary = _present_mass_sol(masses, turn_off)
+    companion = _present_mass_sol((masses[:, None] * ratios[None, :]).ravel(), turn_off)
+    companion = companion.reshape(len(masses), len(ratios)).mean(axis=1)
+    return float(np.sum(numbers * (primary + companions * companion)) / np.sum(numbers))
+
+
+@functools.lru_cache(maxsize=256)
+def _cohort_system_mass(age_low_gy, age_high_gy):
+    """`_system_mass_at` averaged over a population whose stars formed at a steady rate between two ages."""
+    low, high = sorted((max(age_low_gy, 1.0e-4), max(age_high_gy, 1.0e-4)))
+    ages = low + (high - low) * (np.arange(_COHORT_AGES) + 0.5) / _COHORT_AGES
+    return sum(_system_mass_at(round(float(age), 6)) for age in ages) / _COHORT_AGES
+
+
+def mean_system_mass_solar(populations):
+    """
+    The mean mass of a system, remnants and companions included, worked out from what the generator draws (GEN.545):
+    the placed star's initial mass follows the IMF (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), its system holds the stars
+    its `star-count` class gives (`hosts.star_count_weights`, with the tail `multistar` adds past seven), each other star
+    of initial mass the placed star's times a ratio uniform over `multistar.COMPANION_RATIO_RANGE`; every star weighs its
+    initial mass while it is alive and its remnant once the population's age is past its lifetime. The compact
+    companions of `multistar.MEMBER_STATE_BY_PLACED` are left out (they add under 0.3 percent of a system's mass).
+
+    Args:
+        populations (iterable): `(weight, (youngest_age_gy, oldest_age_gy))` pairs, the weight each population's share of
+            the systems (not of the mass); its stars formed at a steady rate over its age range.
+
+    Returns:
+        float: Solar masses. The whole disk's star formation history when the weights are all zero.
+    """
+    total = mass = 0.0
+    for weight, (age_low, age_high) in populations:
+        total += weight
+        mass += weight * _cohort_system_mass(round(float(age_low), 6), round(float(age_high), 6))
+    if total <= 0.0:
+        return _cohort_system_mass(*tuning.STAR_FORMATION_AGE_RANGE_GY)
+    return mass / total
+
+
+def profile_mean_system_mass_solar(profile):
+    """`mean_system_mass_solar` of the populations a `galaxy.profile.SectorProfile` holds, by their shares of its systems."""
+    return mean_system_mass_solar((p.share, p.age_gy) for p in profile.populations.values() if p.share > 0.0)
 
 
 @dataclass(frozen=True)
@@ -162,7 +285,7 @@ def from_profile(profile):
     dispersion = math.sqrt(weighted) if weighted > 0.0 else tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
     perturber = mass_weighted_perturber_mass_solar(
         (p.share, p.age_gy) for p in profile.populations.values() if p.share > 0.0)
-    return PlaceTerms(mass_density_solar_pc3=systems_per_pc3 * tuning.MEAN_SYSTEM_MASS_SOLAR,
+    return PlaceTerms(mass_density_solar_pc3=systems_per_pc3 * profile_mean_system_mass_solar(profile),
                       dispersion_kms=dispersion, perturber_mass_solar=perturber)
 
 
