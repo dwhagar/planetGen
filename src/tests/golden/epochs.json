@@ -194,6 +194,12 @@
       "epoch": 39,
       "first_release": "8.0.1850",
       "reason": "A neutron star's or stellar black hole's age follows its population: the star's birth age from the population's window and age law, less the progenitor's time to collapse (GEN.553)"
+    },
+    {
+      "epoch": 40,
+      "first_release": null,
+      "pending": true,
+      "reason": "The thin and thick disks' vertical profile is the exponential the scale heights are fitted with, not the isothermal sheet: for one mass the midplane is twice as dense, so a seed places its stars, their populations, open clusters and remnants at different densities and heights (GEN.544)."
     }
   ]
 }
