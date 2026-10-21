@@ -88,10 +88,12 @@ def class_bounds(shape, groups, kind, subtype):
     """
     if _follows_young_stars(kind, subtype):
         fractions = class_fractions(kind, subtype, shape.structure)
-        return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out)
+        return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out,
+                                             r_near=groups.r_in)
     metals = black_hole_density.bound_factor(shape.structure) if _stellar_hole(kind, subtype) else 1.0
     ones = {population: metals for population in POPULATIONS}
-    bound = object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, ones, groups.r_out)
+    bound = object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, ones, groups.r_out,
+                                          r_near=groups.r_in)
     if _remnant_kind(kind, subtype):
         bound = (bound * remnant_distribution.vertical_factor_array(kind, groups.z_far, shape.disk_scale_height_pc)
                  * remnant_distribution.radial_factor_array(kind, groups.inner))
