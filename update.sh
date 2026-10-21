@@ -28,7 +28,9 @@
 #      once, checks its sha256 and keeps it in /var/cache/planetgen/datasets
 #      (PLANETGEN_DATA_DIR), outside the checkout. A host that is down only
 #      warns; bulk generation refuses to start until the next update has
-#      fetched it (GEN.590).
+#      fetched it (GEN.590). Every file's https URL is printed with what
+#      happened to it (fetched, kept, failed and why), so the output says
+#      where each piece comes from (GEN.600).
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end); bulk generation refuses to start until
 #      it passes.

@@ -37,6 +37,7 @@
 #      this fixes. The same step downloads the static data sets
 #      (`planetgen.cli.datasets fetch`, GEN.548) into /var/cache/planetgen/datasets;
 #      a host that is down only warns, and bulk generation then refuses to start until it is fetched.
+#      Every file's https URL is printed with what happened to it (GEN.600).
 #      Then, unless --skip-database, it offers (y/N, 30
 #      seconds, default N; skipped with no terminal) to run the
 #      population pass, `planetgen population`; POPULATION=1 runs it
