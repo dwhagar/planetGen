@@ -5010,6 +5010,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 3's; the epoch rule in execution-notes still applies).
+  Blocker 2 (relayed 9:01 AM EDT 2026-10-22): gated together with
+  GEN.311 (see there); epoch 49 once it merges.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -5847,6 +5849,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 3's).
+  Blocker 2 (relayed 9:01 AM EDT 2026-10-22): the combined gate with
+  GEN.269 is running alone now (orbit tree store and load); its
+  generator epoch was renumbered to 49 after main took 47 and 48. Fixes
+  found by the combined gate: the scene tree.origin needed an id rule,
+  orbit_nodes inserts must go through `Connection.batched`, two test
+  lists, and the parallel-generation fingerprint skips
+  `orbit_nodes.epoch_unix` (a save-time clock). Caveat: the stored node
+  is a circular or eccentric pair at the save epoch, and the JavaScript
+  twin of `positions_at` is a follow-up.
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
@@ -7040,20 +7051,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approval that held this item is given.
   Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
   gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
-  Core 1's queue.
-  Reading of the stored columns (Blocker 2, DB.66 merged as #2439,
-  Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane reported):
-  `galaxy_shape` has `family` (default spiral) and fourteen component
-  columns (bar, thick disk, Sersic spheroid, clump share) with a CHECK
-  per number. The design table says the bar and thick-disk defaults are
-  "the drawn value", but those were never stored, so those five columns
-  are NULL, meaning "as the structure draw gives them from the seed";
-  the other columns default to 0 or 1. This item reads them: a NULL
-  means ask the structure draw, never a fixed number.
-  Scope note (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane
-  reported): the lane's pending PR (gating with GEN.600, GEN.311 and
-  GEN.269) delivers the first slice only, `density_components`; the rest
-  of this item stays open.
+  Core 1's queue. Reading of the stored columns (Blocker 2, DB.66 merged
+  as #2439, Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane
+  reported): `galaxy_shape` has `family` (default spiral) and fourteen
+  component columns (bar, thick disk, Sersic spheroid, clump share) with
+  a CHECK per number. The design table says the bar and thick-disk
+  defaults are "the drawn value", but those were never stored, so those
+  five columns are NULL, meaning "as the structure draw gives them from
+  the seed"; the other columns default to 0 or 1. This item reads them:
+  a NULL means ask the structure draw, never a fixed number. Scope note
+  (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane reported): the
+  first slice, `density_components`, is merged as #2465 (relayed 9:01 AM
+  EDT 2026-10-22); the rest of this item stays open.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -15531,27 +15540,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   items, the coordinator may move it).
   Prerequisites: none. Related: GEN.594, GEN.548, GEN.600, DOC.72.
 
-- [ ] **GEN.600 The updater and the downloader print the URL of every file they load**
-  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
-  revision of my previous choice, have the best possible fallback if the
-  files are not there, but the generate process must be explicitly said
-  to disregard missing files. Also-also, the updater / downloader should
-  list the file URL it's loading as well." Today `python3 -m
-  planetgen.cli.datasets fetch` prints one line per dataset (`KEY:
-  fetched (N files, folder)`) and, on a failure, the reason per file,
-  but not the file URLs; `update.sh` and `install.sh` run it as step 3
-  and show only that. Do: `fetch` prints, for every piece it handles,
-  its https URL beside the result (requested, already there with the
-  right hash and not requested again, or failed with the reason),
-  `status` prints the URL of every missing file, and `update.sh` and
-  `install.sh` show those lines in their output; the same URLs appear in
-  the refusal message of a run with missing data (GEN.599). Done: a test
-  with the GEN.548 fixtures checks that each piece's URL is in the
-  `fetch` and `status` output for fetched, kept and failed pieces;
-  `update.sh --help` and the README row (DOC.72) mention it. Owner:
-  Blocker 2 proposed (small; it can go first).
-  Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
-
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
   reported), filed by the TODO thread. Boss's size limits (7:05 to 7:13
@@ -21404,27 +21392,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.266 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug)**
-  Seen twice by Core 2 and filed by the TODO thread: UX.141's gate
-  (about 1:44 AM EDT 2026-10-22 as the lane reported, then recorded
-  under TEST.262 as a sighting of TEST.260's run lock collision) and
-  UX.143 part 1's gate (about 5:35 AM EDT 2026-10-22 as the lane
-  reported, after TEST.260 was retired in #2425). Kind: flaky test,
-  src/tests/test_work_queue_failures.py. Text: the run is refused as
-  Busy because another run (or a lock left by an earlier test of the
-  same worker) is still set when the interrupting test starts; it passes
-  alone. Fails on main: unknown (the second sighting is on a branch that
-  may not carry #2425). Frequency: 2 in about 4 full gates of Core 2.
-  Reproducer: none yet; run the full gate on a loaded machine. Do: find
-  which run or lock is still held (the previous test's run, a worker's
-  leftover, or the test's own interrupt not releasing the lock before
-  the next assertion) and fix the cause or make the test wait for the
-  lock to clear; no retry loop that hides a real lock leak. Done: the
-  cause is on this item and the test passes in 20 runs under load.
-  Owner: Bug Hunt (a test-flake finding; TEST.265 and TEST.258 are
-  merged, so it is next: the coordinator, 8:47 AM EDT 2026-10-22).
-  Prerequisites: none. Related: TEST.260, TEST.265.
-
 - [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
   Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
   a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
@@ -22831,6 +22798,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it says the updater and downloader print the URL of every file they
   load (GEN.600). The README check compares both statements with the
   options in the code.
+  GEN.600 is merged as #2464 (relayed 9:01 AM EDT 2026-10-22: `fetch`
+  and `status` print each file's URL and update.sh and install.sh show
+  those lines, docs/cli.md updated); this item still owns the README row
+  for it.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 - [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
