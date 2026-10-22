@@ -7120,6 +7120,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   early-type b is printed 3.47e-5 and should be about 3.47e-6); it is
   not used. How the Auto window of the shape dials (GEN.603) combines
   with the family's mass range is decided in GEN.380.
+  Decided (Boss, 8:19 PM EDT 2026-10-21 as the Blocker 2 lane reported,
+  galaxy types design Q1 in docs/design/galaxy-types.md, merged #2377):
+  the S0 versus Sa split is 0.55 lenticular, constant in mass. The
+  family draw uses 0.55 for the lenticular share of the S0 to Sa class;
+  requests R3 and R7 of the S0 to Sa report stay open.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7154,11 +7159,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seeds sits above the spiral draw's and inside the stated range; no
   young population; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
-  galaxies only check the result.
-  Open (galaxy types design Q1): the S0 versus Sa split; an S0 to Sa
-  research thread is running at Boss's request (8:11 PM EDT 2026-10-21
-  as the Blocker 2 lane reported), and the half-and-half default stands
-  until it answers.
+  galaxies only check the result. Decided (Boss, 8:19 PM EDT 2026-10-21
+  as the Blocker 2 lane reported, galaxy types design Q1 in
+  docs/design/galaxy-types.md, merged #2377): the S0 versus Sa split is
+  0.55 lenticular, constant in mass. Requests R3 and R7 of the S0 to Sa
+  research report stay open.
   Prerequisites: GEN.382, GEN.383. Related: GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7185,6 +7190,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy types design questions Q2 and Q3 in docs/design/galaxy-types.md
   section 12): the dwarf spheroid share steps, 30 percent under 1e7
   solar masses and none from 1e7 to 1e9.
+  Q2 is recorded as merged in docs/design/galaxy-types.md (#2377).
   Prerequisites: GEN.369, GEN.380, GEN.381. Related: GEN.382, GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
