@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.127 |
 | SEC | SEC.34 |
-| TEST | TEST.277 |
+| TEST | TEST.278 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -1114,7 +1114,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
 | GEN.408 | Research: verify the atmosphere sources and say what is missing | none | done, PR #1951 |
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | done, PR #2063 |
-| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | open |
+| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | done, PR #2508 |
 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
 | GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | open |
@@ -2460,6 +2460,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | open |
+| TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
