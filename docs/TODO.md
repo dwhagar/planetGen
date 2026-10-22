@@ -4133,6 +4133,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   next-update value is always visited, its position advances only from
   its own epoch (generation stamps the epoch), then the value is set.
   Full wording on GEN.105.
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): this item reads as rules for
+  the stepper (GEN.115 child c) rather than standalone code; Core 3 asks
+  whether to take it anyway. The coordinator decides.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -4150,6 +4153,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Moved to the Positions thread of phase 1, before GEN.289, and a
   prerequisite of the perturbed pass (child c of GEN.109), which runs
   into its guards (2026-10-16 review).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed together
+  with GEN.374 and part of GEN.144 as the orbit math guards, queued for
+  a gate and PR.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -4198,6 +4204,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not a galaxy constant, and each use of a Sun radius becomes a
   per-position calculation from the galaxy's own model (GEN.368's build
   finds the uses).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): part is built with GEN.140
+  and GEN.374; the remaining part switches the 8.2 kpc test radii in
+  test_sector_gen and test_star_matrix to
+  `mathcheck.SUN_REFERENCE_RADIUS_PC`, which Core 3 does after the
+  GEN.370 merge.
   Prerequisites: none.
   Related: GEN.404, GEN.370.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
@@ -6103,6 +6114,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
   built on side branch gen334-closest-approach off main
   (`physics/closest_approach.py`, 17 tests green, no gate yet).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed, queued
+  for its own gate and PR.
   Prerequisites: none. Related: GEN.110, GEN.290.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -6239,20 +6252,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sgr A* left out of the maximum), which replaces the largest-nearby-
   object scan and its cover lists; the cap of 64 exact members with one
   point mass per sector for the rest stays. GEN.370 comes first. Full
-  wording on GEN.105.
-  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
-  EDT; GEN.105's Decided notes win where this item's older text
-  differs): the global largest-Hill-radius search (Sgr A* excluded, 64
-  exact then one point mass per sector) is built here after GEN.370, and
-  the order of work is GEN.370, GEN.341, GEN.342 on Core 3 after its 8.1
-  queue.
-  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
-  built on side branch gen341-influence-set, stacked on GEN.370
-  (`galaxy/influence.py`, 10 tests green, no gate yet). It uses the
-  global radius, so the cover lists named in this title are not built.
-  The wording above that the per-sector `max_mass_kg` and `max_mass_id`
-  columns come from GEN.294:m is stale: they already exist (DB.55).
-  Prerequisites: GEN.370. Related: GEN.109.
+  wording on GEN.105. Reworded to match GEN.105 (contradiction sweep,
+  2026-10-21, 7:45 AM EDT; GEN.105's Decided notes win where this item's
+  older text differs): the global largest-Hill-radius search (Sgr A*
+  excluded, 64 exact then one point mass per sector) is built here after
+  GEN.370, and the order of work is GEN.370, GEN.341, GEN.342 on Core 3
+  after its 8.1 queue. Status from Core 3 (4:40 PM EDT 2026-10-21 as the
+  lane reported): built on side branch gen341-influence-set, stacked on
+  GEN.370 (`galaxy/influence.py`, 10 tests green, no gate yet). It uses
+  the global radius, so the cover lists named in this title are not
+  built. The wording above that the per-sector `max_mass_kg` and
+  `max_mass_id` columns come from GEN.294:m is stale: they already exist
+  (DB.55).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): GEN.370 merged as #2460, so
+  this item no longer waits on it; it is built and committed on its side
+  branch, queued for its own gate and PR.
+  Prerequisites: none. Related: GEN.109, GEN.370 (done, #2460).
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6349,6 +6364,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hydrogen-burning limit (0.074 solar masses at solar Z); the 0.075 to
   0.08 figures above are the old settings and the sampling range, not
   the limit.
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): the collision outcome
+  function is built and committed, queued for its own gate and PR.
   Prerequisites: none. Related: GEN.110.
 
 - [ ] **GEN.346 Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events**
@@ -6869,72 +6886,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whether the scatter makes the cells.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
-  Found by the TODO thread (2026-10-16, survey for Boss's 4:00 PM EDT
-  request): `MILKY_WAY_MASS` (1.15e12 solar masses) is the central mass
-  of every Hill sphere (`generation/binary.py`, `generation/star.py`,
-  `galaxy/keepout.py`) and `GALACTIC_CENTER_DISTANCE_LY` (25,800) is the
-  default distance when none is given, so a galaxy of another size or
-  mass gets Milky Way tides, and a point-mass central mass overstates
-  the enclosed mass inside the disk (the orbit function already avoids
-  that, `galaxy/galactic_orbit.py`). Done: the central mass is the
-  galaxy's mass enclosed within the star's radius from the density
-  model, the default distance is already gone (GEN.404), and a test
-  shows a galaxy twice the size changes the Hill radius. Fails on main:
-  no failure, a fixed assumption. Related: GEN.368, GEN.285.
-  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
-  and "GEN.370 wins", as the coordinator reported it): the galaxy's own
-  enclosed mass and the cell's own distance replace the
-  whole-galaxy-mass radius everywhere, so
-  docs/design/course-avoidance.md's "do not change this for routing" is
-  superseded; the placement keep-apart fill (6 percent at the old radius
-  against up to 108 percent at 1.4 pc) is rechecked in this item's gate
-  and the result is stated in its PR. Status from Core 3 (4:40 PM EDT
-  2026-10-21 as the lane reported): built on branch
-  claude/project-thread-l8ulna (commit d5f78e8), generator epoch 42
-  pending (GEN.545 merged first as #2434 with epoch 46, so it renumbers
-  to epoch 47 or later); design docs and a note are included, and its
-  `changed` gate's second run started 4:24 PM EDT (40 percent at 4:40 PM
-  EDT; the first run was lost to the stale run key, TEST.260). It
-  removes `mass_chain.central_mass_kg`, `current_central_mass_kg` and
-  `MassChain.halo_mass_kg`, and records a placement-fill recheck in
-  docs/design/course-avoidance.md: in a dense galaxy the placer now fits
-  60 to 70 percent of the requested systems at 1 kpc and 35 to 45
-  percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
-  galaxies are unchanged; the old fill never passed 0.03. The text above
-  that the default distance is already gone (GEN.404) is true. Density
-  limits (report
-  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613, from
-  the galaxy size research thread): a galaxy with no halo needs a
-  central mass for the Hill sphere, and a dense small core must be
-  checked: the Segue floor core has a mean spacing of about 0.66 pc and
-  a keep-out of order 0.9 pc if the enclosed mass is used, so placement
-  could fail (back-of-envelope, label B). Epoch (Bug Hunt, PERF.148
-  merged as #2397, about 11:10 PM EDT 2026-10-21 as the lane reported):
-  epoch 42 is now taken on main by PERF.148 (the components are drawn in
-  slices; the Large and Small Magellanic Clouds, the Sagittarius dwarf
-  and any other component past 25,000 expected stars draw different
-  stars than before), so this item renumbers to the next free epoch on
-  its rebase (43, or the one after if the other waiting item merges
-  first). Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about
-  11:43 PM EDT 2026-10-21 as the lane reported): epoch 43 is now taken
-  on main (epoch 42 is PERF.148), so this item renumbers to epoch 44 or
-  later on its rebase. Epoch (Galaxy dials lane, GEN.621 merged as
-  #2418, about 3:48 AM EDT 2026-10-22 as the lane reported): epoch 44 is
-  now taken on main (43 is GEN.554's), so this item renumbers to epoch
-  45 or later on its rebase. Epoch (Core 4, GEN.596 merged as #2428,
-  about 5:01 AM EDT 2026-10-22 as the lane reported): epoch 45 is now
-  taken on main (44 is the Auto default), so this item renumbers to
-  epoch 46 or later on its rebase. Epoch (Core 1, GEN.545 merged as
-  #2434, about 5:42 AM EDT 2026-10-22 as the lane reported): epoch 46 is
-  now taken on main (stamped in release 8.0.1893), so this item takes
-  epoch 47 or later on its rebase.
-  Epoch (Core 4, GEN.554 slice 4 merged as #2452, about 8:03 AM EDT
-  2026-10-22 as the lane reported): epoch 47 is now taken on main
-  (release 8.0.1899), so this item takes epoch 48 or later on its
-  rebase.
-  Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
-
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
   feasibility study. I would like to generate them in the scatter if
@@ -7002,6 +6953,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and JavaScript phase functions agree within a stated bound at long
   times (millions of days from the epoch). Owner: Core 2, or whoever
   owns `orbitpositions.js`.
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed together
+  with GEN.140 and part of GEN.144, queued for a gate and PR.
   Prerequisites: none. Related: GEN.372, GEN.109, GEN.313.
 
 - [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
