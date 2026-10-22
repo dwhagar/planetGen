@@ -994,3 +994,5 @@ Baseline: PR #1817.
 | GEN.345 | 8.3 | Orbital update core |
 | GEN.568 | 8.4 | Bulk composition |
 | GEN.598 | 8.1 | Galaxy laws build |
+| GEN.311 | 8.1 | Multi-star and compact systems |
+| GEN.269 | 8.1 | Multi-star and compact systems |

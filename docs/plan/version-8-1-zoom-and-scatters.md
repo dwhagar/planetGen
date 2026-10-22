@@ -276,22 +276,21 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.311 | Built systems store and load their orbit tree: insert_star_system, load_star_system and serialization read and write orbit_nodes |  | Split from GEN.129. |
 | GEN.312 | Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I |  | Split from GEN.129. |
-| MAP.213 | Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript | GEN.311 | Split from GEN.129. |
-| GEN.313 | Orbital update of built systems: advance_orbital_phases for nodes and the GEN.109 hooks | GEN.311 | Split from GEN.129. |
-| GEN.129 | Multi-star systems of up to twelve stars | GEN.311, GEN.312, MAP.213, GEN.313 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
+| MAP.213 | Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript |  | Split from GEN.129. |
+| MAP.255 | The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug) |  |  |
+| GEN.313 | Orbital update of built systems: advance_orbital_phases for nodes and the GEN.109 hooks |  | Split from GEN.129. |
+| GEN.129 | Multi-star systems of up to twelve stars | GEN.312, MAP.213, GEN.313 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets |  |  |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
-| GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | GEN.311 | Split from GEN.264. |
+| GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks |  | Split from GEN.264. |
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315 | Split from GEN.264. |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.315, GEN.316 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
-| GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
-| GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
+| GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets |  | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
-| GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
-| GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
+| GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
+| GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova |  | Split from GEN.274. |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | GEN.329 | Split from GEN.273. |
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions |  | Split from GEN.275. |
@@ -354,7 +353,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver |  | Split from TEST.159. |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table |  | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
-| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
+| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold |  | Spherical region query, stage C. Step 6. Quality. |
 
 ### Composition proofs

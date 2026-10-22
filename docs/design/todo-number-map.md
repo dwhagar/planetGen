@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.146 |
-| MAP | MAP.255 |
+| MAP | MAP.256 |
 | NAV | NAV.63 |
 | GEN | GEN.622 |
 | PERF | PERF.149 |
@@ -971,7 +971,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | none | done, PR #1771 |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | none | open |
 | GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | none | done, PR #1702 |
-| GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | none | open |
+| GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | none | done, PR #2481 |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | none | open |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | none | open |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | none | open |
@@ -1013,7 +1013,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.308 | A block-first sampler for the backfill: a Poisson candidate count from the block's density bound, then thinning | none | done, PR #2070 |
 | GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands | none | open |
 | GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | none | open |
-| GEN.311 | Built systems store and load their orbit tree: insert_star_system, load_star_system and serialization read and write orbit_nodes | none | open |
+| GEN.311 | Built systems store and load their orbit tree: insert_star_system, load_star_system and serialization read and write orbit_nodes | none | done, PR #2481 |
 | GEN.312 | Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I | none | open |
 | GEN.313 | Orbital update of built systems: advance_orbital_phases for nodes and the GEN.109 hooks | none | open |
 | GEN.314 | Planet zones in a hierarchy and flux sums: S-type and P-type windows per node (Holman-Wiegert) and the flux a planet receives from every member | none | done, PR #2125 |
@@ -1578,6 +1578,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | done, PR #2252 |
 | MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
 | MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | none | open |
+| MAP.255 | The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
