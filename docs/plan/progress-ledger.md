@@ -1038,3 +1038,4 @@ Baseline: PR #1817.
 | TEST.160 | 8.1 | The headline closes |
 | GEN.410 | 8.1 | Composition tables |
 | TEST.278 | 8.1 | Bugs and flaky tests |
+| MAP.254 | 8.2 | Viewers and object pages |
