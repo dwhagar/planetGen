@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1906] - 2026-10-22
+
+**Headline:** The test that interrupts a parallel galaxy run no longer fails as "Busy" when another test worker has a run going.
+
+### Fixed
+- **`test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector` failed under load with "run ... is running" (TEST.266).** The test starts `planetgen generate` as a process, which takes the machine's one live-run lock (`planetgen:run:active`) on the shared Redis server; a process cannot be given the key prefix the in-process tests get, so a second test worker running at the same time was refused. Reproduced by starting the test twice at once (before: one of the two failed Busy; after: both pass). Each worker now takes the Redis database numbered after it for the processes it starts (`tests/private_redis.py`).
+
+TODO items resolved: TEST.266. Added: none.
+
 ## [8.0.1905] - 2026-10-22
 
 **Headline:** The galaxy density model can now be read as a list of components, each with an amplitude and a mass.
