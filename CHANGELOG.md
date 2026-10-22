@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1961] - 2026-10-22
+
+**Headline:** The precision table's stability-ceiling test imports the Hill sphere from where it lives.
+
+### Fixed
+- `test_precision.py` imported `calculate_hill_sphere` from `generation/star.py`, which no longer has it since the orbital update; it takes it from `physics/orbits.py`, as the other tests do.
+
 ## [8.0.1960] - 2026-10-22
 
 **Headline:** The ships and stations table is in the registry of kind tables, so an object ID can find a ship.
