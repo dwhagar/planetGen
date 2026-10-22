@@ -105,6 +105,7 @@ flowchart LR
 | `scripts/check_redis_settings.py` | Warns about Redis server settings that do not suit planetGen (OPS.48); run by `install.sh` and `update.sh`. |
 | [`scripts/build_architecture_map.py`](../../scripts/build_architecture_map.py) | Writes `docs/design/architecture-map.html`, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); `--check` fails when a module of the package is missing from the page. Its page shell is `scripts/architecture_map/template.html`. |
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
+| `scripts/build_unit_registry.py` | Writes the browser's copy of the unit registry (`static/unitregistry.js`: every unit, its kind, factor and offset, and `convert`) from `planetgen/physics/unit_registry.py` (UX.140). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
 | `scripts/build_todo_docs.py`, `scripts/todo_docs/` | Builds the three browsable TODO pages from the TODO sources. |
 | [`scripts/build_global_docs.py`](../../scripts/build_global_docs.py) | Rebuilds, or with `--check` checks, every global document in order (the architecture map, the plan pages, the docs index); only the TODO thread runs it, and the tests that compare them with their sources are the `globaldocs` tests, skipped unless `PLANETGEN_GLOBAL_DOCS=1` (DOC.69). |

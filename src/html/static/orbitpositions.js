@@ -14,8 +14,9 @@
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 
-const AU_KM = 149597870.7;
+const AU_KM = convert(1, "au", "km");
 const TWO_PI = 2 * Math.PI;
 const MU_AU3_YR2_PER_SOLAR_MASS = 4 * Math.PI * Math.PI;
 const rad = (deg) => (deg * Math.PI) / 180;
@@ -189,7 +190,7 @@ export function universalStep(position, velocity, mu, dt) {
   return { position: r, velocity: position.map((a, i) => fDot * a + gDot * velocity[i]) };
 }
 
-const SECONDS_PER_YEAR = 365.25 * 86400;
+const SECONDS_PER_YEAR = convert(1, "yr", "s");
 
 // A planet's or moon's position relative to what it goes round, km (GEN.289):
 // its stored state vector moved from the epoch it is true at to `years` past

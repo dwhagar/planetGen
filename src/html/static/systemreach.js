@@ -10,10 +10,14 @@
 // Pure functions of numbers (no DOM, no three.js), so tests/js/systemreach.test.mjs holds them to the spec.
 // `galaxystageview.js` feeds them the camera and the stars of the open sector.
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+
 export const LOAD_PX = 20; // the system's disc is this many pixels across: it starts to fade in
 export const FULL_PX = 40; // ... and is whole
 export const UNLOAD_PX = 10; // ... and below this it is dropped
-export const NOMINAL_RADIUS_PC = 50 / 206264.806; // 50 AU
+export const NOMINAL_RADIUS_PC = convert(50, "au", "pc"); // 50 AU
 // A system takes over from the one up only when its disc is clearly the larger.
 export const TAKE_OVER_SHARE = 0.85;
 // How long (ms) a system must stay in range before its scene is asked for.
