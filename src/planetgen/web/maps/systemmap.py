@@ -1694,11 +1694,14 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 
     if planets or belts or stars:
         info_panel = (
-            '<aside class="starmap-info" id="sysmap-info">'
+            '<aside class="starmap-info" id="sysmap-info" data-infobox="sysmap-infobox sysview3d-infobox">'
             '<p class="hint">Click a star, planet, moon, asteroid belt or facility for details.</p></aside>'
         )
     else:
-        info_panel = '<aside class="starmap-info" id="sysmap-info"><p class="hint">Nothing to show yet.</p></aside>'
+        info_panel = (
+            '<aside class="starmap-info" id="sysmap-info" data-infobox="sysmap-infobox sysview3d-infobox">'
+            '<p class="hint">Nothing to show yet.</p></aside>'
+        )
 
     # One shared WebGL canvas, sized to cover the whole `.sysmap-viewport`
     # and drawn BETWEEN each scene's two sibling `<svg>`s -- below the
@@ -1768,6 +1771,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
             '<canvas id="sysview3d-canvas" class="sysview-canvas" aria-label="3D system view" role="img"></canvas>'
             '<div class="sysview-labels" id="sysview3d-labels" aria-hidden="true"></div>'
             '<div class="map-tooltip" id="sysview3d-tip" hidden></div>'
+            '<div class="map-infobox" id="sysview3d-infobox" role="region" aria-label="Selection" hidden></div>'
             '</div>'
             '<div class="starmap-controls sysview-controls" id="sysview3d-controls">'
             '<button type="button" class="starmap-btn" id="sysview3d-play" aria-pressed="true">Pause</button>'
@@ -1828,6 +1832,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 <div class="starmap-viewport sysmap-viewport{wash_class}">
 {spheres_html}
 {''.join(scenes)}
+<div class="map-infobox" id="sysmap-infobox" role="region" aria-label="Selection" hidden></div>
 </div>
 {controls_html}
 </div>

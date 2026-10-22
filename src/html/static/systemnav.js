@@ -9,6 +9,7 @@
 // - data-nav-take and data-nav-label: while a start or destination is
 //   being picked (`?pick=...`), the one button that returns to the NAV page
 //   with the course;
+// - data-nav-view, with no pick: the View button to the body's own page (UX.143, MAP.254);
 // - data-nav-nearby, with no pick: "What's within N pc" (NAV.45), the What's
 //   nearby page with the body filled in (`data-nav-nearby-label` is the link's words).
 
@@ -40,26 +41,11 @@ export function nearbyLinks(root, ref) {
   return [{ label: data.navNearbyLabel || "What’s nearby", href: fill(data.navNearby, ref) }];
 }
 
-// Adds the buttons to `panel` as one row of links.
-export function appendNavActions(panel, root, ref) {
-  const actions = navActions(root, ref);
-  const nearby = nearbyLinks(root, ref);
-  if (!actions.length && !nearby.length) return;
-  const row = document.createElement("p");
-  row.className = "page-actions map-info-actions";
-  actions.forEach(function (action) {
-    const link = document.createElement("a");
-    link.className = action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary";
-    link.href = action.href;
-    link.textContent = action.label;
-    row.appendChild(link);
-  });
-  nearby.forEach(function (link) {
-    const anchor = document.createElement("a");
-    anchor.className = "btn btn-small btn-secondary";
-    anchor.href = link.href;
-    anchor.textContent = link.label;
-    row.appendChild(anchor);
-  });
-  panel.appendChild(row);
+// The View button for the body `ref` ({label, href}), or null while a course is being picked or for anything
+// that is not a body. `kind` words the label ("View planet →").
+export function viewLink(root, ref, kind) {
+  if (!root || !REF.test(String(ref || ""))) return null;
+  const data = root.dataset;
+  if (!data.navView || data.navTake) return null;
+  return { label: "View " + (kind || "body") + " →", href: fill(data.navView, ref) };
 }

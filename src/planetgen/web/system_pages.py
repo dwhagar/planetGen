@@ -124,8 +124,9 @@ def body_nav(args, course=True):
     with `{ref}` where the body's object reference goes (`static/systemnav.js`):
     the NAV buttons (NAV.50), `take` and `label` while a NAV start or
     destination is being picked (`?pick=from|to`), else `start` and `end`,
-    and the "What's within N pc" link (`nearby`, `nearby-label`, NAV.45),
-    which a course being picked leaves out. `course=False` (a system with no
+    the "What's within N pc" link (`nearby`, `nearby-label`, NAV.45) and the
+    View button to the body's own page (`view`, UX.143, MAP.254), which a course
+    being picked leaves out. `course=False` (a system with no
     sector, which NAV cannot measure from) gives the nearby link alone.
     """
     from .sector_page import _pick_mode
@@ -133,7 +134,8 @@ def body_nav(args, course=True):
     token = "__REF__"
     pick = _pick_mode(args) if course else None
     nearby = {"nearby": nearby_url(token, DEFAULT_DISTANCE_PC).replace(token, "{ref}"),
-              "nearby-label": f"What’s within {DEFAULT_DISTANCE_PC} pc"}
+              "nearby-label": f"What’s within {DEFAULT_DISTANCE_PC} pc",
+              "view": page_url("object_page", ref=token).replace(token, "{ref}")}
     if pick is None:
         nav = ({"start": nav_url(origin=token).replace(token, "{ref}"),
                 "end": nav_url(destination=token).replace(token, "{ref}")} if course else {})

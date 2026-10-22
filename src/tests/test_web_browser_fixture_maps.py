@@ -164,6 +164,15 @@ def test_sector_map_click_picks_a_star(page, map_site):
     nav = [b.inner_text() for b in info.locator("button").all()]
     assert "Start Here" in nav and "End Here" in nav
     assert _shot(page, SECTOR_CANVAS) != before, "the picked star gets a highlight ring"
+    # MAP.139: the same spec in the box over the map, with View, Details and Close.
+    box = page.locator("#galaxymap3d-infobox")
+    assert box.is_visible()
+    assert name in box.locator("h3").inner_text()
+    view = box.locator("a", has_text="View system")
+    assert view.count() == 1 and view.get_attribute("href").endswith(f"/system/{system_id}")
+    assert [b.inner_text() for b in box.locator("button").all()] == ["Details", "Close"]
+    box.locator("button", has_text="Close").click()
+    assert not box.is_visible()
 
 
 def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):

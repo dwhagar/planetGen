@@ -179,3 +179,61 @@ test("a NAV endpoint's bookmark entry takes its kind from the endpoint", () => {
   assert.equal(MP.endpointBookmark("", "x"), null);
   assert.equal(MP.endpointBookmark(undefined, "x"), null);
 });
+
+test("the View button is the first action of the panel", () => {
+  installDom("http://localhost/");
+  const panelEl = h("aside", {});
+  document.body.append(panelEl);
+  MP.infoPanelOf(panelEl).show({
+    title: "Kepler b",
+    view: { href: "/object/planet:1", label: "View planet →" },
+    nav: [{ label: "Start Here", href: "/nav?from=planet:1" }],
+  });
+  const links = panelEl.querySelectorAll("a");
+  assert.deepEqual([...links].map((a) => a.textContent), ["View planet →", "Start Here"]);
+  assert.equal(links[0].getAttribute("href"), "/object/planet:1");
+});
+
+test("the info box over the map shows the basics when the map has room (MAP.139)", () => {
+  installDom("http://localhost/");
+  const viewport = h("div", {});
+  const boxEl = h("div", { id: "box" });
+  boxEl.hidden = true;
+  viewport.append(boxEl);
+  viewport.clientWidth = MP.BOX_MIN_WIDTH + 100;
+  viewport.clientHeight = MP.BOX_MIN_HEIGHT + 100;
+  const panelEl = h("aside", { "data-infobox": "box" });
+  panelEl.dataset = { infobox: "box" };
+  document.body.append(viewport, panelEl);
+  const panel = MP.infoPanelOf(panelEl);
+  panel.show({
+    title: "Sol",
+    fields: [["Star type", "G2V"], ["A", "1"], ["B", "2"], ["C", "3"], ["D", "4"], ["Octant", null]],
+    view: { href: "/system/1", label: "View system →" },
+  });
+  assert.equal(boxEl.hidden, false);
+  assert.equal(boxEl.querySelector("h3").textContent, "Sol");
+  assert.equal(boxEl.querySelectorAll("dt").length, MP.BOX_FIELDS, "only the first few rows");
+  assert.deepEqual(boxEl.querySelectorAll("a").map((a) => a.textContent), ["View system →"]);
+  assert.deepEqual(boxEl.querySelectorAll("button").map((b) => b.textContent), ["Details", "Close"]);
+  boxEl.querySelector(".map-info-close").click();
+  assert.equal(boxEl.hidden, true, "closed for this selection");
+  panel.show({ title: "Alpha" });
+  assert.equal(boxEl.hidden, false, "a new selection opens it again");
+  panel.hint("Click a star.");
+  assert.equal(boxEl.hidden, true, "nothing selected: no box");
+});
+
+test("the info box stays away from a map with no room", () => {
+  installDom("http://localhost/");
+  const viewport = h("div", {});
+  const boxEl = h("div", { id: "box" });
+  viewport.append(boxEl);
+  viewport.clientWidth = MP.BOX_MIN_WIDTH - 1;
+  viewport.clientHeight = 900;
+  const panelEl = h("aside", {});
+  panelEl.dataset = { infobox: "box" };
+  document.body.append(viewport, panelEl);
+  MP.infoPanelOf(panelEl).show({ title: "Sol" });
+  assert.equal(boxEl.hidden, true);
+});

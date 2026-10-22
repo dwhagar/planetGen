@@ -246,11 +246,92 @@ export function pageLink(href, label, className) {
 //   link that would leave the course (NAV.30);
 // - bookmark: the entry ☆ saves (bookmarks.js: {kind, value, name, url,
 //   sectorId?}), beside the NAV links;
+// - view: {href, label}, the "View" button to the item's own page
+//   (UX.143), first among the actions, on every map and for every kind
+//   (MAP.254);
 // - links: [{href, label}], buttons: [{label, onClick}];
 // - generate: Generate buttons (generatebuttons.js);
 // - hint: a hint paragraph at the bottom.
 // hint(text, keep) shows a hint alone, or (keep) under what is there.
+//
+// Where the panel names an overlay (`data-infobox="<id>"` on the aside, or
+// several ids, one for each viewport the panel serves: an element inside the
+// map's viewport), the same spec is also shown
+// there as a small box over the map, when the map has room (MAP.139): the
+// title, its first few rows and the View button, a Details button that
+// takes the reader to the panel and a Close button. It is this component's
+// own rendering of the spec, so no map keeps a copy of it.
+export const BOX_FIELDS = 4;
+export const BOX_MIN_WIDTH = 480;
+export const BOX_MIN_HEIGHT = 320;
+
 export function createInfoPanel(panelEl) {
+  const boxEls = (panelEl && panelEl.dataset && panelEl.dataset.infobox ? panelEl.dataset.infobox.split(/\s+/) : [])
+    .map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  let boxShown = false; // there is a selection the box could show
+  let boxClosed = false; // the reader closed the box for this selection
+
+  // Whether the map is big enough for a box over it.
+  function roomForBox(boxEl) {
+    const viewport = boxEl.parentElement;
+    return !!viewport && viewport.clientWidth >= BOX_MIN_WIDTH && viewport.clientHeight >= BOX_MIN_HEIGHT;
+  }
+
+  function refreshBox() {
+    boxEls.forEach(function (boxEl) { boxEl.hidden = !(boxShown && !boxClosed && roomForBox(boxEl)); });
+  }
+
+  // The corner of the map farthest from where the reader last pressed on it, so the box does not cover what was just
+  // picked (top right until the pointer has been used).
+  let pressed = null;
+  boxEls.forEach(function (boxEl) {
+    const viewport = boxEl.parentElement;
+    if (!viewport) return;
+    viewport.addEventListener("pointerdown", function (event) {
+      const rect = viewport.getBoundingClientRect();
+      pressed = { x: (event.clientX - rect.left) / (rect.width || 1), y: (event.clientY - rect.top) / (rect.height || 1) };
+    }, true);
+  });
+
+  function placeBox(boxEl) {
+    const left = pressed && pressed.x > 0.5 ? "left" : "right";
+    const top = pressed && pressed.y > 0.5 ? "top" : (pressed ? "bottom" : "top");
+    boxEl.dataset.corner = top + "-" + left;
+  }
+
+  if (typeof ResizeObserver === "function") {
+    boxEls.forEach(function (boxEl) {
+      if (boxEl.parentElement) new ResizeObserver(refreshBox).observe(boxEl.parentElement);
+    });
+  }
+
+  function boxContent(boxEl, spec) {
+    boxEl.textContent = "";
+    boxEl.appendChild(el("h3", null, spec.title || "Unknown"));
+    const rows = (spec.fields || []).filter(function (field) { return field[1] != null && field[1] !== ""; })
+      .slice(0, BOX_FIELDS);
+    if (rows.length) {
+      const dl = document.createElement("dl");
+      rows.forEach(function (field) { addField(dl, field[0], field[1]); });
+      boxEl.appendChild(dl);
+    }
+    const row = el("p", "page-actions map-info-actions");
+    if (spec.view) row.appendChild(pageLink(spec.view.href, spec.view.label, "btn btn-small map-info-view"));
+    const details = el("button", "btn btn-small btn-secondary map-info-details", "Details");
+    details.type = "button";
+    details.addEventListener("click", function () {
+      panelEl.scrollIntoView({ block: "nearest" });
+      panelEl.tabIndex = -1;
+      panelEl.focus();
+    });
+    row.appendChild(details);
+    const close = el("button", "btn btn-small btn-secondary map-info-close", "Close");
+    close.type = "button";
+    close.addEventListener("click", function () { boxClosed = true; refreshBox(); });
+    row.appendChild(close);
+    boxEl.appendChild(row);
+  }
+
   let bookmarkButton = null;
   let bookmarkEntry = null;
   let refreshBookmark = null;
@@ -272,6 +353,7 @@ export function createInfoPanel(panelEl) {
   // links, the ☆, page links and buttons.
   function actions(spec) {
     const row = el("p", "page-actions map-info-actions");
+    if (spec.view) row.appendChild(pageLink(spec.view.href, spec.view.label, "btn btn-small map-info-view"));
     (spec.nav || []).forEach(function (action) {
       if (action.href) {
         row.appendChild(pageLink(action.href, action.label, action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary"));
@@ -307,6 +389,12 @@ export function createInfoPanel(panelEl) {
     actions(spec);
     if (spec.generate) panelEl.appendChild(spec.generate);
     if (spec.hint) hint(spec.hint, true);
+    if (boxEls.length) {
+      boxEls.forEach(function (boxEl) { placeBox(boxEl); boxContent(boxEl, spec); });
+      boxShown = true;
+      boxClosed = false;
+      refreshBox();
+    }
   }
 
   function hint(text, keep) {
@@ -314,6 +402,8 @@ export function createInfoPanel(panelEl) {
     if (!keep) {
       panelEl.textContent = "";
       bookmarkEntry = null;
+      boxShown = false;
+      refreshBox();
     }
     panelEl.appendChild(el("p", "hint", text));
   }
