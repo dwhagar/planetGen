@@ -21635,9 +21635,10 @@ clears each one.
   mean system mass), GEN.596 (#2428) or GEN.621 (#2418). Do: read the
   status-1 message, bisect over those merges, and fix the cause (or the
   tests if one of them changed a documented behavior on purpose). Done:
-  the four tests pass and a full gate shows them green. Owner: Blocker 2
-  (the coordinator proposed it, as DB.66 touched the shape row; if the
-  break comes from GEN.545 it goes to Core 1).
+  the four tests pass and a full gate shows them green. Owner: Bug Hunt
+  (the coordinator, about 7:08 AM EDT 2026-10-22 as the lane reported):
+  bisect first, ahead of TEST.258; it hands to Core 1 or Blocker 2
+  through the coordinator if the culprit is theirs.
   Prerequisites: none. Related: DB.66, GEN.545.
 
 ## USR: User accounts
