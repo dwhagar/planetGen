@@ -1680,6 +1680,39 @@ region_density_overrides = sa.Table(
 )
 
 
+request_comments = sa.Table(
+    'request_comments',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('plan_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('author_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('author_name', sa.String(255), nullable=False),
+    sa.Column('author_role', sa.String(16), nullable=False),
+    sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('created_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_request_comments_plan', 'plan_id', 'id'),
+    sa.CheckConstraint("(`author_role` in (_utf8mb4'user',_utf8mb4'moderator',_utf8mb4'admin'))", name='chk_request_comments_author_role'),
+    sa.ForeignKeyConstraint(['plan_id'], ['change_plans.id'], name='fk_request_comments_plan', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+request_notifications = sa.Table(
+    'request_notifications',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('plan_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('recipient_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('kind', sa.String(32), nullable=False),
+    sa.Column('created_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Column('sent_at', mysql.TIMESTAMP(fsp=3), nullable=True),
+    sa.Index('idx_request_notifications_plan', 'plan_id', 'id'),
+    sa.Index('idx_request_notifications_recipient', 'recipient_id', 'sent_at', 'id'),
+    sa.ForeignKeyConstraint(['plan_id'], ['change_plans.id'], name='fk_request_notifications_plan', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 rogue_planets = sa.Table(
     'rogue_planets',
     metadata,
