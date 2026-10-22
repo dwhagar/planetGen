@@ -71,3 +71,4 @@ Commit each file came from:
 - v116: 836b3d8e (MAP.172 nebula block aggregates, before DB.66 family columns)
 - v117: be4a2e3 (DB.66 galaxy family columns, before DB.56 orbital events)
 - v118: ce94274 (DB.56 orbital events) (before DB.30)
+- v119: e0324c8 (DB.30 species limit values) (before DB.49)

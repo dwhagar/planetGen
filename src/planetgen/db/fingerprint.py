@@ -82,7 +82,7 @@ LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs",
     "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_system_counts", "nebula_field", "galaxy_components", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
-    "system_configs", "system_config_slots", "galaxy_block_stats", "object_index", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
+    "system_configs", "system_config_slots", "galaxy_block_stats", "object_index", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
 docstring; a system configuration counts through the systems that use

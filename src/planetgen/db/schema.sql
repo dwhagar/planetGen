@@ -1373,6 +1373,11 @@
 --   replaces (species, the limit's name in `protection_limits.LIMIT_ROWS`, the value in its unit). A limit with no row is the human
 --   value. Empty until the species editor (POP.13) writes it; no other table changes.
 --
+-- v120 (DB.49): `sectors.leaf_digest` (BINARY(32), NULL), the sector's fingerprint stored at save time (NULL for a sector saved
+--   before it), and `sector_tree_nodes`, the digests above the leaves: a band node (level 1: shell and band, over the wedges'
+--   leaves) and a shell node (level 2: shell, band_index 0, over its band nodes), each with the count of what is under it and a
+--   dirty flag; the galaxy root is worked out on demand. Nothing reads either until GEN.305.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1494,6 +1499,7 @@ CREATE TABLE IF NOT EXISTS sectors (
     max_mass_id                 BINARY(12) NULL,  -- v102 (DB.55)
     storage_checksum            BINARY(32) NULL,  -- v115 (DB.44)
     parity_dirty                TINYINT NOT NULL DEFAULT 1,  -- v115 (DB.44)
+    leaf_digest                 BINARY(32) NULL,  -- v120 (DB.49)
 
     UNIQUE KEY uq_sectors_uid (uid),
     CHECK (
@@ -4321,6 +4327,23 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v120 (DB.49): the digests above the sector leaves; see the header note.
+CREATE TABLE IF NOT EXISTS sector_tree_nodes (
+    level         TINYINT UNSIGNED NOT NULL,
+    shell_index   INT NOT NULL,
+    band_index    INT NOT NULL DEFAULT 0,
+    digest        BINARY(32) NULL,
+    child_count   INT UNSIGNED NOT NULL DEFAULT 0,
+    dirty         TINYINT(1) NOT NULL DEFAULT 1,
+    updated_at    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (level, shell_index, band_index),
+    KEY idx_sector_tree_nodes_dirty (dirty, level),
+    CONSTRAINT chk_sector_tree_nodes_level CHECK (level IN (1, 2)),
+    CONSTRAINT chk_sector_tree_nodes_shell_band CHECK (level = 1 OR band_index = 0),
+    CONSTRAINT chk_sector_tree_nodes_dirty CHECK (dirty IN (0, 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v119 (DB.30): the per-species environment limits; see the header note.
 CREATE TABLE IF NOT EXISTS species_limit_values (

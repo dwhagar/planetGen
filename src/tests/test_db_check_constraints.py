@@ -28,6 +28,8 @@ _BETWEEN = re.compile(r"^`?(\w+)`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGN
 _AT_LEAST = re.compile(r"^`?(\w+)`?\s*>=\s*(-?\d+)")
 _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _OPEN_UNIT_RANGE = re.compile(r"^`?(\w+)`?\s*>\s*0\)?\s+and\s+\(?`?\1`?\s*<=\s*1$", re.IGNORECASE)
+_ONE_OR_ZERO = re.compile(r"^`?(\w+)`?\s*=\s*1\)?\s+or\s+\(`?\w+`?\s*=\s*0$", re.IGNORECASE)
+"""`(a = 1) or (b = 0)`: the seed row must have b non-zero, so moving a off 1 breaks both arms."""
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
@@ -61,6 +63,8 @@ _EMPTY_TABLE_ROWS = {
     # DB.79: the index builder (PERF.140) fills it; the migration only makes the table.
     "object_index": (
         "INSERT INTO object_index (kind, uid, source_id, name) VALUES ('system', UNHEX('000000000000000000000001'), 1, 'Test')"),
+    "sector_tree_nodes": (
+        "INSERT INTO sector_tree_nodes (level, shell_index, band_index) VALUES (1, 0, 1)"),
     # DB.53: the migration builds these; the generator writes them in the chain that follows.
     "orbit_nodes": (
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
@@ -103,6 +107,9 @@ def _breaking_value(conn, table, clause, row):
     if match:
         return match[1], 2
     match = _OPEN_UNIT_RANGE.match(clause)
+    if match:
+        return match[1], 2
+    match = _ONE_OR_ZERO.match(clause)
     if match:
         return match[1], 2
     match = _NULL_TOGETHER.search(clause)

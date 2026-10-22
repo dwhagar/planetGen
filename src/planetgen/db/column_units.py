@@ -639,6 +639,11 @@ TABLES = {
         "id": ("sector_id",),
         "count": ("system_count",),
     },
+    "sector_tree_nodes": {
+        "index": ("level", "shell_index", "band_index"),
+        "count": ("child_count",),
+        "flag": ("dirty",),
+    },
     "sectors": {
         "id": ("id", "uid"),
         "mpc": ("edge_mpc",),
