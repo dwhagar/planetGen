@@ -27,6 +27,10 @@ The Alembic head on main is 0118 (DB.56, the tables orbital_events and orbital_e
 - **Adding an /admin route (Admin redesign lane, relayed 2:41 PM EDT 2026-10-22 as the lane reported):** run test_fuzz_web_routes, test_api_auth_sweep, test_web_old_urls_errors and test_web_adminregistry before the gate; a new route must be in the admin registry or its exempt list, and must answer a hostile query string fast (TEST.275).
 - **The test container state:** a test that runs `migrate` can leave `state/maintenance.json` set (TEST.189); a lane that finds it works round it with `PLANETGEN_STATE_DIR`.
 
+### Data tables carry no licence
+
+Rule (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the lane's clock reads): a data table has no licence column and no loader or test checks one. Licence information lives in one file in the repo root (GEN.623 creates it and removes the existing columns and checks from the gas table, the element table and the possibility-table loader). A lane that builds a new table (GEN.427, GEN.478, GEN.458, GEN.495) leaves the column out, and a lane with an open table that carries a licence field (Blocker 2, Core 4) drops it when GEN.623 merges. This does not touch source and citation fields: every number still states where it was read.
+
 ## Working while a gate runs
 
 Boss, 7:41 PM EDT 2026-10-21: every lane builds the next steps of its build path in a separate worktree while its gate runs, and rebases that worktree as needed to stay current with main. Never edit the checkout a gate is running against (the gate must test the code it started on); a container restart still kills a gate, so a lane keeps its turn active and checks the process and log every 10 minutes.

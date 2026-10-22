@@ -686,6 +686,8 @@ with `clamp()`.
   bookmark toggle, menu, rename and delete behave as before through the
   store, a second list kind can be created without new storage code, and
   a fake asynchronous backend passes the same tests.
+  Owner: Core 2 after MAP.254; Blocker 3 takes it only if Core 2 has not
+  started it (the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads).
   Prerequisites: none. Related: UX.46, UX.47, USR.7, NAV.18, NAV.19.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
@@ -2575,6 +2577,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     galaxy and says if anything changed since it was saved (the
     correlative update moves systems along their galactic orbits, and
     a regenerated system can vanish).
+    Owner: Core 2 after UX.129; Blocker 3 takes it only if Core 2 has not
+    (the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads).
 
   - [ ] **NAV.18 Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store**
     Done: a Save course button on the NAV result; a Courses list
@@ -4206,6 +4210,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.27, the R, Y and Z classes of GEN.28 and the GEN.29 sweep, so the
   classes are tuned against the final habitable-zone edges (2026-10-16
   review).
+  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT
+  2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads). Takes an epoch: ask the TODO
+  thread for the next free number.
   Prerequisites: none.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
@@ -8349,7 +8356,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same ones as the gas table of GEN.410 where they overlap. Done: a test
   fails when a material named in a description or in the class tables is
   missing from it; every number has a source.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; thread Blocker 3, session cse_01AzAXhWBKruPR6CCLL1SxFB). This replaces the earlier proposal of Core 4.
   Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
   GEN.428 reads it; the design is GEN.437's and the molar masses come
   from GEN.438.
@@ -8476,6 +8483,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
+  lane's clock reads): data tables carry no licence column and no check of
+  one; the licence information lives in one file in the repo root. This
+  overrides every line of this item that calls the licence column
+  mandatory; GEN.623 does the removal.
+
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9803,7 +9816,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one rescatter of 8.4. Done: a test checks the draw's median and
   scatter against the stated values, that the same system gives the same
   snow line at any worker count, and that no code reads the old
-  constant. Owner: Core 4 (proposed, with the composition chain).
+  constant. Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the earlier proposal of Core 4).
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.442, GEN.461,
   GEN.466, DB.69.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -10824,8 +10837,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are one. Changes stored values, so it ships with a generator epoch
   bump. Done: every row of the 16 tables loads, TEST.214 passes on them,
   the `open` rows are listed with their AR number (GEN.480 to GEN.494),
-  and a draw is deterministic at any worker count. Owner: Core 4
-  (proposed, with the composition chain).
+  and a draw is deterministic at any worker count. Owner: Blocker 3
+  (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the
+  earlier proposal of Core 4).
   Prerequisites: none. Related: GEN.472, GEN.410, GEN.411,
   GEN.413, GEN.414, GEN.451, GEN.454, GEN.455, GEN.456, GEN.479,
   TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
@@ -10867,6 +10881,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
   outputs of the escape and retention physics, not design flags; the
   design-flag rows left in B17 are m3, m4 and m11.
+  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
+  lane's clock reads): data tables carry no licence column and no check of
+  one; the licence information lives in one file in the repo root. This
+  overrides every line of this item that calls the licence column
+  mandatory; GEN.623 does the removal.
+
 
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11546,8 +11566,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   continuous log-normals with a carbon-chain-depleted flag as the
   parametrisation, and keep the one comet as a test target only. Done:
   the comet volatile draw reads the table, each range carries its source
-  and label, and a test checks the ranges and determinism. Owner: Core 4
-  (proposed, with the composition chain).
+  and label, and a test checks the ranges and determinism. Owner: Blocker 3
+  (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the
+  earlier proposal of Core 4).
   Prerequisites: none. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
   Papers list (2026-10-17, filed by the TODO thread;
@@ -15248,6 +15269,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 4 owns the remnant distribution work of GEN.554).
   Prerequisites: none. Related: GEN.554, TEST.160.
 
+- [ ] **GEN.623 Data tables carry no licence column or licence check; the licence information lives in one file in the repo root**
+  Boss, 4:41 to 4:42 PM EDT 2026-10-22 (in the Blocker 3 thread, as the
+  coordinator relayed at 4:42 PM EDT as the lane's clock reads): remove
+  the licence column from data tables and move the licence information
+  to its own file in the repo root, "and that is all"; "Remove those
+  too" covers the gas table, the element table and the possibility-table
+  loader. Do: take the `licence` field out of the gas table
+  (`physics/gases.py`), the element table (`physics/elements.py`), the
+  possibility-table row and its loader
+  (`generation/possibility_table.py`) and any other data table or loader
+  that carries one, along with every check that a row or file states a
+  licence (the loader refusals, the `licence` entries in the
+  required-field lists, the `"open"` default, and the licence assertions
+  in TEST.214 and the table tests); write the licence information for
+  each data source (name, licence, where read) in one file in the repo
+  root (the lane picks its name, for example DATA-LICENCES.md) and have
+  the README point to it. Done: no data table, loader or test has a
+  licence field or check, nothing fails when a table carries no licence,
+  the root file lists every source the tables cite, the docs that call
+  the licence column mandatory (docs/design/atmosphere-composition.md
+  and the design notes of GEN.427, GEN.438, GEN.472) say so no more, and
+  a grep for `licence` in the table modules finds none. No epoch, no
+  migration. Owner: Blocker 3 (Boss, via the Blocker 3 thread, 4:42 PM
+  EDT as the lane's clock reads; it does this before the table items so
+  the new tables are built without the column).
+  Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
+  GEN.472, TEST.214.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18417,6 +18466,9 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   PBKDF2-600k to Argon2id (a
   new dependency); minimum length 12 with the blocklist, 15 only if
   NIST's password-only guidance is wanted.
+  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT
+  2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads). It adds the dependency
+  `argon2-cffi`, which update.sh must install.
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
 
@@ -19591,6 +19643,12 @@ clears each one.
   weights pick the row; the proportions inside a drawn row come from the
   row's own sourced kernel, or a Dirichlet draw where only a range
   exists, so the 1:40 AM and 1:51 AM EDT 2026-10-17 texts agree.
+  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
+  lane's clock reads): data tables carry no licence column and no check of
+  one; the licence information lives in one file in the repo root. This
+  overrides every line of this item that calls the licence column
+  mandatory; GEN.623 does the removal.
+
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
   Body composition research lane, section 14.4 of
