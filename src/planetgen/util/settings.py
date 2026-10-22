@@ -277,7 +277,7 @@ class TileCache(_Section):
                                    summary="Most tiles the background build queues in a minute, all "
                                            "visitors together.")
     prefetch_max_queued: int = opt(8, "The background build queues nothing while this many of its jobs (16 tiles "
-                                   "each) or other bulk work already wait.", unit="jobs", group="speed", ge=1,
+                                   "each) or other upkeep work already wait.", unit="jobs", group="speed", ge=1,
                                    label="Prefetch queue limit",
                                    summary="The background build waits while this many of its jobs "
                                            "are already queued.")
@@ -356,6 +356,13 @@ class Queue(_Section):
         "at a higher priority than the bulk workers.", unit="workers", group="speed", ge=1, le=64,
         label="Workers for short jobs",
         summary="How many workers are reserved for short jobs; generation work never takes them.")
+    maintenance_workers: int = opt(
+        1, "How many workers run the cache warm-up, the tile prefetch and the database check while a generation run "
+        "is live. They are taken out of the generation worker count (a generation worker finishes its unit and "
+        "leaves when they are needed), so the host's total does not grow; with no generation run live they may use "
+        "the whole count.", unit="workers", group="speed", ge=1, le=64,
+        label="Workers for upkeep during a run",
+        summary="How many workers keep the caches and checks going while a generation run is live.")
     long_workers: int = opt(
         1, "How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a "
         "large settle, which can run for hours). They have a lane of their own so a long job can never hold the "

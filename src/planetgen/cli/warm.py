@@ -131,7 +131,7 @@ def _warm_once(args, reason=None):
                 log.normal(result["line"])
 
             wrapper.run("Cache warm-up", steps, on_plan, on_result, database=args.database,
-                        argv=sys.argv[1:], kind=runrecord.MAINTENANCE, workers_count=1)
+                        argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
             for line in tally.finish():
                 log.normal(line)
             report_ended()

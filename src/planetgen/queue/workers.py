@@ -29,7 +29,7 @@ import rq
 from rq import command, worker_registration
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, work
+from planetgen.queue import redisqueue, runrecord, work
 
 WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
@@ -38,6 +38,12 @@ STARTING_PREFIX = "planetgen:workers:starting:"
 STARTING_SECONDS = 15
 """The Redis counter, per queue, of workers started but not yet registered with RQ, which expires this long after
 the last start: counted with the live ones so a burst of jobs doesn't start more than wanted."""
+
+LENT_PREFIX = "planetgen:workers:lent:"
+LENT_SECONDS = 3600
+"""The Redis key, per bulk worker, of a worker asked to finish its unit and exit so a maintenance worker can have its
+place (the lend rule, PERF.150); it expires this long after the request, so a worker that never got the command
+is not skipped for ever."""
 
 IDLE_SECONDS = 60
 """int: How long a worker waits for work before it exits (about 60 s covers every stage barrier)."""
@@ -136,7 +142,9 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
     Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than the queue's cap in
     all (those serving the queue and alive, and those started a moment ago and not registered yet). The cap is
     `count` when given (a run's own `--workers`, PERF.97, which leaves the admin's count alone), else the lane's
-    (`lane_cap`), else `wanted`.
+    (`lane_cap`, `maintenance_cap`), else `wanted`; the bulk queue's is never more than `wanted` less the maintenance
+    lane's workers (`maintenance_share`), and an ask for the maintenance lane's workers sheds the bulk workers over
+    that (`shed_bulk`).
 
     Returns:
         int: How many were started.
@@ -151,13 +159,66 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
         return 0
     starting_key = STARTING_PREFIX + queue_name
     starting = int(connection.get(starting_key) or 0)
-    need = min(waiting, count or lane_cap(queue_name) or wanted(connection, mysql_host)) - live_worker_count(queue) - starting
+    if queue_name == redisqueue.MAINTENANCE_QUEUE:
+        cap = count or maintenance_cap(connection, mysql_host)
+    else:
+        cap = count or lane_cap(queue_name) or wanted(connection, mysql_host)
+        if queue_name == redisqueue.BULK_QUEUE:
+            cap = min(cap, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
+    live = live_worker_count(queue)
+    need = min(waiting, cap) - live - starting
     for _ in range(max(0, need)):
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
         redisqueue.start_detached(
             redisqueue.worker_argv([queue_name], url, python=sys.executable, burst=False), REPO_DIR)
+    if queue_name == redisqueue.MAINTENANCE_QUEUE:
+        shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
     return max(0, need)
+
+
+def maintenance_cap(connection, mysql_host=None):
+    """
+    The most workers the maintenance lane may have (PERF.150): `queue.maintenance_workers` while a generation run is
+    live, so upkeep never takes more than its guaranteed share from the run, and the whole of `wanted` when none is.
+    """
+    if runrecord.active_run(connection, runrecord.GENERATION):
+        from planetgen.util.settings import get_settings
+        return get_settings().queue.maintenance_workers
+    return wanted(connection, mysql_host)
+
+
+def maintenance_share(connection, mysql_host=None):
+    """How many of the host's workers the maintenance lane has or needs: those busy, plus those its waiting jobs ask
+    for, never more than `maintenance_cap`. (An idle maintenance worker waits for its 60 seconds to pass without
+    using a core, so the bulk lane is back to `wanted` as soon as the lane has drained.) The bulk lane gives up that
+    many places."""
+    queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
+    busy = sum(1 for worker in live_workers(queue) if worker.get_state() != "idle")
+    return min(maintenance_cap(connection, mysql_host), busy + queue.count)
+
+
+def shed_bulk(connection, cap):
+    """
+    The lend rule (PERF.150): asks the bulk workers over `cap` to finish their unit and exit (RQ's shutdown command),
+    idle ones first and the newest first, so a maintenance worker can have a place without the host's total growing.
+    A worker already asked is not asked again (`LENT_PREFIX`), and counts as gone. The bulk lane starts workers
+    again by itself (`ensure_workers`) when the maintenance lane no longer needs the places.
+
+    Returns:
+        int: How many workers were asked.
+    """
+    live = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))
+    staying = [worker for worker in live if not connection.exists(LENT_PREFIX + worker.name)]
+    over = len(staying) - cap
+    if over <= 0:
+        return 0
+    staying.sort(key=lambda worker: (worker.get_state() != "idle", -(worker.birth_date.timestamp()
+                                                                        if worker.birth_date else 0.0)))
+    for worker in staying[:over]:
+        connection.set(LENT_PREFIX + worker.name, "1", ex=LENT_SECONDS)
+        command.send_shutdown_command(connection, worker.name)
+    return over
 
 
 def set_wanted(connection, count):

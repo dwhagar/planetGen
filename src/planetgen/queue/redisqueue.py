@@ -45,11 +45,17 @@ LONG_QUEUE = "planetgen-long"
 settle, which can run for hours. Its own workers serve it, so a long job never holds the workers kept for the short
 ones on `INTERACTIVE_QUEUE`."""
 
-JSON_QUEUE_PREFIXES = (BULK_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE, "planetgen-web-", "planetgen-api-")
+MAINTENANCE_QUEUE = "planetgen-maintenance"
+"""str: The units of a `MAINTENANCE` or `CHECK` run (the cache warm-up, the database check) and the tile prefetch and
+rebuild jobs (PERF.150). Its workers have a cap of their own (`workers.maintenance_cap`) and share the host's worker
+count with the bulk workers, so a generation stage that queued thousands of units on `BULK_QUEUE` never makes this
+work wait for them."""
+
+JSON_QUEUE_PREFIXES = (BULK_QUEUE, MAINTENANCE_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE, "planetgen-web-", "planetgen-api-")
 """tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the shared queues, each
 Generate page job's own (`planetgen-web-<id>`), and the API queues the tests give a name of their own."""
 
-QUEUES = (GENERATION_QUEUE, BULK_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
+QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
 """tuple: Every shared queue."""
 
 def redis_url():
