@@ -203,15 +203,21 @@ def test_the_wrapped_turn_is_exact_where_the_plain_ratio_is_not(period, elapsed)
     assert kepler.wrapped_turn_deg(elapsed, 0.0) == 0.0
 
 
-def test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it():
-    from planetgen.physics.body_positions import _relative_circular_km
-    orbit = {"period_years": 0.319 / 365.25, "phase_deg": 40.0, "distance_km": 1.8e6, "inclination_deg": 3.0,
-             "ascending_node_deg": 10.0}
-    years = 1.0e9 / 365.25
-    turn = kepler.wrapped_turn_deg(years, orbit["period_years"])
-    same = _relative_circular_km(orbit, years)
-    near = _relative_circular_km({**orbit, "phase_deg": 40.0 + turn}, 0.0)
-    assert same == pytest.approx(near, abs=1e-6)
+def test_a_binary_far_from_its_epoch_is_where_the_remainder_puts_it():
+    from planetgen.physics.body_positions import _star_positions_km
+    period = 0.319 / 365.25
+    node = {"node_no": 1, "parent_node_no": None, "slot": None, "mass_solar": 1.5, "separation_km": 1.8e6,
+            "eccentricity": 0.0, "inclination_deg": 3.0, "ascending_node_deg": 10.0, "arg_periapsis_deg": 0.0,
+            "mean_anomaly_deg": 40.0, "epoch_unix": 0.0, "period_years": period}
+    members = [{"member_no": 1, "parent_node_no": 1, "slot": 0, "mass_solar": 1.0, "ref": "a"},
+               {"member_no": 2, "parent_node_no": 1, "slot": 1, "mass_solar": 0.5, "ref": "b"}]
+    scene = {"epoch_unix": 0.0, "tree": {"nodes": [node], "members": members, "origin": "a"}}
+    years = 1.0e6 / 365.25
+    turn = kepler.wrapped_turn_deg(years, period)
+    moved = {**scene, "tree": {**scene["tree"], "nodes": [{**node, "mean_anomaly_deg": 40.0 + turn}]}}
+    same = _star_positions_km(scene, years)["b"]
+    near = _star_positions_km(moved, 0.0)["b"]
+    assert same == pytest.approx(near, abs=0.1)  # the time as unix seconds has a float's resolution: tens of metres at 1e6 days
 
 
 def test_a_universal_step_of_many_orbits_lands_where_the_remainder_does():
