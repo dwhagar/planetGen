@@ -21,6 +21,8 @@ from planetgen import describe
 from planetgen.db import render
 from planetgen.db.render import render_star_system
 from planetgen.generation import run_common
+from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.util import draw
 
 
 DOCUMENT_FORMAT = describe.DOCUMENT_FORMAT
@@ -230,6 +232,10 @@ def run_system(args):
     database at all -- the admin site's one-off system page runs it that
     way (`src/planetgen/web/system_page.py`).
 
+    The run is one command through the wrapper (PERF.119, `generate-system`, one unit): a worker generates the system
+    and this process says what it made. With `--output` nothing is saved, so the run is a maintenance one and does not
+    take the generation slot.
+
     A forced option the system can't meet is never saved silently
     (GEN.49): contradictory options are refused up front, and a system
     still missing a forced body after `SINGLE_SYSTEM_GENERATION_ATTEMPTS`
@@ -249,33 +255,73 @@ def run_system(args):
         log.error(f"Error: {conflict}")
         raise SystemExit(1)
 
-    attempts = program_constants.SINGLE_SYSTEM_GENERATION_ATTEMPTS
-    for attempt in range(1, attempts + 1):
-        system = StarSystem(system_config=system_config)
-        if not system.unmet_requirements:
-            break
-        log.debug(f"System attempt {attempt}/{attempts}: no {' or '.join(system.unmet_requirements)} "
-                  f"around {system.primary_star.type}; trying a new system")
-    else:
-        star = f"--star-type {system_config.STAR_TYPE}" if system_config.STAR_TYPE else "the drawn star"
-        # GEN.81: the last try is kept, without the body it had no room for.
-        run_common._refuse_or_warn(args, f"No system with {' and '.join(system.unmet_requirements)} came out of "
-                              f"{attempts} tries for {star}; the last one is kept without it. Hot, "
-                              f"short-lived and very large stars often have no room for one.")
-
+    mysql_config = store.mysql_config_from_args(args)
+    args.database = wrapper.database_args(mysql_config)
+    args.run_seed = draw.getrandbits(128)
+    steps = wrapper.steps_for("system", args)
+    made = []
+    try:
+        wrapper.run(steps[0].label, steps, lambda _index, plan: None, lambda _index, _unit, result: made.append(result),
+                    workers_count=1, who=getattr(args, "who", None), database=mysql_config.database,
+                    argv=getattr(args, "argv", None),
+                    kind=runrecord.MAINTENANCE if args.output else runrecord.GENERATION)
+    except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+        log.error(f"error: the system could not be generated: {exc}")
+        raise SystemExit(1)
+    result = made[0]
+    if result["warning"]:
+        run_common._refuse_or_warn(args, result["warning"])
     if args.output:
-        text = (json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT
-                else render_star_system(system, args.format))
+        text = result["text"]
         if args.output == "-":
             sys.stdout.write(text if text.endswith("\n") else text + "\n")
         else:
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write(text)
-            log.normal(f"Wrote system '{system.name}' to {args.output} (not saved to the database).")
+            log.normal(f"Wrote system '{result['name']}' to {args.output} (not saved to the database).")
         return
-
-    mysql_config = store.mysql_config_from_args(args)
-    star_system_id = store.save_system(system, system_config, config=mysql_config)
     run_common.RUN_COUNTS["systems"] += 1
-    log.normal(f"Saved system '{system.name}' to the database (star_system_id={star_system_id}, "
+    log.normal(f"Saved system '{result['name']}' to the database (star_system_id={result['star_system_id']}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+
+
+def expand_system(params):
+    """The cut of a `system` run (PERF.119; `generate-system`): one unit of cost 1."""
+    return commands.Expansion([({"database": params["database"], "args": params["args"],
+                                 "run_seed": params["run_seed"]}, 1.0)], {"systems": 1})
+
+
+def system_unit(unit_args, report):
+    """
+    The unit of a `system` run: generates the system on a stream seeded from the run's (so it is the same at any
+    worker count), and renders it (`--output`) or saves it.
+
+    Returns:
+        dict: `warning` (the message of a system that kept no forced body, which the starter refuses or logs by
+            `--strict`, else `None`), `name`, and either `text` (the page, with `--output`) or `star_system_id`.
+    """
+    from planetgen.generation import run_galaxy
+    args = run_galaxy._sector_args_of(unit_args)
+    with draw.bound(unit_args["run_seed"]):
+        system_config = build_system_config(args)
+        attempts = program_constants.SINGLE_SYSTEM_GENERATION_ATTEMPTS
+        warning = None
+        for attempt in range(1, attempts + 1):
+            system = StarSystem(system_config=system_config)
+            if not system.unmet_requirements:
+                break
+        else:
+            star = f"--star-type {system_config.STAR_TYPE}" if system_config.STAR_TYPE else "the drawn star"
+            # GEN.81: the last try is kept, without the body it had no room for.
+            warning = (f"No system with {' and '.join(system.unmet_requirements)} came out of {attempts} tries for "
+                       f"{star}; the last one is kept without it. Hot, short-lived and very large stars often have "
+                       f"no room for one.")
+        report(1, 1)
+        if warning and run_common._strict(args):
+            return {"warning": warning, "name": system.name, "text": None, "star_system_id": None}
+        if args.output:
+            text = (json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT
+                    else render_star_system(system, args.format))
+            return {"warning": warning, "name": system.name, "text": text, "star_system_id": None}
+        star_system_id = store.save_system(system, system_config, config=store.mysql_config_from_args(args))
+        return {"warning": warning, "name": system.name, "text": None, "star_system_id": star_system_id}
