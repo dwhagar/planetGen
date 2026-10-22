@@ -949,6 +949,13 @@ with `clamp()`.
   `/api/objects/<ref>`. Still open, with Core 2: the list pages and the
   search panels that read these lists (they still page by OFFSET), and
   the deeper PERF.141 pages.
+  Second part merged as #2404 (Core 2, about 1:44 AM EDT 2026-10-22 as
+  the lane reported): the list pages `/lists` and `/lists/<kind>` for
+  stars, planets, moons, belts, comets and each phenomenon type,
+  sortable and keyset paged from the object index, with a "Lists" link
+  in the header. Still open, with Core 2: the name search (the header
+  ?q= and the search panels) reading the same index, and the deeper
+  PERF.141 pages.
 
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
@@ -18286,53 +18293,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **DB.80 `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug)**
-  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
-  Core 4's note: its fresh machine ran MariaDB 10.11.14 and 259 tests
-  failed identically on origin/main), filed by the TODO thread.
-  `src/planetgen/db/region.py` (the key-run list, GEN.276) and
-  `src/planetgen/db/store.py` (the scatter value list, line 9322) build
-  `VALUES ROW(a, b), ROW(c, d)`; that table value constructor is MySQL
-  8.0.19+ syntax and MariaDB does not accept it, while INSTALL.md lists
-  MySQL 8.0.16+ or MariaDB 10.4+. Tests that fail there include
-  test_db_old_schemas, test_galaxy_gen, test_gen_resume and
-  test_parallel_generation. Fails on main: yes on that server; the other
-  lanes' servers are not known to the TODO thread to be a different
-  version, so which server the tests are normally run on is open. Do:
-  pick one with Boss (question put to the coordinator): the default is
-  to rewrite both lists as a portable `SELECT ... UNION ALL SELECT ...`
-  derived table (no backward-compatibility shim), which keeps INSTALL.md
-  true; the other choice is to raise the documented minimum to MySQL
-  8.0.19 and drop MariaDB from INSTALL.md. Done: the affected tests pass
-  on MariaDB 10.4 and MySQL 8.0.19, and INSTALL.md matches. Owner: not
-  assigned (DB queue).
-  Decided (Boss, card tapped 4:37 PM EDT 2026-10-21, 'Raise minimum to
-  MySQL 8.0.19', card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi3vCP2EtkXETBwr8rfqmGon): the documented
-  minimum rises to MySQL 8.0.19 and MariaDB is not supported; the
-  `VALUES ROW(...)` code stays as it is, no rewrite and no shim. This
-  replaces the default above (the UNION ALL rewrite). Done by the TODO
-  thread in a docs PR (4:40 PM EDT): INSTALL.md, README.md,
-  docs/WINDOWS.md, docs/deployment/{README,nginx,paas,macos}.md and
-  docs/testing.md (the first lines) now say MySQL 8.0.19+ with MariaDB
-  not supported. Still to do, for a lane: the `mysql.host` help text in
-  `src/planetgen/util/settings.py` and its row in docs/config.md ('The
-  MySQL or MariaDB server's host name or address'), docs/testing.md
-  lines on local MariaDB runs and the MariaDB 11.4 leg,
-  docs/ci-runners.md, and the tests' MariaDB branches (reserved-word
-  set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
-  fails by design, so a lane's machine must run MySQL 8 (the recipe is
-  in project memory). Owner: not assigned.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: GEN.276.
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -21995,6 +21955,10 @@ clears each one.
   Environment: a gate run without PLANETGEN_TEST_REDIS_URL fails about
   200 tests with `Busy` (saved to team memory as
   gate-needs-redis-test-env); a lane's gate must set it.
+  Second sighting of the run lock collision (Core 2, UX.141's gate,
+  about 1:44 AM EDT 2026-10-22 as the lane reported):
+  test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
+  failed once under load; it passes alone.
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
 
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
@@ -22065,6 +22029,13 @@ clears each one.
   parallel load. Same class as the two sightings above; Bug Hunt looks
   at all of them, and the INSTALL.md or the lane machine notes may need
   a recommended redo log size for a machine that runs the full gate.
+  Fourth sighting (Core 2, UX.141's gate, about 1:44 AM EDT 2026-10-22
+  as the lane reported, filed by the TODO thread): once under load, the
+  habitable-species route in test_fuzz_web_routes got a 503 "database
+  unavailable"; it passes alone. Same class as the Lost connection
+  sightings above; Bug Hunt looks at all of them. The same gate saw
+  test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
+  fail once under load (TEST.260's run lock collision).
   Prerequisites: none. Related: TEST.252.
 
 - [ ] **TEST.263 test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug)**
