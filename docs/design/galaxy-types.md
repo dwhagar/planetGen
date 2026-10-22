@@ -251,7 +251,7 @@ Relations no paper read here gives. Each stays a labelled placeholder until answ
 - The root draw is the stellar mass; the halo mass follows from it by the stellar-to-halo relation, and GEN.368's table is read from that root.
 - Each family has a simple hand-drawn static SVG outline in the icon library (UX.135, Boss, 2026-10-16, 9:00 PM EDT). Static, kept in the repo, no generation step, works on the offline page.
 - The galaxy stores no home or Sun position. USR.11, a user's own home field, is a different thing and stays.
-- Interacting and merging galaxies are not part of it (idea S9.4-a in the roadmap).
+- Interacting and merging galaxies are not part of it.
 
 ## 14. The chain, counted back from 9.4
 
