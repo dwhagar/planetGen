@@ -138,7 +138,7 @@ TABLES = {
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
     },
     "bright_stars": {
-        "id": ("id", "star_system_id"),
+        "id": ("id", "star_system_id", "cluster_id"),
         "index": ("shell_index", "band_index", "wedge_index"),
         "mpc": ("position_x_mpc", "position_y_mpc", "position_z_mpc"),
         "key": ("cell_key",),
@@ -726,7 +726,7 @@ TABLES = {
         "index": ("schema_version",),
     },
     "stars": {
-        "id": ("id", "star_system_id", "parent_node_id"),
+        "id": ("id", "star_system_id", "parent_node_id", "cluster_id"),
         "kg": ("mass_kg",),
         "km": (
             "radius_km", "habitable_zone_inner_km", "habitable_zone_outer_km", "system_perimeter_km",

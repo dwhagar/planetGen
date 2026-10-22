@@ -78,3 +78,4 @@ Commit each file came from:
 - v123: 1ce490f (DB.37 object locks) (before DB.38)
 - v124: c23f1de (DB.38 region density overrides) (before DB.60)
 - v125: 685dc69 (DB.60 density used) (before DB.39)
+- v126: f2febf1 (DB.39 request support) (before DB.61)
