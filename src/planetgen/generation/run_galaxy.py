@@ -36,7 +36,7 @@ from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.region import BALL_EDGE_ALLOWANCE, Region
 from planetgen.galaxy import spherical
 from planetgen.galaxy.frame import galactic_radius_pc
-from planetgen.galaxy.span import Span
+from planetgen.galaxy.span import Span, parse_range
 from planetgen.galaxy.spherical import (
     SectorCell, enumerate_sectors_within_radius, neighbor_addresses,
     provisional_sector_designation, sector_address_at, sector_position_pc,
@@ -238,6 +238,11 @@ class _Pending:
         for address, extra in self._eligible():
             position_pc, suffix = self._place(address, extra)
             yield address, position_pc, self._density.resolve(self.args, address, position_pc), suffix
+
+    def addresses(self):
+        """The addresses to generate, in order, unresolved (a run's cut needs no more than where its sectors are)."""
+        for address, _extra in self._eligible():
+            yield address
 
     def sample_args(self, size=None):
         """The resolved arguments of `size` sectors spread evenly through the run (`generationStats.sample_positions`);
@@ -1282,14 +1287,30 @@ def _sector_args_of(unit_args):
                               mysql_user=named["user"], mysql_password=None, mysql_database=named["database"])
 
 
+def planned_items(params):
+    """
+    The sectors a `planned` sector stage generates (PERF.123), flat `shell, band, wedge` triples, in the order to
+    generate them: the shell, band, span or course the stage's arguments name (`_address_plan`) less the sectors that
+    exist now, up to its `--limit`. The starter has counted, estimated and asked about them already (`_generate_addresses`).
+    """
+    args = _sector_args_of(params)
+    edge_pc = params["edge_pc"]
+    batch_density = _BatchDensity(store.mysql_config_from_args(args))
+    plan = _address_plan(args, edge_pc, batch_density, say=_quiet)
+    if plan is None:
+        return []
+    pending = _pending_of_plan(args, plan, edge_pc, batch_density)
+    return [index for address in pending.addresses() for index in address]
+
+
 def expand_generate_sectors(params):
     """
     The sector stages' cut (PERF.107; `generate-start-sector`, `generate-neighborhood` and `generate-sectors`): the
     addresses of `params["items"]` (the run's sectors to generate, flat `shell, band, wedge` triples, in the order to
-    generate them) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
+    generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
     A unit's cost is its sectors.
     """
-    items = params["items"]
+    items = planned_items(params) if params.get("planned") else params["items"]
     count = len(items) // 3
     size = max(1, -(-count // SECTOR_UNITS_MAX))
     units = []
@@ -1341,7 +1362,7 @@ def _log_saved(saved, address, suffix=""):
     run_sector._log_summary(saved["summary"])
 
 
-def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False):
+def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False, planned=False):
     """
     Generates every `(address, position_pc, sector_args, suffix)` of `batch` on the new queue (PERF.107): the wrapper
     selects the stage's command (`generate-start-sector`, `generate-neighborhood` or `generate-sectors`, by the stage
@@ -1355,6 +1376,8 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_a
             (a single sector of `galaxy --wedge` is drawn from its profile with the defaults of `sector`).
         collect (bool): Whether to return what each sector reported instead of logging it, for a stage of few sectors
             whose caller says it in its own words.
+        planned (bool): Whether the stage's cut works the sectors out from the run's arguments (`planned_items`) rather
+            than from `batch`, which is then empty (`count` says how many there are).
 
     Returns:
         list: What each sector reported, in the order it was saved (`generate_sectors_unit`), when `collect`; else `[]`.
@@ -1374,7 +1397,7 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_a
     step, listing = wrapper.step_for(args, key, title, {
         "database": wrapper.database_args(mysql_config), "args": _sector_args_json(base_args or args),
         "edge_pc": edge_pc,
-        "items": items, "workers": workers})
+        "items": items, "planned": planned, "workers": workers})
     row = stages.hand_over_open_stage()
     if not collect:
         log.normal(f"Generating {count:,} sector(s) with {workers} worker(s); each is reported below as "
@@ -1574,7 +1597,7 @@ def run_local_neighborhood(args, edge_pc, progress):
             `args.center_sector`/`args.radius_pc` must not be `None`.
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
         progress (rich.progress.Progress): `run_galaxy`'s shared progress
-            display (see `run_shell`). `run_random_start` also calls
+            display (see `run_addresses`). `run_random_start` also calls
             this directly after generating its own seed sector.
 
     Raises:
@@ -2116,101 +2139,164 @@ def run_single_sector(args, edge_pc, progress):
         run_local_neighborhood(args, edge_pc, progress)
 
 
-def _generate_addresses(args, addresses, shells, total, what, edge_pc, progress, batch_density):
+AddressPlan = collections.namedtuple("AddressPlan", "what total shells addresses")
+"""The sectors of a shell, band, span or course run: `what` (the words for them), `total` (how many addresses),
+`shells` (the shells they lie in, to look up what is generated there) and `addresses` (a callable giving a fresh
+iterable of `(shell, band, wedge)` each time, in order)."""
+
+
+def _quiet(_text):
+    """The `say` of a cut that leaves the telling to the run's starter."""
+
+
+def _span_of(args):
+    """The `Span` of a span run: the one the command line built, or one rebuilt from `--shells/--bands/--wedges` (a
+    cut reads its arguments back from plain JSON)."""
+    span = getattr(args, "span", None)
+    if span is None:
+        ranges = {name: None if getattr(args, name, None) is None else parse_range(getattr(args, name), f"--{name}")
+                  for name in ("shells", "bands", "wedges")}
+        span = Span(**ranges)
+    return span
+
+
+def _address_plan(args, edge_pc, batch_density, say=log.normal):
     """
-    Generates every not-yet-generated address of `addresses` (a callable giving a new iterable of
-    `(shell, band, wedge)` each time it is called, walked lazily, in order) up to `args.limit` when
-    set -- the loop behind the shell, span and course modes; see
-    `_BatchDensity.resolve` for how each sector's density is set. A run of more than
-    `generationStats.SAMPLE_ABOVE` sectors is estimated from a sample and its sectors are resolved as they are
-    submitted, not held (`_Pending`, PERF.36).
+    The sectors of the shell, band, span or course mode the arguments ask for (GEN.81, ADM.29, NAV.48), checked as the run
+    checks them (`_require_in_reach`, the size and confirmation rules) and described: the part of `run_addresses`
+    that decides where the sectors are, which the run's cut (`expand_generate_sectors`)
+    shares with the starter.
 
     Args:
-        shells (iterable): The shells `addresses` lie in, to look up what is
-            already generated there.
-        total (int): How many addresses there are, for the closing line.
+        say (callable): Where the notes go (`log.normal`, or `_quiet` for a cut whose starter has said them).
+
+    Returns:
+        AddressPlan or None: None when there is nothing to generate (said).
+
+    Raises:
+        SystemExit: A shell beyond the grid's reach, a course that cannot be plotted, or a run too large that was not
+            confirmed.
     """
+    if getattr(args, "course", None) is not None:
+        return _course_plan(args, say)
+    bounds = batch_density.bounds
+    if getattr(args, "span", None) is not None or any(
+            getattr(args, name, None) is not None for name in ("shells", "bands", "wedges")):
+        span = _span_of(args)
+        total = span.count(bounds)
+        what = span.describe()
+        if total == 0:
+            say(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
+            return None
+        _refuse_if_very_large(args, what, total, "(--limit N generates only the first N).")
+        return AddressPlan(what, total, span._shells(bounds), lambda: span.addresses(bounds))
+    shell_index = args.shell
+    if args.band is not None:
+        band = args.band
+        what = f"shell {shell_index} band {band}"
+        _require_in_reach(bounds, shell_index, band, what)
+        total = spherical.wedge_count(shell_index, band)
+        addresses = lambda: ((shell_index, band, wedge) for wedge in range(total))
+    else:
+        what = f"shell {shell_index}"
+        _require_in_reach(bounds, shell_index, 0, what)
+        if shell_index not in bounds.high_band:
+            say(f"No band of the outline reaches shell {shell_index}: nothing to generate "
+                f"(name a band with --band to generate its sectors from their profiles).")
+            return None
+        span = Span(shells=(shell_index, shell_index))
+        total = span.count(bounds)
+        addresses = lambda: span.addresses(bounds)
+    _refuse_if_very_large(args, what, total, "(--limit N generates only the first N not-yet-generated sectors).")
+    return AddressPlan(what, total, [shell_index], addresses)
+
+
+def _refuse_if_very_large(args, what, total, hint):
+    """Refuses (`--strict`) or warns about a run of more than `LARGE_RUN_WARNING_THRESHOLD` sectors that has neither
+    `--limit` nor `--yes`."""
+    if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
+        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run {hint}")
+
+
+def _course_plan(args, say):
+    """`_address_plan` of course mode (NAV.48): the uncharted cells on the hops through unknown space of the NAV course
+    between two objects (`course_cells`), inside the galaxy's outline. Past `program_constants.NAV_CHART_CONFIRM_SECTORS`
+    sectors it needs `--yes`."""
+    config = store.mysql_config_from_args(args)
+    try:
+        plan = course_cells(config, args.course[0], args.course[1], border=getattr(args, "course_border", False))
+    except ValueError as exc:
+        log.error(str(exc))
+        raise SystemExit(1) from exc
+    cells = plan["cells"]
+    what = f"the uncharted sectors on the course {args.course[0]} to {args.course[1]}"
+    if not cells:
+        why = ("the course crosses no uncharted sector" if not plan["unknown_hops"]
+               else "the uncharted sectors on the course all lie outside the galaxy")
+        say(f"Nothing to chart: {why}.")
+        return None
+    bypass = plan.get("bypass")
+    if bypass and bypass["found"]:
+        say(f"Note: a route through charted space exists ({bypass['distance_ly']:,.1f} ly against "
+            f"{plan['route_distance_ly']:,.1f} ly); charting is optional.")
+    if len(cells) > program_constants.NAV_CHART_CONFIRM_SECTORS and not args.yes:
+        log.error(f"Charting this course takes {len(cells):,} sectors, more than the {program_constants.NAV_CHART_CONFIRM_SECTORS:,} "
+                  f"that need confirming. Run it again with --yes.")
+        raise SystemExit(1)
+    if plan["outside_galaxy"]:
+        say(f"{plan['outside_galaxy']} uncharted cell(s) lie outside the galaxy and are left out.")
+    return AddressPlan(what, len(cells), {cell[0] for cell in cells}, lambda: cells)
+
+
+def _pending_of_plan(args, plan, edge_pc, batch_density):
+    """The `_Pending` of an `AddressPlan`: its addresses that are not generated yet, up to `--limit`."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        occupied = set(store.get_occupied_addresses(conn, set(shells)))
+        occupied = set(store.get_occupied_addresses(conn, set(plan.shells)))
     finally:
         conn.close()
+    return _Pending.of_addresses(args, plan.addresses, occupied, batch_density, edge_pc,
+                                 limit=getattr(args, "limit", None))
 
+
+def _generate_addresses(args, plan, edge_pc, progress, batch_density):
+    """
+    Generates every not-yet-generated address of `plan` (an `AddressPlan`) up to `args.limit` when set -- the loop
+    behind the shell, span and course modes; see `_BatchDensity.resolve` for how each sector's density is set. A run of
+    more than `generationStats.SAMPLE_ABOVE` sectors is estimated from a sample (`_Pending`, PERF.36). The run's cut
+    enumerates the same sectors again (`expand_generate_sectors`) when its stage opens, so they are handed on as the
+    arguments that name them, not as a list.
+    """
+    what, total = plan.what, plan.total
     limit = getattr(args, "limit", None)
-    pending = _Pending.of_addresses(args, addresses, occupied, batch_density, edge_pc, limit=limit)
+    pending = _pending_of_plan(args, plan, edge_pc, batch_density)
     batch, estimate_args, sampled_total = _plan_pending(pending)
     skipped, existed = pending.skipped, pending.existed
 
     run_common._check_estimate(args, estimate_args, what, progress, total=sampled_total)
     with run_common.sector_bar(progress, args, f"Sectors ({what})", pending.count) as bar:
-        _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar, count=pending.count)
+        _submit_batch(args, [], f"Sectors ({what})", edge_pc, progress, bar, count=pending.count, planned=True)
     generated = pending.count
     skip_note = f", {skipped} skipped (beyond the grid's reach)" if skipped else ""
     already = f"{total - generated - skipped} already existed" if limit is None else f"{existed} already existed"
     log.normal(f"Generated {generated} new sector(s) in {what} ({total} total, {already}{skip_note}).")
 
 
-def run_shell(args, edge_pc, progress):
+def run_addresses(args, edge_pc, progress):
     """
-    Shell mode: every not-yet-generated sector of shell `--shell I` the
-    galaxy's outline holds -- or, with `--band J`, of that one band (named
-    outright, so generated even outside the outline, GEN.81). When the shell
-    holds more than `LARGE_RUN_WARNING_THRESHOLD` sectors it needs `--limit`
-    or `--yes`.
+    The shell, band, span and course modes (GEN.81, ADM.29, NAV.48): every not-yet-generated sector of the addresses
+    `_address_plan` names -- a shell of the galaxy's outline, one band (named outright, so generated even outside the
+    outline), a range of shells, bands and wedges, or the uncharted cells of a NAV course. A run of more than
+    `LARGE_RUN_WARNING_THRESHOLD` sectors needs `--limit` or `--yes` (a course, `NAV_CHART_CONFIRM_SECTORS` and `--yes`).
 
     Raises:
-        SystemExit: If the shell (or the named band) is beyond the grid's reach,
-                   or the run is too large and neither `--limit` nor `--yes`
-                   was given.
+        SystemExit: A shell beyond the grid's reach, a course NAV cannot plot, or a run too large that was neither
+            limited nor confirmed.
     """
-    shell_index = args.shell
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    bounds = batch_density.bounds
-    if args.band is not None:
-        band = args.band
-        what = f"shell {shell_index} band {band}"
-        _require_in_reach(bounds, shell_index, band, what)
-        total = spherical.wedge_count(shell_index, band)
-        def addresses():
-            return ((shell_index, band, wedge) for wedge in range(total))
-    else:
-        what = f"shell {shell_index}"
-        _require_in_reach(bounds, shell_index, 0, what)
-        if shell_index not in bounds.high_band:
-            log.normal(f"No band of the outline reaches shell {shell_index}: nothing to generate "
-                       f"(name a band with --band to generate its sectors from their profiles).")
-            return
-        span = Span(shells=(shell_index, shell_index))
-        total = span.count(bounds)
-        def addresses():
-            return span.addresses(bounds)
-    if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run "
-                                         f"(--limit N generates only the first N not-yet-generated sectors).")
-    _generate_addresses(args, addresses, [shell_index], total, what, edge_pc, progress, batch_density)
-
-
-def run_span(args, edge_pc, progress):
-    """
-    Span mode (ADM.29): every not-yet-generated sector in `args.span`, a
-    range of shells, bands and wedges, inside the galaxy's outline. The
-    count comes from the outline's stored cell counts, so the size warning is
-    instant. Needs `--limit` or `--yes` when it is more than
-    `LARGE_RUN_WARNING_THRESHOLD` sectors.
-    """
-    span = args.span
-    batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    bounds = batch_density.bounds
-    total = span.count(bounds)
-    what = span.describe()
-    if total == 0:
-        log.normal(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
-        return
-    if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run "
-                                         f"(--limit N generates only the first N).")
-    _generate_addresses(args, lambda: span.addresses(bounds), span._shells(bounds), total, what, edge_pc, progress,
-                        batch_density)
+    plan = _address_plan(args, edge_pc, batch_density)
+    if plan is not None:
+        _generate_addresses(args, plan, edge_pc, progress, batch_density)
 
 
 def course_cells(config, from_ref, to_ref, border=False):
@@ -2246,41 +2332,6 @@ def course_cells(config, from_ref, to_ref, border=False):
             raise ValueError(str(exc)) from exc
     finally:
         conn.close()
-
-
-def run_course(args, edge_pc, progress):
-    """
-    Course mode (NAV.48): every uncharted cell on the hops through unknown space of the NAV course
-    between two objects (`course_cells`), inside the galaxy's outline. Past
-    `program_constants.NAV_CHART_CONFIRM_SECTORS` sectors it needs `--yes`; the size and disk checks are
-    the ones every run has. The bright-star backfill and the settle that follow every run cover the
-    new sectors.
-    """
-    config = store.mysql_config_from_args(args)
-    try:
-        plan = course_cells(config, args.course[0], args.course[1], border=getattr(args, "course_border", False))
-    except ValueError as exc:
-        log.error(str(exc))
-        raise SystemExit(1) from exc
-    cells = plan["cells"]
-    what = f"the uncharted sectors on the course {args.course[0]} to {args.course[1]}"
-    if not cells:
-        why = ("the course crosses no uncharted sector" if not plan["unknown_hops"]
-               else "the uncharted sectors on the course all lie outside the galaxy")
-        log.normal(f"Nothing to chart: {why}.")
-        return
-    bypass = plan.get("bypass")
-    if bypass and bypass["found"]:
-        log.normal(f"Note: a route through charted space exists ({bypass['distance_ly']:,.1f} ly against "
-                   f"{plan['route_distance_ly']:,.1f} ly); charting is optional.")
-    if len(cells) > program_constants.NAV_CHART_CONFIRM_SECTORS and not args.yes:
-        log.error(f"Charting this course takes {len(cells):,} sectors, more than the {program_constants.NAV_CHART_CONFIRM_SECTORS:,} "
-                  f"that need confirming. Run it again with --yes.")
-        raise SystemExit(1)
-    if plan["outside_galaxy"]:
-        log.normal(f"{plan['outside_galaxy']} uncharted cell(s) lie outside the galaxy and are left out.")
-    _generate_addresses(args, lambda: cells, {cell[0] for cell in cells}, len(cells), what, edge_pc, progress,
-                        _BatchDensity(config))
 
 
 def _check_plan(args, edge_pc):
@@ -2415,14 +2466,12 @@ def _run_galaxy_mode(args, edge_pc, progress):
     """`run_galaxy`'s dispatch to the mode its arguments ask for."""
     if not _random_start_mode(args):
         stages.enter("sectors")
-    if getattr(args, "span", None) is not None:
-        run_span(args, edge_pc, progress)
-    elif getattr(args, "course", None) is not None:
-        run_course(args, edge_pc, progress)
+    if getattr(args, "span", None) is not None or getattr(args, "course", None) is not None:
+        run_addresses(args, edge_pc, progress)
     elif args.wedge is not None:
         run_single_sector(args, edge_pc, progress)
     elif args.shell is not None:
-        run_shell(args, edge_pc, progress)
+        run_addresses(args, edge_pc, progress)
     elif args.center_sector is not None:
         run_local_neighborhood(args, edge_pc, progress)
     else:

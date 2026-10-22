@@ -74,3 +74,41 @@ def _count(mysql_config, table):
         return conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
     finally:
         conn.close()
+
+
+def _planned_params(mysql_config, *argv):
+    from planetgen.generation import run_common, run_galaxy
+    args = _args("sectors", *argv)
+    return args, {"database": wrapper.database_args(mysql_config), "args": run_galaxy._sector_args_json(args),
+                  "edge_pc": run_common._edge_pc(), "items": [], "planned": True}
+
+
+def test_a_span_is_cut_into_the_sectors_the_outline_holds_less_those_that_exist_and_up_to_the_limit(mysql_config):
+    from planetgen.generation import run_galaxy
+    _plan_wide_galaxy(mysql_config)
+    args, params = _planned_params(mysql_config, "--shells", "1:2", "--bands", "0", "--num-systems", "1")
+    bounds = run_galaxy._BatchDensity(mysql_config).bounds
+    wanted = [index for address in args.span.addresses(bounds) for index in address]
+    assert wanted and run_galaxy.planned_items(params) == wanted
+    first = run_galaxy.expand_generate_sectors(params)
+    assert [index for unit, _cost in first.units for index in unit["items"]] == wanted
+    _args_limited, limited = _planned_params(mysql_config, "--shells", "1:2", "--bands", "0", "--limit", "3",
+                                             "--num-systems", "1")
+    assert run_galaxy.planned_items(limited) == wanted[:9]
+
+
+def test_a_shell_run_hands_its_stage_the_arguments_that_name_the_sectors_not_the_sectors(
+        mysql_config, monkeypatch, redis_server):
+    _plan_wide_galaxy(mysql_config)
+    seen = []
+    real = wrapper.step_for
+
+    def spy(args, key, title, params, *rest, **kwargs):
+        seen.append((key, params))
+        return real(args, key, title, params, *rest, **kwargs)
+
+    monkeypatch.setattr(wrapper, "step_for", spy)
+    _main(monkeypatch, mysql_config, "sectors", "--shell", "1", "--band", "0", "--limit", "2", "--num-systems", "1")
+    [(key, params)] = seen
+    assert key == "sectors" and params["items"] == [] and params["planned"] is True
+    assert len(_all_sectors(mysql_config)) == 2
