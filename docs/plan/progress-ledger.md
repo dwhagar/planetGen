@@ -973,3 +973,4 @@ Baseline: PR #1817.
 | TEST.265 | 8.1 | Bugs and flaky tests |
 | GEN.607 | 8.1 | Galaxy laws build |
 | TEST.268 | 8.1 | Bugs and flaky tests |
+| TEST.241 | 8.1 | Multi-star and compact systems |
