@@ -910,7 +910,9 @@ with `clamp()`.
   Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
   coordinator reported them): the list pages are filed in 8.2 with the
   tile cache; their index is kept first when the shared budget is short.
-  Prerequisites: PERF.140. Related: PERF.137.
+  PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
+  lane reported): the index builder is in, so the list pages can read
+  it. Prerequisites: none. Related: PERF.137, PERF.140.
 
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
@@ -17226,50 +17228,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
 
-- [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Do: build
-  `object_index` per kind after generation and after `planetgen orbits`,
-  and refresh a kind when its data version tag moves (the page cache
-  already has per-kind tags in `web/lib/pagetags.py` and counters in
-  `db/dataversion.py`, but nothing consumes a tag bump to rebuild): only
-  the changed rows are rewritten, with a full rebuild as the fallback
-  and a check that the index matches the live tables. The index counts
-  against `cache.max_mb`. Done: after a generation run, an orbital
-  update and an API edit each leave the index matching the live tables,
-  a test changes one object and sees only its row rewritten, and the
-  admin page shows the index size and age per kind. Suggested owner:
-  Core 2; filed in 8.2.
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the index and lists are filed in 8.2 with
-  the tile cache, after PERF.131 to 133; their space is taken first when
-  the shared budget is short, tiles take the rest.
-  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
-  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
-  `cache.max_mb` (default 1024, 0 turns the disk caches off, environment
-  variable PLANETGEN_CACHE_MAX_MB) is the one budget; the stored lists
-  and the index built here must share it and still need the "kept first"
-  rule (when the budget is short the index and lists are kept and the
-  tiles take the rest), which Core 2 states cannot be built until the
-  lists and index exist. Owner (coordinator decision, 12:07 PM EDT
-  2026-10-21 as the coordinator relayed it): Core 2 owns DB.79 first and
-  then this item. Core 2's PERF.141 parts that do not need the index go
-  first.
-  Prerequisites: none (DB.79 merged as #2361).
-
 - [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
   warm-up that occurs after an update, generation, or change. That is
@@ -17349,7 +17307,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Slices 1 to 3 are done; this item stays open only for the deeper list
   pages and the index in phase 1, which wait on PERF.140 (DB.79 merged
   as #2361, about 7:25 PM EDT as the lane reported).
-  Prerequisites: PERF.140.
+  PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
+  lane reported): the deeper list pages and the index in phase 1 are now
+  unblocked (the index is the new first warm family, object-index).
+  Prerequisites: none. Related: PERF.140.
 
 - [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
   Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of
@@ -22381,6 +22342,11 @@ clears each one.
   route in test_fuzz_web_routes failed with "Lost connection to MySQL
   server"; it passes alone. Same class (load flake), no solo reproducer;
   Bug Hunt looks at it with this item.
+  Second sighting (Core 2, about 8:15 PM EDT 2026-10-21 as the lane
+  reported, PERF.140's gate, filed by the TODO thread): once under load,
+  the /sectors route in test_fuzz_web_routes failed with "Lost
+  connection to MySQL server"; it passes alone. Same class as the
+  facilities sighting above; Bug Hunt looks at both.
   Prerequisites: none. Related: TEST.252.
 
 - [ ] **TEST.263 test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug)**
