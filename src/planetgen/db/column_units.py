@@ -663,12 +663,13 @@ TABLES = {
         "flag": ("dirty",),
     },
     "sectors": {
-        "id": ("id", "uid", "run_id"),
+        "id": ("id", "uid", "run_id", "override_id"),
         "mpc": ("edge_mpc",),
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
         "index": ("shell_index", "band_index", "wedge_index", "generator_epoch"),
         "kg": ("max_mass_kg",),
         "flag": ("parity_dirty",),
+        "ratio": ("density_multiplier_used",),
     },
     "species": {
         "id": ("id", "homeworld_planet_id", "star_system_id"),

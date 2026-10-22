@@ -1941,6 +1941,8 @@ sectors = sa.Table(
     sa.Column('leaf_digest', mysql.BINARY(32), nullable=True),
     sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('density_multiplier_used', mysql.DECIMAL(), nullable=True),
+    sa.Column('override_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('ft_sectors_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_sectors_center', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
     sa.Index('idx_sectors_galactic_radius_pc', 'galactic_radius_pc'),

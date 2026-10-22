@@ -1504,6 +1504,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (125, _column_marker("sectors", "override_id")),
     (124, _table_marker("region_density_overrides")),
     (123, _table_marker("object_locks")),
     (122, _table_marker("change_plans")),
