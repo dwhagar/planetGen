@@ -20,9 +20,9 @@ release is stamped.
 | PERF | PERF.149 |
 | DB | DB.87 |
 | API | API.32 |
-| ADM | ADM.126 |
+| ADM | ADM.127 |
 | SEC | SEC.34 |
-| TEST | TEST.275 |
+| TEST | TEST.277 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -480,8 +480,8 @@ Parents marked "new parent" had no old number of their own.
 | ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | none | open |
 | ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | none | open |
 | ADM.91 | Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | none | open |
-| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | none | open |
-| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | open |
+| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | none | done, PR #2494 |
+| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | done, PR #2494 |
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | none | open |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
@@ -495,25 +495,26 @@ Parents marked "new parent" had no old number of their own.
 | ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | done, PR #2456 |
 | ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | none | done, PR #2456 |
 | ADM.106 | Settings: the server-files disclosure and the overridden-option badge | none | done, PR #2456 |
-| ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | open |
-| ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | open |
-| ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | open |
+| ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | done, PR #2494 |
+| ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | done, PR #2494 |
+| ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | done, PR #2494 |
 | ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | none | open |
 | ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | none | open |
 | ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | open |
-| ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | open |
+| ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | done, PR #2494 |
 | ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | open |
-| ADM.115 | Generate: Run again from History | none | open |
+| ADM.115 | Generate: Run again from History | none | done, PR #2494 |
 | ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | open |
 | ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | open |
-| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | open |
-| ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | none | open |
-| ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | none | open |
-| ADM.121 | Typed commands that open a task's Review step pre-filled and never run by themselves | none | open |
-| ADM.122 | Admin keyboard set and a help overlay | none | open |
-| ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | none | open |
-| ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | open |
+| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | done, PR #2494 |
+| ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | none | done, PR #2494 |
+| ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | none | done, PR #2494 |
+| ADM.121 | Typed commands that open a task's Review step pre-filled and never run by themselves | none | done, PR #2494 |
+| ADM.122 | Admin keyboard set and a help overlay | none | done, PR #2494 |
+| ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | none | done, PR #2494 |
+| ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | done, PR #2494 |
 | ADM.125 | Generate: named recipes saved per admin in the control database | none | open |
+| ADM.126 | Generate: a live 'how big' count while typing a command or filling the form | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -2449,12 +2450,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | done, PR #2466 |
 | TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | done, PR #2485 |
 | TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | open |
-| TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | open |
+| TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | done, PR #2494 |
 | TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | open |
 | TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) | none | open |
 | TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) | none | open |
 | TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) | none | open |
 | TEST.274 | test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it fails on main: _relative_circular_km was removed by #2481 (bug) | none | done, PR #2493 |
+| TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
+| TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
+| TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
