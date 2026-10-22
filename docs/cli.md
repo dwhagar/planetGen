@@ -481,6 +481,14 @@ section 5.13, rows 4 to 6). The plan prints what was drawn.
 A galaxy whose halo would weigh under 1e+10 solar masses (a stellar mass under about 4.6e6) has no dark halo: none is drawn and no law that reads one runs (bracket; see `dials.HALO_MIN_HALO_MASS_SOLAR`). A galaxy under 3e+08 solar masses of stars is one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`).
 <!-- dials:end -->
 
+Before it stores anything, `planetgen plan` prints one line about the galaxy it has drawn: how dense the thin disc's
+crest is as a multiple of the one-star-per-sector density (D), about what share of the stars sit in planned sectors
+(from the density-limits report's table, approximate), and how many shells and candidate sectors the outline holds. A
+crest under 20 times the one-star density adds a warning, and an outline with no sector in it is refused with the reason
+(raise the mass or the density, or lower the scale length or the height). The Generate page shows the same line under the
+shape dials; it asks `/admin/generate/shape-report`, which works the numbers out with the same code
+(`generation/plan_outline.py`).
+
 The galaxy holds the systems its stellar mass makes (no point of it is pinned to the local density, GEN.404). `--max-shell` caps how far out the
 shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the
 galaxy seed. `--workers` is how many shells of bright stars are drawn at
@@ -739,7 +747,7 @@ python3 -m planetgen.cli.migrate --status
 
 ### datasets
 
-Downloads the static data files the generator reads (GEN.548) into a cache folder outside the checkout, `/var/cache/planetgen/datasets` (`PLANETGEN_DATA_DIR` moves it). `install.sh` and `update.sh` run `fetch` once at setup, as root, and make the folder readable for Apache's user; nothing downloads while the site or the generator runs. Each file is requested with the standard `User-Agent`, must have the size and sha256 the catalogue states, and is kept by an atomic rename, so an interrupted run leaves no half file. A dataset whose host does not answer, or whose file does not match, stays missing; `fetch` then prints the reason and exits 1, which the scripts report as a warning and not as a failure. `status` fetches nothing, says which datasets are present and exits 1 while one is missing. **Bulk generation needs them (GEN.590):** `galaxy`, `plan`, `population` and `sector --num-sectors` above 1 refuse to start while a dataset is missing, naming it and writing nothing, as with the math check; so do the Sector page's neighbourhood button and the Generate page's jobs, whose second step, "Check the data", is `status` (before the reset, so nothing is wiped for a run that cannot start).
+Downloads the static data files the generator reads (GEN.548) into a cache folder outside the checkout, `/var/cache/planetgen/datasets` (`PLANETGEN_DATA_DIR` moves it). `install.sh` and `update.sh` run `fetch` once at setup, as root, and make the folder readable for Apache's user; nothing downloads while the site or the generator runs. Each file is requested with the standard `User-Agent`, must have the size and sha256 the catalogue states, and is kept by an atomic rename, so an interrupted run leaves no half file. `fetch` prints one line per dataset and, under it, one line per file with its https URL and what happened to it: `fetched` (requested and kept), `kept` (already there with the right size and sha256, not requested again) or `failed` (with the reason); `update.sh` and `install.sh` show these lines. A dataset whose host does not answer, or whose file does not match, stays missing; `fetch` then prints the reason and exits 1, which the scripts report as a warning and not as a failure. `status` fetches nothing, says which datasets are present, prints the URL of every file that is missing, and exits 1 while one is missing. **Bulk generation needs them (GEN.590):** `galaxy`, `plan`, `population` and `sector --num-sectors` above 1 refuse to start while a dataset is missing, naming it and writing nothing, as with the math check; so do the Sector page's neighbourhood button and the Generate page's jobs, whose second step, "Check the data", is `status` (before the reset, so nothing is wiped for a run that cannot start).
 
 ```bash
 python3 -m planetgen.cli.datasets fetch

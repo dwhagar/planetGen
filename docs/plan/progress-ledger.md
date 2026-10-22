@@ -972,7 +972,6 @@ Baseline: PR #1817.
 | DB.66 | 8.3 | Galactic gravity |
 | TEST.265 | 8.1 | Bugs and flaky tests |
 | GEN.607 | 8.1 | Galaxy laws build |
-| TEST.268 | 8.1 | Bugs and flaky tests |
 | TEST.241 | 8.1 | Multi-star and compact systems |
 | ADM.102 | 8.1 | Admin control suite |
 | ADM.103 | 8.1 | Admin control suite |
@@ -981,3 +980,9 @@ Baseline: PR #1817.
 | ADM.105 | 8.1 | Admin control suite |
 | ADM.106 | 8.1 | Admin control suite |
 | ADM.100 | 8.1 | Admin control suite |
+| GEN.370 | 8.3 | Galactic gravity |
+| TEST.258 | 8.1 | Bugs and flaky tests |
+| GEN.600 | 8.1 | Queue, caches and performance |
+| TEST.266 | 8.1 | Bugs and flaky tests |
+| MAP.139 | 8.1 | Fly-through map |
+| GEN.617 | 8.1 | Admin control suite |

@@ -98,6 +98,7 @@
   {%- endfor %}
 </div>
 <p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disc plus a bulge with no stellar halo, thick disc, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
+<p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
 <details class="generate-advanced">
   <summary>Advanced shape options</summary>
   <div class="search-fields">

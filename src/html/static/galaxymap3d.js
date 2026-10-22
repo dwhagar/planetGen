@@ -222,8 +222,8 @@ function showPlacedInfo(entry) {
       ["Designation", entry.designation],
     ],
     bookmark: sectorBookmark(entry),
-    links: (sceneData.sectorUrl && entry.id != null ? [{ href: sectorUrl(entry.id), label: "View sector →" }] : [])
-      .concat(entry.id != null ? navPick.nearbyLinks("sector:" + entry.id) : []),
+    view: sceneData.sectorUrl && entry.id != null ? { href: sectorUrl(entry.id), label: "View sector →" } : null,
+    links: entry.id != null ? navPick.nearbyLinks("sector:" + entry.id) : [],
   });
 }
 
@@ -389,7 +389,7 @@ function phenomenonActions(item) {
     var href = item.scattered && sceneData.unchartedPhenomenonUrl
       ? String(sceneData.unchartedPhenomenonUrl).replace("{id}", encodeURIComponent(String(item.id).replace(/^s/, "")))
       : phenomenonUrl(item);
-    spec.links = [{ href: href, label: "View phenomenon →" }];
+    spec.view = { href: href, label: "View phenomenon →" };
   }
   if (sceneData.navUrl) {
     spec.nav = navPick.actionsFor(endpoint, item.name);

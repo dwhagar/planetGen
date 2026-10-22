@@ -18,11 +18,11 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.622 |
 | PERF | PERF.149 |
-| DB | DB.85 |
+| DB | DB.86 |
 | API | API.32 |
 | ADM | ADM.126 |
 | SEC | SEC.34 |
-| TEST | TEST.270 |
+| TEST | TEST.271 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -629,6 +629,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
+| DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1071,7 +1072,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
 | GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | done, PR #1960 |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | open |
-| GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | open |
+| GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | done, PR #2460 |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
 | GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
 | GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | dropped (Boss, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it) |
@@ -1301,7 +1302,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | done, PR #2399 |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | open |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header | none | open |
-| GEN.600 | The updater and the downloader print the URL of every file they load | none | open |
+| GEN.600 | The updater and the downloader print the URL of every file they load | none | done, PR #2464 |
 | GEN.601 | Shape dials: the lever table, one registry row per slider (name, flag, label, unit, minimum, maximum, step, Auto default, the law it moves, range source) and the parity test | none | done, PR #2395 |
 | GEN.602 | Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired | none | done, PR #2403 |
 | GEN.603 | Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown | none | done, PR #2403 |
@@ -1318,7 +1319,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster | none | open |
 | GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures | none | open |
 | GEN.616 | Average the galaxy density over each planned sector (or a 3 by 3 by 3 sample) instead of taking its centre point, for galaxies under 28 pc scale length | none | dropped (Boss, 2026-10-21 8:08 PM EDT, replaced by GEN.619) |
-| GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output | none | open |
+| GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output | none | done, PR #2469 |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end | none | open |
 | GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | none | open |
 | GEN.620 | The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off) | none | open |
@@ -1461,7 +1462,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | done, PR #797 |
 | MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | done, PR #797 |
 | MAP.138 | Recenter the camera in every 3D view (bug) | none | done, PR #797 |
-| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
+| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | done, PR #2468 |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
 | MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
@@ -2435,7 +2436,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | done, PR #2332 |
 | TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) | none | done, PR #2327 |
 | TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | done, PR #2416 |
-| TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | open |
+| TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | done, PR #2461 |
 | TEST.259 | test_open_map_menus_hold_no_overlap audits the menu boxes while the open animation is still moving and reports an overlap that is gone a frame later (bug) | none | done, PR #2332 |
 | TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) | none | done, PR #2425 |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | none | open |
@@ -2443,10 +2444,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | done, PR #2416 |
 | TEST.264 | test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug) | none | done, PR #2425 |
 | TEST.265 | A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug) | none | done, PR #2442 |
-| TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | open |
+| TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | done, PR #2466 |
 | TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | open |
-| TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | dropped (not reproducible on main, 2026-10-22) |
+| TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | open |
 | TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | open |
+| TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

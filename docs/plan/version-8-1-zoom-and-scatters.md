@@ -39,7 +39,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.309 | Research: ledger size at full galaxy. |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |
-| GEN.600 | The updater and the downloader print the URL of every file they load |  |  |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header |  |  |
 | GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | PERF.99 | Split from GEN.231. |
 | UX.127 | The Galaxy Map block menu offers Generate again | GEN.310 | Split from GEN.231. |
@@ -135,10 +134,10 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) |  |  |
 | OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
-| TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) |  |  |
 | TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) |  |  |
+| TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) |  |  |
 | TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) |  |  |
-| TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory |  |  |
+| TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
@@ -180,7 +179,6 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them |  | Boss 7:33 PM EDT 2026-10-21; read-only report. |
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster |  | Density limits report (GEN.613). |
 | GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures |  | Density limits report (GEN.613); cut decided 3e8 (Boss, 7:58 PM EDT). |
-| GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output |  | Density limits report (GEN.613). |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
 | ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it |  | Admin control suite key K1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.118 | Split from ADM.56. Key K2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
@@ -217,7 +215,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
-| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |

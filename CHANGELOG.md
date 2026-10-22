@@ -2,6 +2,51 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1908] - 2026-10-22
+
+**Headline:** Planning a galaxy now says how dense it is and how much of it is planned, on the Generate page under the shape dials and in the plan output, and refuses a galaxy with nothing to plan.
+
+### Changed
+- **A line under the shape dials.** The Generate page shows, as the dials are typed, how dense the thin disc's crest is as a multiple of the one-star-per-sector density, about what share of the stars sit in planned sectors, and how many shells and candidate sectors the outline holds. A crest under 20 times the one-star density adds a warning.
+- **The same line in the plan.** `planetgen plan` prints the same line, worked out by the same code, before it stores the outline.
+- **An empty outline is refused with the reason.** A galaxy no sector of which reaches the one-star density stops the plan with what to change (raise the mass or the density, lower the scale length or the height), whether or not a dial was pinned.
+
+## [8.0.1907] - 2026-10-22
+
+**Headline:** Selecting something on a map now shows one info box over the map, with a View button to its own page.
+
+### Changed
+
+- When the map has room, the Galaxy Map, the Sector Map and the System Map (diagram and 3D) show a small box over the map for what is selected: its name, the first few facts, a View button, a Details button that takes you to the full panel beside the map, and a Close button.
+- Every selected thing on those maps has a View button first among its actions, opening its own page: a sector, a system, a phenomenon, or a star, planet, moon, belt or comet of a system. While a course is being picked the button is left out, as the other links that would leave it are.
+- The diagram System Map's panel is now the same panel as the other maps', so its rows and buttons look and behave the same.
+
+TODO items resolved / Added: MAP.139, MAP.254 (Galaxy, Sector and System maps; the navigation chart and search results keep their own links for now) / Added: none
+
+## [8.0.1906] - 2026-10-22
+
+**Headline:** The test that interrupts a parallel galaxy run no longer fails as "Busy" when another test worker has a run going.
+
+### Fixed
+- **`test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector` failed under load with "run ... is running" (TEST.266).** The test starts `planetgen generate` as a process, which takes the machine's one live-run lock (`planetgen:run:active`) on the shared Redis server; a process cannot be given the key prefix the in-process tests get, so a second test worker running at the same time was refused. Reproduced by starting the test twice at once (before: one of the two failed Busy; after: both pass). Each worker now takes the Redis database numbered after it for the processes it starts (`tests/private_redis.py`).
+
+TODO items resolved: TEST.266. Added: none.
+
+## [8.0.1905] - 2026-10-22
+
+**Headline:** The galaxy density model can now be read as a list of components, each with an amplitude and a mass.
+
+### Added
+- `galaxy.density.density_components(shape)` lists the thin disk, thick disk, bulge, halo and the two nuclear parts, each with its population, amplitude, mass (in closed form and in solar masses) and the lengths, heights and slopes that shape it. A component with amplitude 0 has mass exactly 0. The density itself does not change, so every galaxy generates as before; the galactic potential (GEN.338) and the Sersic spheroid (GEN.381) read and extend the list.
+
+## [8.0.1904] - 2026-10-22
+
+**Headline:** The updater and the data downloader now print the URL of every file they load.
+
+### Changed
+- **`planetgen.cli.datasets fetch` prints each file's URL (GEN.600).** Under every dataset's line it prints one line per file with its https URL and what happened to it: `fetched` (requested and kept), `kept` (already there with the right size and sha256, so not requested again) or `failed` with the reason. `update.sh` and `install.sh` run it, so their output shows the same lines.
+- **`planetgen.cli.datasets status` prints the URL of every missing file,** with why it counts as missing (not downloaded, or the size or sha256 does not match), and nothing for a dataset that is present.
+
 ## [8.0.1903] - 2026-10-22
 
 **Headline:** Five scatter tests that held a million rows or more in lists now stream them, so none holds more than a gigabyte.

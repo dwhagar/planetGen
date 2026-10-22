@@ -64,7 +64,7 @@ from planetgen.web.lib import apiclient, estimatecache
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
 from planetgen.admin import activity_log, updateguard
-from planetgen.generation import luminosity_floor, prevalence, stages, stats
+from planetgen.generation import luminosity_floor, plan_outline, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.db import dataversion, store
 from planetgen.util import generator_epoch, log, stagemark
@@ -386,7 +386,12 @@ def limits_argv(form):
 def plan_argv(form):
     """`planetgen plan` arguments from the Plan fields (blank means
     the default) and the limits stored with the galaxy (`limits_argv`)."""
-    argv = limits_argv(form)
+    return limits_argv(form) + lever_argv(form)
+
+
+def lever_argv(form):
+    """The lever table's flags from the Plan fields (blank means Auto), each checked against its range."""
+    argv = []
     for row in PLAN_FIELDS:
         value = _lever_text(form, row)
         if value is not None:
@@ -1403,6 +1408,48 @@ def generate_status():
 
 
 generate_status.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+def _stored_seed(database):
+    """The seed of the planned galaxy (bytes), or `None` before a plan or when the database doesn't answer."""
+    config = current_app.config["MYSQL_CONFIG"]
+    try:
+        conn = store.get_connection(store.MySQLConfig(host=config.host, port=config.port, user=config.user,
+                                                      password=config.password, database=database),
+                                    ensure_schema=False)
+        try:
+            return store.get_galaxy_seed(conn)
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the line then draws the Auto dials from the sample seed
+        log.error(f"Generate page: no galaxy seed for the shape report: {exc}")
+        return None
+
+
+@bp.route("/admin/generate/shape-report")
+def generate_shape_report():
+    """
+    JSON for `static/generatelevers.js` (GEN.617): the line under the dials. `?mass=...&flatness=...` are the Plan
+    fields; the answer is what `planetgen plan` would print for them (`generation.plan_outline`): `line`, the
+    `warnings`, and `refusal` when the outline would be empty (the plan stops with that reason). The Auto dials are
+    drawn from the planned galaxy's seed, else from a sample seed (`sample`).
+    """
+    _admin_or_403()
+    try:
+        with collecting_problems():
+            argv = lever_argv(request.args)
+    except FormError as exc:
+        return _no_store(make_response(jsonify({"error": str(exc)}), 400))
+    seed = _stored_seed(db_name())
+    try:
+        made, refusal = plan_outline.preview(argv, galaxy_seed=seed)
+    except ValueError as exc:
+        return _no_store(make_response(jsonify({"error": str(exc)}), 400))
+    return _no_store(jsonify({"line": made.line(), "warnings": made.warnings, "refusal": refusal,
+                              "sample": seed is None}))
+
+
+generate_shape_report.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 STREAM_SECONDS = 40

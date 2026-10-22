@@ -1632,3 +1632,26 @@ def test_the_mass_field_carries_the_halo_thresholds_the_script_turns_the_halo_op
     assert f'data-simple-below="{dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR}"' in html
     assert "data-halo-reason hidden" in html and '/static/generatelevers.js' in html
     assert 'data-lever="halo_ratio"' in html and 'data-lever="stellar_halo_share"' in html
+
+
+def test_the_page_carries_the_line_under_the_dials_and_the_script_that_fills_it(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert 'data-shape-report data-url="/admin/generate/shape-report"' in html
+
+
+def test_the_shape_report_is_the_line_the_plan_prints(site, client):
+    from planetgen.generation import plan_outline
+    query = "mass=1e8&disk_scale_length=2000&disk_scale_length_unit=pc&flatness=20&bulge_share=0.001"
+    answer = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    made, refusal = plan_outline.preview(["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20",
+                                          "--bulge-share", "0.001"])
+    assert answer["line"] == made.line() and answer["warnings"] == made.warnings and answer["refusal"] is refusal
+    assert answer["sample"] is True and any("under 20" in note for note in answer["warnings"])
+
+
+def test_the_shape_report_refuses_an_empty_outline_and_a_value_out_of_range(site, client):
+    empty = client.get("/admin/generate/shape-report?mass=3e5&disk_scale_length=500&disk_scale_length_unit=pc")
+    assert empty.status_code == 200 and "one-star-per-sector density" in empty.get_json()["refusal"]
+    assert empty.get_json()["line"].startswith("Outline: empty")
+    bad = client.get("/admin/generate/shape-report?mass=1")
+    assert bad.status_code == 400 and "Stellar mass" in bad.get_json()["error"]

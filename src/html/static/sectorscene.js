@@ -51,7 +51,7 @@ export function infoSpec(entry, data, navPick) {
     return neighborSpec(entry, data, navPick);
   }
   var picking = !!(navPick && navPick.active());
-  var spec = { title: entry.name || "Unknown", nav: [], links: [] };
+  var spec = { title: entry.name || "Unknown", nav: [], links: [], view: null };
   if (entry.uncharted) {
     // Left by a scatter in a sector nothing was generated in (MAP.162): it has no
     // bookmark or NAV endpoint until the sector is made.
@@ -62,7 +62,7 @@ export function infoSpec(entry, data, navPick) {
     // MAP.211: a scattered phenomenon has a page of what is known of it (the star it will be, its speed, its
     // origin); a bright star waiting for its sector has none.
     if (entry.href && !picking) {
-      spec.links.push({ href: entry.href, label: "View phenomenon →" });
+      spec.view = { href: entry.href, label: "View phenomenon →" };
     }
     return spec;
   }
@@ -71,7 +71,7 @@ export function infoSpec(entry, data, navPick) {
     spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
     if (navPick) spec.nav = navPick.actionsFor(entry.key, entry.name);
     if (!picking) {
-      spec.links.push({ href: entry.href, label: "View phenomenon →" });
+      spec.view = { href: entry.href, label: "View phenomenon →" };
     }
     if (navPick) spec.links = spec.links.concat(navPick.nearbyLinks(entry.key)); // NAV.45
     return spec;
@@ -81,7 +81,7 @@ export function infoSpec(entry, data, navPick) {
   spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
   if (navPick) spec.nav = navPick.actionsFor(entry.endpoint, entry.name);
   if (!picking) {
-    spec.links.push({ href: entry.href, label: "View system →" });
+    spec.view = { href: entry.href, label: "View system →" };
   }
   if (navPick) spec.links = spec.links.concat(navPick.nearbyLinks(entry.endpoint)); // NAV.45
   return spec;
@@ -101,7 +101,8 @@ function neighborSpec(entry, data, navPick) {
       kind: "sector", value: entry.designation, name: entry.name || entry.designation, url: entry.href || null,
       sectorId: entry.sectorId != null ? entry.sectorId : null,
     };
-    spec.links = [{ href: entry.href, label: "View sector →" }];
+    spec.view = { href: entry.href, label: "View sector →" };
+    spec.links = [];
     // NAV.45
     if (navPick && entry.sectorId != null) spec.links = spec.links.concat(navPick.nearbyLinks("sector:" + entry.sectorId));
   } else if (data && data.generate) {

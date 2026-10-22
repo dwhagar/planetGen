@@ -995,6 +995,13 @@ with `clamp()`.
   builds the admin shell and header palette (ADM.92, ADM.118) and does
   not touch the item pages or the viewers' info box; if both change the
   shared header layout, whichever merges second rebases.
+  Core 2 (relayed 9:33 AM EDT 2026-10-22): next in its queue with the
+  TEST.267 fix (the page-walk test walks stars): the Location block on
+  item, system and phenomenon pages, nebula and remnant pages listing
+  what is inside them, and the new API `GET
+  /api/phenomena/<type>/<id>/contents`. The cluster and region part
+  waits on DB.85 (globular clusters and superbubbles are not stored as
+  containers).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1150,34 +1157,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitable worlds and chosen classes (child b) and the station and
   vessel icons (child c, in 9.3).
   Prerequisites: MAP.219, MAP.220, MAP.221.
-
-- [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
-  Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
-  that I want to fill up with something useful, maybe menu items? Maybe
-  information about what is selected?" and "A simple information box
-  should appear overlaid on the map when there is room that displays the
-  basics. Then a details link will jump you to the part of the page the
-  details are listed on." Done: on a wide Galaxy View the space beside
-  the map holds the selection's basics and the map's Menu items; where
-  there is room on the map itself a small info box shows the basics with
-  a Details link that scrolls to the full details; it builds on MAP.65's
-  shared panel.
-  Screenshot (Boss, 2026-10-14 13:37Z, copy in
-  /mnt/project-files/screenshots/issue-758/): the top of the Galaxy Map
-  page. The header band (breadcrumb, the title "Galaxy Map" and the "0
-  placed sectors" pill) fills the full width but only its left fifth is
-  used; the "Go to" bar below it is the only control on its row; and
-  the right-hand panel holds only the help text until something is
-  selected. The empty header space to the right of the title and the
-  empty panel are the places to put the selection basics and menu items.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Overlap (6:40 PM EDT 2026-10-21): this item's Galaxy View info box
-  with a Details link is extended to every view and every kind by
-  MAP.254 (one shared info box with a View button to the item page
-  UX.143); build MAP.139 on the shared component so MAP.254 does not
-  redo it.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -2532,8 +2511,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   palette (ADM.92, ADM.118) and does not touch the item pages or the
   viewers' info box; if both change the shared header layout, whichever
   merges second rebases.
-  Prerequisites: UX.143, MAP.139. Related: MAP.65, MAP.139, MAP.140,
+  Prerequisites: UX.143. Related: MAP.65, MAP.139, MAP.140,
   UX.142, UX.143, UX.144.
+  Progress (Core 2, MAP.139 and MAP.254 merged together as #2468,
+  relayed 9:33 AM EDT 2026-10-22): one shared info box (`mappick.js`)
+  with the View button to the item's own page on the Galaxy, Sector and
+  System maps (diagram and 3D), plus a small box over the map when it
+  has room (rows, View, Details, Close); the 2D System Map uses the
+  shared panel; a test fails if any map builds a panel or box of its
+  own. MAP.139 is retired. Still open here: the navigation chart and the
+  list and search results keep their own links, and the browser table of
+  every kind by every view is not written.
 
 
 ## NAV: Navigation and courses
@@ -4116,25 +4104,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "visible" could mean half a pixel at the deepest zoom where the object
   type is drawn (needs a map-scale value). Decided (Boss, 2026-10-10
   18:44Z, defaults approved; defaults taken): stars follow their
-  analytic orbit and are rewritten
-  at sector exit or when the influence set changes, planets and moons
-  are computed from phase on read with thresholds only scheduling
-  perturbation re-fits; the deepest star zoom is the 4 pc sector view.
-  Moved first in the Orbital update core thread and a prerequisite of
-  the stepper (child c of GEN.115) (2026-10-16 review). Restated: a
-  planet or moon is placed from its stored vector and epoch by the
-  closed-form step on read, and the thresholds only schedule
-  perturbation re-fits; GEN.289 replaces the phase columns that the
-  earlier wording relied on.
+  analytic orbit and are rewritten at sector exit or when the influence
+  set changes, planets and moons are computed from phase on read with
+  thresholds only scheduling perturbation re-fits; the deepest star zoom
+  is the 4 pc sector view. Moved first in the Orbital update core thread
+  and a prerequisite of the stepper (child c of GEN.115) (2026-10-16
+  review). Restated: a planet or moon is placed from its stored vector
+  and epoch by the closed-form step on read, and the thresholds only
+  schedule perturbation re-fits; GEN.289 replaces the phase columns that
+  the earlier wording relied on.
   Decided (Boss, 2026-10-18, F4 and F5, approved to build; card taps as
   the coordinator reported them, 5:32 PM EDT): the next-update value
   comes from the speed of the new vector after step 4, capped at the
-  time for the influence set to change; a new record with no
-  next-update value is always visited, its position advances only from
-  its own epoch (generation stamps the epoch), then the value is set.
-  Full wording on GEN.105.
+  time for the influence set to change; a new record with no next-update
+  value is always visited, its position advances only from its own epoch
+  (generation stamps the epoch), then the value is set. Full wording on
+  GEN.105. Core 3 (relayed 8:44 AM EDT 2026-10-22): this item reads as
+  rules for the stepper (GEN.115 child c) rather than standalone code;
+  Core 3 asks whether to take it anyway. Decided (the coordinator,
+  relayed 8:52 AM EDT 2026-10-22): Core 3 does not take it standalone;
+  it stays with the stepper work, which is GEN.340 (child c of GEN.115).
+  GEN.340 is in Core 3's queue after GEN.338 (lanes.md; no owner line on
+  the item), and GEN.338 waits on GEN.369 (Core 1) and GEN.379 (Blocker
+  2).
   Prerequisites: none.
-  Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
+  Design:
+  [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
 - [ ] **GEN.140 Orbital math guards the edge-case table adds (GEN.108 built)**
   Follow-up to GEN.108: adopt the edge-case table of
@@ -4150,6 +4145,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Moved to the Positions thread of phase 1, before GEN.289, and a
   prerequisite of the perturbed pass (child c of GEN.109), which runs
   into its guards (2026-10-16 review).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed together
+  with GEN.374 and part of GEN.144 as the orbit math guards, queued for
+  a gate and PR.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -4198,6 +4196,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not a galaxy constant, and each use of a Sun radius becomes a
   per-position calculation from the galaxy's own model (GEN.368's build
   finds the uses).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): part is built with GEN.140
+  and GEN.374; the remaining part switches the 8.2 kpc test radii in
+  test_sector_gen and test_star_matrix to
+  `mathcheck.SUN_REFERENCE_RADIUS_PC`, which Core 3 does after the
+  GEN.370 merge.
   Prerequisites: none.
   Related: GEN.404, GEN.370.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
@@ -4995,6 +4998,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 3's; the epoch rule in execution-notes still applies).
+  Blocker 2 (relayed 9:01 AM EDT 2026-10-22): gated together with
+  GEN.311 (see there); epoch 49 once it merges.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -5832,6 +5837,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 3's).
+  Blocker 2 (relayed 9:01 AM EDT 2026-10-22): the combined gate with
+  GEN.269 is running alone now (orbit tree store and load); its
+  generator epoch was renumbered to 49 after main took 47 and 48. Fixes
+  found by the combined gate: the scene tree.origin needed an id rule,
+  orbit_nodes inserts must go through `Connection.batched`, two test
+  lists, and the parallel-generation fingerprint skips
+  `orbit_nodes.epoch_unix` (a save-time clock). Caveat: the stored node
+  is a circular or eccentric pair at the save epoch, and the JavaScript
+  twin of `positions_at` is a follow-up.
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
@@ -6103,6 +6117,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
   built on side branch gen334-closest-approach off main
   (`physics/closest_approach.py`, 17 tests green, no gate yet).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed, queued
+  for its own gate and PR.
   Prerequisites: none. Related: GEN.110, GEN.290.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -6215,6 +6231,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state of the others, and its next-update value comes from the speed of
   the new vector, capped at the time for the influence set to change
   (F4).
+  Owner: no card names one; Core 3's queue lists it after GEN.338
+  (lanes.md). It is child c of GEN.115 and takes GEN.139's rules (the
+  coordinator, relayed 8:52 AM EDT 2026-10-22: GEN.139 stays with this
+  stepper work).
   Prerequisites: GEN.338, GEN.139. Related: GEN.115.
 
 - [ ] **GEN.341 Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check**
@@ -6239,20 +6259,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sgr A* left out of the maximum), which replaces the largest-nearby-
   object scan and its cover lists; the cap of 64 exact members with one
   point mass per sector for the rest stays. GEN.370 comes first. Full
-  wording on GEN.105.
-  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
-  EDT; GEN.105's Decided notes win where this item's older text
-  differs): the global largest-Hill-radius search (Sgr A* excluded, 64
-  exact then one point mass per sector) is built here after GEN.370, and
-  the order of work is GEN.370, GEN.341, GEN.342 on Core 3 after its 8.1
-  queue.
-  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
-  built on side branch gen341-influence-set, stacked on GEN.370
-  (`galaxy/influence.py`, 10 tests green, no gate yet). It uses the
-  global radius, so the cover lists named in this title are not built.
-  The wording above that the per-sector `max_mass_kg` and `max_mass_id`
-  columns come from GEN.294:m is stale: they already exist (DB.55).
-  Prerequisites: GEN.370. Related: GEN.109.
+  wording on GEN.105. Reworded to match GEN.105 (contradiction sweep,
+  2026-10-21, 7:45 AM EDT; GEN.105's Decided notes win where this item's
+  older text differs): the global largest-Hill-radius search (Sgr A*
+  excluded, 64 exact then one point mass per sector) is built here after
+  GEN.370, and the order of work is GEN.370, GEN.341, GEN.342 on Core 3
+  after its 8.1 queue. Status from Core 3 (4:40 PM EDT 2026-10-21 as the
+  lane reported): built on side branch gen341-influence-set, stacked on
+  GEN.370 (`galaxy/influence.py`, 10 tests green, no gate yet). It uses
+  the global radius, so the cover lists named in this title are not
+  built. The wording above that the per-sector `max_mass_kg` and
+  `max_mass_id` columns come from GEN.294:m is stale: they already exist
+  (DB.55).
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): GEN.370 merged as #2460, so
+  this item no longer waits on it; it is built and committed on its side
+  branch, queued for its own gate and PR.
+  Prerequisites: none. Related: GEN.109, GEN.370 (done, #2460).
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6349,6 +6371,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hydrogen-burning limit (0.074 solar masses at solar Z); the 0.075 to
   0.08 figures above are the old settings and the sampling range, not
   the limit.
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): the collision outcome
+  function is built and committed, queued for its own gate and PR.
   Prerequisites: none. Related: GEN.110.
 
 - [ ] **GEN.346 Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events**
@@ -6869,72 +6893,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whether the scatter makes the cells.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
-  Found by the TODO thread (2026-10-16, survey for Boss's 4:00 PM EDT
-  request): `MILKY_WAY_MASS` (1.15e12 solar masses) is the central mass
-  of every Hill sphere (`generation/binary.py`, `generation/star.py`,
-  `galaxy/keepout.py`) and `GALACTIC_CENTER_DISTANCE_LY` (25,800) is the
-  default distance when none is given, so a galaxy of another size or
-  mass gets Milky Way tides, and a point-mass central mass overstates
-  the enclosed mass inside the disk (the orbit function already avoids
-  that, `galaxy/galactic_orbit.py`). Done: the central mass is the
-  galaxy's mass enclosed within the star's radius from the density
-  model, the default distance is already gone (GEN.404), and a test
-  shows a galaxy twice the size changes the Hill radius. Fails on main:
-  no failure, a fixed assumption. Related: GEN.368, GEN.285.
-  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
-  and "GEN.370 wins", as the coordinator reported it): the galaxy's own
-  enclosed mass and the cell's own distance replace the
-  whole-galaxy-mass radius everywhere, so
-  docs/design/course-avoidance.md's "do not change this for routing" is
-  superseded; the placement keep-apart fill (6 percent at the old radius
-  against up to 108 percent at 1.4 pc) is rechecked in this item's gate
-  and the result is stated in its PR. Status from Core 3 (4:40 PM EDT
-  2026-10-21 as the lane reported): built on branch
-  claude/project-thread-l8ulna (commit d5f78e8), generator epoch 42
-  pending (GEN.545 merged first as #2434 with epoch 46, so it renumbers
-  to epoch 47 or later); design docs and a note are included, and its
-  `changed` gate's second run started 4:24 PM EDT (40 percent at 4:40 PM
-  EDT; the first run was lost to the stale run key, TEST.260). It
-  removes `mass_chain.central_mass_kg`, `current_central_mass_kg` and
-  `MassChain.halo_mass_kg`, and records a placement-fill recheck in
-  docs/design/course-avoidance.md: in a dense galaxy the placer now fits
-  60 to 70 percent of the requested systems at 1 kpc and 35 to 45
-  percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
-  galaxies are unchanged; the old fill never passed 0.03. The text above
-  that the default distance is already gone (GEN.404) is true. Density
-  limits (report
-  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613, from
-  the galaxy size research thread): a galaxy with no halo needs a
-  central mass for the Hill sphere, and a dense small core must be
-  checked: the Segue floor core has a mean spacing of about 0.66 pc and
-  a keep-out of order 0.9 pc if the enclosed mass is used, so placement
-  could fail (back-of-envelope, label B). Epoch (Bug Hunt, PERF.148
-  merged as #2397, about 11:10 PM EDT 2026-10-21 as the lane reported):
-  epoch 42 is now taken on main by PERF.148 (the components are drawn in
-  slices; the Large and Small Magellanic Clouds, the Sagittarius dwarf
-  and any other component past 25,000 expected stars draw different
-  stars than before), so this item renumbers to the next free epoch on
-  its rebase (43, or the one after if the other waiting item merges
-  first). Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about
-  11:43 PM EDT 2026-10-21 as the lane reported): epoch 43 is now taken
-  on main (epoch 42 is PERF.148), so this item renumbers to epoch 44 or
-  later on its rebase. Epoch (Galaxy dials lane, GEN.621 merged as
-  #2418, about 3:48 AM EDT 2026-10-22 as the lane reported): epoch 44 is
-  now taken on main (43 is GEN.554's), so this item renumbers to epoch
-  45 or later on its rebase. Epoch (Core 4, GEN.596 merged as #2428,
-  about 5:01 AM EDT 2026-10-22 as the lane reported): epoch 45 is now
-  taken on main (44 is the Auto default), so this item renumbers to
-  epoch 46 or later on its rebase. Epoch (Core 1, GEN.545 merged as
-  #2434, about 5:42 AM EDT 2026-10-22 as the lane reported): epoch 46 is
-  now taken on main (stamped in release 8.0.1893), so this item takes
-  epoch 47 or later on its rebase.
-  Epoch (Core 4, GEN.554 slice 4 merged as #2452, about 8:03 AM EDT
-  2026-10-22 as the lane reported): epoch 47 is now taken on main
-  (release 8.0.1899), so this item takes epoch 48 or later on its
-  rebase.
-  Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
-
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
   feasibility study. I would like to generate them in the scatter if
@@ -7002,6 +6960,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and JavaScript phase functions agree within a stated bound at long
   times (millions of days from the epoch). Owner: Core 2, or whoever
   owns `orbitpositions.js`.
+  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed together
+  with GEN.140 and part of GEN.144, queued for a gate and PR.
   Prerequisites: none. Related: GEN.372, GEN.109, GEN.313.
 
 - [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
@@ -7079,20 +7039,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approval that held this item is given.
   Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
   gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
-  Core 1's queue.
-  Reading of the stored columns (Blocker 2, DB.66 merged as #2439,
-  Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane reported):
-  `galaxy_shape` has `family` (default spiral) and fourteen component
-  columns (bar, thick disk, Sersic spheroid, clump share) with a CHECK
-  per number. The design table says the bar and thick-disk defaults are
-  "the drawn value", but those were never stored, so those five columns
-  are NULL, meaning "as the structure draw gives them from the seed";
-  the other columns default to 0 or 1. This item reads them: a NULL
-  means ask the structure draw, never a fixed number.
-  Scope note (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane
-  reported): the lane's pending PR (gating with GEN.600, GEN.311 and
-  GEN.269) delivers the first slice only, `density_components`; the rest
-  of this item stays open.
+  Core 1's queue. Reading of the stored columns (Blocker 2, DB.66 merged
+  as #2439, Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane
+  reported): `galaxy_shape` has `family` (default spiral) and fourteen
+  component columns (bar, thick disk, Sersic spheroid, clump share) with
+  a CHECK per number. The design table says the bar and thick-disk
+  defaults are "the drawn value", but those were never stored, so those
+  five columns are NULL, meaning "as the structure draw gives them from
+  the seed"; the other columns default to 0 or 1. This item reads them:
+  a NULL means ask the structure draw, never a fixed number. Scope note
+  (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane reported): the
+  first slice, `density_components`, is merged as #2465 (relayed 9:01 AM
+  EDT 2026-10-22); the rest of this item stays open.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -15570,27 +15528,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   items, the coordinator may move it).
   Prerequisites: none. Related: GEN.594, GEN.548, GEN.600, DOC.72.
 
-- [ ] **GEN.600 The updater and the downloader print the URL of every file they load**
-  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
-  revision of my previous choice, have the best possible fallback if the
-  files are not there, but the generate process must be explicitly said
-  to disregard missing files. Also-also, the updater / downloader should
-  list the file URL it's loading as well." Today `python3 -m
-  planetgen.cli.datasets fetch` prints one line per dataset (`KEY:
-  fetched (N files, folder)`) and, on a failure, the reason per file,
-  but not the file URLs; `update.sh` and `install.sh` run it as step 3
-  and show only that. Do: `fetch` prints, for every piece it handles,
-  its https URL beside the result (requested, already there with the
-  right hash and not requested again, or failed with the reason),
-  `status` prints the URL of every missing file, and `update.sh` and
-  `install.sh` show those lines in their output; the same URLs appear in
-  the refusal message of a run with missing data (GEN.599). Done: a test
-  with the GEN.548 fixtures checks that each piece's URL is in the
-  `fetch` and `status` output for fetched, kept and failed pieces;
-  `update.sh --help` and the README row (DOC.72) mention it. Owner:
-  Blocker 2 proposed (small; it can go first).
-  Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
-
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
   reported), filed by the TODO thread. Boss's size limits (7:05 to 7:13
@@ -15761,29 +15698,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reported; the coordinator assigns a lane). No longer blocked on a
   card.
   Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.604.
-
-- [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
-  Found by the galaxy size research thread's density limits report
-  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
-  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
-  the TODO thread. A galaxy can have an empty outline or most of its
-  stars outside the planned sectors; the user should see it before a
-  run. Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
-  relayed by the galaxy size research thread): refuse only when the
-  outline would be empty; warn under D = 20 and show the share of stars
-  in planned sectors. This item is required, not optional. Do: one line
-  on the Generate form under the dials (ADM.124) and in the command-line
-  plan output with D (thin-disc crest density), the share of stars in
-  planned sectors (the table of report section 2.2) and the outline
-  size, with a warning under D 20 and a refusal when the outline would
-  be empty. Done: the line appears in both places with the same numbers
-  (a test compares them); an empty outline is refused with the reason.
-  Owner: the Galaxy dials lane (assigned by the coordinator, 8:37 AM EDT
-  2026-10-22, so ADM.124 can show the line; the lane had finished and
-  retired about 7:05 AM EDT as the lane reported, and the coordinator
-  reopened its thread for this item at 8:40 AM EDT as the lane clock
-  reads).
-  Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
   Found by the galaxy size research thread's density limits report
@@ -17998,6 +17912,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   not assigned (the DB items chain lane after its listed order).
   Prerequisites: none. Related: DB.18, DB.44.
 
+- [ ] **DB.85 Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds**
+  Found by Core 2 (relayed 9:33 AM EDT 2026-10-22, while building UX.144
+  and MAP.254), filed by the TODO thread. Globular clusters and
+  superbubbles are not stored as containers, so nothing can say 'this
+  star is inside cluster X' or list what is inside one, and the Location
+  block of UX.144 and the 'Inside:' line cannot name them. Do: store
+  each globular cluster and each superbubble as a container (a row with
+  its Object ID, kind, centre, extent and the region it belongs to) and
+  a way to ask which containers hold a point and what a container holds,
+  as the nebula and remnant pages already do for their contents (`GET
+  /api/phenomena/<type>/<id>/contents`). Done: for a star inside a
+  globular cluster and a star inside a superbubble, the query names the
+  container; a container lists what it holds; the stored rows come from
+  the generator with no fixed content. Owner: none (the coordinator
+  assigns; Core 2 asked for it).
+  Prerequisites: none. Related: UX.144, MAP.254, UX.143.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -19534,9 +19465,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   slider range and step follow the unit; the absolute scale length has
   pc and kpc; both read the lever table's unit column (GEN.601). The
   first release shows four dials, Scale, Structure, Edge and Halo;
-  Census (GEN.607, merged as #2443) is the fifth dial.
-  GEN.617 supplies the density line this panel shows; the coordinator
-  assigned it to the Galaxy dials lane at 8:37 AM EDT 2026-10-22.
+  Census (GEN.607, merged as #2443) is the fifth dial. GEN.617 is merged
+  as #2469 (the Galaxy dials lane, relayed 9:38 AM EDT 2026-10-22): the
+  Generate page already shows the density line under the dials through
+  the admin JSON route /admin/generate/shape-report (shared code
+  `generation/plan_outline.py`, element `[data-shape-report]`); this
+  panel reuses both.
   Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
 
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
@@ -21359,22 +21293,6 @@ clears each one.
   the item stays open.
   Prerequisites: none. Related: TEST.253.
 
-- [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
-  Suggested by Core 3 (2:02 PM EDT 2026-10-21 as the lane reported,
-  after fixing TEST.256 in #2327), filed by the TODO thread. GEN.404
-  made the toy galaxy hold a real galaxy's stellar mass, so a test that
-  scatters a low shell index of the toy shape (shell 4 held ten million
-  rows and 11 GB resident in the black-hole stream test) can get a gate
-  worker OOM-killed or time out. Do: list every test that calls
-  `scatter.scatter_shell` or a sibling with a shell index below about 8
-  on the toy shape, measure each one's peak resident memory (`ru_maxrss`
-  run alone, `-n0`), and move any above about 1 GB to a higher shell
-  index or a smaller rate, as #2327 did for shell 10; no quarantine.
-  Done: no test in a gate holds more than about 1 GB alone, and the list
-  with the figures is on this item. Owner: Bug Hunt (proposed; the
-  symptom is a loaded-gate failure).
-  Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
-
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full bug hunt audit, and it MUST be done before every single
@@ -21459,27 +21377,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.266 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug)**
-  Seen twice by Core 2 and filed by the TODO thread: UX.141's gate
-  (about 1:44 AM EDT 2026-10-22 as the lane reported, then recorded
-  under TEST.262 as a sighting of TEST.260's run lock collision) and
-  UX.143 part 1's gate (about 5:35 AM EDT 2026-10-22 as the lane
-  reported, after TEST.260 was retired in #2425). Kind: flaky test,
-  src/tests/test_work_queue_failures.py. Text: the run is refused as
-  Busy because another run (or a lock left by an earlier test of the
-  same worker) is still set when the interrupting test starts; it passes
-  alone. Fails on main: unknown (the second sighting is on a branch that
-  may not carry #2425). Frequency: 2 in about 4 full gates of Core 2.
-  Reproducer: none yet; run the full gate on a loaded machine. Do: find
-  which run or lock is still held (the previous test's run, a worker's
-  leftover, or the test's own interrupt not releasing the lock before
-  the next assertion) and fix the cause or make the test wait for the
-  lock to clear; no retry loop that hides a real lock leak. Done: the
-  cause is on this item and the test passes in 20 runs under load.
-  Owner: Bug Hunt (a test-flake finding; TEST.265 is fixed, so it
-  follows TEST.258).
-  Prerequisites: none. Related: TEST.260, TEST.265.
-
 - [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
   Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
   a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
@@ -21495,6 +21392,48 @@ clears each one.
   EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
   test).
   Prerequisites: none. Related: UX.141, TEST.266.
+
+- [ ] **TEST.268 Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug)**
+  Found by the Galaxy dials lane (about 7:05 AM EDT 2026-10-22 as the
+  lane reported, while merging GEN.607), filed by the TODO thread. Kind:
+  regression, fails on main at 2365499 without GEN.607's change, every
+  run:
+  src/tests/test_galaxy_gen.py::test_an_address_named_outside_the_outline_is_generated_from_its_profile
+  (3 params) and
+  ::test_neighborhood_around_a_sector_outside_the_outline_takes_the_reach_and_says_how_big_it_is
+  (generate exits with status 1). Reproducer: run those tests alone. The
+  lane named DB.66 (#2439) and "GEN.379 (#2440)" as the commits before
+  the break; #2440 was a docs-only PR, so the cause is among the
+  generator and schema merges since the last green run: DB.66 (the new
+  `galaxy_shape` columns, migration 0117), GEN.545 (#2434, the derived
+  mean system mass), GEN.596 (#2428) or GEN.621 (#2418). Do: read the
+  status-1 message, bisect over those merges, and fix the cause (or the
+  tests if one of them changed a documented behavior on purpose). Done:
+  the four tests pass and a full gate shows them green. Owner: Bug Hunt
+  (the coordinator, about 7:08 AM EDT 2026-10-22 as the lane reported):
+  bisect first, ahead of TEST.258; it hands to Core 1 or Blocker 2
+  through the coordinator if the culprit is theirs.
+  Unreproduced (Bug Hunt, relayed by the coordinator about 7:20 AM EDT
+  2026-10-22 as the lane reported): Bug Hunt cannot reproduce the four
+  failures on main or in a fresh clone, so the cause is likely
+  machine-specific (the Galaxy dials lane's MySQL grant). The
+  coordinator asked that lane for the exact output and its SHOW GRANTS.
+  Keep this item open as unreproduced until it answers; if the output is
+  a grant error (1044) it is the known machine setup gap and the item is
+  dropped.
+  Reopened (the coordinator, relayed 10:00 AM EDT 2026-10-22; the
+  earlier 'not reproducible' call, and the drop of this item at about
+  7:25 AM EDT, were wrong): Bug Hunt found the cause. The four tests and
+  test_generation_stats.py::test_estimate_only_writes_nothing fail on
+  any machine with under 5 GB free on the database drive, because a
+  generate run refuses to start (PERF.3) and `--strict` exits 1. Lane
+  machines fill up because the test MySQL writes binary logs by default
+  (one lane held 25 GB). The fix makes the tests independent of free
+  space and also fixes a NameError in the plan step of `planetgen
+  benchmark`. Owner: Bug Hunt (its fix is in its gate now). The Galaxy
+  dials lane's note that the failures did not reproduce is superseded:
+  they reproduce on a machine with a full disk.
+  Prerequisites: none. Related: DB.66, GEN.545.
 
 - [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
   Found by the Admin redesign lane (about 6:49 AM EDT 2026-10-22 as the
@@ -21516,6 +21455,28 @@ clears each one.
   the Admin redesign lane (the coordinator, about 7:17 AM EDT 2026-10-22
   as the lane reported).
   Prerequisites: none. Related: ADM.101.
+
+- [ ] **TEST.270 check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake)**
+  Found by Core 1 (9:50 AM EDT 2026-10-22 as the lane reported, in the
+  GEN.598 gate), filed by the TODO thread. Kind: flake. Tests:
+  src/tests/test_db_check.py::test_the_command_exits_one_on_damage_and_zero_when_clean
+  and ::test_a_check_run_does_not_take_the_generation_slot. Failure
+  text: `check-db` printed "FAIL: revision" ("The database is DAMAGED"),
+  so the command exited 1 where the test expects 0 after `_heal_key`.
+  Fails on main: not checked; each passes alone in 10 s and both passed
+  on `--resume`. Frequency: 2 of 20,106 in one full `scripts/test.py
+  changed` gate (4 workers, 86 minutes), both on the first pass and on
+  the re-run pass. Reproducer: a full `changed` gate on a lane with one
+  MySQL server; not reproducible alone. Something else in the full run
+  (a concurrent migration or revision test on the same server) leaves
+  the revision check unhappy; that cause is not found. Do: find which
+  test or fixture changes the `alembic_version` row or the revision the
+  check reads while these two run, and give the check tests a database
+  of their own or make the other test restore it; no retry loop that
+  hides the cause. Done: the cause is on this item and the two tests
+  pass in 20 full-gate runs. Owner: Bug Hunt (proposed; a test-flake
+  finding of the TEST.265 family).
+  Prerequisites: none. Related: TEST.265, TEST.262.
 
 ## USR: User accounts
 
@@ -22886,6 +22847,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it says the updater and downloader print the URL of every file they
   load (GEN.600). The README check compares both statements with the
   options in the code.
+  GEN.600 is merged as #2464 (relayed 9:01 AM EDT 2026-10-22: `fetch`
+  and `status` print each file's URL and update.sh and install.sh show
+  those lines, docs/cli.md updated); this item still owns the README row
+  for it.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 - [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**

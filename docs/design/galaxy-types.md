@@ -220,6 +220,8 @@ Over many seeds each family's drawn parameters fall inside the ranges of section
 
 The migration gives every existing galaxy the `spiral` family and these defaults, so no stored density changes. The component masses (`component_masses`, GEN.379) are calculated, not stored. A family that has no thick disk, bar or spheroid stores amplitude 0; an amplitude of 0 removes the component exactly.
 
+As built (GEN.379): `galaxy/density.py` `density_components(shape)` returns the density model as a list of `DensityComponent`s in a fixed order (`thin_disk`, `thick_disk`, `bulge`, `halo`, `nuclear_cluster`, `nuclear_disc`), each with its population, amplitude, mass (the model's units, in closed form) and `mass_solar` (the share of `structure.stellar_mass_solar`; the six sum to it), and the scale lengths, heights, bar angle and halo slopes that shape it, so the potential (GEN.338) reads masses and shapes from one place. A component with amplitude 0 has mass exactly 0. The density itself is unchanged: `relative_density` and the population split still sum the same terms, so today's spiral gives today's density to the last digit, and `component_masses` stays as the numerical check the closed forms are tested against. The Sersic spheroid (GEN.381) adds its own component to the list; it has none yet because no family draws one.
+
 ## 11. Research requests
 
 Relations no paper read here gives. Each stays a labelled placeholder until answered; none blocks the build.
