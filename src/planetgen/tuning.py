@@ -1427,6 +1427,14 @@ ENCOUNTER_LIMIT_COEFFICIENT = 0.002
 SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
 SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
+# The orbit beyond which a planet has been stripped by passing systems (GEN.325, `physics.planet_survival`): the largest
+# axis whose expected number of ionising passes in `PLANET_SURVIVAL_AGE_GY` is one, for a host of
+# `PLANET_SURVIVAL_HOST_MASS_SOLAR` (docs/design/globular-clusters.md section 7 and realistic-galactic-core.md
+# section 7: 12 Gy and 0.5 solar masses, a typical host of the old populations). A star younger than the age has been
+# exposed to its own age only (`generation.place_terms.planet_limit_au`).
+PLANET_SURVIVAL_AGE_GY = 12.0
+PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
+
 # --- Planet Classification Data ---
 
 # A dictionary defining the properties of different planet classes.

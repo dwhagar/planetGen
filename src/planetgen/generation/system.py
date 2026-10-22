@@ -1100,13 +1100,18 @@ class StarSystem:
         merged `BinaryStarProxy` never sets it), so this is a no-op
         fallback to `system_perimeter` alone in those cases.
 
+        The place's passing systems cut it further (GEN.325): the largest orbit whose expected number of ionising passes
+        over the star's age is one (`place_terms.planet_limit_au`), a few hundred AU in the Sun's neighbourhood and a few
+        AU in a nuclear disc. Comets keep their own ceiling (`validation.orbit_ceiling_au`).
+
         Args:
             star (Star): The star to compute this boundary for.
 
         Returns:
             float: The orbit ceiling, in AU.
         """
-        return validation.orbit_ceiling_au(star)
+        terms = getattr(self.system_config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
+        return min(validation.orbit_ceiling_au(star), place_terms.planet_limit_au(terms, getattr(star, "age", None)))
 
     @staticmethod
     def _engulfment_radius_au(star, explicit_request=False):
