@@ -32,10 +32,10 @@ from planetgen.galaxy import object_uid, uid as sector_uid
 SECTOR = "sector"
 """str: The kind of a sector, whose ID is a plain integer (its designation)."""
 
-OBJECT_TABLES = kind_tables.kind_tables("uid")
+OBJECT_TABLES = kind_tables.kind_tables("uid", order="ids")
 """dict: Each kind with an 96-bit `uid` column and the table that holds it. A phenomenon's kind is its type."""
 
-PHENOMENON_KINDS = tuple(kind_tables.kind_tables("phenomenon"))
+PHENOMENON_KINDS = tuple(kind_tables.kind_tables("phenomenon", order="phenomenon_kinds"))
 """tuple: The kinds a generic `phenomenon` rule can resolve to (the row's `type`)."""
 
 PRINTED_PATTERN = r"[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}"

@@ -46,16 +46,17 @@ def test_a_phenomenon_table_is_a_generator_type_and_a_reference_kind():
 
 def test_the_sites_that_used_to_list_the_tables_read_the_registry():
     assert store.ID_BLOCK_TABLES == frozenset(kind_tables.tables("id_block"))
-    assert store.CONTAINABLE_TABLES == kind_tables.tables("containable")
-    assert store.PLACED_PHENOMENON_TABLES == store.PHENOMENON_UID_TABLES == kind_tables.tables("phenomenon")
-    assert store.TIMESTAMPED_TABLES == kind_tables.tables("timestamped")
+    assert store.CONTAINABLE_TABLES == kind_tables.tables("containable", order="containable")
+    assert store.PLACED_PHENOMENON_TABLES == kind_tables.tables("phenomenon", order="placed")
+    assert store.PHENOMENON_UID_TABLES == kind_tables.tables("phenomenon")
+    assert store.TIMESTAMPED_TABLES == kind_tables.tables("timestamped", order="timestamped")
     assert fingerprint.SECTOR_TABLES == kind_tables.tables("sector_filed")
     assert fingerprint.SYSTEM_TABLES == kind_tables.tables("system_filed")
     assert fingerprint.STAR_TABLES == kind_tables.tables("star_filed")
     assert sector_paths.PATH_TABLES == kind_tables.tables("path")
-    assert edits.PHENOMENON_TABLES == kind_tables.kind_tables("phenomenon")
-    assert ids.OBJECT_TABLES == kind_tables.kind_tables("uid")
-    assert set(slowpages.PHENOMENON_TABLES) == {"phenomenon_scatter", *kind_tables.tables("phenomenon")}
+    assert edits.PHENOMENON_TABLES == kind_tables.kind_tables("phenomenon", order="placed")
+    assert ids.OBJECT_TABLES == kind_tables.kind_tables("uid", order="ids")
+    assert slowpages.PHENOMENON_TABLES == ("phenomenon_scatter", *kind_tables.tables("phenomenon", order="slow"))
 
 
 def test_the_lists_kept_for_their_order_name_the_same_kinds():
@@ -74,3 +75,29 @@ def test_the_object_id_kinds_of_the_core_remnants_name_a_remnant_table():
 def test_an_unknown_group_is_refused():
     with pytest.raises(ValueError):
         kind_tables.tables("nonsense")
+
+
+ORDER_GROUPS = {"placed": "phenomenon", "timestamped": "timestamped", "containable": "containable",
+                "slow": "phenomenon", "ids": "uid", "phenomenon_kinds": "phenomenon", "object_ids": "phenomenon"}
+
+
+@pytest.mark.parametrize("order, group", sorted(ORDER_GROUPS.items()))
+def test_a_named_order_lists_the_tables_of_its_group_once_each(order, group):
+    members = set(kind_tables.tables(group))
+    named = kind_tables.ORDERS[order]
+    assert len(named) == len(set(named))
+    # `object_ids` is the order of the generator types, which every phenomenon table has; the others hold the group.
+    assert members <= set(named), (order, members - set(named))
+
+
+def test_every_named_order_is_one_a_reader_uses():
+    assert set(kind_tables.ORDERS) == set(ORDER_GROUPS)
+
+
+def test_a_reader_keeps_the_order_it_had():
+    """The orders of the lists the registry replaced, written out (a progress counter counts the placed
+    phenomena in one of them)."""
+    assert store.PLACED_PHENOMENON_TABLES[-1] == "quasars" and store.PHENOMENON_UID_TABLES[4] == "quasars"
+    assert store.TIMESTAMPED_TABLES[:2] == ("sectors", "star_systems") and store.TIMESTAMPED_TABLES[-1] == "quasars"
+    assert list(ids.OBJECT_TABLES)[6] == "facility" and ids.PHENOMENON_KINDS[0] == "nebula"
+    assert list(store.OBJECT_ID_TABLES)[0] == "rogue-planet"

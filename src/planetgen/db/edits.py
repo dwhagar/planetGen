@@ -18,10 +18,10 @@ import uuid
 from planetgen.db import kind_tables, object_rows, store
 from planetgen.physics import constants
 
-PHENOMENON_TABLES = kind_tables.kind_tables("phenomenon")
+PHENOMENON_TABLES = kind_tables.kind_tables("phenomenon", order="placed")
 """dict: The web's phenomenon type (`/phenomenon/<type>/<id>`) -> its table."""
 
-GENERATOR_TYPES = kind_tables.generator_types()
+GENERATOR_TYPES = kind_tables.generator_types(order="placed")
 """dict: The web's phenomenon type -> `generate.generate_phenomenon`'s."""
 
 _KEPT_PHENOMENON_COLUMNS = {

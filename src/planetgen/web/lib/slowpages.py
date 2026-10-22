@@ -38,7 +38,7 @@ from planetgen import tuning
 from planetgen.db import kind_tables
 from planetgen.util import log
 
-PHENOMENON_TABLES = ("phenomenon_scatter", *kind_tables.tables("phenomenon"))
+PHENOMENON_TABLES = ("phenomenon_scatter", *kind_tables.tables("phenomenon", order="slow"))
 """tuple: Every table the phenomena list reads (`db.query._PHENOMENON_TABLES` and the scatter)."""
 
 PATH_TABLES = {
