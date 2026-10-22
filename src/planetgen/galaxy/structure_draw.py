@@ -227,7 +227,7 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
     if not full:
         cluster = 0.0      # and with it the nuclear disc, which is a multiple of the cluster
     black_holes = draw_black_hole_shares(galaxy_seed)
-    unbound = draw_neutron_star_unbound_share(galaxy_seed)
+    unbound = draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar)
     return Structure(
         vc_kms=vc, thick_mass_ratio=mass_ratio, thick_length_ratio=length_ratio, thick_height_ratio=height_ratio,
         bar_present=bar[0], bar_axis_ratio_y=bar[1], bar_axis_ratio_z=bar[2], bar_angle_deg=bar[3],
@@ -240,12 +240,13 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         neutron_star_unbound_share=unbound)
 
 
-def draw_neutron_star_unbound_share(galaxy_seed):
+def draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar=None):
     """The share of the neutron stars the galaxy forms that its kicks eject (GEN.554, `galaxy.natal_kick`): the natal kick
-    law against the escape speed of the seed's halo, stars and disc, the disc's scale length the one the seed draws (a
-    shape that fixes its own scale length keeps this share)."""
+    law against the escape speed of the seed's halo (none under the halo threshold), stars and disc, the disc's scale
+    length the one the seed draws (a shape that fixes its own scale length keeps this share). A pinned stellar mass
+    replaces the seed's."""
     from planetgen.galaxy import natal_kick, shape_draw   # shape_draw imports this module
-    chain = mass_chain.draw_mass_chain(galaxy_seed or mass_chain.FALLBACK_SEED)
+    chain = mass_chain.draw_mass_chain(galaxy_seed or mass_chain.FALLBACK_SEED, stellar_mass_solar)
     seed = galaxy_seed or mass_chain.FALLBACK_SEED
     length_kpc = shape_draw.drawn_disk_scale_length_pc(seed, chain.stellar_mass_solar) / 1000.0
     return natal_kick.neutron_star_unbound_share(chain, draw_circular_speed_kms(seed, chain.stellar_mass_solar), length_kpc)

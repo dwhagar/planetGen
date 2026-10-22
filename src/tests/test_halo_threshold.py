@@ -127,3 +127,12 @@ def test_a_simple_galaxy_has_all_its_disc_stars_in_the_thin_disc_and_no_nuclear_
     assert terms["thick_disk_amplitude"] == 0.0 and terms["nuclear_cluster_mass"] == 0.0
     assert terms["nuclear_disc_mass"] == 0.0 and density.halo_mass(shape) == 0.0
     assert shape_draw.thin_disk_share(drawn.structure, drawn.bulge_to_total) == pytest.approx(1.0 - drawn.bulge_to_total)
+
+
+def test_a_galaxy_under_the_threshold_ejects_neutron_stars_against_its_stars_only(monkeypatch):
+    calls = _watch(monkeypatch)
+    share = structure_draw.draw_neutron_star_unbound_share(SEED, BELOW)
+    assert 0.0 <= share <= 1.0
+    assert calls == []
+    # With no halo to hold them the stars' shallower potential lets out more than a halo of the same stars would.
+    assert share >= structure_draw.draw_neutron_star_unbound_share(SEED, ABOVE)
