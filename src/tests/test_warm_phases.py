@@ -136,3 +136,21 @@ def test_the_queue_page_shows_each_phase_and_what_the_automatic_start_waits_for(
         assert f'id="warm-phase-{name}"' in html
     assert "unchanged, nothing built (3 already stored)" in html and "Running" in html and "Waiting" in html
     assert "after: orbits" in html
+
+
+def test_the_queue_page_shows_the_object_index_by_kind_with_its_size(admin_client, control_config):
+    import json
+    from planetgen.db import objectindex
+    database = control_config.database
+    client = redisclient.client(decode_responses=True)
+    try:
+        client.hset(objectindex.state_key(database), "system", json.dumps(
+            {"mode": "refresh", "since": "2026-10-21 21:00:00.000", "built_at": 1792617600.0, "rows": 12345, "seconds": 1.5}))
+        client.hset(objectindex.state_key(database), objectindex.SIZE_FIELD, 3 * 1024 * 1024)
+        state = warmphases.read(database, warmup.PHASES)["index"]
+        html = admin_client.get("/admin/queue").get_data(as_text=True)
+    finally:
+        client.delete(objectindex.state_key(database))
+    assert state["size_bytes"] == 3 * 1024 * 1024 and [row["kind"] for row in state["kinds"]] == ["system"]
+    assert 'id="warm-index"' in html and "12,345" in html and "refresh" in html
+    assert "Object index (3.0 MB)" in html or "Object index (3 MB)" in html

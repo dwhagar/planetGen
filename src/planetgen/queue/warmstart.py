@@ -40,6 +40,11 @@ WANTED_SECONDS = 86400
 """int: How long a request is kept when nothing takes it."""
 
 
+FULL_INDEX_TAGS = ("positions", "epoch")
+"""tuple: The changes that move what a refresh cannot see by `modified_at` (an orbital update leaves it alone and moves
+which sector holds an object; `everything` is a release or a plan change): the object index is built whole for them."""
+
+
 def wanted_key(database):
     """The hash of the changes asked for on `database`."""
     return f"planetgen:warm:wanted:{database}"

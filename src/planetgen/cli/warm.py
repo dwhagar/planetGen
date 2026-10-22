@@ -159,6 +159,7 @@ def _warm_on_change(args):
 
     def run(kinds):
         log.normal(f"Warming after a change ({', '.join(kinds)}).")
+        args.index_mode = "build" if set(kinds) & set(warmstart.FULL_INDEX_TAGS) else "refresh"
         _warm_once(args, reason=', '.join(kinds))
 
     try:

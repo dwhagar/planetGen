@@ -21,6 +21,7 @@ import time
 import redis
 
 from planetgen.admin import updateguard
+from planetgen.db import objectindex
 from planetgen.queue import redisclient, warmstart
 
 WAITING = "waiting"
@@ -124,7 +125,9 @@ def read(database, phases):
 
     Returns:
         dict: `{"run": {...} or None, "phases": [{"name", "text", "families", "state", "state_text", "line",
-        "started_at", "finished_at"}], "auto": {"enabled", "wanted": [kinds], "holder": pid or None}}`; `available` is
+        "started_at", "finished_at"}], "auto": {"enabled", "wanted": [kinds], "holder": pid or None},
+        "index": {"size_bytes", "kinds": [{"kind", "rows", "mode", "built_at", "seconds"}]}}` (the object index as its
+        last runs recorded it, PERF.140); `available` is
         false when Redis does not answer (the phases are then all `Not run yet`).
     """
     stored, available = {}, True
@@ -163,4 +166,9 @@ def read(database, phases):
             auto["holder"] = int(holder) if holder and holder.isdigit() else None
     except (redis.RedisError, OSError):
         available = False
-    return {"available": available, "run": run, "phases": rows, "auto": auto}
+    recorded = objectindex.recorded(database) if available else {}
+    index = {"size_bytes": objectindex.recorded_size(database) if available else 0,
+             "kinds": [{"kind": kind, "rows": recorded[kind].get("rows"), "mode": recorded[kind].get("mode"),
+                        "built_at": recorded[kind].get("built_at"), "seconds": recorded[kind].get("seconds")}
+                       for kind in objectindex.KINDS if kind in recorded]}
+    return {"available": available, "run": run, "phases": rows, "auto": auto, "index": index}

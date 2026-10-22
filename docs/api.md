@@ -809,7 +809,8 @@ forced credential change. They back the admin stats page
 - `GET /api/admin/work/warm?database=NAME` — what the cache warm-up has done on that database, phase by phase (PERF.141):
   `{"available", "run": {"state", "started_at", "finished_at", "reason", "error"} or null, "phases": [{"name", "text",
   "families", "state", "state_text", "line", "built", "cached", "left_out", "seconds", "started_at", "finished_at"}],
-  "auto": {"enabled", "wanted", "holder"}}`. A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
+  "auto": {"enabled", "wanted", "holder"}, "index": {"size_bytes", "kinds": [{"kind", "rows", "mode", "built_at",
+  "seconds"}]}}`. `index` is the object index as its last runs recorded it (PERF.140). A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
   `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
   which changes it waits to warm for, and the process that holds it.
 - `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
