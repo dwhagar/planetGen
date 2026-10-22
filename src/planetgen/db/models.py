@@ -1196,6 +1196,20 @@ object_index = sa.Table(
 )
 
 
+object_locks = sa.Table(
+    'object_locks',
+    metadata,
+    sa.Column('object_uid', mysql.BINARY(12), primary_key=True, nullable=False),
+    sa.Column('aspect', sa.String(64), server_default=sa.text("'*'"), primary_key=True, nullable=False),
+    sa.Column('locked_by_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('locked_by_name', sa.String(255), nullable=False),
+    sa.Column('locked_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Column('reason', sa.String(500), nullable=True),
+    sa.Index('idx_object_locks_locked_at', 'locked_at'),
+    mysql_engine="InnoDB",
+)
+
+
 object_timing_samples = sa.Table(
     'object_timing_samples',
     metadata,

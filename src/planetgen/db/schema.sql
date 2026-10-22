@@ -1387,6 +1387,9 @@
 --   JSON, status) and `edit_journal` (the append-only list of every applied operation: plan, object ID, sector, aspect, before,
 --   after, generator epoch), for the 8.6 edit-everything plans (docs/design/edit-everything.md). Nothing reads them yet.
 --
+-- v123 (DB.37): `object_locks`, a standing keep mark on an object (`*`) or one aspect of it, one row per object and aspect, with who locked it,
+--   when and why, for the 8.6 edit-everything plans (docs/design/edit-everything.md). Nothing reads it yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4333,6 +4336,19 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v123 (DB.37): the lock marks; see the header note.
+CREATE TABLE IF NOT EXISTS object_locks (
+    object_uid       BINARY(12) NOT NULL,
+    aspect           VARCHAR(64) NOT NULL DEFAULT '*',
+    locked_by_id     BIGINT UNSIGNED NULL,
+    locked_by_name   VARCHAR(255) NOT NULL,
+    locked_at        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    reason           VARCHAR(500) NULL,
+    PRIMARY KEY (object_uid, aspect),
+    KEY idx_object_locks_locked_at (locked_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v122 (DB.36): change plans, their operations and the edit journal; see the header note.
 CREATE TABLE IF NOT EXISTS change_plans (
