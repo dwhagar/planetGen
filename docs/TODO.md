@@ -15097,6 +15097,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
   GEN.472, TEST.214.
 
+- [ ] **GEN.624 QUESTION for Boss: a 3e7 solar-mass galaxy holds 3.1 million phenomena and 487,000 band stars because the 11 satellites' 6.4e9 systems exist at every galaxy mass**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: modelling
+  question, not a speed fix. Measured: a 3e7 solar-mass galaxy holds
+  3.1M phenomena and 487k band stars, because the 11 satellite galaxies'
+  6.4e9 systems exist at every galaxy mass, so a small galaxy still pays
+  for the satellites. Do: the TODO thread puts the question to Boss on a
+  card (should the satellites scale with the galaxy mass, and by what
+  law?); no change before his answer, and any change takes a generator
+  epoch. Done: Boss's answer is recorded here and, if it changes the
+  model, a build item is filed. Owner: the TODO thread for the card; the
+  build, if any, goes to a generator lane.
+  Prerequisites: none. Related: PERF.146.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15859,6 +15876,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22 as the lane's clock reads, after TEST.159, TEST.160, TEST.184
   and TEST.185 merged as #2504); thread Performance, session
   cse_01SLzAuwkQE7AccwLD1hDRZX, started 3:42 PM EDT 2026-10-22.
+  Findings from the first benchmark run (Performance, relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads, release 8.0.1930, size small) are
+  filed as PERF.156 to PERF.162 and GEN.624 (a question for Boss).
   Prerequisites: none. Related: PERF.31, PERF.56,
   PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
   SEC.33, TEST.261.
@@ -16089,6 +16109,111 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed; it holds the PERF.146 data), after PERF.146.
   Prerequisites: PERF.146. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
+- [ ] **PERF.156 The warm-up counts the search check answering 202 (a queued job) as a failure, so planetgen warm stops after phase 4 on a large galaxy (bug)**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: bug and
+  cost. Failure: on a galaxy with 3.1M phenomena the search check
+  answers 202 (a queued job) and the warm-up counts 202 as a failure, so
+  'planetgen warm' stops after phase 4; the rest is 31 percent of the
+  run (8 minutes at size small). Do: make the check wait for the job, or
+  make /search need no job, and accept 202 as a valid answer. Done:
+  'planetgen warm' reaches its last phase on the benchmark galaxy and a
+  test covers a 202 answer. Owner: Performance (proposed by the TODO
+  thread, because the lane found it and PERF.146 lives there; the
+  coordinator can move it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.157 The warm-up reads 95.9 million rows for 1,044 deep tiles, about 92,000 rows a tile**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: cost,
+  value-neutral. Measured: warm deep-tiles took 320 s for 1,044 tiles
+  and read 95.9M rows. Do: read fewer rows for a deep tile (the rows a
+  tile shows, not the sector's), with the output of every tile
+  unchanged. Done: the same tiles in a fraction of the rows, and a test
+  that compares a tile before and after. Owner: Performance (proposed by
+  the TODO thread, because the lane found it and PERF.146 lives there;
+  the coordinator can move it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.158 scatter --band writes 348,743 single-row UPDATE statements and 2.4 million rows in 5.2 minutes**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: cost,
+  value-neutral. Measured: scatter --band issued 348,743 single-row
+  UPDATEs and wrote 2.4M rows in 5.2 min. Do: batch the updates (one
+  statement for many rows, or a staging table and one joined update).
+  Done: the same rows with far fewer statements and a time drop on the
+  benchmark. Owner: Performance (proposed by the TODO thread, because
+  the lane found it and PERF.146 lives there; the coordinator can move
+  it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.159 scatter --mass and --luminosity expand 65,536 shells serially in the supervisor, so the machine runs at 1.3 to 1.7 of 4 cores**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: cost,
+  value-neutral. Measured: the supervisor expands the 65,536 shells one
+  at a time; CPU use stays at 1.3 to 1.7 of 4 cores. Do: expand the
+  shells in the workers, or in larger groups. Done: all four cores busy
+  through the step, with identical rows. Owner: Performance (proposed by
+  the TODO thread, because the lane found it and PERF.146 lives there;
+  the coordinator can move it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.160 fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: cost,
+  value-neutral. Measured: fill-map-luminosity runs 3.1M single-row
+  UPDATEs, 162 s of server CPU against 45 s on the client. Do: one
+  set-based UPDATE per block. Done: the same values written with a
+  block-sized number of statements. Owner: Performance (proposed by the
+  TODO thread, because the lane found it and PERF.146 lives there; the
+  coordinator can move it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.161 bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: cost,
+  value-neutral. The component pass is batched in PERF.146; _reach_spots
+  in bright_stars still calls tier_at once per candidate. Do: batch it
+  the same way. Done: identical output and a time drop on the benchmark.
+  Owner: Performance (proposed by the TODO thread, because the lane
+  found it and PERF.146 lives there; the coordinator can move it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
+  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
+  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
+  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
+  phenomena; filed by the TODO thread. Reproducer: that command, or the
+  single step with --steps; fails on main, every run. Kind: cost that
+  changes values. Measured: drawing the member trees is 53 percent of a
+  band unit. Any speed-up changes the drawn values, so it needs a new
+  generator epoch (the next free one, ask the TODO thread) and Boss's
+  word before it starts. Do: put the question to Boss with the measured
+  figures; if he agrees, change the draw and stamp the epoch. Done:
+  Boss's answer is recorded on this item; if yes, the faster draw is
+  merged with its epoch. Owner: Performance (proposed by the TODO
+  thread, because the lane found it and PERF.146 lives there; the
+  coordinator can move it).
+  Prerequisites: none. Related: PERF.146.
 
 ## DB: Database and schema
 
@@ -16968,26 +17093,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   'unspecified', and the DB.76 suffix test passes with the declarations.
   Owner: Core 1 (proposed; the registry is its work), after DB.74.
   Prerequisites: none. Related: DB.76, DB.74, GEN.568.
-
-- [ ] **DB.88 The vessels table has an Object ID but is not in db/kind_tables.py: test_kind_tables fails on main (bug)**
-  URGENT: red on main. Found by Core 4 (relayed 7:17 PM EDT 2026-10-22
-  on the lane's clock, after its GEN.565d, GEN.565e, GEN.585 and GEN.586
-  merge #2542; the coordinator relayed it at 7:18 PM EDT; confirmed on
-  origin/main at 06e41d9 by the TODO thread, 1 failed, 22 passed), filed
-  by the TODO thread. Kind: bug (DB.63's vessels table, #2530, has an
-  Object ID column but no entry in db/kind_tables.py). Test:
-  src/tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group.
-  Failure: 'a table with a uid is not in the registry'; the extra table
-  is vessels. Fails on main: yes, always. Reproducer: python -m pytest
-  src/tests/test_kind_tables.py. Do: add vessels to db/kind_tables.py
-  with the groups its columns put it in (uid, and any of id_block,
-  timestamped, sector_filed, system_filed, star_filed, containable or
-  path that fit; see docs/design/mass-object-class.md), so the readers
-  in store.py, fingerprint.py, edits.py, api/ids.py and
-  galaxy/objectref.py agree; no test change. Done: test_kind_tables.py
-  passes on main. Owner: the DB items chain lane (the coordinator,
-  relayed 7:18 PM EDT), with DB.87's fix still fresh.
-  Prerequisites: none. Related: DB.63, DB.87.
 
 ## API: The JSON API
 

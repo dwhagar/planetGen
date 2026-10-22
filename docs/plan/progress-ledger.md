@@ -1060,3 +1060,5 @@ Baseline: PR #1817.
 | GEN.585 | 8.4 | Bulk composition |
 | GEN.586 | 8.4 | Bulk composition |
 | UX.129 | 8.2 | Bookmarks |
+| DB.88 | 8.2 | Viewers and object pages |
+| TEST.282 | 8.1 | Bugs and flaky tests |
