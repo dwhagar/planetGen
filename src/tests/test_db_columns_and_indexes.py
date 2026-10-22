@@ -34,6 +34,8 @@ PROSE_TEXT_COLUMNS = {
     ("rogue_planets", "composition"), ("nebulae", "composition"), ("nebulae", "formation_cause"),
     # DB.36: a plan's request and decision text, and the before and after of an operation or journal entry as JSON documents
     ("change_plan_ops", "after_json"), ("change_plan_ops", "before_json"), ("change_plans", "decision_note"), ("change_plans", "request_text"), ("edit_journal", "after_json"), ("edit_journal", "before_json"),
+    # DB.38: the parameters of an override as a JSON document
+    ("region_density_overrides", "params"),
     # Control schema: an error message and the audit log's note.
     ("work_tasks", "error"), ("admin_audit_log", "detail"),
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
