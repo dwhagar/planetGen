@@ -97,7 +97,7 @@ REACHES = {
     "stability-ceiling": Reach(
         2.2e6 * constants.AU_TO_M,
         "the Hill sphere of a 150 solar-mass star at 8 kpc (generation.star.calculate_hill_sphere, checked by "
-        "tests/test_precision.py): the farthest a comet's closed orbit reaches (GEN.182)"),
+        "tests/test_precision.py): the farthest a comet's closed orbit reaches"),
     "sector": Reach(
         math.sqrt(3.0) / 2.0 * tuning.DEFAULT_SECTOR_EDGE_PC * constants.PARSEC_M,
         "the half-diagonal of a cell of the sector grid (tuning.DEFAULT_SECTOR_EDGE_PC)"),
