@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1941] - 2026-10-22
+
+**Headline:** The database gets the tables for comments and notices on edit requests, ready for the 10.0 roles.
+
+### Changed
+- **`request_comments` and `request_notifications` (DB.39, schema v126).** The conversation on an edit request (who wrote what, in which role) and the notices owed to accounts about it, each with its plan. A request is a plan row (DB.36), so the requester, approver and decision are not repeated. The migration only makes the tables; nothing reads them yet.
+
+TODO items resolved / Added: DB.39 / Added: none
+
 ## [8.0.1940] - 2026-10-22
 
 **Headline:** Each sector can now record the density multiplier it was filled under and the override it came from, for the density edits of the Galaxy Map.
