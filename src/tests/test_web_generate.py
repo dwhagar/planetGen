@@ -449,6 +449,40 @@ _ESTIMATE = {"sectors": 9, "systems": 120, "stars": 156, "bytes": 8_400_000, "se
              "summary": "About 8.4 MB and 1 m 15 s for 9 sectors.", "what": "shell 40"}
 
 
+def test_a_typed_command_opens_the_review_step_and_runs_nothing(site, client, no_spawn, monkeypatch):
+    """ADM.121: the link a typed line leads to shows the Review step with the command line; Run is still a button."""
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: dict(_ESTIMATE))
+    resp = client.get("/admin/generate/command", query_string={"q": "add sectors shell 40"})
+    link = resp.get_json()["command"]
+    assert link["label"] == "Review: Add sectors to the galaxy" and "shell_index=40" in link["url"]
+    page = client.get(link["url"])
+    html = page.get_data(as_text=True)
+    assert page.status_code == 200 and no_spawn == []
+    assert "Review" in html and "galaxy --shell 40" in html and 'name="shell_index" value="40"' in html
+    assert 'name="review"' not in html
+
+
+def test_a_typed_command_that_cannot_be_read_is_refused_with_the_reason(site, client, no_spawn):
+    body = client.get("/admin/generate/command", query_string={"q": "add sectors foo"}).get_json()
+    assert body["command"] is None and "I don't know 'foo'" in body["error"]
+    assert client.get("/admin/generate/command", query_string={"q": "cache size"}).get_json() == {"command": None}
+    html = client.get("/admin/search", query_string={"q": "add sectors foo"}).get_data(as_text=True)
+    assert "I don&#39;t know &#39;foo&#39;" in html or "I don't know 'foo'" in html
+    assert no_spawn == []
+
+
+def test_search_lists_a_typed_command_above_the_matches(site, client):
+    html = client.get("/admin/search", query_string={"q": "add sectors radius 12"}).get_data(as_text=True)
+    assert "Review: Add sectors to the galaxy" in html and "radius_pc=12.0" in html
+    assert "nothing runs until you press Run" in html
+
+
+def test_a_task_page_opened_with_fields_is_filled_in(site, client):
+    html = client.get("/admin/generate/task/add-sectors", query_string={"what": "grid", "mode": "span",
+                                                                      "span_shells": "3:5"}).get_data(as_text=True)
+    assert 'name="span_shells"' in html and 'value="3:5"' in html
+
+
 def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn, monkeypatch):
     """PERF.3: Generate sectors first shows the size and time, with a
     Generate button that re-sends the form confirmed."""

@@ -151,7 +151,7 @@ subhead (badges or actions under the <h1>). -#}
       density switch, on every page under /admin. -#}
   {%- set shell = admin_shell(section) %}
   {%- if shell %}
-  <div class="admin-shell" data-admin-shell data-search-url="{{ shell.search_url }}" data-palette-url="{{ shell.palette_url }}">
+  <div class="admin-shell" data-admin-shell data-search-url="{{ shell.search_url }}" data-palette-url="{{ shell.palette_url }}" data-command-url="{{ shell.command_url }}">
     <nav class="admin-rail" aria-label="Admin">
       <ul>
         {%- for item in shell.destinations %}

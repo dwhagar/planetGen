@@ -100,6 +100,7 @@ EXEMPT = {
     "generate_job_stream": "Server-sent events for a job",
     "generate_job_log": "A job's raw log",
     "generate_sectors": "JSON for the sector picker",
+    "generate_command": "JSON for the palette's typed commands",
     "generate_system_download": "A file download",
     "admin_queue_tree": "A queue entry's detail, reached from the queue",
     "admin_queue_confirm": "A confirmation step, reached from the queue",
@@ -193,7 +194,7 @@ def shell(section, page_url, admin=None):
         admin (dict, optional): The signed-in admin; without one there is no shell.
 
     Returns:
-        dict: `destinations` (`[{"key", "label", "url", "current"}]`, the rail), `search_url` and `palette_url`.
+        dict: `destinations` (`[{"key", "label", "url", "current"}]`, the rail), `search_url`, `palette_url` and `command_url` (typed commands).
     """
     current = SECTION_DESTINATION.get(section)
     if current is None or not admin or admin.get("must_change_credentials"):
@@ -205,4 +206,5 @@ def shell(section, page_url, admin=None):
         ],
         "search_url": page_url("admin_search"),
         "palette_url": page_url("admin_palette"),
+        "command_url": page_url("generate_command"),
     }

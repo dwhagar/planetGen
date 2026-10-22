@@ -7,7 +7,12 @@
     <input id="admin-search-q" type="search" name="q" value="{{ query }}" autocomplete="off" autofocus placeholder="for example: cache size, cancel, sectors">
     <button type="submit">Search</button>
   </form>
-  {%- if query and not results %}
+  {%- if command %}
+  <p class="admin-command"><a href="{{ command.url }}"><strong>{{ command.label }}</strong></a> <span class="hint">{{ command.summary }}. This opens the Review step; nothing runs until you press Run there.</span></p>
+  {%- elif command_error %}
+  <p class="hint" role="status">{{ command_error }}</p>
+  {%- endif %}
+  {%- if query and not results and not command %}
   <p class="hint" role="status">Nothing matches "{{ query }}". Try fewer or simpler words.</p>
   {%- else %}
   <ul class="admin-results">

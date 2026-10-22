@@ -6,7 +6,7 @@ the list the Ctrl+K palette (`static/adminpalette.js`) filters as you type. Both
 
 from flask import jsonify, request, url_for
 
-from . import adminregistry, bp
+from . import adminregistry, bp, generate_commands, generate_flow
 from .admin_pages import _render, _require_admin
 from .helpers import crumb, page_url
 
@@ -25,9 +25,15 @@ def admin_search():
         return bounce
     query = request.args.get("q", "").strip()[:200]
     found = adminregistry.search(query, adminregistry.entries(), limit=SEARCH_LIMIT)
+    command, command_error = None, None
+    try:
+        command = generate_flow.command_link(query)
+    except generate_commands.CommandError as exc:
+        command_error = str(exc)
     return _render(
         "admin_search.html", title="Search admin", section="admin",
-        breadcrumbs=[crumb("Admin", "admin"), crumb("Search")], query=query,
+        breadcrumbs=[crumb("Admin", "admin"), crumb("Search")], query=query, command=command,
+        command_error=command_error,
         results=[{"entry": entry, "url": _address(entry)} for entry in found],
         description="Find an admin page, a task or a setting by what it does.",
     )

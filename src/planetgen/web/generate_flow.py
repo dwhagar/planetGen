@@ -15,15 +15,16 @@ The flow, for every task:
 
 import shlex
 from dataclasses import dataclass
+from urllib.parse import urlencode
 
-from flask import abort, current_app, request
+from flask import abort, current_app, jsonify, request
 
-from . import adminregistry, bp, jobs
+from . import adminregistry, bp, generate_commands, jobs
 from .generate_page import (
     ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, FormError, _admin_or_403, _admin_or_redirect, _edge_pc,
     _estimate_view, _no_store, build_job, estimate_for, estimate_needed, page_context,
 )
-from .helpers import crumb, db_name, render_page
+from .helpers import crumb, db_name, page_url, render_page
 
 
 @dataclass(frozen=True)
@@ -69,7 +70,7 @@ RUN_LABELS = {
     "check_db": "Check",
 }
 
-DRAFT_SKIP = frozenset({"csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, "back"})
+DRAFT_SKIP = frozenset({"csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, "back", "review"})
 """frozenset: Form fields that are not part of the draft carried between the task page and its Review step."""
 
 
@@ -158,17 +159,33 @@ def review_page(admin, action, kind, title, steps, form, estimate=None):
 
 @bp.route("/admin/generate/task/<key>", methods=["GET", "POST"])
 def generate_task(key):
-    """A task's form (GET), and its Review step (POST; with `back` it is the form again, filled)."""
+    """
+    A task's form (GET), and its Review step (POST; with `back` it is the form again, filled). A GET with query
+    fields fills the form with them, and with `review=1` shows the Review step for them, which is where a typed command
+    lands (`generate_commands`); nothing runs until Run is pressed on that step.
+    """
     task = task_for_key(key)
     if task is None:
         abort(404)
     if request.method in ("GET", "HEAD"):
         admin, response = _admin_or_redirect()
-        return response or task_page(admin, task)
+        if response:
+            return response
+        form = request.args
+        if not form:
+            return task_page(admin, task)
+        if form.get("review") and not form.get("back"):
+            return _review_or_form(admin, task, form)
+        return task_page(admin, task, form=form)
     admin = _admin_or_403()
     form = request.form
     if form.get("back"):
         return task_page(admin, task, form=form)
+    return _review_or_form(admin, task, form)
+
+
+def _review_or_form(admin, task, form):
+    """The Review step for the draft `form`, or the task's form again with what is wrong."""
     action = form.get("action") or (task.actions[0] if len(task.actions) == 1 else "")
     if action not in task.actions:
         return task_page(admin, task, form=form, error="Choose what to do first.", status=400)
@@ -182,6 +199,41 @@ def generate_task(key):
     except FormError as exc:
         return task_page(admin, task, form=form, error=str(exc), status=400)
     return review_page(admin, action, kind, title, steps, form, estimate=estimate)
+
+
+@bp.route("/admin/generate/command")
+def generate_command():
+    """
+    What a typed command line means (`generate_commands.parse`), for the palette: JSON with `command` (its label, summary
+    and the address it opens) or `error`, or `command: null` for text that is not a command.
+    """
+    admin, response = _admin_or_redirect()
+    if response:
+        return jsonify({"error": "sign in"}), 403
+    try:
+        found = command_link(request.args.get("q", ""))
+    except generate_commands.CommandError as exc:
+        return _no_store(jsonify({"command": None, "error": str(exc)}))
+    return _no_store(jsonify({"command": found}))
+
+
+generate_command.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+def command_link(text):
+    """`{"label", "summary", "url"}` for a typed line that is a command, `None` for one that is not.
+
+    Raises:
+        generate_commands.CommandError: A line that starts like a command but cannot be read.
+    """
+    command = generate_commands.parse(text)
+    if command is None:
+        return None
+    task = next(t for t in TASKS if t.key == command.task)
+    query = {**command.fields, **({"review": "1"} if command.review else {})}
+    url = page_url(task.endpoint, **task.params)
+    return {"label": f"{'Review' if command.review else 'Open'}: {task.label}", "summary": command.summary,
+            "url": url + ("?" + urlencode(query) if query else "")}
 
 
 @bp.route("/admin/generate/history")

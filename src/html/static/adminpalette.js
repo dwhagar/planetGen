@@ -8,7 +8,11 @@
 //   Ctrl+K or /   open the palette          g then g/s/j/d   go to Generate, Settings, Jobs, Data
 //   ?             list the keys             Ctrl+Enter       press the page's Review button (data-review)
 //   Esc           close what is open
+// A line that starts like a typed command ("add sectors radius 12", ADM.121) also lists what it means, from
+// `/admin/generate/command`; it opens the task's Review step filled in, and nothing runs until Run is pressed there.
 // Without script the shell's search box submits to /admin/search, which lists the same entries.
+
+export const COMMAND_START = /^\s*(add|sectors|scatters?|new galaxy|wipe|check)\b/i;
 
 export const GO_KEYS = { g: "generate", s: "settings", j: "jobs", d: "data" };
 
@@ -51,7 +55,7 @@ export function meaning(event, armed) {
   return "";
 }
 
-const KIND_NAMES = { page: "Page", task: "Task", setting: "Setting" };
+const KIND_NAMES = { page: "Page", task: "Task", setting: "Setting", command: "Command" };
 const DANGER_NAMES = { rewrites: "Changes data", destroys: "Removes data" };
 
 function el(tag, attrs = {}, text = "") {
@@ -67,6 +71,8 @@ function init(shell) {
   let armedUntil = 0;
   let active = 0;
   let shown = [];
+  let command = null;
+  let asked = 0;
 
   const dialog = el("dialog", { class: "admin-palette", "aria-label": "Admin palette" });
   const input = el("input", { type: "search", placeholder: "Find a page, task or setting", autocomplete: "off",
@@ -93,8 +99,25 @@ function init(shell) {
     return loading;
   }
 
+  function ask() {
+    const text = input.value;
+    command = null;
+    if (!COMMAND_START.test(text) || !shell.dataset.commandUrl) { draw(); return; }
+    const mine = ++asked;
+    fetch(`${shell.dataset.commandUrl}?q=${encodeURIComponent(text)}`, { credentials: "same-origin", headers: { Accept: "application/json" } })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body) => {
+        if (mine !== asked || !body) return;
+        command = body.command ? { ...body.command, kind: "command", danger: "safe", keywords: [] }
+          : body.error ? { error: body.error } : null;
+        draw();
+      })
+      .catch(() => {});
+  }
+
   function draw() {
     shown = rank(items || [], input.value);
+    if (command && command.url) shown = [command, ...shown];
     active = Math.min(active, Math.max(0, shown.length - 1));
     list.replaceChildren(...shown.map((item, index) => {
       const row = el("li", { role: "option", id: `admin-palette-${index}`, "aria-selected": String(index === active) });
@@ -106,7 +129,8 @@ function init(shell) {
       return row;
     }));
     input.setAttribute("aria-activedescendant", shown.length ? `admin-palette-${active}` : "");
-    if (items) note.textContent = shown.length ? "" : "Nothing matches.";
+    if (command && command.error) note.textContent = command.error;
+    else if (items) note.textContent = shown.length ? "" : "Nothing matches.";
   }
 
   function open() {
@@ -114,11 +138,12 @@ function init(shell) {
     if (!dialog.open) dialog.showModal();
     input.value = "";
     active = 0;
+    command = null;
     load().then(draw);
     input.focus();
   }
 
-  input.addEventListener("input", () => { active = 0; draw(); });
+  input.addEventListener("input", () => { active = 0; ask(); });
   input.addEventListener("keydown", (event) => {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
