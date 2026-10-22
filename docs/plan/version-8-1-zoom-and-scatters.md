@@ -90,7 +90,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.31 | Store structure, not prose, for life and flavour |  |  |
 
 ### Admin and API housekeeping
 
