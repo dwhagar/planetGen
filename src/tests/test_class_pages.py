@@ -293,6 +293,9 @@ class _Fake:
     def get_phenomenon(self, db, phenomenon_type, phenomenon_id):
         return self.phenomenon
 
+    def get_phenomenon_contents(self, db, phenomenon_type, phenomenon_id, limit=None):
+        return {"total": 0, "counts": {}, "items": []}
+
     def auth_me(self, cookie_header):
         return None
 
@@ -300,7 +303,7 @@ class _Fake:
 @pytest.fixture
 def fake(monkeypatch):
     data = _Fake()
-    for name in ("get_system", "get_system_description", "get_system_facilities", "get_phenomenon", "auth_me"):
+    for name in ("get_system", "get_system_description", "get_system_facilities", "get_phenomenon", "get_phenomenon_contents", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 
