@@ -12,6 +12,7 @@ EDGES = [
     (3762, -1020, 23039, oid.SERIAL_GENERATED, 67_108_863, 4095),
     (1, 1020, 5, oid.SERIAL_RUNTIME, 12345, 1),
     (65535, 102942, 411599, oid.SERIAL_FIELD, (1 << 26) - 1, 4095),
+    (700, -3, 99, oid.SERIAL_REGION, (1 << 26) - 1, 0),
     (65535, -102942, 0, oid.SERIAL_RUNTIME, 0, 0),
     ((1 << 19) - 1, (1 << 17) - 1, (1 << 19) - 1, oid.SERIAL_GENERATED, 7, 1),
     ((1 << 19) - 1, -(1 << 17), 0, oid.SERIAL_GENERATED, 7, 1),
@@ -65,7 +66,7 @@ def test_the_ids_of_one_sector_sort_together():
     dict(shell=0, band=0, wedge=0, serial_kind=0, serial=1 << 26, body=0),
     dict(shell=0, band=0, wedge=0, serial_kind=0, serial=0, body=4096),
     dict(shell=-1, band=0, wedge=0, serial_kind=0, serial=0, body=0),
-    dict(shell=0, band=0, wedge=0, serial_kind=3, serial=0, body=0),
+    dict(shell=0, band=0, wedge=0, serial_kind=4, serial=0, body=0),
 ])
 def test_a_field_that_does_not_fit_is_refused(kwargs):
     with pytest.raises(ValueError):
@@ -85,9 +86,10 @@ def test_bytes_of_the_wrong_length_are_refused():
         oid.from_bytes(bytes(10))
 
 
-def test_a_serial_kind_that_is_not_known_is_refused_on_unpack():
-    with pytest.raises(ValueError):
-        oid.unpack(3 << (oid.LAYOUT.serial_count_bits + oid.BODY_BITS))
+def test_every_value_of_the_two_kind_bits_is_a_known_kind():
+    assert oid.SERIAL_KINDS == (0, 1, 2, 3)
+    for kind in oid.SERIAL_KINDS:
+        assert oid.unpack(kind << (oid.LAYOUT.serial_count_bits + oid.BODY_BITS)).serial_kind == kind
 
 
 def test_the_milky_way_and_the_whole_reach_fit_the_layout():

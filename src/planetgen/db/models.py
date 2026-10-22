@@ -587,6 +587,37 @@ galaxy_components = sa.Table(
 )
 
 
+galaxy_containers = sa.Table(
+    'galaxy_containers',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('uid', mysql.BINARY(12), nullable=False),
+    sa.Column('kind', sa.String(16), nullable=False),
+    sa.Column('name', sa.String(255), nullable=True),
+    sa.Column('component_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('bubble_col', mysql.INTEGER(), nullable=True),
+    sa.Column('bubble_row', mysql.INTEGER(), nullable=True),
+    sa.Column('bubble_n', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), nullable=False),
+    sa.Column('created_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_galaxy_containers_birth', 'shell_index', 'band_index', 'wedge_index'),
+    sa.Index('idx_galaxy_containers_component', 'component_id'),
+    sa.Index('idx_galaxy_containers_kind_x', 'kind', 'center_x_pc'),
+    sa.Index('uq_galaxy_containers_bubble', 'bubble_col', 'bubble_row', 'bubble_n', unique=True),
+    sa.Index('uq_galaxy_containers_uid', 'uid', unique=True),
+    sa.CheckConstraint('(`extent_pc` >= 1)', name='chk_galaxy_containers_extent'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'globular_cluster',_utf8mb4'superbubble'))", name='chk_galaxy_containers_kind'),
+    sa.ForeignKeyConstraint(['component_id'], ['galaxy_components.id'], name='fk_galaxy_containers_component', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 galaxy_shape = sa.Table(
     'galaxy_shape',
     metadata,
