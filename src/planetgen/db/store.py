@@ -1500,6 +1500,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (115, _column_marker("sectors", "parity_dirty")),
     (114, _table_marker("galaxy_shape_pins")),
     (113, _table_marker("object_index")),
     (112, _check_marker("chk_bright_stars_population", "open_cluster_00")),
