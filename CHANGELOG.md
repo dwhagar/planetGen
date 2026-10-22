@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1924] - 2026-10-22
+
+**Headline:** Generate is now a Start screen with a card per task, a page for each task and a Review step that shows what will run before anything does.
+
+### Changed
+- **Start screen and task pages.** The one long page of folding sections is replaced by six task cards (Add sectors, Start a new galaxy, Change what is scattered, Make one system, Check the database, and the Wipe card last and red). Each task is its own page; the rarely changed prevalence, star mix and sector minimums fold under Advanced. The Customize window and the folding sections' memory are gone.
+- **Review before Run.** Every task ends in a Review step: what will run, each step's command line, the size and time of a galaxy run, the disk refusal with "Generate anyway", then Run, or Back to the form with everything still filled in. The old size-and-time page is this step.
+- **The frame.** A status strip, Start and History tabs and the current job (or the last job's result with Show on Galaxy Map) are on every Generate screen, and the forms stay usable while a job runs. History lists the recent jobs with a link to the Work Queue. The one-off system page sits in the same frame, with its ten force-or-forbid options as Generator decides / Yes / No choices.
+- **Add sectors in two choices.** "Sectors around a place" or "Sectors by shell, band and wedge". A place is named on one of four tabs (a random populated spot, a named sector with the finder, a sector address, a position in parsecs); the grid choice is a whole shell or a range. The five modes and three center choices of the old form are gone from the page; the command each builds is unchanged, and a test holds it.
+- **Typed commands.** In the Ctrl+K palette (and on the plain search page) a line such as `add sectors around sector 9 radius 20`, `add sectors shell 40 limit 200` or `check deep` offers a Review link with the form filled in. Nothing runs from a command: you press Run on the Review step. A line that cannot be read says why.
+- **Run again.** A job started from the Generate page keeps the form it was made from. History and the last-job line offer "Run again", which opens the Review step for the same settings; nothing starts until you press Run. A job that deletes data is not offered again, and a job started from the command line has no form to repeat.
+
 ## [8.0.1923] - 2026-10-22
 
 **Headline:** The test of a body far from its epoch reads the stored orbit tree again.
