@@ -942,3 +942,4 @@ Baseline: PR #1817.
 | GEN.601 | 8.1 | Admin control suite |
 | GEN.608 | 8.1 | Admin control suite |
 | PERF.148 | 8.1 | Queue, caches and performance |
+| GEN.597 | 8.1 | Galaxy laws build |

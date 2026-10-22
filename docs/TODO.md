@@ -6946,6 +6946,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   25,000 expected stars draw different stars than before), so this item
   renumbers to the next free epoch on its rebase (43, or the one after
   if the other waiting item merges first).
+  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
+  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
+  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
+  its rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13645,6 +13649,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   25,000 expected stars draw different stars than before), so this item
   renumbers to the next free epoch on its rebase (43, or the one after
   if the other waiting item merges first).
+  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
+  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
+  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
+  its rebase.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -14015,6 +14023,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
   AU because of the new rates. Network access is closed (Boss, 1:17 PM
   EDT), so the unverified sources stay labelled recalled.
+  Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT 2026-10-21
+  as the lane reported; GEN.597 was fixed inside it), release 8.0.1873,
+  generator epoch 43. Effects: the standalone neutron star rate is
+  4.66e-3 per star (Boss's 4.0e-3 stays a test target), the black hole
+  rate 8.6e-4, the perturber mass changes from 1.44 to 1.01 solar masses
+  (not the 0.88 reported while the branch was in flight). The stand-ins
+  this slice adds are labelled in docs/design/explosion-islands.md and
+  docs/design/natal-kick.md: nesting of failure windows above the
+  verified islands [stand-in]; kick sigma 265 km/s [recalled, Hobbs
+  2005]; black hole unbound share 2 percent [placeholder]; one
+  Maxwellian [stand-in]; birth in the thin disc only [stand-in]; the
+  black hole ejecta speed range [stand-in]. Still open in this item: the
+  neutron star mass function, the placement of kicked remnants, the
+  ejected neutron star speed (slice 4, coded, next) and the magnetar
+  rate stand-in.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15548,28 +15571,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hides it. Done: the reproducer gives 0 failures in 3,000 and a test
   covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
   Prerequisites: none. Related: GEN.545, GEN.262.
-
-- [ ] **GEN.597 A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug)**
-  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
-  Core 4's note), filed by the TODO thread.
-  `src/tests/test_insolation.py::test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_body`
-  asserts 0.0 <= flux_variation <= 1.0 on every body; a rocky planet
-  (body_type "t") of a wide binary (binary_type "wide") can get a value
-  above 1. Fails on main: yes, at seeds outside the test's own
-  range(60): seed 106 gives 1.72, seed 225 gives 1.10, seed 245 gives
-  2.32 (the test's seeds 0 to 59 pass on main only by the luck of the
-  draws; seed 36 gives 1.63 on Core 4's branch). Frequency: about 3 of
-  240 systems. Reproducer, from src/: `from tests.fuzz_support import
-  deterministic_entropy`; `with deterministic_entropy(seed):
-  draw.set_run_seed(seed); s = StarSystem(SystemConfig(),
-  galactic_center_dist_ly=26000.0)`, then any planet in `s.planets +
-  s.secondary_planets` with body_type != "g" and flux_variation > 1. Do:
-  find why the wide-binary secondary's contribution pushes the ratio of
-  minimum to maximum flux (or the variation fraction) past 1 for a
-  planet in the pair's own orbit around the primary, fix the formula or
-  the clamp's cause, and widen the test's seeds to 240. Done: the
-  reproducer gives no value above 1 in 240 systems. Owner: Core 4 (the coordinator, 7:15 PM EDT 2026-10-21: Bug Hunt had not started it and Core 4's gate is blocked by it; before that Bug Hunt, routed 3:46 PM EDT).
-  Prerequisites: none. Related: GEN.545.
 
 - [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
   Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
