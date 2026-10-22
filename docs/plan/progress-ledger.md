@@ -1051,3 +1051,4 @@ Baseline: PR #1817.
 | DB.64 | 8.9 | Sky data |
 | DB.63 | 9.3 | Ships and stations |
 | GEN.379 | 8.3 | Galactic gravity |
+| DB.77 | 8.4 | Bulk composition |

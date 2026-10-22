@@ -46,7 +46,6 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set |  |  |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed |  |  |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} |  |  |
-| DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre |  |  |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more |  |  |
 | DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header |  |  |
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | DB.75 |  |

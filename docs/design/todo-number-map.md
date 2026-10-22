@@ -622,7 +622,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | done, PR #2487 |
-| DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | open |
+| DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | done, PR #2534 |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
 | DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index | none | done, PR #2361 |
 | DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | done, PR #2406 |
