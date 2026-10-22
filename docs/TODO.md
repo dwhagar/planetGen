@@ -5610,7 +5610,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
-  GEN.530, SEC.33, TEST.261.
+  SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -12817,35 +12817,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
-- [ ] **GEN.530 A pre-placed star's hosted nebula shows from its scatter row on the maps and pages**
-  Residual of GEN.320 (merged #2014, 10:07 AM EDT as Core 3 reported;
-  found by Core 3 and filed by the TODO thread). GEN.320 rolls a star's
-  hosted nebula from the star's own seed and added the helper
-  `hosted_nebula_of`, so a scatter row can say it before any sector is
-  filled (folds MAP.182's intent), but nothing reads that helper from a
-  row: the maps and pages do not show the hosted nebula of a pre-placed
-  star until its sector has been built. Do: the Galaxy Map, the sector
-  view and the star pages read `hosted_nebula_of` for a scatter row, so
-  a pre-placed O or B star shows the same nebula before and after its
-  sector is built. Done: a test shows the nebula of a pre-placed star
-  from its row equals the one the built sector holds, and a map tile or
-  page lists it without a fill. It belongs before GEN.301 (Core 3, 10:07
-  AM EDT). Owner: Core 3 (proposed, GEN.320's author; the map and page
-  reads may go to Core 2 if Core 3 prefers).
-  Owner: Core 3 for the generator side (done) and Core 2 for the map
-  and page reads, after PERF.105 and UX.118 in its order (Core 3
-  agreed 2026-10-17, 10:22 AM EDT and Core 2 at 10:27 AM EDT, both as
-  the lanes reported). Pointers for Core 2:
-  generation/nebula_contents.py `hosted_nebula_of(star,
-  chance_factor=1.0, markdown=False)` takes anything with `type` (a
-  main-sequence class such as B2V), `age` in Gy, `mass` and
-  `temperature`, and returns the Nebula or None; the star's seed is
-  `hosted_seed(star)` (mass, age and temperature); `chance_factor` is
-  the sector profile's "nebula" factor (GEN.236), 1.0 where no profile
-  is read. Core 3 knows the generator side. This replaces the proposed
-  owner above.
-  Prerequisites: none. Related: GEN.320, GEN.241, MAP.182.
-
 - [ ] **GEN.531 Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system**
   Filed by the TODO thread from the GEN.406 research thread (2026-10-17,
   finished 10:38 AM EDT as it reported;
@@ -18661,10 +18632,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   write the upsert with the row alias form (INSERT ... AS new ... ON
   DUPLICATE KEY UPDATE col = new.col), which works on the MySQL 8.0.19
   minimum, and leave no VALUES() use in the file; no shim. Done: the
-  test passes and the object index tests still pass. Owner: Core 2 (the
-  author of PERF.140); the Blocker 2 lane may take it only if Core 2
-  says it has not started, since it blocks DB.44's gate (the coordinator
-  decides).
+  test passes and the object index tests still pass. Owner: Core 2,
+  fixing it (row alias form in objectindex.py; its gate started 9:17 PM
+  EDT as the lane reported, merge expected within about 30 minutes);
+  Core 2 notes the `changed` selection did not pick up
+  test_sql_portability for PERF.140. Blocker 2 does not need to take it.
   Prerequisites: none. Related: PERF.140, DB.79, DB.44.
 
 ## API: The JSON API

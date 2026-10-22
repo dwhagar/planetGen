@@ -936,3 +936,4 @@ Baseline: PR #1817.
 | PERF.140 | 8.2 | Robust tile caching |
 | MAP.251 | 8.1 | Fly-through map |
 | GEN.457 | 8.1 | Composition research and design |
+| GEN.530 | 8.1 | Components and wanderers |
