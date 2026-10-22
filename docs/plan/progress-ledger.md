@@ -965,3 +965,4 @@ Baseline: PR #1817.
 | DB.44 | 8.1 | Reproducible galaxies |
 | TEST.260 | 8.1 | Bugs and flaky tests |
 | TEST.264 | 8.1 | Bugs and flaky tests |
+| GEN.596 | 8.1 | Galaxy laws build |
