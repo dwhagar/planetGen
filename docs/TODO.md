@@ -13612,7 +13612,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its stamp at the next release). Boss chose 'Keep the cap' on the black
   hole cap card (12:39 PM EDT 2026-10-21, as Core 4 reported). The item
   stays open for the mass islands and the kick step. Boss's 1:17 PM EDT
-  2026-10-21 note (as the coordinator relayed): Network access to
+  2026-10-21 note (as the coordinator relayed; he opened the network at
+  3:05 PM EDT 2026-10-22): Network access to
   arxiv.org, doi.org and crossref stays closed until he opens it, and
   information already included in the repository or in files he provided
   is valid; so the kick-escape share and any other source this step
@@ -13636,8 +13637,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent is a test target only; the published Milky Way halo gives 27
   percent). Perturber mass changes from 1.44 to 0.88 and the encounter
   limit from 1.1e4 to 1.9e4 AU because of the new rates. Network access
-  is closed (Boss, 1:17 PM EDT), so the unverified sources stay labelled
-  recalled. Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT
+  was closed (Boss, 1:17 PM EDT) and is open since 3:05 PM EDT
+  2026-10-22 (Boss), so the owner can now verify the sources that stayed
+  labelled recalled. Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT
   2026-10-21 as the lane reported; GEN.597 was fixed inside it), release
   8.0.1873, generator epoch 43. Effects: the standalone neutron star
   rate is 4.66e-3 per star (Boss's 4.0e-3 stays a test target), the
