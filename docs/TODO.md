@@ -983,6 +983,27 @@ with `clamp()`.
   decides).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
+- [ ] **UX.145 The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug)**
+  Boss (2026-10-21, 8:18 PM EDT, as the coordinator relayed): "Bug,
+  admin menu on sector map (and possibly others) deploys and goes off
+  the visible screen." Kind: layout bug. Reproduce: open the Sector Map
+  signed in as an admin, open the Admin menu; the opened menu extends
+  beyond the window and part of it cannot be reached. Do: find which
+  pages and window sizes do it (check every viewer and admin page at
+  1280x720, 1366x768, a 768x1024 tablet and a 390x844 phone), root-cause
+  it (a menu positioned without a viewport bound, a fixed height, or a
+  container that clips it) and fix the cause in the shared menu, not one
+  page. The menu keeps inside the visible window and scrolls inside
+  itself when it is taller than the space left. Done: a browser test
+  opens the admin menu on each viewer page and each admin page at those
+  window sizes and asserts the opened menu lies inside the window
+  (bounding box within the viewport) and every entry can be reached;
+  both themes. Related to UX.142 (windows fit the browser, 8.2), which
+  covers the viewers' own controls. Owner: Bug Hunt (the coordinator,
+  8:18 PM EDT 2026-10-21); if the admin shell (ADM.92) replaces the menu
+  first, the test moves to the new menu.
+  Prerequisites: none. Related: UX.142, ADM.92, ADM.98.
+
 
 ## MAP: Galaxy Map, Sector Map, System Map
 

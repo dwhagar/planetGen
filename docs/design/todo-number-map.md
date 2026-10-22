@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.145 |
+| UX | UX.146 |
 | MAP | MAP.255 |
 | NAV | NAV.63 |
 | GEN | GEN.620 |
@@ -2063,6 +2063,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |
 | UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
 | UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | none | open |
+| UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
