@@ -9,13 +9,13 @@ how a power of ten and emphasis are marked.
 
 import re
 
+from planetgen.physics.quantity import Quantity
 from planetgen.util import ladders
 from planetgen.util.format import format_number, format_quantity, scientific_text
 
 LADDER_BY_KIND = {ladder.quantity: ladder for ladder in ladders.LADDERS}
 """dict: Each ladder family's `kind`, to its ladder."""
 
-_KM_M = 1000.0
 _SUPERSCRIPT_TO_DIGIT = str.maketrans("⁻⁰¹²³⁴⁵⁶⁷⁸⁹", "-0123456789")
 _POWER_OF_TEN = re.compile(r"(\d+(?:\.\d+)?) × 10([⁻⁰¹²³⁴-⁹]+)")
 
@@ -31,7 +31,7 @@ def quantity_text(quantity):
     if value is None:
         return "–"
     if kind == "radius":
-        return f"{scientific_text(value / _KM_M)} km"
+        return f"{scientific_text(Quantity('length', value, 'm').km)} km"
     if kind == "luminosity":
         return format_quantity(ladders.POWER, value)
     if kind == "count":

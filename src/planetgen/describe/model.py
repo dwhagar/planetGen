@@ -39,6 +39,15 @@ def qty(kind, si, **extra):
     return {"qty": {"kind": kind, "si": value, **extra}}
 
 
+def measured(kind, quantity, **extra):
+    """
+    A quantity inline item (`qty`) for a `Quantity` (`planetgen.physics.quantity`) shown as `kind`: `si` is the quantity in
+    its registry kind's base unit, whatever unit it was held in, so no call site multiplies by a unit factor (GEN.348).
+    `None` is an absent value.
+    """
+    return qty(kind, None if quantity is None else quantity.base(), **extra)
+
+
 def ref(ref_text, name):
     """A link inline item."""
     return {"ref": ref_text, "name": name}

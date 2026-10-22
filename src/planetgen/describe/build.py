@@ -15,44 +15,48 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import model
-from planetgen.describe.model import fact, facts, inline, prose, qty, section
+from planetgen.describe.model import fact, facts, inline, measured, prose, qty, section
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation import evolution
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
-from planetgen.physics import atmosphere as atmosphere_physics, constants, habitability, pre_main_sequence, protection
+from planetgen.physics import atmosphere as atmosphere_physics, habitability, pre_main_sequence, protection, unit_registry
+from planetgen.physics.quantity import Quantity
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
 """float: A compressed heliosphere is mentioned when it is under this share of the open-space one."""
 
-_GY_S = 1e9 * constants.SECONDS_PER_YEAR
-
-
 # --- quantities in the units the model stores -------------------------------------------------------
 
+def _held(unit, value, shown=None, **extra):
+    """The inline quantity of `value` in the registry unit `unit`, shown as `shown` (the registry kind's name when omitted)."""
+    registry_kind = unit_registry.unit(unit).kind
+    return measured(shown or registry_kind, None if value is None else Quantity(registry_kind, value, unit), **extra)
+
+
 def _au(value):
-    return qty("length", None if value is None else value * constants.AU_M)
+    return _held("au", value)
 
 
 def _km(value):
-    return qty("length", None if value is None else value * constants.KM_M)
+    return _held("km", value)
 
 
 def _radius_km(value):
-    return qty("radius", None if value is None else value * constants.KM_M)
+    return _held("km", value, shown="radius")
 
 
 def _years(value):
-    return qty("time", None if value is None else value * constants.SECONDS_PER_YEAR)
+    return _held("yr", value, shown="time")
 
 
 def _gy(value):
-    return qty("time", None if value is None else value * _GY_S)
+    return _held("Gyr", value, shown="time")
 
 
 def _kms(value):
-    return qty("speed", None if value is None else value * constants.KM_M)
+    return _held("km_s", value)
 
 
 def _kelvin(value, companions=True):
@@ -64,25 +68,32 @@ def _pascal(value):
 
 
 def _gravity(value_g):
-    return qty("gravity", None if value_g is None else value_g * constants.EARTH_GRAVITY)
+    return _held("g0", value_g, shown="gravity")
 
 
 def _mass(kilograms, solar=False):
-    if solar:
-        return qty("mass", kilograms, sol=kilograms / constants.SOLAR_MASS_TO_KG)
-    return qty("mass", kilograms)
+    quantity = None if kilograms is None else Quantity("mass", kilograms, "kg")
+    return measured("mass", quantity, **({"sol": quantity.as_("Msun")} if solar else {}))
+
+
+def _mass_solar(solar_masses):
+    """A mass held in solar masses, shown with its ratio to the Sun."""
+    quantity = Quantity("mass", solar_masses, "Msun")
+    return measured("mass", quantity, sol=quantity.Msun)
 
 
 def _luminosity(watts):
-    return qty("luminosity", watts, sol=watts / constants.SOLAR_LUMINOSITY)
+    quantity = Quantity("power", watts, "W")
+    return measured("luminosity", quantity, sol=quantity.as_("Lsun"))
 
 
 def _galactic_orbit(speed_kms, period_gy):
     return inline(_kms(speed_kms), " (", _gy(period_gy), " per orbit)")
 
 
-def _offset_km(*components_au):
-    return math.sqrt(sum(component ** 2 for component in components_au)) * constants.AU_TO_KM
+def _offset(*components_au):
+    """The length of a vector given in AU, as a length in AU."""
+    return math.sqrt(sum(component ** 2 for component in components_au))
 
 
 def _ref(kind, obj):
@@ -108,8 +119,8 @@ def _star_facts(star):
         fact("orbit", "Galactic Orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
     ]
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
-        offset = _offset_km(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        rows.append(fact("wobble", "Planetary Wobble", _km(offset), " from its nominal position, pulled by its own planets"))
+        offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
+        rows.append(fact("wobble", "Planetary Wobble", _au(offset), " from its nominal position, pulled by its own planets"))
     if star.disk_kind:
         rows.append(fact("disk", "Disk", _star_disk_text(star)))
     rows.append(fact("loc", "Location", star.name))
@@ -122,7 +133,7 @@ _DISK_LABELS = {"post-agb": "Circumbinary post-AGB"}
 
 def _star_disk_text(star):
     return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk of ",
-                  _mass(star.disk_mass_solar * constants.SOLAR_MASS_TO_KG, solar=True), ", from ",
+                  _mass_solar(star.disk_mass_solar), ", from ",
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
 
 
@@ -156,8 +167,8 @@ def _galactic_orbit_or_centre(star):
 
 def _wobble_row(star):
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
-        offset = _offset_km(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        return [fact("wobble", "Planetary Wobble", _km(offset), " from its nominal position, pulled by its own planets")]
+        offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
+        return [fact("wobble", "Planetary Wobble", _au(offset), " from its nominal position, pulled by its own planets")]
     return []
 
 
@@ -192,13 +203,13 @@ def _black_hole_blocks(hole):
 
 
 def _neutron_star_blocks(star):
-    spin = qty("time", star.spin_period_ms / 1000.0)
+    spin = _held("ms", star.spin_period_ms, shown="time")
     rows = [
         fact("type", "Type", star.type),
         fact("mass", "Mass", _mass(star.mass, solar=True)),
         fact("radius", "Radius", _radius_km(star.radius)),
         fact("spin_period", "Spin Period", spin),
-        fact("magnetic_field", "Magnetic Field", qty("magnetic field", star.magnetic_field_gauss * 1e-4)),
+        fact("magnetic_field", "Magnetic Field", _held("G", star.magnetic_field_gauss, shown="magnetic field")),
         fact("surface_temp", "Surface Temperature", _kelvin(star.surface_temperature_k, companions=False)),
         fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(star)),
         *_wobble_row(star),
@@ -208,7 +219,7 @@ def _neutron_star_blocks(star):
                         " ago. It holds more mass than the Sun in a sphere ", _radius_km(star.radius), " in radius.")]
     if star.pulsar_type == "magnetar":
         sentences.append(inline("It is a magnetar, one of the rarest objects in the galaxy. Its magnetic field of ",
-                                qty("magnetic field", star.magnetic_field_gauss * 1e-4), " is among the strongest known, it "
+                                _held("G", star.magnetic_field_gauss, shown="magnetic field"), " is among the strongest known, it "
                                 "turns once every ", spin, ", and it is young enough to erupt in giant flares."))
     elif star.pulsar_type != "non-pulsing":
         sentences.append(inline(f"It is a {star.pulsar_type} pulsar and sweeps a beam of radiation past any observer once "
@@ -234,7 +245,7 @@ def _close_pair_section(pair):
                                      pair.binary_primary_position_z)),
                           (secondary, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
                                        pair.binary_secondary_position_z))):
-        offsets.append(inline(f"{member.name}: ", _km(_offset_km(*parts))))
+        offsets.append(inline(f"{member.name}: ", _au(_offset(*parts))))
     rows = [
         fact("type", "Type", pair.type),
         fact("mass", "Mass", _mass(pair.mass)),
@@ -254,7 +265,7 @@ def _close_pair_section(pair):
 
 def _wide_pair_section(pair):
     primary, secondary = pair.primary, pair.secondary
-    offsets = [inline(f"{member.name}: ", _km(_offset_km(*parts))) for member, parts in (
+    offsets = [inline(f"{member.name}: ", _au(_offset(*parts))) for member, parts in (
         (primary, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
         (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))]
     rows = [
@@ -359,7 +370,7 @@ def _planet_facts(planet):
     ]
     if planet.reflex_offset_x or planet.reflex_offset_y or planet.reflex_offset_z:
         rows.append(fact("moon_wobble", "Moon Wobble",
-                         _km(_offset_km(planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z)),
+                         _au(_offset(planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z)),
                          " from its nominal position, pulled by its own moons"))
     if not planet.is_moon:
         rows.append(fact("moon_count", "Moons", qty("count", len(planet.moons))))

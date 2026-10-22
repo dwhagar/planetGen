@@ -18,22 +18,19 @@ from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
-from planetgen.physics import constants
 from planetgen.generation.belt import format_composition_summary
-
-_YEAR_S = constants.SECONDS_PER_YEAR
 
 
 def _ly(value):
-    return qty("length", None if value is None else value * constants.LIGHTYEAR_M)
+    return build._held("ly", value)
 
 
 def _years(value):
-    return qty("time", None if value is None else value * _YEAR_S)
+    return build._years(value)
 
 
 def _density(per_cm3):
-    return qty("number density", None if per_cm3 is None else per_cm3 * 1e6)
+    return build._held("cm-3", per_cm3, shown="number density")
 
 
 def _article(word):
@@ -72,7 +69,7 @@ def _nebula(nebula):
     ]
     if nebula.hosts:
         rows.append(fact("hosts", "Stars", nebula.hosts))
-        rows.append(fact("age", "Age of the Stars", build._years(nebula.age_myr * 1e6)))
+        rows.append(fact("age", "Age of the Stars", build._held("Myr", nebula.age_myr, shown="time")))
         if nebula.q_total:
             rows.append(fact("ionizing", "Ionizing Photons", qty("count", nebula.q_total), " a second"))
     rows.append(_orbit_fact(nebula))
@@ -83,16 +80,14 @@ def _nebula(nebula):
 
 
 def _quasar(quasar):
-    horizon = qty("radius", quasar.event_horizon_radius_km * constants.KM_M)
+    horizon = build._radius_km(quasar.event_horizon_radius_km)
     rows = [
-        fact("mass", "Black Hole Mass", build._mass(quasar.black_hole_mass_solar * constants.SOLAR_MASS_TO_KG, solar=True)),
+        fact("mass", "Black Hole Mass", build._mass_solar(quasar.black_hole_mass_solar)),
         fact("event_horizon", "Event Horizon Radius", horizon),
         fact("luminosity", "Luminosity", build._luminosity(quasar.luminosity_w)),
         fact("eddington", "Share of the Eddington Limit", qty("ratio", quasar.eddington_ratio)),
-        fact("accretion", "Gas Swallowed", build._mass(quasar.accretion_rate_solar_per_year * constants.SOLAR_MASS_TO_KG,
-                                                         solar=True), " a year"),
-        fact("broad_line", "Broad-Line Region", qty("length", quasar.broad_line_region_light_days * 86400.0
-                                                      * constants.SPEED_OF_LIGHT_M_S), " out"),
+        fact("accretion", "Gas Swallowed", build._mass_solar(quasar.accretion_rate_solar_per_year), " a year"),
+        fact("broad_line", "Broad-Line Region", build._held("ld", quasar.broad_line_region_light_days), " out"),
         fact("age", "Active For", _years(quasar.active_age_years)),
         fact("radio", "Radio", "Loud" if quasar.is_radio_loud else "Quiet"),
     ]

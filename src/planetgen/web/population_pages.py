@@ -20,6 +20,7 @@ no Species section (`helpers.population_status`).
 
 from flask import abort, request
 
+from planetgen.physics.quantity import Quantity
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_number
 from planetgen.web.lib.datatable import Column, Facet, Result, Table
@@ -38,10 +39,11 @@ def format_years(years):
     years"`, `"about 3.4 million years"`; `""` when unknown."""
     if years is None:
         return ""
+    age = Quantity("duration", years, "yr")
     if years >= 1e9:
-        return f"about {years / 1e9:.1f} billion years"
+        return f"about {age.Gyr:.1f} billion years"
     if years >= 1e6:
-        return f"about {years / 1e6:.1f} million years"
+        return f"about {age.Myr:.1f} million years"
     rounded = round(years, -2) if years >= 1000 else round(years, -1)
     return f"about {format_number(rounded)} years"
 

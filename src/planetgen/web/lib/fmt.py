@@ -20,7 +20,8 @@ from urllib.parse import quote
 
 from markupsafe import Markup
 
-from planetgen.physics import constants as physical_constants
+from planetgen.physics import unit_registry as _unit_registry
+from planetgen.physics.quantity import Quantity
 from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
 from planetgen.util import format as _format
 from planetgen.util import ladders as _ladders
@@ -98,23 +99,18 @@ def format_members(member_count, system_mass_solar):
     return f"{format_number(count)} member{'' if count == 1 else 's'}, {format_mass_solar(system_mass_solar)}"
 
 
-_LADDERS_BY_QUANTITY = {ladder.quantity: ladder for ladder in _ladders.LADDERS}
-
-
-def quantity_html(quantity, value, scale=1.0, companions=True):
+def quantity_html(quantity, companions=True):
     """
     A measurement for a page (UX.78): the Automatic text the unit ladder gives
-    (`format_quantity`), inside `<span class="qty" data-q="length"
+    (`format_measure`), inside `<span class="qty" data-q="length"
     data-si="384400000">`, so `static/units.js` can show the same value in the
     reader's chosen unit system from `data-si` (the value in the ladder's SI
     base unit) without the server knowing the preference or the page cache
     keeping a variant per preference.
 
     Args:
-        quantity (str): The ladder's quantity ("length", "mass", ...).
-        value (float): The value, in the unit `scale` converts from.
-        scale (float, optional): `value` times this is in the ladder's base
-            unit (`KM_M` for kilometers). Defaults to 1.
+        quantity (Quantity or None): The value, in whatever registry unit it is held in (GEN.348); `None`, or one whose
+            base value would overflow, is an en dash.
         companions (bool, optional): Show the ladder's companion units too
             (°C and °F beside K). Defaults to True; `data-nc` records false.
 
@@ -122,35 +118,51 @@ def quantity_html(quantity, value, scale=1.0, companions=True):
         Markup: The span; an en dash, bare, for a value that isn't a finite
             number (TEST.53).
     """
-    number = _finite(value)
-    if number is None:
+    if quantity is None:
         return Markup("\u2013")
-    base = number * scale
-    text = _format.format_quantity(_LADDERS_BY_QUANTITY[quantity], base, companions)
+    ladder = _ladders.for_kind(quantity.kind)
+    base = quantity.base()
+    text = _format.format_quantity(ladder, base, companions)
     if not math.isfinite(base) or _NON_FINITE_TEXT.search(text):
         return Markup("\u2013")
-    return Markup(f'<span class="qty" data-q="{html.escape(quantity)}" data-si="{base!r}"'
+    return Markup(f'<span class="qty" data-q="{html.escape(ladder.quantity)}" data-si="{base!r}"'
                   f'{"" if companions else " data-nc"}>{html.escape(text)}</span>')
 
 
+def measured_html(unit, value, companions=True):
+    """
+    `quantity_html` for `value` of the registry unit `unit` ("km", "Msun", "Gyr"): an en dash for a value that is no
+    finite number or that its kind refuses (a negative length, a speed at or above c), so a bad stored value shows a
+    dash and never raises (TEST.53).
+    """
+    number = _finite(value)
+    if number is None:
+        return Markup("\u2013")
+    try:
+        quantity = Quantity(_unit_registry.unit(unit).kind, number, unit)
+    except ValueError:
+        return Markup("\u2013")
+    return quantity_html(quantity, companions)
+
+
 def distance_km_html(km):
-    """`quantity_html` for a distance in kilometers (the schema's unit)."""
-    return quantity_html("length", km, physical_constants.KM_M)
+    """`measured_html` for a distance in kilometers (the schema's unit)."""
+    return measured_html("km", km)
 
 
 def distance_ly_html(ly):
-    """`quantity_html` for a distance in light-years."""
-    return quantity_html("length", ly, physical_constants.LIGHTYEAR_M)
+    """`measured_html` for a distance in light-years."""
+    return measured_html("ly", ly)
 
 
 def period_years_html(years):
-    """`quantity_html` for a period in (Julian) years."""
-    return quantity_html("time", years, physical_constants.SECONDS_PER_YEAR)
+    """`measured_html` for a period in (Julian) years."""
+    return measured_html("yr", years)
 
 
 def speed_kms_html(kms):
-    """`quantity_html` for a speed in km/s."""
-    return quantity_html("speed", kms, physical_constants.KM_M)
+    """`measured_html` for a speed in km/s."""
+    return measured_html("km_s", kms)
 
 
 def _read_package_version():

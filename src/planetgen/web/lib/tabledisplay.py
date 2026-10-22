@@ -58,7 +58,7 @@ def to_plain_text(formatted):
     return _SUP_HTML_RE.sub(lambda m: m.group(1).translate(_SUPERSCRIPT_DIGITS), formatted)
 
 try:
-    from planetgen.physics import constants
+    from planetgen.physics.quantity import Quantity
     from planetgen.util.format import (
         format_body_radius_km, format_distance_km, format_mass_kg, format_period_years, format_power_w, to_scientific_notation,
     )
@@ -156,7 +156,7 @@ def format_body_radius(radius_km):
     every body radius, then in Earth radii."""
     if not _FORMATTERS:
         return f"{radius_km} km"
-    ratio = radius_km / constants.EARTH_RADIUS_KM
+    ratio = Quantity("length", radius_km, "km").Rearth
     return f"{format_body_radius_km(radius_km)} ({_times_reference(ratio)} Earth radii)"
 
 

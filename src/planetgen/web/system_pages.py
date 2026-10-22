@@ -24,13 +24,13 @@ from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.describe.model import split_by_body
 from planetgen.galaxy import objectref
-from planetgen.physics import constants as physical_constants
+from planetgen.physics.quantity import Quantity
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
 from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_distance_km, format_members, format_number, linkify_nearest,
-    nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
+    measured_html, nearest_systems_html, period_years_html, runaway_text, speed_kms_html,
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
@@ -623,7 +623,7 @@ def uncharted_phenomenon(scatter_id):
         breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(name)],
         description=f"{name}, scattered across this galaxy and not yet generated.",
         type_label=label,
-        distance=quantity_html("length", detail["distance_from_core_pc"], physical_constants.PARSEC_M),
+        distance=measured_html("pc", detail["distance_from_core_pc"]),
         sector=sector,
         built_note=None if not detail["built"] else
         "Its sector has been generated, but this record could not be matched to what was made from it.",
@@ -639,27 +639,22 @@ _ly = distance_ly_html
 _km = distance_km_html
 
 
-def _quantity(quantity, scale=1.0, companions=True):
-    """A field formatter for a measurement (UX.78): the value, converted to
-    the ladder's SI base unit by `scale`, in a span the reader's unit system
-    re-renders (`fmt.quantity_html`)."""
-    return lambda value: quantity_html(quantity, value, scale, companions)
+def _quantity(unit, companions=True):
+    """A field formatter for a measurement (UX.78): the value in the registry unit `unit`, in a span the reader's unit
+    system re-renders (`fmt.measured_html`)."""
+    return lambda value: measured_html(unit, value, companions)
 
 
-_solar_mass = _quantity("mass", physical_constants.SOLAR_MASS_TO_KG)
-_power = _quantity("power")
-_kelvin = _quantity("temperature", companions=False)
+_solar_mass = _quantity("Msun")
+_power = _quantity("W")
+_kelvin = _quantity("K", companions=False)
 
 
 def _body_radius(value):
     return to_plain_text(format_star_radius(value))
 
 
-_DAYS_PER_YEAR = 365.25
-
-
-def _light_days(value):
-    return distance_ly_html(value / _DAYS_PER_YEAR)
+_light_days = _quantity("ld")
 
 
 def _bool_text(value):
@@ -676,8 +671,8 @@ def _pressure_text(value):
     if not value:
         return "None"
     if value < 100:
-        return Markup(f"{quantity_html('pressure', value, companions=False)} (a trace)")
-    return quantity_html("pressure", value)
+        return Markup(f"{measured_html('Pa', value, companions=False)} (a trace)")
+    return measured_html("Pa", value)
 
 
 def _rogue_planet_type_text(value):
@@ -695,7 +690,7 @@ def _cloud_class_text(value):
 # unset value is stored as 0 or ''; those rows are left out.
 _CLOUD_CONTENTS = [
     ("dominant_species", "Dominant Species", lambda v: v or None),
-    ("density_cm3", "Density", lambda v: quantity_html("number density", v, 1e6) if v else None),
+    ("density_cm3", "Density", lambda v: measured_html("cm-3", v) if v else None),
     ("temperature_k", "Gas Temperature", lambda v: f"{format_number(v, ',.0f')} K" if v else None),
     ("extinction_av", "Extinction", lambda v: f"{format_number(v, ',.2f')} magnitudes (visual)" if v else None),
 ]
@@ -722,10 +717,10 @@ def _comet_composition_text(components):
 
 
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
-_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: period_years_html(v * 1e9))
+_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", _quantity("Gyr"))
 
 _EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic centre)",
-                    _quantity("length"))
+                    _quantity("m"))
 """The derived row of a compact object's page (GEN.154): see `_derived_fields`."""
 
 FIELD_SPECS = {
@@ -762,8 +757,8 @@ FIELD_SPECS = {
     "neutron_star": [
         ("mass_solar", "Mass", _solar_mass),
         ("radius_km", "Radius", _km),
-        ("spin_period_ms", "Spin Period", _quantity("time", 1e-3)),
-        ("magnetic_field_gauss", "Magnetic Field", _quantity("magnetic field", 1e-4)),
+        ("spin_period_ms", "Spin Period", _quantity("ms")),
+        ("magnetic_field_gauss", "Magnetic Field", _quantity("G")),
         ("pulsar_type", "Pulsar Type", _title_case),
         ("surface_temperature_k", "Surface Temperature", _kelvin),
         ("luminosity_w", "Luminosity", _power),
@@ -786,19 +781,19 @@ FIELD_SPECS = {
         ("planet_type", "Type", _rogue_planet_type_text),
         ("planet_class", "Planet Class", str),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
-        ("mass_kg", "Mass", _quantity("mass")),
+        ("mass_kg", "Mass", _quantity("kg")),
         ("radius_km", "Radius", _body_radius),
-        ("gravity_g", "Surface Gravity", _quantity("gravity", physical_constants.EARTH_GRAVITY)),
+        ("gravity_g", "Surface Gravity", _quantity("g0")),
         ("composition", "Composition", str),
         ("has_internal_heat", "Geologically Active", _bool_text),
         ("has_moons", "Has Moons", _bool_text),
         # Surface conditions (schema v48, rogueSurface): no star, so only
         # its own heat. A giant's temperature and pressure are at 1 bar.
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
-        ("internal_heat_flux_w_m2", "Internal Heat Flow", _quantity("flux")),
+        ("internal_heat_flux_w_m2", "Internal Heat Flow", _quantity("W_m2")),
         ("effective_temperature_k", "Effective Temperature", _kelvin),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
-        ("surface_temperature_k", "Surface Temperature", _quantity("temperature")),
+        ("surface_temperature_k", "Surface Temperature", _quantity("K")),
         ("surface_pressure_pa", "Surface Pressure", _pressure_text),
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
@@ -857,7 +852,7 @@ def _with_derived_fields(phenomenon_type, detail):
     that has a galactic position, left out for a lens beyond the galaxy's reference radius from the centre
     (`physics/lensing.py`, GEN.404)."""
     if phenomenon_type in ("black_hole", "neutron_star"):
-        mass_kg = (detail.get("mass_solar") or 0) * physical_constants.SOLAR_MASS_TO_KG
+        mass_kg = Quantity("mass", detail.get("mass_solar") or 0, "Msun").kg
     elif phenomenon_type == "rogue_planet":
         mass_kg = detail.get("mass_kg") or 0
     else:
@@ -944,7 +939,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
     distance = None
     radius_pc = detail.get("galactic_radius_pc")
     if radius_pc is not None:
-        distance = quantity_html("length", radius_pc, physical_constants.PARSEC_M)
+        distance = measured_html("pc", radius_pc)
     sector = None
     if detail.get("sector_id") is not None:
         sector = {"name": detail.get("sector_name") or "Sector",

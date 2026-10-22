@@ -1,0 +1,4 @@
+**Headline:** The describer and the page measurements now hold each value in the unit it is stored in, with no hand-written unit factors.
+
+### Changed
+- **The Python text output takes a `Quantity`** (GEN.348). The describer (`describe/build.py`, `describe/phenomena.py`, `describe/quantity.py`) builds every quantity from the registry instead of multiplying by a factor, and the page spans are written by `fmt.quantity_html(Quantity)` or the new `fmt.measured_html(unit, value)`, which shows a dash for a value its kind refuses and never raises. The system pages, object lists, profile age labels, population ages and body radius ratio read the registry too. The text of 380 generated descriptions in four formats is identical to before; their numbers differ by at most 3e-16 relative. The registry gains the light-day (`ld`).
