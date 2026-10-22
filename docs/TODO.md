@@ -21639,6 +21639,14 @@ clears each one.
   (the coordinator, about 7:08 AM EDT 2026-10-22 as the lane reported):
   bisect first, ahead of TEST.258; it hands to Core 1 or Blocker 2
   through the coordinator if the culprit is theirs.
+  Unreproduced (Bug Hunt, relayed by the coordinator about 7:20 AM EDT
+  2026-10-22 as the lane reported): Bug Hunt cannot reproduce the four
+  failures on main or in a fresh clone, so the cause is likely
+  machine-specific (the Galaxy dials lane's MySQL grant). The
+  coordinator asked that lane for the exact output and its SHOW GRANTS.
+  Keep this item open as unreproduced until it answers; if the output is
+  a grant error (1044) it is the known machine setup gap and the item is
+  dropped.
   Prerequisites: none. Related: DB.66, GEN.545.
 
 - [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
