@@ -55,7 +55,7 @@ from planetgen.api.limiter import page_limit  # noqa: E402
 from planetgen.util.settings import get_settings  # noqa: E402
 from planetgen.util import settings_view  # noqa: E402
 
-from . import csrf, errors, seo, transport  # noqa: E402
+from . import adminregistry, csrf, errors, seo, transport  # noqa: E402
 from .helpers import current_admin, page_url, visible_sections  # noqa: E402
 
 # `default-src 'self'` covers scripts, styles, images, fonts and fetch():
@@ -167,6 +167,8 @@ def _template_globals():
         "icon": icon,
         "page_url": page_url,
         "current_admin": current_admin,
+        "admin_shell": lambda section: adminregistry.shell(section, page_url, current_admin()),
+        "admin_job": lambda: generate_page.strip_view(),
         "maintenance_state": maintenance.read,
         "galaxy_status": galaxy_status_now,
         "pending_restart_options": settings_view.pending_restart,
@@ -190,6 +192,7 @@ from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
 from . import nav_page, nearby_page, sector_page  # noqa: E402,F401 -- /nav, /nearby, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import queue_page  # noqa: E402,F401 -- /admin/queue
+from . import admin_search_page  # noqa: E402,F401 -- /admin/search, /admin/palette.json
 from . import settings_page, backups_page, images_page  # noqa: E402,F401 -- /admin/settings, /backups, /images
 from . import seo_pages  # noqa: E402,F401 -- robots.txt, the sitemaps, security.txt, humans.txt, the manifest, /site-assets
 from . import facility_type_pages  # noqa: E402,F401 -- /admin/facility-types

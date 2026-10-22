@@ -138,6 +138,17 @@ def _release_lock(jobs_dir, job_id):
         pass
 
 
+def _start_waiting_job(jobs_dir, job_dir):
+    """Starts the job waiting behind this one (ADM.123, best effort: an admin page asking for the running job starts
+    it too)."""
+    try:
+        from planetgen.web import jobs
+
+        jobs.promote_queued(jobs_dir)
+    except Exception:  # noqa: BLE001 -- the job stays queued
+        _log_traceback(job_dir)
+
+
 def _mysql_config(job):
     """The job's database (`jobs.mysql_env`'s variables), as planetGen's
     `MySQLConfig`; imports planetGen, so only called once `state.json` is
@@ -458,6 +469,7 @@ def run(job_dir):
         _release_lock(jobs_dir, job["id"])
         tree.close(step_node, "failed")
         tree.close(tree.root, _TREE_STATES.get(state["status"], "failed"))
+        _start_waiting_job(jobs_dir, job_dir)
     return 0 if state["status"] == "succeeded" else 1
 
 

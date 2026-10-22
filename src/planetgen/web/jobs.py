@@ -75,6 +75,11 @@ deleted when a new job starts."""
 LOCK_NAME = "active"
 """str: Must match `planetgen.web.job_runner.LOCK_NAME`."""
 
+QUEUED_NAME = "next.json"
+"""str: The jobs directory's one waiting job (ADM.123): the same spec as a job's `job.json`, plus `queued_at`,
+`after_job` (the job it waits for) and, once that job failed, `held`. Mode 0600 like `job.json`: it holds the same
+database environment."""
+
 CANCEL_NAME = "cancel"
 """str: Must match `planetgen.web.job_runner.CANCEL_NAME`."""
 
@@ -103,6 +108,10 @@ class JobBusy(Exception):
     def __init__(self, job):
         super().__init__(f"job {job['id'] if job else '?'} is still running")
         self.job = job
+
+
+class QueueFull(Exception):
+    """A job is already waiting for the running one; there is room for one."""
 
 
 def _config():
@@ -286,6 +295,7 @@ def get_job(job_id, root=None):
         "title": job.get("title"),
         "admin": job.get("admin"),
         "database": job.get("database"),
+        "draft": job.get("draft") or [],
         "created_at": job.get("created_at"),
         "steps": labels,
         "status": status,
@@ -617,7 +627,7 @@ def new_job_id():
     return time.strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(2)
 
 
-def start_job(kind, title, steps, env=None, admin=None, database=None, root=None, spawn=True):
+def start_job(kind, title, steps, env=None, admin=None, database=None, root=None, spawn=True, draft=None):
     """
     Starts a job in the background and returns its id straight away.
 
@@ -630,6 +640,8 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
         admin (str, optional): Who started it, for the page.
         database (str, optional): Which database it writes, for the page.
         spawn (bool): Tests pass `False` to only write the files.
+        draft (list, optional): The form fields (`[name, value]` pairs) the job was made from, kept so History can offer
+            Run again with the same settings (ADM.115).
 
     Raises:
         JobBusy: Another job is still running.
@@ -658,7 +670,7 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     try:
         job = {
             "id": job_id, "kind": kind, "title": title, "admin": admin, "database": database,
-            "created_at": time.time(), "cwd": REPO_DIR, "steps": steps, "env": env or {},
+            "created_at": time.time(), "cwd": REPO_DIR, "steps": steps, "env": env or {}, "draft": draft or [],
         }
         fd = os.open(os.path.join(path, "job.json"), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -756,3 +768,105 @@ def cancel_job(job_id, root=None):
         return False
     log.debug("Cancel requested for job %s (runner pid %s)", job_id, pid)
     return True
+
+
+# ---------------------------------------------------------------------
+# The one waiting job (ADM.123)
+# ---------------------------------------------------------------------
+
+def _queued_path(root):
+    return os.path.join(root, QUEUED_NAME)
+
+
+def queue_next(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
+    """
+    Puts a job in the one place after the running job: it starts by itself when that job succeeds or is cancelled,
+    and is held for the admin to start or discard when it failed.
+
+    Raises:
+        QueueFull: A job is already waiting.
+        OSError: No writable jobs directory.
+    """
+    root = root or jobs_dir()
+    running = active_job(root)
+    spec = {
+        "kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "env": env or {},
+        "queued_at": time.time(), "after_job": running["id"] if running else None, "held": None,
+        "draft": draft or [],
+    }
+    try:
+        fd = os.open(_queued_path(root), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError as exc:
+        raise QueueFull("a job is already waiting") from exc
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(spec, f)
+    log.debug("Queued %s (%s) for %s behind %s", title, kind, admin, spec["after_job"])
+
+
+def queued_job(root=None):
+    """The waiting job as `{"kind", "title", "admin", "database", "queued_at", "after_job", "held"}` (no steps or
+    environment), or `None`."""
+    spec = _read_json(_queued_path(root or jobs_dir()))
+    if not spec:
+        return None
+    return {key: spec.get(key) for key in ("kind", "title", "admin", "database", "queued_at", "after_job", "held")}
+
+
+def discard_queued(root=None):
+    """Removes the waiting job; True when there was one."""
+    try:
+        os.remove(_queued_path(root or jobs_dir()))
+    except OSError:
+        return False
+    return True
+
+
+def promote_queued(root=None, force=False):
+    """
+    Starts the waiting job if the job it waited for is over. Called when a job ends (`job_runner.run`), when an admin
+    page asks for the running job, and by Start now (`force`, for a held job).
+
+    Returns:
+        str | None: The new job's id, or `None` (nothing waiting, still running, held, or the start failed).
+    """
+    root = root or jobs_dir()
+    path = _queued_path(root)
+    spec = _read_json(path)
+    if not spec or active_job(root) is not None:
+        return None
+    after = get_job(spec["after_job"], root) if spec.get("after_job") else None
+    if not force and after is not None:
+        if not after["finished"]:
+            return None
+        if after["status"] not in ("succeeded", "cancelled"):
+            if not spec.get("held"):
+                spec["held"] = f"The job before it did not succeed ({after['status']})."
+                _write_queued(path, spec)
+            return None
+    claimed = path + ".starting"
+    try:
+        os.rename(path, claimed)       # one process wins this
+    except OSError:
+        return None
+    try:
+        job_id = start_job(spec["kind"], spec["title"], spec["steps"], env=spec.get("env"),
+                           admin=spec.get("admin"), database=spec.get("database"), root=root,
+                           draft=spec.get("draft"))
+    except JobBusy:
+        os.rename(claimed, path)
+        return None
+    except Exception as exc:  # noqa: BLE001 -- keep the job for the admin to start or discard
+        log.error("Could not start the waiting job %s: %s", spec.get("title"), exc)
+        spec["held"] = f"It could not be started: {exc}"
+        _write_queued(claimed, spec)
+        os.rename(claimed, path)
+        return None
+    os.remove(claimed)
+    return job_id
+
+
+def _write_queued(path, spec):
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".next-")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(spec, f)
+    os.replace(tmp, path)

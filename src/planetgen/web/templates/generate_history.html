@@ -1,0 +1,27 @@
+{#- planetgen/web/templates/generate_history.html -- /admin/generate/history (ADM.115): every recent job. -#}
+{% extends "generate_base.html" %}
+{% block generate_body %}
+<section class="panel" aria-labelledby="history-heading">
+  <h2 id="history-heading">Recent jobs</h2>
+  {%- if recent %}
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">Status</th><th scope="col" class="num">Time</th><th scope="col">Again</th></tr></thead>
+    <tbody>
+      {%- for job in recent %}
+      <tr>
+        <td>{{ job.created_html }}</td>
+        <td><a href="{{ job.url }}">{{ job.title }}</a></td>
+        <td><span class="badge job-{{ job.status }}">{{ job.status }}</span></td>
+        <td class="num">{{ job.elapsed_text }}</td>
+        <td>{% if job.rerun_url and job.finished %}<a href="{{ job.rerun_url }}">Run again</a>{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ recent_pager }}
+  <p class="hint">Every job, including ones started from the command line, is on the <a href="{{ url_for('web.admin_queue') }}">Work Queue</a> page, where finished ones can be cleared.</p>
+  {%- else %}
+  <p class="hint">No jobs yet.</p>
+  {%- endif %}
+</section>
+{% endblock %}

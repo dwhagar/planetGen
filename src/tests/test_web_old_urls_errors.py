@@ -205,7 +205,7 @@ def _page_paths(app, ids):
         "job_id": "0" * 32, "species_id": 1, "polity_id": 1,
         "nebula_id": ids["nebula_id"], "node_id": "20260101-000000-00000000", "action": "queue-pause",
         "shell": 0, "band": 0, "wedge": 0, "scatter_id": 1, "bright_star_id": 1, "archive": "20260101T000000Z.tar.bz2",
-        "kind": "system", "listing": "systems", "object_id": ids["system_ids"][0], "n": 1,
+        "kind": "system", "listing": "systems", "object_id": ids["system_ids"][0], "n": 1, "key": "add-sectors",
     }
     paths = []
     for rule in sorted(app.url_map.iter_rules(), key=lambda r: r.rule):

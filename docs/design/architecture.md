@@ -584,7 +584,8 @@ The map panels and their data.
 | `systemreach.js` | Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152). |
 | `groupfade.js` | Draws a scene group at a share of its strength: the fade of a sector's or a system's scene coming in (MAP.152). |
 | `generatecustomize.js` | The admin Generate page's "Customize" window (ADM.28). |
-| `generatefolds.js` | The Generate page's folding sections and its "Around a sector" finder (ADM.4). |
+| `generatefinder.js` | The Add sectors form's named-sector finder (ADM.4, ADM.108). |
+| `generateplace.js` | The Add sectors form's choices: shows the one panel of the choice made (ADM.108). |
 | `generateranges.js` | The Generate page's sliders: shows a range input's value (GEN.183). |
 | `generatestarmix.js` | The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45). |
 | `gridopacity.js` | The translucent blocks of a drill-down stage add up along the line of sight (MAP.188). |

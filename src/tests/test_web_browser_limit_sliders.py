@@ -27,11 +27,10 @@ def page(browser, base_url, admin_token):
     context = browser.new_context(viewport={"width": 1280, "height": 1400}, reduced_motion="reduce")
     context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
     page = context.new_page()
-    page.goto(f"{base_url}/admin/generate")
-    # The page's modules run in order after the load event under load: wait for the last of them to finish, or the
-    # folds' own script closes the sections opened below.
+    page.goto(f"{base_url}/admin/generate/task/scatters")
+    # The page's modules run in order after the load event under load: wait for the last of them to finish.
     page.wait_for_function("() => document.querySelector('[data-ceiling-cost]')?.textContent.trim() !== ''")
-    page.evaluate("() => document.querySelectorAll('details.fold').forEach((d) => { d.open = true; })")
+    page.evaluate("() => document.querySelectorAll('details').forEach((d) => { d.open = true; })")
     yield page
     context.close()
 
@@ -42,8 +41,8 @@ def _box(page, name):
 
 
 def _open_folds(page):
-    """Every section open (the page can fold them again while it loads)."""
-    page.evaluate("() => document.querySelectorAll('details.fold').forEach((d) => { d.open = true; })")
+    """Every disclosure open."""
+    page.evaluate("() => document.querySelectorAll('details').forEach((d) => { d.open = true; })")
 
 
 def _slide(slider, position):

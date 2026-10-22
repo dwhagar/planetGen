@@ -19,7 +19,6 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     admin_token,
     base_url,
     browser,
-    page_targets,
     sample_job,
     sample_job_tree,
     sample_params,
@@ -77,9 +76,9 @@ def _problems(page):
 
 @pytest.mark.parametrize("scheme", ("light", "dark"))
 @pytest.mark.parametrize("width", (390, 820, 1280))
-@pytest.mark.parametrize("endpoint", ("web.generate", "web.generate_system"))
-def test_text_boxes_line_up(browser, base_url, page_targets, admin_token, endpoint, width, scheme):
-    path, _needs_admin = page_targets[endpoint]
+@pytest.mark.parametrize("path", ("/admin/generate/task/add-sectors", "/admin/generate/task/new-galaxy",
+                                  "/admin/generate/task/scatters", "/admin/generate/system"))
+def test_text_boxes_line_up(browser, base_url, admin_token, path, width, scheme):
     context = browser.new_context(viewport={"width": width, "height": 900}, color_scheme=scheme,
                                   reduced_motion="reduce")
     context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
