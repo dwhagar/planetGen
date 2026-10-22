@@ -31,7 +31,7 @@ def _shape(nuclear=1.0, **changes):
 
 def test_the_bulges_unit_integral_matches_the_numerical_one():
     shape = _shape(nuclear=0.0)
-    numerical = density.component_masses(shape, steps=60)["bulge"]
+    numerical = density.integrated_masses(shape, steps=60)["bulge"]
     assert density.model_terms(shape)["bulge_mass"] == pytest.approx(numerical, rel=2e-3)
 
 

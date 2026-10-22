@@ -125,7 +125,7 @@ def test_a_plan_stores_the_settings_and_the_stored_shape_gives_the_same_density(
         conn.close()
     assert stored.arm_level == 1.0 and stored.arm_amplitude == pytest.approx(0.6)
     assert stored.nuclear_amplitude == 0.5
-    masses = density.component_masses(stored)
+    masses = density.integrated_masses(stored)
     assert masses["bulge"] / (masses["bulge"] + masses["thin_disk"] + masses["thick_disk"]) == pytest.approx(0.4, rel=0.02)
     terms = density.shape_with_terms(stored)
     full = density.model_terms(stored._replace(nuclear_amplitude=1.0))

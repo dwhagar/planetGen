@@ -36,7 +36,7 @@ EDGE_PC = tuning.DEFAULT_SECTOR_EDGE_PC
 
 def _young_and_total_integrals(shape):
     """`(young, every component)` of the model's stars, by integrating `population_densities_array` over a grid (the
-    arms averaged over 24 angles) and `component_masses` with the halo: the same units, times `k_norm`."""
+    arms averaged over 24 angles) and `integrated_masses` with the halo: the same units, times `k_norm`."""
     length, height = shape.disk_scale_length_pc, shape.disk_scale_height_pc
     r = (np.arange(240) + 0.5) * (12.0 * length / 240)
     z = (np.arange(160) + 0.5) * (8.0 * height / 160)
@@ -46,7 +46,7 @@ def _young_and_total_integrals(shape):
     young = density.population_densities_array(x, y, z[:, None, None], shape)["young"].mean(axis=2)
     dr, dz = 12.0 * length / 240, 8.0 * height / 160
     young_total = float((young * 2.0 * math.pi * r[None, :] * dr).sum() * 2.0 * dz)
-    masses = density.component_masses(shape)
+    masses = density.integrated_masses(shape)
     every = (sum(masses.values()) + density.halo_mass(shape)) * shape.k_norm
     return young_total, every
 

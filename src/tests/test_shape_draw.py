@@ -109,7 +109,7 @@ def test_the_bulge_amplitude_gives_the_drawn_bulge_to_total_in_the_models_own_ma
         shape = density.build_galaxy_shape(
             d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc, d.bulge_amplitude,
             d.arm_count, math.radians(d.pitch_angle_deg), 0.4, structure=d.structure)
-        masses = density.component_masses(shape)
+        masses = density.integrated_masses(shape)
         total = masses["bulge"] + masses["thin_disk"] + masses["thick_disk"]
         assert masses["bulge"] / total == pytest.approx(d.bulge_to_total, rel=0.02)
 
@@ -193,7 +193,7 @@ def test_bulge_share_alone_sets_the_share_and_solves_the_amplitude_for_it():
         shape = density.build_galaxy_shape(
             d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc, d.bulge_amplitude,
             d.arm_count, math.radians(d.pitch_angle_deg), 0.4, structure=d.structure)
-        masses = density.component_masses(shape)
+        masses = density.integrated_masses(shape)
         total = masses["bulge"] + masses["thin_disk"] + masses["thick_disk"]
         assert masses["bulge"] / total == pytest.approx(share, rel=0.02)
 
@@ -204,7 +204,7 @@ def test_a_bulge_share_of_zero_is_a_disc_with_no_bulge_density():
     shape = density.build_galaxy_shape(
         d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc, d.bulge_amplitude,
         d.arm_count, math.radians(d.pitch_angle_deg), 0.4, structure=d.structure)
-    assert density.component_masses(shape)["bulge"] == 0.0
+    assert density.integrated_masses(shape)["bulge"] == 0.0
 
 
 def test_bulge_size_alone_sets_the_radius_as_a_ratio_of_the_length_and_the_bar_with_it():

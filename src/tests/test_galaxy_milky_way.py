@@ -51,13 +51,13 @@ def test_the_reference_shape_is_the_milky_ways_published_one():
 
 def test_the_bulge_holds_a_milky_way_share_of_the_stars():
     # BHG16: 1.4-1.7e10 of 5e10 M_sun of stars are in the bulge.
-    masses = density.component_masses(SHAPE)
+    masses = density.integrated_masses(SHAPE)
     assert 1.4 / 5.0 <= masses["bulge"] / sum(masses.values()) <= 1.7 / 5.0
 
 
 def test_the_thick_disk_holds_a_milky_way_share_of_the_disk():
     # BHG16: thick disk 6 +- 3 e9 against thin disk 3.5 +- 1 e10 M_sun.
-    masses = density.component_masses(SHAPE)
+    masses = density.integrated_masses(SHAPE)
     assert 3.0 / 45.0 <= masses["thick_disk"] / masses["thin_disk"] <= 9.0 / 25.0
 
 

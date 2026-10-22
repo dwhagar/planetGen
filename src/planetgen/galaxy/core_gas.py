@@ -107,7 +107,7 @@ def core_gas(shape):
     young_window_yr = tuning.STELLAR_POPULATION_AGE_RANGES_GY["young"][1] * _GY_YR
     field_young_mass = rate * young_window_yr * (1.0 - bound)
     stellar_mass, _halo = disk_history.stellar_and_halo_masses(shape)
-    model_units_per_solar = sum(density.component_masses(shape).values()) / stellar_mass
+    model_units_per_solar = sum(density.integrated_masses(shape).values()) / stellar_mass
     amplitude = (field_young_mass * model_units_per_solar
                  / (2.0 * math.pi * _radial_integral(radius, sigma) * 4.0 * height))
     return CoreGas(inflow_msun_yr=inflow, rate_msun_yr=rate, radius_pc=radius, sigma_pc=sigma, height_pc=height,

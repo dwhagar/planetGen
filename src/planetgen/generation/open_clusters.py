@@ -165,7 +165,7 @@ def _circular_speed_kms(radius_pc, shape):
     """
     terms = galaxy_density.model_terms(shape)
     stellar_mass, _halo = disk_history.stellar_and_halo_masses(shape)
-    solar_per_model = stellar_mass / sum(galaxy_density.component_masses(shape).values())
+    solar_per_model = stellar_mass / sum(galaxy_density.integrated_masses(shape).values())
     x = radius_pc / terms["nuclear_disc_length_pc"]
     enclosed = solar_per_model * (terms["nuclear_cluster_mass"]
                                   + terms["nuclear_disc_mass"] * (1.0 - (1.0 + x) * np.exp(-x)))

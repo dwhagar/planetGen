@@ -85,7 +85,7 @@ from planetgen.generation.comet import Comet, comet_designation, rename_comet_de
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.prevalence import FEATURES as PREVALENCE_FEATURES
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.galaxy.density import GalaxyShape, with_system_richness
+from planetgen.galaxy.density import GalaxyShape, with_family_columns, with_system_richness
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at,
@@ -7478,6 +7478,11 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                 fill_luminosity_cap_sol = tuning.FILL_LUMINOSITY_CAP_SOL
             if halo_min_luminosity_sol is None:
                 halo_min_luminosity_sol = tuning.HALO_MIN_LUMINOSITY_SOL
+            family_values = (shape.family, None if shape.bar_present is None else int(shape.bar_present),
+                             shape.bar_axis_ratio_b, shape.bar_axis_ratio_c, shape.bar_angle_rad,
+                             shape.thick_disk_amplitude, shape.spheroid_amplitude, shape.spheroid_sersic_n,
+                             shape.spheroid_effective_radius_pc, shape.spheroid_axis_ratio_b,
+                             shape.spheroid_axis_ratio_c, *shape.spheroid_orientation_rad, shape.body_clump_share)
             conn.execute(
                 """
                 INSERT INTO galaxy_shape (
@@ -7487,8 +7492,13 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index,
                     cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
-                    halo_min_luminosity_sol, pinned_stellar_mass_solar
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    halo_min_luminosity_sol, pinned_stellar_mass_solar,
+                    family, bar_present, bar_axis_ratio_b, bar_axis_ratio_c, bar_angle_rad, thick_disk_amplitude,
+                    spheroid_amplitude, spheroid_sersic_n, spheroid_effective_radius_pc, spheroid_axis_ratio_b,
+                    spheroid_axis_ratio_c, spheroid_orientation_1_rad, spheroid_orientation_2_rad,
+                    spheroid_orientation_3_rad, body_clump_share
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -7514,7 +7524,12 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     pinned_stellar_mass_solar = ?,
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
-                    galaxy_seed = ?
+                    galaxy_seed = ?,
+                    family = ?, bar_present = ?, bar_axis_ratio_b = ?, bar_axis_ratio_c = ?, bar_angle_rad = ?,
+                    thick_disk_amplitude = ?, spheroid_amplitude = ?, spheroid_sersic_n = ?,
+                    spheroid_effective_radius_pc = ?, spheroid_axis_ratio_b = ?, spheroid_axis_ratio_c = ?,
+                    spheroid_orientation_1_rad = ?, spheroid_orientation_2_rad = ?, spheroid_orientation_3_rad = ?,
+                    body_clump_share = ?
                 """,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
@@ -7524,9 +7539,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
                     cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
-                    halo_min_luminosity_sol, pinned_stellar_mass_solar,
+                    halo_min_luminosity_sol, pinned_stellar_mass_solar, *family_values,
                     reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol,
                     core_mass_limit_sol, halo_min_luminosity_sol, pinned_stellar_mass_solar, bytes(galaxy_seed),
+                    *family_values,
                 ),
             )
             conn.execute("DELETE FROM galaxy_shape_pins")
@@ -7713,6 +7729,8 @@ def get_galaxy_shape(conn):
     # the mass and halo the plan pinned when it did (DB.81, GEN.606).
     shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
                            structure=shape_draw.structure_for(seed, pinned_mass, pins.get("stellar_halo_share")))
+    if "family" in row:      # DB.66 (GEN.379): the family and component numbers; a NULL bar or thick disk number is the draw's
+        shape = with_family_columns(shape, row)
     if seed is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
         chain = massChain.draw_mass_chain(seed, pinned_mass, halo_mass_pinned(seed, pinned_mass, pins))
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))

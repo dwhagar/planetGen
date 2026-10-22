@@ -160,7 +160,7 @@ def test_the_density_model_reads_the_drawn_thick_disk_and_bulge():
         shape = density.build_galaxy_shape(
             drawn.disk_scale_length_pc, drawn.disk_scale_height_pc, drawn.bulge_scale_radius_pc, drawn.bulge_amplitude,
             drawn.arm_count, math.radians(drawn.pitch_angle_deg), 0.4, structure=drawn.structure)
-        masses = density.component_masses(shape, steps=48)
+        masses = density.integrated_masses(shape, steps=48)
         assert masses["thick_disk"] / masses["thin_disk"] == pytest.approx(drawn.structure.thick_mass_ratio, rel=0.03)
         assert density.bulge_to_total(shape) == pytest.approx(drawn.bulge_to_total, rel=1e-9)
         terms = density.model_terms(shape)
