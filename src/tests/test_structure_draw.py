@@ -183,10 +183,16 @@ def test_an_unbarred_galaxy_has_no_bar_gap():
 
 
 def test_the_stored_shape_row_gains_nothing():
-    """The structure is rebuilt from the seed: no column of `galaxy_shape` holds any of it."""
+    """The structure is rebuilt from the seed: no column of `galaxy_shape` holds any field of it. The component columns
+    DB.66 added (the bar, the thick disk, the spheroid of a family) are NULL or at their default for a spiral, which
+    means "as the structure draw gives them"; only a family that sets them stores them (docs/design/galaxy-types.md
+    section 10)."""
     schema = (Path(__file__).resolve().parents[1] / "planetgen" / "db" / "schema.sql").read_text()
     table = re.search(r"CREATE TABLE IF NOT EXISTS galaxy_shape \((.*?)\n\)", schema, re.S)
     assert table is not None
+    overrides = ("bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude")
     for name in galaxyStructure.Structure._fields:
-        assert not re.search(rf"\b{name}\b", table.group(1)), name
-    assert "bar_present" not in table.group(1) and "thick_" not in table.group(1)
+        if name not in overrides:
+            assert not re.search(rf"\b{name}\b", table.group(1)), name
+    for name in overrides:
+        assert re.search(rf"\b{name}\s+(TINYINT|DOUBLE),", table.group(1)), f"{name} must stay nullable with no default (DB.66)"
