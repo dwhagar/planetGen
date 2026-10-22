@@ -686,8 +686,9 @@ with `clamp()`.
   bookmark toggle, menu, rename and delete behave as before through the
   store, a second list kind can be created without new storage code, and
   a fake asynchronous backend passes the same tests.
-  Owner: Core 2 after MAP.254; Blocker 3 takes it only if Core 2 has not
-  started it (the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads).
+  Owner: Core 2 (confirmed, started 5:02 PM EDT 2026-10-22 as the lane
+  reported, after the MAP.254 remainder merged as #2514; relayed 5:00 PM
+  EDT by the coordinator).
   Prerequisites: none. Related: UX.46, UX.47, USR.7, NAV.18, NAV.19.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
@@ -2476,58 +2477,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **MAP.254 One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page**
-  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
-  "selecting something anywhere in the current view pulls up the same
-  infobox on it everywhere, there should be a 'view' button to view a
-  dedicated page for every possible item". MAP.65 (done, PR #521) gave
-  one picking, hover and info-panel layer and MAP.139 (8.1, Core 2) adds
-  the info box with a Details link on the Galaxy View only. Do: extend
-  that one component to every view (Galaxy Map, Sector Map and scene,
-  System Map and scene, the navigation chart, the list and search
-  results) and every selectable kind, with one content model per kind
-  (name, kind, Object ID, parent, the few key facts) and the same
-  actions everywhere: View (to the page of UX.143), Go to, Bookmark,
-  Copy ID; no view keeps its own copy of the box. Done: for each kind on
-  each view that can show it, selecting the thing shows the same
-  component with the same fields and a View button that opens the right
-  page (a browser test table of kinds by views); a test fails if a view
-  renders its own info box; works on touch (tap) and with the keyboard;
-  fits the window without page scroll (UX.142). Phase: 8.2 phase 2.
-  Owner: Core 2 (the coordinator, about 4:08 AM EDT 2026-10-22 as the
-  lane reported, after Core 2 went idle; filed from Boss's 8.2 design
-  notes, 6:10 and 6:12 PM EDT 2026-10-21). Order inside Core 2's queue:
-  after UX.143 and MAP.139 (MAP.139 is Core 2's own open item: it builds
-  the Galaxy View info box that this item extends to every view), before
-  UX.144. The Admin redesign lane builds the admin shell and header
-  palette (ADM.92, ADM.118) and does not touch the item pages or the
-  viewers' info box; if both change the shared header layout, whichever
-  merges second rebases.
-  Prerequisites: UX.143. Related: MAP.65, MAP.139, MAP.140,
-  UX.142, UX.143, UX.144.
-  Progress (Core 2, MAP.139 and MAP.254 merged together as #2468,
-  relayed 9:33 AM EDT 2026-10-22): one shared info box (`mappick.js`)
-  with the View button to the item's own page on the Galaxy, Sector and
-  System maps (diagram and 3D), plus a small box over the map when it
-  has room (rows, View, Details, Close); the 2D System Map uses the
-  shared panel; a test fails if any map builds a panel or box of its
-  own. MAP.139 is retired. Still open here: the navigation chart and the
-  list and search results keep their own links, and the browser table of
-  every kind by every view is not written.
-  Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock reads):
-  unchanged by #2485; the remainder is the navigation chart, the list
-  and search results, and the browser table of kinds by views.
-  Boss picked this as Core 2's next item on its card (3:08 PM EDT
-  2026-10-22 as the lane's clock reads, option "MAP.254 remainder"). Core
-  2 checked the remainder (3:13 PM EDT, as the lane reported): the
-  navigation chart, the lists and the search results have nothing to
-  select (item names there already link to the item page), so the only
-  gap was a browser check of the System Map View button on a star and a
-  moon; that check and a change note are built and in the gate. The item
-  retires when that PR merges.
-  The coordinator confirmed it (relayed 3:56 PM EDT 2026-10-22): Core 2
-  is on the MAP.254 remainder per Boss's instruction to it.
-
 - [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
   Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
   clock reads, when GEN.311 and GEN.269 merged as #2481), filed by the
@@ -2577,8 +2526,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     galaxy and says if anything changed since it was saved (the
     correlative update moves systems along their galactic orbits, and
     a regenerated system can vanish).
-    Owner: Core 2 after UX.129; Blocker 3 takes it only if Core 2 has not
-    (the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads).
+    Owner: Core 2 after UX.129 (confirmed by Core 2; relayed 5:00 PM EDT
+    2026-10-22 as the lane's clock reads).
 
   - [ ] **NAV.18 Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store**
     Done: a Save course button on the NAV result; a Courses list
@@ -20362,6 +20311,20 @@ clears each one.
   by the lane: the route runs `plan_outline.preview`, which calls
   `system_mass.mean_system_mass_at_age_solar` on a 1209 by 32 array
   through `component_field`; bound that work for a hostile dial value.
+  Third sighting (Core 2, relayed 5:00 PM EDT 2026-10-22 as the lane's
+  clock reads, when MAP.254's remainder merged as #2514): the case hangs
+  past 900 s alone (18 minutes or more at 98 percent CPU) in numpy at
+  `system_mass.py` line 169 (`companion_fractions`), reached from
+  `generate_page.generate_shape_report`, `plan_outline.preview` and
+  `build`, `ComponentField`, `components.mean_system_mass_solar` (GEN.545,
+  commit 19bbab5). Hypothesis reports it as a FlakyFailure (the first call
+  hangs, a later one does not). Calling
+  `system_mass.mean_system_mass_at_age_solar` directly is instant for ages
+  1e-4 to 1e16 and nan, so the cause is in what the route passes (a
+  no-lever query on the fuzz fixture). Reproducer: that test with
+  `-k shape-report -o timeout=90 --timeout-method=thread`. Core 2 names
+  Core 1 (GEN.545, ADM.118) as the likely owner; the owner line stays Bug
+  Hunt unless the coordinator moves it.
   Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
