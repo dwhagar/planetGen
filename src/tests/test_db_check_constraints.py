@@ -65,6 +65,11 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO object_index (kind, uid, source_id, name) VALUES ('system', UNHEX('000000000000000000000001'), 1, 'Test')"),
     "sector_tree_nodes": (
         "INSERT INTO sector_tree_nodes (level, shell_index, band_index) VALUES (1, 0, 1)"),
+    # DB.36: the 8.6 plan code (ADM.58, ADM.60) writes these; the migration only makes the tables.
+    "change_plans": (
+        "INSERT INTO change_plans (requester_name, requester_role, state) VALUES ('Test', 'admin', 'draft')"),
+    "change_plan_ops": (
+        "INSERT INTO change_plan_ops (plan_id, op_order, kind) VALUES (1, 1, 'set_class')"),
     # DB.53: the migration builds these; the generator writes them in the chain that follows.
     "orbit_nodes": (
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"

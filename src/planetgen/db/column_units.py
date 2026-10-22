@@ -155,6 +155,13 @@ TABLES = {
         "count": ("member_count",),
         "dex": ("metallicity_fe_h",),
     },
+    "change_plan_ops": {
+        "id": ("id", "plan_id"),
+        "index": ("op_order",),
+    },
+    "change_plans": {
+        "id": ("id", "apply_job_id", "decided_by_id", "requester_id"),
+    },
     "comet_composition": {
         "id": ("id", "comet_id"),
         "index": ("position",),
@@ -176,6 +183,10 @@ TABLES = {
         "h": ("rotation_period_hours",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "kg": ("mass_kg",),
+    },
+    "edit_journal": {
+        "id": ("id", "op_id", "plan_id", "sector_id"),
+        "index": ("generator_epoch",),
     },
     "facilities": {
         "id": (
