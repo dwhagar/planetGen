@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, get_galaxy_shape_pins, halo_mass_pinned, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, get_galaxy_shape_pins, sector_deletions, surrounding_cloud,
 )
 from planetgen.db import countcache, hostednebula, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
