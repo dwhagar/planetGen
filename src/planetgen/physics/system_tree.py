@@ -35,8 +35,8 @@ _KM_PER_S_TO_AU_PER_S = 1.0 / AU_KM
 
 @dataclass(frozen=True)
 class OrbitNode:
-    """One stored orbit, in the units of `scatter_nodes`: the relative orbit of the slot-1 child about the slot-0
-    child. `separation_km` is its semi-major axis."""
+    """One stored orbit, in the units of `scatter_nodes` and `orbit_nodes`: the relative orbit of the slot-1 child about
+    the slot-0 child. `separation_km` is its semi-major axis; `interaction` and `flags` are the pair's state (GEN.269)."""
     node_no: int
     parent_node_no: int | None
     slot: int | None
@@ -50,6 +50,8 @@ class OrbitNode:
     epoch_unix: float
     period_years: float
     kind: str = "close"
+    interaction: str | None = None
+    flags: int = 0
 
 
 @dataclass(frozen=True)

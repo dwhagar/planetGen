@@ -35,13 +35,18 @@ plan itself (the tests write it)."""
 
 _SKIPPED_TYPES = frozenset({"datetime", "timestamp", "date", "time"})
 
+_SKIPPED_COLUMNS = frozenset({("orbit_nodes", "epoch_unix")})
+"""`(table, column)` left out: a wall-clock time. A saved pair's phase holds at the moment it was saved when the database
+has no orbit epoch yet (GEN.311), which differs between two runs of one seed."""
+
 
 def _columns(conn, table):
     rows = conn.execute(
         "SELECT column_name AS name, data_type AS type FROM information_schema.columns"
         " WHERE table_schema = DATABASE() AND table_name = ? ORDER BY ordinal_position", (table,)).fetchall()
     return [row["name"] for row in rows
-            if row["name"] != "id" and not row["name"].endswith("_id") and row["type"] not in _SKIPPED_TYPES]
+            if row["name"] != "id" and not row["name"].endswith("_id") and row["type"] not in _SKIPPED_TYPES
+            and (table, row["name"]) not in _SKIPPED_COLUMNS]
 
 
 def _comparable(value):

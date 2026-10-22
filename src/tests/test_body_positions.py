@@ -46,6 +46,14 @@ LATE_BY_S = 40 * 86400.0
 def sample_scene():
     return {
         "epoch_unix": SCENE_EPOCH,
+        "tree": {
+            "nodes": [{"node_no": 0, "parent_node_no": None, "slot": 0, "mass_solar": 1.0, "separation_km": 0.3 * AU_KM,
+                       "eccentricity": 0.0, "inclination_deg": 20.0, "ascending_node_deg": 40.0,
+                       "arg_periapsis_deg": 0.0, "mean_anomaly_deg": 100.0, "epoch_unix": SCENE_EPOCH,
+                       "period_years": 0.2, "kind": "close", "interaction": "detached", "flags": 0}],
+            "members": [{"ref": "star:1", "member_no": 0, "parent_node_no": 0, "slot": 0, "mass_solar": 0.75},
+                        {"ref": "star:2", "member_no": 1, "parent_node_no": 0, "slot": 1, "mass_solar": 0.25}],
+            "origin": None},
         "stars": [
             {"ref": "star:1", "orbit": None},
             {"ref": "star:2", "orbit": circular("barycenter", 0.3, 0.2, 20.0, 40.0, 100.0, secondary_mass_fraction=0.25)},
@@ -103,12 +111,58 @@ def test_a_close_pair_balances_on_the_barycenter():
         assert norm(balance) < 1e-3 * AU_KM * 1e-6
 
 
-def test_a_wide_pair_orbits_the_first_star():
+def _wide_scene(separation_au, eccentricity):
     scene = sample_scene()
-    scene["stars"][1]["orbit"] = circular("star:1", 30.0, 100.0, 0.0, 0.0, 0.0)
+    scene["stars"][1]["orbit"] = circular("star:1", separation_au, 100.0, 0.0, 0.0, 0.0)
+    node = scene["tree"]["nodes"][0]
+    node.update(separation_km=separation_au * AU_KM, eccentricity=eccentricity, inclination_deg=0.0,
+                ascending_node_deg=0.0, mean_anomaly_deg=0.0, period_years=100.0, kind="wide")
+    scene["tree"]["origin"] = "star:1"
+    return scene
+
+
+def test_a_wide_pair_orbits_the_first_star():
+    scene = _wide_scene(30.0, 0.0)
     p = positions_at(scene, 0.0)
     assert p["star:1"] == [0.0, 0.0, 0.0]
     assert norm(p["star:2"]) == pytest.approx(30.0 * AU_KM, rel=1e-9)
+
+
+def test_an_eccentric_wide_pair_is_closest_at_periapsis_and_farthest_half_a_period_later():
+    """The tree's orbit is a Kepler orbit, not a circle: at mean anomaly 0 the pair is at periapsis a(1 - e)."""
+    scene = _wide_scene(30.0, 0.6)
+    assert norm(positions_at(scene, 0.0)["star:2"]) == pytest.approx(30.0 * 0.4 * AU_KM, rel=1e-9)
+    assert norm(positions_at(scene, 50.0)["star:2"]) == pytest.approx(30.0 * 1.6 * AU_KM, rel=1e-6)
+
+
+@pytest.mark.parametrize("phase", [0.0, 37.0, 100.0, 215.5, 359.0])
+@pytest.mark.parametrize("years", [0.0, 0.07, 1.3])
+def test_a_circular_node_gives_the_positions_the_stored_phase_did(phase, years):
+    """GEN.311: reading a pair's node moves the stars where the old circular orbit moved them."""
+    scene = sample_scene()
+    scene["tree"]["nodes"][0]["mean_anomaly_deg"] = phase
+    scene["stars"][1]["orbit"]["phase_deg"] = phase
+    p = positions_at(scene, years)
+    here = orbital_position_au(0.3, 20.0, 40.0, (phase + 360.0 * years / 0.2) % 360.0)
+    fraction = 0.25
+    assert p["star:2"] == pytest.approx([c * AU_KM * (1 - fraction) for c in here], rel=1e-9, abs=1.0)
+    assert p["star:1"] == pytest.approx([-c * AU_KM * fraction for c in here], rel=1e-9, abs=1.0)
+
+
+def test_a_triple_places_the_close_pair_about_the_outer_centre():
+    scene = sample_scene()
+    scene["stars"].append({"ref": "star:3", "orbit": None})
+    scene["tree"]["nodes"][0].update(parent_node_no=1, slot=0, mass_solar=1.0)
+    scene["tree"]["nodes"].append(dict(scene["tree"]["nodes"][0], node_no=1, parent_node_no=None, slot=0,
+                                       mass_solar=2.0, separation_km=40.0 * AU_KM, period_years=150.0, kind="wide",
+                                       mean_anomaly_deg=0.0, inclination_deg=0.0, ascending_node_deg=0.0))
+    scene["tree"]["members"].append({"ref": "star:3", "member_no": 2, "parent_node_no": 1, "slot": 1, "mass_solar": 1.0})
+    p = positions_at(scene, 0.0)
+    pair_centre = [0.75 * a + 0.25 * b for a, b in zip(p["star:1"], p["star:2"])]
+    # The pair's centre of mass is 1/3 of the way from the pair to the third star, which sits at 40 AU
+    assert norm(sub(p["star:3"], pair_centre)) == pytest.approx(40.0 * AU_KM, rel=1e-9)
+    total = [(1.0 * c + 1.0 * t) for c, t in zip(pair_centre, p["star:3"])]
+    assert norm(total) < 1e-6 * AU_KM
 
 
 def test_an_elliptical_comet_is_fast_near_perihelion_and_periodic():

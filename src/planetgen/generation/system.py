@@ -18,6 +18,7 @@ number of celestial objects, and generating a detailed string representation of
 the system.
 """
 
+import dataclasses
 import math
 
 from planetgen.generation.belt import AsteroidBelt
@@ -33,6 +34,7 @@ from planetgen.util import log
 from planetgen.generation import pulsar_planets, remnant_orbits
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics.formation import (
     disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2, snow_line_au,
 )
@@ -72,7 +74,11 @@ it leaves the heliosphere below this share of its open-space size."""
 # is -- see `_generate_comets`'s own docstring). A pre-v3 save has neither
 # key -- `from_dict` treats a missing key as `[]`, the same fallback
 # `secondary_planets` already gets for a pre-wide-binary save.
-SERIALIZATION_SCHEMA_VERSION = 3
+#
+# Bumped 3 -> 4 to add `orbit_nodes` (GEN.311): the stored tree of orbits the stars hang in, a list of dicts, one per node
+# (`physics.system_tree.OrbitNode`); `[]` for a single star or a system that was never saved. A pre-v4 save has no key and
+# reads as no nodes.
+SERIALIZATION_SCHEMA_VERSION = 4
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -133,6 +139,11 @@ class StarSystem:
         system_flavor_text (str or None): The system-level flavor text sentence,
             decided once at generation time (or None if the roll didn't select one).
     """
+
+    orbit_nodes = ()
+    """tuple of `physics.system_tree.OrbitNode`: The tree of orbits the stars hang in (GEN.311). Empty until the system is
+    saved (a generated binary's one node is made from its pair then, `db.orbit_trees.binary_nodes`) or for a single star;
+    a loaded system has the tree that was stored."""
 
     runaway_class = None
     """str or None: `"runaway"` or `"hypervelocity"` when the system moves
@@ -1266,6 +1277,7 @@ class StarSystem:
             "runaway_class": self.runaway_class,
             "runaway_speed_kms": self.runaway_speed_kms,
             "runaway_direction": list(self.runaway_direction) if self.runaway_direction is not None else None,
+            "orbit_nodes": [dataclasses.asdict(node) for node in self.orbit_nodes],
         }
 
     @classmethod
@@ -1375,6 +1387,7 @@ class StarSystem:
             if binary_type == "wide" else []
         )
 
+        system.orbit_nodes = tuple(OrbitNode(**node) for node in data.get("orbit_nodes", ()))
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")

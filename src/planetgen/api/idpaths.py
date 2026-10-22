@@ -46,6 +46,7 @@ ID_PATHS = {
         "system.id": "system",
         **_BODIES,
         "stars[].orbit.around": "ref",
+        "tree.origin": "ref",
         "planets[].orbit.around": "ref",
         "planets[].moons[].orbit.around": "ref",
         "planets[].moons[].parent": "ref",

@@ -27,11 +27,18 @@ periapsis, mean anomaly). `position_km` is the object's position relative
 to what it goes round, as stored; the scene's frame has the system's
 barycenter (a single star: the star) at the origin, except a wide binary,
 whose second star orbits the first and whose own bodies orbit each star.
+
+`tree` (GEN.311) is the stored tree of orbits the stars hang in: `nodes` (`physics.system_tree.OrbitNode` as dicts,
+each the relative orbit of its slot-1 child about its slot-0 child, with its own epoch), `members` (one per star: `ref`,
+`member_no`, `parent_node_no`, `slot`, `mass_solar`) and `origin`, the ref of the star at the origin (a wide binary's
+first star) or `None` for the barycenter. `physics.body_positions.positions_at` places the stars from it.
 """
 
+import dataclasses
 from datetime import datetime, timezone
 
-from planetgen.db import query
+from planetgen.db import orbit_trees, query
+from planetgen.physics import constants
 from planetgen.web.maps.starmap import star_color
 from planetgen.web.maps.systemmap import class_color
 
@@ -100,6 +107,28 @@ def _stars(stars, row):
             item["position_km"] = primary_xyz
         out.append(item)
     return out
+
+
+def _tree(conn, system_id, stars, row):
+    """The scene's `tree`: the system's `orbit_nodes` and where each star hangs in them. A star takes the free slot of
+    its parent node (a pair's primary is slot 0, its secondary slot 1; a slot a child node holds is not free), in the
+    order of its id."""
+    nodes = orbit_trees.read_nodes(conn, system_id)
+    parent_of = {r["id"]: r["parent_node_id"] for r in conn.execute(
+        "SELECT id, parent_node_id FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
+    taken = {}
+    for node in nodes:
+        if node.parent_node_no is not None:
+            taken.setdefault(node.parent_node_no, set()).add(node.slot)
+    members = []
+    for number, star in enumerate(sorted(stars, key=lambda s: s["id"])):
+        parent = parent_of[star["id"]]
+        slot = next(k for k in range(len(stars)) if k not in taken.setdefault(parent, set()))
+        taken[parent].add(slot)
+        members.append({"ref": f"star:{star['id']}", "member_no": number, "parent_node_no": parent, "slot": slot,
+                        "mass_solar": star["mass_kg"] / constants.SOLAR_MASS_TO_KG})
+    origin = members[0]["ref"] if row["binary_configuration"] == "wide" else None
+    return {"nodes": [dataclasses.asdict(node) for node in nodes], "members": members, "origin": origin}
 
 
 def _planet(planet, around, kind="planet", parent=None):
@@ -188,6 +217,7 @@ def build_scene(conn, system_id):
         },
         "epoch": epoch, "epoch_unix": epoch_unix,
         "stars": _stars(stars, row),
+        "tree": _tree(conn, system_id, stars, row),
         "planets": planets,
         "belts": [_belt(b, _star_around(b, stars, row)) for b in detail["belts"]],
         "comets": [_comet(c, _star_around(c, stars, row)) for c in detail["comets"]],

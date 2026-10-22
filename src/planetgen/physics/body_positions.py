@@ -12,14 +12,15 @@ for a wide binary, at the origin):
 - A planet or moon goes round on the orbit its stored state vector says
   (GEN.289): the state is moved from its own epoch to the requested time
   by `kepler.universal_step` (`body_state.advance`).
-- The second star of a pair goes round on a circular orbit: its stored
-  phase plus 360 degrees for each period (`orbits.orbital_position_au`).
+- The stars sit where the scene's tree of orbits puts them (GEN.311): each node is the relative Kepler orbit of its
+  slot-1 child about its slot-0 child, advanced from the node's own epoch (`system_tree.member_offsets_au`, the
+  function that places the members of a scatter row).
 - A comet goes round on its Kepler orbit: an elliptical one's mean anomaly
   advances by 360 degrees a period (`kepler.comet_orbital_state`), a
   parabolic one's parabolic mean anomaly by `sqrt(mu / 2q^3)` a year.
 - A close pair's stars sit either side of the barycenter in proportion to
-  the other's mass (`secondary_mass_fraction`), a wide pair's second star
-  orbits the first.
+  the other's mass, a wide pair's second star orbits the first (the tree's `origin` says which star is at the origin,
+  or `None` for the barycenter).
 
 `static/orbitpositions.js` is the browser twin; `tests/test_js_unit.py`
 checks the two against each other. NAV.6 plans courses on this one.
@@ -29,18 +30,27 @@ import math
 
 from planetgen.physics import body_state, constants
 from planetgen.physics.kepler import comet_orbital_state, gravitational_parameter_au3_yr2, wrapped_turn_deg
-from planetgen.physics.orbits import orbital_position_au
+from planetgen.physics.system_tree import OrbitNode, TreeMember, member_offsets_au
 
 AU_KM = constants.AU_TO_KM
 
 
-def _relative_circular_km(orbit, years):
-    """A circular orbit's position relative to what it goes round, in km."""
-    period = orbit["period_years"]
-    phase = orbit["phase_deg"] + wrapped_turn_deg(years, period)
-    x, y, z = orbital_position_au(orbit["distance_km"] / AU_KM, orbit["inclination_deg"],
-                                  orbit["ascending_node_deg"], phase % 360.0)
-    return [x * AU_KM, y * AU_KM, z * AU_KM]
+def _star_positions_km(scene, years):
+    """Every star's position in the scene's frame, km, from the scene's tree of orbits: `{ref: [x, y, z]}`. The tree's
+    nodes hold their phase at their own epoch; `years` count from the scene's epoch (the first node's epoch when the
+    scene has none: the database has never been updated)."""
+    tree = scene["tree"]
+    nodes = [OrbitNode(**node) for node in tree["nodes"]]
+    members = [TreeMember(**{key: member[key] for key in ("member_no", "parent_node_no", "slot", "mass_solar")})
+               for member in tree["members"]]
+    start = scene.get("epoch_unix")
+    if start is None:
+        start = nodes[0].epoch_unix if nodes else 0.0
+    offsets = member_offsets_au(members, nodes, start + years * constants.SECONDS_PER_YEAR)
+    refs = {member["member_no"]: member["ref"] for member in tree["members"]}
+    origin = next((number for number, ref in refs.items() if ref == tree.get("origin")), None)
+    shift = offsets[origin] if origin is not None else (0.0, 0.0, 0.0)
+    return {refs[number]: [(offset[axis] - shift[axis]) * AU_KM for axis in range(3)] for number, offset in offsets.items()}
 
 
 def _relative_state_km(orbit, years, scene_epoch_unix):
@@ -83,25 +93,7 @@ def positions_at(scene, years):
     scene's epoch (negative for before), in km, as `{ref: [x, y, z]}`.
     Belts have no single point and are left out.
     """
-    out = {}
-    stars = scene["stars"]
-    for star in stars:
-        orbit = star["orbit"]
-        if orbit is None:
-            out[star["ref"]] = [0.0, 0.0, 0.0]
-    for star in stars:
-        orbit = star["orbit"]
-        if orbit is None:
-            continue
-        relative = _relative_circular_km(orbit, years)
-        if orbit["around"] == "barycenter":
-            fraction = orbit["secondary_mass_fraction"]
-            out[star["ref"]] = [c * (1.0 - fraction) for c in relative]
-            for other in stars:
-                if other["orbit"] is None:
-                    out[other["ref"]] = [-c * fraction for c in relative]
-        else:
-            out[star["ref"]] = _add(out[orbit["around"]], relative)
+    out = _star_positions_km(scene, years)
 
     def origin(around):
         return [0.0, 0.0, 0.0] if around == "barycenter" else out[around]
