@@ -96,7 +96,7 @@ def test_the_settings_round_trip_and_default(mysql_config):
 
 @pytest.mark.db
 def test_a_plan_stores_the_three_settings_and_says_what_they_are(mysql_config, capsys):
-    run_cli("plan", ["--no-bright-stars", "--max-shell", "40", "--nuclear-amplitude", "0", "--core-min-luminosity",
+    run_cli("plan", ["--no-bright-stars", "--edge=160pc", "--nuclear-amplitude", "0", "--core-min-luminosity",
                      "12000", "--halo-min-luminosity", "60"] + mysql_argv(mysql_config))
     out = capsys.readouterr().out
     assert "core luminosity floor 12,000 L_sun" in out and "halo luminosity floor 60 L_sun" in out

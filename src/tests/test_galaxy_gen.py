@@ -1116,7 +1116,7 @@ a test whose counts were written for one galaxy's density pins this one."""
 _PLAN_SHAPE_ARGV = [
     "--disk-scale-length", "40pc", "--flatness", "3.333",
     "--bulge-size", "0.25", "--bulge-share", "0.0245",
-    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-density", "1.4", "--interarm-density", "0.6",
+    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-contrast", "0.4",
 ]
 """list: The same shape `_SKELETON_SHAPE` above is built from, expressed as
 `planetgen plan` CLI args instead -- a small, fast-to-scan toy galaxy

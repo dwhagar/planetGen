@@ -519,8 +519,8 @@ console.log(JSON.stringify({mixed: B.statsColor(mixed, [0, 0, 0], r), young: B.s
 
 
 def test_density_matches_the_python_model_with_the_nuclear_structures_and_a_denser_arm():
-    from planetgen.galaxy.density import arm_terms, relative_density
-    amplitude, level = arm_terms(2.2, 0.3)
+    from planetgen.galaxy.density import relative_density
+    amplitude, level = 0.76, 1.25
     shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), amplitude,
                                arm_level=level, nuclear_amplitude=3.0)
     points = [(8000.0, 100.0, 50.0), (0.0, 0.0, 0.0), (15.0, -10.0, 3.0), (300.0, -200.0, 10.0), (-12000.0, 4000.0, -600.0)]

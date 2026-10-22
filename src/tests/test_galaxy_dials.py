@@ -160,3 +160,20 @@ def test_the_docs_carry_the_table_as_built():
     assert text[start:end] == dials.docs_block(), "docs/cli.md is stale: run python3 -m planetgen.galaxy.dials --write"
     for row in dials.LEVERS:
         assert f"`{row.flag}`" in text[start:end]
+
+
+def test_no_help_text_quotes_a_milky_way_number():
+    """GEN.610: nothing fixed from the Milky Way; the help a user reads names no stand-in value."""
+    for row in dials.LEVERS:
+        for text in (row.help, row.law, row.auto_text):
+            for banned in ("2.5e7", "1.5e9", "Milky Way", "Solar System"):
+                assert banned not in text, (row.name, banned)
+
+
+def test_the_gap_filling_plan_carries_the_range_registry_as_built():
+    text = (ROOT / "docs" / "design" / "gap-filling-plan.md").read_text(encoding="utf-8")
+    start = text.index(dials.REGISTRY_BEGIN.split(" (")[0])
+    end = text.index(dials.REGISTRY_END) + len(dials.REGISTRY_END)
+    assert text[start:end] == dials.registry_block(), "the plan is stale: run python3 -m planetgen.galaxy.dials --write"
+    for row in dials.LEVERS:
+        assert f"`{row.flag}`" in text[start:end]

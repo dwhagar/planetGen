@@ -313,8 +313,10 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/shape` — `{"shape": ...}`, the galaxy's stored
   density-skeleton shape (`planetgen plan`'s output): every
   `planetgen.galaxy.density.GalaxyShape` field plus `edge_pc`,
-  `outer_shell_index`, and `expected_system_count_at_density_1`
-  (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
+  `outer_shell_index`, and `expected_system_count_at_density_1`, with
+  `pinned_stellar_mass_solar` (the stellar mass the plan pinned, else `null`)
+  and `pins` (DB.81: `{lever name: value}` of the shape levers the plan was
+  told, empty when the seed drew everything) (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
   has never been built. The Galaxy Map shades its "expected density"
   cloud from this real model (falling back to a generic illustrative
   gradient when `null`) instead of a placeholder.

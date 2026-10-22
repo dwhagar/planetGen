@@ -93,8 +93,11 @@ class Lever:
     choices: tuple = ()
     units: tuple = ()
     auto_value: float = None
-    nonzero: bool = False
+    min_abs: float = None
+    """float: The closest to 0 a value may be (pitch angle: a quarter turn each way, but not a flat line), or `None`."""
     advanced: bool = False
+    log: bool = False
+    """bool: Whether a slider for the row runs on a logarithmic scale (a mass, a density)."""
 
     @property
     def dest(self):
@@ -128,10 +131,13 @@ class Lever:
             return None
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
             return f"{value!r} is not a finite number"
-        if not self.minimum <= value <= self.maximum or (self.nonzero and value == 0):
-            return (f"{value:g} is outside {self.range_text()}{', not 0' if self.nonzero else ''} "
+        if not self.minimum <= value <= self.maximum or (self.min_abs is not None and abs(value) < self.min_abs):
+            return (f"{value:g} is outside {self.range_text()}{self._abs_text()} "
                     f"({self.source}; {self.status})")
         return None
+
+    def _abs_text(self):
+        return f", at least {self.min_abs:g} away from 0" if self.min_abs is not None else ""
 
     def unit_names(self):
         """The units a `length` row takes, as `L, pc, kpc`."""
@@ -164,6 +170,14 @@ class Lever:
             raise ValueError("not finite")
         return value
 
+    def format(self, value):
+        """`value` as it is typed: `12L` for a length in scale lengths, `160pc` for one in the base unit, else `g`."""
+        if isinstance(value, RelativeLength):
+            return f"{value.value:g}{value.unit}"
+        if self.kind == "length":
+            return f"{value:g}{self.unit}"
+        return f"{value:g}" if isinstance(value, (int, float)) else str(value)
+
     def parse(self, raw):
         """The `argparse` type of the row's flag: converts and range-checks `raw`."""
         try:
@@ -180,9 +194,29 @@ class Lever:
     def help_text(self):
         """The row's `--help` line: what it does, the range with its source, and what Auto is."""
         advanced = " Advanced." if self.advanced else ""
-        return (f"{self.help} Allowed: {self.range_text()}{', not 0' if self.nonzero else ''} "
+        return (f"{self.help} Allowed: {self.range_text()}{self._abs_text()} "
                 f"({self.source}; {self.status}). Default Auto: {self.auto_text}.{advanced}")
 
+
+HALO_MIN_HALO_MASS_SOLAR = 1.0e10
+"""float: The lowest halo mass, solar masses (M200), our halo functions are used at (Boss, 7:33 PM EDT 10-21: a galaxy
+below the lowest size they work for reliably runs none of them). Each law in the chain was fitted from here up: Dutton
+and Maccio 2014's concentration is quoted for M200 of 1e10 and over (Wang et al. 2020 say the same of formulas derived
+there, arXiv:1911.09720), Behroozi et al. 2019's stellar-to-halo fit holds from 10^10.5 and Read et al. 2017 agree with
+abundance matching down to 5e9 (arXiv:1607.03127, read by the galaxy size research thread). The stellar mass it
+corresponds to is `galaxy.mass_chain.HALO_MIN_STELLAR_MASS_SOLAR`, about 4.6e6 solar masses. Status: bracket, since
+the bound is read from papers that agree to within half a dex and is not itself printed in one."""
+
+FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR = 3.0e8
+"""float: The stellar mass, solar masses, under which a galaxy is one disc plus a bulge (Boss, 7:58 PM EDT 10-21): no
+thick disc, no bar, no stellar halo and no nuclear star cluster or disc. The laws that draw them were fitted to
+galaxies of this mass and up: Yoachim and Dalcanton 2006's sample starts at a circular speed of about 50 km/s, which
+the baryonic Tully-Fisher law of `structure_draw` puts at 2.9e8 (density-limits report 10-21, section 2.3), and below
+it the thick disc outweighs the thin one (906 times at 281 solar masses) and the nuclear disc, 61 times the cluster,
+holds 80 percent of the stars in a space smaller than a cell. Status: derived."""
+
+HALO_MIN_STATUS = "bracket"
+"""str: The range label of `HALO_MIN_HALO_MASS_SOLAR`."""
 
 LEVERS = (
     Lever(
@@ -193,15 +227,48 @@ LEVERS = (
         help="The galaxy family. A selector, not a dial: it never sets a size or a count.",
         source="the galaxy families; only the spiral exists, later families fill the list", status="theory"),
     Lever(
+        name="mass", flag="--mass", dial="scale", label="Stellar mass (solar masses)", kind="float",
+        unit="solar masses", minimum=281.0, maximum=1.55e11, step=0.01, log=True,
+        law="the total mass of the galaxy's stars (not its dark halo, which the Halo dial sets); the size, the halo, "
+            "the thick disc, the bulge and the black hole all follow it through their laws; under about 4.6e6 the "
+            "galaxy has no dark halo (no halo draw, no halo law runs), and under 3e8 it is one disc plus a bulge",
+        auto_text="drawn from the galaxy stellar mass function (Baldry et al. 2012)",
+        help="The total mass of the galaxy's stars, solar masses. Size and density follow it unless pinned; pin any "
+             "two of mass, size and density and the third is shown.",
+        source="Boss, 10-21 (7:04 to 7:31 PM EDT): floor half the stellar mass of Segue 1, 562 solar masses (Local "
+               "Volume Database v1.1.1; Simon et al. 2011, arXiv:1007.4198); ceiling 1.5 x Andromeda's 1.03e11 "
+               "(Sick et al. 2014, arXiv:1410.0017), read by the galaxy size research thread", status="derived"),
+    Lever(
+        name="compactness", flag="--compactness", dial="scale", label="Compactness (sigma)", kind="float",
+        unit="sigma", minimum=-3.0, maximum=3.0, step=0.1,
+        law="the size at the same mass, as standard deviations from the size-mass law: 0 is the median galaxy, a "
+            "positive value a larger disc (the scale length is the law's median times e^(sigma x z))",
+        auto_text="drawn from the seed (a normal draw of the scatter, 0.20 dex falling to 0.15)",
+        help="How large the disc is for its mass, in standard deviations of the size-mass scatter (negative is more "
+             "compact). Sets the same size as --disk-scale-length; give only one of them.",
+        source="scatter of the late-type size-mass law, Shen et al. 2003 (read in the repository); three sigma is "
+               "the draw's own cap", status="derived"),
+    Lever(
+        name="density", flag="--density", dial="scale", label="Central surface density (solar masses per pc^2)",
+        kind="float", unit="solar masses per pc^2", minimum=0.03, maximum=1.0e5, step=0.01, log=True,
+        law="the thin disc's central surface density, mass over 2 pi L^2: the same thing as the size at a fixed mass",
+        auto_text="a read-out of the mass and size",
+        help="The thin disc's central surface density, solar masses per square parsec. Pin it with the mass to set "
+             "the size, or with the size to set the mass.",
+        source="density-limits report (10-21): the smallest density with a planned sector at a 4 pc scale height is "
+               "0.036; the largest found in dense stellar systems is 1e5 (Hopkins et al. 2010, arXiv:0908.4088); the "
+               "floor also grows with the scale height (check_outline)", status="derived"),
+    Lever(
         name="disk_scale_length", flag="--disk-scale-length", dial="scale", label="Disk scale length",
-        kind="length", unit="pc", minimum=0.9, maximum=8000.0, step=0.1, advanced=True,
+        kind="length", unit="pc", minimum=28.0, maximum=8250.0, step=0.1, advanced=True,
         units=(Unit("pc", 1.0), Unit("kpc", 1000.0)),
         law="the thin disk's scale length L; every other length of the galaxy is a ratio of it",
         auto_text="drawn from the size-mass relation of the galaxy's stellar mass",
         help="Thin disk exponential scale length with its unit, such as 2600pc or 2.6kpc (the thick disk's is 0.77x).",
-        source="Boss, 10-21 (7:04 and 7:08 PM EDT): floor half of Ursa Major III / UNIONS 1 (recalled half-light "
-               "radius 3 pc, so 1.5 pc, over 1.678 for a scale length), ceiling 1.5 x Andromeda (recalled disc "
-               "scale length 5.3 kpc); neither is read in a file of the repository", status="placeholder"),
+        source="Boss, 10-21 (7:04 PM to 8:08 PM EDT): floor 28 pc (Segue 1's half, 7.1 pc, is under the 4 pc cell grid's "
+               "reach: a variable sector edge, a later item, would bring it back); ceiling 1.5 x Andromeda's 5.5 kpc "
+               "(Courteau et al. 2011, arXiv:1106.3564; Dorman et al. 2013, arXiv:1310.4179), read by the galaxy size "
+               "research thread", status="derived"),
     Lever(
         name="flatness", flag="--flatness", dial="structure", label="Flatness (scale length over scale height)",
         kind="float", unit="", minimum=3.0, maximum=20.0, step=0.1,
@@ -239,6 +306,40 @@ LEVERS = (
              "the bulge: 1 is the pair its stellar mass draws, 0 is none.",
         source="hand option of the first plan, no source", status="placeholder"),
     Lever(
+        name="edge", flag="--edge", dial="edge", label="Edge", kind="length", unit="pc", minimum=4.0,
+        maximum=262140.0, step=1.0,
+        units=(Unit("L", None, 3.0, 20.0), Unit("pc", 1.0), Unit("kpc", 1000.0), Unit("Mpc", 1.0e6)),
+        law="how far out the plan walks the outline of the galaxy: the outline stops here even where sectors still "
+            "clear the one-star threshold (a relative length is in scale lengths of the thin disc)",
+        auto_text="the outline's own edge, where no sector clears the one-star-per-sector threshold, up to the grid's "
+                  "reach",
+        help="How far from the centre the plan walks the outline, with its unit: 12L (scale lengths of the thin disc, "
+             "3 to 20), or 40kpc, 160pc, 0.1Mpc. Replaces --max-shell.",
+        source="relative: Boss, 10-21 (7:01 PM EDT), 3 to 20 scale lengths; absolute: one 4 pc shell up to the grid's "
+               "reach of 65,535 shells, 262 kpc (spherical.MAX_ADDRESSABLE_SHELL)", status="derived"),
+    Lever(
+        name="halo_ratio", flag="--halo-ratio", dial="halo", label="Dark halo mass over stellar mass", kind="float",
+        unit="", minimum=10.0, maximum=3000.0, step=1.0, log=True,
+        law="the dark halo's mass (M200) as a multiple of the galaxy's stellar mass; the virial radius, the tidal "
+            "field and the disc's gas inflow follow it. Refused for a galaxy under the halo threshold",
+        auto_text="drawn from the stellar-to-halo relation of the stellar mass (Moster et al. 2013), with its scatter",
+        help="The dark halo's mass over the stellar mass. A galaxy under about 4.6e6 solar masses of stars has no halo "
+             "and refuses it.",
+        source="the relation's own range: a halo holds 26 times its stars at the peak of star formation efficiency "
+               "(Moster et al. 2013, read in the repository) and 2200 times at the halo threshold of 1e10 solar masses; "
+               "the ends are those, rounded", status="derived"),
+    Lever(
+        name="stellar_halo_share", flag="--stellar-halo-share", dial="halo", label="Stellar halo share", kind="float",
+        unit="", minimum=0.001, maximum=0.3, step=0.001, log=True,
+        law="the share of the galaxy's stars in its diffuse stellar halo (the rest are the disc, bulge and bar); "
+            "refused for a galaxy under 3e8 solar masses of stars, which has none",
+        auto_text="drawn from a power law of the stellar mass (a placeholder, Harmsen et al. 2017) with 1.01 dex "
+                  "scatter",
+        help="The stellar halo's share of all the galaxy's stars, 0.001 to 0.3 (0.1 to 30 percent). A galaxy under "
+             "3e8 solar masses of stars has none and refuses it.",
+        source="the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (D'Souza and "
+               "Bell 2014's disc-dominated galaxies), read in structure_draw", status="bracket"),
+    Lever(
         name="arm_count", flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",
@@ -248,27 +349,99 @@ LEVERS = (
         status="placeholder"),
     Lever(
         name="pitch_angle_deg", flag="--pitch-angle-deg", dial="pattern", label="Arm pitch angle (degrees)",
-        kind="float", unit="degrees", minimum=-90.0, maximum=90.0, step=0.5, nonzero=True,
+        kind="float", unit="degrees", minimum=-90.0, maximum=90.0, step=0.5, min_abs=1.0,
         law="the arms' pitch angle (a negative one winds the other way)",
         auto_text="drawn from the seed, tighter for heavier galaxies",
         help="Spiral arm pitch angle, degrees.",
-        source="Hart 2017 draws 10 to 40; the full quarter turn is a placeholder", status="placeholder"),
+        source="Hart 2017 draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused "
+               "because a flat pitch divides by zero (density-limits report, 10-21)", status="placeholder"),
     Lever(
-        name="arm_density", flag="--arm-density", dial="pattern", label="Arm density", kind="float", unit="",
-        minimum=0.01, maximum=10.0, step=0.1, auto_value=1.4,
-        law="the thin disk's density on an arm crest; retired for arm contrast",
-        auto_text="1.4",
-        help="The thin disk's density on a spiral arm crest, in the disk's own units. At least --interarm-density.",
-        source="hand option of the first plan, no source", status="placeholder"),
-    Lever(
-        name="interarm_density", flag="--interarm-density", dial="pattern", label="Inter-arm density",
-        kind="float", unit="", minimum=0.0, maximum=10.0, step=0.1, auto_value=0.6,
-        law="the thin disk's density midway between arms; retired for arm contrast",
-        auto_text="0.6",
-        help="The thin disk's density midway between arms, in the same units.",
-        source="hand option of the first plan, no source", status="placeholder"),
+        name="arm_contrast", flag="--arm-contrast", dial="pattern", label="Arm contrast", kind="float", unit="",
+        minimum=0.0, maximum=1.0, step=0.01, auto_value=0.4,
+        law="how much denser the thin disk is on an arm crest than between arms: the arm factor is 1 + contrast x cos, "
+            "so the crest is 1 + contrast and the trough 1 - contrast of the disk's own density (0 is no arms, 1 an "
+            "empty trough)",
+        auto_text="0.4 (a crest 1.4 and a trough 0.6 of the disk's mean)",
+        help="Arm contrast: the thin disk's density on an arm crest over its mean is 1 + this, between arms 1 - this.",
+        source="0 to 1 because the density cannot go negative (theory); the 0.4 default is the first plan's hand value, "
+               "no source", status="placeholder"),
 )
 """tuple: Every lever, in the order the page and the docs show them."""
+
+
+DERIVED_LIMITS = {
+    "disk_scale_height_pc": (
+        4.0, 1155.0, "pc",
+        "Boss, 10-21 (7:13 to 8:08 PM EDT): floor one 4 pc cell (the density-limits report: a thinner disc is "
+        "overcounted by the grid); ceiling 1.5 x Andromeda's 770 pc (Dalcanton et al. 2023, arXiv:2304.08613), read by "
+        "the galaxy size research thread", "derived"),
+    "bulge_scale_radius_pc": (
+        2.0, 1.0e9, "pc",
+        "density-limits report (10-21): half a 4 pc cell; a bulge smaller than that puts five times too many systems "
+        "in its cell", "derived"),
+}
+"""dict: `{quantity: (low, high, unit, source, status)}` for a quantity no row sets but the Structure dial gives (the
+scale height is the scale length over the flatness): a value outside it, pinned or solved, is refused with `check`."""
+
+
+OUTLINE_DENSITY_PER_HEIGHT = 0.00893
+"""float: The thin disc's central surface density, solar masses per square parsec, per parsec of scale height at which
+its crest just reaches the one-star density that plans a sector (the density-limits report's D = 1, with the arm
+crest 1.4 times the mean and 0.4 solar masses per system; GEN.545's new mean system mass moves it). A disc below it
+has no planned sector but its bulge's. Derived."""
+
+WARN_HEIGHT_PC, WARN_BULGE_PC, WARN_CREST = 8.0, 4.0, 20.0
+"""float: The scale height and bulge radius (pc) and the crest density (in units of the one-star density) under which the
+4 pc grid represents the galaxy badly; a warning, not a refusal (the scale length floor is 28 pc, where the planned
+sectors run 4 to 15 percent high)."""
+
+
+PLANNED_SHARE_BY_CREST = ((1.0, 0.037), (2.0, 0.075), (3.0, 0.12), (5.0, 0.20), (10.0, 0.35), (20.0, 0.51), (50.0, 0.685),
+                          (100.0, 0.78), (300.0, 0.885), (1000.0, 0.94))
+"""tuple: `(crest, share)`: the share of a galaxy's stars that sit in planned sectors when the thin disc's crest is `crest`
+times the one-star density, the middle of the range the density-limits report measured on the Milky Way's structure
+(0.3 to 7 percent at 1, 49 to 53 at 20, 94 at 1000). Approximate; derived."""
+
+
+def planned_share(crest):
+    """The share of the stars in planned sectors for a disc crest `crest` times the one-star density, interpolated in
+    the log of the crest from `PLANNED_SHARE_BY_CREST` (0 under 1, the last value over 1000)."""
+    if crest < PLANNED_SHARE_BY_CREST[0][0]:
+        return 0.0
+    for (low, share_low), (high, share_high) in zip(PLANNED_SHARE_BY_CREST, PLANNED_SHARE_BY_CREST[1:]):
+        if crest <= high:
+            along = math.log(crest / low) / math.log(high / low)
+            return share_low + along * (share_high - share_low)
+    return PLANNED_SHARE_BY_CREST[-1][1]
+
+
+def disc_crest(sigma0, height_pc):
+    """The thin disc's central density in units of the one-star density (the density-limits report's D)."""
+    return sigma0 / (OUTLINE_DENSITY_PER_HEIGHT * height_pc)
+
+
+def shape_warnings(sigma0, height_pc, bulge_radius_pc):
+    """The sentences for a shape the 4 pc grid represents badly (the planned sectors expect more systems than the
+    model holds), empty for a shape it holds well."""
+    notes = []
+    if height_pc < WARN_HEIGHT_PC:
+        notes.append(f"a scale height of {height_pc:.3g} pc is under {WARN_HEIGHT_PC:g}: the disc is under two cells deep")
+    if bulge_radius_pc < WARN_BULGE_PC:
+        notes.append(f"a bulge radius of {bulge_radius_pc:.3g} pc is under {WARN_BULGE_PC:g}: its cell expects too many "
+                     f"systems")
+    crest = disc_crest(sigma0, height_pc)
+    if crest < WARN_CREST:
+        notes.append(f"the disc's crest is {crest:.1f} times the one-star density (under {WARN_CREST:g}): about "
+                     f"{100 * planned_share(crest):.0f} percent of its stars sit in planned sectors (approximate)")
+    return notes
+
+
+def check_derived(name, value):
+    """Why `value` of the derived quantity `name` is outside its limits (naming the range and source), or `None`."""
+    low, high, unit, source, status = DERIVED_LIMITS[name]
+    if low <= value <= high:
+        return None
+    return f"{name.replace('_', ' ')} of {value:.4g} {unit} is outside {low:g} to {high:g} {unit} ({source}; {status})"
 
 
 def lever(name):
@@ -296,12 +469,29 @@ def _metavar(row):
     return {"int": "N", "float": "X", "length": "LENGTH"}[row.kind]
 
 
+def restored(value):
+    """`value` of a lever as it comes back from a job's JSON parameters: a length in scale lengths is a list there."""
+    if isinstance(value, (list, tuple)) and not isinstance(value, RelativeLength):
+        return RelativeLength(*value)
+    return value
+
+
 def resolved(args, name):
     """The value of lever `name` in parsed `args`: the given value, else the row's fixed Auto value (`None` for a row
     the seed draws)."""
     row = lever(name)
     value = getattr(args, row.dest, None)
     return row.auto_value if value is None else value
+
+
+def describe_pins(pins):
+    """The sentence the galaxy page shows for the levers a plan was told (DB.81), `pins` being `{lever name: value}` as
+    `shape_draw.pins_of` stores it: what was pinned, in the table's order and units, and that the rest was drawn."""
+    shown = [f"{row.label} {pins[row.name]:.4g}{' ' + row.unit if row.unit else ''}"
+             for row in LEVERS if row.name in (pins or {})]
+    if not shown:
+        return "Shape drawn from the seed"
+    return f"Shape pinned: {', '.join(shown)}; the rest drawn from the seed"
 
 
 def docs_table():
@@ -311,7 +501,7 @@ def docs_table():
     labels = dict(DIALS)
     for row in LEVERS:
         flag = f"`{row.flag}`" + (" (advanced)" if row.advanced else "")
-        allowed = row.range_text() + (", not 0" if row.nonzero else "")
+        allowed = row.range_text() + row._abs_text()
         lines.append(f"| {labels[row.dial]} | {flag} | {row.law} | {allowed} | {row.auto_text} | "
                      f"{row.source} ({row.status}) |")
     return "\n".join(lines)
@@ -321,26 +511,53 @@ DOCS_BEGIN = "<!-- dials:begin (generated by planetgen.galaxy.dials; python3 -m 
 DOCS_END = "<!-- dials:end -->"
 
 
+def halo_note():
+    """The sentence under the docs table that says where the halo laws stop."""
+    return (f"A galaxy whose halo would weigh under {HALO_MIN_HALO_MASS_SOLAR:.0e} solar masses (a stellar mass under "
+            f"about 4.6e6) has no dark halo: none is drawn and no law that reads one runs ({HALO_MIN_STATUS}; see "
+            f"`dials.HALO_MIN_HALO_MASS_SOLAR`). A galaxy under {FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR:.0e} solar masses of "
+            f"stars is one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures "
+            f"(`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`).")
+
+
 def docs_block():
     """The text between (and with) the markers in `docs/cli.md`."""
-    return f"{DOCS_BEGIN}\n{docs_table()}\n{DOCS_END}"
+    return f"{DOCS_BEGIN}\n{docs_table()}\n\n{halo_note()}\n{DOCS_END}"
+
+
+REGISTRY_BEGIN = "<!-- dial-ranges:begin (generated by planetgen.galaxy.dials; python3 -m planetgen.galaxy.dials --write) -->"
+REGISTRY_END = "<!-- dial-ranges:end -->"
+
+
+def registry_block():
+    """The registry rows for the shape dials' ranges in `docs/design/gap-filling-plan.md` (GEN.609): one per lever."""
+    lines = [REGISTRY_BEGIN, "| Lever | Range | Label | Source |", "|---|---|---|---|"]
+    for row in LEVERS:
+        lines.append(f"| `{row.flag}` | {row.range_text()}{row._abs_text()} | {row.status} | {row.source} |")
+    lines.append(REGISTRY_END)
+    return "\n".join(lines)
+
+
+def _rewrite(path, begin, end, block):
+    import re
+    text = path.read_text(encoding="utf-8")
+    pattern = re.compile(re.escape(begin.split(" (")[0]) + r".*?" + re.escape(end), re.S)
+    if not pattern.search(text):
+        raise SystemExit(f"{path} has no {end} block")
+    path.write_text(pattern.sub(lambda _match: block, text), encoding="utf-8")
 
 
 def _main(argv=None):
     import pathlib
-    import re
-    parser = argparse.ArgumentParser(description="Print the lever table, or rewrite its block in docs/cli.md.")
-    parser.add_argument("--write", action="store_true", help="Rewrite the block in docs/cli.md.")
+    parser = argparse.ArgumentParser(description="Print the lever table, or rewrite its blocks in the docs.")
+    parser.add_argument("--write", action="store_true", help="Rewrite the blocks in docs/cli.md and the gap-filling plan.")
     args = parser.parse_args(argv)
     if not args.write:
         print(docs_block())
         return 0
-    path = pathlib.Path(__file__).resolve().parents[3] / "docs" / "cli.md"
-    text = path.read_text(encoding="utf-8")
-    pattern = re.compile(re.escape(DOCS_BEGIN.split(" (")[0]) + r".*?" + re.escape(DOCS_END), re.S)
-    if not pattern.search(text):
-        raise SystemExit(f"{path} has no dials block")
-    path.write_text(pattern.sub(lambda _match: docs_block(), text), encoding="utf-8")
+    docs = pathlib.Path(__file__).resolve().parents[3] / "docs"
+    _rewrite(docs / "cli.md", DOCS_BEGIN, DOCS_END, docs_block())
+    _rewrite(docs / "design" / "gap-filling-plan.md", REGISTRY_BEGIN, REGISTRY_END, registry_block())
     return 0
 
 

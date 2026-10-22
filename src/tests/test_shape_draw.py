@@ -228,7 +228,7 @@ def test_a_plan_with_no_shape_options_draws_every_one_from_its_seed():
     add_plan_arguments(parser)
     args = parser.parse_args([])
     for option in ("disk_scale_length", "flatness", "bulge_share", "bulge_size",
-                   "arm_count", "pitch_angle_deg", "shape", "nuclear_amplitude", "arm_density", "interarm_density"):
+                   "arm_count", "pitch_angle_deg", "shape", "nuclear_amplitude", "arm_contrast"):
         assert getattr(args, option) is None, option
     shape, drawn = shape_draw.plan_shape(args, _seed(21))
     assert shape.disk_scale_length_pc == drawn.disk_scale_length_pc

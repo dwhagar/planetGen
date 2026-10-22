@@ -59,7 +59,7 @@ STARTUP_RUNS = 3
 _STARTUP_PROBE = """
 import json, sys, time
 began = time.perf_counter()
-from planetgen.generation import run_galaxy
+from planetgen.generation import run_common, run_galaxy
 from planetgen.db import store
 imported = time.perf_counter()
 store.get_connection(store.MySQLConfig(database=sys.argv[1])).close()
@@ -231,7 +231,8 @@ def _profile(config, control, args, workdir):
 
 
 def _plan_args(args):
-    return ["plan", "--seed", args.seed, "--max-shell", str(args.max_shell), "--bright-star-min-luminosity", "100000"]
+    return ["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc",
+            "--bright-star-min-luminosity", "100000"]
 
 
 def _fill_args(args):

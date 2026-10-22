@@ -199,25 +199,24 @@ def test_workers_zero_is_accepted(monkeypatch):
 # plan, phenomenon, population
 # ---------------------------------------------------------------------------
 
-ARM_DENSITY_ERROR = ("--arm-density and --interarm-density: the arm density must be above 0 and at least "
-                     "the inter-arm density, which is 0 or more.")
-
 PLAN_ERRORS = [
-    (["--interarm-density", "2"], ARM_DENSITY_ERROR),
-    (["--interarm-density", "-0.01"], "argument --interarm-density: -0.01 is outside 0 to 10 ("),
-    (["--arm-density", "0", "--interarm-density", "0"], "argument --arm-density: 0 is outside 0.01 to 10 ("),
+    (["--arm-contrast", "1.01"], "argument --arm-contrast: 1.01 is outside 0 to 1 ("),
+    (["--arm-contrast", "-0.01"], "argument --arm-contrast: -0.01 is outside 0 to 1 ("),
     (["--nuclear-amplitude", "-1"], "argument --nuclear-amplitude: -1 is outside 0 to 10 ("),
     (["--bulge-share", "-1"], "argument --bulge-share: -1 is outside 0 to 0.9 ("),
     (["--workers", "-1"], "--workers must be 0 (automatic) or more."),
-    (["--max-shell", "0"], "--max-shell must be a positive integer."),
-    (["--disk-scale-length", "0pc"], "argument --disk-scale-length: 0 is outside 0.9 to 8000 pc ("),
+    (["--edge", "3pc"], "argument --edge: 3 is outside 4 to 262140 pc, or 3 to 20 L ("),
+    (["--edge", "2L"], "argument --edge: 2 L is outside 3 to 20 L ("),
+    (["--edge", "300"], "argument --edge: '300' is not a length (a length needs its unit: L, pc, kpc, Mpc)"),
+    (["--max-shell", "40"], "unrecognized arguments: --max-shell 40"),
+    (["--disk-scale-length", "0pc"], "argument --disk-scale-length: 0 is outside 28 to 8250 pc ("),
     (["--disk-scale-length", "2600"], "argument --disk-scale-length: '2600' is not a length (a length needs its unit: pc, kpc)"),
     (["--disk-scale-length", "5Mpc"], "argument --disk-scale-length: '5Mpc' is not a length ('Mpc' is not one of the units pc, kpc)"),
     (["--flatness", "2"], "argument --flatness: 2 is outside 3 to 20 ("),
     (["--bulge-size", "0"], "argument --bulge-size: 0 is outside 0.02 to 1 ("),
     (["--arm-count", "0"], "argument --arm-count: 0 is outside 1 to 10 ("),
-    (["--pitch-angle-deg", "0"], "argument --pitch-angle-deg: 0 is outside -90 to 90 degrees, not 0 ("),
-    (["--pitch-angle-deg", "-90.001"], "argument --pitch-angle-deg: -90.001 is outside -90 to 90 degrees, not 0 ("),
+    (["--pitch-angle-deg", "0"], "argument --pitch-angle-deg: 0 is outside -90 to 90 degrees, at least 1 away from 0 ("),
+    (["--pitch-angle-deg", "-90.001"], "argument --pitch-angle-deg: -90.001 is outside -90 to 90 degrees, at least 1 away from 0 ("),
     (["--shape", "elliptical"], "argument --shape: 'elliptical' is not one of spiral ("),
     (["--no-bright-stars", "--bright-stars-only"], "--no-bright-stars and --bright-stars-only can't be combined."),
     (["--bright-stars-only", "--bright-stars-down-to", "10"],
@@ -235,8 +234,9 @@ def test_plan_error_messages(monkeypatch, capsys, argv, message):
 def test_plan_shape_edges_that_are_allowed(monkeypatch):
     """The other side of each shape bound: amplitude 0, a 90 degree
     pitch either way, one arm, one shell."""
-    for argv in (["--arm-density", "1", "--interarm-density", "1"], ["--interarm-density", "0"], ["--pitch-angle-deg", "90"], ["--pitch-angle-deg", "-90"],
-                 ["--arm-count", "1"], ["--max-shell", "1"], ["--max-shell", MAX_SHELL]):
+    for argv in (["--arm-contrast", "0"], ["--arm-contrast", "1"], ["--pitch-angle-deg", "90"], ["--pitch-angle-deg", "-90"],
+                 ["--arm-count", "1"], ["--edge", "4pc"], ["--edge", "262140pc"], ["--edge", "3L"], ["--edge", "20L"],
+                 ["--edge", "0.26Mpc"]):
         _parse(monkeypatch, "plan", argv)
 
 

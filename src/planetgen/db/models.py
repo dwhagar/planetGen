@@ -525,6 +525,7 @@ galaxy_shape = sa.Table(
     sa.Column('core_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('core_mass_limit_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('halo_min_luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'500'"), nullable=False),
+    sa.Column('pinned_stellar_mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('bright_star_mass_limit_sol', mysql.DOUBLE(), nullable=True),
@@ -540,6 +541,15 @@ galaxy_shape = sa.Table(
     sa.CheckConstraint('(`cell_star_ceiling` >= 1)', name='chk_galaxy_shape_cell_star_ceiling'),
     sa.CheckConstraint('((`halo_min_luminosity_sol` >= 50) and ((`core_min_luminosity_sol` is null) or (`core_min_luminosity_sol` > 0)) and ((`core_mass_limit_sol` is null) or (`core_mass_limit_sol` > 0)))', name='chk_galaxy_shape_scatter_limits'),
     sa.CheckConstraint('(`id` = 1)', name='galaxy_shape_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_shape_pins = sa.Table(
+    'galaxy_shape_pins',
+    metadata,
+    sa.Column('name', sa.String(40), primary_key=True, nullable=False),
+    sa.Column('value', mysql.DOUBLE(), nullable=False),
     mysql_engine="InnoDB",
 )
 
