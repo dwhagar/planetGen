@@ -1823,8 +1823,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item | none | done, PR #2159 |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | none | open |
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | none | open |
-| PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | open |
-| PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | none | open |
+| PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | done, PR #2441 |
+| PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | none | done, PR #2441 |
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | none | open |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | open |
 | PERF.125 | The population pass and the territories pass are separate commands | none | open |
