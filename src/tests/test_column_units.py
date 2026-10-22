@@ -42,12 +42,13 @@ def test_the_unit_in_a_columns_name_is_the_unit_it_is_declared_in():
 def test_the_suffix_exceptions_are_numeric_columns_whose_name_does_end_in_a_suffix():
     for (table, column), reason in column_units.SUFFIX_EXCEPTIONS.items():
         assert (table, column) in column_units.COLUMNS and reason
-        assert any(column.endswith(suffix) for suffix, _unit in column_units.SUFFIXES), f"{table}.{column} needs none"
+        suffixes = [suffix for suffix, _unit in column_units.SUFFIXES] + list(column_units.SOLAR_SUFFIXES)
+        assert any(column.endswith(suffix) for suffix in suffixes), f"{table}.{column} needs none"
 
 
 def test_a_column_of_a_length_a_mass_or_a_time_is_declared_in_one_of_that_kind():
     for kind, word in (("length", "_km"), ("mass", "_kg"), ("speed", "_kms"), ("angle", "_deg")):
-        found = [key for key in column_units.COLUMNS if key[1].endswith(word)]
+        found = [key for key in column_units.COLUMNS if key[1].endswith(word) and not key[1].endswith("_j_per_kg")]
         assert found and all(column_units.kind_of(*key) == kind for key in found)
 
 
