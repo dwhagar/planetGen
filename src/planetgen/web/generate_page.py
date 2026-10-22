@@ -37,8 +37,8 @@ Server-Sent Events stream (`/admin/generate/jobs/<id>/stream`, ADM.22;
 jobs, each with its page at `/admin/generate/jobs/<id>` and its full
 output to download at `/admin/generate/jobs/<id>/log`.
 
-Every section folds (ADM.4; `static/generatefolds.js` remembers which
-are open per browser).
+The Generate page is a Start screen with a card per task; each task has
+its own page and a Review step before anything runs (`generate_flow.py`).
 
 Admins only: a visitor who isn't logged in is sent to the login page,
 and any POST or status request without an admin session gets a 403.
@@ -1641,8 +1641,8 @@ generate_job_log.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @bp.route("/admin/generate/sectors")
 def generate_sectors():
     """
-    JSON for "Around a sector"'s list of filled sectors
-    (`static/generatefolds.js`): `?page=N`, 50 a page, nearest the
+    JSON for the named-sector tab's list of filled sectors
+    (`static/generatefinder.js`): `?page=N`, 50 a page, nearest the
     galactic core first (`apiclient.get_sectors`). Sectors without an
     address (placed before the cylindrical grid) are listed too: the
     center only needs their ID.
