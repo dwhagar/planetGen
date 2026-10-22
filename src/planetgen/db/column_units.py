@@ -656,6 +656,10 @@ TABLES = {
             "defense_index", "tech_level",
         ),
     },
+    "species_limit_values": {
+        "id": ("species_id",),
+        "row-defined": ("value",),
+    },
     "star_systems": {
         "id": ("id", "sector_id", "system_config_id", "inside_nebula_id", "inside_remnant_id"),
         "mpc": ("position_x_mpc", "position_y_mpc", "position_z_mpc"),

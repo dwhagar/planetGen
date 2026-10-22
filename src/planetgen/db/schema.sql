@@ -1369,6 +1369,10 @@
 --   numbers it was decided from, the conservation check, the products and the flags of docs/design/collisions-and-mergers.md section 7) and
 --   `orbital_event_bodies` (its participants and products, one row each). Nothing writes them yet (GEN.197's `record_event` does).
 --
+-- v119 (DB.30): `species_limit_values`, the environment limits a species does not share with the human visitor: one row per limit it
+--   replaces (species, the limit's name in `protection_limits.LIMIT_ROWS`, the value in its unit). A limit with no row is the human
+--   value. Empty until the species editor (POP.13) writes it; no other table changes.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4316,6 +4320,16 @@ CREATE TABLE IF NOT EXISTS object_index (
     KEY idx_object_index_system (system_id, kind, uid),
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v119 (DB.30): the per-species environment limits; see the header note.
+CREATE TABLE IF NOT EXISTS species_limit_values (
+    species_id   BIGINT UNSIGNED NOT NULL,
+    limit_name   VARCHAR(48) NOT NULL,
+    value        DOUBLE NOT NULL,
+    PRIMARY KEY (species_id, limit_name),
+    CONSTRAINT fk_species_limit_values_species
+        FOREIGN KEY (species_id) REFERENCES species(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
