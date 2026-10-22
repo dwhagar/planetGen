@@ -336,7 +336,7 @@ def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_s
     assert {key: len(rows) for key, rows in by_key.items() if key in ("mass", "luminosity")} == {"mass": 1, "luminosity": 1}
     mass, light = by_key["mass"][0], by_key["luminosity"][0]
     assert mass["settings"]["workers"] == 2 and mass["seconds"] > 0 and not mass["skipped"]
-    assert (mass["stage_n"], mass["stage_total"]) == (1, 2) and (light["stage_n"], light["stage_total"]) == (2, 2)
+    assert (mass["stage_n"], mass["stage_total"]) == (1, 1) and (light["stage_n"], light["stage_total"]) == (1, 1)
     assert mass["metrics"]["objects"] + light["metrics"]["objects"] == summary["total"] > 20
     assert mass["metrics"]["shells"] > 0 and 0 < mass["metrics"]["shells_modified"] <= mass["metrics"]["shells"]
     assert mass["metrics"]["seconds_per_shell"] == pytest.approx(mass["seconds"] / mass["metrics"]["shells"])

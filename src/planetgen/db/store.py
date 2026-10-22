@@ -5819,6 +5819,10 @@ def _delete_bright_stars_by_id(conn, ids, batch_size=500):
         conn.execute(f"DELETE FROM bright_stars WHERE id IN ({marks})", tuple(chunk))
 
 
+NO_MASS_LIMIT_SOL = 1.0e300
+"""float: A mass limit above any star, for a clear that finds none recorded."""
+
+
 def clear_bright_star_pass(conn, part, limits):
     """
     Deletes one pass of the star scatter and leaves the other (GEN.196):
@@ -5834,7 +5838,13 @@ def clear_bright_star_pass(conn, part, limits):
     """
     if part not in ("mass", "luminosity"):
         raise ValueError(f"part must be 'mass' or 'luminosity', not {part!r}")
-    masses = [found.mass_limit_sol for found in limits.tiers]
+    if limits.tiers is None:
+        # Only the mass pass ran, or only stars with no recorded split: the one limit stored (none puts every star
+        # under it, so the luminosity pass clears them all and the mass pass nothing).
+        stored = bright_star_mass_limit(conn)
+        masses = [NO_MASS_LIMIT_SOL if stored is None else stored]
+    else:
+        masses = [found.mass_limit_sol for found in limits.tiers]
     low, high = min(masses), max(masses)
     if part == "mass":
         scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
@@ -5873,7 +5883,7 @@ def scatter_stored(conn, part):
         limit = bright_star_mass_limit(conn)
         if limit is None:
             return conn.execute("SELECT 1 FROM bright_stars LIMIT 1").fetchone() is not None
-        low = min([found.mass_limit_sol for found in scatter_limits_of(conn).tiers
+        low = min([found.mass_limit_sol for found in scatter_limits_of(conn).tiers or ()
                    if found.mass_limit_sol is not None] or [limit])
         return conn.execute("SELECT 1 FROM bright_stars WHERE initial_mass_sol < ? LIMIT 1", (low,)).fetchone() is not None
     if part == "phenomena":

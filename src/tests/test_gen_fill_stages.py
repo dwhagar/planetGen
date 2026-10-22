@@ -380,9 +380,9 @@ def test_a_filled_sector_gives_its_scattered_pulsar_planets_at_fill_from_the_row
 
 def test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built(mysql_config, certain):
     from planetgen.db import store
-    from tests.test_phenomenon_scatter import _busiest_cell, _plan_args, _seed_galaxy
+    from tests.test_phenomenon_scatter import _busiest_cell, _scatter_args, _seed_galaxy
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind = 'neutron-star'")
     conn = store.get_connection(mysql_config)
     try:

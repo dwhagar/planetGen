@@ -151,11 +151,11 @@ def test_every_option_belongs_to_one_kind():
     parser = argparse.ArgumentParser(prefix_chars='-+')
     generate_cli.add_scatter_arguments(parser)
     for flags in (["--luminosity", "--phenomenon-min-mass", "12"], ["--mass", "--compact-min-mass", "2"],
-                  ["--phenomena", "--down-to", "10"], ["--mass", "--down-to", "10"], ["--band"],
+                  ["--phenomena", "--down-to", "100"], ["--mass", "--down-to", "100"], ["--band"],
                   ["--nebula-field", "--phenomenon-min-mass", "12"]):
         with pytest.raises(SystemExit):
             generate_cli.validate_scatter_args(parser.parse_args(flags), parser)
-    generate_cli.validate_scatter_args(parser.parse_args(["--band", "--down-to", "10"]), parser)
+    generate_cli.validate_scatter_args(parser.parse_args(["--band", "--down-to", "100"]), parser)
     generate_cli.validate_scatter_args(parser.parse_args(["--mass", "--phenomenon-min-mass", "12"]), parser)
 
 
