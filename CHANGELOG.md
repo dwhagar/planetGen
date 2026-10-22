@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1938] - 2026-10-22
+
+**Headline:** The database gets the lock marks table the 8.6 edit-everything plans will use to keep an object or one aspect of it.
+
+### Changed
+- **`object_locks` (DB.37, schema v123).** One row per object and aspect (or `*` for the whole object): the object ID, who locked it and when, and a reason. A regeneration or a plan will keep what is locked. The migration only makes the table; nothing reads it yet.
+
+TODO items resolved / Added: DB.37 / Added: none
+
 ## [8.0.1937] - 2026-10-22
 
 **Headline:** The database gets the tables the 8.6 edit-everything plans will use: plans, their operations and the edit journal.
