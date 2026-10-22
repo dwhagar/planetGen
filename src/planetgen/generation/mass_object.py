@@ -30,17 +30,26 @@ from planetgen.physics import constants as physical_constants
 from planetgen.physics import spin, state_vectors, unit_registry
 from planetgen.physics.kepler import universal_step
 from planetgen.physics.position import SpatialPosition3D, update_interval_s
+from planetgen.physics.quantity import Quantity
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 
 _KM_S = unit_registry.unit("km_s").factor
 """float: Metres a second in a kilometre a second."""
 
-GALACTIC_MOTION_FIELDS = [
-    "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-    "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
-]
-"""The four fields `set_galactic_motion` sets: the circular speed and period about the galactic centre, the phase
-along that orbit, and the shortest interval between orbital updates."""
+PLAIN = ("text", "ratio", "count", "index", "flag", "dex", "unit-vector", "id")
+"""tuple: What a field declares in place of a unit when it holds no quantity: a name or a label (`text`), a plain
+number (`ratio`), a whole number (`count`, `index`, `id`), a yes or no (`flag`), a logarithmic scale (`dex`) or one
+component of a unit vector. The same words the column registry (`db.column_units`) uses for a column with no unit."""
+
+GALACTIC_MOTION_UNITS = {
+    "galactic_orbital_speed_kms": "km_s", "galactic_orbital_period_gy": "Gyr",
+    "galactic_orbital_phase_deg": "deg", "galactic_min_update_interval_years": "yr",
+}
+"""dict: The four fields `set_galactic_motion` sets, with their native units: the circular speed and period about the
+galactic centre, the phase along that orbit, and the shortest interval between orbital updates."""
+
+GALACTIC_MOTION_FIELDS = list(GALACTIC_MOTION_UNITS)
+"""list: The names of `GALACTIC_MOTION_UNITS`."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -71,14 +80,49 @@ class MassObject:
     """The core of a body with a mass: galactic motion and serialization from a field list. A family whose name is
     a salad drawn on first read lists `LazySaladName` before it."""
 
+    FIELD_UNITS = {}
+    """dict: Each attribute a family persists, with the unit the instance holds it in (GEN.570): a key of
+    `unit_registry.UNITS` for a quantity (a plain float in that native unit, so a kernel pays for nothing), or a word of
+    `PLAIN` for a field that holds none. A family sets its own, in the order it persists them; `quantity` builds the
+    `Quantity` of one at the edges, and `tests/test_field_units.py` fails when a persisted field is not declared here or
+    is declared in another kind than its column."""
+
     SERIALIZABLE_FIELDS = []
-    """The attributes a family persists; each family sets its own."""
+    """The attributes a family persists; each family sets its own (the names of its `FIELD_UNITS`)."""
 
     spatial = None
     """SpatialPosition3D or None: where the body is, with its "system" frame the offset from its primary (a family
     that holds one declares its axes with `position.axis_property` and `velocity_axis_property`)."""
     _staged_au = None
     _staged_velocity_kms = None
+
+    # --- Quantities ----------------------------------------------------------------------------------------------
+
+    @classmethod
+    def field_unit(cls, name):
+        """The unit key or `PLAIN` word `FIELD_UNITS` declares for the attribute `name`; a `KeyError` for an
+        undeclared one."""
+        return cls.FIELD_UNITS[name]
+
+    def quantity(self, name):
+        """
+        The attribute `name` as a `Quantity` in its declared native unit (a pair, such as the habitable zone, as a
+        tuple of them), every other unit of its kind one read away: `star.quantity("mass").Msun`.
+
+        Raises:
+            KeyError: For an attribute `FIELD_UNITS` does not declare.
+            ValueError: For one that holds no quantity (`PLAIN`), or that has no value yet.
+        """
+        unit = self.FIELD_UNITS[name]
+        if unit in PLAIN:
+            raise ValueError(f"{name} holds no quantity (it is {unit})")
+        value = getattr(self, name)
+        if value is None:
+            raise ValueError(f"{name} has no value yet")
+        kind = unit_registry.unit(unit).kind
+        if isinstance(value, (tuple, list)):
+            return tuple(Quantity(kind, part, unit) for part in value)
+        return Quantity(kind, value, unit)
 
     # --- Motion relative to a primary --------------------------------------------------------------------------
 

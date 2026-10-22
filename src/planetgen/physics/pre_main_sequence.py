@@ -31,8 +31,10 @@ PRE_MAIN_SEQUENCE = "PMS"
 CLASS_NAMES = {PROTOSTAR: "Protostar", PRE_MAIN_SEQUENCE: "Pre-Main-Sequence Star"}
 """dict: Display name of each class, in the same place `YERKES_CLASS_NAMES` is used."""
 STAGE_CLASSES = (PROTOSTAR, PRE_MAIN_SEQUENCE)
-DISK_FIELDS = ("disk_kind", "disk_mass_solar", "disk_inner_au", "disk_outer_au")
-"""tuple: The disk descriptor's columns on `stars`, in `draw_disk`'s key order."""
+DISK_UNITS = {"disk_kind": "text", "disk_mass_solar": "Msun", "disk_inner_au": "au", "disk_outer_au": "au"}
+"""dict: The disk descriptor's columns on `stars`, in `draw_disk`'s key order, with each attribute's native unit."""
+DISK_FIELDS = tuple(DISK_UNITS)
+"""tuple: The names of `DISK_UNITS`."""
 YEAR_S = constants.SECONDS_PER_YEAR
 
 

@@ -22,6 +22,7 @@ from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
 from planetgen.generation.stellar_object import StellarObject
 from planetgen.galaxy import enclosed_mass, scales
 from planetgen.physics.orbits import (
@@ -48,20 +49,19 @@ class BinaryStarProxy(StellarObject):
         _binary_separation_au (float): The orbital separation between the two stars in AU.
     """
 
-    SERIALIZABLE_FIELDS = [
-        "name", "type", "temperature", "radius", "age", "lifespan",
-        "habitable_zone", "system_perimeter", "heliosphere_radius",
-        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
-        "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
-        "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
-        "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
-        "binary_mutual_position_x", "binary_mutual_position_y", "binary_mutual_position_z",
-        "binary_primary_position_x", "binary_primary_position_y", "binary_primary_position_z",
-        "binary_secondary_position_x", "binary_secondary_position_y", "binary_secondary_position_z",
-        "binary_secondary_mass_fraction",
-        "_binary_separation_au", "_effective_mass", "_effective_luminosity",
-    ]
+    FIELD_UNITS = {
+        "name": "text", "type": "text", "temperature": "K", "radius": "km", "age": "Gyr", "lifespan": "Gyr",
+        "habitable_zone": "au", "system_perimeter": "au", "heliosphere_radius": "au", **GALACTIC_MOTION_UNITS,
+        "binary_mutual_orbital_period_years": "yr", "binary_mutual_orbital_speed_kms": "km_s",
+        "binary_mutual_orbital_inclination_deg": "deg", "binary_mutual_orbital_ascending_node_deg": "deg",
+        "binary_mutual_orbital_phase_deg": "deg", "binary_mutual_min_update_interval_years": "yr",
+        "binary_mutual_position_x": "au", "binary_mutual_position_y": "au", "binary_mutual_position_z": "au",
+        "binary_primary_position_x": "au", "binary_primary_position_y": "au", "binary_primary_position_z": "au",
+        "binary_secondary_position_x": "au", "binary_secondary_position_y": "au",
+        "binary_secondary_position_z": "au", "binary_secondary_mass_fraction": "ratio",
+        "_binary_separation_au": "au", "_effective_mass": "kg", "_effective_luminosity": "W",
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """
     Mirrors `Star.SERIALIZABLE_FIELDS`, minus `yerkes_class` (not set on a
     proxy) and `mass`/`luminosity` (read-only properties -- their

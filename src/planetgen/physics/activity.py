@@ -36,11 +36,14 @@ import math
 from planetgen.physics import constants
 from planetgen.util import draw
 
-STAR_ACTIVITY_FIELDS = (
-    "log_lx_lbol", "l_xuv_w", "xuv_saturated", "flare_n33_per_yr", "flare_alpha", "xuv_fluence_j",
-    "lethal_event_rate_per_gyr",
-)
-"""tuple: What `generate_activity` sets on a star, as stored in `stars`."""
+STAR_ACTIVITY_UNITS = {
+    "log_lx_lbol": "dex", "l_xuv_w": "W", "xuv_saturated": "flag", "flare_n33_per_yr": "1/yr", "flare_alpha": "ratio",
+    "xuv_fluence_j": "J", "lethal_event_rate_per_gyr": "1/Gy",
+}
+"""dict: What `generate_activity` sets on a star, as stored in `stars`, with each attribute's native unit."""
+
+STAR_ACTIVITY_FIELDS = tuple(STAR_ACTIVITY_UNITS)
+"""tuple: The names of `STAR_ACTIVITY_UNITS`."""
 
 ERG_PER_J = 1e7
 
