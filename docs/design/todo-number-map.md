@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.622 |
 | PERF | PERF.149 |
-| DB | DB.83 |
+| DB | DB.85 |
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
@@ -587,7 +587,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | open |
-| DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | open |
+| DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | open |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
@@ -626,6 +626,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | done, PR #2406 |
 | DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | done, PR #2403 |
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
+| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
+| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |

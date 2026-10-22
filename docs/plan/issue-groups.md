@@ -50,7 +50,7 @@ Rules:
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82, TEST.183, UX.121, UX.122, UX.123, UX.124, UX.125, UX.126, UX.130, UX.131, UX.132 |
 | [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, TEST.169 |
 | [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.35, DB.29, OPS.61, OPS.62, DB.80, DOC.72 |
-| [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31, DB.43, DB.44, DB.45, DB.46, DB.47, DB.48 |
+| [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31, DB.43, DB.44, DB.45, DB.46, DB.47, DB.48, DB.84 |
 | [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.41, GEN.212, UX.136, PERF.137 |
 | [#1684](https://github.com/dwhagar/planetGen/issues/1684) | open | API keys, call log and compatibility data | API.4, API.6, API.15, API.31 |
 | [#1683](https://github.com/dwhagar/planetGen/issues/1683) | open | Remote generation: generate locally and upload through the API | API.3, API.5, API.7, API.8, API.10, API.11, API.12, API.13, API.14, API.17, API.18, API.19, ADM.95, API.29, API.30, DB.62 |
