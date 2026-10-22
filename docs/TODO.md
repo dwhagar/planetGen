@@ -7033,6 +7033,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design merged (GEN.378, #2368): docs/design/galaxy-types.md is the
   checked design; Boss reads and approves its table before this item and
   DB.66 are built (Needs Boss list).
+  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
+  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
+  the table in docs/design/galaxy-types.md is approved as written. The
+  approval that held this item is given.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -18165,6 +18169,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   table before this item and GEN.379 are built (see the Needs Boss
   list); the three questions with defaults are in section 12 and the ten
   research requests R1 to R10 in section 11.
+  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
+  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
+  the table in docs/design/galaxy-types.md is approved as written. The
+  approval that held this item is given.
   Prerequisites: none. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
