@@ -18,6 +18,7 @@ and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
    that continues the table's last column, and the `prevalence` knob on the
    five-or-more columns. A forced `n_stars` or a lower `max_stars` wins.
 2. **Which members.** The other stars have initial masses `m1 * U(0.1, 1)`
+   (the ratio no lower than keeps the star over the deuterium limit, GEN.596)
    and take their present state from the system's age (main sequence, giant,
    white dwarf, pre-main-sequence, protostar; a brown dwarf below 0.08
    solar masses). A compact companion (white dwarf, neutron star, black hole)
@@ -696,6 +697,16 @@ _DRAW_COMPANION = object()
 state itself."""
 
 
+def _companion_mass(birth, rng):
+    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth * U(0.1, 1)`
+    (`tuning.BINARY_MASS_RATIO_RANGE`), the ratio no lower than puts the star under the deuterium limit
+    (`brown_dwarf.mass_range_solar`): lighter objects are planets, filled in as planets are, not members of a tree and
+    not on the cooling tracks (GEN.596)."""
+    low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
+    floor = brown_dwarf.mass_range_solar()[0]
+    return birth * rng.uniform(min(max(low_ratio, floor / birth), high_ratio), high_ratio)
+
+
 def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION):
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
     birth = placed.birth_mass_solar
@@ -709,7 +720,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         else:
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
-            leaves.append(_star_leaf(birth * rng.uniform(0.1, 1.0), age_yr, rng))
+            leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng))
         if compact is not None:
             leaves.append(compact)
             units[0] = (0, len(leaves) - 1)

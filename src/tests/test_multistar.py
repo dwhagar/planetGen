@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.phenomena import hosts
-from planetgen.physics import ms_lifetime, stability, stellar_evolution as evolution
+from planetgen.physics import brown_dwarf, ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
 
 OLD = 8.0e9
@@ -337,3 +337,27 @@ def test_the_chance_of_a_companion_rises_through_the_b_sub_classes_to_o():
     table = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS
     chain = [table[k] for k in ("A", "B", "B-mid", "B-early", "O")]
     assert chain == sorted(chain) and chain[2] == pytest.approx(0.76) and chain[3] == pytest.approx(0.84)
+
+
+def test_a_primary_near_the_hydrogen_burning_limit_never_draws_a_companion_under_the_deuterium_limit():
+    """GEN.596: `birth * U(0.1, 1)` reached 0.0085 solar masses for a 0.085 primary, below the lowest cooling track."""
+    floor = brown_dwarf.mass_range_solar()[0]
+    for n in range(3000):
+        rng = draw.Stream(f"f{n}".encode())
+        assert _tree_draw_ok(multistar.Placed("star", 0.085), rng, n)
+    for birth in (0.015, floor, 0.02, 0.085, 0.124, 0.5):
+        rng = draw.Stream(596)
+        masses = [multistar._companion_mass(birth, rng) for _ in range(200)]
+        assert all(min(birth, floor) <= mass <= birth for mass in masses)
+        assert all(mass >= 0.1 * birth - 1e-12 for mass in masses)
+
+
+def _tree_draw_ok(placed, rng, n):
+    tree = multistar.draw_member_tree(placed, 5.0e9, rng)
+    return tree.member_count >= 1 and all(member.mass_solar >= 0.0 for member in tree.members)
+
+
+def test_a_heavier_primary_keeps_the_whole_mass_ratio_range():
+    low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
+    rng, again = draw.Stream(1), draw.Stream(1)
+    assert multistar._companion_mass(1.0, rng) == 1.0 * again.uniform(low_ratio, high_ratio)
