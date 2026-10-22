@@ -203,3 +203,21 @@ def test_every_ladder_rung_is_a_unit_of_the_registry(ladder):
     for rung in ladder.rungs:
         assert any(row.factor == pytest.approx(rung.factor, rel=1e-12) and row.offset == pytest.approx(rung.offset)
                    for row in rows), f"{ladder.quantity}: {rung.symbol} ({rung.factor})"
+
+
+def test_a_power_of_ten_ratio_is_one_correctly_rounded_step():
+    assert units.convert(1.5, "km", "m") == 1500.0
+    assert units.convert(1500.0, "m", "km") == 1.5
+    assert units.convert(2.5, "um", "nm") == 2500.0
+    assert units.scale(7.0, 1e3, 1e-6) == 7e9
+    assert units.scale(7.0, 1.0, 1e3) == 7.0 / 1e3
+    for value in (0.1, 0.7, 3.3, 123.456, 9.99e-3):
+        assert units.convert(value, "km", "um") == value * 1e9
+        assert units.convert(value, "um", "km") == value / 1e9
+        assert units.convert(value, "g_cm3", "kg_m3") == value * 1e3
+
+
+def test_a_ratio_that_is_not_a_power_of_ten_takes_the_two_factors():
+    assert units.scale(2.0, 149_597_870_700.0, 1.0) == 2.0 * 149_597_870_700.0 / 1.0
+    assert units.scale(1.0, 3.0, 1.0) == 3.0
+    assert units.scale(5.0, 1.0, 0.0 + 4.0) == 1.25

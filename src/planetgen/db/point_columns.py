@@ -221,7 +221,7 @@ def holds_a_point(columns):
 def spatial_from_row(layout, row, sector_center_m=(0.0, 0.0, 0.0), star_center_m=None, star_velocity_ms=(0.0, 0.0, 0.0),
                      mass_kg=None, sector_edge_pc=None):
     """
-    The row's point as a `SpatialPosition3D`, in metres (so `length_unit_m` 1), m/s and kg.
+    The row's point as a `SpatialPosition3D`, in metres (so `length_unit` "m"), m/s and kg.
 
     Args:
         layout (PointLayout): The table's layout.

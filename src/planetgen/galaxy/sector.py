@@ -537,7 +537,7 @@ class _Placed:
     def _place(self, thing, position, sector_center_ly, sector_edge_pc=None, epoch_unix=None, velocity_ms=None):
         self.spatial = SpatialPosition3D(
             tuple(c + p for c, p in zip(sector_center_ly, position)), sector_center_ly, is_star=True,
-            mass_kg=_mass_kg(thing), length_unit_m=physical_constants.LY_TO_M, sector_edge_pc=sector_edge_pc,
+            mass_kg=_mass_kg(thing), length_unit="ly", sector_edge_pc=sector_edge_pc,
             epoch_unix=epoch_unix)
         # Kept exactly as given (the sum above is only the galactic form).
         self.spatial.set_sector_cartesian(*position)
