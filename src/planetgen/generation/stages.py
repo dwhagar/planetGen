@@ -409,17 +409,17 @@ def _numbering():
 
 
 def begin(stages, args=None, command=None):
-    """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
-    is stored with the settings it ran with (PERF.56)."""
+    """Starts a run's stage list. With `args`, each stage's time is stored with the settings it ran with (PERF.56).
+    It logs nothing: each stage is logged once, when it is entered (`_announce`)."""
     _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_shells=0,
                   job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[])
-    if not stages:
-        return
-    offset, total = _numbering()
-    parts = [f"{n}. {s.label}" + (f" (skipped: {s.skip})" if s.skip else "")
-             for n, s in enumerate(stages, start=offset + 1)]
-    where = f" (stages {offset + 1} to {offset + len(stages)} of {total})" if total != len(stages) else ""
-    log.normal(f"{len(stages)} stage{'s' if len(stages) != 1 else ''}{where}: " + "; ".join(parts) + ".")
+
+
+def _under_banner():
+    """Whether the job runner's banner (`stagemark.section`, "=== Stage 4 of 13: label ===") already names the one
+    stage this run has: a step of a web job holds the stages of its command, and the banner says which; a step of
+    one stage is that stage."""
+    return len(_state["stages"]) == 1 and os.environ.get(STAGE_OFFSET_ENV, "") != ""
 
 
 def _announce(index, skipped=None):
@@ -437,7 +437,7 @@ def _announce(index, skipped=None):
     offset, job_total = _numbering()
     if skipped:
         log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label} -- skipped: {skipped}.")
-    else:
+    elif not _under_banner():
         log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label}.")
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 
