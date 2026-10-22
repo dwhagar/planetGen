@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1910] - 2026-10-22
+
+**Headline:** The orbital update has the pair closest-approach library its collision and encounter tests will use.
+
+### Added
+- **`physics/closest_approach.py`** (GEN.334): whether two paths come within `R` of each other in a window, and when. `sweep` is the closest-approach form (the miss distance as a vector first, then the entry time), exact where the swept-sphere form of the source document loses the miss distance once the start is far away; `Segment`, `linear_state_at` and `pair_window` give the pair-window rule (a body's update against the other's stored segment over `[max(e_X_prev, e_Y), e_X_now]`, positions differenced from sector-relative values); `window_cap` and `chunks` cut a long step at the galactic tide's curvature bound and one sector's crossing time (and 0.1 Myr); `first_hit` walks the chunks. No collision outcome or candidate search lives here (GEN.345, GEN.110, the broad phase).
+  - `tests/test_closest_approach.py`: head-on hit and its time, arrival after the window, a hit at the window end, a separating pair, a pair already overlapping, a tangent graze, a miss by a ten-millionth, no relative speed, no window, 300 far starts against exact arithmetic, and 20,000 random cases against dense time sampling.
+
 ## [8.0.1909] - 2026-10-22
 
 **Headline:** The orbit stepper and the browser's orbit positions keep their digits over long times, and Python and JavaScript agree (GEN.140, GEN.374, GEN.144).
