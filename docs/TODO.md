@@ -6939,6 +6939,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checked: the Segue floor core has a mean spacing of about 0.66 pc and
   a keep-out of order 0.9 pc if the enclosed mass is used, so placement
   could fail (back-of-envelope, label B).
+  Epoch (Bug Hunt, PERF.148 merged as #2397, about 11:10 PM EDT
+  2026-10-21 as the lane reported): epoch 42 is now taken on main by
+  PERF.148 (the components are drawn in slices; the Large and Small
+  Magellanic Clouds, the Sagittarius dwarf and any other component past
+  25,000 expected stars draw different stars than before), so this item
+  renumbers to the next free epoch on its rebase (43, or the one after
+  if the other waiting item merges first).
+  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
+  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
+  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
+  its rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13631,6 +13642,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Epoch 42 is also claimed by GEN.370 (Core 3) and PERF.148 (Bug Hunt);
   whichever merges later renumbers to the next free epoch on its rebase
   (the TODO thread, 8:52 PM EDT 2026-10-21).
+  Epoch (Bug Hunt, PERF.148 merged as #2397, about 11:10 PM EDT
+  2026-10-21 as the lane reported): epoch 42 is now taken on main by
+  PERF.148 (the components are drawn in slices; the Large and Small
+  Magellanic Clouds, the Sagittarius dwarf and any other component past
+  25,000 expected stars draw different stars than before), so this item
+  renumbers to the next free epoch on its rebase (43, or the one after
+  if the other waiting item merges first).
+  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
+  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
+  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
+  its rebase.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -14001,6 +14023,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
   AU because of the new rates. Network access is closed (Boss, 1:17 PM
   EDT), so the unverified sources stay labelled recalled.
+  Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT 2026-10-21
+  as the lane reported; GEN.597 was fixed inside it), release 8.0.1873,
+  generator epoch 43. Effects: the standalone neutron star rate is
+  4.66e-3 per star (Boss's 4.0e-3 stays a test target), the black hole
+  rate 8.6e-4, the perturber mass changes from 1.44 to 1.01 solar masses
+  (not the 0.88 reported while the branch was in flight). The stand-ins
+  this slice adds are labelled in docs/design/explosion-islands.md and
+  docs/design/natal-kick.md: nesting of failure windows above the
+  verified islands [stand-in]; kick sigma 265 km/s [recalled, Hobbs
+  2005]; black hole unbound share 2 percent [placeholder]; one
+  Maxwellian [stand-in]; birth in the thin disc only [stand-in]; the
+  black hole ejecta speed range [stand-in]. Still open in this item: the
+  neutron star mass function, the placement of kicked remnants, the
+  ejected neutron star speed (slice 4, coded, next) and the magnetar
+  rate stand-in.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15534,28 +15571,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hides it. Done: the reproducer gives 0 failures in 3,000 and a test
   covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
   Prerequisites: none. Related: GEN.545, GEN.262.
-
-- [ ] **GEN.597 A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug)**
-  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
-  Core 4's note), filed by the TODO thread.
-  `src/tests/test_insolation.py::test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_body`
-  asserts 0.0 <= flux_variation <= 1.0 on every body; a rocky planet
-  (body_type "t") of a wide binary (binary_type "wide") can get a value
-  above 1. Fails on main: yes, at seeds outside the test's own
-  range(60): seed 106 gives 1.72, seed 225 gives 1.10, seed 245 gives
-  2.32 (the test's seeds 0 to 59 pass on main only by the luck of the
-  draws; seed 36 gives 1.63 on Core 4's branch). Frequency: about 3 of
-  240 systems. Reproducer, from src/: `from tests.fuzz_support import
-  deterministic_entropy`; `with deterministic_entropy(seed):
-  draw.set_run_seed(seed); s = StarSystem(SystemConfig(),
-  galactic_center_dist_ly=26000.0)`, then any planet in `s.planets +
-  s.secondary_planets` with body_type != "g" and flux_variation > 1. Do:
-  find why the wide-binary secondary's contribution pushes the ratio of
-  minimum to maximum flux (or the variation fraction) past 1 for a
-  planet in the pair's own orbit around the primary, fix the formula or
-  the clamp's cause, and widen the test's seeds to 240. Done: the
-  reproducer gives no value above 1 in 240 systems. Owner: Core 4 (the coordinator, 7:15 PM EDT 2026-10-21: Bug Hunt had not started it and Core 4's gate is blocked by it; before that Bug Hunt, routed 3:46 PM EDT).
-  Prerequisites: none. Related: GEN.545.
 
 - [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
   Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
@@ -17372,45 +17387,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's even-sized chunk rule is recorded on PERF.148 (the stalled-job
   fix), not here (the coordinator, 8:48 PM EDT 2026-10-21).
   Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
-
-- [ ] **PERF.148 Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line**
-  Found by Bug Hunt (8:51 PM EDT 2026-10-21 as the lane reported), filed
-  by the TODO thread. Boss's stalled Generate job. Cause: GEN.324 added
-  the clusters' and satellites' stars (scatter-mass, luminosity, band)
-  and their phenomena as ONE task each (run_plan._plan_shape and
-  _plan_phenomena). At the 500 solar-luminosity halo floor that single
-  unit held about 1.5M of the stage's 1.6M expected stars (the LMC 937k,
-  the SMC 151k); one worker draws about 4 to 5 ms per star (over an
-  hour), the other workers idled at the stage barrier, and the unit
-  reported no progress, so the bar stuck near 2 percent with a 30 hour
-  ETA. The phenomena stage has the same single unit (about 20M expected
-  candidates, the LMC 15.6M). Fix: components are cut by expected rows
-  alone into units of about 25,000 stars (1,000,000 phenomena
-  candidates); bigger components go in slices with their own random
-  streams (component_pass.parts, STAR_SLICE_STARS,
-  PHENOMENON_SLICE_ROWS) and small ones are bundled; units report
-  progress every 200 stars; log lines say "(unit k of N, about X stars
-  expected)". Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt
-  thread, approved as part of this fix, as the coordinator relayed 8:48
-  PM EDT): "So here is what I'd like, instead of unit chunks being based
-  on expected work, just break up the task space evenly so each chunk is
-  as close to the same size as possible to get. That will make my
-  readings of the logs significantly easier." Decided (Boss, cards, 8:47
-  PM EDT 2026-10-21, as the lane reported): the shell cut stays equal
-  expected work. Output change: the LMC, the SMC, Sagittarius and any
-  component past the limit draw different stars, so this takes a
-  generator epoch bump; epoch 42 is already claimed by GEN.545 (Core 1)
-  and GEN.370 (Core 3, which renumbers on rebase), so there is no free
-  number to reserve: whichever of the three merges later renumbers to
-  the next free epoch on its rebase (the rule: take main's epochs and
-  renumber). Done: the cause above is on this item; a Generate run at
-  the 500 solar-luminosity floor finishes with all workers busy and a
-  bar that moves; the units of one task differ in expected work by no
-  more than the grain of the task space allows (a test on the unit
-  planner); the log line shows the unit and its expected work. Owner:
-  Bug Hunt (top priority).
-  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144, PERF.145,
-  PERF.147.
 
 ## DB: Database and schema
 
@@ -22437,6 +22413,22 @@ clears each one.
   leaving `planetgen:run:active` set is the same path as PERF.142, and
   its takeover should clear it after the owner dies; the lane checks the
   test once that PR is in, and the 10 s hang itself stays this item's.
+  Sightings (Bug Hunt, PERF.148's `changed` gate, about 11:10 PM EDT
+  2026-10-21 as the lane reported, filed by the TODO thread): (1)
+  src/tests/test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
+  failed once with `Busy: run ... is running`: it launches a real galaxy
+  run and collides on the global `planetgen:run:active` lock with
+  another xdist worker's run; it passes alone on main and on the lane's
+  branch; frequency 1 in that gate. The lock collision between tests is
+  this item's family (PERF.142 is done). (2) Run alone, the same test
+  leaves 2 `planetgen.cli.worker` processes running afterwards; they
+  keep taking units of later runs without the database password, so
+  those runs fail with "Access denied ... using password: NO". Do
+  (added): the test and every test that starts a real run use their own
+  run lock key or run serially, and leave no worker process behind. (3)
+  Environment: a gate run without PLANETGEN_TEST_REDIS_URL fails about
+  200 tests with `Busy` (saved to team memory as
+  gate-needs-redis-test-env); a lane's gate must set it.
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
 
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**

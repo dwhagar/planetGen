@@ -7,7 +7,7 @@ The galaxy's ejecta (GEN.238)
 A neutron star born with a kick above the galaxy's escape speed, and a black hole ejected, leave it and stream out for
 ever: a steady outflow that fills the whole sphere, with a density that falls as `1 / r^2`. The code reads them as one
 population per kind, `ejecta`, apart from the bound stars and their remnants: the unbound share of the kind's galaxy
-total `N` (20% to 40% of the neutron stars, about 2% of the black holes) leaves at the speed `v` (300 to 500 km/s
+total `N` (a share of the neutron stars that the galaxy's escape speed sets, `galaxy.natal_kick`, about 2% of the black holes) leaves at the speed `v` (300 to 500 km/s
 above escape) and has been leaving for `T` (10 Gyr), so
 
     n(r) = N / (4 pi r^2 v T)    for r < v T, and none beyond
@@ -44,17 +44,13 @@ def galaxy_systems(shape, expected_at_density_1, edge_pc):
     return expected_at_density_1 * shape.k_norm * (visible + galaxyDensity.halo_mass(shape)) / edge_pc ** 3
 
 
-@functools.lru_cache(maxsize=256)
-def unbound_fraction(kind, galaxy_seed=None):
-    """The share of the galaxy's `kind` that is ejected: a black hole's constant, a neutron star's drawn once from
-    `NEUTRON_STAR_UNBOUND_FRACTION_RANGE` on the galaxy's seed (the middle of the range without one)."""
+def unbound_fraction(kind, shape=None):
+    """The share of the galaxy's `kind` that is ejected: a black hole's constant, a neutron star's the galaxy's own
+    (`Structure.neutron_star_unbound_share`, `galaxy.natal_kick`; the Milky Way structure's without a shape)."""
     if kind == "black-hole":
         return tuning.BLACK_HOLE_UNBOUND_FRACTION
-    low, high = tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE
-    if galaxy_seed is None:
-        return (low + high) / 2.0
-    with galaxySeed.seeded(galaxy_seed, "ejecta-unbound", kind):
-        return draw.uniform(low, high)
+    from planetgen.galaxy import structure
+    return (structure.REFERENCE_STRUCTURE if shape is None else shape.structure).neutron_star_unbound_share
 
 
 def unbound_count(kind, shape, expected_at_density_1, edge_pc):
@@ -62,7 +58,7 @@ def unbound_count(kind, shape, expected_at_density_1, edge_pc):
     each kind (`remnant_density.formed_per_star`, the bound ones and the ejected together), so bound plus ejected is the
     whole (GEN.563 and GEN.554)."""
     formed = remnant_density.formed_per_star(shape, kind)
-    unbound = shape.structure.neutron_star_unbound_share if kind == "neutron-star" else unbound_fraction(kind)
+    unbound = unbound_fraction(kind, shape)
     return formed * galaxy_systems(shape, expected_at_density_1, edge_pc) * unbound
 
 

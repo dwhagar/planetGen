@@ -2,6 +2,38 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1873] - 2026-10-22
+
+**Headline:** A star's fate as a neutron star or a black hole now depends on its initial mass in windows, and the neutron stars a galaxy ejects now follow from its escape speed, instead of two overlapping ranges and a drawn 20% to 40%.
+
+### Changed
+- A neutron star's or black hole's progenitor is drawn from the windows of initial mass where massive stars explode or fail (`physics/remnant_progenitors`): the verified islands at 23 to 25 and 35 to 45 solar masses (O'Connor and Ott 2011, Sukhbold et al. 2016), shrunk or widened to hold the failed share of the 8 to 150 solar mass stars, down to about 14.5 solar masses at the widest verified share. A black hole whose progenitor failed collapsed directly; the fixed 40 solar mass rule is gone.
+- Remnant ages follow the new progenitors (`collapse_age_gy` moved to `physics/remnant_progenitors`). The perturber mass of the placement limits follows the failed share: 1.01 solar masses for the whole disk (1.44 before), so a wide pair near the Sun survives to about 1.6e4 AU (1.1e4 before). `docs/design/explosion-islands.md` records the model.
+- The share of a galaxy's neutron stars its natal kicks eject is derived (`galaxy/natal_kick.py`): a Maxwellian kick of 265 km/s against the escape speed of the galaxy's halo and stars, averaged over the thin disc's birth radii, replacing the uniform 20% to 40% draw. A galaxy of the Milky Way's published masses ejects 27% (inside the old range, now a test target), the generator's median halo 16% and escape speed 539 km/s at 8.2 kpc; the galaxies the generator draws run from none to 74%, the small ones losing most. The black hole share cap is the Milky Way-like galaxy's for every galaxy, so a galaxy that ejects most of its neutron stars is not left with no stellar black holes. At the middle draw a standalone sector rolls 4.66e-3 neutron stars per star (Boss's 4.0e-3 research density is a test target, 16% under) and 8.6e-4 black holes. `docs/design/natal-kick.md` records the model.
+
+### Fixed
+- **A rocky planet of a wide pair could have a light swing above 1 (GEN.597).** When the planet's star is the dim one of the pair (a white dwarf or a brown dwarf beside a bright star) the companion's swing over the mean total light passed 1 (1.6 to 2.6 in seeds 36 and 106 of the test's sweep). `insolation.companion_swing` is now capped at 1, as the circumbinary swing is. The insolation test sweeps 240 seeds instead of 60.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 slices 2 and 3 (mass islands, the kick step's ejected share; GEN.554 stays open for the neutron star mass function and the placement of kicked remnants) / Added: none
+
+## [8.0.1872] - 2026-10-22
+
+**Headline:** A Generate run no longer sits for hours on one unit drawing a Magellanic Cloud: a large satellite or cluster is drawn in slices that the workers share, and every unit of components reports its progress.
+
+### Fixed
+- **A Generate run stalled for hours on its components (the star scatter's last unit, then the phenomena's).** All the globular clusters, open clusters and satellite galaxies were one unit, drawn by one worker one star after another. With a low luminosity floor the Large Magellanic Cloud alone holds about a million stars, so that unit was nearly all of the stage's work, took more than an hour on a single worker while the other workers stood idle, and reported nothing until it ended, so the bar stuck near the start with an estimate of 30 hours. The components are now cut into tasks by their expected stars (or phenomena) alone, the same at any worker count: a component with more than 25,000 expected stars (1,000,000 expected phenomena) is cut into slices, one unit each, and the smaller ones are bundled in order up to that size. The units of components report the stars they have drawn a few times a second, so the bar and its estimate follow them.
+
+### Changed
+- **A sliced component is drawn from streams of its own.** A slice draws from the component's stream with `:slice:` and its number added, with its share (1 over the slices) of the component's Poisson mean, so the slices together are a draw of the whole component and a seed gives the same stars at any worker count. A component that needs no slices keeps its stream and its stars; the Large and Small Magellanic Clouds, the Sagittarius dwarf and any other component past the limit at the galaxy's floor draw different stars from before.
+- **The plan of a scatter names its component tasks.** `component_key` of the shell scatter's and the phenomena's plans became `component_parts`, task by task the `[kind, name, slice, slices]` lists of the components it draws.
+- **A scatter's log lines say which unit they are about and how big it is.** A line now reads `Bright stars, shells 100-131 (unit 12 of 512, about 1,200 stars expected): added ...`, and the components' and the phenomena's the same, so the sizes of the units can be read off the log.
+
+generation-output: changed
+
+TODO items resolved: PERF.148. Added: none.
+
 ## [8.0.1871] - 2026-10-22
 
 **Headline:** The galaxy shape options are one table: the command line, the Generate page and the docs are all built from it, and every value is range gated with its source named.

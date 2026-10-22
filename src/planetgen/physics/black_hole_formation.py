@@ -20,26 +20,12 @@ from planetgen import tuning
 from planetgen.physics import ms_lifetime, stellar_evolution
 
 
-def _imf_number(low, high):
-    """The number of stars in `[low, high]` solar masses per unit of the IMF (`tuning.IMF_BREAKS_SOL` and `IMF_SLOPES`,
-    the segments joined continuously at the breaks); only the ratio of two means anything."""
-    breaks, slopes = tuning.IMF_BREAKS_SOL, tuning.IMF_SLOPES
-    norm, total = 1.0, 0.0
-    for i, alpha in enumerate(slopes):
-        if i > 0:
-            norm *= breaks[i] ** (alpha - slopes[i - 1])
-        a, b = max(low, breaks[i]), min(high, breaks[i + 1])
-        if a < b:
-            total += norm * (math.log(b / a) if abs(alpha - 1.0) < 1e-12 else (b ** (1.0 - alpha) - a ** (1.0 - alpha)) / (1.0 - alpha))
-    return total
-
-
 @functools.lru_cache(maxsize=1)
 def imf_massive_share():
     """The share of the stars born that have `tuning.CORE_COLLAPSE_MASS_RANGE_SOL` solar masses (8 to 150): 0.637% of
     the generator's own IMF (the massive stars that can end as a neutron star or a black hole)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
-    return _imf_number(low, high) / _imf_number(tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
+    return stellar_evolution.imf_number(low, high) / stellar_evolution.imf_number(tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
 
 
 @functools.lru_cache(maxsize=1)
@@ -51,7 +37,7 @@ def _lifetime_table():
     edges = [low * (high / low) ** (i / steps) for i in range(steps + 1)]
     masses = [math.sqrt(a * b) for a, b in zip(edges, edges[1:])]
     ages = [ms_lifetime.lifetime_gy(m) * stellar_evolution.remnant_age_fraction(m) for m in masses]
-    weights = [_imf_number(a, b) for a, b in zip(edges, edges[1:])]
+    weights = [stellar_evolution.imf_number(a, b) for a, b in zip(edges, edges[1:])]
     return tuple(ages), tuple(weights)
 
 
@@ -115,7 +101,7 @@ def draw_failed_shares(uniform_solar, uniform_metal_free, cap):
     return solar, max(free, solar)
 
 
-def middle_failed_shares():
-    """`draw_failed_shares` for the middle of both draws and of the neutron stars' unbound range: the shares of a
-    galaxy built with no seed (`galaxy.structure.REFERENCE_STRUCTURE`)."""
-    return draw_failed_shares(0.5, 0.5, share_cap(sum(tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE) / 2.0))
+def middle_failed_shares(neutron_star_unbound_share):
+    """`draw_failed_shares` for the middle of both draws and a neutron star unbound share: the shares of a galaxy built with
+    no seed (`galaxy.structure.REFERENCE_STRUCTURE`, whose unbound share is `galaxy.natal_kick`'s for the Milky Way's masses)."""
+    return draw_failed_shares(0.5, 0.5, share_cap(neutron_star_unbound_share))

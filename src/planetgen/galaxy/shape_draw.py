@@ -153,6 +153,14 @@ def pitch_median_deg(stellar_mass_solar):
     return min(max(value, PITCH_RANGE_DEG[0]), PITCH_RANGE_DEG[1])
 
 
+def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar):
+    """The thin disc's scale length, parsecs, the seed draws for a galaxy of this stellar mass: the half-light radius of the
+    size-mass relation with its scatter, over the exponential disc's half-light-to-scale ratio."""
+    log_r50 = math.log(size_median_kpc(stellar_mass_solar)) + _stream(galaxy_seed, "size").gauss(
+        0.0, size_sigma_ln(stellar_mass_solar))
+    return math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
+
+
 def disk_masses(disk_scale_length_pc, disk_scale_height_pc, structure, arm_level=1.0):
     """`(thin, thick)` disk masses in the model's units (central thin density 1): `2 pi L^2 x 2 h` for the thin
     disk (its `exp(-|z| / h)` profile integrates to `2 h`, GEN.544) times its level, and the thick disk's, whose mass is the
@@ -230,8 +238,7 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
 
     length = fixed.get("disk_scale_length_pc")
     if length is None:
-        log_r50 = math.log(size_median_kpc(mass)) + _stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(mass))
-        length = math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
+        length = drawn_disk_scale_length_pc(galaxy_seed, mass)
     height = fixed.get("disk_scale_height_pc")
     if height is None:
         q = 10.0 ** (math.log10(KREGEL_Q) + _stream(galaxy_seed, "height").gauss(0.0, KREGEL_SCATTER_DEX))

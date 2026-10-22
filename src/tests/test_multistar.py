@@ -265,7 +265,7 @@ def test_a_wide_companion_of_a_hole_that_did_not_collapse_directly_is_refused():
 def test_black_hole_trees_carry_wide_tertiaries_only_around_direct_collapse_holes(monkeypatch):
     _force(monkeypatch, "star")
     wide = {}
-    for label, birth in (("light", 25.0), ("direct", 45.0)):
+    for label, birth in (("light", 30.0), ("direct", 40.0)):
         placed = multistar.Placed("black-hole", 12.0, birth)
         axes = []
         for seed in range(1500):

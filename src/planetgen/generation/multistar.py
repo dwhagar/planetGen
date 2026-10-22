@@ -52,7 +52,8 @@ from statistics import NormalDist
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import (
-    brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, roche, stability)
+    brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
+    stability)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -112,11 +113,10 @@ WIDE_COMPACT_AXIS_AU = 1000.0
 """float: A bound companion beyond this of a neutron star or a black hole that did
 not collapse directly does not survive the collapse."""
 
-DIRECT_COLLAPSE_PROGENITOR_SOL = 40.0
 DIRECT_COLLAPSE_HOLE_SOL = 20.0
-"""float: A black hole counts as a direct collapse when its progenitor was
-`DIRECT_COLLAPSE_PROGENITOR_SOL` or more, or, when the progenitor is not known, when the hole is
-`DIRECT_COLLAPSE_HOLE_SOL` or more (a stand-in; the note leaves it open)."""
+"""float: A black hole counts as a direct collapse when its progenitor failed to explode (a black hole's progenitor
+lies in a window of `remnant_progenitors`, which is every one the generator draws), or, when the progenitor is not known,
+when the hole is `DIRECT_COLLAPSE_HOLE_SOL` or more (a stand-in; the note leaves it open)."""
 
 BLACK_HOLE_TERTIARY_CHANCE = 0.30
 COMPACT_TERTIARY_SHARE = 0.10
@@ -420,19 +420,22 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
 
 def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
     """A remnant of this kind that has had time to form by `age_yr`, from a progenitor no lighter than
-    `lowest`, or None when no progenitor can have collapsed yet."""
-    low, high = {"neutron-star": tuning.NEUTRON_STAR_PROGENITOR_SOL, "black-hole": tuning.BLACK_HOLE_PROGENITOR_SOL,
-                 "white-dwarf": tuning.WHITE_DWARF_PROGENITOR_SOL}[kind]
-    low = max(low, lowest, evolution.youngest_progenitor_sol(age_yr))
-    if low >= high:
-        return None
-    progenitor = evolution.sample_imf_mass_sol(low, high, rng)
+    `lowest`, or None when no progenitor can have collapsed yet. A neutron star or a black hole has a progenitor from the
+    windows of its kind (`remnant_progenitors`), and a black hole's is a star that failed to explode."""
     if kind == "white-dwarf":
+        low, high = tuning.WHITE_DWARF_PROGENITOR_SOL
+        low = max(low, lowest, evolution.youngest_progenitor_sol(age_yr))
+        if low >= high:
+            return None
+        progenitor = evolution.sample_imf_mass_sol(low, high, rng)
         return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
+    progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr)), rng)
+    if progenitor is None:
+        return None
     mass = remnant_mass.draw_mass_sol(kind, rng=rng)
     if limit_mass is not None:
         mass = min(mass, limit_mass)
-    return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole" and progenitor >= DIRECT_COLLAPSE_PROGENITOR_SOL)
+    return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole")
 
 
 def _alive_star_mass(low, high, age_yr, rng):
@@ -736,7 +739,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
 def _placed_direct_collapse(placed):
     """Whether a placed black hole collapsed directly: its progenitor, when known, else its own mass."""
     if placed.initial_mass_solar is not None:
-        return placed.initial_mass_solar >= DIRECT_COLLAPSE_PROGENITOR_SOL
+        return remnant_progenitors.fails(placed.initial_mass_solar)
     return placed.mass_solar >= DIRECT_COLLAPSE_HOLE_SOL
 
 
