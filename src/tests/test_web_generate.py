@@ -1755,7 +1755,7 @@ def test_the_mass_field_carries_the_halo_thresholds_the_script_turns_the_halo_op
 
 
 def test_the_page_carries_the_line_under_the_dials_and_the_script_that_fills_it(site, client):
-    html = client.get("/admin/generate").get_data(as_text=True)
+    html = _task_html(client, "new-galaxy")
     assert 'data-shape-report data-url="/admin/generate/shape-report"' in html
 
 

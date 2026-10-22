@@ -100,6 +100,7 @@ EXEMPT = {
     "generate_job_stream": "Server-sent events for a job",
     "generate_job_log": "A job's raw log",
     "generate_sectors": "JSON for the sector picker",
+    "generate_shape_report": "JSON for the line under the shape dials",
     "generate_command": "JSON for the palette's typed commands",
     "generate_system_download": "A file download",
     "admin_queue_tree": "A queue entry's detail, reached from the queue",
