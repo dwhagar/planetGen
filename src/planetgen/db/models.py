@@ -1800,6 +1800,24 @@ sector_system_counts = sa.Table(
 )
 
 
+sector_tree_nodes = sa.Table(
+    'sector_tree_nodes',
+    metadata,
+    sa.Column('level', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), server_default=sa.text("'0'"), primary_key=True, nullable=False),
+    sa.Column('digest', mysql.BINARY(32), nullable=True),
+    sa.Column('child_count', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('dirty', mysql.TINYINT(), server_default=sa.text("'1'"), nullable=False),
+    sa.Column('updated_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_sector_tree_nodes_dirty', 'dirty', 'level'),
+    sa.CheckConstraint('(`dirty` in (0,1))', name='chk_sector_tree_nodes_dirty'),
+    sa.CheckConstraint('(`level` in (1,2))', name='chk_sector_tree_nodes_level'),
+    sa.CheckConstraint('((`level` = 1) or (`band_index` = 0))', name='chk_sector_tree_nodes_shell_band'),
+    mysql_engine="InnoDB",
+)
+
+
 sectors = sa.Table(
     'sectors',
     metadata,
@@ -1825,6 +1843,7 @@ sectors = sa.Table(
     sa.Column('max_mass_id', mysql.BINARY(12), nullable=True),
     sa.Column('storage_checksum', mysql.BINARY(32), nullable=True),
     sa.Column('parity_dirty', mysql.TINYINT(), server_default=sa.text("'1'"), nullable=False),
+    sa.Column('leaf_digest', mysql.BINARY(32), nullable=True),
     sa.Index('ft_sectors_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_sectors_center', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
     sa.Index('idx_sectors_galactic_radius_pc', 'galactic_radius_pc'),

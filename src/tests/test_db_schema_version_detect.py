@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE sector_tree_nodes")  # v120
         conn.execute("DROP TABLE species_limit_values")  # v119
         for table in ("orbital_event_bodies", "orbital_events"):
             conn.execute(f"DROP TABLE {table}")  # v118

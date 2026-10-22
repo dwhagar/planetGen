@@ -1504,6 +1504,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (120, _table_marker("sector_tree_nodes")),
     (119, _table_marker("species_limit_values")),
     (118, _table_marker("orbital_events")),
     (117, _column_marker("galaxy_shape", "family")),
