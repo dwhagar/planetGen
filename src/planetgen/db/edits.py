@@ -15,31 +15,13 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import store
+from planetgen.db import kind_tables, store
 from planetgen.physics import constants
 
-PHENOMENON_TABLES = {
-    "black_hole": "black_holes",
-    "neutron_star": "neutron_stars",
-    "nebula": "nebulae",
-    "supernova_remnant": "supernova_remnants",
-    "rogue_planet": "rogue_planets",
-    "interstellar_comet": "interstellar_comets",
-    "asteroid_field": "asteroid_fields",
-    "quasar": "quasars",
-}
+PHENOMENON_TABLES = kind_tables.kind_tables("phenomenon")
 """dict: The web's phenomenon type (`/phenomenon/<type>/<id>`) -> its table."""
 
-GENERATOR_TYPES = {
-    "black_hole": "black-hole",
-    "neutron_star": "neutron-star",
-    "nebula": "nebula",
-    "supernova_remnant": "supernova-remnant",
-    "rogue_planet": "rogue-planet",
-    "interstellar_comet": "comet",
-    "asteroid_field": "asteroid-field",
-    "quasar": "quasar",
-}
+GENERATOR_TYPES = kind_tables.generator_types()
 """dict: The web's phenomenon type -> `generate.generate_phenomenon`'s."""
 
 _KEPT_PHENOMENON_COLUMNS = {

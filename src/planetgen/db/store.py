@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login, orbit_trees, point_columns, scatter_systems
+from planetgen.db import alembic_runner, kind_tables, login, orbit_trees, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
@@ -531,12 +531,7 @@ def _sql_for_log(sql, params):
     return line if len(line) <= _SQL_LOG_LIMIT else line[:_SQL_LOG_LIMIT] + f"... ({len(line)} chars)"
 
 
-ID_BLOCK_TABLES = frozenset((
-    "system_configs", "sectors", "star_systems", "stars", "planets", "moons",
-    "asteroid_belts", "comets", "black_holes", "neutron_stars", "nebulae",
-    "supernova_remnants", "rogue_planets", "interstellar_comets",
-    "asteroid_fields", "quasars",
-))
+ID_BLOCK_TABLES = frozenset(kind_tables.tables("id_block"))
 """frozenset: Tables whose new rows take their `id` from `id_blocks`
 (schema v45, PERF.13) rather than from AUTO_INCREMENT. Every plain
 `INSERT INTO <one of these> (...) VALUES (...)` that names no `id`
@@ -2634,14 +2629,7 @@ def _reserve_phenomenon_name(conn, obj, kind=None, placement=None):
 
 
 OBJECT_ID_TABLES = {
-    "rogue-planet": "rogue_planets",
-    "black-hole": "black_holes",
-    "neutron-star": "neutron_stars",
-    "nebula": "nebulae",
-    "supernova-remnant": "supernova_remnants",
-    "quasar": "quasars",
-    "comet": "interstellar_comets",
-    "asteroid-field": "asteroid_fields",
+    **kind_tables.generator_type_tables(),
     "black-hole-core": "black_holes",
     "neutron-star-core": "neutron_stars",
 }
@@ -4224,10 +4212,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
 
 # --- Containment (v39): what sits inside a nebula or supernova remnant ---
 
-CONTAINABLE_TABLES = (
-    "star_systems", "rogue_planets", "interstellar_comets", "black_holes",
-    "neutron_stars", "asteroid_fields", "nebulae",
-)
+CONTAINABLE_TABLES = kind_tables.tables("containable")
 """tuple: Every table with `inside_nebula_id`/`inside_remnant_id` (schema
 v39). Asteroid fields can sit inside a cloud but never contain anything;
 nebulae nest (a small one inside a larger nebula or remnant)."""
@@ -4596,10 +4581,7 @@ def refresh_habitability(conn, system_id):
     return updated
 
 
-PLACED_PHENOMENON_TABLES = (
-    "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "rogue_planets",
-    "interstellar_comets", "asteroid_fields", "quasars",
-)
+PLACED_PHENOMENON_TABLES = kind_tables.tables("phenomenon")
 """tuple: The phenomenon tables with a galaxy-frame center, each with a
 `quadrant` column since v41."""
 
@@ -7775,8 +7757,7 @@ def get_galaxy_shells(conn):
     return [(row["shell_index"], row["high_band_index"], row["cell_count"]) for row in rows]
 
 
-PHENOMENON_UID_TABLES = ("black_holes", "neutron_stars", "nebulae", "supernova_remnants", "quasars", "rogue_planets",
-                         "interstellar_comets", "asteroid_fields")
+PHENOMENON_UID_TABLES = kind_tables.tables("phenomenon")
 """tuple: The phenomenon tables a sector holds, each with a `uid` (v58)."""
 
 def _sector_address_of(galaxy_position):
@@ -8888,11 +8869,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
     return sector
 
 
-TIMESTAMPED_TABLES = (
-    "sectors", "star_systems",
-    "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
-    "rogue_planets", "interstellar_comets", "asteroid_fields", "quasars",
-)
+TIMESTAMPED_TABLES = kind_tables.tables("timestamped")
 """tuple: The top-level tables carrying v27's `created_at`/`modified_at`
 row timestamps -- see `schema.sql`'s "v27" header note. Child rows
 (stars, planets, moons, belts, comets, ...) have no timestamps of their

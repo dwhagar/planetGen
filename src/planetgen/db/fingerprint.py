@@ -43,14 +43,15 @@ import json
 import math
 from dataclasses import dataclass
 
-SECTOR_TABLES = ("star_systems", "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "quasars",
-                 "rogue_planets", "interstellar_comets", "asteroid_fields", "facilities")
+from planetgen.db import kind_tables
+
+SECTOR_TABLES = kind_tables.tables("sector_filed")
 """tuple: Tables whose rows are filed in a sector by `sector_id`."""
 
-SYSTEM_TABLES = ("stars", "planets", "moons", "asteroid_belts", "comets", "facilities")
+SYSTEM_TABLES = kind_tables.tables("system_filed")
 """tuple: Tables whose rows belong to a star system by `star_system_id`."""
 
-STAR_TABLES = ("black_holes", "neutron_stars")
+STAR_TABLES = kind_tables.tables("star_filed")
 """tuple: Tables whose rows can belong to a star by `star_id` (a compact
 remnant in a system) with no `sector_id` of their own."""
 
