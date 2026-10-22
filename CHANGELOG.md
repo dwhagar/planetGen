@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1887] - 2026-10-22
+
+**Headline:** A sector now has room for the checksum and the parity flag that its storage protection will use.
+
+### Changed
+- `sectors` gains `storage_checksum` (BINARY(32), NULL) and `parity_dirty` (TINYINT NOT NULL, default 1, so every sector that exists counts as not yet protected), added in one table rebuild (migration 0114, DB.44; `sectors` has a FULLTEXT index, so MySQL cannot add a column to it instantly). No row is touched and nothing reads the columns yet; DB.9 does.
+
 ## [8.0.1886] - 2026-10-22
 
 **Headline:** A galaxy with nothing pinned is now a small spiral, about half the size of a large one, instead of anything from small to giant.
