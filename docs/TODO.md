@@ -15548,35 +15548,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Blocker 2 proposed (small; it can go first).
   Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
 
-- [ ] **GEN.607 Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces the
-  constant `tuning.MEAN_SYSTEM_MASS_SOLAR` as a user lever: how many
-  systems the mass holds, so the density in systems and the cost of a
-  full generation. Default the value GEN.545 derived (about 0.48 solar
-  mass per system for the reference galaxy, about 2.1 per solar mass;
-  merged as #2434, epoch 46, release 8.0.1893); the range is a narrow band about the
-  IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped "No,
-  wait for GEN.545", card
-  cmsg_01RuNTFUNB92A8cm5CbojQAiEVg9cpevtSbXZPtt2uETHf): the Census dial
-  is added after GEN.545 settles the mean system mass; the first release
-  of the dials has four: Scale, Structure, Edge and Halo. Done: the
-  slider is tested alone; Auto gives GEN.545's derived value; the system
-  count scales as stated; hidden unless Advanced is shown.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT 2026-10-21;
-  the richness choice is decided). Unblocked: GEN.545 merged as #2434
-  (about 5:42 AM EDT 2026-10-22 as the lane reported).
-  Prerequisites: none. Related: GEN.603, GEN.545 (done, #2434).
-
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
   reported), filed by the TODO thread. Boss's size limits (7:05 to 7:13
@@ -15742,8 +15713,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Boss's ruling); below it only a thin disc and a bulge are drawn.
   Done: planning galaxies below and above the threshold draws exactly
   those components (a test patches each component's draw to fail below
-  it); at and above it nothing changes. Owner: the Galaxy dials lane
-  (proposed; the coordinator confirms). No longer blocked on a card.
+  it); at and above it nothing changes. Owner: none (the Galaxy dials
+  lane finished and retired, about 7:05 AM EDT 2026-10-22 as the lane
+  reported; the coordinator assigns a lane). No longer blocked on a
+  card.
   Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.604.
 
 - [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
@@ -15762,7 +15735,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   size, with a warning under D 20 and a refusal when the outline would
   be empty. Done: the line appears in both places with the same numbers
   (a test compares them); an empty outline is refused with the reason.
-  Owner: the Galaxy dials lane (proposed).
+  Owner: none (the Galaxy dials lane finished and retired, about 7:05 AM
+  EDT 2026-10-22 as the lane reported; the coordinator assigns a lane).
   Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
@@ -19649,14 +19623,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   browser test moves each slider, pins and unpins it, and sees the argv
   in the Review step; the form never offers a value the command line
   refuses; works in both themes, without script and at phone width.
-  Owner: the admin redesign thread (the Generate suite); the lever table items belong to the Galaxy dials lane.
-  Unit selectors (Boss, 7:01 PM EDT 2026-10-21): Edge has a unit
-  selector (L, pc, kpc, Mpc) whose slider range and step follow the
-  unit; the absolute scale length has pc and kpc; both read the lever
-  table's unit column (GEN.601). The first release shows four dials,
-  Scale, Structure, Edge and Halo; Census follows GEN.607 after GEN.545.
-  Prerequisites: ADM.108.
-  Related: ADM.99, ADM.112, DB.81.
+  Owner: the admin redesign thread (the Generate suite); the lever table
+  items belong to the Galaxy dials lane. Unit selectors (Boss, 7:01 PM
+  EDT 2026-10-21): Edge has a unit selector (L, pc, kpc, Mpc) whose
+  slider range and step follow the unit; the absolute scale length has
+  pc and kpc; both read the lever table's unit column (GEN.601). The
+  first release shows four dials, Scale, Structure, Edge and Halo;
+  Census (GEN.607, merged as #2443) is the fifth dial.
+  Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
 
 ## SEC: Security
 
@@ -21579,9 +21553,10 @@ clears each one.
   2,063 seconds (test_web_browser_crumbs at 1280 and at 320, and three
   in test_web_browser_units), and test_old_jobs_are_pruned timed out at
   30 seconds once; all pass alone. A browser and job-timing load class,
-  separate from the MySQL sightings of TEST.265; Bug Hunt looks at them
-  with this item. Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM
-  EDT 2026-10-22 as the lane reported, filed by the TODO thread):
+  separate from the MySQL sightings, which #2442 closed; Bug Hunt looks
+  at them with this item. Sixth sighting (Bug Hunt, #2425's gate, about
+  4:43 AM EDT 2026-10-22 as the lane reported, filed by the TODO
+  thread):
   test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
   took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
   Same load class as the fifth sighting; Bug Hunt took this item next.
@@ -21591,86 +21566,21 @@ clears each one.
   The double-click failure itself did not reproduce in 41 runs under
   four-way browser load, so this item stays open for the double-click
   part only, as "watch for the new message". The MySQL lost-connection
-  sightings moved to their own item, TEST.265 (root cause found).
+  sightings moved to their own item, TEST.265, which #2442 fixed.
+  Watch period (the TODO thread's judgment, about 7:05 AM EDT 2026-10-22
+  as the lane reported): #2442 (Bug Hunt, about 7:03 AM EDT) fixed the
+  MySQL cause: `tests/dbpool.py` `drop_database` no longer kills other
+  workers' `list_databases` connections (it ends only connections whose
+  current database it is, gives other lock holders 3 s, then ends them),
+  which closes every "Lost connection to MySQL server during query" and
+  503 "database unavailable" sighting recorded here (facilities,
+  /sectors, the information_schema size query, admin/stats, the
+  hostile-query routes). What stays open is the double-click test (and
+  the fifth and sixth sightings, which are browser-load timeouts):
+  retire this item when five full gates across the lanes pass with no
+  recurrence, or file the cause from the new failure message (pointer
+  event times) if one appears.
   Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.265 A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug)**
-  Split from TEST.262 by the TODO thread at Bug Hunt's request (about
-  5:30 AM EDT 2026-10-22 as the lane reported). ROOT CAUSE found by Bug
-  Hunt: `tests/dbpool.py` `drop_database` KILLs every connection that
-  holds a metadata lock on the database being dropped, and another
-  worker's `store.list_databases(with_counts)` holds exactly that lock
-  while it counts rows (the information_schema size query), so that
-  worker's query is killed mid-way and the test sees "Lost connection to
-  MySQL server during query" or a 503 "database unavailable". A
-  reproducer (3 listers beside 3 create-and-drop loops) gave 222 errors
-  in 60 s before the fix and 0 after. The fix is in a PR Bug Hunt is
-  gating; Bug Hunt will say which sightings it closes. The redo log
-  capacity (100 MB default on one lane machine, 84 "log_checkpointer
-  lagging" warnings) is a real but separate slowdown and not the cause
-  of the lost connections; the lane machine notes already ask for a
-  larger `innodb_redo_log_capacity`. Do: stop the drop from killing a
-  connection that is only reading (kill only the dropped database's own
-  test connections, or let the lister retry), with a test that runs
-  listers beside create-and-drop loops. Done: the reproducer gives 0
-  errors in 60 s and the full gate shows none of the sightings below.
-  Owner: Bug Hunt (its own find; the fix PR is being gated).
-  Sightings moved here from TEST.262 (the TODO thread):
-  Related sighting (Core 2, about 7:25 PM EDT 2026-10-21 as the lane
-  reported, filed by the TODO thread): once under load, the facilities
-  route in test_fuzz_web_routes failed with "Lost connection to MySQL
-  server"; it passes alone. Same class (load flake), no solo reproducer;
-  Bug Hunt looks at it with this item.
-  Second sighting (Core 2, about 8:15 PM EDT 2026-10-21 as the lane
-  reported, PERF.140's gate, filed by the TODO thread): once under load,
-  the /sectors route in test_fuzz_web_routes failed with "Lost
-  connection to MySQL server"; it passes alone. Same class as the
-  facilities sighting above; Bug Hunt looks at both.
-  Third sighting (Galaxy dials lane, about 10:20 PM EDT 2026-10-21 as
-  the lane reported, filed by the TODO thread): about six tests lost the
-  MySQL connection ("Lost connection during query") in one full gate on
-  that machine; they pass alone. Cause on that machine:
-  `innodb_redo_log_capacity` too small, the redo log lagging under the
-  parallel load. Same class as the two sightings above; Bug Hunt looks
-  at all of them, and the INSTALL.md or the lane machine notes may need
-  a recommended redo log size for a machine that runs the full gate.
-  Fourth sighting (Core 2, UX.141's gate, about 1:44 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread): once under load, the
-  habitable-species route in test_fuzz_web_routes got a 503 "database
-  unavailable"; it passes alone. Same class as the Lost connection
-  sightings above; Bug Hunt looks at all of them. The same gate saw
-  test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
-  fail once under load (TEST.260's run lock collision).
-  Seventh sighting (Galaxy dials lane, `full --check` on main at
-  c92c4fc, about 4:50 AM EDT 2026-10-22 as the lane reported, filed by
-  the TODO thread): GET /api/databases (survive_hostile_query and
-  every_param_at_every_edge) and the GET /api/systems/<uid>/description
-  xss probe in test_fuzz_web_routes returned 500 or 503 from "Lost
-  connection to MySQL server during query" inside `store.list_databases`
-  (the information_schema size query) while four xdist workers created
-  and dropped test databases; they pass alone, and the lane saw it in 3
-  of 4 runs on its machine. Same load class as the sightings above, and
-  a pointer for Bug Hunt: the information_schema query is the one that
-  loses the connection when databases are being created and dropped
-  beside it.
-  Eighth sighting (Core 4, GEN.596's gate, about 5:01 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread):
-  test_fuzz_web_routes.py::test_admin_pages_survive_hostile_query_when_logged_in[GET
-  /admin/stats] got ApiError 503 "database unavailable"
-  (admin_pages.admin_stats to apiclient.admin_stats) in the non-browser
-  phase at load average about 9 with 4 workers; it passes alone in 21 s.
-  Same load class as the sightings above (a hostile-query route losing
-  its database connection under load); Bug Hunt looks at all of them.
-  Ninth sighting (Blocker 2, MAP.172's gate, about 5:34 AM EDT
-  2026-10-22 as the lane reported, filed by the TODO thread): in one
-  80-minute full gate on a loaded 4-worker machine,
-  test_fuzz_web_routes.py::test_get_routes_every_param_at_every_edge[GET
-  /api/galaxy/sectors] and
-  ::test_admin_pages_survive_hostile_query_when_logged_in[GET
-  /admin/stats] failed with 503 "database unavailable" ("Lost connection
-  to MySQL server during query (2013)"); 35 passed in 17 s alone. Same
-  cause as the sightings above.
-  Prerequisites: none. Related: TEST.262, TEST.252.
 
 - [ ] **TEST.266 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug)**
   Seen twice by Core 2 and filed by the TODO thread: UX.141's gate
@@ -21689,7 +21599,8 @@ clears each one.
   the next assertion) and fix the cause or make the test wait for the
   lock to clear; no retry loop that hides a real lock leak. Done: the
   cause is on this item and the test passes in 20 runs under load.
-  Owner: Bug Hunt (a test-flake finding; after TEST.262 and TEST.265).
+  Owner: Bug Hunt (a test-flake finding; TEST.265 is fixed, so it
+  follows TEST.258).
   Prerequisites: none. Related: TEST.260, TEST.265.
 
 - [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
@@ -21707,6 +21618,27 @@ clears each one.
   EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
   test).
   Prerequisites: none. Related: UX.141, TEST.266.
+
+- [ ] **TEST.268 Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug)**
+  Found by the Galaxy dials lane (about 7:05 AM EDT 2026-10-22 as the
+  lane reported, while merging GEN.607), filed by the TODO thread. Kind:
+  regression, fails on main at 2365499 without GEN.607's change, every
+  run:
+  src/tests/test_galaxy_gen.py::test_an_address_named_outside_the_outline_is_generated_from_its_profile
+  (3 params) and
+  ::test_neighborhood_around_a_sector_outside_the_outline_takes_the_reach_and_says_how_big_it_is
+  (generate exits with status 1). Reproducer: run those tests alone. The
+  lane named DB.66 (#2439) and "GEN.379 (#2440)" as the commits before
+  the break; #2440 was a docs-only PR, so the cause is among the
+  generator and schema merges since the last green run: DB.66 (the new
+  `galaxy_shape` columns, migration 0117), GEN.545 (#2434, the derived
+  mean system mass), GEN.596 (#2428) or GEN.621 (#2418). Do: read the
+  status-1 message, bisect over those merges, and fix the cause (or the
+  tests if one of them changed a documented behavior on purpose). Done:
+  the four tests pass and a full gate shows them green. Owner: Blocker 2
+  (the coordinator proposed it, as DB.66 touched the shape row; if the
+  break comes from GEN.545 it goes to Core 1).
+  Prerequisites: none. Related: DB.66, GEN.545.
 
 ## USR: User accounts
 
@@ -23078,6 +23010,21 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   load (GEN.600). The README check compares both statements with the
   options in the code.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
+
+- [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
+  Suggested by Bug Hunt (about 7:03 AM EDT 2026-10-22 as the lane
+  reported), filed by the TODO thread. MySQL's
+  `innodb_redo_log_capacity` is the 100 MB default on the lane machines
+  and logs 'log_checkpointer lagging' (84 warnings in one gate) under
+  the parallel gate; it slows the gate and was seen with the Galaxy
+  dials lane's lost connections, but it was not the cause of the
+  lost-connection sightings (TEST.265, fixed). Do: add one line to
+  INSTALL.md's database setup (and to the test section) recommending a
+  larger value for a machine that runs `scripts/test.py full` (the lane
+  machine notes already ask for one), with the number the lanes found
+  enough. Done: INSTALL.md names the setting, the value and why. Owner:
+  not assigned (a docs line; any lane).
+  Prerequisites: none. Related: TEST.265.
 
 ## VIEW: The view from a planet
 
