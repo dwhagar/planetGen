@@ -324,3 +324,61 @@ def test_the_api_names_a_sectors_tier_and_its_limits(mysql_config):
         assert routes.scatter_tier_of(conn, {**detail, "placed": False}) is None
     finally:
         conn.close()
+
+
+def _reference_tiers(shape, shell_index, bands, edge_pc):
+    """`_tiers_of_bands` as it was written before PERF.146 vectorised it: one Python loop over the bands and their
+    longitudes."""
+    from planetgen.galaxy import density as galaxyDensity
+    from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
+    from planetgen.galaxy.spherical import band_center_pc, wedge_count
+    counts = np.array([min(wedge_count(shell_index, band), scatter_limits.TIER_AZIMUTH_BINS) for band in bands])
+    xs, ys, zs = [], [], []
+    for band, count in zip(bands, counts):
+        plane, z = band_center_pc(shell_index, band, edge_pc)
+        for k in range(int(count)):
+            theta = (k + 0.5) * 2.0 * math.pi / int(count)
+            xs.append(plane * math.cos(theta))
+            ys.append(plane * math.sin(theta))
+            zs.append(z)
+    found = galaxyDensity.population_densities_array(np.array(xs), np.array(ys), np.array(zs), shape)
+    kept = {name: np.maximum(array, 0.0) for name, array in found.items()}
+    for kind in POPULATIONS_IN_THE_GATE:
+        kept[kind] = np.zeros_like(kept[kind])
+    offsets = np.concatenate(([0], np.cumsum(counts)[:-1]))
+    return scatter_limits._dominant_tiers({name: np.add.reduceat(array, offsets) for name, array in kept.items()})
+
+
+@pytest.mark.parametrize("shell", [CORE_SHELL, 3, 40, 300, MIXED_SHELL, 2500])
+def test_the_vectorised_tiers_are_the_tiers_the_loop_gave_bit_for_bit(shell):
+    high = _high(shell)
+    bands = list(range(-high, high + 1))
+    assert np.array_equal(scatter_limits._tiers_of_bands(SHAPE, shell, bands, EDGE_PC),
+                          _reference_tiers(SHAPE, shell, bands, EDGE_PC))
+
+
+def test_the_tiers_of_some_bands_are_those_the_whole_shell_gives_them():
+    high = _high(MIXED_SHELL)
+    whole = scatter_limits.tier_indices(SHAPE, MIXED_SHELL, high, EDGE_PC)
+    bands = [-high, -7, 0, 3, high]
+    assert scatter_limits.tiers_of(SHAPE, MIXED_SHELL, bands, EDGE_PC).tolist() == [int(whole[band + high]) for band in bands]
+    assert scatter_limits.tiers_of(SHAPE, MIXED_SHELL, [], EDGE_PC).tolist() == []
+
+
+def test_the_cell_tiers_of_a_set_of_marked_cells_are_the_tiers_of_the_whole_shells():
+    limits = ScatterLimits.of(_skeleton(), FLOOR, MASS)
+    cells = [(shell, band, wedge) for shell in (CORE_SHELL, DISC_SHELL, MIXED_SHELL)
+             for band in (-_high(shell), 0, _high(shell) // 2) for wedge in (0, 1)]
+    found = store._cell_tiers(limits, cells)
+    assert set(found) == set(cells)
+    for shell, band, _wedge in cells:
+        assert found[(shell, band, _wedge)] == int(limits.tiers_in(shell, _high(shell))[band + _high(shell)])
+
+
+def test_the_tiers_of_places_in_several_shells_are_each_places_own_tier():
+    places = [(shell, band) for shell in (CORE_SHELL, DISC_SHELL, MIXED_SHELL, 2500)
+              for band in (-_high(shell), -1, 0, _high(shell) // 3, _high(shell))]
+    got = scatter_limits.tiers_of_places(SHAPE, places, EDGE_PC)
+    assert got.tolist() == [scatter_limits.tier_index(SHAPE, shell, band, EDGE_PC) for shell, band in places]
+    assert len(set(got.tolist())) > 1
+    assert scatter_limits.tiers_of_places(SHAPE, [], EDGE_PC).tolist() == []

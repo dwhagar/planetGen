@@ -93,20 +93,32 @@ def check_halo_min_luminosity(value):
 _NUCLEAR = ("nuclear_cluster", "nuclear_disc")
 
 
+@functools.lru_cache(maxsize=TIER_AZIMUTH_BINS + 1)
+def _azimuths(count):
+    """`(cos, sin)` of the `count` longitudes `(k + 0.5)` of a turn a band's mix is read at, as arrays; the very floats
+    the plain loop over `math.cos` and `math.sin` gave (numpy's own trigonometry can differ in the last bit)."""
+    thetas = [(k + 0.5) * 2.0 * math.pi / count for k in range(count)]
+    return (np.array([math.cos(theta) for theta in thetas]), np.array([math.sin(theta) for theta in thetas]))
+
+
 def _tiers_of_bands(shape, shell_index, bands, edge_pc):
     """The tier index of each of `bands` (a list of band indices) of a shell, as an array."""
-    if not bands:
+    return _tiers_of_places(shape, [(shell_index, band) for band in bands], edge_pc)
+
+
+def _tiers_of_places(shape, places, edge_pc):
+    """The tier index of each of `places` (a list of `(shell, band)`), as an array: one pass over the density
+    arrays however many shells the places lie in."""
+    if not places:
         return np.zeros(0, dtype=np.int8)
-    counts = np.array([min(wedge_count(shell_index, band), TIER_AZIMUTH_BINS) for band in bands])
-    xs, ys, zs = [], [], []
-    for band, count in zip(bands, counts):
-        plane, z = band_center_pc(shell_index, band, edge_pc)
-        for k in range(int(count)):
-            theta = (k + 0.5) * 2.0 * math.pi / int(count)
-            xs.append(plane * math.cos(theta))
-            ys.append(plane * math.sin(theta))
-            zs.append(z)
-    found = galaxyDensity.population_densities_array(np.array(xs), np.array(ys), np.array(zs), shape)
+    counts = np.array([min(wedge_count(shell_index, band), TIER_AZIMUTH_BINS) for shell_index, band in places])
+    centres = [band_center_pc(shell_index, band, edge_pc) for shell_index, band in places]
+    planes = np.repeat(np.array([plane for plane, _z in centres]), counts)
+    zs = np.repeat(np.array([z for _plane, z in centres]), counts)
+    cosines = np.concatenate([_azimuths(int(count))[0] for count in counts])
+    sines = np.concatenate([_azimuths(int(count))[1] for count in counts])
+    xs, ys = planes * cosines, planes * sines
+    found = galaxyDensity.population_densities_array(xs, ys, zs, shape)
     kept = {name: np.maximum(array, 0.0) for name, array in found.items()}
     for kind in POPULATIONS_IN_THE_GATE:
         kept[kind] = np.zeros_like(kept[kind])
@@ -173,6 +185,18 @@ def tier_indices(shape, shell_index, high_band, edge_pc):
     return _shell_tiers(shape, edge_pc, shell_index, high_band)
 
 
+def tiers_of(shape, shell_index, bands, edge_pc):
+    """The tier index of each of `bands` of a shell (a list of band indices), an array: what `tier_indices` gives those
+    bands, without working out the others."""
+    return _tiers_of_bands(shape, shell_index, list(bands), edge_pc)
+
+
+def tiers_of_places(shape, places, edge_pc):
+    """The tier index of each of `places` (a list of `(shell, band)`, shells of any number), an array: what `tier_index`
+    gives each, worked out together."""
+    return _tiers_of_places(shape, list(places), edge_pc)
+
+
 def tier_index(shape, shell_index, band_index, edge_pc):
     """The tier index of one band."""
     return _band_tier(shape, edge_pc, shell_index, band_index)
@@ -234,6 +258,14 @@ class ScatterLimits:
     def tiers_in(self, shell_index, high_band):
         """`tier_indices` for a shell of this galaxy."""
         return tier_indices(self.shape, shell_index, high_band, self.edge_pc)
+
+    def tiers_of(self, shell_index, bands):
+        """`tiers_of` for a shell of this galaxy."""
+        return tiers_of(self.shape, shell_index, bands, self.edge_pc)
+
+    def tiers_of_places(self, places):
+        """`tiers_of_places` for this galaxy."""
+        return tiers_of_places(self.shape, places, self.edge_pc)
 
     def tier_at(self, shell_index, band_index):
         """The tier index of one band."""

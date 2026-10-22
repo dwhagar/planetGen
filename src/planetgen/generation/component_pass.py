@@ -153,7 +153,13 @@ def _address(point, edge_pc):
     return sector_address_at(tuple(float(value) / MPC_PER_PC for value in point), edge_pc)
 
 
-def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses, slices=1):
+def _tiers_by_place(tiers_of_places, addresses):
+    """`{(shell, band): tier}` for the bands of `addresses`, all looked up together (`tiers_of_places(places)`, an array)."""
+    places = sorted({address[:2] for address in addresses})
+    return dict(zip(places, tiers_of_places(places).tolist()))
+
+
+def component_spots(component, edge_pc, by_tier, tiers_of_places, rng, skip_addresses, slices=1):
     """
     The stars of one component the pass keeps, population by population (a satellite's three, `galaxy.satellite_history`):
     Poisson in its systems times the population's share of its stars times the largest share of that population any
@@ -161,7 +167,8 @@ def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses, s
 
     Args:
         by_tier (list): `band_fractions` per tier, one for an untiered pass.
-        tier_of (callable or None): `tier_of(shell, band)` the tier of a band, `None` for one tier.
+        tiers_of_places (callable or None): `tiers_of_places(places)` the tier of each `(shell, band)` (an array),
+            `None` for one tier.
         slices (int): How many slices the component is drawn in; this one draws its share of them.
 
     Yields:
@@ -176,12 +183,14 @@ def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses, s
         if best <= 0.0:
             continue
         points, (keep, _spare) = _candidates(component, systems_of(component) * share_of_stars * best / slices, rng)
-        for index in range(points.shape[1]):
-            point = tuple(int(value) for value in points[:, index])
-            address = _address(point, edge_pc)
+        spots = [(tuple(int(value) for value in points[:, index]), index) for index in range(points.shape[1])]
+        addresses = [_address(point, edge_pc) for point, _index in spots]
+        tiers = None if tiers_of_places is None else _tiers_by_place(
+            tiers_of_places, [address for address in addresses if address not in skip_addresses])
+        for (point, index), address in zip(spots, addresses):
             if address in skip_addresses:
                 continue
-            tier = 0 if tier_of is None else tier_of(address[0], address[1])
+            tier = 0 if tiers is None else tiers[address[:2]]
             if keep[index] * best < shares[tier]:
                 yield (*address, point, population, tier)
 
@@ -194,7 +203,7 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
     (`chosen`); a component it leaves out is drawn whole.
     """
     by_tier = fractions if tiered is not None else [fractions]
-    tier_of = None if tiered is None else tiered.limits.tier_at
+    tiers_of_places = None if tiered is None else tiered.limits.tiers_of_places
     skip_addresses = skip_addresses or set()
     for component in components:
         if component.kind not in COMPONENT_KINDS:
@@ -203,7 +212,7 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
         rng = draw.Stream(f"{seed}:objects:component:{component.kind}:{_stream_name(component.name, here)}")
         placed = {(tier, population): [] for population in POPULATIONS for tier in range(len(pass_bands))}
         for shell_index, band_index, wedge, point, population, tier in component_spots(
-                component, edge_pc, by_tier, tier_of, rng, skip_addresses, here[1]):
+                component, edge_pc, by_tier, tiers_of_places, rng, skip_addresses, here[1]):
             placed[(tier, population)].append((shell_index, band_index, wedge, point))
         yield from bright_stars.draw_placed(placed, pass_bands, rng)
 
