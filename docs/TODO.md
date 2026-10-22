@@ -16873,7 +16873,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.43, DB.44, DB.45, DB.46, DB.47, DB.48.
+  Prerequisites: DB.43, DB.45, DB.46, DB.47, DB.48.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
@@ -17251,35 +17251,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   earlier owner line on this item.
   Prerequisites: none. Related: DB.9.
 
-- [ ] **DB.44 Migration only: the sector storage checksum and the parity dirty flag**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision adds to
-  `sectors` a `storage_checksum` (BINARY(32), NULL) and a `parity_dirty`
-  flag (TINYINT, NOT NULL, default 1, so every existing sector counts as
-  not yet protected). Written with the DB.18 helpers (ALGORITHM=INSTANT,
-  idempotent). Core 1 owns the migration number. Why: the checksum and
-  the flag are the two columns the rest of DB.9 reads, and a migration
-  is Core 1's alone. Done: the migration, the regenerated models, an
-  old-schema fixture, an idempotent upgrade and a round-trip test; no
-  code reads the columns yet.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This
-  replaces any earlier owner line on this item.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 1's; the migration still takes the next free revision at merge,
-  0113 is taken by DB.79, #2361, so the next free is 0114).
-  Migration number: DB.81 (the Galaxy dials lane) is also numbered 0114
-  on its branch; whichever merges second renumbers to the next free
-  revision (the coordinator, about 10:20 PM EDT 2026-10-21).
-  Migration number: 0114 is taken on main by DB.81 (the shape pins,
-  #2403, Galaxy dials lane, about 1:37 AM EDT 2026-10-22 as the lane
-  reported), so this migration renumbers to 0115 (or the next free
-  revision at its merge).
-  Prerequisites: none. Related: DB.9.
-
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Compute the sector's storage checksum
@@ -17300,7 +17271,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.44. Related: DB.9.
+  Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.46 The parity file: groups, records, a delta update on every save and the stale-record rule**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -18114,6 +18085,50 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **DB.83 `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug)**
+  Found by Blocker 2 (about 4:02 AM EDT 2026-10-22 as the lane reported,
+  while merging DB.44), filed by the TODO thread.
+  `src/planetgen/db/block_stats.py` (DB.25) has `refresh_chain`,
+  `refresh_sectors` and `rebuild`, but the only callers outside the
+  module are migration 0092 (once) and the revert path in `db/store.py`
+  (line 6471, `refresh_chain` after a fill is undone); no generation,
+  scatter, fill or edit path calls any of them.
+  docs/design/architecture.md (line 935) says the table is kept by
+  `db/block_stats.py`. Cells bigger than a sector read these totals
+  (docs/design/drilldown-region-sizes.md), so a galaxy built or filled
+  after the migration can show stale or missing totals. Verify first
+  with a small galaxy: generate, scatter and fill, then compare
+  `galaxy_block_stats` with a sum over `sector_stats`. Do: call
+  `refresh_chain` (or the batched `refresh_sectors`) from the one place
+  each stored sector is written (the scatter and fill steps and the edit
+  paths), add a `planetgen` command or a `warm` step that runs
+  `rebuild`, and fix architecture.md if the design differs. Done: a test
+  that generates, fills and edits a galaxy and finds the block totals
+  equal to the sums over the sectors. Fails on main: yes by reading the
+  code, not yet reproduced. Owner: not assigned (a DB item; the DB items
+  chain lane or the bug queue).
+  Prerequisites: none. Related: DB.25.
+
+- [ ] **DB.84 Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it**
+  Found by Blocker 2 (about 4:02 AM EDT 2026-10-22 as the lane reported,
+  DB.44), filed by the TODO thread. The FULLTEXT index on `sectors`
+  forces `ALGORITHM=COPY` on a MySQL `ALTER TABLE`, so DB.44's two
+  columns were added by a full table rebuild in one migration instead of
+  the INSTANT form the DB.18 helpers prefer. On a large galaxy that is a
+  long `update.sh` step and needs free disk for a second copy of the
+  table. Every later migration that touches `sectors` pays the same
+  cost. Do: decide with the DB items chain lane and Boss's defaults (no
+  question card needed unless the choice changes a feature): the default
+  is to batch every remaining `sectors` column change into as few
+  migrations as possible, say the rebuild cost in the migration
+  docstring and in the update.sh output, and keep the FULLTEXT index;
+  the other choice is to move the FULLTEXT index to a side table so
+  `sectors` can use INSTANT again. Done: the choice is written in
+  docs/design/architecture.md and the DB.18 helper docstring, and every
+  open item that adds a `sectors` column is checked against it. Owner:
+  not assigned (the DB items chain lane after its listed order).
+  Prerequisites: none. Related: DB.18, DB.44.
 
 ## API: The JSON API
 

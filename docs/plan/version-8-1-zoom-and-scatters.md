@@ -57,12 +57,13 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.307, TEST.181 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py |  | Split from DB.9. Core 1 owns migrations. |
-| DB.44 | Migration only: the sector storage checksum and the parity dirty flag |  | Split from DB.9. Core 1 owns migrations. |
-| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | DB.44 | Split from DB.9. Core 1 owns migrations. |
+| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer |  | Split from DB.9. Core 1 owns migrations. |
+| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it |  |  |
+| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) |  |  |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | DB.43, DB.45 | Split from DB.9. Core 1 owns migrations. |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | DB.46 | Split from DB.9. Core 1 owns migrations. |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | DB.47 | Split from DB.9. Core 1 owns migrations. |
-| DB.9 | Repair a damaged galaxy database from a parity file | DB.43, DB.44, DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.9 | Repair a damaged galaxy database from a parity file | DB.43, DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | GEN.57, DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests |  | Split from GEN.136. |
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table |  | Split from GEN.136. Core 1 owns migrations. |
