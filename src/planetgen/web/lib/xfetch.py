@@ -1,4 +1,4 @@
-# planetgen/util/xfetch.py
+# planetgen/web/lib/xfetch.py
 
 """
 Fetching a costly, age-expiring value again shortly before it expires (PERF.110).
@@ -119,17 +119,3 @@ class AgedCache:
             return value
         finally:
             build_lock.release()
-
-
-def is_cacheable(path):
-    """Whether a GET of `path` (under `/api`, no query) may be cached."""
-    return not path.startswith(UNCACHED_PREFIXES)
-
-
-def _path_of(target):
-    return target.partition("?")[0]
-
-
-def shared_key(db, target):
-    """The Redis key of the answer to `target` in `db`."""
-    return f"planetgen:page:{db}:{hashlib.sha256(target.encode('utf-8')).hexdigest()[:32]}"
