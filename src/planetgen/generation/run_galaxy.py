@@ -2283,19 +2283,9 @@ def run_course(args, edge_pc, progress):
                         _BatchDensity(config))
 
 
-def run_galaxy(args):
-    """
-    Dispatches to span, course, single-address, shell,
-    local-neighborhood, or random-start mode, owning the one `rich.progress.Progress` display
-    they share. First checks the galaxy has been planned at the standard
-    sector edge, since every mode validates its addresses against that
-    plan's stored outline before generating anything.
-
-    Args:
-        args (argparse.Namespace): Validated arguments (`command ==
-            "galaxy"`).
-    """
-    edge_pc = run_common._edge_pc()
+def _check_plan(args, edge_pc):
+    """Refuses a run of a galaxy that was never planned (at the standard sector edge, with shells); warns when it would
+    extend a mixed-version galaxy."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         bounds = store.get_galaxy_bounds(conn)
@@ -2317,25 +2307,86 @@ def run_galaxy(args):
                   "per sector) -- re-run 'planetgen plan' with a different shape.")
         raise SystemExit(1)
 
-    estimate_only = getattr(args, "estimate_only", False)
-    if not estimate_only:
-        stages.begin(stages.galaxy_stages(args), args, "galaxy")
-    args.link_later = not estimate_only
+
+def _start_clock(args):
+    """The database's clock now (`store.database_now`), the start time of a run: the sectors saved since are the run's.
+    Says it for the stages that take it as `--since`, unless the run only estimates."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         started_at = store.database_now(conn)
     finally:
         conn.close()
-    if not estimate_only:
+    if not getattr(args, "estimate_only", False):
         log.normal(f"Run started at {started_at:%Y-%m-%d %H:%M:%S} on the database's clock (the --since of "
                    f"'planetgen link', 'backfill' and 'settle' for this run's sectors).")
+    return started_at
+
+
+def _generate_sectors(args, edge_pc):
+    """
+    The sectors of a `galaxy` or `sectors` run, in the mode the arguments ask for, with the run's one progress display.
+
+    Raises:
+        run_common._EstimateOnly: The run was asked only for its estimate (`--estimate-only`).
+    """
+    with run_common._generation_progress(disable=getattr(args, "estimate_only", False)) as progress:
+        log.set_console(progress.console)
+        try:
+            _run_galaxy_mode(args, edge_pc, progress)
+        finally:
+            log.reset_console()
+
+
+def run_sectors(args):
+    """
+    `planetgen sectors` (PERF.123): generates sectors in the mode the arguments ask for (span, course, single address,
+    shell, local neighborhood or random start) and nothing else. The sectors are saved unlinked: `planetgen link`,
+    `backfill` and `settle` do the stages after them, for the sectors saved since the start time the run says.
+
+    Args:
+        args (argparse.Namespace): Validated arguments (`command == "sectors"`).
+    """
+    edge_pc = run_common._edge_pc()
+    _check_plan(args, edge_pc)
+    estimate_only = getattr(args, "estimate_only", False)
+    if not estimate_only:
+        stages.begin(stages.sectors_stages(args), args, "sectors")
+    args.link_later = not estimate_only
+    started_at = _start_clock(args)
     try:
-        with run_common._generation_progress(disable=estimate_only) as progress:
-            log.set_console(progress.console)
-            try:
-                _run_galaxy_mode(args, edge_pc, progress)
-            finally:
-                log.reset_console()
+        _generate_sectors(args, edge_pc)
+    except run_common._EstimateOnly as exc:
+        run_common._print_estimate(exc)
+        return
+    finally:
+        run_common._finish_stats(args)
+    stages.finish()
+    log.normal(f"The sectors are saved. 'planetgen link --since \"{started_at:%Y-%m-%d %H:%M:%S}\"' links them to "
+               f"their neighbours.")
+
+
+def run_galaxy(args):
+    """
+    Dispatches to span, course, single-address, shell,
+    local-neighborhood, or random-start mode, owning the one `rich.progress.Progress` display
+    they share. First checks the galaxy has been planned at the standard
+    sector edge, since every mode validates its addresses against that
+    plan's stored outline before generating anything.
+
+    Args:
+        args (argparse.Namespace): Validated arguments (`command ==
+            "galaxy"`).
+    """
+    edge_pc = run_common._edge_pc()
+    _check_plan(args, edge_pc)
+
+    estimate_only = getattr(args, "estimate_only", False)
+    if not estimate_only:
+        stages.begin(stages.galaxy_stages(args), args, "galaxy")
+    args.link_later = not estimate_only
+    started_at = _start_clock(args)
+    try:
+        _generate_sectors(args, edge_pc)
     except run_common._EstimateOnly as exc:
         run_common._print_estimate(exc)
         return

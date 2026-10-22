@@ -305,7 +305,7 @@ def expand_function(kind):
     return _function(command.expand)
 
 
-STAGED_COMMANDS = ("galaxy", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
+STAGED_COMMANDS = ("galaxy", "sectors", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
                    "clean-nebula-field", "link", "backfill", "settle")
 """tuple: The commands whose stages (`generation/stages.py`) the wrapper turns into steps."""
 
