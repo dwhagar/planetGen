@@ -1,7 +1,0 @@
-**Headline:** The tables that hold one kind of object are listed once, in a registry, instead of at a dozen places in the code.
-
-### Changed
-- **`db/kind_tables.py` is the one list of kind tables (first slice of DB.74).** Each table has its reference kind, the generator's type for a standalone phenomenon, and its groups: `uid`, `id_block`, `timestamped`, `sector_filed`, `system_filed`, `star_filed`, `phenomenon`, `containable` and `path`. `store.ID_BLOCK_TABLES`, `CONTAINABLE_TABLES`, `PLACED_PHENOMENON_TABLES`, `PHENOMENON_UID_TABLES`, `TIMESTAMPED_TABLES` and `OBJECT_ID_TABLES`, `fingerprint.SECTOR_TABLES`, `SYSTEM_TABLES` and `STAR_TABLES`, `sector_paths.PATH_TABLES`, `edits.PHENOMENON_TABLES` and `GENERATOR_TYPES`, `api.ids.OBJECT_TABLES` and `PHENOMENON_KINDS`, `objectref.TABLES` and the slow-page list read their tables from it. Every list has the same members and the same order as before (a reader whose order differs from the registry's names an order in `kind_tables.ORDERS`: a progress counter counts the placed phenomena in one, the ids list puts the facility among the system kinds), so no stored value, digest or page changes.
-- `tests/test_kind_tables.py` checks each group against the schema (the columns it needs), and every list kept for its order (`objectref.PHENOMENON_KINDS`, the phenomenon queries) against the registry.
-
-TODO items resolved: none (DB.74 stays open: the generic insert and load and the core and profile tables follow). Added: none.
