@@ -21337,17 +21337,26 @@ clears each one.
 - [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**
   Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, in a full gate),
   filed by the TODO thread. Kind: test fails on main, browser. Test: the
-  browser test test_a_star_in_an_opened_sector_is_selectable. It fails
-  on main with a different failure than on Core 3's branch (the failure
-  text was not relayed); it passes alone on Core 3's branch. Frequency:
-  1 of 2 gates. Reproducer: a full `scripts/test.py changed` gate; the
-  exact text is needed from the next failure. Do: capture the failure
+  browser test test_a_star_in_an_opened_sector_is_selectable. Failure text (Core 3, relayed 11:18 AM EDT 2026-10-22 as the lane's
+  clock reads, from its GEN.370 gate on the #2460 head; the earlier note
+  that it came from the #2473 gate was wrong): worker gw0, fixture
+  moving_page, sector 1000000000, page loaded at
+  /galaxy?sector=1000000000&open=1; line 167 calls _star_spots (line 97),
+  `page.request.get(f"{base_url}/sector/{sector_id}/scene")` raises
+  `playwright._impl._errors.TimeoutError: APIRequestContext.get: Timeout
+  30000ms exceeded` on GET /sector/1000000000/scene. In one earlier run of
+  the same gate the test errored at setup instead. Passes alone in 29.4 s.
+  Frequency: 2 of 4 full gates, in the browser phase with 2 workers, never
+  alone. It looks like the /scene route taking over 30 s while another
+  browser test loads the site, a load timeout and not a selection bug.
+  Reproducer: a full `scripts/test.py changed` gate (the log is on Core 3's
+  lane at /tmp/claude-0/work/gate370h.log, lines 520 to 580). Do: capture the failure
   text and the page state when it fails, find whether it is load-related
   (browser tests under load are a known flake class) or a real selection
   bug, and fix the cause. Done: the cause is on this item and the test
   passes 20 runs in a row under load. Owner: Bug Hunt, after its current
   work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
-  text from Core 3 was not in the relay and is still needed.
+  text is now recorded above.
   Prerequisites: none. Related: TEST.262, TEST.270.
 
 ## USR: User accounts
