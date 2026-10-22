@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1919] - 2026-10-22
+
+**Headline:** A Reed-Solomon codec in the standard library lets the sector parity file rebuild lost data exactly.
+
+### Added
+- **`planetgen.util.rscodec`, a GF(256) Reed-Solomon erasure code with no new dependency (DB.43).** `RS(k, m)` makes
+  `m` parity blocks from `k` data blocks (`encode`), gives the data back from any `k` of the `k + m` blocks
+  (`decode`), and makes the new parity when one member changes from its old and new bytes (`update`). The first
+  parity block is the plain XOR of the data. Members of unequal length work through zero padding. Nothing reads it
+  yet: the parity file (DB.46) and the repair command (DB.47) stand on it.
+
 ## [8.0.1918] - 2026-10-22
 
 **Headline:** Every numeric column of the database now declares the unit it is stored in, in one list.
