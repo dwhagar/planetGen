@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.127 |
 | SEC | SEC.34 |
-| TEST | TEST.278 |
+| TEST | TEST.279 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -2461,6 +2461,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | open |
 | TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) | none | open |
+| TEST.278 | test_column_units fails on main: 36 columns of orbital_events and orbital_event_bodies are not declared in column_units.py (bug) | none | done, PR #2510 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

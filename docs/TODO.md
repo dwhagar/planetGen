@@ -20313,7 +20313,7 @@ clears each one.
   timeout bump and no retry loop. Done: the cause is on this item and
   the test passes in 20 full-gate runs. Owner: Bug Hunt (proposed, after
   TEST.275).
-  Prerequisites: none. Related: ['PERF.144', 'TEST.265'].
+  Prerequisites: none. Related: PERF.144, TEST.265.
 
 ## USR: User accounts
 
