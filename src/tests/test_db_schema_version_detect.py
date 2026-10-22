@@ -38,6 +38,8 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE request_notifications")  # v126
+        conn.execute("DROP TABLE request_comments")  # v126
         conn.execute("ALTER TABLE sectors DROP COLUMN override_id, DROP COLUMN density_multiplier_used, ALGORITHM=COPY")  # v125
         conn.execute("DROP TABLE region_density_overrides")  # v124
         conn.execute("DROP TABLE object_locks")  # v123

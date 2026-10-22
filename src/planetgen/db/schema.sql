@@ -1397,6 +1397,9 @@
 --   `region_density_overrides` row it came from), so a rebuilt galaxy can tell which density override a sector was filled under; both NULL for a
 --   sector filled with none. Nothing writes or reads them yet.
 --
+-- v126 (DB.39): `request_comments` (the conversation on an edit request: plan, author and role, body) and `request_notifications` (a notice owed to an
+--   account about a request, and when it was sent), for the 10.0 roles; a request is a `change_plans` row (DB.36). Nothing reads them yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4345,6 +4348,33 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v126 (DB.39): the edit request comments and notices; see the header note.
+CREATE TABLE IF NOT EXISTS request_comments (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    plan_id       BIGINT UNSIGNED NOT NULL,
+    author_id     BIGINT UNSIGNED NULL,
+    author_name   VARCHAR(255) NOT NULL,
+    author_role   VARCHAR(16) NOT NULL,
+    body          TEXT NOT NULL,
+    created_at    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    KEY idx_request_comments_plan (plan_id, id),
+    CONSTRAINT fk_request_comments_plan FOREIGN KEY (plan_id) REFERENCES change_plans(id) ON DELETE CASCADE,
+    CONSTRAINT chk_request_comments_author_role CHECK (author_role IN ('user', 'moderator', 'admin'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS request_notifications (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    plan_id       BIGINT UNSIGNED NOT NULL,
+    recipient_id  BIGINT UNSIGNED NOT NULL,
+    kind          VARCHAR(32) NOT NULL,
+    created_at    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    sent_at       TIMESTAMP(3) NULL,
+    KEY idx_request_notifications_recipient (recipient_id, sent_at, id),
+    KEY idx_request_notifications_plan (plan_id, id),
+    CONSTRAINT fk_request_notifications_plan FOREIGN KEY (plan_id) REFERENCES change_plans(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v124 (DB.38): the region density overrides; see the header note.
 CREATE TABLE IF NOT EXISTS region_density_overrides (

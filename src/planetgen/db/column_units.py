@@ -585,6 +585,12 @@ TABLES = {
         "id": ("id", "set_by_id"),
         "ratio": ("multiplier",),
     },
+    "request_comments": {
+        "id": ("author_id", "id", "plan_id"),
+    },
+    "request_notifications": {
+        "id": ("id", "plan_id", "recipient_id"),
+    },
     "rogue_planets": {
         "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
         "kg": ("mass_kg",),
