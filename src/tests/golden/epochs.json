@@ -234,8 +234,7 @@
     },
     {
       "epoch": 48,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1902",
       "reason": "A star's, pair's and compact object's Hill sphere takes the galaxy's own mass inside its own distance from the centre (stars, central black hole and NFW dark halo), not the whole halo mass, so every system perimeter is several times larger inside the halo, and with it a wide pair's widest axis, a long-period comet's orbit and how many systems a dense cell can place (GEN.370)."
     }
   ]
