@@ -2472,6 +2472,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unchanged call (about 160 ms), plus guards. The item stays open for
   Boss's browser trace, which settles whether the page is fast in the
   browser.
+  Code side merged as #2414 (Core 2, about 2:58 AM EDT 2026-10-22 as the
+  lane reported): a zoom no longer walks every drawn star per missing
+  tile (665 ms to 6.5 ms in node), an unchanged view no longer rebuilds
+  the 45,000-star signature, and a guard holds the tiles per view at 220
+  at eight distances. The item stays open: no browser frame-time trace
+  exists yet, so the before and after settled-view figure is owed from
+  Boss's server (Boss tests it after he runs update.sh; the coordinator
+  tells Core 2 when he has).
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
   Part of the unified orbited-body plan (GEN.550; design note
