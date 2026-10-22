@@ -1882,6 +1882,17 @@ species = sa.Table(
 )
 
 
+species_limit_values = sa.Table(
+    'species_limit_values',
+    metadata,
+    sa.Column('species_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('limit_name', sa.String(48), primary_key=True, nullable=False),
+    sa.Column('value', mysql.DOUBLE(), nullable=False),
+    sa.ForeignKeyConstraint(['species_id'], ['species.id'], name='fk_species_limit_values_species', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 star_systems = sa.Table(
     'star_systems',
     metadata,
