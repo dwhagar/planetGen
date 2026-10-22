@@ -1,0 +1,17 @@
+{#- One kind of object as a data table (/lists/<kind>, web/object_lists.py). -#}
+{% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block subhead %}
+<p class="badges"><span class="badge">{{ num(total) }} {{ noun[0] if total == 1 else noun[1] }}</span></p>
+{% endblock %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
+{% block content %}
+<section class="panel" id="object-list" aria-labelledby="object-list-heading">
+  <div class="panel-header">
+    <h2 id="object-list-heading" class="sr-only">All {{ title }}</h2>
+  </div>
+  {{ datatable(table) }}
+</section>
+{% endblock %}
