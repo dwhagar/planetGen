@@ -7508,6 +7508,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Prerequisites: none. Related: DB.67, GEN.85, GEN.355.
+  Owner: none for now (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; Core 4's earlier proposal is not active). It needs a migration (0130 or later) and a generator epoch, so whoever takes it sequences with the DB lane and Core 4.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -7799,6 +7800,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a stated tolerance of the published colours, and the module has no
   database access.
   Prerequisites: none. Related: VIEW.11, GEN.417.
+  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, first of GEN.416, GEN.498, GEN.496).
 
 - [ ] **GEN.417 Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -9361,6 +9363,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Schmitt overshoot figures are different measures and both stay: up to
   6 times below 40 K across the gases (Atmosphere lane) and about 15
   times for CO near 25 K (Body composition lane).
+  Owner: Blocker 2, after GEN.470 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10359,6 +10362,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
   "Apply all 29", as the coordinator reported it): the tolerance is 3
   percent for every ice; GEN.497 removes the 4 percent case.
+  Owner: Blocker 2, once Blocker 3 has landed GEN.427 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11538,6 +11542,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
   numbers; it prints 2019 for the evaluation the plan calls 2020, so
   check the year on the item's citation.
+  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, third of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
@@ -11627,6 +11632,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Prerequisites: none. Related: GEN.451, DB.69, GEN.422, GEN.456.
+  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, second of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
   Body composition research lane check of Boss's second research note
