@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE vessels")  # v129
         conn.execute("DROP TABLE constellations")  # v128
         for table in ("stars", "bright_stars"):
             conn.execute(f"ALTER TABLE {table} DROP FOREIGN KEY fk_{table}_cluster, DROP KEY idx_{table}_cluster,"

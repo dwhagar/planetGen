@@ -75,6 +75,8 @@ _EMPTY_TABLE_ROWS = {
     # DB.39: the 10.0 request code writes these; the migration only makes the tables.
     "request_comments": (
         "INSERT INTO request_comments (plan_id, author_name, author_role, body) VALUES (1, 'Test', 'user', 'Please')"),
+    "vessels": (
+        "INSERT INTO vessels (uid, kind, name, origin) VALUES (UNHEX('000000000000000000000001'), 'ship', 'Test', 'generated')"),
     # DB.53: the migration builds these; the generator writes them in the chain that follows.
     "orbit_nodes": (
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"

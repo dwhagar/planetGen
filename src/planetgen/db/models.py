@@ -2379,3 +2379,33 @@ system_owners = sa.Table(
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_owners_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
+
+
+vessels = sa.Table(
+    'vessels',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('uid', mysql.BINARY(12), nullable=False),
+    sa.Column('kind', sa.String(8), nullable=False),
+    sa.Column('name', sa.String(255), nullable=False),
+    sa.Column('origin', sa.String(12), nullable=False),
+    sa.Column('owner_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('owner_name', sa.String(255), nullable=True),
+    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('velocity_x_kms', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('velocity_y_kms', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('velocity_z_kms', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
+    sa.Column('course', mysql.JSON(), nullable=True),
+    sa.Column('seed', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('version_key', mysql.CHAR(22), nullable=True),
+    sa.Column('created_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_vessels_owner', 'owner_id', 'id'),
+    sa.Index('uq_vessels_uid', 'uid', unique=True),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'ship',_utf8mb4'station'))", name='chk_vessels_kind'),
+    sa.CheckConstraint("(`origin` in (_utf8mb4'generated',_utf8mb4'user'))", name='chk_vessels_origin'),
+    mysql_engine="InnoDB",
+)

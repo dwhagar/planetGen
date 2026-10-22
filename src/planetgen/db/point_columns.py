@@ -149,6 +149,7 @@ LAYOUTS = {
     "supernova_remnants": PointLayout(table="supernova_remnants", mass="mass_kg", **_FREE_POINT),
     "quasars": PointLayout(table="quasars", mass="black_hole_mass_solar", **_FREE_POINT),
     "facilities": PointLayout(table="facilities", mass="mass_kg", **_FREE_POINT),
+    "vessels": PointLayout(table="vessels", mass="mass_kg", **{**_FREE_POINT, "due": None}),
     "comets": PointLayout(table="comets", **_BODY_POINT),
     "asteroid_belts": PointLayout(table="asteroid_belts", **_BODY_POINT),
     "stars": PointLayout(
