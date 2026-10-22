@@ -128,6 +128,10 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     body = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="star"]').first
     _click_body(body)
     assert page.locator("#sysmap-info h3").count() == 1
+    # MAP.254: every body's panel has the View button to its own page.
+    view = page.locator("#sysmap-info .map-info-actions a", has_text="View star")
+    view.wait_for(state="attached")
+    assert re.fullmatch(rf"/object/star:{PUBLIC_ID}", view.get_attribute("href")), view.get_attribute("href")
 
     # A planet with moons opens its moons; the crumb's button comes back.
     planet = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="planet"][data-scene]').first
@@ -146,6 +150,7 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     links = {link.inner_text(): link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()}
     assert re.fullmatch(rf"/nav\?from=moon:{PUBLIC_ID}", links.get("Start Here", "")), links
     assert re.fullmatch(rf"/nav\?to=moon:{PUBLIC_ID}", links.get("End Here", "")), links
+    assert re.fullmatch(rf"/object/moon:{PUBLIC_ID}", links.get("View moon →", "")), links
     page.click("#sysmap-crumb .sysmap-back-btn")
     assert _active_scene(page) == "system"
     assert page.locator("#sysmap-crumb button").count() == 0
