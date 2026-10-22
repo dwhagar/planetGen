@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.126 |
 | SEC | SEC.34 |
-| TEST | TEST.271 |
+| TEST | TEST.273 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -842,11 +842,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
 | GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | done, PR #865 |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
-| GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
+| GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | done, PR #2473 |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | merged into GEN.212 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | superseded by GEN.557 (folded into the wanderer body draw), 2026-10-21 |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | open |
-| GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | open |
+| GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | done, PR #2473 |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
@@ -1036,18 +1036,18 @@ Parents marked "new parent" had no old number of their own.
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions | none | open |
 | GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | none | open |
 | GEN.333 | Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill | none | done, PR #1904 |
-| GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking | none | open |
+| GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking | none | done, PR #2473 |
 | GEN.335 | One definition of the stored point columns, and a test that lists every object table | none | done, PR #1883 |
 | GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | none | done, PR #1952 |
 | GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | none | done, PR #1952 |
 | GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | none | open |
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | none | open |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | none | open |
-| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | none | open |
+| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | none | done, PR #2473 |
 | GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | none | open |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | none | open |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | none | open |
-| GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation | none | open |
+| GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation | none | done, PR #2473 |
 | GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | none | open |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | none | open |
 | GEN.348 | Describer, CLI query lines and class page ranges take Quantity | none | open |
@@ -1076,7 +1076,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
 | GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
 | GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | dropped (Boss, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it) |
-| GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | open |
+| GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | done, PR #2473 |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` | none | open |
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` | none | open |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | none | open |
@@ -2449,6 +2449,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | open |
 | TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | open |
 | TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | open |
+| TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) | none | open |
+| TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

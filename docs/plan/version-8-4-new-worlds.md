@@ -112,6 +112,15 @@ The ground's composition and the small bodies' composition from the bulk model, 
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | GEN.411, GEN.412, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; migration revision after Core 1's 0102 to 0105 stack. Core 4 proposed (Boss, 11:41 PM EDT). |
 | DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | GEN.411, GEN.410, DB.67 | Atmosphere research lane finding 10 (part 05 section 13); migration revision after DB.67. Core 4 proposed. |
 
+### The Quantity call-site sweep
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.348 | Describer, CLI query lines and class page ranges take Quantity | GEN.569 | Split from GEN.300. Moved from 8.3 and rescoped onto GEN.569's Quantity (Core 4's answer, relayed 10:45 AM EDT 2026-10-22). |
+| UX.128 | Map side panels and other browser call sites take Quantity | GEN.569, UX.140 | Split from GEN.300. Moved from 8.3 and rescoped onto GEN.569 and UX.140. |
+| GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | GEN.348, UX.128 | Split from GEN.300. Moved from 8.3. |
+| GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | GEN.348, UX.128, GEN.349 | The call-site sweep, partly covered by GEN.571 and GEN.574. Moved from 8.3. |
+
 ## Phase 3: Ozone, haze, dust and cloud, and the stored shares
 
 The ozone figures and the scatterers that the colour needs, each its own thread, and the columns for the surface and small-body shares.

@@ -986,3 +986,9 @@ Baseline: PR #1817.
 | TEST.266 | 8.1 | Bugs and flaky tests |
 | MAP.139 | 8.1 | Fly-through map |
 | GEN.617 | 8.1 | Admin control suite |
+| GEN.374 | 8.3 | Positions as one object |
+| GEN.140 | 8.3 | Positions as one object |
+| GEN.144 | 8.3 | Galactic gravity |
+| GEN.334 | 8.3 | Orbital update core |
+| GEN.341 | 8.3 | Orbital update core |
+| GEN.345 | 8.3 | Orbital update core |
