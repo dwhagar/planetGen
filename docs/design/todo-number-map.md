@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.127 |
 | SEC | SEC.34 |
-| TEST | TEST.280 |
+| TEST | TEST.281 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -603,11 +603,11 @@ Parents marked "new parent" had no old number of their own.
 | DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance | none | done, PR #1952 |
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings | none | done, PR #2505 |
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | none | open |
-| DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | open |
+| DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | done, PR #2536 |
 | DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | done, already built (v87, DB.26 and GEN.150), found by Core 2 2026-10-16 6:05 PM EDT |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | none | done, PR #2526 |
 | DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) | none | done, PR #2528 |
-| DB.62 | Upload bookkeeping tables in the control database (migration only) | none | open |
+| DB.62 | Upload bookkeeping tables in the control database (migration only) | none | done, PR #2537 |
 | DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | done, PR #2530 |
 | DB.64 | Table for stored constellations (migration only) | none | done, PR #2529 |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
@@ -2471,6 +2471,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) | none | open |
 | TEST.278 | test_column_units fails on main: 36 columns of orbital_events and orbital_event_bodies are not declared in column_units.py (bug) | none | done, PR #2510 |
 | TEST.279 | Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug) | none | open |
+| TEST.280 | Five tests are refused as Busy in a full gate because workers share the default Redis database (race) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

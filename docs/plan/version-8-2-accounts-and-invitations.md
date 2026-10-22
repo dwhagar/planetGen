@@ -19,12 +19,11 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix |  | Research: before USR.2. |
-| DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses |  | Split from USR.2. Core 1 owns migrations. |
-| USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI | DB.58, SEC.32 | Split from USR.2. |
+| USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI | SEC.32 | Split from USR.2. |
 | USR.3 | SMTP settings in the admin config | ADM.86, USR.26 |  |
-| USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links | DB.58 | Foundation found in the review. |
+| USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links |  | Foundation found in the review. |
 | USR.5 | Email loop for setting and resetting passwords | USR.3, USR.28 |  |
-| USR.4 | Invite-only sign-up by unique link | DB.58, USR.26, USR.3, USR.28, USR.5 |  |
+| USR.4 | Invite-only sign-up by unique link | USR.26, USR.3, USR.28, USR.5 |  |
 | USR.6 | Owner transfer | USR.5, USR.28 |  |
 
 ### Bookmarks
@@ -55,10 +54,10 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.6 | User-level API keys, owned by the account that created them, that can read but not upload | DB.58, USR.26 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
-| USR.7 | A user-level interface with bookmarks | DB.58, USR.26, UX.129 | Bookmarks of any object use NAV.7 references. |
+| API.6 | User-level API keys, owned by the account that created them, that can read but not upload | USR.26 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
+| USR.7 | A user-level interface with bookmarks | USR.26, UX.129 | Bookmarks of any object use NAV.7 references. |
 | USR.27 | Admin Users page: list accounts, promote, demote, disable and delete | USR.26 | Split from USR.2. |
-| USR.2 | Accounts with roles: user, moderator, admin and Owner | DB.58, USR.26, USR.27 | Control schema; no blockers, placed late by priority. |
+| USR.2 | Accounts with roles: user, moderator, admin and Owner | USR.26, USR.27 | Control schema; no blockers, placed late by priority. |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
