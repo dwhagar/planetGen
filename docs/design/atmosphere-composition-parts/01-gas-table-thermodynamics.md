@@ -529,7 +529,7 @@ kH(T) = kH(298.15 K) exp(d (1/T - 1/298.15)), kH in mol/(kg bar), d = -dln kH/d(
 
 ## 9. Viscosity
 
-Chapman-Enskog: mu = 26.693 sqrt(M T)/(sigma^2 Omega22) in uPa s (M g/mol, T K, sigma Angstrom), Omega22 = 1.16145 T*^-0.14874 + 0.52487 exp(-0.7732 T*) + 2.16178 exp(-2.43787 T*), T* = kT/eps (Neufeld constants RECALLED, validated against NIST fluid values at 300 K). sigma and eps/k from chemicals (Poling table). H2O is 10% off (polar): use NIST. Dilute gas only. Diffusion coefficients are not tabulated (Boss item 14).
+Chapman-Enskog: mu = 2.6693 sqrt(M T)/(sigma^2 Omega22) in uPa s (M g/mol, T K, sigma Angstrom; the part first printed 26.693, which is micropoise: GEN.410 corrected it to 2.6693 and the table below reproduces), Omega22 = 1.16145 T*^-0.14874 + 0.52487 exp(-0.7732 T*) + 2.16178 exp(-2.43787 T*), T* = kT/eps (Neufeld constants RECALLED, validated against NIST fluid values at 300 K). sigma and eps/k from chemicals (Poling table). H2O is 10% off (polar): use NIST. Dilute gas only. Diffusion coefficients are not tabulated (Boss item 14).
 
 | Species | sigma A | eps/k K | mu 300 K | NIST 300 K | diff % | Status |
 |---|---|---|---|---|---|---|
