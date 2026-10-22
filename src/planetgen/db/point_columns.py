@@ -22,15 +22,9 @@ The parts and how a table is seen to have them are in `detected_parts`.
 import dataclasses
 import re
 
+from planetgen.db import column_units
 from planetgen.physics import constants
 from planetgen.physics.position import SpatialPosition3D
-
-LENGTH_M = {"m": 1.0, "km": 1000.0, "pc": constants.PARSEC_M, "mpc": constants.PARSEC_M / 1000.0,
-            "au": constants.AU_M}
-"""dict: Metres in one unit of a stored length."""
-
-MASS_KG = {"kg": 1.0, "solar": constants.SOLAR_MASS_TO_KG}
-"""dict: Kilograms in one unit of a stored mass."""
 
 FRAMES = ("galaxy", "sector", "system")
 """tuple: What a stored position is measured from: the galactic centre, the sector's centre, or the object's star."""
@@ -48,11 +42,9 @@ class PointLayout:
         table (str): The table.
         frame (str): One of `FRAMES`: what `position` is measured from.
         position (tuple): The three position columns, x, y, z.
-        position_unit (str): The unit of `position`, a key of `LENGTH_M`.
         velocity (tuple): The three velocity columns, km/s, in the galactic axes (relative to the star for a `system`
             frame table).
         mass (str or None): The mass column, or `None` when the mass is in another table (`mass_from`).
-        mass_unit (str): The unit of `mass`, a key of `MASS_KG`.
         mass_from (tuple or None): `(table, key, column)`: the mass is the sum of `column` over that table's rows whose
             `key` is this row's id (a star system's is its stars').
         epoch (str): The column holding when the position and velocity hold, Unix seconds.
@@ -63,10 +55,8 @@ class PointLayout:
     table: str
     frame: str
     position: tuple
-    position_unit: str
     velocity: tuple
     mass: str | None
-    mass_unit: str
     epoch: str
     due: str | None
     mass_from: tuple | None = None
@@ -75,10 +65,29 @@ class PointLayout:
     def __post_init__(self):
         if self.frame not in FRAMES:
             raise ValueError(f"unknown frame {self.frame!r}")
-        if self.position_unit not in LENGTH_M or self.mass_unit not in MASS_KG:
-            raise ValueError("unknown unit")
         if (self.mass is None) == (self.mass_from is None):
             raise ValueError("a layout holds its mass in a column or takes it from another table, not both")
+
+    @property
+    def position_unit(self):
+        """The unit the position is stored in, a length unit of the unit registry, read from the column registry."""
+        return self._unit_of(self.table, self.position[0], "length")
+
+    @property
+    def mass_unit(self):
+        """The unit the mass is stored in, a mass unit of the unit registry: the mass column's, or the column the
+        mass is summed from."""
+        if self.mass_from is not None:
+            source, _key, column = self.mass_from
+            return self._unit_of(source, column, "mass")
+        return self._unit_of(self.table, self.mass, "mass")
+
+    @staticmethod
+    def _unit_of(table, column, kind):
+        unit = column_units.unit_of(table, column)
+        if column_units.unit_info(unit).kind != kind:
+            raise ValueError(f"{table}.{column} is stored in {unit!r}, not a {kind} unit")
+        return unit
 
     def columns(self):
         """Every column the layout names, in the order position, galaxy position, velocity, mass, epoch, due."""
@@ -111,45 +120,45 @@ class PointLayout:
 
 
 _SCATTER_POINT = dict(
-    position=("position_x_mpc", "position_y_mpc", "position_z_mpc"), position_unit="mpc",
+    position=("position_x_mpc", "position_y_mpc", "position_z_mpc"),
     velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), epoch="epoch_unix", due="next_update_due")
 _BODY_POINT = dict(
-    frame="system", position=("position_x_km", "position_y_km", "position_z_km"), position_unit="km",
-    velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_kg", mass_unit="kg",
+    frame="system", position=("position_x_km", "position_y_km", "position_z_km"),
+    velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_kg",
     epoch="epoch_unix", due="next_update_due")
 
 _FREE_POINT = dict(
-    frame="galaxy", position=("center_x_pc", "center_y_pc", "center_z_pc"), position_unit="pc",
+    frame="galaxy", position=("center_x_pc", "center_y_pc", "center_z_pc"),
     velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), epoch="epoch_unix", due="next_update_due")
 
 LAYOUTS = {
     "planets": PointLayout(table="planets", **_BODY_POINT),
     "moons": PointLayout(table="moons", **_BODY_POINT),
-    "bright_stars": PointLayout(table="bright_stars", frame="galaxy", mass="mass_kg", mass_unit="kg", **_SCATTER_POINT),
+    "bright_stars": PointLayout(table="bright_stars", frame="galaxy", mass="mass_kg", **_SCATTER_POINT),
     "phenomenon_scatter": PointLayout(
-        table="phenomenon_scatter", frame="galaxy", mass="mass_solar", mass_unit="solar", **_SCATTER_POINT),
+        table="phenomenon_scatter", frame="galaxy", mass="mass_solar", **_SCATTER_POINT),
     "star_systems": PointLayout(
-        table="star_systems", frame="sector", mass=None, mass_unit="kg", mass_from=("stars", "star_system_id", "mass_kg"),
+        table="star_systems", frame="sector", mass=None, mass_from=("stars", "star_system_id", "mass_kg"),
         galaxy_position=("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"), **_SCATTER_POINT),
-    "black_holes": PointLayout(table="black_holes", mass="mass_solar", mass_unit="solar", **_FREE_POINT),
-    "neutron_stars": PointLayout(table="neutron_stars", mass="mass_solar", mass_unit="solar", **_FREE_POINT),
-    "rogue_planets": PointLayout(table="rogue_planets", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
-    "interstellar_comets": PointLayout(table="interstellar_comets", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
-    "asteroid_fields": PointLayout(table="asteroid_fields", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
-    "nebulae": PointLayout(table="nebulae", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
-    "supernova_remnants": PointLayout(table="supernova_remnants", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
-    "quasars": PointLayout(table="quasars", mass="black_hole_mass_solar", mass_unit="solar", **_FREE_POINT),
-    "facilities": PointLayout(table="facilities", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "black_holes": PointLayout(table="black_holes", mass="mass_solar", **_FREE_POINT),
+    "neutron_stars": PointLayout(table="neutron_stars", mass="mass_solar", **_FREE_POINT),
+    "rogue_planets": PointLayout(table="rogue_planets", mass="mass_kg", **_FREE_POINT),
+    "interstellar_comets": PointLayout(table="interstellar_comets", mass="mass_kg", **_FREE_POINT),
+    "asteroid_fields": PointLayout(table="asteroid_fields", mass="mass_kg", **_FREE_POINT),
+    "nebulae": PointLayout(table="nebulae", mass="mass_kg", **_FREE_POINT),
+    "supernova_remnants": PointLayout(table="supernova_remnants", mass="mass_kg", **_FREE_POINT),
+    "quasars": PointLayout(table="quasars", mass="black_hole_mass_solar", **_FREE_POINT),
+    "facilities": PointLayout(table="facilities", mass="mass_kg", **_FREE_POINT),
     "comets": PointLayout(table="comets", **_BODY_POINT),
     "asteroid_belts": PointLayout(table="asteroid_belts", **_BODY_POINT),
     "stars": PointLayout(
-        table="stars", frame="system", position=("offset_x_au", "offset_y_au", "offset_z_au"), position_unit="au",
-        velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_kg", mass_unit="kg",
+        table="stars", frame="system", position=("offset_x_au", "offset_y_au", "offset_z_au"),
+        velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_kg",
         epoch="epoch_unix", due=None),
     "scatter_members": PointLayout(
         table="scatter_members", frame="system", position=("offset_x_au", "offset_y_au", "offset_z_au"),
-        position_unit="au", velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_solar",
-        mass_unit="solar", epoch="epoch_unix", due=None),
+        velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_solar",
+        epoch="epoch_unix", due=None),
 }
 """dict: Table -> the `PointLayout` of every table that holds all four parts. A `system` frame position is measured
 from the object's star (a scatter member's offset, from its scatter point)."""
@@ -228,7 +237,7 @@ def spatial_from_row(layout, row, sector_center_m=(0.0, 0.0, 0.0), star_center_m
     Returns:
         SpatialPosition3D
     """
-    unit = LENGTH_M[layout.position_unit]
+    unit = column_units.unit_info(layout.position_unit).factor
     here = tuple(row[name] * unit for name in layout.position)
     velocity = tuple(row[name] * 1000.0 for name in layout.velocity)
     if layout.frame == "galaxy":
@@ -241,7 +250,7 @@ def spatial_from_row(layout, row, sector_center_m=(0.0, 0.0, 0.0), star_center_m
         galactic, relative = tuple(c + h for c, h in zip(star_center_m, here)), True
     if layout.mass is not None:
         value = row[layout.mass]
-        mass_kg = None if value is None else value * MASS_KG[layout.mass_unit]
+        mass_kg = None if value is None else value * column_units.unit_info(layout.mass_unit).factor
     point = SpatialPosition3D(
         galactic, sector_center_m, star_center_galactic=star_center_m if relative else None, mass_kg=mass_kg,
         star_velocity_galactic=star_velocity_ms, epoch_unix=row[layout.epoch], sector_edge_pc=sector_edge_pc)
@@ -262,7 +271,7 @@ def values_from_spatial(layout, point):
     The columns of `layout` that a `SpatialPosition3D` holds, as `{column: value}` in the stored units: the inverse of
     `spatial_from_row`. A `mass_from` layout's mass is not included (it is the sum of other rows).
     """
-    unit = LENGTH_M[layout.position_unit]
+    unit = column_units.unit_info(layout.position_unit).factor
     if layout.frame == "galaxy":
         here = point.get_coordinates("galactic", "cartesian")
         velocity = point.get_velocity_vector("galactic")
@@ -280,6 +289,6 @@ def values_from_spatial(layout, point):
     out.update(zip(layout.velocity, (v / 1000.0 for v in velocity)))
     if layout.mass is not None:
         mass = point.mass_kg
-        out[layout.mass] = None if mass is None else mass / MASS_KG[layout.mass_unit]
+        out[layout.mass] = None if mass is None else mass / column_units.unit_info(layout.mass_unit).factor
     out[layout.epoch] = point.epoch_unix
     return out

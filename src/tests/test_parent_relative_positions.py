@@ -48,13 +48,13 @@ def test_a_table_given_an_absolute_position_inside_a_system_is_refused():
     sa.Table("rings", metadata, sa.Column("id", sa.Integer, primary_key=True), sa.Column("planet_id", sa.Integer),
              sa.Column("center_x_pc", sa.Float), sa.Column("center_y_pc", sa.Float), sa.Column("center_z_pc", sa.Float))
     layouts = {"rings": point_columns.PointLayout(
-        table="rings", frame="galaxy", position=("center_x_pc", "center_y_pc", "center_z_pc"), position_unit="pc",
-        velocity=("v_x", "v_y", "v_z"), mass="mass_kg", mass_unit="kg", epoch="epoch_unix", due=None)}
+        table="rings", frame="galaxy", position=("center_x_pc", "center_y_pc", "center_z_pc"),
+        velocity=("v_x", "v_y", "v_z"), mass="mass_kg", epoch="epoch_unix", due=None)}
     [problem] = absolute_positions_inside_systems(metadata, layouts, {})
     assert problem.startswith("rings:") and "galaxy-frame" in problem
     layouts["rings"] = point_columns.PointLayout(
-        table="rings", frame="system", position=("center_x_pc", "center_y_pc", "center_z_pc"), position_unit="pc",
-        velocity=("v_x", "v_y", "v_z"), mass="mass_kg", mass_unit="kg", epoch="epoch_unix", due=None)
+        table="rings", frame="system", position=("center_x_pc", "center_y_pc", "center_z_pc"),
+        velocity=("v_x", "v_y", "v_z"), mass="mass_kg", epoch="epoch_unix", due=None)
     assert absolute_positions_inside_systems(metadata, layouts, {}) == []
     assert absolute_positions_inside_systems(metadata, {}, {"rings": "why"}) == []
 
