@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 
 import { STATIC_URL } from "./fakedom.mjs";
 
-const { rank, meaning, typing, GO_KEYS } = await import(new URL("adminpalette.js", STATIC_URL).href);
+const { rank, meaning, typing, GO_KEYS, COMMAND_START } = await import(new URL("adminpalette.js", STATIC_URL).href);
 
 const items = [
   { kind: "page", label: "Settings", summary: "Every site setting.", keywords: ["config"] },
@@ -52,4 +52,13 @@ test("single keys are off while typing, but Ctrl+K and Esc still work", () => {
   assert.equal(meaning({ key: "s", target: field }, true), "");
   assert.equal(meaning({ key: "k", ctrlKey: true, target: field }, false), "open");
   assert.equal(meaning({ key: "Escape", target: field }, false), "close");
+});
+
+test("a line that starts like a typed command is sent to the command endpoint (ADM.121)", () => {
+  for (const line of ["add sectors radius 12", "Add", "check deep", "scatter", "wipe", "new galaxy", "  sectors shell 5"]) {
+    assert.ok(COMMAND_START.test(line), line);
+  }
+  for (const line of ["cache size", "address book", "checkpoint", "wiped", ""]) {
+    assert.ok(!COMMAND_START.test(line), line);
+  }
 });
