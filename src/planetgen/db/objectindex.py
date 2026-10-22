@@ -127,17 +127,17 @@ def _kinds(kinds):
 
 def _columns_changed():
     """The `ON DUPLICATE KEY UPDATE` list: `indexed_at` moves only when a column of the row differs (it comes first, so
-    it compares the old values), then each column takes the new one."""
+    it compares the old values), then each column takes the new one from `fresh`, the derived table the rows come from."""
     assigned = COLUMNS[2:]
-    same = " AND ".join(f"object_index.{column} <=> VALUES({column})" for column in assigned)
+    same = " AND ".join(f"object_index.{column} <=> fresh.{column}" for column in assigned)
     return (f"object_index.indexed_at = IF({same}, object_index.indexed_at, CURRENT_TIMESTAMP(3)), "
-            + ", ".join(f"object_index.{column} = VALUES({column})" for column in assigned))
+            + ", ".join(f"object_index.{column} = fresh.{column}" for column in assigned))
 
 
 def _upsert_sql(source, scope_sql):
     where = [part for part in (source["where"], scope_sql, "t.id BETWEEN %s AND %s", "t.uid IS NOT NULL") if part]
-    return (f"INSERT INTO object_index ({', '.join(COLUMNS)}) SELECT {source['columns']} FROM {source['from']}"
-            f" WHERE {' AND '.join(where)} ON DUPLICATE KEY UPDATE {_columns_changed()}")
+    return (f"INSERT INTO object_index ({', '.join(COLUMNS)}) SELECT * FROM (SELECT {source['columns']}"
+            f" FROM {source['from']} WHERE {' AND '.join(where)}) AS fresh ON DUPLICATE KEY UPDATE {_columns_changed()}")
 
 
 def _live(source, scope_sql=""):
