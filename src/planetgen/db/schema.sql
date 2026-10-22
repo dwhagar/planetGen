@@ -1356,6 +1356,15 @@
 -- v115 (DB.44): `sectors.storage_checksum` (BINARY(32), NULL) and `sectors.parity_dirty` (TINYINT NOT NULL DEFAULT 1, so a sector that
 --   existed before counts as not yet protected), the two columns DB.9's storage protection reads. Nothing reads them yet.
 --
+-- v116 (MAP.172): `nebula_block_stats`, `nebula_block_classes` and `nebula_block_state`, what the nebulae add up to in each block of the Galaxy Map's block
+--   ladder (`galaxy/drill.py`, levels 243 to 3): count, volume, centroid, bounding radius, the volume of each family, the dominant
+--   class and the cover, kept by `db/nebula_blocks.py`. Made from `nebula_field` and the stored nebulae; no sector is needed.
+--
+-- v117 (DB.66): `galaxy_shape.family` (`spiral`, `lenticular`, `elliptical`, `irregular`, `dwarf_spheroid`) and the columns of
+--   the components a family may have that a spiral does not draw today: the bar's axis ratios and angle, the thick disk's
+--   amplitude, the Sersic spheroid (amplitude, index, effective radius, axis ratios, three orientation angles) and the
+--   irregular family's clump share. Existing galaxies become spirals with no spheroid; nothing reads the columns yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1565,6 +1574,26 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- again at this mass; `galaxy_shape_pins` lists what the plan was told.
     pinned_stellar_mass_solar    DOUBLE,
 
+    -- v117 (DB.66, docs/design/galaxy-types.md section 10): the galaxy family and the numbers of the components a
+    -- family may have that a spiral does not draw today. Nothing reads them yet (GEN.379 does). A galaxy planned
+    -- before v117 is a spiral with no spheroid and no clump share. The bar and the thick disk were never stored, so
+    -- NULL means "as the structure draw gives them from the seed"; an amplitude of 0 removes a component exactly.
+    family                          VARCHAR(16) NOT NULL DEFAULT 'spiral',
+    bar_present                     TINYINT,
+    bar_axis_ratio_b                DOUBLE,
+    bar_axis_ratio_c                DOUBLE,
+    bar_angle_rad                   DOUBLE,
+    thick_disk_amplitude            DOUBLE,
+    spheroid_amplitude              DOUBLE NOT NULL DEFAULT 0,
+    spheroid_sersic_n               DOUBLE NOT NULL DEFAULT 0,
+    spheroid_effective_radius_pc    DOUBLE NOT NULL DEFAULT 0,
+    spheroid_axis_ratio_b           DOUBLE NOT NULL DEFAULT 1,
+    spheroid_axis_ratio_c           DOUBLE NOT NULL DEFAULT 1,
+    spheroid_orientation_1_rad      DOUBLE NOT NULL DEFAULT 0,
+    spheroid_orientation_2_rad      DOUBLE NOT NULL DEFAULT 0,
+    spheroid_orientation_3_rad      DOUBLE NOT NULL DEFAULT 0,
+    body_clump_share                DOUBLE NOT NULL DEFAULT 0,
+
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
     -- this, not `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`.
@@ -1605,7 +1634,18 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     CONSTRAINT chk_galaxy_shape_cell_star_ceiling CHECK (cell_star_ceiling >= 1),  -- v100 (GEN.281)
     CONSTRAINT chk_galaxy_shape_scatter_limits CHECK (  -- v101 (DB.54)
         halo_min_luminosity_sol >= 50 AND (core_min_luminosity_sol IS NULL OR core_min_luminosity_sol > 0)
-        AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0))
+        AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0)),
+    CONSTRAINT chk_galaxy_shape_family CHECK (  -- v117 (DB.66)
+        family IN ('spiral', 'lenticular', 'elliptical', 'irregular', 'dwarf_spheroid')),
+    CONSTRAINT chk_galaxy_shape_bar_axis_ratio_b CHECK (bar_axis_ratio_b > 0 AND bar_axis_ratio_b <= 1),  -- v117 (DB.66), NULL passes
+    CONSTRAINT chk_galaxy_shape_bar_axis_ratio_c CHECK (bar_axis_ratio_c > 0 AND bar_axis_ratio_c <= 1),
+    CONSTRAINT chk_galaxy_shape_thick_disk_amplitude CHECK (thick_disk_amplitude >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_amplitude CHECK (spheroid_amplitude >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_sersic_n CHECK (spheroid_sersic_n >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_effective_radius CHECK (spheroid_effective_radius_pc >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_axis_ratio_b CHECK (spheroid_axis_ratio_b > 0 AND spheroid_axis_ratio_b <= 1),
+    CONSTRAINT chk_galaxy_shape_spheroid_axis_ratio_c CHECK (spheroid_axis_ratio_c > 0 AND spheroid_axis_ratio_c <= 1),
+    CONSTRAINT chk_galaxy_shape_body_clump_share CHECK (body_clump_share BETWEEN 0 AND 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -3692,6 +3732,61 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     is_stored     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- nebula_block_stats (v116, MAP.172): what the nebulae add up to in one block of the Galaxy Map's block
+-- ladder, `(m, shell_index, band_index, wedge_index)` as `galaxy_block_stats` names a block, for the five
+-- levels above a sector. A nebula counts in the block that holds its centre (`nebula_count`, `volume_pc3`,
+-- the volume-weighted `centroid_*_pc`, `bound_radius_pc` around it, and the volume of each family in
+-- `volume_<family>_pc3`; the class with the most volume is `dominant_class`); the part of its sphere that
+-- lies in a block is what `cover_volume_pc3` adds up, so a block a cloud only reaches has a row with a count
+-- of 0, and `cover` = 1 - exp(-cover_volume_pc3 / the block's volume), the share of the block inside a
+-- nebula. The nebulae are the rows of `nebula_field` and the stored `nebulae` that are not field clouds
+-- (matched by `uid`). No foreign keys: a block is not a row of its own.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS nebula_block_stats (
+    m                         SMALLINT UNSIGNED NOT NULL,
+    shell_index               INT NOT NULL,
+    band_index                INT NOT NULL,
+    wedge_index               INT NOT NULL,
+    nebula_count              INT UNSIGNED NOT NULL,
+    volume_pc3                DOUBLE NOT NULL,
+    centroid_x_pc             DOUBLE NULL,
+    centroid_y_pc             DOUBLE NULL,
+    centroid_z_pc             DOUBLE NULL,
+    bound_radius_pc           DOUBLE NULL,
+    volume_diffuse_pc3        DOUBLE NOT NULL,
+    volume_emission_pc3       DOUBLE NOT NULL,
+    volume_reflection_pc3     DOUBLE NOT NULL,
+    volume_planetary_pc3      DOUBLE NOT NULL,
+    volume_dark_pc3           DOUBLE NOT NULL,
+    volume_remnant_pc3        DOUBLE NOT NULL,
+    dominant_class            CHAR(1) NULL,
+    cover_volume_pc3          DOUBLE NOT NULL,
+    cover                     DOUBLE NOT NULL,
+    PRIMARY KEY (m, shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- nebula_block_classes (v116, MAP.172): the volume of each nebula class in a block of `nebula_block_stats`
+-- (nebulae by the block of their centre), so a stored nebula can be added to a block and the dominant class
+-- found again without reading the nebulae.
+CREATE TABLE IF NOT EXISTS nebula_block_classes (
+    m                         SMALLINT UNSIGNED NOT NULL,
+    shell_index               INT NOT NULL,
+    band_index                INT NOT NULL,
+    wedge_index               INT NOT NULL,
+    nebula_class              CHAR(1) NOT NULL,
+    volume_pc3                DOUBLE NOT NULL,
+    PRIMARY KEY (m, shell_index, band_index, wedge_index, nebula_class)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- nebula_block_state (v116, MAP.172): one row, `nebulae_through_id`, the highest `nebulae.id` the two tables above have
+-- folded in (`db/nebula_blocks.catch_up` adds the nebulae stored after it). Absent until the tables are first built.
+CREATE TABLE IF NOT EXISTS nebula_block_state (
+    id                        TINYINT UNSIGNED NOT NULL,
+    nebulae_through_id        BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

@@ -86,7 +86,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66 | Step 7 of the galaxy types chain. |
+| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383 | Step 7 of the galaxy types chain. |
 
 ## Phase 5: Pages, tests and docs
 

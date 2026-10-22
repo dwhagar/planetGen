@@ -15,6 +15,7 @@ or as the installed `planetgen` command):
     planetgen scatter --KIND        -- one scatter (mass, luminosity, phenomena, nebula-field, band)
     planetgen fill-map-luminosity   -- fill the map luminosity of the scattered phenomena
     planetgen rescore-habitability  -- re-derive the stored habitability numbers
+    planetgen fill-nebula-blocks    -- make the Galaxy Map's nebula block totals again
     planetgen clear-scatter         -- empty one kind of scatter, so a scatter can draw it again
     planetgen clean-nebula-field    -- count (or with --apply delete) the stored field clouds the keep rate rejects
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
@@ -1291,6 +1292,15 @@ def build_parser():
         help="Re-score the stored habitability of every planet and moon.")
     add_fill_arguments(rescore_habitability_parser)
 
+    fill_nebula_blocks_parser = subparsers.add_parser(
+        'fill-nebula-blocks',
+        description="Make the nebula totals of the Galaxy Map's blocks again: for every block of the ladder, the "
+                    "nebulae in it, their volume, centroid, families, dominant class and cover, from the nebula_field "
+                    "table and the stored nebulae. A plan draws them with the field; this makes them for a galaxy "
+                    "whose field was drawn before. Nothing else changes; it can be run again.",
+        help="Make the nebula block totals of the Galaxy Map again.")
+    add_fill_arguments(fill_nebula_blocks_parser)
+
     clean_nebula_field_parser = subparsers.add_parser(
         'clean-nebula-field',
         description="Bring an existing galaxy's stored molecular clouds in line with the current nebula keep "
@@ -1397,6 +1407,7 @@ def build_parser():
         'clear-scatter': clear_scatter_parser,
         'fill-map-luminosity': fill_map_luminosity_parser,
         'rescore-habitability': rescore_habitability_parser,
+        'fill-nebula-blocks': fill_nebula_blocks_parser,
         'clean-nebula-field': clean_nebula_field_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
@@ -1438,7 +1449,7 @@ def process_args():
         validate_plan_args(args, command_parser)
     elif args.command == 'scatter':
         validate_scatter_args(args, command_parser)
-    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'clean-nebula-field'):
+    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'clean-nebula-field'):
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
@@ -1541,6 +1552,7 @@ _COMMAND_HANDLERS = {
     'clear-scatter': run_plan.run_clear_scatter,
     'fill-map-luminosity': run_plan.run_fill_map_luminosity,
     'rescore-habitability': run_plan.run_rescore_habitability,
+    'fill-nebula-blocks': run_plan.run_fill_nebula_blocks,
     'clean-nebula-field': run_plan.run_clean_nebula_field,
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
@@ -1549,7 +1561,8 @@ _COMMAND_HANDLERS = {
 
 DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scatter": ("everything",),
                 "fill-map-luminosity": ("everything",),
-                "rescore-habitability": ("everything",), "clean-nebula-field": ("everything",),
+                "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",),
+                "clean-nebula-field": ("everything",),
                 "population": ("population",)}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""

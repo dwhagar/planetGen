@@ -66,6 +66,9 @@ TAIL_RATIOS = (0.12, 0.10)
 further star follows the last (0.10), up to `max_stars` (multi-star-systems.md
 13.1). The tail comes out of the 7-star column, so the table's totals stand."""
 
+MAX_MEMBERS = 12
+"""int: The most members in a tree unless a caller lowers it (`GEN.267`'s cap)."""
+
 PERIOD_LAWS_LOG10_DAYS = {"solar": (5.03, 2.28), "massive": (3.5, 1.5)}
 """dict: The mean and sigma of the log-normal in log10 of the period in days: the
 solar-type law (Raghavan 2010) and, for a primary of `MASSIVE_PRIMARY_MIN_MASS_SOL`
@@ -361,6 +364,20 @@ def star_count_weights(initial_mass_sol, prevalence=1.0):
     """The weights of 1 to 7 stars for a star of this initial mass (the `star-count` table, `phenomena/hosts.py`), the
     five-or-more columns scaled by `prevalence`."""
     return hosts.star_count_weights(companion_class(initial_mass_sol), prevalence)
+
+
+def expected_star_count(initial_mass_sol, max_stars=MAX_MEMBERS, prevalence=1.0):
+    """The mean number of stars in the system of a star of this initial mass (GEN.545): the `star-count` table's 1 to 7
+    stars, and the tail from 7 up to `max_stars` that `_draw_star_count` walks, in expectation."""
+    weights = star_count_weights(initial_mass_sol, prevalence)
+    total = sum(weights)
+    mean = sum((count + 1) * weight for count, weight in enumerate(weights)) / total
+    ratio, reach = TAIL_RATIOS[0], 1.0
+    for _ in range(7, max_stars):
+        reach *= min(1.0, ratio * prevalence)
+        mean += weights[-1] / total * reach
+        ratio = TAIL_RATIOS[1]
+    return mean
 
 
 def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng):
@@ -697,14 +714,20 @@ _DRAW_COMPANION = object()
 state itself."""
 
 
-def _companion_mass(birth, rng):
-    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth * U(0.1, 1)`
-    (`tuning.BINARY_MASS_RATIO_RANGE`), the ratio no lower than puts the star under the deuterium limit
-    (`brown_dwarf.mass_range_solar`): lighter objects are planets, filled in as planets are, not members of a tree and
-    not on the cooling tracks (GEN.596)."""
+def companion_ratio_range(birth):
+    """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
+    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the deuterium
+    limit (`brown_dwarf.mass_range_solar`): lighter objects are planets, filled in as planets are, not members of a tree
+    and not on the cooling tracks (GEN.596)."""
     low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
     floor = brown_dwarf.mass_range_solar()[0]
-    return birth * rng.uniform(min(max(low_ratio, floor / birth), high_ratio), high_ratio)
+    return min(max(low_ratio, floor / birth), high_ratio), high_ratio
+
+
+def _companion_mass(birth, rng):
+    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth * U(low, high)`
+    over `companion_ratio_range`."""
+    return birth * rng.uniform(*companion_ratio_range(birth))
 
 
 def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION):
@@ -833,7 +856,7 @@ def _single(leaf, age_yr, dropped, rng):
     return MemberTree((member,), (), age_yr, dropped)
 
 
-def draw_member_tree(placed, age_yr, rng=draw, max_stars=12, n_stars=None, prevalence=1.0,
+def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
                      companion=_DRAW_COMPANION):
     """
     The members of the system around `placed` and their orbits, as a `MemberTree`.

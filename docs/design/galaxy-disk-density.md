@@ -62,18 +62,41 @@ The nuclear disc's `sech^2` is computed as `4e / (1 + e)^2` with `e = exp(-2|x|)
 
 **Normalization (GEN.404).** `build_galaxy_shape` computes `k_norm` so the density, in units of the real local
 stellar density (`LOCAL_STELLAR_DENSITY_LY3`), integrates to the systems the galaxy's stellar mass makes
-(`structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, 0.4): `density.total_mass` is the integral of the
+(`structure.stellar_mass_solar` over `density.mean_system_mass_solar`, GEN.545): `density.total_mass` is the integral of the
 unnormalized model (the thin and thick disks, the bulge, the nuclear cluster and disc and the stellar halo, each in
 closed form). No point of the galaxy is the calibration point and no Sun position is read. A galaxy of the reference
-structure (5e10 solar masses) holds 1.25e11 systems, and the density at the reference radius was 0.38 of the local
+structure (5e10 solar masses) held 1.25e11 systems at the recalled 0.4 solar masses a system (1.03e11 at the derived mean, below), and the density at the reference radius was 0.38 of the local
 density the earlier calibration pinned there (2.6 times sparser): the model's disc was a `sech^2` sheet whose midplane
 density is half the exponential fits quote for the same column. **GEN.544** made the vertical profile the exponential
 the scale heights are fitted with, with the column (the mass) unchanged: the density at the reference radius is now 0.75
 of the old pinned value (twice the GEN.404 value, 0.376 to 0.750), the thin disc's column is the same, and the
 reference galaxy's bulge amplitude is 3.11/2 because BHG16's 3.11 was measured against the `sech^2` disc and the bulge
-keeps its 31% of the mass (`mathcheck.REFERENCE_BULGE_AMPLITUDE`). The remaining gap to the pinned density is the mean
-system mass (GEN.545), not the profile. The model's fixed parts are ratios to the shape's own lengths,
+keeps its 31% of the mass (`mathcheck.REFERENCE_BULGE_AMPLITUDE`). The model's fixed parts are ratios to the shape's own lengths,
 so the same formulas work for a galaxy of any size.
+
+**The mean system mass (GEN.545).** The galaxy's number of systems is its stellar mass over the mean mass of a system, and
+that mean is no longer a recalled constant (`tuning.MEAN_SYSTEM_MASS_SOLAR` was 0.4, "within a factor of 1.5"); it is worked
+out from the generator's own draws (`generation/system_mass.py`) for stars formed at one age:
+
+- the **placed star**: an initial mass from the initial mass function (Kroupa, 0.08 to 150 solar masses), at its birth mass
+  until its last giant phase ends (`stellar_evolution.youngest_progenitor_sol`), then its remnant: a white dwarf by the
+  initial-final relation, a neutron star or a black hole at the mean of the kind's mass range. The remnants are systems too;
+- the **other stars** of its system: the `star-count` table's mean number by the placed star's class with the 8 to 12 tail
+  (`multistar.expected_star_count`: 1.31 stars for a 0.1 solar mass primary, 1.62 for 1, 2.37 for 5, 3.08 for 50), each
+  with a birth mass of the primary's times a uniform 0.1 to 1, taken to its own state at the same age.
+
+The mean over a population's ages weights each by the star formation there (the disk's three populations by their history,
+`galaxy.age_law`; the others uniformly over their windows), and the mean over a galaxy or a cell weights each population by
+its systems (`density.population_units`: the thin disk shared among its populations, the thick disk in `old`, the bulge, the
+nuclear cluster and disc, the halo). By systems and not by mass because the density counts systems. For the reference
+galaxy: young 0.71, intermediate 0.54, old 0.48, bulge 0.47, halo 0.47, so **0.483 solar masses** a system overall, a
+placed star of 0.35 (what Kroupa's function gives) times 1.42 stars a system. The reference galaxy holds 1.03e11 systems (it
+held 1.25e11 at 0.4) and its density at the reference radius is 0.62 of the pinned local density (0.750 at 0.4): the gap
+that remains is real if the pinned density (Mamajek's 0.0984 stars per pc^3) counts the stars of a system singly, as it
+probably does, since a system here holds 1.42 of them. The compact companions of massive stars' trees add under 0.2% (not
+counted), and so do the companions of the remnants the scatter places (a few percent of those systems). A test draws the
+systems with the generator's own samplers and compares (`test_gen_system_mass.py`). The clusters' and satellites' own
+`CLUSTER_MEAN_SYSTEM_MASS_SOL` (also 0.4, recalled) is a separate constant and stays until it is derived the same way.
 
 **Stellar halo** (GEN.234). A spheroid with a broken power law, `A * (max(m, core) / break) ** -n`, where
 `m = sqrt(R^2 + (z / q)^2)`: inner slope 2.5, outer slope 4.5, break at 25 kpc (9.6 disk scale lengths), axis ratio

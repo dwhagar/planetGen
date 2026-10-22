@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
-| TEST | TEST.265 |
+| TEST | TEST.268 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.73 |
@@ -576,7 +576,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.30 | One migration for the per-species environment limits | none | open |
 | DB.31 | Store structure, not prose, for life and flavour | none | done, PR #2206 |
 | DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | done, PR #1607 |
-| DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) | none | open |
+| DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) | none | done, PR #2436 |
 | DB.34 | Cell key and covering index on every table that holds a position, in the shared 0093 migration | none | done, PR #1757 |
 | DB.35 | Scatter rows keep their address columns and gain the point columns and the cell key | none | done, PR #1757 |
 | DB.36 | Tables for change plans, their operations and the edit journal (migration only) | none | open |
@@ -609,7 +609,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | open |
 | DB.64 | Table for stored constellations (migration only) | none | open |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
-| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | open |
+| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | done, PR #2439 |
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
 | DB.69 | Planets and moons store the composition fractions | none | open |
@@ -1244,7 +1244,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) | none | open |
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced | none | done, PR #2238 |
 | GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | done, PR #2323 |
-| GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | open |
+| GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | done, PR #2434 |
 | GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly | none | done, PR #2268 |
 | GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | none | done, PR #2268 |
 | GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands | none | done, PR #2236 |
@@ -1492,7 +1492,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | none | open |
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | none | open |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | none | open |
-| MAP.172 | Nebula cell aggregates in the region pyramid | none | open |
+| MAP.172 | Nebula cell aggregates in the region pyramid | none | done, PR #2431 |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | open |
 | MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
@@ -2440,6 +2440,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) | none | open |
 | TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | done, PR #2416 |
 | TEST.264 | test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug) | none | done, PR #2425 |
+| TEST.265 | A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug) | none | open |
+| TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | open |
+| TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

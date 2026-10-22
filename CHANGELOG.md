@@ -2,6 +2,63 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1895] - 2026-10-22
+
+**Headline:** The galaxy shape row can now hold a galaxy's family and the numbers of its bar, thick disk and spheroid.
+
+### Added
+- `galaxy_shape` gains `family` and fourteen component columns (the bar's axes and angle, the thick disk's amplitude, the Sersic spheroid, the irregular family's clump share) in migration 0117. Every existing galaxy becomes a `spiral` with no spheroid and no clump share, so no stored density changes. Nothing reads the columns yet (GEN.379 does).
+
+## [8.0.1894] - 2026-10-22
+
+**Headline:** The database check holds the rule that a foreign key's default delete rule is not drift on any supported server.
+
+### Changed
+- `check-db` and the model comparison already pass on a healthy MySQL 8.0.46 database (the models declare `ON DELETE RESTRICT` where schema.sql does, and Alembic reads a key MySQL 8.4 reports with no rule as the same). DB.33 is therefore closed by a regeneration that landed earlier; this adds the tests that keep it closed.
+- `tests/test_db_check.py` rebuilds `fk_facilities_type` with no rule, with `ON DELETE RESTRICT` and with `ON DELETE NO ACTION`, and none is drift; with `ON DELETE CASCADE` it is.
+
+TODO items resolved: DB.33. Added: none.
+
+## [8.0.1893] - 2026-10-22
+
+**Headline:** A galaxy's number of systems follows from a mean system mass worked out from the generator's own star mix, not a recalled 0.4 solar masses.
+
+### Changed
+- **The mean mass of a system is derived (`generation/system_mass.py`, `galaxy/system_mass.py`, `density.mean_system_mass_solar`).** `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4, "recalled, within a factor of 1.5") is gone. For stars formed at one age the mean is the placed star's present mass from the initial mass function (its birth mass until its last giant phase ends, then its white dwarf, neutron star or black hole) plus the other stars of its system: the `star-count` table's mean number by the placed star's class with the 8 to 12 tail (`multistar.expected_star_count`) times the mean present mass of a star born with 0.1 to 1 of the primary's mass. A population's mean averages the ages by its star formation (the disk's history; the other windows uniformly), and a galaxy's or cell's averages the populations by their systems. The reference galaxy comes out at 0.483 solar masses a system (young 0.71, intermediate 0.54, old 0.48, bulge 0.47, halo 0.47: a placed star of 0.35 and 1.42 stars a system), so it holds 1.03e11 systems where the constant gave 1.25e11, and the density at the reference radius is 0.62 of the pinned local density (0.750 after GEN.544).
+  - `galaxy.density.build_galaxy_shape` divides the stellar mass by it; `galaxy.resolution` (the mass of a cell's unresolved systems), `generation.place_terms.from_profile` (a place's mass density) and the math check read the cell's or galaxy's own mean.
+  - The initial mass function integrals and the cohort moments moved from `generation/place_terms.py` to `generation/system_mass.py`; the perturber mass is unchanged. The empty-cell fallback of `mass_weighted_perturber_mass_solar` is the disk's mean system mass.
+  - `galaxy.disk_history.history_of` ignores `k_norm`, so the history computed while the density is normalized is the one every later read of the shape uses.
+  - `multistar.MAX_MEMBERS`, `multistar.COMPANION_MASS_FRACTION` and `multistar.expected_star_count` name what `draw_member_tree` already did.
+  - `CLUSTER_MEAN_SYSTEM_MASS_SOL` (the clusters' and satellites' 0.4) is a separate constant and stays.
+- The generator epoch is 46.
+generation-output: changed
+
+### Added
+- `tests/test_gen_system_mass.py`: the expected star count against the generator's own draw, the placed star's mean against a seeded initial mass function draw, the other stars against real member trees, and the whole against seeded systems at three ages.
+
+TODO items resolved: GEN.545. Added: none.
+
+## [8.0.1892] - 2026-10-22
+
+**Headline:** Every star, planet, moon, belt and comet now has a page of its own.
+
+### Changed
+
+- Opening a star, planet, moon, belt or comet by its reference (`/object/<reference>`) now shows a page for that body: its name, kind and Object ID, the places it is in, everything the system's page says about it, the bodies that belong to it, and links to its row in the system's list and to the system. Before, those references only jumped to a row on the system's page.
+- Sectors, systems and nebulae and the other phenomena keep the pages they had; their references still open them.
+- A reference that names nothing shows a not-found page.
+
+TODO items resolved / Added: UX.143 (first part: stars, planets, moons, belts, comets; facilities and regions follow) / Added: none
+
+## [8.0.1891] - 2026-10-22
+
+**Headline:** Every block of the Galaxy Map's ladder now knows how much of it is nebula, before any sector in it is generated.
+
+### Added
+- **Nebula totals per block (MAP.172, schema v116).** For each of the five levels above a sector, `nebula_block_stats` holds the nebulae in a block (counted in the block that holds the centre): their number, volume, volume-weighted centroid, the bounding radius around it, the volume of each family and the class with the most volume. Its `cover` is the share of the block inside a nebula: each cloud's volume is split among the blocks it reaches (so a cloud wider than a block shades every block it touches), the pieces add up exactly through the ladder, and the summed volume becomes a share the way randomly placed clouds cover a volume (`1 - exp(-v / V)`, never above 1). A Monte Carlo test checks the stored cover against random points thrown at a block, at the 256 pc cells and up that the shading uses: it is within 5% (3.8% at the worst of nine blocks) with the field 11% full.
+- The totals come from `nebula_field` and the stored nebulae that are not field clouds, so no sector has to exist. The migration fills them from what the galaxy holds, `planetgen plan` makes them with the nebula field, and `planetgen plan --fill-nebula-blocks` makes them again. A `galaxy` run adds the nebulae it stored once at its end, so its workers never queue on the same top-level blocks (`nebula_block_state` keeps the highest nebula id folded in).
+- Nothing reads the totals yet: the map's colour choice, the region layer and the tile format are the next items of the design (docs/design/nebula-map-visibility.md, section 9).
+
 ## [8.0.1890] - 2026-10-22
 
 **Headline:** The double-click flight tests wait for the camera to hold still, and the slow-first-click test says what happened when it fails.

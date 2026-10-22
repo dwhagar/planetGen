@@ -317,13 +317,18 @@ def stellar_and_halo_masses(shape):
     return shape.masses
 
 
-@functools.lru_cache(maxsize=64)
 def history_of(shape):
     """
     The thin disk's `DiskHistory` for the galaxy of this shape: its `masses` (stellar and halo, from the mass chain) when
     it has them, else the median galaxy of its disk scale length; the disk scale length sets the rings, and its bulge and
-    thick disk set how much of the stars are the thin disk's.
+    thick disk set how much of the stars are the thin disk's. It does not read the density's normalization, so a shape
+    and the same shape before `k_norm` was solved share one history (GEN.545 asks for it while `k_norm` is being solved).
     """
+    return _history_of(shape._replace(k_norm=1.0))
+
+
+@functools.lru_cache(maxsize=64)
+def _history_of(shape):
     from planetgen.galaxy import density
     length = shape.disk_scale_length_pc
     stellar_mass, halo_mass = stellar_and_halo_masses(shape)

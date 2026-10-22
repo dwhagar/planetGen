@@ -673,13 +673,13 @@ def _reference_galaxy_shape():
 
 def _nuclear_structure():
     """The default galaxy's nuclear cluster and disc in physical units (GEN.280): the model's mass units are
-    systems at `tuning.MEAN_SYSTEM_MASS_SOLAR` each, a unit of raw density is the systems a sector holds at
+    systems at the galaxy's mean system mass each (GEN.545), a unit of raw density is the systems a sector holds at
     density 1 per cubic parsec, and `k_norm` turns the raw units into relative density."""
     shape = _reference_galaxy_shape()
     terms = galaxyDensity.model_terms(shape)
     edge_pc = units.ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
     per_unit = (shape.k_norm * spaceSector.SpaceSector(name="mathcheck-nuclear", edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY)
-                .expected_system_count() / edge_pc ** 3 * tuning.MEAN_SYSTEM_MASS_SOLAR)
+                .expected_system_count() / edge_pc ** 3 * galaxyDensity.mean_system_mass_solar(shape))
     length = terms["nuclear_disc_length_pc"]
     inside_200 = 1.0 - (1.0 + 200.0 / length) * math.exp(-200.0 / length)
     return {
@@ -699,13 +699,13 @@ def _galaxy_mass_ratio(part, of):
 
 def _stellar_mass_held_error():
     """How far the reference galaxy's integrated density (the visible components on the numerical grid, the nuclear
-    structures and the halo, in solar masses at `tuning.MEAN_SYSTEM_MASS_SOLAR` a system) is from its stellar mass."""
+    structures and the halo, in solar masses at the galaxy's mean system mass a system) is from its stellar mass."""
     shape = _reference_galaxy_shape()
     terms = galaxyDensity.model_terms(shape)
     numerical = (sum(galaxyDensity.component_masses(shape, steps=60).values()) + terms["nuclear_cluster_mass"]
                  + terms["nuclear_disc_mass"] + galaxyDensity.halo_mass(shape))
     systems_per_unit = shape.k_norm * pc.LOCAL_STELLAR_DENSITY_LY3 / units.ly_to_pc(1.0) ** 3
-    return numerical * systems_per_unit * tuning.MEAN_SYSTEM_MASS_SOLAR / shape.structure.stellar_mass_solar
+    return numerical * systems_per_unit * galaxyDensity.mean_system_mass_solar(shape) / shape.structure.stellar_mass_solar
 
 
 def _population_split_error():
@@ -812,7 +812,7 @@ def _invariant_checks():
         Check("galaxy_holds_its_stellar_mass", "invariant", "galaxyDensity.build_galaxy_shape",
               _stellar_mass_held_error, 1.0, 2e-3,
               "definition: the density integrates to the systems the stellar mass makes at "
-              "tuning.MEAN_SYSTEM_MASS_SOLAR a system, to the numerical grid's accuracy"),
+              "the galaxy's derived mean system mass a system, to the numerical grid's accuracy"),
         Check("population_densities_sum", "invariant", "galaxyDensity.population_densities",
               _population_split_error, 1e-12, 0.0, f"{exact}: the populations add up to relative_density",
               mode="max", unit="relative error"),

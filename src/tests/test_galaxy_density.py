@@ -39,7 +39,7 @@ def _systems_per_raw_unit(shape):
 def test_the_galaxy_holds_the_systems_its_stellar_mass_makes():
     """GEN.404: no point of the galaxy is pinned to 1.0; the whole holds its stellar mass at the mean system mass."""
     systems = density.total_mass(SHAPE) * _systems_per_raw_unit(SHAPE)
-    assert systems == pytest.approx(SHAPE.structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-12)
+    assert systems == pytest.approx(SHAPE.structure.stellar_mass_solar / density.mean_system_mass_solar(SHAPE), rel=1e-12)
 
 
 def test_a_more_massive_galaxy_of_the_same_shape_is_proportionally_denser():
@@ -110,4 +110,4 @@ def test_a_toy_galaxy_is_normalized_to_its_own_mass_too():
         arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     )
     assert density.total_mass(toy) * _systems_per_raw_unit(toy) == pytest.approx(
-        toy.structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-12)
+        toy.structure.stellar_mass_solar / density.mean_system_mass_solar(toy), rel=1e-12)

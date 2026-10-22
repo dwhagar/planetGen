@@ -188,8 +188,10 @@ def test_the_thin_disks_midplane_is_the_exponential_fits_for_its_column():
     """GEN.544: the thin disk's height is the exponential the scale height is fitted with, so its column is 2 h times
     its midplane density (the isothermal sheet it replaced gave 4 h: half the fits' midplane for the same mass), and the
     galaxy's midplane density at the reference radius is twice the GEN.404 value (0.376 of the density the earlier
-    calibration pinned) while its column does not move."""
+    calibration pinned) while its column does not move. GEN.545 then divides the stellar mass by the derived mean system
+    mass in place of the recalled 0.4: both numbers scale by 0.4 over it."""
     angle = density._interarm_angle(SOLAR_RADIUS_PC, SHAPE)
+    recalled_over_derived = 0.4 / density.mean_system_mass_solar(SHAPE)
 
     def at(z):
         return _at(SOLAR_RADIUS_PC, angle, z)
@@ -197,6 +199,8 @@ def test_the_thin_disks_midplane_is_the_exponential_fits_for_its_column():
     thin = lambda z: density._components(at(z), SHAPE)[1]
     thin_column = 2.0 * sum(thin(z + 2.5) for z in range(0, 12000, 5)) * 5
     assert thin_column / thin(0.0) == pytest.approx(2.0 * SHAPE.disk_scale_height_pc, rel=0.01)
-    assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.75, abs=0.02)
+    assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.75 * recalled_over_derived, abs=0.02)
+    assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.62, abs=0.01)
     column = 2.0 * sum(density.relative_density(at(z + 2.5), SHAPE) for z in range(0, 12000, 5)) * 5
-    assert column == pytest.approx(524.26, rel=0.001)    # parsecs of relative density; the same 524.26 with the isothermal disk
+    # parsecs of relative density; 524.26 at 0.4 a system, the same with the isothermal disk
+    assert column == pytest.approx(524.26 * recalled_over_derived, rel=0.001)

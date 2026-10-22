@@ -961,6 +961,14 @@ with `clamp()`.
   ADM.118) and does not touch the item pages or the viewers' info box;
   if both change the shared header layout, whichever merges second
   rebases.
+  Progress (Core 2, UX.143 part 1 merged as #2432, about 5:35 AM EDT
+  2026-10-22 as the lane reported): stars, planets, moons, belts and
+  comets have /object/<ref> pages, with the registry
+  `item_pages.page_kinds()` held equal to `objectref.KINDS` by a test;
+  sector, system and phenomenon references still go to their own pages.
+  Open for the later parts: facility pages, and nebula, region and
+  cluster pages (not in the reference kinds yet). Core 2 does MAP.139
+  with MAP.254 next as one PR.
   Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
 
 - [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
@@ -1486,27 +1494,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.172 Nebula cell aggregates in the region pyramid**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): in the
-  MAP.151 pyramid (1 kpc down to about 8 pc) each cell stores the nebula
-  count, volume, centroid, bounding radius, family shares, dominant
-  class and cover, updated when a nebula is stored. Done: the
-  aggregates, and a Monte Carlo check that the stored cover is within 5%
-  of the true cover. Owner: Foundations lane 1, with MAP.151.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 2's).
-  Prerequisite: none. Related: MAP.151 (done, PR #1539), MAP.159.
-  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
 - [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -1519,7 +1506,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
   the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
   with MAP.151 and MAP.159.
-  Prerequisites: MAP.172. Related: MAP.147, MAP.151 (done, PR #1539),
+  Prerequisites: none. Related: MAP.147, MAP.151 (done, PR #1539),
   MAP.159.
   Tile-format changes are one chain with MAP.171 and MAP.195 (one
   cache-stamp bump), so this item moved into the Fly-through thread;
@@ -1541,7 +1528,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebulae and for unfilled cells from the field. Done: the statistic,
   with a test that filled and unfilled cells agree on a seeded galaxy.
   Owner: Foundations lane 2.
-  Prerequisites: MAP.172. Related: MAP.131, MAP.151 (done, PR
+  Prerequisites: none. Related: MAP.131, MAP.151 (done, PR
   #1539).
   Narrowed (2026-10-16 review): exposes MAP.172's cover in the
   stage-view statistics payload (filled from stored nebulae, unfilled
@@ -6891,9 +6878,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that, `galaxy/galactic_orbit.py`). Done: the central mass is the
   galaxy's mass enclosed within the star's radius from the density
   model, the default distance is already gone (GEN.404), and a test
-  shows a galaxy twice the size changes the Hill
-  radius. Fails on main: no failure, a fixed assumption. Related:
-  GEN.368, GEN.285.
+  shows a galaxy twice the size changes the Hill radius. Fails on main:
+  no failure, a fixed assumption. Related: GEN.368, GEN.285.
   Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
   and "GEN.370 wins", as the coordinator reported it): the galaxy's own
   enclosed mass and the cell's own distance replace the
@@ -6901,44 +6887,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/course-avoidance.md's "do not change this for routing" is
   superseded; the placement keep-apart fill (6 percent at the old radius
   against up to 108 percent at 1.4 pc) is rechecked in this item's gate
-  and the result is stated in its PR.
-  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
-  built on branch claude/project-thread-l8ulna (commit d5f78e8),
-  generator epoch 42 pending (renumbers if GEN.545 merges first); design
-  docs and a note are included, and its `changed` gate's second run
-  started 4:24 PM EDT (40 percent at 4:40 PM EDT; the first run was lost
-  to the stale run key, TEST.260). It removes
-  `mass_chain.central_mass_kg`, `current_central_mass_kg` and
+  and the result is stated in its PR. Status from Core 3 (4:40 PM EDT
+  2026-10-21 as the lane reported): built on branch
+  claude/project-thread-l8ulna (commit d5f78e8), generator epoch 42
+  pending (GEN.545 merged first as #2434 with epoch 46, so it renumbers
+  to epoch 47 or later); design docs and a note are included, and its
+  `changed` gate's second run started 4:24 PM EDT (40 percent at 4:40 PM
+  EDT; the first run was lost to the stale run key, TEST.260). It
+  removes `mass_chain.central_mass_kg`, `current_central_mass_kg` and
   `MassChain.halo_mass_kg`, and records a placement-fill recheck in
   docs/design/course-avoidance.md: in a dense galaxy the placer now fits
   60 to 70 percent of the requested systems at 1 kpc and 35 to 45
   percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
   galaxies are unchanged; the old fill never passed 0.03. The text above
-  that the default distance is already gone (GEN.404) is true.
-  Density limits (report
+  that the default distance is already gone (GEN.404) is true. Density
+  limits (report
   /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613, from
   the galaxy size research thread): a galaxy with no halo needs a
   central mass for the Hill sphere, and a dense small core must be
   checked: the Segue floor core has a mean spacing of about 0.66 pc and
   a keep-out of order 0.9 pc if the enclosed mass is used, so placement
-  could fail (back-of-envelope, label B).
-  Epoch (Bug Hunt, PERF.148 merged as #2397, about 11:10 PM EDT
-  2026-10-21 as the lane reported): epoch 42 is now taken on main by
-  PERF.148 (the components are drawn in slices; the Large and Small
-  Magellanic Clouds, the Sagittarius dwarf and any other component past
-  25,000 expected stars draw different stars than before), so this item
-  renumbers to the next free epoch on its rebase (43, or the one after
-  if the other waiting item merges first).
-  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
-  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
-  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
-  its rebase.
-  Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
-  2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
-  GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
-  Epoch (Core 4, GEN.596 merged as #2428, about 5:01 AM EDT 2026-10-22
-  as the lane reported): epoch 45 is now taken on main (44 is the Auto
-  default), so this item renumbers to epoch 46 or later on its rebase.
+  could fail (back-of-envelope, label B). Epoch (Bug Hunt, PERF.148
+  merged as #2397, about 11:10 PM EDT 2026-10-21 as the lane reported):
+  epoch 42 is now taken on main by PERF.148 (the components are drawn in
+  slices; the Large and Small Magellanic Clouds, the Sagittarius dwarf
+  and any other component past 25,000 expected stars draw different
+  stars than before), so this item renumbers to the next free epoch on
+  its rebase (43, or the one after if the other waiting item merges
+  first). Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about
+  11:43 PM EDT 2026-10-21 as the lane reported): epoch 43 is now taken
+  on main (epoch 42 is PERF.148), so this item renumbers to epoch 44 or
+  later on its rebase. Epoch (Galaxy dials lane, GEN.621 merged as
+  #2418, about 3:48 AM EDT 2026-10-22 as the lane reported): epoch 44 is
+  now taken on main (43 is GEN.554's), so this item renumbers to epoch
+  45 or later on its rebase. Epoch (Core 4, GEN.596 merged as #2428,
+  about 5:01 AM EDT 2026-10-22 as the lane reported): epoch 45 is now
+  taken on main (44 is the Auto default), so this item renumbers to
+  epoch 46 or later on its rebase.
+  Epoch (Core 1, GEN.545 merged as #2434, about 5:42 AM EDT 2026-10-22
+  as the lane reported): epoch 46 is now taken on main (pending; the
+  next release stamps it), so this item takes epoch 47 or later on its
+  rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -7070,12 +7059,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spiral family written as components. No fixed content (Boss, 4:11 and
   4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234, GEN.280.
-  Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
-  one call site in `galaxy/density_modulation.py` (GEN.393) that
-  multiplies each population's density after the component sum; this
-  rewrite keeps that one call and does not move the factor into the
-  components. Design merged (GEN.378, #2368):
+  Prerequisites: none. Related: DB.66 (done, #2439), GEN.338, GEN.381,
+  GEN.234, GEN.280. Superbubble density (2026-10-16, 9:27 PM EDT): the
+  bubble factor is one call site in `galaxy/density_modulation.py`
+  (GEN.393) that multiplies each population's density after the
+  component sum; this rewrite keeps that one call and does not move the
+  factor into the components. Design merged (GEN.378, #2368):
   docs/design/galaxy-types.md is the checked design; Boss reads and
   approves its table before this item and DB.66 are built (Needs Boss
   list).
@@ -7086,6 +7075,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
   gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
   Core 1's queue.
+  Reading of the stored columns (Blocker 2, DB.66 merged as #2439,
+  Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane reported):
+  `galaxy_shape` has `family` (default spiral) and fourteen component
+  columns (bar, thick disk, Sersic spheroid, clump share) with a CHECK
+  per number. The design table says the bar and thick-disk defaults are
+  "the drawn value", but those were never stored, so those five columns
+  are NULL, meaning "as the structure draw gives them from the seed";
+  the other columns default to 0 or 1. This item reads them: a NULL
+  means ask the structure draw, never a fixed number.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7372,7 +7370,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.390 Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules**
@@ -13570,85 +13568,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
-  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
-  lane reported), filed by the TODO thread.
-  `tuning.MEAN_SYSTEM_MASS_SOLAR = 0.4` is documented as "recalled,
-  within a factor of 1.5"; today it only turns unresolved mass into a
-  system count (`generation/place_terms.py`, `galaxy/resolution.py`),
-  but with GEN.404's mass-normalised density it becomes the divisor of
-  the stellar mass for every galaxy (stellar mass over 0.4 gives the
-  system count), so a factor of 1.5 here moves every galaxy's star count
-  by up to 50 percent. Boss's rule is no fixed content. Fails on main:
-  no (the constant matters once GEN.404 merges). Frequency: every
-  galaxy. Reproducer: change the constant by 1.5 in `tuning.py` and
-  compare the system count of one seed. Do: compute the mean mass of a
-  system from the generator's own stellar mass function and multiplicity
-  (GEN.103's pooled Moe trend, the IMF in use) so the constant goes, or,
-  if the integral cannot be done in closed form, a seeded measurement at
-  build time; where a source is needed, GEN.366 or the next research
-  pass names it and the lane verifies the citation first. Default
-  (stands unless Boss overrules): derive it from the generator's own
-  distribution, no new constant. Done: no code reads
-  `MEAN_SYSTEM_MASS_SOLAR`, a test checks the derived mean against a
-  seeded draw of systems within the scatter, and the design note says
-  where the number comes from. Owner: Core 1 proposed, after GEN.404
-  merges.
-  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
-  relayed by the coordinator): "No that is approved, sounds like the two
-  new items will fix the star count drop". The default on this item
-  stands as the decision; Boss expects GEN.544 and GEN.545 together to
-  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
-  follow GEN.404).
-  Core 1 after GEN.544 merged (#2323, 1:43 PM EDT 2026-10-21 as the lane
-  reported, epoch 41): the density at the reference radius is now 0.75
-  of the old pinned value (0.376 of it under GEN.404, which is twice the
-  GEN.404 value), the column through that point is unchanged at 524.26
-  pc of relative density, and the reference galaxy outline reaches shell
-  3,596 (was 3,147). The remaining gap is the mean system mass
-  (`tuning.MEAN_SYSTEM_MASS_SOLAR` 0.4), which this item derives.
-  Core 1 (2:02 PM EDT 2026-10-21 as the lane reported): the derived mean
-  system mass is 0.51 solar masses, not the recalled 0.4, so the
-  reference galaxy's system count goes down about 21%; Core 1 proceeds
-  with the approved default (derive it; generator epoch 42).
-  Status from the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
-  reported): built on branch claude/project-thread-6lw1fr (commit
-  bc7f1e8 on main 8.0.1861) and in its `changed` gate (97 percent at
-  4:39 PM EDT). It derives the mean system mass from the IMF, the
-  star-count table, the companion draw and the remnants (new
-  `generation/system_mass.py` and `galaxy/system_mass.py`), removes
-  `tuning.MEAN_SYSTEM_MASS_SOLAR`, and takes generator epoch 42.
-  Reference galaxy: 0.504 solar masses a system (not 0.4), 9.9e10
-  systems (was 1.25e11), density at the reference radius 0.595 of the
-  pinned value (was 0.750). Superseded: the sentence above that Boss
-  expects GEN.544 and GEN.545 to undo most of the star count drop no
-  longer holds, because the derived mean lowers the count about 21
-  percent (the coordinator told Boss at 2:03 PM EDT); the approved
-  default (derive it) stands. The old Core 1 draft branch
-  claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
-  gen545-core1-draft.patch are superseded.
-  Epoch 42 is also claimed by GEN.370 (Core 3) and PERF.148 (Bug Hunt);
-  whichever merges later renumbers to the next free epoch on its rebase
-  (the TODO thread, 8:52 PM EDT 2026-10-21).
-  Epoch (Bug Hunt, PERF.148 merged as #2397, about 11:10 PM EDT
-  2026-10-21 as the lane reported): epoch 42 is now taken on main by
-  PERF.148 (the components are drawn in slices; the Large and Small
-  Magellanic Clouds, the Sagittarius dwarf and any other component past
-  25,000 expected stars draw different stars than before), so this item
-  renumbers to the next free epoch on its rebase (43, or the one after
-  if the other waiting item merges first).
-  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
-  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
-  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
-  its rebase.
-  Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
-  2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
-  GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
-  Epoch (Core 4, GEN.596 merged as #2428, about 5:01 AM EDT 2026-10-22
-  as the lane reported): epoch 45 is now taken on main (44 is the Auto
-  default), so this item renumbers to epoch 46 or later on its rebase.
-  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
-
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
   addendum typed in the design thread at 11:21 PM EDT, both as the
@@ -15567,9 +15486,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bottom-heavy or top-heavy IMF), the derivation takes it from the
   component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
   test checks the derived mean against a seeded draw. Owner: Core 1
-  (proposed, after GEN.545 merges); a generator change, so it takes the
-  next free epoch.
-  Prerequisites: GEN.545. Related: GEN.545, GEN.404.
+  (proposed; GEN.545 merged as #2434, so it is free to start, in Core
+  1's queue after DB.33 and TEST.241); a generator change, so it takes
+  the next free epoch.
+  Prerequisites: none. Related: GEN.545 (done, #2434), GEN.404.
 
 - [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
   Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
@@ -15642,18 +15562,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces the
   constant `tuning.MEAN_SYSTEM_MASS_SOLAR` as a user lever: how many
   systems the mass holds, so the density in systems and the cost of a
-  full generation. Default the value GEN.545 derives (about 0.51 solar
-  mass per system, 2.0 per solar mass); the range is a narrow band about
-  the IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped
-  "No, wait for GEN.545", card
+  full generation. Default the value GEN.545 derived (about 0.48 solar
+  mass per system for the reference galaxy, about 2.1 per solar mass;
+  merged as #2434, epoch 46, release 8.0.1893); the range is a narrow band about the
+  IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped "No,
+  wait for GEN.545", card
   cmsg_01RuNTFUNB92A8cm5CbojQAiEVg9cpevtSbXZPtt2uETHf): the Census dial
   is added after GEN.545 settles the mean system mass; the first release
   of the dials has four: Scale, Structure, Edge and Halo. Done: the
   slider is tested alone; Auto gives GEN.545's derived value; the system
   count scales as stated; hidden unless Advanced is shown.
-  Owner: the Galaxy dials lane, after GEN.545 merges (the coordinator,
-  6:55 PM EDT 2026-10-21; the richness choice is decided).
-  Prerequisites: GEN.545. Related: GEN.603.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT 2026-10-21;
+  the richness choice is decided). Unblocked: GEN.545 merged as #2434
+  (about 5:42 AM EDT 2026-10-22 as the lane reported).
+  Prerequisites: none. Related: GEN.603, GEN.545 (done, #2434).
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
@@ -17017,63 +16939,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   earlier owner line on this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
-- [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
-  Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
-  coordinator). On MySQL 8.0.46 the foreign keys `fk_facilities_type`
-  and `fk_facility_field_values_field` reflect with `ondelete` RESTRICT
-  while the models declare none, so `check-db` reports a healthy
-  database as damaged and six tests fail (test_db_check, test_db_models,
-  test_db_check_deep). Quality confirmed (2026-10-15, combined run) that
-  it fails alone on a clean main, so no lane's change causes it; the six
-  tests are test_a_healthy_database_passes,
-  test_a_stale_system_count_is_a_warning_not_damage,
-  test_the_command_exits_one_on_damage_and_zero_when_clean,
-  test_models_match_a_database_built_from_schema_sql,
-  test_a_changed_column_is_noticed and
-  test_a_deep_check_off_a_terminal_needs_yes. Declaring
-  ondelete='RESTRICT' alone would fix 8.0.46 but break MySQL 8.4 and
-  MariaDB, which reflect none, so the compare must treat all three as
-  equal. Fix: compare RESTRICT, NO ACTION and none as equal in
-  `db/check.py` `_model_drift` and in `db/models.py`. Done: check-db
-  passes on a healthy MySQL 8.0.46 database, the six tests pass, and a
-  real drift in a foreign key's delete rule is still reported. Owner:
-  Core (2026-10-15).
-  Update (Core 1 and Core 2, 2026-10-15): the owner is now Core 2 (Core
-  1 handed it over). Eight tests fail on MySQL 8.0.46, also
-  test_the_check_writes_nothing (KeyError 'table_name':
-  information_schema column names come back upper case, the test reads
-  row["table_name"]) and test_a_deep_check_off_a_terminal_needs_yes;
-  they fail on main alone, always. Regenerating models.py with
-  scripts/generate_db_models.py on that server makes the drift failures
-  vanish, so the fix may also be a regenerate plus the case-insensitive
-  read.
-  Quality (2026-10-15, #1697): the test_db_check column-name case fix
-  (upper-case information_schema names) is merged; the RESTRICT drift
-  itself is still open.
-  Seen again (Quality, 2026-10-15): the six DB.33 tests failed again in
-  the `changed` run, same cause (fails on main).
-  Confirmed again by Core 3 (2026-10-16, 9:05 PM EDT, GEN.149 test run):
-  the same six tests fail on clean origin/main (5b48f34) on every run (2
-  of 2), with the same remove_fk and add_fk items for fk_facilities_type
-  and fk_facility_field_values_field. Owner: Core 2 (in its queue
-  after the plan items; Core 2 confirmed 9:17 PM EDT it is its to fix).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the owner is Core 1
-  (the lane named in Boss's order of 2026-10-16, 2:43 PM and 3:00 PM
-  EDT), unless Core 2 takes it; Core 2's own confirmation of 9:17 PM EDT
-  on 2026-10-16 that it is its to fix stays on record, so the two lines
-  are not reconciled further here (the recommendation was to ask Boss,
-  with Core 1 as the fallback).
-  Decided (Boss, tapped "Core 1" on the DB.33 owner card at 11:29 AM EDT
-  2026-10-21, as the coordinator reported it): Core 1 owns DB.33, after
-  its current queue.
-  Prerequisites: none.
-
 - [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -17530,39 +17395,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
   earlier owner line on this item.
   Prerequisites: none. Related: VIEW.3.
-
-- [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. Migration only; Core 1 owns the numbering. The
-  `galaxy_shape` row gains the family key (one of the families GEN.378
-  lists) and the parameters of each component the density model sums
-  beyond today's: thick-disk amplitude, bar amplitude and axis ratios,
-  the spheroid's Sérsic index, effective radius, axis ratios and
-  orientation, and an irregular body's clump share, exactly as GEN.378's
-  table lists them. The migration gives every existing galaxy the spiral
-  family and the values the model derives for it today, so no stored
-  density changes. No reader changes in this item. The early-alpha
-  schema is not a constraint. Boss (12:56 PM EDT, card "Draw it in 8.1",
-  relayed in words): the bar is drawn in 8.1 by GEN.533 without a stored
-  column, so nothing in 8.1 needs this item; it stays in 8.3 and later
-  stores the drawn values (bar presence, axis ratios and angle) with the
-  other component columns. Design merged (Blocker 2, 7:58 PM EDT
-  2026-10-21 as the lane reported, GEN.378, #2368, docs only):
-  docs/design/galaxy-types.md section 10 lists this item's columns. Boss
-  must read and approve the design's table before this item and GEN.379
-  are built (see the Needs Boss list); the three questions with defaults
-  are in section 12 and the ten research requests R1 to R10 in section
-  11.
-  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
-  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
-  the table in docs/design/galaxy-types.md is approved as written. The
-  approval that held this item is given.
-  Owner: the Blocker 2 lane (the author of the approved design; the
-  coordinator, 9:15 PM EDT 2026-10-21). The next Alembic revision is
-  0114 unless another lane takes it first.
-  Prerequisites: none. Related: GEN.379, GEN.389.
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -20255,7 +20087,7 @@ clears each one.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: MAP.172, MAP.173, GEN.202. Related: PERF.68.
+  Prerequisites: MAP.173, GEN.202. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
@@ -21741,7 +21573,49 @@ clears each one.
   code, or a test that does not wait for the fly to finish) and fix the
   cause, not the load. Done: the cause is on this item and the test
   passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
-  TEST.252 test).
+  TEST.252 test). Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM
+  EDT 2026-10-22 as the lane reported, filed by the TODO thread): under
+  load five browser tests failed in module-fixture setup after 1,988 to
+  2,063 seconds (test_web_browser_crumbs at 1280 and at 320, and three
+  in test_web_browser_units), and test_old_jobs_are_pruned timed out at
+  30 seconds once; all pass alone. A browser and job-timing load class,
+  separate from the MySQL sightings of TEST.265; Bug Hunt looks at them
+  with this item. Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM
+  EDT 2026-10-22 as the lane reported, filed by the TODO thread):
+  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
+  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
+  Same load class as the fifth sighting; Bug Hunt took this item next.
+  Update (Bug Hunt, about 5:30 AM EDT 2026-10-22 as the lane reported):
+  PR #2430 merged: the flight tests wait for a still camera, and the
+  slow-click test's failure message now carries the pointer event times.
+  The double-click failure itself did not reproduce in 41 runs under
+  four-way browser load, so this item stays open for the double-click
+  part only, as "watch for the new message". The MySQL lost-connection
+  sightings moved to their own item, TEST.265 (root cause found).
+  Prerequisites: none. Related: TEST.252.
+
+- [ ] **TEST.265 A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug)**
+  Split from TEST.262 by the TODO thread at Bug Hunt's request (about
+  5:30 AM EDT 2026-10-22 as the lane reported). ROOT CAUSE found by Bug
+  Hunt: `tests/dbpool.py` `drop_database` KILLs every connection that
+  holds a metadata lock on the database being dropped, and another
+  worker's `store.list_databases(with_counts)` holds exactly that lock
+  while it counts rows (the information_schema size query), so that
+  worker's query is killed mid-way and the test sees "Lost connection to
+  MySQL server during query" or a 503 "database unavailable". A
+  reproducer (3 listers beside 3 create-and-drop loops) gave 222 errors
+  in 60 s before the fix and 0 after. The fix is in a PR Bug Hunt is
+  gating; Bug Hunt will say which sightings it closes. The redo log
+  capacity (100 MB default on one lane machine, 84 "log_checkpointer
+  lagging" warnings) is a real but separate slowdown and not the cause
+  of the lost connections; the lane machine notes already ask for a
+  larger `innodb_redo_log_capacity`. Do: stop the drop from killing a
+  connection that is only reading (kill only the dropped database's own
+  test connections, or let the lister retry), with a test that runs
+  listers beside create-and-drop loops. Done: the reproducer gives 0
+  errors in 60 s and the full gate shows none of the sightings below.
+  Owner: Bug Hunt (its own find; the fix PR is being gated).
+  Sightings moved here from TEST.262 (the TODO thread):
   Related sighting (Core 2, about 7:25 PM EDT 2026-10-21 as the lane
   reported, filed by the TODO thread): once under load, the facilities
   route in test_fuzz_web_routes failed with "Lost connection to MySQL
@@ -21767,18 +21641,6 @@ clears each one.
   sightings above; Bug Hunt looks at all of them. The same gate saw
   test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
   fail once under load (TEST.260's run lock collision).
-  Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread): under load five
-  browser tests failed in module-fixture setup after 1,988 to 2,063
-  seconds (test_web_browser_crumbs at 1280 and at 320, and three in
-  test_web_browser_units), and test_old_jobs_are_pruned timed out at 30
-  seconds once; all pass alone. Same load class as the sightings above;
-  Bug Hunt looks at all of them.
-  Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread):
-  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
-  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
-  Same load class as the sightings above; Bug Hunt takes TEST.262 next.
   Seventh sighting (Galaxy dials lane, `full --check` on main at
   c92c4fc, about 4:50 AM EDT 2026-10-22 as the lane reported, filed by
   the TODO thread): GET /api/databases (survive_hostile_query and
@@ -21799,7 +21661,52 @@ clears each one.
   phase at load average about 9 with 4 workers; it passes alone in 21 s.
   Same load class as the sightings above (a hostile-query route losing
   its database connection under load); Bug Hunt looks at all of them.
-  Prerequisites: none. Related: TEST.252.
+  Ninth sighting (Blocker 2, MAP.172's gate, about 5:34 AM EDT
+  2026-10-22 as the lane reported, filed by the TODO thread): in one
+  80-minute full gate on a loaded 4-worker machine,
+  test_fuzz_web_routes.py::test_get_routes_every_param_at_every_edge[GET
+  /api/galaxy/sectors] and
+  ::test_admin_pages_survive_hostile_query_when_logged_in[GET
+  /admin/stats] failed with 503 "database unavailable" ("Lost connection
+  to MySQL server during query (2013)"); 35 passed in 17 s alone. Same
+  cause as the sightings above.
+  Prerequisites: none. Related: TEST.262, TEST.252.
+
+- [ ] **TEST.266 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug)**
+  Seen twice by Core 2 and filed by the TODO thread: UX.141's gate
+  (about 1:44 AM EDT 2026-10-22 as the lane reported, then recorded
+  under TEST.262 as a sighting of TEST.260's run lock collision) and
+  UX.143 part 1's gate (about 5:35 AM EDT 2026-10-22 as the lane
+  reported, after TEST.260 was retired in #2425). Kind: flaky test,
+  src/tests/test_work_queue_failures.py. Text: the run is refused as
+  Busy because another run (or a lock left by an earlier test of the
+  same worker) is still set when the interrupting test starts; it passes
+  alone. Fails on main: unknown (the second sighting is on a branch that
+  may not carry #2425). Frequency: 2 in about 4 full gates of Core 2.
+  Reproducer: none yet; run the full gate on a loaded machine. Do: find
+  which run or lock is still held (the previous test's run, a worker's
+  leftover, or the test's own interrupt not releasing the lock before
+  the next assertion) and fix the cause or make the test wait for the
+  lock to clear; no retry loop that hides a real lock leak. Done: the
+  cause is on this item and the test passes in 20 runs under load.
+  Owner: Bug Hunt (a test-flake finding; after TEST.262 and TEST.265).
+  Prerequisites: none. Related: TEST.260, TEST.265.
+
+- [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
+  Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
+  a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
+  test on random data (src/tests/test_object_list.py, UX.141's page-walk
+  test). It failed once with "the galaxy has too few planets for a page
+  walk" (3 planets, 6 needed) and passed alone 3 of 3 times. Fails on
+  main: not checked. Frequency: 1 in 4 runs seen. Reproducer: loop the
+  test on a fresh database. Do: make the test's galaxy deterministic (a
+  seed that always holds enough planets, or generate until the minimum
+  is met under a fixed seed) so the page walk always has the planets it
+  needs; no skip when the galaxy is short. Done: the test passes in 20
+  runs on fresh databases. Owner: Core 2 (the coordinator, about 6:01 AM
+  EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
+  test).
+  Prerequisites: none. Related: UX.141, TEST.266.
 
 ## USR: User accounts
 
