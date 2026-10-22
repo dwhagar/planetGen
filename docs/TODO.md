@@ -952,10 +952,15 @@ with `clamp()`.
   fails for any kind in the registry without a page; every kind's page
   renders for a generated example and for an unknown ID (a clear
   not-found page); the page shows the item's name, kind, ID and facts;
-  the docs list the routes. Phase: 8.2 phase 2. Owner: none yet (filed
-  from Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map
-  lane owns the viewers, so Core 2 is the natural pick once its queue
-  allows, the coordinator decides).
+  the docs list the routes. Phase: 8.2 phase 2. Owner: Core 2 (the
+  coordinator, about 4:08 AM EDT 2026-10-22 as the lane reported, after
+  Core 2 went idle; filed from Boss's 8.2 design notes, 6:10 and 6:12 PM
+  EDT 2026-10-21). Order inside Core 2's queue: UX.143 first (MAP.254
+  and UX.144 both need its pages), then MAP.254, then UX.144. The Admin
+  redesign lane builds the admin shell and header palette (ADM.92,
+  ADM.118) and does not touch the item pages or the viewers' info box;
+  if both change the shared header layout, whichever merges second
+  rebases.
   Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
 
 - [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
@@ -972,10 +977,14 @@ with `clamp()`.
   free-floating object, the Location block shows the right chain and the
   containing region (a test per case on a generated galaxy); a link on
   each name opens that page; an item outside every region says so.
-  Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2 design
-  notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the viewers,
-  so Core 2 is the natural pick once its queue allows, the coordinator
-  decides).
+  Phase: 8.2 phase 2. Owner: Core 2 (the coordinator, about 4:08 AM EDT
+  2026-10-22 as the lane reported, after Core 2 went idle; filed from
+  Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21). Order
+  inside Core 2's queue: after UX.143 (its Location block sits on those
+  pages); it can go before or after MAP.254. The Admin redesign lane
+  builds the admin shell and header palette (ADM.92, ADM.118) and does
+  not touch the item pages or the viewers' info box; if both change the
+  shared header layout, whichever merges second rebases.
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1803,6 +1812,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Parked (Core 2's recommendation, relayed by the coordinator about 4:08
+  AM EDT 2026-10-22 as the lane reported): the duplicate-star share is
+  unmeasured, and MAP.249's profile found that server builds and the
+  tile count dominate the cost, not tile bytes. Not built until a
+  measurement shows the saving is worth holding the parent tiles; no
+  lane is on it, and the tile-format chain (MAP.171, MAP.173) does not
+  wait for it.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
 - [ ] **MAP.207 The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline**
@@ -2518,11 +2534,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   page (a browser test table of kinds by views); a test fails if a view
   renders its own info box; works on touch (tap) and with the keyboard;
   fits the window without page scroll (UX.142). Phase: 8.2 phase 2.
-  Owner: none yet (filed from Boss's 8.2 design notes, 6:10 and 6:12 PM
-  EDT 2026-10-21; the map lane owns the viewers, so Core 2 is the
-  natural pick once its queue allows, the coordinator decides).
-  Prerequisites: UX.143. Related: MAP.65, MAP.139, MAP.140, UX.142,
-  UX.143, UX.144.
+  Owner: Core 2 (the coordinator, about 4:08 AM EDT 2026-10-22 as the
+  lane reported, after Core 2 went idle; filed from Boss's 8.2 design
+  notes, 6:10 and 6:12 PM EDT 2026-10-21). Order inside Core 2's queue:
+  after UX.143 and MAP.139 (MAP.139 is Core 2's own open item: it builds
+  the Galaxy View info box that this item extends to every view), before
+  UX.144. The Admin redesign lane builds the admin shell and header
+  palette (ADM.92, ADM.118) and does not touch the item pages or the
+  viewers' info box; if both change the shared header layout, whichever
+  merges second rebases.
+  Prerequisites: UX.143, MAP.139. Related: MAP.65, MAP.139, MAP.140,
+  UX.142, UX.143, UX.144.
 
 
 ## NAV: Navigation and courses
