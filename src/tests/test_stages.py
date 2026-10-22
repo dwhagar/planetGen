@@ -72,7 +72,8 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     stages.enter("settle")         # the ones between are skipped
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("9 stages: 1. Generate the starting sector;")
+    assert text.startswith("Stage 1 of 9: Generate the starting sector.")
+    assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
     assert "Stage 2 of 9: Generate the neighborhood -- skipped: not needed." in text
     assert "Stage 4 of 9: Scatter the massive stars -- skipped: no layers." in text
     assert "Stage 8 of 9: Run the population pass -- skipped: the population pass was not asked for." in text
@@ -400,8 +401,8 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     stages.enter("settle")
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("9 stages (stages 4 to 12 of 12): 4. Generate the starting sector;")
-    assert "Stage 4 of 12: Generate the starting sector." in text
+    assert text.startswith("Stage 4 of 12: Generate the starting sector.")      # a step of 9 stages: the banner names the step
+    assert "stages (stages" not in text
     assert "Stage 5 of 12: Generate the neighborhood -- skipped: not needed." in text
     assert "Stage 12 of 12: Save the sector paths." in text
 
@@ -414,7 +415,44 @@ def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
     stages.begin(stages.plan_stages(_plan("--phenomena-only")))
     stages.enter("phenomena")
     stages.finish()
-    assert lines[0] == "1 stage: 1. Scatter the phenomena." and "Stage 1 of 1:" in lines[1]
+    assert lines == ["Stage 1 of 1: Scatter the phenomena."]       # no banner here, so this line is the one mention
+
+
+def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_skipped_stage_says_why(monkeypatch):
+    """PERF.145: "=== Stage 4 of 13: Plan the galaxy ===" is the one mention of the stage."""
+    lines = []
+    monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+    monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "13")
+    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.enter("phenomena")
+    stages.finish()
+    assert lines == []
+    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.skip("phenomena", "nothing to scatter")
+    stages.finish()
+    assert lines == ["Stage 4 of 13: Scatter the phenomena -- skipped: nothing to scatter."]
+
+
+def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
+    """PERF.145: no stage appears twice in a run's log, whichever command, with or without the runner's numbering."""
+    for command, make in (("galaxy", lambda: stages.galaxy_stages(_galaxy("--then-scatter"))),
+                          ("plan", lambda: stages.plan_stages(_plan()))):
+        for env in ({}, {stages.STAGE_OFFSET_ENV: "2", stages.STAGE_TOTAL_ENV: "30"}):
+            lines = []
+            monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+            for name in (stages.STAGE_OFFSET_ENV, stages.STAGE_TOTAL_ENV):
+                monkeypatch.delenv(name, raising=False)
+            for name, value in env.items():
+                monkeypatch.setenv(name, value)
+            listed = make()
+            stages.begin(listed, command=command)
+            for stage in listed:
+                stages.enter(stage.key)
+            stages.finish()
+            numbers = [line.split(":")[0] for line in lines]
+            assert len(numbers) == len(set(numbers)) and all(line.startswith("Stage ") for line in lines)
+            assert len(lines) == len(listed)
 
 
 def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):

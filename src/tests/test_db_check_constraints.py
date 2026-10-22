@@ -30,6 +30,10 @@ _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
+    # Only a planet with life gets these, and whether the seeded galaxy has one depends on its draws (TEST.263).
+    "planet_reflection_spectrum": (
+        "INSERT INTO planet_reflection_spectrum (planet_id, spectrum_type, position, value)"
+        " VALUES ((SELECT MIN(id) FROM planets), 'visible', 0, 'green')"),
     # Only a habitable moon gets these; copied from a planet's.
     "moon_reflection_spectrum": (
         "INSERT INTO moon_reflection_spectrum (moon_id, spectrum_type, position, value)"

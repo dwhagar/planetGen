@@ -2104,6 +2104,11 @@ a.btn.btn-secondary.btn-active:visited {
 .page-subhead .page-actions.nav-row {
   flex-wrap: nowrap;
   align-items: center;
+  /* UX.145: a size container is also a containing block for the menus inside it (layout containment), which the
+     menus' placement (Shoelace's Floating UI reads `offsetParent`) did not know: the Admin and Navigate menus opened
+     as far from their button as the row is from the top of the page, off the window. `relative` makes the row the
+     offset parent too. */
+  position: relative;
   container-type: inline-size;
   container-name: nav-row;
   flex: 1 1 100%;
