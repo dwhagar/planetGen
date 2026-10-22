@@ -206,7 +206,7 @@ def _phenomenon_contents(phenomenon_type, phenomenon_id):
         return None
     try:
         return item_pages.contents(apiclient.get_phenomenon_contents(db_name(), phenomenon_type, phenomenon_id))
-    except apiclient.ApiError:
+    except (apiclient.ApiError, apiclient.NotFoundError):
         return None   # the list is extra: the page opens without it
 
 

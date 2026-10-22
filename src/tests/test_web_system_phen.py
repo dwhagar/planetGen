@@ -153,6 +153,9 @@ class FakeData:
         self.calls.append(("get_phenomenon", db, phenomenon_type, phenomenon_id))
         return self.phenomenon
 
+    def get_phenomenon_contents(self, db, phenomenon_type, phenomenon_id, limit=None):
+        return {"total": 0, "counts": {}, "items": []}
+
     def auth_me(self, cookie_header):
         self.calls.append(("auth_me", cookie_header))
         return self.admin
@@ -160,7 +163,7 @@ class FakeData:
 
 _FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_system_owner", "get_facility_types", "get_system_habitable_species",
           "get_system_text", "get_wiki_config", "upload_system_to_wiki",
-          "get_phenomena", "get_phenomenon", "auth_me")
+          "get_phenomena", "get_phenomenon", "get_phenomenon_contents", "auth_me")
 
 
 @pytest.fixture
@@ -484,6 +487,16 @@ def test_table_route_unknown_table_and_api_failure(client, fake, monkeypatch):
     monkeypatch.setattr(apiclient, "get_phenomena", broken)
     resp = client.get("/table/phenomena")
     assert resp.status_code == 502 and "could not be loaded" in resp.get_json()["error"]
+
+
+@pytest.mark.parametrize("error", [apiclient.ApiError("down"), apiclient.NotFoundError("no contents route")], ids=["unreachable", "not found"])
+def test_phenomenon_page_opens_without_its_contents_list(app, client, fake, monkeypatch, error):
+    def failing(db, phenomenon_type, phenomenon_id, limit=None):
+        raise error
+    monkeypatch.setattr(apiclient, "get_phenomenon_contents", failing)
+    resp = client.get("/phenomenon/nebula/4")
+    assert resp.status_code == 200
+    assert "Crab &lt;Nebula&gt;" in resp.get_data(as_text=True)
 
 
 def test_phenomenon_detail(app, client, fake):
