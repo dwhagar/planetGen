@@ -168,7 +168,7 @@ NOT_BODIES = {
     "galaxy_components": "a density component of the galaxy (a profile about a centre), drawn from when a sector is made",
     "object_index": "the list index: a row copied from each object's own table, never a source of one",
     "nebula_field": "the index of cloud sites the nebula draws from: a centre and a radius, not an object",
-    "orbital_event_bodies": "a body's state as an orbital event found it, kept as a record of the event (DB.56): the body's own row "
+    "orbital_event_bodies": "a body's state as an orbital event found it, kept as a record of the event: the body's own row "
                             "stays the source",
 }
 """dict: Table -> why it carries a point (or a uid) and holds no object."""
