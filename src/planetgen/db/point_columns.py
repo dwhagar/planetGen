@@ -70,12 +70,12 @@ class PointLayout:
 
     @property
     def position_unit(self):
-        """The unit the position is stored in, a length unit of `column_units.UNITS`, read from the column registry."""
+        """The unit the position is stored in, a length unit of the unit registry, read from the column registry."""
         return self._unit_of(self.table, self.position[0], "length")
 
     @property
     def mass_unit(self):
-        """The unit the mass is stored in, a mass unit of `column_units.UNITS`: the mass column's, or the column the
+        """The unit the mass is stored in, a mass unit of the unit registry: the mass column's, or the column the
         mass is summed from."""
         if self.mass_from is not None:
             source, _key, column = self.mass_from
@@ -85,7 +85,7 @@ class PointLayout:
     @staticmethod
     def _unit_of(table, column, kind):
         unit = column_units.unit_of(table, column)
-        if column_units.UNITS[unit].kind != kind:
+        if column_units.unit_info(unit).kind != kind:
             raise ValueError(f"{table}.{column} is stored in {unit!r}, not a {kind} unit")
         return unit
 
@@ -237,7 +237,7 @@ def spatial_from_row(layout, row, sector_center_m=(0.0, 0.0, 0.0), star_center_m
     Returns:
         SpatialPosition3D
     """
-    unit = column_units.UNITS[layout.position_unit].to_si
+    unit = column_units.unit_info(layout.position_unit).factor
     here = tuple(row[name] * unit for name in layout.position)
     velocity = tuple(row[name] * 1000.0 for name in layout.velocity)
     if layout.frame == "galaxy":
@@ -250,7 +250,7 @@ def spatial_from_row(layout, row, sector_center_m=(0.0, 0.0, 0.0), star_center_m
         galactic, relative = tuple(c + h for c, h in zip(star_center_m, here)), True
     if layout.mass is not None:
         value = row[layout.mass]
-        mass_kg = None if value is None else value * column_units.UNITS[layout.mass_unit].to_si
+        mass_kg = None if value is None else value * column_units.unit_info(layout.mass_unit).factor
     point = SpatialPosition3D(
         galactic, sector_center_m, star_center_galactic=star_center_m if relative else None, mass_kg=mass_kg,
         star_velocity_galactic=star_velocity_ms, epoch_unix=row[layout.epoch], sector_edge_pc=sector_edge_pc)
@@ -271,7 +271,7 @@ def values_from_spatial(layout, point):
     The columns of `layout` that a `SpatialPosition3D` holds, as `{column: value}` in the stored units: the inverse of
     `spatial_from_row`. A `mass_from` layout's mass is not included (it is the sum of other rows).
     """
-    unit = column_units.UNITS[layout.position_unit].to_si
+    unit = column_units.unit_info(layout.position_unit).factor
     if layout.frame == "galaxy":
         here = point.get_coordinates("galactic", "cartesian")
         velocity = point.get_velocity_vector("galactic")
@@ -289,6 +289,6 @@ def values_from_spatial(layout, point):
     out.update(zip(layout.velocity, (v / 1000.0 for v in velocity)))
     if layout.mass is not None:
         mass = point.mass_kg
-        out[layout.mass] = None if mass is None else mass / column_units.UNITS[layout.mass_unit].to_si
+        out[layout.mass] = None if mass is None else mass / column_units.unit_info(layout.mass_unit).factor
     out[layout.epoch] = point.epoch_unix
     return out

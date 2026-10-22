@@ -4,7 +4,7 @@
 import sqlalchemy as sa
 
 from planetgen.db import column_units, models, point_columns
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry
 
 NUMERIC = (sa.Integer, sa.Float, sa.Numeric)
 
@@ -25,7 +25,8 @@ def test_a_column_is_declared_once_in_a_unit_that_exists():
     seen = {}
     for table, by_unit in column_units.TABLES.items():
         for unit, columns in by_unit.items():
-            assert unit in column_units.UNITS, f"{table}: unknown unit {unit!r}"
+            known = unit in unit_registry.UNITS or unit in column_units.LOCAL_UNITS
+            assert known, f"{table}: unknown unit {unit!r}"
             for column in columns:
                 assert (table, column) not in seen, f"{table}.{column} is declared in {seen[(table, column)]} and {unit}"
                 seen[(table, column)] = unit
@@ -50,15 +51,21 @@ def test_a_column_of_a_length_a_mass_or_a_time_is_declared_in_one_of_that_kind()
         assert found and all(column_units.kind_of(*key) == kind for key in found)
 
 
-def test_the_factors_are_the_exact_definitions():
-    units = column_units.UNITS
-    assert units["km"].to_si == 1000.0 and units["au"].to_si == constants.AU_M
-    assert units["pc"].to_si == constants.PARSEC_M and units["mpc"].to_si == constants.PARSEC_M / 1000.0
-    assert units["ly"].to_si == constants.LIGHTYEAR_M and units["Msun"].to_si == constants.SOLAR_MASS_TO_KG
-    assert units["Gy"].to_si == 1e9 * units["yr"].to_si and units["h"].to_si == 3600.0
-    assert units["Lsun"].to_si == constants.SOLAR_LUMINOSITY and units["km/s"].to_si == 1000.0
-    assert units["kPa"].to_si == 1000.0 * units["Pa"].to_si
+def test_a_unit_is_in_the_registry_or_local_and_never_in_both():
+    assert not set(column_units.LOCAL_UNITS) & set(unit_registry.UNITS)
+    unused = set(column_units.LOCAL_UNITS) - set(column_units.COLUMNS.values())
+    assert not unused, f"local units no column uses: {sorted(unused)}"
+
+
+def test_the_factors_come_from_the_registry_and_the_exact_definitions():
     assert column_units.to_si("planets", "radius_km") == 1000.0
+    assert column_units.to_si("star_systems", "galaxy_x_pc") == constants.PARSEC_M
+    assert column_units.to_si("star_systems", "position_x_mpc") == constants.PARSEC_M / 1000.0
+    assert column_units.to_si("stars", "mass_kg") == 1.0
+    assert column_units.to_si("black_holes", "mass_solar") == constants.SOLAR_MASS_TO_KG
+    assert column_units.to_si("stars", "luminosity_w") == 1.0
+    assert column_units.unit_info("Gyr").factor == 1e9 * column_units.unit_info("yr").factor
+    assert column_units.unit_info("km3").factor == 1.0e9
 
 
 def test_a_unit_without_an_si_form_refuses_a_factor():
@@ -79,8 +86,8 @@ def test_a_solar_suffix_is_a_mass_when_the_name_says_mass_and_a_luminosity_other
 
 def test_a_layouts_units_are_the_registrys():
     for layout in point_columns.LAYOUTS.values():
-        assert column_units.UNITS[layout.position_unit].kind == "length"
-        assert column_units.UNITS[layout.mass_unit].kind == "mass"
+        assert column_units.unit_info(layout.position_unit).kind == "length"
+        assert column_units.unit_info(layout.mass_unit).kind == "mass"
     assert point_columns.LAYOUTS["star_systems"].position_unit == "mpc"
     assert point_columns.LAYOUTS["star_systems"].mass_unit == "kg"
     assert point_columns.LAYOUTS["black_holes"].mass_unit == "Msun"
