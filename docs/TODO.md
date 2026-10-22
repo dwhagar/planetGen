@@ -13626,6 +13626,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default (derive it) stands. The old Core 1 draft branch
   claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
   gen545-core1-draft.patch are superseded.
+  Epoch 42 is also claimed by GEN.370 (Core 3) and PERF.148 (Bug Hunt);
+  whichever merges later renumbers to the next free epoch on its rebase
+  (the TODO thread, 8:52 PM EDT 2026-10-21).
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -17452,28 +17455,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
 
 - [ ] **PERF.148 Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line**
-  Boss's stalled-job investigation is Bug Hunt's top priority (the
-  coordinator, 2026-10-21; the lane's findings arrive with its reports,
-  and this item records them as they come). Related fixes already
-  merged: a killed run no longer blocks new runs (PERF.142, PERF.143,
-  #2345) and every RQ enqueue has a finite limit (PERF.144, #2366).
-  Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt thread,
-  approved by Boss as part of this fix, as the coordinator relayed 8:48
+  Found by Bug Hunt (8:51 PM EDT 2026-10-21 as the lane reported), filed
+  by the TODO thread. Boss's stalled Generate job. Cause: GEN.324 added
+  the clusters' and satellites' stars (scatter-mass, luminosity, band)
+  and their phenomena as ONE task each (run_plan._plan_shape and
+  _plan_phenomena). At the 500 solar-luminosity halo floor that single
+  unit held about 1.5M of the stage's 1.6M expected stars (the LMC 937k,
+  the SMC 151k); one worker draws about 4 to 5 ms per star (over an
+  hour), the other workers idled at the stage barrier, and the unit
+  reported no progress, so the bar stuck near 2 percent with a 30 hour
+  ETA. The phenomena stage has the same single unit (about 20M expected
+  candidates, the LMC 15.6M). Fix: components are cut by expected rows
+  alone into units of about 25,000 stars (1,000,000 phenomena
+  candidates); bigger components go in slices with their own random
+  streams (component_pass.parts, STAR_SLICE_STARS,
+  PHENOMENON_SLICE_ROWS) and small ones are bundled; units report
+  progress every 200 stars; log lines say "(unit k of N, about X stars
+  expected)". Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt
+  thread, approved as part of this fix, as the coordinator relayed 8:48
   PM EDT): "So here is what I'd like, instead of unit chunks being based
   on expected work, just break up the task space evenly so each chunk is
   as close to the same size as possible to get. That will make my
-  readings of the logs significantly easier." So the units are cut so
-  that each has the same expected work, as close to equal as the task
-  space allows, and the log line shows the unit and its expected work.
-  Do: root-cause the stall and fix the cause, never raise a limit to
-  hide it; cut the task space into equal units; show the unit's expected
-  work in the log line. Done: the cause is written on this item with the
-  evidence; a run that stalled before now finishes or fails with a clear
-  line; the units of one task differ in expected work by no more than
-  the grain of the task space allows (a test on the unit planner); the
-  log line shows the unit and its expected work. Owner: Bug Hunt (top
-  priority). Filed by the TODO thread because the item did not exist;
-  Bug Hunt corrects the wording with its findings.
+  readings of the logs significantly easier." Decided (Boss, cards, 8:47
+  PM EDT 2026-10-21, as the lane reported): the shell cut stays equal
+  expected work. Output change: the LMC, the SMC, Sagittarius and any
+  component past the limit draw different stars, so this takes a
+  generator epoch bump; epoch 42 is already claimed by GEN.545 (Core 1)
+  and GEN.370 (Core 3, which renumbers on rebase), so there is no free
+  number to reserve: whichever of the three merges later renumbers to
+  the next free epoch on its rebase (the rule: take main's epochs and
+  renumber). Done: the cause above is on this item; a Generate run at
+  the 500 solar-luminosity floor finishes with all workers busy and a
+  bar that moves; the units of one task differ in expected work by no
+  more than the grain of the task space allows (a test on the unit
+  planner); the log line shows the unit and its expected work. Owner:
+  Bug Hunt (top priority).
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.144, PERF.145,
   PERF.147.
 
