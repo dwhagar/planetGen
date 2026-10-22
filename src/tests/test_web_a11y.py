@@ -426,6 +426,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
         "type_slug": "nebula",  # web.class_type_page / web.class_page
+        "kind": "planet",  # web.object_list: /lists/planet
         "code": "D",
         "species_id": items("/api/species")[0]["id"],
         "polity_id": items("/api/polities")[0]["id"],
