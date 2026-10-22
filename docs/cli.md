@@ -476,6 +476,14 @@ section 5.13, rows 4 to 6). The plan prints what was drawn.
 A galaxy whose halo would weigh under 1e+10 solar masses (a stellar mass under about 4.6e6) has no dark halo: none is drawn and no law that reads one runs (bracket; see `dials.HALO_MIN_HALO_MASS_SOLAR`). A galaxy under 3e+08 solar masses of stars is one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`).
 <!-- dials:end -->
 
+Before it stores anything, `planetgen plan` prints one line about the galaxy it has drawn: how dense the thin disc's
+crest is as a multiple of the one-star-per-sector density (D), about what share of the stars sit in planned sectors
+(from the density-limits report's table, approximate), and how many shells and candidate sectors the outline holds. A
+crest under 20 times the one-star density adds a warning, and an outline with no sector in it is refused with the reason
+(raise the mass or the density, or lower the scale length or the height). The Generate page shows the same line under the
+shape dials; it asks `/admin/generate/shape-report`, which works the numbers out with the same code
+(`generation/plan_outline.py`).
+
 The galaxy holds the systems its stellar mass makes (no point of it is pinned to the local density, GEN.404). `--max-shell` caps how far out the
 shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the
 galaxy seed. `--workers` is how many shells of bright stars are drawn at
