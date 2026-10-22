@@ -152,6 +152,20 @@ class StellarObject(MassObject):
 - **Gate**: a test like `test_point_columns.py` that fails when any numeric column has no declaration, so a new table cannot ship without a unit.
 - **Built (DB.76, UN4).** `db/column_units.py` holds the list: `TABLES` (table -> unit -> columns, 974 numeric columns of 63 tables), `LOCAL_UNITS` (the few units `physics/unit_registry.py` does not hold yet) and `SUFFIXES` (the unit a name's suffix stands for). `PointLayout` reads its position and mass units from it. `tests/test_column_units.py` is the gate of this section: every numeric column declared once, every declaration a column, and the suffix equal to the declared unit (one exception, `nebula_field.cell_k`, an index). Four quantities whose code states no unit are declared `unspecified`. The load and store of the generic insert (DB.74) is the next client; the dimensions and relations of section 4.2 (UN1) are not built.
 
+### 6.1 Built (DB.77, UN10): the precision table
+
+`db/precision.py` gives each of the 182 length columns a role (`position` 63, `separation` 42, `size` 61, `derived` 12, `relative` 4), and each position or separation a frame and a reach: `bound-orbit` (10,000 AU, the note's figure), `stability-ceiling` (2.2 million AU, the Hill sphere of a 150 solar-mass star at 8 kpc, the farthest a comet's closed orbit goes), `sector` (the half-diagonal of a 4 pc cell) and `galaxy-edge` (262,140 pc, the largest Edge the dials allow). A size keeps its relative precision at any size and declares no reach. From the unit's spacing at the reach the table gives the smallest body each table places to a tenth of its size (`floor_body_m`):
+
+| Tables | Smallest body placed well | Why |
+|---|---|---|
+| planets, moons, asteroid belts, orbit nodes, scatter nodes | 2.4 m | km column at 10,000 AU (0.24 m) |
+| stars, scatter members | 2.7 m | AU column at 10,000 AU |
+| comets | 620 m | km column at the stability ceiling (62 m); a comet inside 10,000 AU is placed as well as a planet |
+| bright stars, the phenomenon scatter | 9,200 km | mpc column in a galaxy frame at the largest Edge |
+| star systems, free bodies (black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants, quasars, facilities), nebula block centroids, sector path knots | 9,000 km | pc column in a galaxy frame at the largest Edge (the spacing at 8 kpc is 33 m, at 1 kpc 4 m) |
+
+So the 10 m floor body holds where it is parent-relative inside 10,000 AU (a test, `REQUIRED_FLOOR_M`, fails when a planet or moon column cannot place one), and a body stored free in a galaxy frame is placed to a tenth of its size only above the table's figure: a rogue 10 m rock is a point to the kilometre at 1 kpc, to tens of kilometres at the Edge. The way out is the one the decision names, a parent-relative state in a wider frame for a body that joins a system (the 8.4 revision) and a lower declared precision for a wanderer; the table makes the cost a number instead of an assumption. `tests/test_precision.py` pins the figures, so moving a column to another unit or changing a reach shows up as a failing test and an edit of this table.
+
 ## 7. Risks
 
 - **Bit-identical output.** Replacing `x * 1000.0` with a registry factor is exact, but replacing `ly_to_au(x)` with a path through km or a rounded `63241.077` by the exact one changes the last digits of generated values and so the golden files and the generator epoch. Rule: the first sweep (UN5) must produce bit-identical output on the golden set; where the exact factor differs from a rounded literal it ships as its own change with an epoch entry (one pending epoch rides until a release stamps it; epochs 12 to 18 stamped, 19 pending at 9:38 PM EDT) and is grouped with another epoch-changing item.

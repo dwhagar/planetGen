@@ -16,6 +16,8 @@ every parent chain and has the reference `galaxy`.
 
 import re
 
+from planetgen.db import kind_tables
+
 GALAXY = "galaxy"
 """str: The reference of the galaxy, the root of every parent chain."""
 
@@ -38,15 +40,8 @@ BODY_KINDS = ("star", "planet", "moon", "belt", "comet")
 KINDS = ("sector", "system") + BODY_KINDS + PHENOMENON_KINDS
 """tuple: Every kind a reference can name (the galaxy has no id)."""
 
-TABLES = {
-    "sector": "sectors",
-    "system": "star_systems",
-    "star": "stars",
-    "planet": "planets",
-    "moon": "moons",
-    "belt": "asteroid_belts",
-    "comet": "comets",
-}
+TABLES = {"sector": "sectors", **{kind: table for kind, table in kind_tables.kind_tables("uid").items()
+                                          if kind == "system" or kind in BODY_KINDS}}
 """dict: Each non-phenomenon kind's table (phenomena use
 `planetgen.db.query._PHENOMENON_TYPE_TO_TABLE`)."""
 

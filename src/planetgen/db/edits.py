@@ -15,31 +15,13 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import store
+from planetgen.db import kind_tables, object_rows, store
 from planetgen.physics import constants
 
-PHENOMENON_TABLES = {
-    "black_hole": "black_holes",
-    "neutron_star": "neutron_stars",
-    "nebula": "nebulae",
-    "supernova_remnant": "supernova_remnants",
-    "rogue_planet": "rogue_planets",
-    "interstellar_comet": "interstellar_comets",
-    "asteroid_field": "asteroid_fields",
-    "quasar": "quasars",
-}
+PHENOMENON_TABLES = kind_tables.kind_tables("phenomenon", order="placed")
 """dict: The web's phenomenon type (`/phenomenon/<type>/<id>`) -> its table."""
 
-GENERATOR_TYPES = {
-    "black_hole": "black-hole",
-    "neutron_star": "neutron-star",
-    "nebula": "nebula",
-    "supernova_remnant": "supernova-remnant",
-    "rogue_planet": "rogue-planet",
-    "interstellar_comet": "comet",
-    "asteroid_field": "asteroid-field",
-    "quasar": "quasar",
-}
+GENERATOR_TYPES = kind_tables.generator_types(order="placed")
 """dict: The web's phenomenon type -> `generate.generate_phenomenon`'s."""
 
 _KEPT_PHENOMENON_COLUMNS = {
@@ -71,10 +53,9 @@ def _star_ids(conn, system_id, system):
 def _update_body(conn, table, body, assignments, key_values):
     """UPDATEs one `planets`/`moons` row from `body` and rewrites its
     reflection spectrum rows."""
-    columns = list(assignments) + list(store._BODY_COLUMNS)
-    if table == "planets":
-        columns += list(store._PLANET_ONLY_COLUMNS)
-    values = list(key_values) + store.body_row_values(body)
+    fields = store.PLANET_BODY_FIELDS if table == "planets" else store.BODY_FIELDS
+    columns = list(assignments) + list(object_rows.columns_of(fields))
+    values = list(key_values) + object_rows.values_of(fields, body)
     # An edited orbit is worked out again by the next orbit update (GEN.106).
     conn.execute(
         f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in columns)}, next_update_due = NULL"

@@ -26,32 +26,16 @@ from collections import defaultdict
 
 from werkzeug.routing import BaseConverter, ValidationError
 
+from planetgen.db import kind_tables
 from planetgen.galaxy import object_uid, uid as sector_uid
 
 SECTOR = "sector"
 """str: The kind of a sector, whose ID is a plain integer (its designation)."""
 
-OBJECT_TABLES = {
-    "system": "star_systems",
-    "star": "stars",
-    "planet": "planets",
-    "moon": "moons",
-    "belt": "asteroid_belts",
-    "comet": "comets",
-    "facility": "facilities",
-    "nebula": "nebulae",
-    "asteroid_field": "asteroid_fields",
-    "black_hole": "black_holes",
-    "neutron_star": "neutron_stars",
-    "supernova_remnant": "supernova_remnants",
-    "rogue_planet": "rogue_planets",
-    "interstellar_comet": "interstellar_comets",
-    "quasar": "quasars",
-}
+OBJECT_TABLES = kind_tables.kind_tables("uid", order="ids")
 """dict: Each kind with an 96-bit `uid` column and the table that holds it. A phenomenon's kind is its type."""
 
-PHENOMENON_KINDS = ("nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
-                    "rogue_planet", "interstellar_comet", "quasar")
+PHENOMENON_KINDS = tuple(kind_tables.kind_tables("phenomenon", order="phenomenon_kinds"))
 """tuple: The kinds a generic `phenomenon` rule can resolve to (the row's `type`)."""
 
 PRINTED_PATTERN = r"[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}"

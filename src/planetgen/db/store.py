@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login, orbit_trees, point_columns, scatter_systems
+from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
@@ -531,12 +531,7 @@ def _sql_for_log(sql, params):
     return line if len(line) <= _SQL_LOG_LIMIT else line[:_SQL_LOG_LIMIT] + f"... ({len(line)} chars)"
 
 
-ID_BLOCK_TABLES = frozenset((
-    "system_configs", "sectors", "star_systems", "stars", "planets", "moons",
-    "asteroid_belts", "comets", "black_holes", "neutron_stars", "nebulae",
-    "supernova_remnants", "rogue_planets", "interstellar_comets",
-    "asteroid_fields", "quasars",
-))
+ID_BLOCK_TABLES = frozenset(kind_tables.tables("id_block"))
 """frozenset: Tables whose new rows take their `id` from `id_blocks`
 (schema v45, PERF.13) rather than from AUTO_INCREMENT. Every plain
 `INSERT INTO <one of these> (...) VALUES (...)` that names no `id`
@@ -2645,14 +2640,7 @@ def _reserve_phenomenon_name(conn, obj, kind=None, placement=None):
 
 
 OBJECT_ID_TABLES = {
-    "rogue-planet": "rogue_planets",
-    "black-hole": "black_holes",
-    "neutron-star": "neutron_stars",
-    "nebula": "nebulae",
-    "supernova-remnant": "supernova_remnants",
-    "quasar": "quasars",
-    "comet": "interstellar_comets",
-    "asteroid-field": "asteroid_fields",
+    **kind_tables.generator_type_tables(order="object_ids"),
     "black-hole-core": "black_holes",
     "neutron-star-core": "neutron_stars",
 }
@@ -2742,6 +2730,83 @@ def _stored_names(conn, table, names):
     return found
 
 
+_AU_KM = physical_constants.AU_TO_KM
+
+
+_SPIN_FIELD = object_rows.computed(spin.SPIN_FIELDS, lambda obj, context: spin.spin_values(obj),
+                                   lambda row: {name: row[name] for name in spin.SPIN_FIELDS})
+"""Field: the spin axis and axial tilt."""
+
+_GALACTIC_ORBIT_FIELD = object_rows.computed(
+    ("galactic_orbital_period_gy", "galactic_orbital_phase_deg", "galactic_min_update_interval_years"),
+    lambda obj, context: (obj.galactic_orbital_period_gy, obj.galactic_orbital_phase_deg,
+                          obj.galactic_min_update_interval_years),
+    lambda row: {name: row[name] for name in ("galactic_orbital_period_gy", "galactic_orbital_phase_deg",
+                                              "galactic_min_update_interval_years")})
+"""Field: the galactic orbit of a star or free object."""
+
+_PLACEMENT_FIELD = object_rows.computed(
+    ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
+    lambda obj, context: _placement_values(context.get("placement")))
+"""Field: where a free object sits in the galaxy (all `None` unplaced)."""
+
+_FREE_VECTOR_FIELD = object_rows.computed(
+    ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
+    lambda obj, context: _free_vector(obj, context.get("placement")))
+"""Field: the movement vector a free object is stored with."""
+
+
+def _au_pair(inner_column, outer_column, name):
+    """A field storing the AU pair `obj.<name>` (a habitable zone) as two kilometre columns."""
+    return object_rows.computed(
+        (inner_column, outer_column),
+        lambda obj, context: (getattr(obj, name)[0] * _AU_KM, getattr(obj, name)[1] * _AU_KM),
+        lambda row: {name: [row[inner_column] / _AU_KM, row[outer_column] / _AU_KM]})
+
+
+def _flag(column):
+    """A column holding the attribute of its name as 0/1; it loads back as a `bool`."""
+    return object_rows.computed(column, lambda obj, context: int(getattr(obj, column)),
+                                lambda row: {column: bool(row[column])})
+
+
+def _whole_number(value):
+    """A stored `REAL` that is a whole number as the `int` the generator makes it (`5800`, not `5800.0`).
+
+    `generate_star` sets the temperature with `int(round(...))`, but a `DOUBLE` column returns every number as a
+    float and `f"{temperature} K"` renders the two differently. A fractional value is kept (an accretion disk's
+    temperature is drawn as a float and truncating it would print 3,676,064.7 K as 3,676,064 K).
+    """
+    return int(value) if value is not None and float(value).is_integer() else value
+
+
+STAR_FIELDS = (
+    object_rows.context("star_system_id"), object_rows.context("role"),
+    object_rows.attr("name"), object_rows.attr("star_type", "type"), object_rows.attr("yerkes_class"),
+    object_rows.attr("mass_kg", "mass"), object_rows.attr("radius_km", "radius"),
+    object_rows.computed("temperature_k", lambda star, context: star.temperature,
+                         lambda row: {"temperature": _whole_number(row["temperature_k"])}),
+    object_rows.attr("luminosity_w", "luminosity"),
+    object_rows.attr("age_gy", "age"),
+    object_rows.computed("lifespan_gy", lambda star, context: _lifespan_gy(star.lifespan),
+                         lambda row: {"lifespan": row["lifespan_gy"]}),
+    _au_pair("habitable_zone_inner_km", "habitable_zone_outer_km", "habitable_zone"),
+    object_rows.scaled("system_perimeter_km", "system_perimeter", _AU_KM),
+    object_rows.scaled("heliosphere_radius_km", "heliosphere_radius", _AU_KM),
+    _GALACTIC_ORBIT_FIELD,
+    object_rows.scaled("wide_binary_a_crit_km", "a_crit_au", _AU_KM, nullable=True),
+    object_rows.scaled("reflex_offset_x_km", "reflex_offset_x", _AU_KM, null=0.0, nullable=True),
+    object_rows.scaled("reflex_offset_y_km", "reflex_offset_y", _AU_KM, null=0.0, nullable=True),
+    object_rows.scaled("reflex_offset_z_km", "reflex_offset_z", _AU_KM, null=0.0, nullable=True),
+    object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.each(activity.STAR_ACTIVITY_FIELDS), object_rows.optional("metallicity_fe_h"),
+    object_rows.each(pre_main_sequence.DISK_FIELDS),
+    object_rows.context("parent_node_id"),
+    object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
+)
+"""tuple: The `Field`s of a `stars` row (`object_rows`)."""
+
+
 def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0)) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
@@ -2758,52 +2823,8 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
     Returns:
         int: The new `stars.id`.
     """
-    wide_binary_a_crit_km = (
-        star.a_crit_au * physical_constants.AU_TO_KM if star.a_crit_au is not None else None
-    )
-    cur = conn.execute(
-        """
-        INSERT INTO stars (
-            star_system_id, role, name, star_type, yerkes_class, mass_kg, radius_km,
-            temperature_k, luminosity_w, age_gy, lifespan_gy,
-            habitable_zone_inner_km, habitable_zone_outer_km,
-            system_perimeter_km, heliosphere_radius_km,
-            galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            wide_binary_a_crit_km,
-            reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
-            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
-            log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
-            lethal_event_rate_per_gyr, metallicity_fe_h,
-            disk_kind, disk_mass_solar, disk_inner_au, disk_outer_au,
-            parent_node_id, offset_x_au, offset_y_au, offset_z_au
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            star_system_id, role, star.name, star.type, star.yerkes_class,
-            star.mass, star.radius, star.temperature, star.luminosity, star.age,
-            _lifespan_gy(star.lifespan),
-            star.habitable_zone[0] * physical_constants.AU_TO_KM,
-            star.habitable_zone[1] * physical_constants.AU_TO_KM,
-            star.system_perimeter * physical_constants.AU_TO_KM,
-            star.heliosphere_radius * physical_constants.AU_TO_KM,
-            star.galactic_orbital_period_gy,
-            star.galactic_orbital_phase_deg,
-            star.galactic_min_update_interval_years,
-            wide_binary_a_crit_km,
-            star.reflex_offset_x * physical_constants.AU_TO_KM,
-            star.reflex_offset_y * physical_constants.AU_TO_KM,
-            star.reflex_offset_z * physical_constants.AU_TO_KM,
-            getattr(star, "rotation_period_hours", None),
-            *spin.spin_values(star),
-            *(getattr(star, name, None) for name in activity.STAR_ACTIVITY_FIELDS),
-            getattr(star, "metallicity_fe_h", None),
-            *(getattr(star, name, None) for name in pre_main_sequence.DISK_FIELDS),
-            parent_node_id, *offset_au,
-        ),
-    )
-    return cur.lastrowid
+    return object_rows.insert_row(conn, "stars", STAR_FIELDS, star, {
+        "star_system_id": star_system_id, "role": role, "parent_node_id": parent_node_id, "offset_au": offset_au})
 
 
 def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_visible):
@@ -2818,80 +2839,57 @@ def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_v
             )
 
 
-_BODY_COLUMNS = (
-    "body_type", "name",
-    "planet_class", "distance_km", "radius_km", "mass_kg", "volume_km3", "period_years", "zone",
-    "description", "gravity_g", "surface_temperature_k", "density_g_cm3", "atmosphere",
-    "atm_density", "atm_molar_density", "atmospheric_pressure_pa", "composition",
-    "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
-    "habitable_zone_inner_km", "habitable_zone_outer_km",
-    "life_chemical", "evolutionary_speed", "life_stage", "evolutionary_pace", "life_milestone_age_gyr",
-    "life_system_age_gyr", "flavor_key", "flavor_text_count",
-    "orbital_inclination_deg", "orbital_ascending_node_deg",
-    *point_columns.LAYOUTS["planets"].position, "orbital_speed_kms", *point_columns.LAYOUTS["planets"].velocity,
-    "min_update_interval_years",
-    "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
-    *atmosphere.ATMOSPHERE_FIELDS,
-    *magnetism.BODY_FIELDS,
-    *hydrosphere.HYDROSPHERE_FIELDS,
-    *radiation.BODY_FIELDS,
-    *habitability_world.BODY_FIELDS,
+def _radiation_values(body):
+    return tuple(getattr(body, name, None) for name in radiation.BODY_FIELDS)
+
+
+def _radiation_load(row):
+    data = {name: row[name] for name in radiation.BODY_FIELDS}
+    data["ozone_loss_flag"] = _tristate_from_db(row["ozone_loss_flag"])
+    return data
+
+
+_POSITION_COLUMNS = point_columns.LAYOUTS["planets"].position
+_VELOCITY_COLUMNS = point_columns.LAYOUTS["planets"].velocity
+
+BODY_FIELDS = (
+    object_rows.attr("body_type"), object_rows.attr("name"),
+    object_rows.attr("planet_class"), object_rows.scaled("distance_km", "distance", _AU_KM),
+    object_rows.attr("radius_km", "radius"), object_rows.attr("mass_kg", "mass"),
+    object_rows.attr("volume_km3", "volume"), object_rows.attr("period_years", "period"), object_rows.attr("zone"),
+    object_rows.attr("description"), object_rows.attr("gravity_g", "gravity"),
+    object_rows.attr("surface_temperature_k", "surface_temperature"),
+    object_rows.attr("density_g_cm3", "density"), object_rows.attr("atmosphere"),
+    object_rows.attr("atm_density"), object_rows.attr("atm_molar_density"),
+    object_rows.attr("atmospheric_pressure_pa", "atmospheric_pressure"), object_rows.attr("composition"),
+    object_rows.attr("scale_height_km", "scale_height"), object_rows.attr("hill_radius_km", "hill_radius"),
+    object_rows.scaled("min_orbit_distance_km", "min_orbit_distance", _AU_KM, nullable=True),
+    _au_pair("habitable_zone_inner_km", "habitable_zone_outer_km", "habitable_zone"),
+    object_rows.attr("life_chemical"), object_rows.attr("evolutionary_speed"),
+    object_rows.attr("life_stage"), object_rows.attr("evolutionary_pace"),
+    object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
+    object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
+    object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"),
+    *(object_rows.scaled(column, f"position_{axis}", _AU_KM) for axis, column in zip("xyz", _POSITION_COLUMNS)),
+    object_rows.attr("orbital_speed_kms"),
+    *(object_rows.attr(column, f"velocity_{axis}_kms") for axis, column in zip("xyz", _VELOCITY_COLUMNS)),
+    object_rows.attr("min_update_interval_years"),
+    object_rows.attr("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.each(atmosphere.ATMOSPHERE_FIELDS),
+    object_rows.each(magnetism.BODY_FIELDS),
+    object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
+    object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
+    object_rows.each(habitability_world.BODY_FIELDS),
 )
-"""tuple: The generated-content columns `planets` and `moons` share, in
-`body_row_values` order."""
+"""tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
+them in place, `_planet_or_moon_row_to_dict` reads them back)."""
 
-_PLANET_ONLY_COLUMNS = ("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km")
-"""tuple: The `planets` columns `moons` lacks (a moon hosts no moons)."""
+PLANET_ONLY_FIELDS = tuple(
+    object_rows.scaled(f"reflex_offset_{axis}_km", f"reflex_offset_{axis}", _AU_KM, null=0.0, nullable=True)
+    for axis in "xyz")
+"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons)."""
 
-
-def body_row_values(body):
-    """
-    A planet's or moon's generated-content column values, in
-    `_BODY_COLUMNS` order (plus `_PLANET_ONLY_COLUMNS` for a planet), with
-    every unit conversion `load_star_system` inverts: what
-    `insert_planet`/`insert_moon` write and `db.edits` updates in place.
-    """
-    min_orbit_distance_km = (
-        body.min_orbit_distance * physical_constants.AU_TO_KM
-        if body.min_orbit_distance is not None else None
-    )
-    values = [
-        body.body_type, body.name,
-        body.planet_class,
-        body.distance * physical_constants.AU_TO_KM,
-        body.radius, body.mass, body.volume, body.period, body.zone,
-        body.description, body.gravity, body.surface_temperature,
-        body.density, body.atmosphere,
-        body.atm_density, body.atm_molar_density, body.atmospheric_pressure,
-        body.composition,
-        body.scale_height, body.hill_radius, min_orbit_distance_km,
-        body.habitable_zone[0] * physical_constants.AU_TO_KM,
-        body.habitable_zone[1] * physical_constants.AU_TO_KM,
-        body.life_chemical, body.evolutionary_speed,
-        body.life_stage, body.evolutionary_pace, body.life_milestone_age_gyr, body.life_system_age_gyr,
-        body.flavor_key, body.flavor_text_count,
-        body.orbital_inclination_deg, body.orbital_ascending_node_deg,
-        body.position_x * physical_constants.AU_TO_KM,
-        body.position_y * physical_constants.AU_TO_KM,
-        body.position_z * physical_constants.AU_TO_KM,
-        body.orbital_speed_kms,
-        body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms,
-        body.min_update_interval_years,
-        body.rotation_period_hours,
-        *spin.spin_values(body),
-        *(getattr(body, name, None) for name in atmosphere.ATMOSPHERE_FIELDS),
-        *(getattr(body, name, None) for name in magnetism.BODY_FIELDS),
-        *(getattr(body, name, None) for name in hydrosphere.HYDROSPHERE_FIELDS),
-        *(getattr(body, name, None) for name in radiation.BODY_FIELDS),
-        *(getattr(body, name, None) for name in habitability_world.BODY_FIELDS),
-    ]
-    if not body.is_moon:
-        values += [
-            body.reflex_offset_x * physical_constants.AU_TO_KM,
-            body.reflex_offset_y * physical_constants.AU_TO_KM,
-            body.reflex_offset_z * physical_constants.AU_TO_KM,
-        ]
-    return values
+PLANET_BODY_FIELDS = BODY_FIELDS + PLANET_ONLY_FIELDS
 
 
 def body_child_rows(conn, body, body_id):
@@ -2907,6 +2905,23 @@ def planet_parent(star_id, star_system_id):
     """`(parent_type, parent_id)` of a planet (GEN.289): the star it orbits, or, for a close pair's circumbinary
     planet (`star_id` None), the system, whose barycenter it orbits."""
     return ("star", star_id) if star_id is not None else ("system", star_system_id)
+
+
+PLANET_FIELDS = (
+    object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
+    object_rows.computed(("parent_type", "parent_id"),
+                         lambda planet, context: planet_parent(context["star_id"], context["star_system_id"])),
+    *PLANET_BODY_FIELDS,
+)
+"""tuple: The `Field`s of a `planets` row."""
+
+MOON_FIELDS = (
+    object_rows.context("planet_id"), object_rows.context("star_system_id"), object_rows.context("star_id"),
+    object_rows.context("orbital_index"),
+    object_rows.computed(("parent_type", "parent_id"), lambda moon, context: ("planet", context["planet_id"])),
+    *BODY_FIELDS,
+)
+"""tuple: The `Field`s of a `moons` row."""
 
 
 def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
@@ -2930,13 +2945,8 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     Returns:
         int: The new `planets.id`.
     """
-    columns = ("star_system_id", "star_id", "orbital_index", "parent_type", "parent_id") + _BODY_COLUMNS \
-        + _PLANET_ONLY_COLUMNS
-    cur = conn.execute(
-        f"INSERT INTO planets ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-        (star_system_id, star_id, orbital_index, *planet_parent(star_id, star_system_id), *body_row_values(planet)),
-    )
-    planet_id = cur.lastrowid
+    planet_id = object_rows.insert_row(conn, "planets", PLANET_FIELDS, planet, {
+        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index})
 
     body_child_rows(conn, planet, planet_id)
 
@@ -2968,16 +2978,26 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     Returns:
         int: The new `moons.id`.
     """
-    columns = ("planet_id", "star_system_id", "star_id", "orbital_index", "parent_type", "parent_id") + _BODY_COLUMNS
-    cur = conn.execute(
-        f"INSERT INTO moons ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-        (planet_id, star_system_id, star_id, orbital_index, "planet", planet_id, *body_row_values(moon)),
-    )
-    moon_id = cur.lastrowid
+    moon_id = object_rows.insert_row(conn, "moons", MOON_FIELDS, moon, {
+        "planet_id": planet_id, "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index})
 
     body_child_rows(conn, moon, moon_id)
 
     return moon_id
+
+
+BELT_FIELDS = (
+    object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
+    object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
+    object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
+    object_rows.attr("density"),
+    object_rows.computed("composition_summary", lambda belt, context: belt.get_composition_summary()),
+    # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries no vector
+    # of its own; its bulk has no mass model yet, a stated zero the gravity sum skips.
+    object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
+                          "velocity_z_kms", "mass_kg"), lambda belt, context: (0.0,) * 7),
+)
+"""tuple: The `Field`s of an `asteroid_belts` row."""
 
 
 def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None) -> int:
@@ -3004,27 +3024,8 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     Returns:
         int: The new `asteroid_belts.id`.
     """
-    cur = conn.execute(
-        """
-        INSERT INTO asteroid_belts (
-            star_system_id, star_id, orbital_index, distance_km, lower_limit_km, upper_limit_km,
-            density, composition_summary,
-            position_x_km, position_y_km, position_z_km, velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            star_system_id, star_id, orbital_index,
-            belt.distance * physical_constants.AU_TO_KM,
-            belt.lower_limit * physical_constants.AU_TO_KM,
-            belt.upper_limit * physical_constants.AU_TO_KM,
-            belt.density,
-            belt.get_composition_summary(),
-            # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries
-            # no vector of its own; its bulk has no mass model yet, a stated zero the gravity sum skips.
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ),
-    )
-    belt_id = cur.lastrowid
+    belt_id = object_rows.insert_row(conn, "asteroid_belts", BELT_FIELDS, belt, {
+        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index})
 
     for position, (component, concentration) in enumerate(belt.composition):
         conn.execute(
@@ -3036,6 +3037,27 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
         )
 
     return belt_id
+
+
+COMET_FIELDS = (
+    object_rows.context("star_system_id"), object_rows.context("star_id"),
+    object_rows.attr("name"), object_rows.attr("orbit_type"), object_rows.attr("period_class"),
+    object_rows.attr("nucleus_diameter_km"),
+    object_rows.computed("composition_summary", lambda comet, context: comet.get_composition_summary()),
+    object_rows.scaled("perihelion_distance_km", "perihelion_distance_au", _AU_KM),
+    object_rows.attr("eccentricity"), object_rows.attr("inclination_deg"), object_rows.attr("arg_periapsis_deg"),
+    object_rows.attr("ascending_node_deg"), object_rows.attr("orbital_period_years"),
+    object_rows.attr("mean_anomaly_deg"), object_rows.attr("parabolic_mean_anomaly"),
+    object_rows.attr("min_update_interval_years"), object_rows.attr("primary_mass_solar"),
+    _flag("is_active"),
+    object_rows.scaled("distance_km", "distance_au", _AU_KM), object_rows.scaled("position_x_km", "position_x_au", _AU_KM),
+    object_rows.scaled("position_y_km", "position_y_au", _AU_KM), object_rows.scaled("position_z_km", "position_z_au", _AU_KM),
+    object_rows.attr("orbital_speed_kms"),
+    object_rows.attr("velocity_x_kms"), object_rows.attr("velocity_y_kms"), object_rows.attr("velocity_z_kms"),
+    object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.computed("mass_kg", lambda comet, context: bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km)),
+)
+"""tuple: The `Field`s of a `comets` row."""
 
 
 def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
@@ -3061,37 +3083,8 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
     Returns:
         int: The new `comets.id`.
     """
-    cur = conn.execute(
-        """
-        INSERT INTO comets (
-            star_system_id, star_id, name, orbit_type, period_class,
-            nucleus_diameter_km, composition_summary, perihelion_distance_km,
-            eccentricity, inclination_deg, arg_periapsis_deg, ascending_node_deg,
-            orbital_period_years, mean_anomaly_deg, parabolic_mean_anomaly,
-            min_update_interval_years, primary_mass_solar, is_active,
-            distance_km, position_x_km, position_y_km, position_z_km, orbital_speed_kms,
-            velocity_x_kms, velocity_y_kms, velocity_z_kms,
-            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg, mass_kg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            star_system_id, star_id, comet.name, comet.orbit_type, comet.period_class,
-            comet.nucleus_diameter_km, comet.get_composition_summary(),
-            comet.perihelion_distance_au * physical_constants.AU_TO_KM,
-            comet.eccentricity, comet.inclination_deg, comet.arg_periapsis_deg, comet.ascending_node_deg,
-            comet.orbital_period_years, comet.mean_anomaly_deg, comet.parabolic_mean_anomaly,
-            comet.min_update_interval_years, comet.primary_mass_solar, int(comet.is_active),
-            comet.distance_au * physical_constants.AU_TO_KM,
-            comet.position_x_au * physical_constants.AU_TO_KM,
-            comet.position_y_au * physical_constants.AU_TO_KM,
-            comet.position_z_au * physical_constants.AU_TO_KM,
-            comet.orbital_speed_kms,
-            comet.velocity_x_kms, comet.velocity_y_kms, comet.velocity_z_kms,
-            getattr(comet, "rotation_period_hours", None), *spin.spin_values(comet),
-            bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km),
-        ),
-    )
-    comet_id = cur.lastrowid
+    comet_id = object_rows.insert_row(conn, "comets", COMET_FIELDS, comet, {
+        "star_system_id": star_system_id, "star_id": star_id})
 
     for position, component in enumerate(comet.composition):
         conn.execute(
@@ -3100,6 +3093,49 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
         )
 
     return comet_id
+
+
+def _remnant_galactic(remnant, context):
+    """The movement vector and galactic orbit of a standalone remnant; an anchored one (`star_id` set) leaves them `NULL`
+    (its motion already lives on its own `stars` row, so there is one source of truth for its position)."""
+    if context["star_id"] is not None:
+        return (None,) * 6
+    return (*_free_vector(remnant, context["placement"]), remnant.galactic_orbital_period_gy,
+            remnant.galactic_orbital_phase_deg, remnant.galactic_min_update_interval_years)
+
+
+def _remnant_spin(remnant, context):
+    """GEN.104: like the galactic fields, an anchored remnant's spin is on its stars row."""
+    return (None,) * len(spin.SPIN_FIELDS) if context["star_id"] is not None else spin.spin_values(remnant)
+
+
+_REMNANT_GALACTIC_FIELD = object_rows.computed(
+    ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "galactic_orbital_period_gy", "galactic_orbital_phase_deg",
+     "galactic_min_update_interval_years"), _remnant_galactic)
+_REMNANT_SPIN_FIELD = object_rows.computed(spin.SPIN_FIELDS, _remnant_spin)
+
+BLACK_HOLE_FIELDS = (
+    object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
+    object_rows.attr("mass_class"), object_rows.attr("mass_solar"), object_rows.attr("event_horizon_radius_km"),
+    object_rows.attr("spin"), _flag("has_accretion_disk"),
+    object_rows.attr("temperature_k", "temperature"), object_rows.attr("luminosity_w", "luminosity"),
+    object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
+)
+"""tuple: The `Field`s of a `black_holes` row."""
+
+NEUTRON_STAR_FIELDS = (
+    object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
+    object_rows.attr("mass_solar"), object_rows.attr("radius_km", "radius"), object_rows.attr("spin_period_ms"),
+    object_rows.attr("magnetic_field_gauss"), object_rows.attr("pulsar_type"),
+    object_rows.attr("surface_temperature_k"), object_rows.attr("luminosity_w", "luminosity"),
+    object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
+)
+"""tuple: The `Field`s of a `neutron_stars` row."""
+
+_BLACK_HOLE_OWN_COLUMNS = ("mass_class", "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk")
+_NEUTRON_STAR_OWN_COLUMNS = ("mass_solar", "spin_period_ms", "magnetic_field_gauss", "pulsar_type",
+                             "surface_temperature_k")
+"""tuple: The columns of a remnant's satellite row that are not already on its `stars` row."""
 
 
 def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None, placement=None,
@@ -3151,40 +3187,11 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
         name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole, "black-hole", placement)
     elif star_id is None:
         _take_core_id(conn, black_hole, "black-hole-core", placement)
-    galactic_fields = (
-        (None,) * 6 if star_id is not None else (
-            *_free_vector(black_hole, placement), black_hole.galactic_orbital_period_gy,
-            black_hole.galactic_orbital_phase_deg, black_hole.galactic_min_update_interval_years,
-        )
-    )
-    # GEN.104: like the galactic fields, an anchored remnant's spin is on its stars row.
-    spin_fields = (None,) * len(spin.SPIN_FIELDS) if star_id is not None else spin.spin_values(black_hole)
-    placement = placement or {}
-    cur = conn.execute(
-        """
-        INSERT INTO black_holes (
-            star_id, sector_id, name, mass_class, mass_solar, event_horizon_radius_km, spin,
-            has_accretion_disk, temperature_k, luminosity_w, age_gy,
-            velocity_x_kms, velocity_y_kms, velocity_z_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
-            spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            star_id, sector_id, black_hole.name, black_hole.mass_class, black_hole.mass_solar,
-            black_hole.event_horizon_radius_km, black_hole.spin,
-            int(black_hole.has_accretion_disk), black_hole.temperature,
-            black_hole.luminosity, black_hole.age,
-            *galactic_fields,
-            placement.get("center_x_pc"), placement.get("center_y_pc"),
-            placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
-            *spin_fields,
-        ),
-    )
+    row_id = object_rows.insert_row(conn, "black_holes", BLACK_HOLE_FIELDS, black_hole, {
+        "star_id": star_id, "sector_id": sector_id, "placement": placement})
     if name_base is not None:
-        confirm_object_name(conn, name_base, "black_holes", cur.lastrowid, diminutive_index)
-    return cur.lastrowid
+        confirm_object_name(conn, name_base, "black_holes", row_id, diminutive_index)
+    return row_id
 
 
 def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id=None, placement=None,
@@ -3216,40 +3223,11 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
         name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star, "neutron-star", placement)
     elif star_id is None:
         _take_core_id(conn, neutron_star, "neutron-star-core", placement)
-    galactic_fields = (
-        (None,) * 6 if star_id is not None else (
-            *_free_vector(neutron_star, placement), neutron_star.galactic_orbital_period_gy,
-            neutron_star.galactic_orbital_phase_deg, neutron_star.galactic_min_update_interval_years,
-        )
-    )
-    # GEN.104: like the galactic fields, an anchored remnant's spin is on its stars row.
-    spin_fields = (None,) * len(spin.SPIN_FIELDS) if star_id is not None else spin.spin_values(neutron_star)
-    placement = placement or {}
-    cur = conn.execute(
-        """
-        INSERT INTO neutron_stars (
-            star_id, sector_id, name, mass_solar, radius_km, spin_period_ms, magnetic_field_gauss,
-            pulsar_type, surface_temperature_k, luminosity_w, age_gy,
-            velocity_x_kms, velocity_y_kms, velocity_z_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
-            spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            star_id, sector_id, neutron_star.name, neutron_star.mass_solar, neutron_star.radius,
-            neutron_star.spin_period_ms, neutron_star.magnetic_field_gauss,
-            neutron_star.pulsar_type, neutron_star.surface_temperature_k,
-            neutron_star.luminosity, neutron_star.age,
-            *galactic_fields,
-            placement.get("center_x_pc"), placement.get("center_y_pc"),
-            placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
-            *spin_fields,
-        ),
-    )
+    row_id = object_rows.insert_row(conn, "neutron_stars", NEUTRON_STAR_FIELDS, neutron_star, {
+        "star_id": star_id, "sector_id": sector_id, "placement": placement})
     if name_base is not None:
-        confirm_object_name(conn, name_base, "neutron_stars", cur.lastrowid, diminutive_index)
-    return cur.lastrowid
+        confirm_object_name(conn, name_base, "neutron_stars", row_id, diminutive_index)
+    return row_id
 
 
 def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
@@ -3439,6 +3417,19 @@ def _rogue_surface_values(planet):
     )
 
 
+ROGUE_PLANET_FIELDS = (
+    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("planet_type"),
+    object_rows.optional("planet_class"), object_rows.attr("mass_bin"), object_rows.attr("mass_kg"),
+    object_rows.attr("radius_km"), object_rows.attr("composition"),
+    object_rows.computed("has_internal_heat", lambda planet, context: int(planet.has_internal_heat)),
+    object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
+    object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
+    _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
+    object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+)
+"""tuple: The `Field`s of a `rogue_planets` row."""
+
+
 def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=None) -> int:
     """
     Inserts a `rogue_planets` row (see `schema.sql`'s "v16"/"v28" header
@@ -3454,30 +3445,10 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
         int: The new `rogue_planets.id`.
     """
     name_base, diminutive_index = _reserve_phenomenon_name(conn, planet, "rogue-planet", placement)
-    cur = conn.execute(
-        f"""
-        INSERT INTO rogue_planets (
-            sector_id, name, planet_type, planet_class, mass_bin, mass_kg, radius_km, composition,
-            has_internal_heat, has_moons, {", ".join(ROGUE_SURFACE_FIELDS)},
-            velocity_x_kms, velocity_y_kms, velocity_z_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
-            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join("?" * len(ROGUE_SURFACE_FIELDS))},
-                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            sector_id, planet.name, planet.planet_type, getattr(planet, "planet_class", None), planet.mass_bin, planet.mass_kg, planet.radius_km,
-            planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
-            *_rogue_surface_values(planet),
-            *_free_vector(planet, placement), planet.galactic_orbital_period_gy,
-            planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
-            *_placement_values(placement),
-            getattr(planet, "rotation_period_hours", None), *spin.spin_values(planet),
-        ),
-    )
-    confirm_object_name(conn, name_base, "rogue_planets", cur.lastrowid, diminutive_index)
-    return cur.lastrowid
+    row_id = object_rows.insert_row(conn, "rogue_planets", ROGUE_PLANET_FIELDS, planet, {
+        "sector_id": sector_id, "placement": placement})
+    confirm_object_name(conn, name_base, "rogue_planets", row_id, diminutive_index)
+    return row_id
 
 
 def sector_code(conn, sector_id):
@@ -3511,6 +3482,17 @@ def _next_in_sector(conn, table, sector_id):
     return row["n"] + 1
 
 
+INTERSTELLAR_COMET_FIELDS = (
+    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("nucleus_diameter_km"),
+    object_rows.attr("velocity_kms"), object_rows.computed("is_active", lambda comet, context: int(comet.is_active)),
+    object_rows.computed("composition_summary", lambda comet, context: comet.get_composition_summary()),
+    _FREE_VECTOR_FIELD,
+    object_rows.computed("mass_kg", lambda comet, context: bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km)),
+    _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+)
+"""tuple: The `Field`s of an `interstellar_comets` row."""
+
+
 def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, placement=None) -> int:
     """
     Inserts an `interstellar_comets` row (plus its
@@ -3530,26 +3512,8 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
         comet.name = interstellar_comet_designation(
             sector_code(conn, sector_id), _next_in_sector(conn, "interstellar_comets", sector_id),
         )
-    cur = conn.execute(
-        """
-        INSERT INTO interstellar_comets (
-            sector_id, name, nucleus_diameter_km, velocity_kms, is_active, composition_summary,
-            velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
-            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            sector_id, comet.name, comet.nucleus_diameter_km, comet.velocity_kms,
-            int(comet.is_active), comet.get_composition_summary(),
-            *_free_vector(comet, placement), bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km), comet.galactic_orbital_period_gy,
-            comet.galactic_orbital_phase_deg, comet.galactic_min_update_interval_years,
-            *_placement_values(placement),
-            getattr(comet, "rotation_period_hours", None), *spin.spin_values(comet),
-        ),
-    )
-    comet_id = cur.lastrowid
+    comet_id = object_rows.insert_row(conn, "interstellar_comets", INTERSTELLAR_COMET_FIELDS, comet, {
+        "sector_id": sector_id, "placement": placement})
 
     for position, component in enumerate(comet.composition):
         conn.execute(
@@ -3558,6 +3522,16 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
         )
 
     return comet_id
+
+
+ASTEROID_FIELD_FIELDS = (
+    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("field_class"),
+    object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
+    object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
+    _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: 0.0), _GALACTIC_ORBIT_FIELD,
+    _PLACEMENT_FIELD,
+)
+"""tuple: The `Field`s of an `asteroid_fields` row."""
 
 
 def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=None) -> int:
@@ -3585,26 +3559,8 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
         field.name = asteroid_field_designation(
             field.field_class, sector_code(conn, sector_id), _next_in_sector(conn, "asteroid_fields", sector_id),
         )
-    placement = placement or {}
-    cur = conn.execute(
-        """
-        INSERT INTO asteroid_fields (
-            sector_id, name, field_class, composition_family, density, radius_ly, composition_summary,
-            velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            sector_id, field.name, field.field_class, field.composition_family, field.density,
-            field.radius_ly, field.get_composition_summary(),
-            *_free_vector(field, placement), 0.0, field.galactic_orbital_period_gy,
-            field.galactic_orbital_phase_deg, field.galactic_min_update_interval_years,
-            placement.get("center_x_pc"), placement.get("center_y_pc"),
-            placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
-        ),
-    )
-    field_id = cur.lastrowid
+    field_id = object_rows.insert_row(conn, "asteroid_fields", ASTEROID_FIELD_FIELDS, field, {
+        "sector_id": sector_id, "placement": placement})
 
     for position, (component, concentration) in enumerate(field.composition):
         conn.execute(
@@ -4235,10 +4191,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
 
 # --- Containment (v39): what sits inside a nebula or supernova remnant ---
 
-CONTAINABLE_TABLES = (
-    "star_systems", "rogue_planets", "interstellar_comets", "black_holes",
-    "neutron_stars", "asteroid_fields", "nebulae",
-)
+CONTAINABLE_TABLES = kind_tables.tables("containable", order="containable")
 """tuple: Every table with `inside_nebula_id`/`inside_remnant_id` (schema
 v39). Asteroid fields can sit inside a cloud but never contain anything;
 nebulae nest (a small one inside a larger nebula or remnant)."""
@@ -4607,10 +4560,7 @@ def refresh_habitability(conn, system_id):
     return updated
 
 
-PLACED_PHENOMENON_TABLES = (
-    "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "rogue_planets",
-    "interstellar_comets", "asteroid_fields", "quasars",
-)
+PLACED_PHENOMENON_TABLES = kind_tables.tables("phenomenon", order="placed")
 """tuple: The phenomenon tables with a galaxy-frame center, each with a
 `quadrant` column since v41."""
 
@@ -7834,8 +7784,7 @@ def get_galaxy_shells(conn):
     return [(row["shell_index"], row["high_band_index"], row["cell_count"]) for row in rows]
 
 
-PHENOMENON_UID_TABLES = ("black_holes", "neutron_stars", "nebulae", "supernova_remnants", "quasars", "rogue_planets",
-                         "interstellar_comets", "asteroid_fields")
+PHENOMENON_UID_TABLES = kind_tables.tables("phenomenon")
 """tuple: The phenomenon tables a sector holds, each with a `uid` (v58)."""
 
 def _sector_address_of(galaxy_position):
@@ -8315,58 +8264,11 @@ def load_system_config(conn, config_id) -> SystemConfig:
 
 
 def _star_row_to_dict(row, speed_kms):
-    """Maps a `stars` row to `Star.from_dict`'s expected dict shape,
-    inverting every unit conversion `insert_star` applies.
-
-    `temperature` is cast back to `int` when it is a whole number --
-    `Star.generate_star` always sets it via `int(round(...))`, but a `REAL`/
-    `DOUBLE` column hands every numeric value back as a Python `float`, and
-    `f"{self.temperature} K"` (`get_table_properties`) renders `5800` vs.
-    `5800.0` differently. A fractional value is kept as-is: an anchored
-    `BlackHole`'s accretion-disk temperature is a float (`random.uniform`),
-    and truncating it would render e.g. 3,676,064.7 K as "3,676,064 K"
-    instead of the generated "3,676,065 K".
-    """
-    temperature = row["temperature_k"]
-    if temperature is not None and float(temperature).is_integer():
-        temperature = int(temperature)
-    return {
-        "name": row["name"],
-        "type": row["star_type"],
-        "yerkes_class": row["yerkes_class"],
-        "mass": row["mass_kg"],
-        "radius": row["radius_km"],
-        "temperature": temperature,
-        "luminosity": row["luminosity_w"],
-        "age": row["age_gy"],
-        "lifespan": row["lifespan_gy"],
-        "habitable_zone": [
-            row["habitable_zone_inner_km"] / physical_constants.AU_TO_KM,
-            row["habitable_zone_outer_km"] / physical_constants.AU_TO_KM,
-        ],
-        "system_perimeter": row["system_perimeter_km"] / physical_constants.AU_TO_KM,
-        "heliosphere_radius": row["heliosphere_radius_km"] / physical_constants.AU_TO_KM,
-        "galactic_orbital_speed_kms": speed_kms,
-        "galactic_orbital_period_gy": row["galactic_orbital_period_gy"],
-        "galactic_orbital_phase_deg": row["galactic_orbital_phase_deg"],
-        "galactic_min_update_interval_years": row["galactic_min_update_interval_years"],
-        "a_crit_au": (
-            row["wide_binary_a_crit_km"] / physical_constants.AU_TO_KM
-            if row["wide_binary_a_crit_km"] is not None else None
-        ),
-        # v20: NULL for a planet-less star (row column, not the Star's own
-        # 0.0 class-level default) -- normalize back to 0.0 the same way
-        # every other "0.0 in memory, NULL when not applicable" v20 column
-        # does on its own read path.
-        "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
-        "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
-        "reflex_offset_z": row["reflex_offset_z_km"] / physical_constants.AU_TO_KM if row["reflex_offset_z_km"] is not None else 0.0,
-        "rotation_period_hours": row["rotation_period_hours"],
-        **{name: row[name] for name in spin.SPIN_FIELDS},
-        **{name: row[name] for name in activity.STAR_ACTIVITY_FIELDS},
-        "xuv_saturated": None if row["xuv_saturated"] is None else bool(row["xuv_saturated"]),
-        **{name: row[name] for name in pre_main_sequence.DISK_FIELDS},
-    }
+    """Maps a `stars` row to `Star.from_dict`'s expected dict shape: `STAR_FIELDS` inverts every conversion
+    `insert_star` applies; the galactic orbital speed is not stored (the caller derives it)."""
+    data = object_rows.load_dict(STAR_FIELDS, row)
+    data["galactic_orbital_speed_kms"] = speed_kms
+    return data
 
 
 def _black_hole_row_to_dict(star_row, black_hole_row, speed_kms):
@@ -8386,11 +8288,7 @@ def _black_hole_row_to_dict(star_row, black_hole_row, speed_kms):
         dict: In the shape `BlackHole.to_dict()` produces.
     """
     data = _star_row_to_dict(star_row, speed_kms)
-    data["mass_solar"] = black_hole_row["mass_solar"]
-    data["event_horizon_radius_km"] = black_hole_row["event_horizon_radius_km"]
-    data["spin"] = black_hole_row["spin"]
-    data["has_accretion_disk"] = bool(black_hole_row["has_accretion_disk"])
-    data["mass_class"] = black_hole_row["mass_class"]
+    data.update(object_rows.load_dict(BLACK_HOLE_FIELDS, black_hole_row, only=_BLACK_HOLE_OWN_COLUMNS))
     return data
 
 
@@ -8408,11 +8306,7 @@ def _neutron_star_row_to_dict(star_row, neutron_star_row, speed_kms):
         dict: In the shape `NeutronStar.to_dict()` produces.
     """
     data = _star_row_to_dict(star_row, speed_kms)
-    data["mass_solar"] = neutron_star_row["mass_solar"]
-    data["spin_period_ms"] = neutron_star_row["spin_period_ms"]
-    data["magnetic_field_gauss"] = neutron_star_row["magnetic_field_gauss"]
-    data["pulsar_type"] = neutron_star_row["pulsar_type"]
-    data["surface_temperature_k"] = neutron_star_row["surface_temperature_k"]
+    data.update(object_rows.load_dict(NEUTRON_STAR_FIELDS, neutron_star_row, only=_NEUTRON_STAR_OWN_COLUMNS))
     return data
 
 
@@ -8569,125 +8463,31 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     visible = [r["value"] for r in spectrum_rows if r["spectrum_type"] == "visible"]
     non_visible = [r["value"] for r in spectrum_rows if r["spectrum_type"] == "non_visible"]
 
-    min_orbit_distance_km = row["min_orbit_distance_km"]
-
-    return {
+    data = object_rows.load_dict(PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
+    data.update({
         "is_moon": is_moon,
-        "zone": row["zone"],
-        "description": row["description"],
-        "atm_molar_density": row["atm_molar_density"],
-        "gravity": row["gravity_g"],
-        "atm_density": row["atm_density"],
-        "surface_temperature": row["surface_temperature_k"],
-        "density": row["density_g_cm3"],
-        "atmospheric_pressure": row["atmospheric_pressure_pa"],
-        "mass": row["mass_kg"],
-        "atmosphere": row["atmosphere"],
-        "composition": row["composition"],
-        "radius": row["radius_km"],
-        "planet_class": row["planet_class"],
-        "distance": row["distance_km"] / physical_constants.AU_TO_KM,
-        "body_type": row["body_type"],
-        "scale_height": row["scale_height_km"],
-        "hill_radius": row["hill_radius_km"],
-        "min_orbit_distance": (
-            min_orbit_distance_km / physical_constants.AU_TO_KM
-            if min_orbit_distance_km is not None else None
-        ),
-        "name": row["name"],
-        "life_chemical": row["life_chemical"],
-        "evolutionary_speed": row["evolutionary_speed"],
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,
-        "life_stage": row["life_stage"],
-        "evolutionary_pace": row["evolutionary_pace"],
-        "life_milestone_age_gyr": row["life_milestone_age_gyr"],
-        "life_system_age_gyr": row["life_system_age_gyr"],
-        "flavor_key": row["flavor_key"],
-        "flavor_text_count": row["flavor_text_count"],
-        "habitable_zone": [
-            row["habitable_zone_inner_km"] / physical_constants.AU_TO_KM,
-            row["habitable_zone_outer_km"] / physical_constants.AU_TO_KM,
-        ],
-        "volume": row["volume_km3"],
-        "period": row["period_years"],
-        "orbital_inclination_deg": row["orbital_inclination_deg"],
-        "orbital_ascending_node_deg": row["orbital_ascending_node_deg"],
-        "position_x": row["position_x_km"] / physical_constants.AU_TO_KM,
-        "position_y": row["position_y_km"] / physical_constants.AU_TO_KM,
-        "position_z": row["position_z_km"] / physical_constants.AU_TO_KM,
-        "orbital_speed_kms": row["orbital_speed_kms"],
-        "velocity_x_kms": row["velocity_x_kms"],
-        "velocity_y_kms": row["velocity_y_kms"],
-        "velocity_z_kms": row["velocity_z_kms"],
-        "min_update_interval_years": row["min_update_interval_years"],
-        "rotation_period_hours": row["rotation_period_hours"],
-        **{name: row[name] for name in spin.SPIN_FIELDS},
-        **{name: row[name] for name in atmosphere.ATMOSPHERE_FIELDS},
-        **{name: row[name] for name in magnetism.BODY_FIELDS},
-        **{name: row[name] for name in hydrosphere.HYDROSPHERE_FIELDS},
-        **{name: row[name] for name in radiation.BODY_FIELDS},
-        **{name: row[name] for name in habitability_world.BODY_FIELDS},
-        "ozone_loss_flag": _tristate_from_db(row["ozone_loss_flag"]),
-        # v20: only the `planets` table has these columns (a planet's own
-        # wobble from its moons) -- `moons` has no such column at all
-        # (moons never host their own moons), so a moon always gets the
-        # same 0.0 `Planet.reflex_offset_x` class-level default instead.
-        **(
-            {} if is_moon else {
-                "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
-                "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
-                "reflex_offset_z": row["reflex_offset_z_km"] / physical_constants.AU_TO_KM if row["reflex_offset_z_km"] is not None else 0.0,
-            }
-        ),
         "moons": [],
-    }
+    })
+    return data
 
 
 def _belt_row_to_dict(row, composition_pairs):
     """Maps an `asteroid_belts` row (plus its `asteroid_belt_composition`
     child rows) to `AsteroidBelt.from_dict`'s expected dict shape."""
-    return {
-        "distance": row["distance_km"] / physical_constants.AU_TO_KM,
-        "lower_limit": row["lower_limit_km"] / physical_constants.AU_TO_KM,
-        "upper_limit": row["upper_limit_km"] / physical_constants.AU_TO_KM,
-        "body_type": "a",
-        "density": row["density"],
-        "composition": [[pair["component"], pair["concentration"]] for pair in composition_pairs],
-    }
+    data = object_rows.load_dict(BELT_FIELDS, row)
+    data["body_type"] = "a"
+    data["composition"] = [[pair["component"], pair["concentration"]] for pair in composition_pairs]
+    return data
 
 
 def _comet_row_to_dict(row, composition_rows):
     """Maps a `comets` row (plus its `comet_composition` child rows) to
     `Comet.from_dict`'s expected dict shape."""
-    return {
-        "name": row["name"],
-        "orbit_type": row["orbit_type"],
-        "period_class": row["period_class"],
-        "nucleus_diameter_km": row["nucleus_diameter_km"],
-        "perihelion_distance_au": row["perihelion_distance_km"] / physical_constants.AU_TO_KM,
-        "eccentricity": row["eccentricity"],
-        "inclination_deg": row["inclination_deg"],
-        "arg_periapsis_deg": row["arg_periapsis_deg"],
-        "ascending_node_deg": row["ascending_node_deg"],
-        "orbital_period_years": row["orbital_period_years"],
-        "mean_anomaly_deg": row["mean_anomaly_deg"],
-        "parabolic_mean_anomaly": row["parabolic_mean_anomaly"],
-        "min_update_interval_years": row["min_update_interval_years"],
-        "primary_mass_solar": row["primary_mass_solar"],
-        "is_active": bool(row["is_active"]),
-        "distance_au": row["distance_km"] / physical_constants.AU_TO_KM,
-        "position_x_au": row["position_x_km"] / physical_constants.AU_TO_KM,
-        "position_y_au": row["position_y_km"] / physical_constants.AU_TO_KM,
-        "position_z_au": row["position_z_km"] / physical_constants.AU_TO_KM,
-        "orbital_speed_kms": row["orbital_speed_kms"],
-        "velocity_x_kms": row["velocity_x_kms"],
-        "velocity_y_kms": row["velocity_y_kms"],
-        "velocity_z_kms": row["velocity_z_kms"],
-        "rotation_period_hours": row["rotation_period_hours"],
-        **{name: row[name] for name in spin.SPIN_FIELDS},
-        "composition": [r["component"] for r in composition_rows],
-    }
+    data = object_rows.load_dict(COMET_FIELDS, row)
+    data["composition"] = [r["component"] for r in composition_rows]
+    return data
 
 
 def load_star_system(conn, star_system_id) -> StarSystem:
@@ -8950,11 +8750,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
     return sector
 
 
-TIMESTAMPED_TABLES = (
-    "sectors", "star_systems",
-    "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
-    "rogue_planets", "interstellar_comets", "asteroid_fields", "quasars",
-)
+TIMESTAMPED_TABLES = kind_tables.tables("timestamped", order="timestamped")
 """tuple: The top-level tables carrying v27's `created_at`/`modified_at`
 row timestamps -- see `schema.sql`'s "v27" header note. Child rows
 (stars, planets, moons, belts, comets, ...) have no timestamps of their

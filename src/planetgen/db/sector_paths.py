@@ -29,12 +29,12 @@ comet moves at its stored vector.
 import concurrent.futures
 import multiprocessing
 
-from planetgen.db import point_columns
+from planetgen.db import kind_tables, point_columns
 from planetgen.galaxy import spherical as geometry
 from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
 
-PATH_TABLES = ("star_systems", "rogue_planets", "interstellar_comets")
+PATH_TABLES = kind_tables.tables("path")
 """tuple: The tables whose rows get a path (the `sector_paths.object_table` values)."""
 
 NEIGHBOUR_REACH_EDGES = 2.5
@@ -104,7 +104,7 @@ def _bodies(conn, sector_id, center):
                                                       row["position_z_mpc"] / 1000.0))
         bodies.append(("star_systems", row["id"], tuple(c * _PC for c in point),
                        tuple(row[f"velocity_{axis}_kms"] * 1000.0 for axis in "xyz")))
-    for table in ("rogue_planets", "interstellar_comets"):
+    for table in (name for name in kind_tables.tables("path") if name != "star_systems"):
         for row in conn.execute(
             f"SELECT id, center_x_pc, center_y_pc, center_z_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
             f" FROM {table}"
