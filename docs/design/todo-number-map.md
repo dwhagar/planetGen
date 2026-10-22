@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.622 |
 | PERF | PERF.149 |
-| DB | DB.85 |
+| DB | DB.86 |
 | API | API.32 |
 | ADM | ADM.126 |
 | SEC | SEC.34 |
@@ -629,6 +629,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
+| DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1318,7 +1319,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster | none | open |
 | GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures | none | open |
 | GEN.616 | Average the galaxy density over each planned sector (or a 3 by 3 by 3 sample) instead of taking its centre point, for galaxies under 28 pc scale length | none | dropped (Boss, 2026-10-21 8:08 PM EDT, replaced by GEN.619) |
-| GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output | none | open |
+| GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output | none | done, PR #2469 |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end | none | open |
 | GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | none | open |
 | GEN.620 | The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off) | none | open |
@@ -1461,7 +1462,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | done, PR #797 |
 | MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | done, PR #797 |
 | MAP.138 | Recenter the camera in every 3D view (bug) | none | done, PR #797 |
-| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
+| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | done, PR #2468 |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
 | MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |

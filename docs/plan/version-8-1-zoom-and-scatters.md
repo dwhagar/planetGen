@@ -177,7 +177,6 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them |  | Boss 7:33 PM EDT 2026-10-21; read-only report. |
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster |  | Density limits report (GEN.613). |
 | GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures |  | Density limits report (GEN.613); cut decided 3e8 (Boss, 7:58 PM EDT). |
-| GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output |  | Density limits report (GEN.613). |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
 | ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it |  | Admin control suite key K1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.118 | Split from ADM.56. Key K2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
@@ -214,7 +213,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
-| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |

@@ -995,6 +995,13 @@ with `clamp()`.
   builds the admin shell and header palette (ADM.92, ADM.118) and does
   not touch the item pages or the viewers' info box; if both change the
   shared header layout, whichever merges second rebases.
+  Core 2 (relayed 9:33 AM EDT 2026-10-22): next in its queue with the
+  TEST.267 fix (the page-walk test walks stars): the Location block on
+  item, system and phenomenon pages, nebula and remnant pages listing
+  what is inside them, and the new API `GET
+  /api/phenomena/<type>/<id>/contents`. The cluster and region part
+  waits on DB.85 (globular clusters and superbubbles are not stored as
+  containers).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1150,34 +1157,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitable worlds and chosen classes (child b) and the station and
   vessel icons (child c, in 9.3).
   Prerequisites: MAP.219, MAP.220, MAP.221.
-
-- [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
-  Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
-  that I want to fill up with something useful, maybe menu items? Maybe
-  information about what is selected?" and "A simple information box
-  should appear overlaid on the map when there is room that displays the
-  basics. Then a details link will jump you to the part of the page the
-  details are listed on." Done: on a wide Galaxy View the space beside
-  the map holds the selection's basics and the map's Menu items; where
-  there is room on the map itself a small info box shows the basics with
-  a Details link that scrolls to the full details; it builds on MAP.65's
-  shared panel.
-  Screenshot (Boss, 2026-10-14 13:37Z, copy in
-  /mnt/project-files/screenshots/issue-758/): the top of the Galaxy Map
-  page. The header band (breadcrumb, the title "Galaxy Map" and the "0
-  placed sectors" pill) fills the full width but only its left fifth is
-  used; the "Go to" bar below it is the only control on its row; and
-  the right-hand panel holds only the help text until something is
-  selected. The empty header space to the right of the title and the
-  empty panel are the places to put the selection basics and menu items.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Overlap (6:40 PM EDT 2026-10-21): this item's Galaxy View info box
-  with a Details link is extended to every view and every kind by
-  MAP.254 (one shared info box with a View button to the item page
-  UX.143); build MAP.139 on the shared component so MAP.254 does not
-  redo it.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -2532,8 +2511,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   palette (ADM.92, ADM.118) and does not touch the item pages or the
   viewers' info box; if both change the shared header layout, whichever
   merges second rebases.
-  Prerequisites: UX.143, MAP.139. Related: MAP.65, MAP.139, MAP.140,
+  Prerequisites: UX.143. Related: MAP.65, MAP.139, MAP.140,
   UX.142, UX.143, UX.144.
+  Progress (Core 2, MAP.139 and MAP.254 merged together as #2468,
+  relayed 9:33 AM EDT 2026-10-22): one shared info box (`mappick.js`)
+  with the View button to the item's own page on the Galaxy, Sector and
+  System maps (diagram and 3D), plus a small box over the map when it
+  has room (rows, View, Details, Close); the 2D System Map uses the
+  shared panel; a test fails if any map builds a panel or box of its
+  own. MAP.139 is retired. Still open here: the navigation chart and the
+  list and search results keep their own links, and the browser table of
+  every kind by every view is not written.
 
 
 ## NAV: Navigation and courses
@@ -15711,29 +15699,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   card.
   Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.604.
 
-- [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
-  Found by the galaxy size research thread's density limits report
-  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
-  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
-  the TODO thread. A galaxy can have an empty outline or most of its
-  stars outside the planned sectors; the user should see it before a
-  run. Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
-  relayed by the galaxy size research thread): refuse only when the
-  outline would be empty; warn under D = 20 and show the share of stars
-  in planned sectors. This item is required, not optional. Do: one line
-  on the Generate form under the dials (ADM.124) and in the command-line
-  plan output with D (thin-disc crest density), the share of stars in
-  planned sectors (the table of report section 2.2) and the outline
-  size, with a warning under D 20 and a refusal when the outline would
-  be empty. Done: the line appears in both places with the same numbers
-  (a test compares them); an empty outline is refused with the reason.
-  Owner: the Galaxy dials lane (assigned by the coordinator, 8:37 AM EDT
-  2026-10-22, so ADM.124 can show the line; the lane had finished and
-  retired about 7:05 AM EDT as the lane reported, and the coordinator
-  reopened its thread for this item at 8:40 AM EDT as the lane clock
-  reads).
-  Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
-
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
   Found by the galaxy size research thread's density limits report
   (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
@@ -17947,6 +17912,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   not assigned (the DB items chain lane after its listed order).
   Prerequisites: none. Related: DB.18, DB.44.
 
+- [ ] **DB.85 Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds**
+  Found by Core 2 (relayed 9:33 AM EDT 2026-10-22, while building UX.144
+  and MAP.254), filed by the TODO thread. Globular clusters and
+  superbubbles are not stored as containers, so nothing can say 'this
+  star is inside cluster X' or list what is inside one, and the Location
+  block of UX.144 and the 'Inside:' line cannot name them. Do: store
+  each globular cluster and each superbubble as a container (a row with
+  its Object ID, kind, centre, extent and the region it belongs to) and
+  a way to ask which containers hold a point and what a container holds,
+  as the nebula and remnant pages already do for their contents (`GET
+  /api/phenomena/<type>/<id>/contents`). Done: for a star inside a
+  globular cluster and a star inside a superbubble, the query names the
+  container; a container lists what it holds; the stored rows come from
+  the generator with no fixed content. Owner: none (the coordinator
+  assigns; Core 2 asked for it).
+  Prerequisites: none. Related: UX.144, MAP.254, UX.143.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -19483,9 +19465,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   slider range and step follow the unit; the absolute scale length has
   pc and kpc; both read the lever table's unit column (GEN.601). The
   first release shows four dials, Scale, Structure, Edge and Halo;
-  Census (GEN.607, merged as #2443) is the fifth dial.
-  GEN.617 supplies the density line this panel shows; the coordinator
-  assigned it to the Galaxy dials lane at 8:37 AM EDT 2026-10-22.
+  Census (GEN.607, merged as #2443) is the fifth dial. GEN.617 is merged
+  as #2469 (the Galaxy dials lane, relayed 9:38 AM EDT 2026-10-22): the
+  Generate page already shows the density line under the dials through
+  the admin JSON route /admin/generate/shape-report (shared code
+  `generation/plan_outline.py`, element `[data-shape-report]`); this
+  panel reuses both.
   Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
 
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
