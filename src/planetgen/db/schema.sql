@@ -1407,6 +1407,9 @@
 -- v128 (DB.64): `constellations`, the stored constellations of a system's sky (VIEW.3): the system's uid and the constellation's number in it, the object
 --   ID of its name, the member stars and the edges between them (JSON), and the seed and version key it was built under. Nothing writes or reads it yet.
 --
+-- v129 (DB.63): `vessels`, the ships and stations (9.3): object ID, kind, name, whether generated or user-made and its owner, the position, point mass and
+--   movement vector of GEN.294 at an epoch, the course (JSON) and the seed and version key it was made under. Nothing writes or reads it yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4363,6 +4366,34 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v129 (DB.63): the ships and stations; see the header note.
+CREATE TABLE IF NOT EXISTS vessels (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    uid                  BINARY(12) NOT NULL,
+    kind                 VARCHAR(8) NOT NULL,
+    name                 VARCHAR(255) NOT NULL,
+    origin               VARCHAR(12) NOT NULL,
+    owner_id             BIGINT UNSIGNED NULL,
+    owner_name           VARCHAR(255) NULL,
+    center_x_pc          DOUBLE NULL,
+    center_y_pc          DOUBLE NULL,
+    center_z_pc          DOUBLE NULL,
+    mass_kg              DOUBLE NULL,
+    velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
+    epoch_unix           DOUBLE NULL,
+    course               JSON NULL,
+    seed                 BIGINT UNSIGNED NULL,
+    version_key          CHAR(22) NULL,
+    created_at           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    UNIQUE KEY uq_vessels_uid (uid),
+    KEY idx_vessels_owner (owner_id, id),
+    CONSTRAINT chk_vessels_kind CHECK (kind IN ('ship', 'station')),
+    CONSTRAINT chk_vessels_origin CHECK (origin IN ('generated', 'user'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v128 (DB.64): the stored constellations; see the header note.
 CREATE TABLE IF NOT EXISTS constellations (

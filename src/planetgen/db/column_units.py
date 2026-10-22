@@ -798,6 +798,14 @@ TABLES = {
         "id": ("star_system_id", "polity_id"),
         "ly": ("distance_ly",),
     },
+    "vessels": {
+        "id": ("id", "owner_id"),
+        "pc": ("center_x_pc", "center_y_pc", "center_z_pc"),
+        "unix_s": ("epoch_unix",),
+        "kg": ("mass_kg",),
+        "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
+        "seed": ("seed",),
+    },
 }
 """dict: Table -> unit -> the columns stored in it. Every numeric column of every table is on it once."""
 
