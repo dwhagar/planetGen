@@ -16957,6 +16957,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   speed, period and phase, and min_update_interval_years.
   Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
   then DB.76, DB.73 and DB.74.
+  Progress (Core 1, #2534 merged 6:55 PM EDT 2026-10-22 as the lane
+  reported, with DB.77): slices 1 to 3 are done: the kind registry
+  `db/kind_tables.py` with named ORDERS, and one insert and one load
+  driven by the Field lists in `db/object_rows.py`; a loaded star now
+  keeps its stored `metallicity_fe_h` (the old loader dropped it).
+  Docs: mass-object-class.md sections 13 to 15 and
+  unified-unit-quantity.md section 6.1 (precision figures). Still open:
+  the core and profile tables, which come in the single 8.4 revision
+  and wait on DB.67 to DB.71 and Core 4's generator work.
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -16992,31 +17001,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   keeps its ID, and a planet that leaves its star keeps its ID. Owner:
   Core 1 (proposed: the identity chain), 8.4 phase 1.
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
-
-- [ ] **DB.77 Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 1, after DB.76. Do: for
-  every length column declare the reference frame and the largest
-  distance for which a 10 m body keeps a metre, from the spacing of a
-  double (1 AU 3.1e-5 m, 10,000 AU 0.25 m, 1 pc 4 m, 8 kpc 32,768 m), so
-  a body farther than about 10,000 AU from its parent is parent-relative
-  in a wider frame or a wanderer with its own galactic frame at lower
-  precision. Done: a test reads the table and fails when a column with a
-  10 m floor body exceeds its limit.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
   Part of the unified orbited-body plan (GEN.550; design note
