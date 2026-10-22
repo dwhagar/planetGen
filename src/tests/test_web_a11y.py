@@ -423,7 +423,6 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "bright_star_id": bright_star_id,  # web.uncharted_star
         "quadrant": "I",
         "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
-        "kind": "planet",  # web.object_list: /lists/planet
         "ref": f"planet:{planet['id']}",  # web.object_page: /object/planet:<id>, a planet's own page
         "page": 1,
         "job_id": sample_job,
