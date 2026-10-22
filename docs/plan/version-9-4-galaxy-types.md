@@ -18,7 +18,7 @@ The type draw and the Sérsic spheroid component, which every family reads.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | GEN.378, GEN.379 | Step 4 of the galaxy types chain. |
+| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | GEN.379 | Step 4 of the galaxy types chain. |
 
 ### Spheroid component
 
@@ -30,7 +30,7 @@ The type draw and the Sérsic spheroid component, which every family reads.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid | GEN.378 | Boss 9:00 PM EDT: an outline image per galaxy type. |
+| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid |  | Boss 9:00 PM EDT: an outline image per galaxy type. |
 
 ## Phase 2: The families
 
