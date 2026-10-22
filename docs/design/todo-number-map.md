@@ -1002,7 +1002,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
 | GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy | none | open |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | done, PR #2132 |
-| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | open |
+| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | done, PR #2490 |
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | none | open |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
@@ -1272,11 +1272,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | open |
 | GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | none | done, PR #2190 |
 | GEN.568 | One registry of every unit the project uses | none | done, PR #2476 |
-| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | none | open |
+| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | none | done, PR #2490 |
 | GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | none | open |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | none | open |
 | GEN.572 | The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change | none | done, PR #2243 |
-| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | open |
+| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | done, PR #2490 |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | none | open |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | none | open |
 | GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | none | open |
@@ -2069,7 +2069,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do | none | open |
 | UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | none | open |
 | UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | none | open |
-| UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | open |
+| UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | done, PR #2490 |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | open |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | done, PR #2408 |
 | UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |

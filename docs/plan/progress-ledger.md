@@ -1001,3 +1001,7 @@ Baseline: PR #1817.
 | TEST.267 | 8.1 | Bugs and flaky tests |
 | DB.76 | 8.4 | Bulk composition |
 | DB.43 | 8.1 | Reproducible galaxies |
+| GEN.569 | 8.4 | Bulk composition |
+| UX.139 | 8.4 | Bulk composition |
+| GEN.573 | 8.4 | Bulk composition |
+| GEN.299 | 8.3 | The Quantity class |
