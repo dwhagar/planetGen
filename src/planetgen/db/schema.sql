@@ -1404,6 +1404,9 @@
 --   `bright_stars` gain `cluster_id`, a nullable indexed reference to `galaxy_components.id` (cleared if the cluster is removed), so a star can
 --   point to the cluster that is its parent. Every existing cluster keeps its name; nothing writes or reads the link yet.
 --
+-- v128 (DB.64): `constellations`, the stored constellations of a system's sky (VIEW.3): the system's uid and the constellation's number in it, the object
+--   ID of its name, the member stars and the edges between them (JSON), and the seed and version key it was built under. Nothing writes or reads it yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4360,6 +4363,22 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v128 (DB.64): the stored constellations; see the header note.
+CREATE TABLE IF NOT EXISTS constellations (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    system_uid           BINARY(12) NOT NULL,
+    constellation_index  SMALLINT UNSIGNED NOT NULL,
+    name_id              BINARY(12) NULL,
+    members              JSON NOT NULL,
+    edges                JSON NOT NULL,
+    seed                 BIGINT UNSIGNED NOT NULL,
+    version_key          CHAR(22) NOT NULL,
+    created_at           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    UNIQUE KEY uq_constellations_system_index (system_uid, constellation_index),
+    KEY idx_constellations_name (name_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v126 (DB.39): the edit request comments and notices; see the header note.
 CREATE TABLE IF NOT EXISTS request_comments (

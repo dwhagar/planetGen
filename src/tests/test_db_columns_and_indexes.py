@@ -38,6 +38,8 @@ PROSE_TEXT_COLUMNS = {
     ("region_density_overrides", "params"),
     # DB.39: a comment's text
     ("request_comments", "body"),
+    # DB.64: the stars and the lines of a constellation as JSON lists
+    ("constellations", "edges"), ("constellations", "members"),
     # Control schema: an error message and the audit log's note.
     ("work_tasks", "error"), ("admin_audit_log", "detail"),
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
