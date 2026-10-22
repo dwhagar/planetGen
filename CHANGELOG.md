@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1894] - 2026-10-22
+
+**Headline:** The database check holds the rule that a foreign key's default delete rule is not drift on any supported server.
+
+### Changed
+- `check-db` and the model comparison already pass on a healthy MySQL 8.0.46 database (the models declare `ON DELETE RESTRICT` where schema.sql does, and Alembic reads a key MySQL 8.4 reports with no rule as the same). DB.33 is therefore closed by a regeneration that landed earlier; this adds the tests that keep it closed.
+- `tests/test_db_check.py` rebuilds `fk_facilities_type` with no rule, with `ON DELETE RESTRICT` and with `ON DELETE NO ACTION`, and none is drift; with `ON DELETE CASCADE` it is.
+
+TODO items resolved: DB.33. Added: none.
+
 ## [8.0.1893] - 2026-10-22
 
 **Headline:** A galaxy's number of systems follows from a mean system mass worked out from the generator's own star mix, not a recalled 0.4 solar masses.
