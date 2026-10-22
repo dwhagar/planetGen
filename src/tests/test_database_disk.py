@@ -125,3 +125,14 @@ def test_the_admin_tile_says_unknown_instead_of_showing_the_boot_drive():
     assert _disk_tile({"measured": False, "note": "not visible"}).startswith("unknown (not visible")
     shown = _disk_tile({"measured": True, "free_bytes": 3072 * GB, "total_bytes": 4096 * GB, "where": "/mnt/big"})
     assert shown == "3.0 TB of 4.0 TB on /mnt/big"
+
+
+def test_a_nearly_full_drive_does_not_stop_the_tests_that_generate(monkeypatch):
+    """TEST.268: the conftest lifts the free space the code sees through the module; the function itself measures."""
+    from planetgen.generation import stats
+
+    monkeypatch.setattr(shutil, "disk_usage", lambda path: Usage(300 * GB, 299 * GB, 1 * GB))
+    monkeypatch.setattr(os.path, "realpath", lambda path, **_kw: str(path).rstrip("/") or "/")
+    monkeypatch.setattr(os.path, "ismount", lambda path: path == "/")
+    assert database_disk(_Conn("/var/lib/mysql/"), "localhost", "planetgen_x").free_bytes == 1 * GB
+    assert stats.database_disk(_Conn("/var/lib/mysql/"), "localhost", "planetgen_x").free_bytes >= 100 * GB

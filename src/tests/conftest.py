@@ -605,6 +605,35 @@ def _run_queue_inline(monkeypatch, request):
         yield
 
 
+ROOMY_DISK_BYTES = 200 * 1024 ** 3
+"""int: The free space (and twice the size) a test sees on the database's drive."""
+
+
+@pytest.fixture(autouse=True)
+def _roomy_database_disk(monkeypatch):
+    """
+    A generate run refuses to start when it would leave under 5 GB free on the database's drive (PERF.3), and `--strict`
+    makes that an exit with status 1. A test machine whose drive is nearly full (the MySQL binary logs of a long
+    session fill one) then failed every test that generates under `--strict` or reads the estimate's `refused`
+    (TEST.268). The code that reaches `stats.database_disk` through the module sees a drive of at least 200 GB free;
+    a test that wants another gives its own (`monkeypatch.setattr(generationStats, "database_disk", ...)`), and
+    `test_database_disk.py` imports the function itself and measures the real thing.
+    """
+    import dataclasses
+
+    from planetgen.generation import stats
+
+    real = stats.database_disk
+
+    def roomy(galaxy_conn, mysql_host, database=None):
+        found = real(galaxy_conn, mysql_host, database)
+        if isinstance(found, stats.DiskSpace):
+            return dataclasses.replace(found, total_bytes=max(found.total_bytes, 2 * ROOMY_DISK_BYTES),
+                                       free_bytes=max(found.free_bytes, ROOMY_DISK_BYTES))
+        return found
+    monkeypatch.setattr(stats, "database_disk", roomy)
+
+
 @pytest.fixture
 def redis_server():
     """The Redis URL jobs and workers use; skips the test without one."""
