@@ -689,6 +689,57 @@ def halo_mass(shape):
         terms["halo_axis_ratio"])
 
 
+DensityComponent = namedtuple("DensityComponent", ["name", "population", "amplitude", "mass", "mass_solar", "parameters"])
+"""One component of the density model (GEN.379): its `name`, the stellar `population` it fills (`"disk"` is shared by the
+young, intermediate and old thin-disk populations), its `amplitude` (the density at its centre in the model's units, or the
+lever that scales it; `0` removes the component exactly), its `mass` in the model's units and in solar masses
+(`mass_solar`: the units scaled so the components together hold the galaxy's stellar mass), and the `parameters` that give
+its shape (scale lengths and heights in parsecs, the bar's angle in radians, the halo's slopes)."""
+
+
+@functools.lru_cache(maxsize=64)
+def density_components(shape):
+    """
+    The galaxy's density as a list of components (GEN.379), in a fixed order: `thin_disk`, `thick_disk`, `bulge` (the bar
+    when the galaxy has one), `halo`, `nuclear_cluster`, `nuclear_disc`. Each component states its amplitude, mass and
+    shape (`DensityComponent`); a component with amplitude 0 has mass exactly 0 and adds nothing to the density or to the
+    potential, so a galaxy without a thick disk, a bulge or a nucleus is the same list with zeros. The density itself is
+    still the sum of the terms above (`relative_density`): this is the list the potential (GEN.338) reads each
+    component's mass and shape from, and the one a family with a spheroid (GEN.381) adds its component to.
+
+    The masses are in closed form, so they agree with `component_masses`, the numerical integral kept as the independent
+    check, and they sum to `total_mass(shape)`, which is the galaxy's stellar mass (`build_galaxy_shape` solves `k_norm`
+    from it): `mass_solar` is each one's share of `structure.stellar_mass_solar`.
+
+    Returns:
+        tuple[DensityComponent]: The components.
+    """
+    terms, halo = model_terms(shape), halo_terms(shape)
+    total = total_mass(shape)
+    per_solar = shape.structure.stellar_mass_solar / total
+    thin_mass = _disk_mass(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc)
+    thick_mass = _disk_mass(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"], terms["thick_disk_scale_height_pc"])
+    rows = (
+        ("thin_disk", "disk", shape.arm_level, thin_mass,
+         {"scale_length_pc": shape.disk_scale_length_pc, "scale_height_pc": shape.disk_scale_height_pc,
+          "arm_count": shape.arm_count, "arm_amplitude": shape.arm_amplitude, "pitch_angle_rad": shape.pitch_angle_rad}),
+        ("thick_disk", "old", terms["thick_disk_amplitude"], thick_mass,
+         {"scale_length_pc": terms["thick_disk_scale_length_pc"], "scale_height_pc": terms["thick_disk_scale_height_pc"]}),
+        ("bulge", "bulge", shape.bulge_amplitude, terms["bulge_mass"],
+         {"scale_x_pc": shape.bulge_scale_radius_pc, "scale_y_pc": terms["bulge_scale_y_pc"],
+          "scale_z_pc": terms["bulge_scale_z_pc"], "bar_angle_rad": terms["bar_angle_rad"]}),
+        ("halo", "halo", halo["halo_amplitude"], halo_mass(shape),
+         {"core_pc": halo["halo_core_pc"], "break_pc": halo["halo_break_pc"], "axis_ratio": halo["halo_axis_ratio"],
+          "inner_slope": halo["halo_inner_slope"], "outer_slope": halo["halo_outer_slope"]}),
+        ("nuclear_cluster", "nuclear_cluster", max(shape.nuclear_amplitude, 0.0), terms["nuclear_cluster_mass"],
+         {"scale_pc": terms["nuclear_cluster_scale_pc"], "softening_pc": terms["nuclear_cluster_softening_pc"]}),
+        ("nuclear_disc", "nuclear_disc", max(shape.nuclear_amplitude, 0.0), terms["nuclear_disc_mass"],
+         {"scale_length_pc": terms["nuclear_disc_length_pc"], "scale_height_pc": terms["nuclear_disc_height_pc"]}),
+    )
+    return tuple(DensityComponent(name, population, amplitude, mass, mass * per_solar, parameters)
+                 for name, population, amplitude, mass, parameters in rows)
+
+
 def _component_densities(position_pc, shape):
     """The components' part of the density at `position_pc` by kind (GEN.160, GEN.237): the systems the clusters and the
     satellites put in the cell's cube over the systems a cell holds at density 1, `0.0` each for a galaxy without."""
