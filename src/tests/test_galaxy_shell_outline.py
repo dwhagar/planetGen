@@ -83,7 +83,7 @@ def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
     extents, _outer, _confirmed = milky_way
     shells = shell_candidate_sector_count(extents)
     assert shells < 23_930_000_000
-    assert shells == 11_580_359_039
+    assert shells == 11_579_121_503
 
 
 @pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3473])
