@@ -15778,8 +15778,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   size, with a warning under D 20 and a refusal when the outline would
   be empty. Done: the line appears in both places with the same numbers
   (a test compares them); an empty outline is refused with the reason.
-  Owner: none (the Galaxy dials lane finished and retired, about 7:05 AM
-  EDT 2026-10-22 as the lane reported; the coordinator assigns a lane).
+  Owner: the Galaxy dials lane (assigned by the coordinator, 8:37 AM EDT
+  2026-10-22, so ADM.124 can show the line; the lane had finished and
+  retired about 7:05 AM EDT as the lane reported, so a thread must be
+  started or reopened for it).
   Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
@@ -19532,6 +19534,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   pc and kpc; both read the lever table's unit column (GEN.601). The
   first release shows four dials, Scale, Structure, Edge and Halo;
   Census (GEN.607, merged as #2443) is the fifth dial.
+  GEN.617 supplies the density line this panel shows; the coordinator
+  assigned it to the Galaxy dials lane at 8:37 AM EDT 2026-10-22.
   Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
 
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
