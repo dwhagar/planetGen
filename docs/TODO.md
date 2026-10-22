@@ -19241,51 +19241,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.13).
   Prerequisites: API.8. Related: API.3.
 
-- [ ] **ADM.97 The settings page can show a number as a slider: the cache size is the first one**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." The
-  settings page is generated from the settings model and renders every
-  number as a text box; only the Generate page has sliders
-  (`web/limit_sliders.py`, `static/limitsliders.js`, UX.116, log or
-  linear stops with a number box). Do: a `slider` option kind in the
-  generated form that reuses that widget (a number box beside it, stops
-  from the option's own range), the page and `config.json` stay in step,
-  and `cache.max_mb` uses it (range 64 MB to 8 GB on log stops, default
-  1 GB). Done: the settings page shows the slider for `cache.max_mb`,
-  moving it writes the key, editing `config.json` moves the slider, and
-  a test covers the round trip. Suggested owner: Core 2 with the
-  settings page code; filed in 8.2.
-  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
-  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch): the
-  key `cache.max_mb` now exists in the settings model,
-  `config.schema.json` and docs/config.md and the old
-  `tile_cache.max_mb` is gone with no shim; the settings-page slider is
-  still this item.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported).
-  Folded into ADM.104 (S4, the settings controls): the slider is built
-  there; this item closes with it (admin redesign thread, 6:12 PM EDT as
-  the thread reported).
-  Phase (TODO thread, 2026-10-21): this item moves from 8.2 to the 8.1
-  admin control suite section, after ADM.104, so it closes with the
-  slider it is folded into.
-  Prerequisites: ADM.104.
-
 - [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
   Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
   somewhere? generate is horribly to use, it needs a full redesign as
@@ -19325,114 +19280,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the shell, job strip and palette, then Generate; every admin page goes
   onto the one shell once. Closes with its children ADM.107 to ADM.117
   (G1 to G11) and the shared suite items ADM.118 to ADM.123.
-
-- [ ] **ADM.100 Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default**
-  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
-  somewhere? generate is horribly to use, it needs a full redesign as
-  it's grown too complicated for it's simplistic format, the settings
-  page is incomprehensible and we need nice, clean, settings that don't
-  look like I'm writing a linux config file, also a lot of stuff in
-  there can't be changed, so how about just not list the things that
-  cannot be changed or have an option to hide them that is defaulted to
-  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
-  own dedicated thread, add an issue for it to group all the todo items
-  together in if one doesn't exist. Start researching ways to pack a lot
-  of options into an admin control suite that will include the generate
-  control suite. The interface needs to get out of the way. All items
-  related to this not already in progress move immediately to the new
-  thread -- however, before it's begins building, it's going to
-  research, generate a report, and give me decision / choice cards."
-  Today the settings page reads like a Linux config file (ADM.43, ADM.44
-  built it, PR #1921), and many entries cannot be changed from the page.
-  Do: redesign the page from the report and the answered cards of
-  ADM.98: clear groups in plain words, a one-line description and the
-  unit for each setting, sensible controls (switch, slider as in ADM.97,
-  choice list) instead of raw values, a search box, a
-  changed-from-default mark, the Owner-tier settings of ADM.86 kept
-  behind their prompt, and a 'hide settings that cannot be changed'
-  toggle, on by default, remembered per admin, so read-only entries (set
-  in config.json or the environment, or fixed) are listed only when it
-  is turned off. Done: the page is rebuilt on the admin shell, every
-  changeable setting is reachable and described, nothing that cannot be
-  changed shows while the toggle is on, a browser test covers the toggle
-  both ways and a change that saves, and docs/config.md matches. Owner:
-  the admin redesign thread, after Boss answers the cards of ADM.98.
-  Prerequisites: ADM.102, ADM.103, ADM.104, ADM.105, ADM.106. Related: ADM.43, ADM.44, ADM.86,
-  ADM.97, UX.137.
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Closes with its children ADM.101 to ADM.106
-  (S1 to S6).
-
-- [ ] **ADM.102 Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S2).
-  `settings_view.describe` returns `class` (editable, owner, server,
-  overridden) and `fixed_reason`, plus counts; the page, the API and the
-  command line share it. Done: unit tests for each class on a fixture
-  model; the API returns them; the count of fixed options matches
-  `iter_fields`. Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.100.
-
-- [ ] **ADM.103 Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S3).
-  Boss's answers 7, 8 and 9: grouped rows with the two-step review kept,
-  settings the web cannot change hidden by default and remembered in
-  this browser and the URL, environment-overridden settings shown with a
-  warning badge. Owner-only options stay hidden with the fixed ones
-  until the Owner account exists (ADM.86, USR.31). Done: a browser test:
-  the page loads with the fixed options hidden, the switch shows them
-  with their reasons, search filters rows and groups, a change enables
-  the save bar; works with script off, in both themes, keyboard only.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Prerequisites: ADM.102, UX.124. Related: ADM.100, ADM.86,
-  UX.126.
-
-- [ ] **ADM.104 Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S4).
-  Absorbs ADM.97 (the cache size is the first slider); reuses the UX.116
-  limit sliders (`limit_slider`). Done: each control round-trips its
-  value through `collect` and the writer; a rate string stays valid for
-  the limiter; invalid input shows its error at the row. Owner: the
-  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
-  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
-  then Generate).
-  Prerequisites: ADM.103. Related: ADM.100, ADM.97, UX.116.
-
-- [ ] **ADM.105 Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S5).
-  Keeps the two-step review (answer 7). Done: review tests are updated;
-  the audit rows and the backup are byte-identical to today's. Owner:
-  the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
-  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
-  then Generate).
-  Prerequisites: ADM.103. Related: ADM.100.
-
-- [ ] **ADM.106 Settings: the server-files disclosure and the overridden-option badge**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S6).
-  Says in words which options live only in server files and names the
-  exact command; secrets show only set or empty. Done: the text names
-  the exact command; secrets show only 'set' or 'empty'. Owner: the
-  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
-  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
-  then Generate).
-  Prerequisites: ADM.102. Related: ADM.100.
 
 - [ ] **ADM.107 Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19535,16 +19382,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Settings first, then the shell and palette, then Generate).
   Prerequisites: ADM.107. Related: ADM.99.
 
-- [ ] **ADM.115 Generate: Run again from History, and named recipes saved per admin in the control database**
+- [ ] **ADM.115 Generate: Run again from History**
   Child of the admin control suite (Boss's 13 decision cards, tapped
   6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
   design note docs/design/admin-control-suite.md, section 5, key G9).
   Boss's answer 11. The job record must hold the form. Done: Run again
   re-runs a finished job with its stored settings; a failed job's Run
-  again goes back to its Review step; a recipe saves, lists, runs and
-  deletes per admin in the control database. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
+  again goes back to its Review step; (named recipes were split out to
+  ADM.125 at the admin redesign thread's suggestion, 8:30 AM EDT
+  2026-10-22 as the lane reported; Run again is built). Owner: the admin
+  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
+  (Boss's answer 1: Settings first, then the shell and palette, then
+  Generate).
+  Run again is built in the lane's pending shell and Generate PR
+  (ADM.118 to ADM.123, ADM.92, ADM.93, ADM.107 to ADM.109, ADM.113 to
+  ADM.115, ADM.121, plus TEST.269), which waits on one more full gate
+  (the coordinator, 8:31 AM EDT).
   Prerequisites: ADM.108, ADM.114. Related: ADM.99.
 
 - [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
@@ -19680,6 +19533,28 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   first release shows four dials, Scale, Structure, Edge and Halo;
   Census (GEN.607, merged as #2443) is the fifth dial.
   Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
+
+- [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G9).
+  Split out of ADM.115 (the admin redesign thread, 8:30 AM EDT
+  2026-10-22 as the lane reported: Run again is built, named recipes are
+  not, because they need a table in the control database and a
+  migration; the thread suggested filing them on their own once the
+  migration numbers settle). Boss's answer 11: a recipe is a named,
+  saved form, kept per admin. Do: a control-database table of recipes
+  (admin, name, the form as the job record stores it, created and
+  updated times) with its Alembic migration (the next free revision on
+  main at merge time; head is 0117, 0118 is free), a Save as recipe
+  action on the Review step, a recipe list on the Start screen that
+  fills the form, and rename and delete. Done: a recipe saves, lists,
+  runs and deletes per admin, one admin cannot see or run another's, the
+  migration upgrades and downgrades cleanly, and a browser test covers
+  save, run and delete. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.115. Related: ADM.99, ADM.108.
 
 ## SEC: Security
 
