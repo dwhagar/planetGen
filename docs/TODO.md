@@ -13171,7 +13171,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy from what it holds; the interior is the same stars for the same
   seed whatever the configuration. Owner: Core 1 or Core 3 (proposed,
   whichever holds the plan and scatter code after 8.1).
-  Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.537, GEN.301,
+  Prerequisites: GEN.537, GEN.301. Related: GEN.537, GEN.301,
   GEN.235, PERF.121. Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy
   setting will also tell the scatter functions if they can scatter the
   halo and / or the satellite galaxies, either / or"): the stored galaxy
@@ -13245,7 +13245,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy; the interior is unchanged either way (a test); the Generate
   page and the API run it as a step (UX.137). Owner: Core 1 or Core 3
   (proposed).
-  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.540,
+  Prerequisites: GEN.538. Related: GEN.537, GEN.538, GEN.540,
   PERF.120.
   Boss, 2026-10-17, 4:49 PM EDT: the halo scatter kinds read this switch
   from the stored galaxy setting, and no other scatter kind does.
@@ -13294,7 +13294,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the satellite commands are never selected; default off for a new
   galaxy; a test per switch state and for each combination of the two
   switches. Owner: Core 1 or Core 3 (proposed).
-  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.539,
+  Prerequisites: GEN.538. Related: GEN.537, GEN.538, GEN.539,
   PERF.120, GEN.371.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
@@ -15976,103 +15976,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
-- [ ] **PERF.121 `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band)**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `planetgen plan` is
-  nine jobs behind flags (the skeleton; the bright-star band; the
-  map-luminosity fill; the habitability re-score; the nebula-field
-  clean-up; redo scatters; phenomena only; bright stars only; and the
-  three scatters after the skeleton unless `--no-bright-stars`). Done:
-  `plan` builds the skeleton and nothing else; `scatter` takes exactly
-  one of `--mass`, `--luminosity`, `--phenomena`, `--nebula-field`,
-  `--band` and only that kind's parameters (the draw limits and the seed
-  that belong to it); each kind is its own registered command
-  (PERF.106); the flags that grouped them (`--no-bright-stars`,
-  `--bright-stars-only`, `--phenomena-only`, `--redo-scatters`,
-  `--bright-stars-down-to`, `--redo-nebula-field`) are gone with no
-  shim; a test runs each command alone and the wrapper builds the old
-  `plan` run as a step list that gives the same galaxy for the same
-  seed. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.106, PERF.118, PERF.120. Order
-  on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites
-  give; the UX.102 chain (UX.121, UX.122, UX.123, TEST.183) comes after
-  the command follow-ups, not before them, with PERF.118 merged (#2159).
-  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, cards F5 and F7,
-  relayed by the coordinator): F5: one `planetgen scatter` root with
-  exactly one kind flag (`--mass`, `--luminosity`, `--phenomena`,
-  `--nebula-field`, `--band`). F7: redoing a scatter is a SEPARATE
-  `planetgen clear-scatter` command, not a `--redo` flag (this is
-  against Core 5's recommendation, and Boss's answer stands);
-  `--redo-scatters` is removed with no shim. Lane report (Core 5, 7:34
-  AM EDT 2026-10-21 as the lane reported, filed by the TODO thread):
-  coded in a side worktree and uncommitted, per the F5 to F7 answers:
-  `scatter` takes exactly one kind flag and refuses while that kind is
-  stored; `fill-map-luminosity`, `rescore-habitability` and
-  `clean-nebula-field` (dry run, `--apply`) are one root each; F7 is a
-  separate `clear-scatter` command with `--redo-scatters` removed and no
-  shim. Pure-Python tests pass (398); the DB tests, the same-galaxy
-  equivalence check and the gate come after the PERF.107 and PERF.108
-  merge. Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane
-  reported): built together with PERF.122 on branch claude/core5-perf121
-  (main merged in, f74b4f7). Wording above that is stale: `plan` now
-  places no stars (it is the skeleton only) and the five commands exist
-  (scatter, clear-scatter, fill-map-luminosity, rescore-habitability,
-  clean-nebula-field). The old-against-new equivalence check (galaxy
-  fingerprint on a 200-shell grid, old plan on main against plan plus
-  scatter --mass, --luminosity and --phenomena on the branch) has the
-  old side done (51 minutes) and the new side running since 4:35 PM EDT
-  (expected end about 5:30 PM EDT); the `changed` gate starts after the
-  fingerprints match. Finding from the same lane: `plan --max-shell`
-  does not shrink the scatter (the grid is 65,536 shells;
-  `--reach-shells` does), so a default-size plan run takes hours; this
-  item's rework should make the shell limit apply or remove the option,
-  no shim.
-  Overlap (TODO thread, 2026-10-21, Boss 6:49 PM EDT: fold the existing
-  items into the shape-dials chain): `plan --max-shell` is retired by
-  GEN.602 and replaced by the Edge dial GEN.605, which reads the plan
-  configuration (GEN.538), so this rework need not fix `--max-shell`
-  (GEN.605 retires it); if the rework removes it first, GEN.605 only has
-  to drop its remaining references.
-  Design:
-  [docs/design/command-inventory.md](design/command-inventory.md)
-  Follow-up from the plan configuration decisions (Boss, 9:21 to 9:24 PM
-  EDT 2026-10-21, decision 5): `scatter` gains one region parameter
-  (interior, halo or satellites) with completion stored per kind and
-  region; it is GEN.538's work after this item merges and does not
-  change this item's gate in flight.
-
-- [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `plan
-  --fill-map-luminosity` and `plan --fill-habitability` are modes of the
-  skeleton command. Done: each is its own command with its own
-  parameters (the batch size and the id range), registered with the
-  wrapper, runnable alone, with the `plan` flags removed and no shim; a
-  test runs each alone. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.106, PERF.116,
-  PERF.117, PERF.121.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, card F6, relayed by
-  the coordinator): one root command each, named like the registered
-  commands: `planetgen fill-map-luminosity`, `planetgen
-  rescore-habitability` and `planetgen clean-nebula-field` (with
-  `--apply`). They replace the `plan --fill-map-luminosity`, `plan
-  --fill-habitability` and `plan --redo-nebula-field` modes.
-  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
-  built with PERF.121 on branch claude/core5-perf121; see the note
-  there. The `changed` gate has not started.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -16092,7 +15995,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill, population, settle) and prints it with `--estimate-only`;
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.121. Related: PERF.107,
+  Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -21225,6 +21128,15 @@ clears each one.
   the full gate and failed again on the `--resume` rerun, so it is not
   only a first-pass failure; both pass alone and in a targeted run with
   the same code.
+  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
+  clock reads, fixed inside #2441): test_db_check's CASCADE drift test
+  (`test_a_foreign_key_with_another_delete_rule_is_drift`) left a changed
+  `facilities` foreign key in the worker's shared database, because the
+  pool's reset compares constraint names only, so later check-db tests
+  on that worker failed with "remove_fk/add_fk facilities.fk_facilities_type"
+  depending on worker order; the test now restores the key in a
+  `finally`. This item stays open until Bug Hunt sees the two tests
+  green in 20 full-gate runs after #2441, or a gate shows it again.
   Prerequisites: none. Related: TEST.265, TEST.262.
 
 - [ ] **TEST.271 test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug)**
@@ -21243,6 +21155,14 @@ clears each one.
   hides a real lock. Done: the test passes 20 runs in a row on a clean
   checkout. Owner: Bug Hunt, after its current work (the coordinator,
   relayed 10:45 AM EDT 2026-10-22).
+  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
+  clock reads, #2441): in a lane container `performance_schema` is OFF,
+  so the reader of another database is never found and the test fails
+  even alone on main (the earlier "passes alone" verdict was wrong); the
+  test now skips when `performance_schema` is not ON. Core 3's text was
+  a lock wait timeout, which may be the same cause or not. This item
+  stays open until Core 3's lane (or Bug Hunt's) is checked for
+  `performance_schema` and the test passes there with it ON.
   Prerequisites: none. Related: TEST.265, TEST.270.
 
 - [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**

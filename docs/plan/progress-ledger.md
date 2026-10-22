@@ -996,3 +996,5 @@ Baseline: PR #1817.
 | GEN.598 | 8.1 | Galaxy laws build |
 | GEN.311 | 8.1 | Multi-star and compact systems |
 | GEN.269 | 8.1 | Multi-star and compact systems |
+| PERF.121 | 8.1 | Queue, caches and performance |
+| PERF.122 | 8.1 | Queue, caches and performance |
