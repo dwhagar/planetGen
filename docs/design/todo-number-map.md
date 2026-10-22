@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.127 |
 | SEC | SEC.34 |
-| TEST | TEST.281 |
+| TEST | TEST.282 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -2071,7 +2071,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.126 | The admin pages and the edit dialogs on the field macro | none | open |
 | UX.127 | The Galaxy Map block menu offers Generate again | none | open |
 | UX.128 | Map side panels and other browser call sites take Quantity | none | open |
-| UX.129 | Saved lists in the browser and in the account: one store with a local and an account backend | none | open |
+| UX.129 | Saved lists in the browser and in the account: one store with a local and an account backend | none | done, PR #2544 |
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss | none | open |
 | UX.131 | Console tokens, type and base template in both themes | none | open |
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | none | open |
@@ -2474,6 +2474,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.278 | test_column_units fails on main: 36 columns of orbital_events and orbital_event_bodies are not declared in column_units.py (bug) | none | done, PR #2510 |
 | TEST.279 | Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug) | none | done, PR #2540 |
 | TEST.280 | Five tests are refused as Busy in a full gate because workers share the default Redis database (race) | none | open |
+| TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

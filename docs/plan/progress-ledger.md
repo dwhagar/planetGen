@@ -1059,3 +1059,4 @@ Baseline: PR #1817.
 | DB.87 | 8.2 | Viewers and object pages |
 | GEN.585 | 8.4 | Bulk composition |
 | GEN.586 | 8.4 | Bulk composition |
+| UX.129 | 8.2 | Bookmarks |
