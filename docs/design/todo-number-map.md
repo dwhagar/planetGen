@@ -443,8 +443,8 @@ Parents marked "new parent" had no old number of their own.
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) | none | done, PR #1401 |
-| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | none | open |
-| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | none | open |
+| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | none | done, PR #2498 |
+| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | none | done, PR #2498 |
 | ADM.57 | Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan | none | open |
 | ADM.58 | Change plan engine: operations, the effect diff and the plan states, as a library | none | open |
 | ADM.59 | Change plan store: save, load and list plans, and mark them stale | none | open |
@@ -487,7 +487,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
 | ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | done, PR #2456 |
 | ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | done, PR #2411 |
-| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | open |
+| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | done, PR #2498 |
 | ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | done, PR #2456 |
 | ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | done, PR #2411 |
 | ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | done, PR #2456 |
@@ -498,14 +498,14 @@ Parents marked "new parent" had no old number of their own.
 | ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | done, PR #2494 |
 | ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | done, PR #2494 |
 | ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | done, PR #2494 |
-| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | none | open |
-| ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | none | open |
-| ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | open |
+| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | none | done, PR #2498 |
+| ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | none | done, PR #2498 |
+| ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | done, PR #2498 |
 | ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | done, PR #2494 |
-| ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | open |
+| ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | done, PR #2498 |
 | ADM.115 | Generate: Run again from History | none | done, PR #2494 |
-| ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | open |
-| ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | open |
+| ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | done, PR #2498 |
+| ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | done, PR #2498 |
 | ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | done, PR #2494 |
 | ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | none | done, PR #2494 |
 | ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | none | done, PR #2494 |

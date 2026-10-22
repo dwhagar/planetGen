@@ -94,7 +94,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135, ADM.110 | Step 8 of the galaxy types chain. |
+| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135 | Step 8 of the galaxy types chain. |
 
 ### Galaxy Map
 
