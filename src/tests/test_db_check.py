@@ -116,6 +116,24 @@ def test_a_schema_that_disagrees_with_the_code_is_found(saved):
     assert "schema_migrations has no version" in text and "stray_column" in text
 
 
+_DROP_FACILITIES_TYPE_KEY = "ALTER TABLE facilities DROP FOREIGN KEY fk_facilities_type"
+_FACILITIES_TYPE_KEY = ("ALTER TABLE facilities ADD CONSTRAINT fk_facilities_type"
+                        " FOREIGN KEY (type_id) REFERENCES facility_types(id){rule}")
+
+
+@pytest.mark.parametrize("rule", ["", " ON DELETE RESTRICT", " ON DELETE NO ACTION"])
+def test_a_foreign_key_whose_delete_rule_is_the_default_is_not_drift(saved, rule):
+    """DB.33: MySQL 8.0 reflects `ON DELETE RESTRICT` as RESTRICT, MySQL 8.4 reflects none, and a key with no rule or NO
+    ACTION is the same rule: the model declares RESTRICT and all three databases are healthy."""
+    _sql(saved, _DROP_FACILITIES_TYPE_KEY, _FACILITIES_TYPE_KEY.format(rule=rule))
+    assert check._model_drift(saved) == []
+
+
+def test_a_foreign_key_with_another_delete_rule_is_drift(saved):
+    _sql(saved, _DROP_FACILITIES_TYPE_KEY, _FACILITIES_TYPE_KEY.format(rule=" ON DELETE CASCADE"))
+    assert any("fk" in line or "facilities" in line for line in check._model_drift(saved))
+
+
 def test_a_check_that_cannot_run_is_not_called_damage(saved, monkeypatch):
     def broken(ctx):
         raise KeyError("boom")
