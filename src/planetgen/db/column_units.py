@@ -54,6 +54,7 @@ LOCAL_UNITS = {
     "1/s": LocalUnit("rate", 1.0), "1/yr": LocalUnit("rate", 1.0 / _YEAR_S),
     "1/Gy": LocalUnit("rate", 1.0 / (1e9 * _YEAR_S)),
     "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
+    "J/kg": LocalUnit("specific energy", 1.0),
     "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"), "nebula-radius": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic"),
@@ -75,8 +76,8 @@ def unit_info(key):
 
 
 SUFFIXES = (
-    ("_msv_yr", "mSv/yr"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"),
-    ("_g_cm3", "g_cm3"), ("_light_days", "light-day"), ("_gauss", "G"), ("_myr", "Myr"), ("_ms", "ms"), ("_us", "us"),
+    ("_j_per_kg", "J/kg"), ("_msv_yr", "mSv/yr"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"),
+    ("_g_cm3", "g_cm3"), ("_light_days", "light-day"), ("_gauss", "G"), ("_myr", "Myr"), ("_ms", "ms"), ("_us", "us"), ("_mj", "Mjup"),
     ("_km3", "km3"), ("_pc3", "pc3"), ("_kms", "km_s"), ("_km", "km"), ("_pc", "pc"), ("_mpc", "mpc"), ("_au", "au"),
     ("_ly", "ly"), ("_deg", "deg"), ("_rad", "rad"), ("_years", "yr"), ("_yr", "yr"), ("_gyr", "Gyr"), ("_gy", "Gyr"),
     ("_unix", "unix_s"), ("_hours", "h"), ("_kpa", "kPa"), ("_pa", "Pa"), ("_kg", "kg"), ("_k", "K"), ("_w", "W"),
@@ -451,6 +452,32 @@ TABLES = {
     "orbit_simulation_state": {
         "id": ("id",),
     },
+    "orbital_event_bodies": {
+        "id": ("event_id", "sector_id"),
+        "index": ("ordinal",),
+        "kg": ("mass_kg",),
+        "km": ("radius_km",),
+        "pc": ("x_pc", "y_pc", "z_pc"),
+        "km_s": ("vx_kms", "vy_kms", "vz_kms"),
+        "flag": ("admin_edited",),
+    },
+    "orbital_events": {
+        "id": ("id", "run_id"),
+        "unix_s": ("event_time_unix", "detected_time_unix"),
+        "km": ("separation_start_km", "separation_impact_km", "impact_parameter_km", "critical_impact_parameter_km",
+               "new_radius_km"),
+        "km_s": ("v_inf_kms", "v_esc_kms", "v_imp_kms", "catastrophic_velocity_kms"),
+        "J/kg": ("q_r_j_per_kg", "q_star_rd_j_per_kg"),
+        "ratio": ("erosion_x", "interacting_mass_fraction", "mass_error", "momentum_error", "conservation_tolerance",
+                  "heat_share", "spin_breakup_ratio"),
+        "s": ("window_s",),
+        "J": ("impact_energy_j",),
+        "kg": ("lost_mass_kg", "merged_mass_kg"),
+        "Mjup": ("deuterium_limit_mj",),
+        "Msun": ("hydrogen_limit_sol",),
+        "count": ("influence_body_count", "sectors_dirtied", "suppressed_duplicates"),
+        "flag": ("window_capped", "focusing_radius_used", "borderline", "already_overlapping", "numeric_warning"),
+    },
     "phenomenon_scatter": {
         "id": ("id",),
         "index": ("shell_index", "band_index", "wedge_index"),
@@ -759,7 +786,10 @@ def to_si(table, column):
     return factor
 
 
-SUFFIX_EXCEPTIONS = {("nebula_field", "cell_k"): "the third axis of a cell's index, not kelvin"}
+SUFFIX_EXCEPTIONS = {
+    ("nebula_field", "cell_k"): "the third axis of a cell's index, not kelvin",
+    ("orbital_events", "hydrogen_limit_sol"): "a mass (the hydrogen-burning limit in solar masses), though the name has no 'mass'",
+}
 """dict: `(table, column)` -> why a name that ends in a unit's suffix is not in that unit."""
 
 
