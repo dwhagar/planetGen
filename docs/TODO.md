@@ -4116,28 +4116,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "visible" could mean half a pixel at the deepest zoom where the object
   type is drawn (needs a map-scale value). Decided (Boss, 2026-10-10
   18:44Z, defaults approved; defaults taken): stars follow their
-  analytic orbit and are rewritten
-  at sector exit or when the influence set changes, planets and moons
-  are computed from phase on read with thresholds only scheduling
-  perturbation re-fits; the deepest star zoom is the 4 pc sector view.
-  Moved first in the Orbital update core thread and a prerequisite of
-  the stepper (child c of GEN.115) (2026-10-16 review). Restated: a
-  planet or moon is placed from its stored vector and epoch by the
-  closed-form step on read, and the thresholds only schedule
-  perturbation re-fits; GEN.289 replaces the phase columns that the
-  earlier wording relied on.
+  analytic orbit and are rewritten at sector exit or when the influence
+  set changes, planets and moons are computed from phase on read with
+  thresholds only scheduling perturbation re-fits; the deepest star zoom
+  is the 4 pc sector view. Moved first in the Orbital update core thread
+  and a prerequisite of the stepper (child c of GEN.115) (2026-10-16
+  review). Restated: a planet or moon is placed from its stored vector
+  and epoch by the closed-form step on read, and the thresholds only
+  schedule perturbation re-fits; GEN.289 replaces the phase columns that
+  the earlier wording relied on.
   Decided (Boss, 2026-10-18, F4 and F5, approved to build; card taps as
   the coordinator reported them, 5:32 PM EDT): the next-update value
   comes from the speed of the new vector after step 4, capped at the
-  time for the influence set to change; a new record with no
-  next-update value is always visited, its position advances only from
-  its own epoch (generation stamps the epoch), then the value is set.
-  Full wording on GEN.105.
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): this item reads as rules for
-  the stepper (GEN.115 child c) rather than standalone code; Core 3 asks
-  whether to take it anyway. The coordinator decides.
+  time for the influence set to change; a new record with no next-update
+  value is always visited, its position advances only from its own epoch
+  (generation stamps the epoch), then the value is set. Full wording on
+  GEN.105. Core 3 (relayed 8:44 AM EDT 2026-10-22): this item reads as
+  rules for the stepper (GEN.115 child c) rather than standalone code;
+  Core 3 asks whether to take it anyway. Decided (the coordinator,
+  relayed 8:52 AM EDT 2026-10-22): Core 3 does not take it standalone;
+  it stays with the stepper work, which is GEN.340 (child c of GEN.115).
+  GEN.340 is in Core 3's queue after GEN.338 (lanes.md; no owner line on
+  the item), and GEN.338 waits on GEN.369 (Core 1) and GEN.379 (Blocker
+  2).
   Prerequisites: none.
-  Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
+  Design:
+  [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
 - [ ] **GEN.140 Orbital math guards the edge-case table adds (GEN.108 built)**
   Follow-up to GEN.108: adopt the edge-case table of
@@ -6228,6 +6232,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state of the others, and its next-update value comes from the speed of
   the new vector, capped at the time for the influence set to change
   (F4).
+  Owner: no card names one; Core 3's queue lists it after GEN.338
+  (lanes.md). It is child c of GEN.115 and takes GEN.139's rules (the
+  coordinator, relayed 8:52 AM EDT 2026-10-22: GEN.139 stays with this
+  stepper work).
   Prerequisites: GEN.338, GEN.139. Related: GEN.115.
 
 - [ ] **GEN.341 Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check**
