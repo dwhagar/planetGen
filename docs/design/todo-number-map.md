@@ -632,7 +632,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | open |
-| DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | open |
+| DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | done, PR #2541 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |

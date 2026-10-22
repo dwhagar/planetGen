@@ -1056,3 +1056,4 @@ Baseline: PR #1817.
 | DB.62 | 8.9 | Upload groundwork |
 | GEN.348 | 8.4 | The Quantity call-site sweep |
 | TEST.279 | 8.1 | Bugs and flaky tests |
+| DB.87 | 8.2 | Viewers and object pages |

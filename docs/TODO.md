@@ -17063,27 +17063,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (proposed; the registry is its work), after DB.74.
   Prerequisites: none. Related: DB.76, DB.74, GEN.568.
 
-- [ ] **DB.87 The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug)**
-  URGENT: red on main. Found by Core 3 (relayed 7:13 PM EDT 2026-10-22,
-  about 6:33 PM EDT on the lane's clock, while merging GEN.348 and
-  TEST.279; confirmed on origin/main at ec2de9b by the TODO thread, 1
-  failed, 19 passed), filed by the TODO thread. Kind: bug (two merges
-  that do not know each other: DB.63's vessels table, #2530 at 5:40 PM EDT, and
-  DB.77's precision table, #2534 at 6:55 PM EDT as the lane reported).
-  Test:
-  src/tests/test_precision.py::test_the_floor_of_every_table_with_a_position_is_the_documented_one.
-  Failure: vessels is in the precision table with a reach but missing from
-  EXPECTED_FLOOR_M (an extra item 'vessels' in the left set). Fails on
-  main: yes, every run. Reproducer: python3 -m pytest -q
-  src/tests/test_precision.py. Do: work out the floor body the vessels
-  table's position columns place, add it to EXPECTED_FLOOR_M and to the
-  table in docs/design/unified-unit-quantity.md (section 6.1), as the
-  test's own docstring requires; no loosening of the test. Done:
-  test_precision.py passes on main and the design table lists vessels.
-  Owner: the DB items chain lane (the coordinator, relayed 7:13 PM EDT),
-  before DB.85.
-  Prerequisites: none. Related: DB.63, DB.77.
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
