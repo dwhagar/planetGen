@@ -5536,7 +5536,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   property test that every kind round-trips through every rung and that
   the Python and JavaScript copies agree, and the design note updated.
   Prerequisites: none. Related: GEN.74, GEN.109, UX.107, UX.108.
-  Overlap to settle (the TODO thread, 10:50 AM EDT 2026-10-22, asked by
+  Overlap to settle (the TODO thread, 10:45 AM EDT 2026-10-22, asked by
   the coordinator whether anyone holds this item): no lane row holds it
   and nothing is reported in progress (it is only in Core 3's queue).
   But GEN.569 (The Quantity value class, owner Core 4, assigned by the
