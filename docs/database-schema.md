@@ -2081,6 +2081,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v123 (DB.37): lock marks
+
+Migration 0123 adds the table `object_locks`, a standing keep mark on an object or on one aspect of it ([edit-everything.md](design/edit-everything.md)); no other table changes and nothing reads it yet. The primary key is `(object_uid, aspect)`: `object_uid` is the 96-bit object ID (BINARY(12)) and `aspect` a name from the aspect catalogue (ADM.62) or `*` for the whole object (the default), so an object has at most one lock per aspect. `locked_by_id` is the locking account's id in the control database (NULL when none), `locked_by_name` its name when it locked, `locked_at` when, and `reason` an optional note of up to 500 characters; `idx_object_locks_locked_at` lists the newest locks. A table already there is left alone, so a stopped run can be started again. The version is detected from the table.
+
 ### v122 (DB.36): change plans, their operations and the edit journal
 
 Migration 0122 adds three tables for the 8.6 edit-everything plans ([edit-everything.md](design/edit-everything.md)); no row of any other table changes and nothing reads them yet.

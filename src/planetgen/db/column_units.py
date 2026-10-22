@@ -437,6 +437,9 @@ TABLES = {
         "km": ("radius_km",),
         "flag": ("placed",),
     },
+    "object_locks": {
+        "id": ("locked_by_id",),
+    },
     "object_timing_samples": {
         "id": ("id", "run_id", "sector_id"),
         "index": ("ordinal",),

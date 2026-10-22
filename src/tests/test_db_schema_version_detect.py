@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE object_locks")  # v123
         conn.execute("DROP TABLE edit_journal")  # v122
         conn.execute("DROP TABLE change_plan_ops")  # v122
         conn.execute("DROP TABLE change_plans")  # v122
