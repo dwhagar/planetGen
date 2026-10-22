@@ -1,7 +1,0 @@
-**Headline:** Every length column now declares its role, its frame and how far it must hold, and the table says what size of body each table can place.
-
-### Changed
-- **The precision table (`db/precision.py`).** The 182 length columns of the column registry each declare a role (`position`, `separation`, `size`, `relative` or `derived`); a position or separation also declares its frame (galaxy, sector or system) and a reach: the bound-orbit limit of 10,000 AU, the Hill-sphere ceiling a comet's closed orbit reaches, the half-diagonal of a sector cell, or the largest Edge the galaxy dials allow. From the spacing of a double in the column's unit at that reach, `floor_body_m(table)` gives the smallest body the table places to a tenth of its size: 2.4 m for planets, moons and belts (km column inside 10,000 AU), 2.7 m for stars (AU column), 620 m for comets at the stability ceiling, and about 9,000 km for a body stored free in a galaxy frame at the largest Edge (33 m at 8 kpc). Nothing in the data moves.
-- `tests/test_precision.py` fails when a length column has no declaration, when a position's frame is not its table's, when planets or moons cannot place a 10 m body, when a reach no longer matches its source (the Hill sphere, the sector edge, the Edge dial's maximum), and when a table's floor moves from the documented one. The figures and the way out for a wanderer are in `docs/design/unified-unit-quantity.md`, section 6.1.
-
-TODO items resolved: DB.77. Added: none.
