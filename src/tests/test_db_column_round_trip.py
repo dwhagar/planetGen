@@ -52,6 +52,8 @@ NULL_IN_THIS_GALAXY = {
     # DB.66: the bar and the thick disk were never stored, so a spiral leaves them NULL ("as the structure draw gives them").
     **{("galaxy_shape", column): "NULL means as the structure draw gives it from the seed (DB.66)" for column in (
         "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude")},
+    # DB.61: nothing writes the cluster link until the cluster membership of a star is generated (GEN.209).
+    ("stars", "cluster_id"): "written when a star's cluster is known (DB.61 adds the column only)",
     # Only something sitting inside a nebula or supernova remnant.
     **{(table, column): CHANCE for table in store.CONTAINABLE_TABLES for column in CONTAINMENT},
     # A quasar is placed only at a galaxy's own center, so whether the run
@@ -145,6 +147,7 @@ NEVER_READ = {
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
+    ("stars", "cluster_id"): "read when a star's cluster is shown (DB.61 adds the column only)",
     **{("sectors", column): "read by the rebuild of a density override (DB.60 adds the columns only)"
        for column in ("density_multiplier_used", "override_id")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",

@@ -1400,6 +1400,10 @@
 -- v126 (DB.39): `request_comments` (the conversation on an edit request: plan, author and role, body) and `request_notifications` (a notice owed to an
 --   account about a request, and when it was sent), for the 10.0 roles; a request is a `change_plans` row (DB.36). Nothing reads them yet.
 --
+-- v127 (DB.61): `galaxy_components.name` is nullable (a cluster nobody has named, the unique key stays over the named rows), and `stars` and
+--   `bright_stars` gain `cluster_id`, a nullable indexed reference to `galaxy_components.id` (cleared if the cluster is removed), so a star can
+--   point to the cluster that is its parent. Every existing cluster keeps its name; nothing writes or reads the link yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2027,6 +2031,7 @@ CREATE TABLE IF NOT EXISTS stars (
     disk_mass_solar             DOUBLE NULL,  -- v104 (DB.53)
     disk_inner_au               DOUBLE NULL,  -- v104 (DB.53)
     disk_outer_au               DOUBLE NULL,  -- v104 (DB.53)
+    cluster_id                  BIGINT UNSIGNED NULL,  -- v127 (DB.61)
 
     UNIQUE KEY uq_stars_uid (uid),
     CONSTRAINT fk_stars_star_system
@@ -2036,7 +2041,10 @@ CREATE TABLE IF NOT EXISTS stars (
     FULLTEXT KEY ft_stars_name (name),
     KEY idx_stars_yerkes_class (yerkes_class),
     KEY idx_stars_radius_km (radius_km),
-    KEY idx_stars_star_type (star_type)
+    KEY idx_stars_star_type (star_type),
+    KEY idx_stars_cluster (cluster_id),
+    CONSTRAINT fk_stars_cluster
+        FOREIGN KEY (cluster_id) REFERENCES galaxy_components(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -3445,14 +3453,18 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
     metallicity_fe_h     DOUBLE,  -- v95 (GEN.158): [Fe/H] in dex, NULL for a cluster star until GEN.159 and for older rows
+    cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
     CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc', 'satellite_young', 'satellite_intermediate', 'open_cluster_00', 'open_cluster_01', 'open_cluster_02', 'open_cluster_03', 'open_cluster_04', 'open_cluster_05', 'open_cluster_06', 'open_cluster_07', 'open_cluster_08', 'open_cluster_09', 'open_cluster_10', 'open_cluster_11')),
+    KEY idx_bright_stars_cluster (cluster_id),
     CONSTRAINT fk_bright_stars_system
-        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL,
+    CONSTRAINT fk_bright_stars_cluster
+        FOREIGN KEY (cluster_id) REFERENCES galaxy_components(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -4285,7 +4297,7 @@ CREATE TABLE IF NOT EXISTS population_state (
 CREATE TABLE IF NOT EXISTS galaxy_components (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     kind                 VARCHAR(12) NOT NULL,
-    name                 VARCHAR(255) NOT NULL,
+    name                 VARCHAR(255) NULL,  -- v127 (DB.61): NULL for a cluster nobody has named, the unique key is over the named rows
     -- The catalogue's own name for the object ("NGC 104"), so a later import of a real catalogue can match its rows.
     catalogue_id         VARCHAR(40),
     source               VARCHAR(12) NOT NULL,
