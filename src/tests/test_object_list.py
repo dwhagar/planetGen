@@ -140,3 +140,28 @@ def test_the_api_pages_a_kind_and_refuses_what_it_cannot_serve(client, indexed):
     for bad in ("/api/object-lists/galaxy", "/api/object-lists/star?sort=age", "/api/object-lists/star?order=up",
                 "/api/object-lists/star?limit=x", "/api/object-lists/star?after=zz", "/api/object-lists/star?sector_id=a"):
         assert client.get(bad).status_code == 400, bad
+
+
+def test_a_start_begins_the_name_sorted_list_at_the_first_name_from_it_on(indexed):
+    config, _sector = indexed
+    conn = store.get_connection(config)
+    try:
+        names = [item["name"] for item in objectlist.list_objects(conn, "planet", limit=200)["items"]]
+        assert len(names) >= 4
+        cut = names[len(names) // 2]
+        page = objectlist.list_objects(conn, "planet", limit=200, start=cut)
+        assert [item["name"] for item in page["items"]] == [n for n in names if n.lower() >= cut.lower()]
+        assert page["past_end"] is False and page["total"] == len(names)
+        down = objectlist.list_objects(conn, "planet", limit=200, descending=True, start=cut)
+        assert [item["name"] for item in down["items"]] == [n for n in reversed(names) if n.lower() <= cut.lower()]
+        past = objectlist.list_objects(conn, "planet", limit=2, start="zzzzzzzz")
+        assert past["past_end"] is True and [item["name"] for item in past["items"]] == names[-2:] and past["next"] is None
+        with pytest.raises(ValueError):
+            objectlist.list_objects(conn, "planet", sort="mass", start="a")
+    finally:
+        conn.close()
+
+
+def test_the_route_takes_from_and_refuses_it_under_another_sort(indexed, client):  # noqa: F811
+    assert client.get("/api/object-lists/planet?from=a&limit=2").status_code == 200
+    assert client.get("/api/object-lists/planet?from=a&sort=mass").status_code == 400

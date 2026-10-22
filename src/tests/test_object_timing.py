@@ -158,7 +158,7 @@ def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(mysql_config, mon
     from planetgen.galaxy import seed as galaxySeed
     from tests.test_version_key import SEED, _generate
     monkeypatch.setenv("PLANETGEN_GENERATION_STATS", "1")
-    _generate(mysql_config, monkeypatch, "plan", "--no-bright-stars", "--nuclear-amplitude", "0", "--max-shell", "40",
+    _generate(mysql_config, monkeypatch, "plan", "--no-bright-stars", "--nuclear-amplitude", "0", "--edge=160pc",
               "--seed", galaxySeed.format_seed(SEED), *REFERENCE_SHAPE_ARGV)
     _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "2", "--num-systems", "2",
               "--backfill-from", "none")

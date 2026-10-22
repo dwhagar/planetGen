@@ -169,11 +169,15 @@ def halo_track(halo_mass_solar, span_gy, steps):
 def inflow_shape(halo_mass_solar, span_gy, steps):
     """
     The gas inflow of a halo's disk over `span_gy` Gy on `steps` equal steps (oldest first), relative to its mean: the
-    growth of the stellar mass the halo holds (`halo_track` through `stellar_to_halo_ratio_at`), never below zero.
+    growth of the stellar mass the halo holds (`halo_track` through `stellar_to_halo_ratio_at`), never below zero. A
+    galaxy with no halo (`halo_mass_solar` is `None`, see `mass_chain.has_halo`) runs none of that: its inflow is
+    constant (a placeholder: no source gives the gas supply of a galaxy with no halo).
 
     Returns:
         numpy.ndarray: `steps + 1` values averaging 1.
     """
+    if halo_mass_solar is None:
+        return np.ones(steps + 1)
     mass, z = halo_track(halo_mass_solar, span_gy, steps)
     stars = mass * stellar_to_halo_ratio_at(mass, z)
     growth = np.maximum(np.gradient(stars, span_gy / steps), 0.0)
@@ -266,7 +270,8 @@ def history(thin_stellar_mass_solar, disk_scale_length_pc, halo_mass_solar, span
     Args:
         thin_stellar_mass_solar (float): The stars of the thin disk (what the density model integrates to).
         disk_scale_length_pc (float): The stellar disk's exponential scale length.
-        halo_mass_solar (float): The dark halo's mass, which sets how its growth was spread over the disk's life.
+        halo_mass_solar (float or None): The dark halo's mass, which sets how its growth was spread over the disk's life;
+            `None` for a galaxy with no halo, whose inflow is constant.
         span_gy (float, optional): How long the disk has been forming stars.
 
     Returns:
@@ -304,10 +309,11 @@ def stellar_mass_for_scale_length(disk_scale_length_pc):
 
 def stellar_and_halo_masses(shape):
     """`(stellar mass, halo mass)` of the galaxy of this shape, solar masses: its `masses` (from the mass chain) when it
-    has them, else those of the median galaxy of its disk scale length."""
+    has them, else those of the median galaxy of its disk scale length. The halo mass is `None` for a galaxy with no
+    halo (`mass_chain.has_halo`)."""
     if shape.masses is None:
         stellar_mass = stellar_mass_for_scale_length(shape.disk_scale_length_pc)
-        return stellar_mass, mass_chain.median_halo_mass(stellar_mass)
+        return stellar_mass, mass_chain.median_halo_mass(stellar_mass) if mass_chain.has_halo(stellar_mass) else None
     return shape.masses
 
 

@@ -849,7 +849,9 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
     # GEN.39: every draw for this sector, its save included, comes from
     # its own seed, so the run's order and worker count don't matter.
     with galaxySeed.seeded(galaxy_seed, "sector", address,
-                           disk_scale_length_pc=fill.shape.disk_scale_length_pc if fill is not None else None
+                           disk_scale_length_pc=fill.shape.disk_scale_length_pc if fill is not None else None,
+                           stellar_mass_solar=fill.shape.masses[0] if fill is not None and fill.shape.masses else None,
+                           halo_mass_solar=fill.shape.masses[1] if fill is not None and fill.shape.masses else None
                            ), object_timing.unit(
             ",".join(str(part) for part in address)) as timings:
         _sector_name, sector = run_sector.generate_directed_sector(

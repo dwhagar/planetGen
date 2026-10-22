@@ -37,7 +37,7 @@ TOP = frozenset({
     "web.index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.galaxy",
     "web.species", "web.species_page", "web.polities", "web.polity_page",
 })
-LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena"})
+LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "web.object_list"})
 DETAIL = frozenset({
     "web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon", "web.uncharted_star",
 })

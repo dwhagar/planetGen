@@ -23,7 +23,7 @@ BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
-    "orbit_nodes", "object_index",
+    "orbit_nodes", "object_index", "galaxy_shape_pins",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
@@ -39,6 +39,9 @@ CONTAINMENT = ("inside_nebula_id", "inside_remnant_id")
 SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant")
 
 NULL_IN_THIS_GALAXY = {
+    # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
+    # writes and reads it back).
+    ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
     # Only something sitting inside a nebula or supernova remnant.
     **{(table, column): CHANCE for table in store.CONTAINABLE_TABLES for column in CONTAINMENT},
     # A quasar is placed only at a galaxy's own center, so whether the run

@@ -943,3 +943,17 @@ Baseline: PR #1817.
 | GEN.608 | 8.1 | Admin control suite |
 | PERF.148 | 8.1 | Queue, caches and performance |
 | GEN.597 | 8.1 | Galaxy laws build |
+| GEN.602 | 8.1 | Admin control suite |
+| GEN.603 | 8.1 | Admin control suite |
+| GEN.604 | 8.1 | Admin control suite |
+| GEN.605 | 8.1 | Admin control suite |
+| GEN.606 | 8.1 | Admin control suite |
+| GEN.609 | 8.1 | Admin control suite |
+| GEN.610 | 8.1 | Admin control suite |
+| DB.81 | 8.1 | Admin control suite |
+| GEN.611 | 8.1 | Admin control suite |
+| DB.80 | 8.1 | Bugs and flaky tests |
+| UX.141 | 8.2 | Robust tile caching |
+| ADM.98 | 8.1 | Admin control suite |
+| ADM.101 | 8.1 | Admin control suite |
+| PERF.141 | 8.2 | Robust tile caching |

@@ -188,5 +188,5 @@ def test_the_stored_shape_row_gains_nothing():
     table = re.search(r"CREATE TABLE IF NOT EXISTS galaxy_shape \((.*?)\n\)", schema, re.S)
     assert table is not None
     for name in galaxyStructure.Structure._fields:
-        assert name not in table.group(1)
+        assert not re.search(rf"\b{name}\b", table.group(1)), name
     assert "bar_present" not in table.group(1) and "thick_" not in table.group(1)

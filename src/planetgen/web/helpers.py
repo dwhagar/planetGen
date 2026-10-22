@@ -163,6 +163,7 @@ SECTIONS = (
     ("sectors", "Sectors"),
     ("systems", "Systems"),
     ("phenomena", "Phenomena"),
+    ("lists", "Lists"),
     ("nav", "Nav"),
     ("nearby", "Nearby"),
     ("classes", "Classes"),

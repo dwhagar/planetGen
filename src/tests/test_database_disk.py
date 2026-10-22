@@ -32,18 +32,14 @@ class _Rows:
 
 
 class _Conn:
-    """A server whose data directory is `datadir` and whose `information_schema.DISKS` is `disks` (or absent)."""
+    """A server whose data directory is `datadir`."""
 
-    def __init__(self, datadir, disks=None):
-        self.datadir, self.disks = datadir, disks
+    def __init__(self, datadir):
+        self.datadir = datadir
 
     def execute(self, sql, *_args):
         if "@@datadir" in sql:
             return _Rows([{"d": self.datadir}])
-        if "information_schema.DISKS" in sql:
-            if self.disks is None:
-                raise RuntimeError("Unknown table 'DISKS'")
-            return _Rows(self.disks)
         raise AssertionError(sql)
 
 
@@ -98,13 +94,6 @@ def test_a_remote_server_is_measured_when_its_data_directory_is_really_visible(t
     (tmp_path / "planetgen_x").mkdir()
     disk = database_disk(_Conn(str(tmp_path) + "/"), "db.example.com", "planetgen_x")
     assert isinstance(disk, DiskSpace)
-
-
-def test_a_remote_mariadb_reports_its_own_drive(two_drives):
-    disks = [{"p": "/", "t": 100 * GB, "a": 10 * GB}, {"p": "/mnt/big", "t": 4000 * GB, "a": 3000 * GB}]
-    disk = database_disk(_Conn("/mnt/big/mysql/", disks), "db.example.com", "planetgen_x")
-    assert (disk.source, disk.mount, disk.free_bytes) == ("server report", "/mnt/big", 3000 * GB)
-    assert two_drives == []
 
 
 def test_an_unmeasurable_drive_is_unknown_with_a_reason_and_refuses_nothing():

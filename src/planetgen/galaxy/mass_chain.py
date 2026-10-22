@@ -33,6 +33,7 @@ import dataclasses
 import functools
 import math
 
+from planetgen.galaxy import dials
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.physics import constants
 from planetgen.util import draw
@@ -84,7 +85,8 @@ CRITICAL_DENSITY_KG_M3 = 3.0 * _H0_PER_S ** 2 / (8.0 * math.pi * constants.G)
 
 @dataclasses.dataclass(frozen=True)
 class MassChain:
-    """What one galaxy seed draws: the stellar mass, the halo mass, the virial radius and the concentration."""
+    """What one galaxy seed draws: the stellar mass, the halo mass, the virial radius and the concentration. A galaxy
+    too light for a halo (`has_halo`) has the stellar mass only: the other three are `None`."""
 
     stellar_mass_solar: float
     halo_mass_solar: float
@@ -93,8 +95,16 @@ class MassChain:
 
     @property
     def halo_mass_kg(self):
-        """float: The halo (virial) mass in kilograms: the central mass of the galaxy's tidal field (Hill spheres)."""
-        return self.halo_mass_solar * constants.SOLAR_MASS_TO_KG
+        """float or None: The halo (virial) mass in kilograms; `None` for a galaxy with no halo."""
+        return None if self.halo_mass_solar is None else self.halo_mass_solar * constants.SOLAR_MASS_TO_KG
+
+    @property
+    def central_mass_kg(self):
+        """float: The mass, kg, the galaxy's tidal field acts as if centred at its middle (every Hill sphere): the
+        halo's virial mass, or for a galaxy with no halo its stars' mass, the only mass it has."""
+        if self.halo_mass_solar is None:
+            return self.stellar_mass_solar * constants.SOLAR_MASS_TO_KG
+        return self.halo_mass_kg
 
 
 def stellar_mass_density_per_dex(log_mass):
@@ -147,6 +157,11 @@ def median_stellar_mass(halo_mass_solar):
     return halo_mass_solar * stellar_to_halo_ratio(halo_mass_solar)
 
 
+HALO_MIN_STELLAR_MASS_SOLAR = median_stellar_mass(dials.HALO_MIN_HALO_MASS_SOLAR)
+"""float: The median stellar mass of a halo of `dials.HALO_MIN_HALO_MASS_SOLAR`, about 4.6e6 solar masses: a galaxy
+lighter than this has no halo (`has_halo`)."""
+
+
 def median_halo_mass(stellar_mass_solar):
     """The halo mass whose median stellar mass is `stellar_mass_solar`: the relation inverted by bisection in log
     space (it is monotonic: the slope `d log M* / d log Mh` runs from 1 + beta at low mass to 1 - gamma at high mass).
@@ -193,16 +208,44 @@ def median_concentration(halo_mass_solar):
     return 10.0 ** (0.905 - 0.101 * math.log10(halo_mass_solar * HUBBLE_H / 1.0e12))
 
 
+def has_halo(stellar_mass_solar):
+    """Whether a galaxy of this stellar mass has a halo: its median halo (`median_halo_mass`) weighs at least
+    `dials.HALO_MIN_HALO_MASS_SOLAR`. Under it no halo is drawn and no law that reads one runs (Boss, 7:33 PM EDT
+    10-21)."""
+    return stellar_mass_solar >= HALO_MIN_STELLAR_MASS_SOLAR
+
+
+def has_full_structure(stellar_mass_solar):
+    """Whether a galaxy of this stellar mass has a thick disc, a bar, a stellar halo and nuclear structures
+    (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`); under it the galaxy is one disc plus a bulge."""
+    return stellar_mass_solar >= dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR
+
+
 def _stream(galaxy_seed, link):
     return draw.Stream(galaxySeed.unit_seed(galaxy_seed or FALLBACK_SEED, "mass-chain", link))
 
 
-def chain_from_stellar_mass(stellar_mass_solar, galaxy_seed):
-    """The halo, radius and concentration for a given stellar mass, their scatters drawn from `galaxy_seed`."""
-    median = median_halo_mass(stellar_mass_solar)
-    scatter = effective_halo_scatter_dex(median)
-    log_halo = math.log10(median) + _stream(galaxy_seed, "halo-mass").gauss(0.0, scatter)
-    halo = 10.0 ** log_halo
+def chain_from_stellar_mass(stellar_mass_solar, galaxy_seed, halo_mass_solar=None):
+    """The halo, radius and concentration for a given stellar mass, their scatters drawn from `galaxy_seed`; none of
+    them, and no halo function, for a galaxy under the halo threshold (`has_halo`). A `halo_mass_solar` the caller
+    pinned (the Halo dial, GEN.606) replaces the halo mass draw only: the radius follows it and the concentration keeps
+    the seed's own residual about the law at that mass.
+
+    Raises:
+        ValueError: For a pinned halo mass on a galaxy under the halo threshold.
+    """
+    if not has_halo(stellar_mass_solar):
+        if halo_mass_solar is not None:
+            raise ValueError(f"a galaxy of {stellar_mass_solar:.3g} solar masses of stars has no halo to pin "
+                             f"(under {HALO_MIN_STELLAR_MASS_SOLAR:.3g})")
+        return MassChain(stellar_mass_solar, None, None, None)
+    if halo_mass_solar is None:
+        median = median_halo_mass(stellar_mass_solar)
+        scatter = effective_halo_scatter_dex(median)
+        log_halo = math.log10(median) + _stream(galaxy_seed, "halo-mass").gauss(0.0, scatter)
+        halo = 10.0 ** log_halo
+    else:
+        halo = float(halo_mass_solar)
     log_c = math.log10(median_concentration(halo)) + _stream(galaxy_seed, "concentration").gauss(
         0.0, CONCENTRATION_SCATTER_DEX)
     return MassChain(stellar_mass_solar, halo, virial_radius_kpc(halo), 10.0 ** log_c)
@@ -214,27 +257,47 @@ def _draw_cached(galaxy_seed):
     return chain_from_stellar_mass(10.0 ** log_stellar_mass_at(share), galaxy_seed)
 
 
-def draw_mass_chain(galaxy_seed):
+@functools.lru_cache(maxsize=64)
+def _pinned_cached(galaxy_seed, stellar_mass_solar, halo_mass_solar):
+    return chain_from_stellar_mass(stellar_mass_solar, galaxy_seed, halo_mass_solar)
+
+
+def draw_mass_chain(galaxy_seed, stellar_mass_solar=None, halo_mass_solar=None):
     """
     The mass chain of a galaxy: the same seed gives the same chain.
 
     Args:
         galaxy_seed (bytes or None): The galaxy's 16-byte seed; `None` (work with no galaxy) uses `FALLBACK_SEED`.
+        stellar_mass_solar (float, optional): A stellar mass the caller pinned (the Scale dial's mass, GEN.603): it
+            replaces only the root draw, and the halo and concentration scatters are the seed's own, so the same seed
+            at a new mass has the same residuals.
+        halo_mass_solar (float, optional): A halo mass the caller pinned (the Halo dial, GEN.606): it replaces only the
+            halo mass draw.
 
     Returns:
-        MassChain: `stellar_mass_solar` inside the first family's range, then the halo mass, virial radius and
-        concentration it draws.
+        MassChain: `stellar_mass_solar` inside the first family's range (or the pinned one), then the halo mass,
+        virial radius and concentration it draws.
+
+    Raises:
+        ValueError: If a pinned mass is one no halo of 1e8 to 1e17 solar masses holds (`median_halo_mass`); a mass under
+            `HALO_MIN_STELLAR_MASS_SOLAR` has no halo and does not reach it.
     """
-    return _draw_cached(bytes(galaxy_seed) if galaxy_seed else FALLBACK_SEED)
+    seed = bytes(galaxy_seed) if galaxy_seed else FALLBACK_SEED
+    if stellar_mass_solar is None and halo_mass_solar is None:
+        return _draw_cached(seed)
+    if stellar_mass_solar is None:
+        stellar_mass_solar = _draw_cached(seed).stellar_mass_solar
+    return _pinned_cached(seed, float(stellar_mass_solar), None if halo_mass_solar is None else float(halo_mass_solar))
 
 
 def current_central_mass_kg():
-    """The central mass of the galaxy the running unit belongs to (`seed.current_galaxy_seed`), or of the fallback
-    seed's galaxy outside any unit."""
-    return central_mass_kg(galaxySeed.current_galaxy_seed())
+    """The central mass of the galaxy the running unit belongs to (`seed.current_galaxy_seed`, with the stellar mass
+    `seed.current_stellar_mass_solar` when the plan pinned one), or of the fallback seed's galaxy outside any unit."""
+    return central_mass_kg(galaxySeed.current_galaxy_seed(), galaxySeed.current_stellar_mass_solar(),
+                           galaxySeed.current_halo_mass_solar())
 
 
-def central_mass_kg(galaxy_seed):
+def central_mass_kg(galaxy_seed, stellar_mass_solar=None, halo_mass_solar=None):
     """The mass, kg, the galaxy's tidal field acts as if centred at its middle: the chain's virial mass, which every
     Hill sphere reads (until GEN.370 replaces it with the mass enclosed at the object's own radius)."""
-    return draw_mass_chain(galaxy_seed).halo_mass_kg
+    return draw_mass_chain(galaxy_seed, stellar_mass_solar, halo_mass_solar).central_mass_kg

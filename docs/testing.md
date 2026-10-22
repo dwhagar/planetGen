@@ -326,10 +326,10 @@ cloud environment's Setup script field (it installs MySQL 8, Apache 2, Redis and
 
 ## Database engines
 
-Local runs here use MariaDB 10.11. CI's `test` job has five legs, each with its own Redis container: the whole
-suite on Python 3.12 against MySQL 8.0, MySQL 8.4 and MariaDB 11.4, then the `generation` tests alone with 2 workers
-(MySQL 8.4, Python 3.12) and with 4 workers (MariaDB 11.4, Python 3.13). MySQL 8 is stricter about reserved words and
-`GROUP BY` than MariaDB, so a query that works locally can still fail there.
+Tests run on MySQL 8.0.19 or later; MariaDB is not supported and a run against it fails by design. CI's `test` job
+has four legs, each with its own Redis container: the whole suite on Python 3.12 against MySQL 8.0 and MySQL 8.4,
+then the `generation` tests alone with 2 workers (MySQL 8.4, Python 3.12) and with 4 workers (MySQL 8.0,
+Python 3.13).
 
 ## Kinds of test
 
@@ -476,7 +476,7 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 
 ## When CI runs
 
-`.github/workflows/ci.yml` (the math check, the five test legs described under "Database engines", browser and
+`.github/workflows/ci.yml` (the math check, the four test legs described under "Database engines", browser and
 accessibility, the JS tests, the installer checks, the dependency audit) never runs on a push or a pull request. It runs:
 
 - **On a schedule**, on main (every day at 07:00 UTC; the `cron` line in

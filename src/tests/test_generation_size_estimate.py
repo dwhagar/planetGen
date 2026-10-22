@@ -28,10 +28,7 @@ def _table_bytes(conn):
         "SELECT table_name AS t FROM information_schema.tables"
         " WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'").fetchall()]
     conn.execute("ANALYZE TABLE " + ", ".join(tables)).fetchall()
-    try:
-        conn.execute("SET SESSION information_schema_stats_expiry = 0")
-    except Exception:  # noqa: BLE001 -- MariaDB reads them live
-        pass
+    conn.execute("SET SESSION information_schema_stats_expiry = 0")
     rows = conn.execute(
         "SELECT table_name AS t, data_length + index_length AS b FROM information_schema.tables"
         " WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'").fetchall()

@@ -35,7 +35,12 @@ draws about the median laws, each through the one random wrapper (`planetgen.uti
    trend is (5.13.6 item 7).
 
 An option the caller sets (`fixed`) replaces its drawn value, and what follows from it is recomputed: the bulge's
-amplitude is solved from `B/T` for the disk and bulge actually used.
+amplitude is solved from `B/T` for the disk and bulge actually used. The Structure dial's three options are ratios, so
+they keep their meaning when the length moves (GEN.604): `flatness` (the scale length over the scale height, replacing
+the absolute height), `bulge_to_total` (replacing the bulge amplitude, which is solved from it) and `bulge_size` (the
+bulge's scale radius over the scale length, replacing the absolute radius). A fixed option replaces only its own draw;
+the random number of the draw it replaces is left alone, so the same seed with a different length draws the same
+residuals.
 
 Only the spiral family exists; GEN.378 adds the others.
 """
@@ -114,6 +119,8 @@ class GalaxyDraw:
     bulge_amplitude: float
     arm_count: int
     pitch_angle_deg: float
+    compactness: float = 0.0
+    """float: The size's distance from the size-mass law at this mass, in standard deviations of its scatter."""
 
 
 def _stream(galaxy_seed, link):
@@ -153,11 +160,13 @@ def pitch_median_deg(stellar_mass_solar):
     return min(max(value, PITCH_RANGE_DEG[0]), PITCH_RANGE_DEG[1])
 
 
-def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar):
+def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar, compactness=None):
     """The thin disc's scale length, parsecs, the seed draws for a galaxy of this stellar mass: the half-light radius of the
-    size-mass relation with its scatter, over the exponential disc's half-light-to-scale ratio."""
-    log_r50 = math.log(size_median_kpc(stellar_mass_solar)) + _stream(galaxy_seed, "size").gauss(
-        0.0, size_sigma_ln(stellar_mass_solar))
+    size-mass relation with its scatter, over the exponential disc's half-light-to-scale ratio. A `compactness` (the
+    Scale dial's pin, in standard deviations) replaces the draw of the scatter."""
+    scatter = (_stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(stellar_mass_solar)) if compactness is None
+               else size_sigma_ln(stellar_mass_solar) * compactness)
+    log_r50 = math.log(size_median_kpc(stellar_mass_solar)) + scatter
     return math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
 
 
@@ -180,9 +189,10 @@ def bulge_amplitude_for(bulge_to_total, disk_scale_length_pc, disk_scale_height_
     return bulge_mass / unit
 
 
-def stage_of(galaxy_seed):
-    """"late" or "early": the stage the seed's galaxy is (Sc and later, or Sa to Sb)."""
-    mass = mass_chain.draw_mass_chain(galaxy_seed).stellar_mass_solar
+def stage_of(galaxy_seed, stellar_mass_solar=None):
+    """"late" or "early": the stage the seed's galaxy is (Sc and later, or Sa to Sb), at the mass the seed draws or the
+    one pinned."""
+    mass = mass_chain.draw_mass_chain(galaxy_seed, stellar_mass_solar).stellar_mass_solar
     return "late" if _stream(galaxy_seed, "stage").random() < late_share(mass) else "early"
 
 
@@ -194,10 +204,10 @@ def random_nucleus_mass_solar():
     return galaxyStructure.black_hole_mass_solar(drawn.structure, drawn.bulge_to_total)
 
 
-def structure_for(galaxy_seed):
-    """The structure of the galaxy a seed makes (`structure_draw.draw_structure`): what a loaded shape is rebuilt with,
-    since no column stores it."""
-    return structure_draw.draw_structure(galaxy_seed)
+def structure_for(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
+    """The structure of the galaxy a seed makes (`structure_draw.draw_structure`), at the pinned stellar mass and stellar
+    halo share when the plan stored them: what a loaded shape is rebuilt with, since no column stores it."""
+    return structure_draw.draw_structure(galaxy_seed, stellar_mass_solar, stellar_halo_share)
 
 
 def _truncated(stream, mean, sigma, low, high):
@@ -215,10 +225,12 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     Args:
         galaxy_seed (bytes or None): The galaxy's 16-byte seed; `None` uses the mass chain's fallback seed.
         family (str): `SPIRAL` (the only family so far).
-        arm_level (float): The thin disk's density level (`density.arm_terms`), which the bulge's amplitude is solved
+        arm_level (float): The thin disk's density level (1 since GEN.611), which the bulge's amplitude is solved
             against.
-        **fixed: Any of `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`,
-            `arm_count`, `pitch_angle_deg`; a value given (not `None`) replaces the drawn one.
+        **fixed: Any of `stellar_mass_solar`, `compactness` (the size's distance from the size-mass law in sigma),
+            `disk_scale_length_pc`, `flatness`, `bulge_to_total`, `bulge_size`, `arm_count`, `pitch_angle_deg`; a value
+            given (not `None`) replaces the drawn one. A pinned mass reaches every law that reads it; a pinned
+            `disk_scale_length_pc` wins over `compactness`.
 
     Returns:
         GalaxyDraw: The drawn values, with the fixed ones in place of theirs.
@@ -228,36 +240,43 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     """
     if family != SPIRAL:
         raise ValueError(f"no shape law for the {family!r} family yet")
-    unknown = set(fixed) - {"disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
-                            "bulge_amplitude", "arm_count", "pitch_angle_deg"}
+    unknown = set(fixed) - {"stellar_mass_solar", "compactness", "disk_scale_length_pc", "flatness", "bulge_to_total",
+                            "bulge_size", "arm_count", "pitch_angle_deg", "halo_ratio", "stellar_halo_share"}
     if unknown:
         raise ValueError(f"not a shape option: {', '.join(sorted(unknown))}")
     fixed = {name: value for name, value in fixed.items() if value is not None}
-    chain = mass_chain.draw_mass_chain(galaxy_seed)
+    pinned_mass = fixed.get("stellar_mass_solar")
+    chain = mass_chain.draw_mass_chain(galaxy_seed, pinned_mass)
     mass = chain.stellar_mass_solar
+    if "halo_ratio" in fixed:
+        chain = mass_chain.draw_mass_chain(galaxy_seed, mass, halo_mass_of(mass, fixed["halo_ratio"]))
 
     length = fixed.get("disk_scale_length_pc")
     if length is None:
-        length = drawn_disk_scale_length_pc(galaxy_seed, mass)
-    height = fixed.get("disk_scale_height_pc")
-    if height is None:
+        length = drawn_disk_scale_length_pc(galaxy_seed, mass, fixed.get("compactness"))
+    q = fixed.get("flatness")
+    if q is None:
         q = 10.0 ** (math.log10(KREGEL_Q) + _stream(galaxy_seed, "height").gauss(0.0, KREGEL_SCATTER_DEX))
-        height = length / q
+    height = length / q
 
-    stage = stage_of(galaxy_seed)
+    stage = stage_of(galaxy_seed, pinned_mass)
     late = stage == "late"
-    structure = structure_draw.draw_structure(galaxy_seed)
+    structure = structure_draw.draw_structure(galaxy_seed, pinned_mass, fixed.get("stellar_halo_share"))
     log_bd = _stream(galaxy_seed, "bulge-share").gauss(
         LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
-    bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
+    bulge_to_total = fixed.get("bulge_to_total")
+    if bulge_to_total is None:
+        bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
     mean, sigma = BAR_LENGTH_OVER_H_LATE if late else BAR_LENGTH_OVER_H_EARLY
-    bar_length = length * _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
-    bulge_radius = fixed.get("bulge_scale_radius_pc")
-    if bulge_radius is None:
+    bar_ratio = _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
+    bulge_size = fixed.get("bulge_size")
+    if bulge_size is None:
+        bar_length = length * bar_ratio
         bulge_radius = bar_length / BAR_LENGTH_PER_SCALE_RADIUS
-    amplitude = fixed.get("bulge_amplitude")
-    if amplitude is None:
-        amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
+    else:
+        bulge_radius = bulge_size * length
+        bar_length = bulge_radius * BAR_LENGTH_PER_SCALE_RADIUS
+    amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
 
     arms = fixed.get("arm_count")
     if arms is None:
@@ -269,7 +288,224 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     pitch = fixed.get("pitch_angle_deg")
     if pitch is None:
         pitch = _truncated(_stream(galaxy_seed, "pitch"), pitch_median_deg(mass), PITCH_SCATTER_DEG, *PITCH_RANGE_DEG)
-    return GalaxyDraw(chain, stage, structure, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms, pitch)
+    compactness = (math.log(length * EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0 / size_median_kpc(mass))
+                   / size_sigma_ln(mass))
+    return GalaxyDraw(chain, stage, structure, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms,
+                      pitch, compactness)
+
+
+# --- The Scale dial (GEN.603): any two of mass, size and density -----------------------------------------------------
+
+@dataclasses.dataclass(frozen=True)
+class ScaleResolution:
+    """What the Scale dial's pins make of mass, size and density: the three numbers, which were pinned and which
+    one the other two gave."""
+
+    stellar_mass_solar: float
+    disk_scale_length_pc: float
+    compactness: float
+    density: float
+    pinned: tuple
+    derived: str
+    """str: `"density"` when mass and size were given, `"size"` when mass and density, `"mass"` when size and density,
+    and `"none"` when fewer than two were (the seed draws what was left and the density is a read-out)."""
+
+
+class ScaleError(ValueError):
+    """Pins that cannot make a galaxy: all three of mass, size and density, two ways to set the size, or a solved
+    value outside its range."""
+
+
+def thin_disk_share(structure, bulge_to_total):
+    """The thin disk's share of the galaxy's stellar mass: of the stars less the stellar halo's, the part that is
+    neither bulge (`bulge_to_total` of bulge, thin and thick disks) nor thick disk (`structure.thick_mass_ratio`
+    times the thin disk's)."""
+    return (1.0 - structure.halo_stellar_ratio) * (1.0 - bulge_to_total) / (1.0 + structure.thick_mass_ratio)
+
+
+def central_surface_density(stellar_mass_solar, disk_scale_length_pc, share):
+    """The thin disk's central surface density, solar masses per square parsec: `M_thin / (2 pi L^2)` for the
+    exponential disk, with `M_thin` the `share` of the stellar mass (`thin_disk_share`)."""
+    return stellar_mass_solar * share / (2.0 * math.pi * disk_scale_length_pc ** 2)
+
+
+def _compactness_of(mass, length_pc):
+    return (math.log(length_pc * EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0 / size_median_kpc(mass))
+            / size_sigma_ln(mass))
+
+
+def _length_of(mass, compactness):
+    log_r50 = math.log(size_median_kpc(mass)) + size_sigma_ln(mass) * compactness
+    return math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
+
+
+def resolve_scale(galaxy_seed, mass=None, compactness=None, length_pc=None, density=None, bulge_to_total=None,
+                  mass_range=None, length_range=None):
+    """
+    Mass, size and density of the galaxy a seed makes under the Scale dial's pins. They are three views of two
+    numbers (`central_surface_density`), so any two pinned fix the third and all three are refused.
+
+    Args:
+        galaxy_seed (bytes or None): The galaxy's seed.
+        mass (float, optional): Pinned stellar mass, solar masses.
+        compactness (float, optional): Pinned size, in standard deviations from the size-mass law at the mass.
+        length_pc (float, optional): Pinned size as the thin disk scale length, parsecs.
+        density (float, optional): Pinned central surface density of the thin disk, solar masses per square parsec.
+        bulge_to_total (float, optional): The Structure dial's bulge share, which the thin disk's share of the mass
+            depends on; drawn when not given.
+        mass_range, length_range (tuple, optional): The `(low, high)` a solved mass or length must lie in.
+
+    Returns:
+        ScaleResolution
+
+    Raises:
+        ScaleError: For pins that cannot make a galaxy (the message names which pin was dropped and the value the
+            other two imply).
+    """
+    if compactness is not None and length_pc is not None:
+        raise ScaleError("the size is set twice, by compactness and by the scale length; give one of them")
+    size_pinned = compactness is not None or length_pc is not None
+    pinned = tuple(name for name, given in (("mass", mass is not None), ("size", size_pinned),
+                                            ("density", density is not None)) if given)
+
+    def share_at(stellar_mass):
+        structure = structure_draw.draw_structure(galaxy_seed, stellar_mass)
+        if bulge_to_total is not None:
+            return thin_disk_share(structure, bulge_to_total)
+        late = stage_of(galaxy_seed, stellar_mass) == "late"
+        log_bd = _stream(galaxy_seed, "bulge-share").gauss(
+            LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
+        return thin_disk_share(structure, 1.0 / (1.0 + 10.0 ** -log_bd))
+
+    def length_at(stellar_mass):
+        if length_pc is not None:
+            return length_pc
+        if compactness is not None:
+            return _length_of(stellar_mass, compactness)
+        return draw_galaxy(galaxy_seed, stellar_mass_solar=stellar_mass).disk_scale_length_pc
+
+    def made(stellar_mass, length, derived):
+        return ScaleResolution(
+            stellar_mass, length, _compactness_of(stellar_mass, length),
+            central_surface_density(stellar_mass, length, share_at(stellar_mass)), pinned, derived)
+
+    if len(pinned) == 3:
+        implied = made(mass, length_at(mass), "density")
+        raise ScaleError(
+            f"mass, size and density are three views of two numbers: give any two. The mass and size given imply a "
+            f"central surface density of {implied.density:.4g} solar masses per square parsec; the density given "
+            f"({density:.4g}) was dropped")
+    if density is None:
+        drawn_mass = mass if mass is not None else mass_chain.draw_mass_chain(galaxy_seed).stellar_mass_solar
+        return made(drawn_mass, length_at(drawn_mass), "density" if mass is not None and size_pinned else "none")
+    if mass is not None or not size_pinned:
+        stellar_mass = mass if mass is not None else mass_chain.draw_mass_chain(galaxy_seed).stellar_mass_solar
+        length = math.sqrt(stellar_mass * share_at(stellar_mass) / (2.0 * math.pi * density))
+        if length_range is not None and not length_range[0] <= length <= length_range[1]:
+            raise ScaleError(f"a density of {density:.4g} solar masses per square parsec at {stellar_mass:.4g} solar "
+                             f"masses needs a scale length of {length:.4g} pc, outside {length_range[0]:g} to "
+                             f"{length_range[1]:g} pc")
+        return made(stellar_mass, length, "size")
+    # Size and density pinned: the mass is the one that holds both (the density rises with mass at a fixed size, and
+    # with mass along the size-mass law, whose exponent is under a half).
+    low, high = (mass_range or (1.0e8, 2.0e11))
+    log_low, log_high = math.log(low), math.log(high)
+
+    def error(log_mass):
+        stellar_mass = math.exp(log_mass)
+        return central_surface_density(stellar_mass, length_at(stellar_mass), share_at(stellar_mass)) - density
+
+    if error(log_low) > 0.0 or error(log_high) < 0.0:
+        raise ScaleError(f"a density of {density:.4g} solar masses per square parsec at that size needs a stellar "
+                         f"mass outside {low:.4g} to {high:.4g} solar masses")
+    for _ in range(80):
+        middle = 0.5 * (log_low + log_high)
+        if error(middle) < 0.0:
+            log_low = middle
+        else:
+            log_high = middle
+    stellar_mass = math.exp(0.5 * (log_low + log_high))
+    return made(stellar_mass, length_at(stellar_mass), "mass")
+
+
+DISC_HALF_LIGHT_OVER_R200 = 0.015
+"""float: The median ratio of a galaxy's half-light radius to its halo's virial radius (Kravtsov 2013, arXiv:1212.2654,
+about 0.015; recalled, not read in the repository, so a placeholder), which the size-halo warning compares a plan with."""
+
+DISC_HALF_LIGHT_OVER_R200_DEX = 1.0
+"""float: How far from `DISC_HALF_LIGHT_OVER_R200`, in dex, the plan's ratio may lie before it is warned about; the
+relation's scatter is 0.2 to 0.3 dex (recalled), so this is three or four of it (a placeholder)."""
+
+
+def halo_report(drawn):
+    """
+    What a plan says about its halo (the Halo dial, GEN.606): `(line, warning)`. The line gives the halo mass over the
+    stellar mass, the virial radius and the concentration, or says there is no halo; the warning is a sentence when the
+    disc's half-light radius is more than `DISC_HALF_LIGHT_OVER_R200_DEX` from the usual share of the virial radius (a
+    pinned size or halo can make a disc the halo could not have held), else `None`.
+    """
+    chain = drawn.chain
+    if chain.halo_mass_solar is None:
+        return "No halo: the galaxy is under the halo threshold, so no halo is drawn and no halo law runs", None
+    line = (f"Halo: {chain.halo_mass_solar:.3g} solar masses ({chain.halo_mass_solar / chain.stellar_mass_solar:.0f} times "
+            f"the stars), virial radius {chain.virial_radius_kpc:.0f} kpc, concentration {chain.concentration:.1f}")
+    ratio = drawn.disk_scale_length_pc * EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0 / chain.virial_radius_kpc
+    offset = math.log10(ratio / DISC_HALF_LIGHT_OVER_R200)
+    if abs(offset) <= DISC_HALF_LIGHT_OVER_R200_DEX:
+        return line, None
+    return line, (f"the disc's half-light radius is {ratio:.4f} of the halo's virial radius, {abs(offset):.1f} dex "
+                  f"{'above' if offset > 0 else 'below'} the usual {DISC_HALF_LIGHT_OVER_R200} "
+                  f"(a pinned size or halo makes a disc this halo would not hold; placeholder limit)")
+
+
+def halo_mass_of(stellar_mass_solar, halo_ratio):
+    """The dark halo mass, solar masses, a pinned `halo_ratio` (halo over stellar mass) gives at a stellar mass: the one
+    product every place that reads the pin takes, so a loaded shape and a generated sector agree to the last bit."""
+    return halo_ratio * stellar_mass_solar
+
+
+def edge_limit_pc(edge, disk_scale_length_pc):
+    """The distance, parsecs, the Edge dial stops the outline at, or `None` for Auto (the outline's own edge): a length in
+    parsecs as it is, one in scale lengths (`12L`) times the thin disc's.
+
+    Raises:
+        ValueError: For a relative length of a unit other than `L`.
+    """
+    if edge is None:
+        return None
+    if isinstance(edge, dials.RelativeLength):
+        if edge.unit != "L":
+            raise ValueError(f"{edge.unit!r} is not a unit relative to the galaxy")
+        return edge.value * disk_scale_length_pc
+    return float(edge)
+
+
+def pins_of(args, disk_scale_length_pc=None):
+    """The shape options the user gave, `{lever name: value}` in the units of the table (the lengths in parsecs): what
+    a plan stores beside the resolved shape (DB.81), so the galaxy page can say what was pinned and what was drawn.
+    A value that is the row's fixed Auto value counts as pinned when it was given. The Shape selector is a choice, not
+    a number (it is stored with the family, DB.66). A length in scale lengths (the Edge) is stored in parsecs, resolved
+    against `disk_scale_length_pc`."""
+    given = {row.name: getattr(args, row.dest) for row in dials.LEVERS
+             if row.kind in ("float", "int", "length") and getattr(args, row.dest, None) is not None}
+    return {name: edge_limit_pc(value, disk_scale_length_pc) if isinstance(value, dials.RelativeLength) else value
+            for name, value in given.items()}
+
+
+def drawn_surface_density(drawn):
+    """The thin disc's central surface density, solar masses per square parsec, of a drawn galaxy."""
+    return central_surface_density(drawn.chain.stellar_mass_solar, drawn.disk_scale_length_pc,
+                                   thin_disk_share(drawn.structure, drawn.bulge_to_total))
+
+
+def pinned_stellar_mass(args, drawn):
+    """The stellar mass a plan stores for its galaxy (DB.81): the mass of `drawn` when the Scale levers fixed it, a
+    pinned mass or the one a pinned size and density hold, else `None` (the seed's own draw, which a loaded shape draws
+    again by itself)."""
+    mass_given = dials.resolved(args, "mass") is not None
+    size_and_density = dials.resolved(args, "density") is not None and (
+        dials.resolved(args, "compactness") is not None or dials.resolved(args, "disk_scale_length") is not None)
+    return drawn.chain.stellar_mass_solar if mass_given or size_and_density else None
 
 
 def plan_shape(args, galaxy_seed):
@@ -283,16 +519,38 @@ def plan_shape(args, galaxy_seed):
 
     Returns:
         tuple: `(shape, drawn)`: the `GalaxyShape` with `k_norm` set, and the `GalaxyDraw` it was built from.
+
+    Raises:
+        ScaleError: For Scale pins that cannot make a galaxy (`resolve_scale`).
+        ValueError: For a pinned or solved value outside a derived limit (`dials.DERIVED_LIMITS`).
     """
-    arm_amplitude, arm_level = density.arm_terms(dials.resolved(args, "arm_density"),
-                                                 dials.resolved(args, "interarm_density"))
+    arm_amplitude, arm_level = dials.resolved(args, "arm_contrast"), 1.0
+    fixed = {}
+    scale_pins = [dials.resolved(args, name) for name in ("mass", "compactness", "disk_scale_length", "density")]
+    if any(pin is not None for pin in scale_pins):
+        mass_row, length_row = dials.lever("mass"), dials.lever("disk_scale_length")
+        scale = resolve_scale(
+            galaxy_seed, mass=dials.resolved(args, "mass"), compactness=dials.resolved(args, "compactness"),
+            length_pc=dials.resolved(args, "disk_scale_length"), density=dials.resolved(args, "density"),
+            bulge_to_total=dials.resolved(args, "bulge_share"),
+            mass_range=(mass_row.minimum, mass_row.maximum), length_range=(length_row.minimum, length_row.maximum))
+        for row, value in ((mass_row, scale.stellar_mass_solar), (length_row, scale.disk_scale_length_pc)):
+            message = row.problem(value)
+            if message:
+                raise ScaleError(f"the {row.label.lower()} these pins give: {message}")
+        fixed = {"stellar_mass_solar": scale.stellar_mass_solar, "disk_scale_length_pc": scale.disk_scale_length_pc}
     drawn = draw_galaxy(
-        galaxy_seed, family=dials.resolved(args, "shape") or SPIRAL, arm_level=arm_level,
-        disk_scale_length_pc=dials.resolved(args, "disk_scale_length"),
-        disk_scale_height_pc=dials.resolved(args, "disk_scale_height_pc"),
-        bulge_scale_radius_pc=dials.resolved(args, "bulge_scale_radius_pc"),
-        bulge_amplitude=dials.resolved(args, "bulge_amplitude"),
-        arm_count=dials.resolved(args, "arm_count"), pitch_angle_deg=dials.resolved(args, "pitch_angle_deg"))
+        galaxy_seed, family=dials.resolved(args, "shape") or SPIRAL, arm_level=arm_level, **fixed,
+        flatness=dials.resolved(args, "flatness"),
+        bulge_to_total=dials.resolved(args, "bulge_share"), bulge_size=dials.resolved(args, "bulge_size"),
+        arm_count=dials.resolved(args, "arm_count"), pitch_angle_deg=dials.resolved(args, "pitch_angle_deg"),
+        halo_ratio=dials.resolved(args, "halo_ratio"), stellar_halo_share=dials.resolved(args, "stellar_halo_share"))
+    if fixed or dials.resolved(args, "flatness") is not None or dials.resolved(args, "bulge_size") is not None:
+        for name, value in (("disk_scale_height_pc", drawn.disk_scale_height_pc),
+                            ("bulge_scale_radius_pc", drawn.bulge_scale_radius_pc)):
+            message = dials.check_derived(name, value)
+            if message:
+                raise ValueError(message)
     shape = density.build_galaxy_shape(
         disk_scale_length_pc=drawn.disk_scale_length_pc,
         disk_scale_height_pc=drawn.disk_scale_height_pc,

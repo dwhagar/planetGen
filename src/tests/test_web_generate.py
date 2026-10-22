@@ -544,7 +544,7 @@ def test_sections_fold_with_only_current_job_open(site, client):
     ("galaxy", "generate-sectors"), ("plan", "plan"), ("bright_band", "bright-band"), ("reset", "reset"),
 ])
 def test_a_form_shown_again_keeps_its_section_open(site, client, no_spawn, action, section):
-    resp = _post(client, action=action, mode="shell", arm_density="50", down_to="", confirm="wrong")
+    resp = _post(client, action=action, mode="shell", arm_contrast="50", down_to="", confirm="wrong")
     assert resp.status_code == 400
     attrs = _fold(resp.get_data(as_text=True), section)
     assert " open" in attrs and "data-fold-keep" in attrs
@@ -584,9 +584,9 @@ def test_sector_list_needs_an_admin(site, client):
 
 
 def test_plan_rejects_out_of_range(site, client, no_spawn):
-    resp = _post(client, action="plan", arm_density="10.5")
+    resp = _post(client, action="plan", arm_contrast="10.5")
     assert resp.status_code == 400
-    assert "Arm density: 10.5 is outside 0.01 to 10" in resp.get_data(as_text=True)
+    assert "Arm contrast: 10.5 is outside 0 to 1" in resp.get_data(as_text=True)
 
 
 @pytest.mark.parametrize("action", ["reset", "new_galaxy"])
@@ -1574,7 +1574,7 @@ def test_the_form_turns_each_field_into_its_flag(site):
     pairs = {argv[i]: argv[i + 1] for i in range(len(argv) - 1) if argv[i].startswith("--") and not argv[i + 1].startswith("--")}
     assert pairs["--shape"] == "spiral" and pairs["--disk-scale-length"] == "2.6kpc"
     assert pairs["--arm-count"] == "3" and pairs["--pitch-angle-deg"] == "-12.5"
-    assert "--arm-density" not in argv and "--nuclear-amplitude" not in argv
+    assert "--arm-contrast" not in argv and "--nuclear-amplitude" not in argv
 
 
 def test_a_blank_form_field_is_auto_and_adds_no_flag(site):
@@ -1604,3 +1604,12 @@ def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site
         if row.kind == "length":
             assert f'name="{row.name}_unit"' in html
     assert "Spiral" in html
+
+
+def test_the_mass_field_carries_the_halo_thresholds_the_script_turns_the_halo_options_off_at(site, client):
+    from planetgen.galaxy import mass_chain
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert f'data-no-dark-halo-below="{mass_chain.HALO_MIN_STELLAR_MASS_SOLAR}"' in html
+    assert f'data-simple-below="{dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR}"' in html
+    assert "data-halo-reason hidden" in html and '/static/generatelevers.js' in html
+    assert 'data-lever="halo_ratio"' in html and 'data-lever="stellar_halo_share"' in html

@@ -197,7 +197,7 @@ def client(mysql_config):
 
 def test_a_timed_out_api_request_is_a_504(client, monkeypatch):
     def slow(*_args, **_kwargs):
-        raise pymysql.err.OperationalError(1969, "Query execution was interrupted (max_statement_time exceeded)")
+        raise pymysql.err.OperationalError(3024, "Query execution was interrupted, maximum statement execution time exceeded")
 
     monkeypatch.setattr("planetgen.api.routes.list_phenomena", slow)
     monkeypatch.setattr("planetgen.api.routes.count_phenomena", lambda *_args, **_kwargs: 0)
