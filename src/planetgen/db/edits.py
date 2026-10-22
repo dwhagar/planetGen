@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import kind_tables, store
+from planetgen.db import kind_tables, object_rows, store
 from planetgen.physics import constants
 
 PHENOMENON_TABLES = kind_tables.kind_tables("phenomenon")
@@ -53,10 +53,9 @@ def _star_ids(conn, system_id, system):
 def _update_body(conn, table, body, assignments, key_values):
     """UPDATEs one `planets`/`moons` row from `body` and rewrites its
     reflection spectrum rows."""
-    columns = list(assignments) + list(store._BODY_COLUMNS)
-    if table == "planets":
-        columns += list(store._PLANET_ONLY_COLUMNS)
-    values = list(key_values) + store.body_row_values(body)
+    fields = store.PLANET_BODY_FIELDS if table == "planets" else store.BODY_FIELDS
+    columns = list(assignments) + list(object_rows.columns_of(fields))
+    values = list(key_values) + object_rows.values_of(fields, body)
     # An edited orbit is worked out again by the next orbit update (GEN.106).
     conn.execute(
         f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in columns)}, next_update_due = NULL"

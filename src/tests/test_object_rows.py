@@ -90,3 +90,134 @@ def test_an_anchored_remnant_leaves_its_motion_and_spin_to_its_star():
         store.BLACK_HOLE_FIELDS, hole, {"star_id": None, "sector_id": 4, "placement": placement})))
     assert free["galactic_orbital_period_gy"] == 0.2 and free["spin_axis_z"] == 1.0 and free["center_x_pc"] == 1000.0
     assert free["velocity_x_kms"] is not None and free["galactic_radius_pc"] == 1000.0
+
+
+# -- the load (DB.74 S3): the same lists read a stored row back ----------------------------------------------------
+
+import pytest as _pytest
+
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
+from planetgen.util import draw
+
+
+def _stored(fields, obj, context):
+    """The row an insert of `obj` writes, as the mapping a `SELECT` hands back."""
+    return dict(zip(object_rows.columns_of(fields), object_rows.values_of(fields, obj, context)))
+
+
+def _same(stored, loaded):
+    if isinstance(stored, (list, tuple)):
+        assert len(stored) == len(loaded)
+        for a, b in zip(stored, loaded):
+            _same(a, b)
+    elif isinstance(stored, float) or isinstance(loaded, float):
+        assert loaded == _pytest.approx(stored, rel=1e-12, abs=1e-12)
+    else:
+        assert stored == loaded
+
+
+def _system(seed):
+    draw.set_run_seed(seed)
+    return StarSystem(system_config=SystemConfig())
+
+
+@_pytest.mark.parametrize("seed", [1, 2, 3])
+def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
+    star = _system(seed).star
+    row = _stored(store.STAR_FIELDS, star, {"star_system_id": 1, "role": "single"})
+    loaded = store._star_row_to_dict(row, 12.5)
+    assert loaded["galactic_orbital_speed_kms"] == 12.5
+    original = star.to_dict()
+    assert set(loaded) == set(original), set(loaded) ^ set(original)
+    for key, value in loaded.items():
+        if key != "galactic_orbital_speed_kms":
+            _same(original[key], value)
+
+
+def test_a_stored_temperature_that_is_whole_comes_back_as_the_int_the_generator_makes():
+    assert store._whole_number(5800.0) == 5800 and isinstance(store._whole_number(5800.0), int)
+    assert store._whole_number(3676064.7) == 3676064.7
+    assert store._whole_number(None) is None
+
+
+def test_a_null_reflex_offset_and_a_null_wide_binary_limit_come_back_as_the_objects_defaults():
+    star = _system(1).star
+    row = _stored(store.STAR_FIELDS, star, {"star_system_id": 1, "role": "single"})
+    row.update(reflex_offset_x_km=None, reflex_offset_y_km=None, reflex_offset_z_km=None, wide_binary_a_crit_km=None)
+    loaded = store._star_row_to_dict(row, 0.0)
+    assert (loaded["reflex_offset_x"], loaded["reflex_offset_y"], loaded["reflex_offset_z"]) == (0.0, 0.0, 0.0)
+    assert loaded["a_crit_au"] is None
+
+
+def test_a_stored_metallicity_is_not_lost_on_the_way_back():
+    star = _system(1).star
+    row = _stored(store.STAR_FIELDS, star, {"star_system_id": 1, "role": "single"})
+    assert store._star_row_to_dict(row, 0.0)["metallicity_fe_h"] == star.metallicity_fe_h is not None
+
+
+class _Rows(list):
+    def fetchall(self):
+        return self
+
+
+class _SpectrumConnection:
+    def execute(self, sql, params=()):
+        return _Rows([{"spectrum_type": "visible", "value": 1.5}, {"spectrum_type": "non_visible", "value": 3.5}])
+
+
+def test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from():
+    checked = set()
+    for seed in range(1, 9):
+        _check_bodies(_system(seed), checked)
+    assert checked == {"planet", "moon", "belt", "comet"}
+
+
+def _check_bodies(system, checked):
+    context = {"star_system_id": 1, "star_id": 2, "orbital_index": 0}
+    for body in system.planets:
+        if hasattr(body, "moons"):
+            row = _stored(store.PLANET_FIELDS, body, context)
+            row["id"] = 7
+            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(), row, False)
+            original = body.to_dict()
+            for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible"}:
+                _same(original[key], loaded[key])
+            assert loaded["reflection_spectrum_visible"] == [1.5] and loaded["moons"] == []
+            checked.add("planet")
+            for moon in body.moons:
+                row = _stored(store.MOON_FIELDS, moon, dict(context, planet_id=7))
+                row["id"] = 8
+                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(), row, True)
+                assert "reflex_offset_x" not in loaded and loaded["is_moon"] is True
+                original = moon.to_dict()
+                for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible",
+                                          "is_moon"}:
+                    _same(original[key], loaded[key])
+                checked.add("moon")
+        else:
+            row = _stored(store.BELT_FIELDS, body, context)
+            loaded = store._belt_row_to_dict(row, [{"component": "ice", "concentration": 0.5}])
+            original = body.to_dict()
+            for key in ("distance", "lower_limit", "upper_limit", "density"):
+                _same(original[key], loaded[key])
+            assert loaded["body_type"] == "a" and loaded["composition"] == [["ice", 0.5]]
+            checked.add("belt")
+    for comet in system.comets:
+        row = _stored(store.COMET_FIELDS, comet, {"star_system_id": 1, "star_id": 2})
+        loaded = store._comet_row_to_dict(row, [{"component": "ice"}])
+        original = comet.to_dict()
+        for key in set(loaded) - {"composition"}:
+            _same(original[key], loaded[key])
+        assert loaded["is_active"] is bool(comet.is_active)
+        checked.add("comet")
+
+
+def test_the_load_helpers_invert_their_conversions():
+    row = {"d_km": 300000.0, "n_km": None, "flag": 1, "a": 1, "b": 2}
+    fields = (object_rows.scaled("d_km", "d", 150000.0), object_rows.scaled("n_km", "n", 150000.0, null=0.0, nullable=True),
+              object_rows.each(("a", "b")), object_rows.context("sector_id"))
+    assert object_rows.load_dict(fields, row) == {"d": 2.0, "n": 0.0, "a": 1, "b": 2}
+    assert object_rows.load_dict(fields, row, only=("a",)) == {"a": 1, "b": 2}
+    obj = types.SimpleNamespace(d=2.0, n=None, a=1, b=2)
+    assert object_rows.values_of(fields[:3], obj, {}) == [300000.0, None, 1, 2]

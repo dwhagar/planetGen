@@ -13,8 +13,9 @@ placeholders and the value tuple of a function of its own. The constructors buil
 * `context(column, key)`: the value the caller passed (`star_system_id`, `sector_id`).
 * `computed(columns, function)`: `function(obj, context)`, one value for one column or a tuple for several.
 
-The same lists drive the load (DB.74, next slice) and, in the 8.4 revision, name which columns go to the shared core
-table and which to a profile table.
+The same lists drive the load: `load_dict(fields, row)` turns a stored row back into the dict an object's `from_dict`
+takes, each field naming the keys it fills and inverting its own conversion (`scaled` divides the kilometres back to
+AU). In the 8.4 revision the lists also name which columns go to the shared core table and which to a profile table.
 """
 
 import dataclasses
@@ -28,22 +29,25 @@ class Field:
     Attributes:
         columns (tuple): The column names, in the order `get` returns their values.
         get (callable): `get(obj, context)`: the value of a one-column field, or a tuple of `len(columns)` values.
+        load (callable or None): `load(row)`: the dict of `from_dict` keys the stored columns fill; `None` for a
+            column that is not part of the object (the owning ids).
     """
 
     columns: tuple
     get: object
+    load: object = None
 
 
 def attr(column, name=None):
     """A column filled from the object's attribute `name` (the column's own name when not given)."""
     attribute = name or column
-    return Field((column,), lambda obj, context: getattr(obj, attribute))
+    return Field((column,), lambda obj, context: getattr(obj, attribute), lambda row: {attribute: row[column]})
 
 
 def optional(column, name=None):
     """As `attr`, `None` for an object that lacks the attribute."""
     attribute = name or column
-    return Field((column,), lambda obj, context: getattr(obj, attribute, None))
+    return Field((column,), lambda obj, context: getattr(obj, attribute, None), lambda row: {attribute: row[column]})
 
 
 def context(column, key=None):
@@ -52,11 +56,38 @@ def context(column, key=None):
     return Field((column,), lambda obj, context: context[name])
 
 
-def computed(columns, function):
-    """Columns filled by `function(obj, context)`: one value for a column name, a tuple for a tuple of them."""
+def scaled(column, name, factor, null=None, nullable=False):
+    """
+    A column holding the attribute `name` times `factor` (AU stored as km): the load divides it back.
+
+    With `nullable` a `None` attribute is stored as NULL and a NULL loads as `null` (the object's own default).
+    """
+    def get(obj, context):
+        value = getattr(obj, name)
+        return None if nullable and value is None else value * factor
+
+    def load(row):
+        value = row[column]
+        return {name: null if nullable and value is None else value / factor}
+
+    return Field((column,), get, load)
+
+
+def each(names):
+    """Columns filled from the attributes of the same names, `None` for one the object lacks."""
+    return Field(tuple(names), lambda obj, context: tuple(getattr(obj, name, None) for name in names),
+                 lambda row: {name: row[name] for name in names})
+
+
+def computed(columns, function, load=None):
+    """
+    Columns filled by `function(obj, context)`: one value for a column name, a tuple for a tuple of them.
+
+    `load(row)` returns the `from_dict` keys they fill; without it the field is write-only.
+    """
     if isinstance(columns, str):
-        return Field((columns,), function)
-    return Field(tuple(columns), function)
+        return Field((columns,), function, load)
+    return Field(tuple(columns), function, load)
 
 
 def columns_of(fields):
@@ -78,6 +109,20 @@ def values_of(fields, obj, context=None):
                 raise ValueError(f"{field.columns} got {len(value)} values")
             out.extend(value)
     return out
+
+
+def load_dict(fields, row, only=None):
+    """
+    The `from_dict` dict `fields` read back from the stored `row` (fields with no `load` add nothing).
+
+    `only` limits it to the fields whose first column is named: the satellite row of an anchored remnant holds a
+    few columns of its own, the rest of the object being on its `stars` row.
+    """
+    data = {}
+    for field in fields:
+        if field.load is not None and (only is None or field.columns[0] in only):
+            data.update(field.load(row))
+    return data
 
 
 def insert_row(conn, table, fields, obj, context=None):
