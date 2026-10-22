@@ -609,7 +609,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | open |
 | DB.64 | Table for stored constellations (migration only) | none | open |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
-| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | open |
+| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | done, PR #2439 |
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
 | DB.69 | Planets and moons store the composition fractions | none | open |

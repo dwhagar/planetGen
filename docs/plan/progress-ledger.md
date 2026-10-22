@@ -969,3 +969,4 @@ Baseline: PR #1817.
 | MAP.172 | 8.1 | Nebula data foundations |
 | GEN.545 | 8.1 | Galaxy laws build |
 | DB.33 | 8.1 | Bugs and flaky tests |
+| DB.66 | 8.3 | Galactic gravity |
