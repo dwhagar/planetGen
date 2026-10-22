@@ -35,7 +35,7 @@ from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_sector
 from planetgen import tuning
 from planetgen.generation.phenomena.compact_remnant import BlackHole
-from planetgen.galaxy import remnant_density, mass_chain
+from planetgen.galaxy import enclosed_mass, remnant_density
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.units import pc_to_ly
@@ -364,10 +364,10 @@ def test_generate_sector_real_capacity_overflow_returns_a_partial_sector(monkeyp
     # discard the whole sector. 120, not 60: a lucky draw occasionally fit
     # all 60 (sampled fills run about 20-59). -planets keeps this fast (skips
     # planet/moon generation) without touching the real placement logic
-    # this test actually cares about. The spacing follows the galaxy's virial mass
-    # (GEN.400), wider the lighter the galaxy: at 1.15e12 solar masses 4 of 390 draws still fit all 120 (TEST.245), at
+    # this test actually cares about. The spacing follows the galaxy's mass inside the
+    # star's radius (GEN.370), wider the lighter the galaxy: at 1.15e12 solar masses 4 of 390 draws still fit all 120 (TEST.245), at
     # 1.15e11 (a test value) 200 of 200 held 8 to 26, so the overflow does not depend on the draw.
-    monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e11 * constants.SOLAR_MASS_TO_KG)
+    monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e11 * constants.SOLAR_MASS_TO_KG)
     args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
     # at the Milky Way's 8.2 kpc, where the Hill spheres are as wide as the test was set for
     _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(8200.0))

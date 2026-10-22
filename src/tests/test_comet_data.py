@@ -136,11 +136,11 @@ def test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere(
     (`validation.orbit_ceiling_au`); the tightest one the generator uses is a 0.08 solar mass star at the galaxy's
     inner edge, and the long-period class (e up to 0.999) reaches past it unless it is cut."""
     from planetgen.galaxy.keepout import galactic_hill_radius_km
-    from planetgen.galaxy import mass_chain
+    from planetgen.galaxy import enclosed_mass
     au_km = constants.AU_TO_KM
     for mass in (0.08, 1.0, 20.0):
         hill_au = galactic_hill_radius_km(
-            mass * constants.SOLAR_MASS_TO_KG, 2000.0, mass_chain.current_central_mass_kg()) / au_km
+            mass * constants.SOLAR_MASS_TO_KG, 2000.0, enclosed_mass.current_enclosed_mass_kg(2000.0)) / au_km
         for _ in range(300):
             comet = Comet(make_config(), primary_mass_solar=mass, orbit_type="elliptical", ceiling_au=hill_au)
             assert comet.eccentricity < 1

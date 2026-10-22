@@ -231,6 +231,12 @@
     {
       "epoch": 47,
       "reason": "An ejected neutron star's far speed follows its natal kick above the escape speed (a galaxy's own quantiles, mean about 390 km/s for a Milky Way-like one) instead of a uniform 300 to 500 km/s, so the velocities of the ejected neutron stars a seed places and where their population ends change (GEN.554)"
+    },
+    {
+      "epoch": 48,
+      "first_release": null,
+      "pending": true,
+      "reason": "A star's, pair's and compact object's Hill sphere takes the galaxy's own mass inside its own distance from the centre (stars, central black hole and NFW dark halo), not the whole halo mass, so every system perimeter is several times larger inside the halo, and with it a wide pair's widest axis, a long-period comet's orbit and how many systems a dense cell can place (GEN.370)."
     }
   ]
 }

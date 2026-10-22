@@ -40,8 +40,8 @@ def galactic_hill_radius_km(mass_kg, galactic_radius_pc, central_mass_kg):
     """
     The Hill radius, in km, of an object of `mass_kg` that orbits the
     galaxy `galactic_radius_pc` parsecs from its center, with
-    `central_mass_kg` (the galaxy's virial mass from its mass chain,
-    `mass_chain.central_mass_kg`) as the central mass, as for a star's own
+    `central_mass_kg` (the galaxy's mass inside that radius,
+    `galaxy.enclosed_mass`) as the central mass, as for a star's own
     `calculate_hill_sphere`.
     """
     distance_m = galactic_radius_pc * constants.PARSEC_M

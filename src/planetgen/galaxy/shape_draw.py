@@ -46,6 +46,7 @@ Only the spiral family exists; GEN.378 adds the others.
 """
 
 import dataclasses
+import functools
 import math
 
 from planetgen import tuning
@@ -506,6 +507,26 @@ def pinned_stellar_mass(args, drawn):
     size_and_density = dials.resolved(args, "density") is not None and (
         dials.resolved(args, "compactness") is not None or dials.resolved(args, "disk_scale_length") is not None)
     return drawn.chain.stellar_mass_solar if mass_given or size_and_density else None
+
+
+def default_shape(galaxy_seed):
+    """
+    The `GalaxyShape` of the galaxy a seed makes with every lever on Auto (what `plan` makes when it is given no shape
+    option): what work with no stored shape (a stand-alone command, a test) takes for the galaxy.
+
+    Args:
+        galaxy_seed (bytes or None): The galaxy's seed; `None` uses the mass chain's fallback seed.
+
+    Returns:
+        GalaxyShape: With `k_norm` and `masses` set.
+    """
+    return _default_shape(bytes(galaxy_seed or mass_chain.FALLBACK_SEED))
+
+
+@functools.lru_cache(maxsize=64)
+def _default_shape(galaxy_seed):
+    import types
+    return plan_shape(types.SimpleNamespace(**{row.dest: None for row in dials.LEVERS}), galaxy_seed)[0]
 
 
 def plan_shape(args, galaxy_seed):

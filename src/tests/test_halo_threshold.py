@@ -2,9 +2,11 @@
 
 """A galaxy under the halo threshold (`dials.HALO_MIN_HALO_MASS_SOLAR`, Boss 7:33 PM EDT 10-21) runs no halo function."""
 
+import types
+
 import pytest
 
-from planetgen.galaxy import density, dials, disk_history, mass_chain, shape_draw, structure_draw
+from planetgen.galaxy import density, dials, disk_history, enclosed_mass, mass_chain, shape_draw, structure_draw
 
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 HALO_FUNCTIONS = (
@@ -42,7 +44,6 @@ def test_below_the_threshold_no_halo_function_is_called(monkeypatch):
     calls = _watch(monkeypatch)
     chain = mass_chain.draw_mass_chain(SEED, BELOW)
     assert (chain.halo_mass_solar, chain.virial_radius_kpc, chain.concentration) == (None, None, None)
-    assert chain.halo_mass_kg is None
     structure = structure_draw.draw_structure(SEED, BELOW)
     assert structure.halo_stellar_ratio == 0.0
     inflow = disk_history.inflow_shape(None, 10.0, 20)
@@ -61,11 +62,16 @@ def test_at_and_above_the_threshold_the_halo_functions_run(monkeypatch):
         monkeypatch.undo()
 
 
-def test_a_galaxy_with_no_halo_has_its_stars_for_its_tidal_mass():
-    below = mass_chain.draw_mass_chain(SEED, BELOW)
-    assert below.central_mass_kg == pytest.approx(BELOW * 1.98892e30, rel=1e-3)
-    above = mass_chain.draw_mass_chain(SEED, ABOVE)
-    assert above.central_mass_kg == above.halo_mass_kg > ABOVE * 1.98892e30
+def test_a_galaxy_with_no_halo_has_only_its_stars_in_its_tides():
+    def plan(mass):
+        lever = {row.dest: None for row in dials.LEVERS}
+        return shape_draw.plan_shape(types.SimpleNamespace(**{**lever, "mass": mass}), SEED)[0]
+
+    below = enclosed_mass.mass_model(plan(BELOW), SEED)
+    assert below.dark_solar == 0.0 and below.dark_halo_solar(1.0e5) == 0.0
+    assert below.stars_solar(1.0e5) == pytest.approx(BELOW, rel=0.1)
+    above = enclosed_mass.mass_model(plan(ABOVE), SEED)
+    assert above.dark_solar > 0.0 and above.enclosed_solar(1.0e6) > ABOVE
 
 
 def test_a_drawn_galaxy_is_unchanged_by_the_threshold():

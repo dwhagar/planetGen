@@ -180,7 +180,7 @@ def cell_draw(galaxy_seed, shape, index):
             * tuning.PHENOMENON_RATE_SCALE.get("molecular-cloud", 1.0)
             * edge ** 3 * gas_factor(middle, shape))
     clouds = []
-    with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "nebula-cell", index):
+    with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "nebula-cell", index, shape=shape):
         count = _sample_poisson_count(mean)
         for n in range(count):
             center = tuple(corner + draw.uniform(0.0, edge) for corner in low)

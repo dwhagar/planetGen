@@ -96,19 +96,6 @@ class MassChain:
     virial_radius_kpc: float
     concentration: float
 
-    @property
-    def halo_mass_kg(self):
-        """float or None: The halo (virial) mass in kilograms; `None` for a galaxy with no halo."""
-        return None if self.halo_mass_solar is None else self.halo_mass_solar * constants.SOLAR_MASS_TO_KG
-
-    @property
-    def central_mass_kg(self):
-        """float: The mass, kg, the galaxy's tidal field acts as if centred at its middle (every Hill sphere): the
-        halo's virial mass, or for a galaxy with no halo its stars' mass, the only mass it has."""
-        if self.halo_mass_solar is None:
-            return self.stellar_mass_solar * constants.SOLAR_MASS_TO_KG
-        return self.halo_mass_kg
-
 
 def stellar_mass_density_per_dex(log_mass):
     """Baldry et al. 2012's double Schechter function, galaxies per cubic megaparsec per dex of stellar mass, at
@@ -291,16 +278,3 @@ def draw_mass_chain(galaxy_seed, stellar_mass_solar=None, halo_mass_solar=None):
     if stellar_mass_solar is None:
         stellar_mass_solar = _draw_cached(seed).stellar_mass_solar
     return _pinned_cached(seed, float(stellar_mass_solar), None if halo_mass_solar is None else float(halo_mass_solar))
-
-
-def current_central_mass_kg():
-    """The central mass of the galaxy the running unit belongs to (`seed.current_galaxy_seed`, with the stellar mass
-    `seed.current_stellar_mass_solar` when the plan pinned one), or of the fallback seed's galaxy outside any unit."""
-    return central_mass_kg(galaxySeed.current_galaxy_seed(), galaxySeed.current_stellar_mass_solar(),
-                           galaxySeed.current_halo_mass_solar())
-
-
-def central_mass_kg(galaxy_seed, stellar_mass_solar=None, halo_mass_solar=None):
-    """The mass, kg, the galaxy's tidal field acts as if centred at its middle: the chain's virial mass, which every
-    Hill sphere reads (until GEN.370 replaces it with the mass enclosed at the object's own radius)."""
-    return draw_mass_chain(galaxy_seed, stellar_mass_solar, halo_mass_solar).central_mass_kg

@@ -574,9 +574,10 @@ For the GEN.115 tests at the default shape:
 - `physics/sector_path.py` (GEN.123) integrates a test particle against the
   sector's point masses with 1 pc softening; adding the galactic acceleration
   keeps a path consistent when it leaves a sector at low speed.
-- `galaxy/keepout.py::galactic_hill_radius_km` could use the potential's
-  enclosed mass (6.8e11 Msun inside 100 kpc, 2.1e11 inside 20 kpc) instead of
-  the galaxy's virial mass from its mass chain (`galaxy/mass_chain.py`, GEN.400). A possible follow-up (GEN.370 does it).
+- `galaxy/keepout.py::galactic_hill_radius_km` takes the galaxy's enclosed mass at the object's own radius
+  (`galaxy/enclosed_mass.py`, GEN.370: the density model's stars, the central black hole and the mass chain's NFW dark
+  halo) instead of the galaxy's whole virial mass (`galaxy/mass_chain.py`, GEN.400). GEN.338's potential replaces that
+  module's total with its own enclosed mass (`v_c^2 = G M(<r) / r`) when it is built.
 
 ## 11. Corrections to the source documents
 
