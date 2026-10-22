@@ -74,7 +74,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
-from planetgen.util import log
+from planetgen.util import generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
 from planetgen.generation.belt import AsteroidBelt
@@ -1504,6 +1504,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (121, _column_marker("sectors", "run_id")),
     (120, _table_marker("sector_tree_nodes")),
     (119, _table_marker("species_limit_values")),
     (118, _table_marker("orbital_events")),
@@ -6708,7 +6709,7 @@ def _refresh_containment_around(conn, placement, radius_ly):
     refresh_containment(conn, sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
 
 
-def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbors=True) -> int:
+def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbors=True, run_id=None) -> int:
     """
     Inserts a full `SpaceSector` -- the `sectors` row, every system it
     contains (with its placement), and every exotic phenomenon it contains
@@ -6733,6 +6734,9 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
             `shell_index`/`band_index`/`wedge_index`, the sector's
             cell in the spherical grid (`None`/omitted leaves them NULL
             -- a hand-placed position with no grid address).
+        run_id (int, optional): The `generation_runs.id` of the run saving the sector, kept on the sector with the
+            generator epoch (DB.16). `None` uses the run row for the running code's version that saves made outside a run
+            share (`sector_run_id`).
 
     Rows are written in batches (PERF.13, `Connection.batched`): one
     multi-row INSERT per table and statement shape, with ids from
@@ -6746,7 +6750,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     """
     try:
         with conn.batched():
-            sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors)
+            sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors, run_id)
     finally:
         issuer, conn.uid_issuer = conn.uid_issuer, None
     if issuer is None or not issuer.complete:
@@ -6780,33 +6784,60 @@ def _save_progressed(conn):
         progress.advance()
 
 
-def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
-    made_by = versionKey.current()  # DB.7: the code generating this sector
+SAVE_RUN_COMMAND = "save"
+"""str: The `generation_runs.command` of the row that sectors saved outside a run (a test, the admin pages) point at."""
+
+
+def sector_run_id(conn, run_id=None):
+    """
+    The `generation_runs.id` a sector being saved is recorded under (DB.16): `run_id` when the run that saves it is
+    known, otherwise the one row, per version of the code, that saves made outside a run share (command `save`, made
+    the first time it is needed and kept on the connection).
+    """
+    if run_id is not None:
+        return run_id
+    cached = getattr(conn, "save_run_id", None)
+    if cached is not None:
+        return cached
+    made_by = versionKey.current()
+    values = (SAVE_RUN_COMMAND, made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
+              made_by["platform"])
+    row = conn.execute(
+        "SELECT id FROM generation_runs WHERE command = ? AND version_key = ? AND planetgen_version = ?"
+        " AND python_version = ? AND platform = ? ORDER BY id LIMIT 1", values).fetchone()
+    if row is not None:
+        conn.save_run_id = row["id"]
+    else:
+        conn.save_run_id = conn.execute(
+            "INSERT INTO generation_runs (command, version_key, planetgen_version, python_version, platform, finished_at,"
+            " outcome) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), 'ok')", values).lastrowid
+    return conn.save_run_id
+
+
+def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_id=None):
+    run_id = sector_run_id(conn, run_id)  # DB.16: the run (and so the code) generating this sector
+    epoch = generatorEpoch.generator_epoch()
     if galaxy_position is not None:
         cur = conn.execute(
             """
             INSERT INTO sectors (
                 name, edge_mpc, center_x_pc, center_y_pc, center_z_pc,
                 galactic_radius_pc, shell_index, band_index, wedge_index,
-                version_key, planetgen_version, python_version, platform
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                generator_epoch, run_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 sector.name, ly_to_milliparsecs(sector.edge_ly),
                 galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
                 galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"],
                 galaxy_position.get("shell_index"), galaxy_position.get("band_index"),
-                galaxy_position.get("wedge_index"),
-                made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
-                made_by["platform"],
+                galaxy_position.get("wedge_index"), epoch, run_id,
             ),
         )
     else:
         cur = conn.execute(
-            "INSERT INTO sectors (name, edge_mpc, version_key, planetgen_version, python_version, platform)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
-            (sector.name, ly_to_milliparsecs(sector.edge_ly), made_by["version_key"],
-             made_by["planetgen_version"], made_by["python_version"], made_by["platform"]),
+            "INSERT INTO sectors (name, edge_mpc, generator_epoch, run_id) VALUES (?, ?, ?, ?)",
+            (sector.name, ly_to_milliparsecs(sector.edge_ly), epoch, run_id),
         )
     sector_id = cur.lastrowid
 
@@ -7528,14 +7559,14 @@ def get_galaxy_maker(conn):
 
 def sector_versions(conn):
     """
-    The code that generated the galaxy's sectors (v67, DB.7): one dict per
-    distinct `version_key` (`None` for sectors generated before it was
-    recorded) with `planetgen_version`, `python_version`, `platform` and the
-    `sectors` count, the largest group first.
+    The code that generated the galaxy's sectors (v67, DB.7; from the run each sector points at since v121, DB.16): one
+    dict per distinct `version_key` (`None` for sectors with no recorded version) with `planetgen_version`,
+    `python_version`, `platform` and the `sectors` count, the largest group first.
     """
     rows = conn.execute(
-        "SELECT version_key, MIN(planetgen_version) AS planetgen_version, MIN(python_version) AS python_version,"
-        " MIN(platform) AS platform, COUNT(*) AS sectors FROM sectors GROUP BY version_key"
+        "SELECT r.version_key AS version_key, MIN(r.planetgen_version) AS planetgen_version,"
+        " MIN(r.python_version) AS python_version, MIN(r.platform) AS platform, COUNT(*) AS sectors"
+        " FROM sectors s LEFT JOIN generation_runs r ON r.id = s.run_id GROUP BY r.version_key"
         " ORDER BY sectors DESC, version_key").fetchall()
     return [dict(row) for row in rows]
 
@@ -8083,7 +8114,8 @@ def _neighbor_lock_name(conn):
     return f"planetgen.neighbors.{database}"[:64]
 
 
-def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True, progress=None) -> int:
+def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True, progress=None,
+                run_id=None) -> int:
     """
     Opens the database and persists a full `SpaceSector` to it in one
     transaction.
@@ -8108,6 +8140,7 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_nei
         progress (optional): A step (`generation.steps`) that is told, as
             each system and phenomenon is inserted, how far the save has
             got (PERF.50); it restarts at 0 when a save is retried.
+        run_id (int, optional): The `generation_runs.id` of the run saving the sector (see `insert_sector`).
 
     Returns:
         int: The new `sectors.id`.
@@ -8116,7 +8149,8 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_nei
         conn.save_progress = progress
         if progress is not None:
             progress.update(completed=0)
-        return insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors)
+        return insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors,
+                             run_id=run_id)
 
     return _save_with_retries(config, _sector_names(sector), insert)
 

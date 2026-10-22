@@ -1378,6 +1378,10 @@
 --   leaves) and a shell node (level 2: shell, band_index 0, over its band nodes), each with the count of what is under it and a
 --   dirty flag; the galaxy root is worked out on demand. Nothing reads either until GEN.305.
 --
+-- v121 (DB.16): a sector records `generator_epoch` (SMALLINT UNSIGNED, NULL: unknown before this) and `run_id` (the `generation_runs` row of the run that
+--   saved it) instead of the four version text columns of v67, which are gone: the version key, release, Python and platform are looked up from the run.
+--   A sector with no recorded version (made before v67) has a NULL `run_id`.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1489,17 +1493,13 @@ CREATE TABLE IF NOT EXISTS sectors (
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
-    -- v67: the code that generated this sector (DB.7), as `galaxy_shape` records
-    -- the one that planned the galaxy (v52); see the header comment's "v67" note.
-    version_key           CHAR(22),
-    planetgen_version     VARCHAR(32),
-    python_version        VARCHAR(32),
-    platform              VARCHAR(64),
     max_mass_kg                 DOUBLE NULL,  -- v102 (DB.55)
     max_mass_id                 BINARY(12) NULL,  -- v102 (DB.55)
     storage_checksum            BINARY(32) NULL,  -- v115 (DB.44)
     parity_dirty                TINYINT NOT NULL DEFAULT 1,  -- v115 (DB.44)
     leaf_digest                 BINARY(32) NULL,  -- v120 (DB.49)
+    generator_epoch             SMALLINT UNSIGNED NULL,  -- v121 (DB.16)
+    run_id                      BIGINT UNSIGNED NULL,  -- v121 (DB.16)
 
     UNIQUE KEY uq_sectors_uid (uid),
     CHECK (
@@ -1524,8 +1524,9 @@ CREATE TABLE IF NOT EXISTS sectors (
     KEY idx_sectors_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
     KEY idx_sectors_modified_at (modified_at),
-    -- v67: lets the mixed-version check group sectors by key without a table scan.
-    KEY idx_sectors_version_key (version_key)
+    -- v117 (DB.16): lets the mixed-version check group sectors by run without a table scan.
+    KEY idx_sectors_run (run_id),
+    CONSTRAINT fk_sectors_run FOREIGN KEY (run_id) REFERENCES generation_runs(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

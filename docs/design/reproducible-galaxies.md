@@ -309,7 +309,8 @@ full key text living on the `generation_runs` row. Detail:
   section 7.
 - **Mixed versions (DB.7, built).** Each sector records the key, release,
   Python and platform that generated it (schema v67, `sectors.version_key`
-  and friends). Extending a galaxy whose sectors came from a different
+  and friends; since v121, DB.16, a sector holds its `generator_epoch` and
+  `run_id` and the text is looked up from its `generation_runs` row). Extending a galaxy whose sectors came from a different
   version warns first, naming what differs ("PlanetGen 7.381.1 now,
   7.379.678 when generated"), since a mixed-version galaxy reproduces only
   sector by sector, each on its own version: `planetgen galaxy` prints it,

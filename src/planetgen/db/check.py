@@ -440,9 +440,10 @@ def check_object_index(ctx):
 
 
 def check_version_keys(ctx):
-    """Every sector carries a 22 hex digit version key."""
+    """Every sector points at a generation run that carries a 22 hex digit version key (DB.16)."""
     scope_sql, params = ctx.scope.where("s.id")
-    rows = ctx.rows(f"SELECT s.id AS id, s.version_key AS k FROM sectors s WHERE 1 = 1{scope_sql}", params)
+    rows = ctx.rows("SELECT s.id AS id, r.version_key AS k FROM sectors s LEFT JOIN generation_runs r ON r.id = s.run_id"
+                    f" WHERE 1 = 1{scope_sql}", params)
     bad = [row for row in rows if not row["k"] or not _VERSION_KEY.match(str(row["k"]))]
     if not bad:
         return []

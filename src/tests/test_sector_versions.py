@@ -42,7 +42,7 @@ def test_a_filled_sector_records_the_running_code(mysql_config):
         store.insert_sector(conn, SpaceSector(name="Versioned", edge_ly=13.0))
         conn.commit()
         groups = store.sector_versions(conn)
-        conn.execute("UPDATE sectors SET version_key = '0007000100010003110900', planetgen_version = '7.1.1'")
+        conn.execute("UPDATE generation_runs SET version_key = '0007000100010003110900', planetgen_version = '7.1.1'")
         conn.commit()
         later = store.sector_versions(conn)
     finally:
@@ -50,6 +50,34 @@ def test_a_filled_sector_records_the_running_code(mysql_config):
     assert groups == [dict(RUNNING, sectors=1)]
     assert later[0]["version_key"] == "0007000100010003110900"
     assert "7.1.1 when generated" in version_check.mixed_version_warning(later)
+
+
+def test_a_sector_records_the_epoch_and_the_run_instead_of_the_version_text(mysql_config):
+    """DB.16: the four text columns are gone; `generator_epoch` and `run_id` say what made the sector."""
+    from planetgen.galaxy.sector import SpaceSector
+    from planetgen.util import generator_epoch
+    conn = store.get_connection(mysql_config)
+    try:
+        columns = {row["c"] for row in conn.execute(
+            "SELECT COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+            " AND TABLE_NAME = 'sectors'").fetchall()}
+        assert {"generator_epoch", "run_id"} <= columns
+        assert not columns & {"version_key", "planetgen_version", "python_version", "platform"}
+        run = store.start_generation_run(conn, "sector", [])
+        first = store.insert_sector(conn, SpaceSector(name="Under a run", edge_ly=13.0), run_id=run)
+        second = store.insert_sector(conn, SpaceSector(name="Outside a run", edge_ly=13.0))
+        third = store.insert_sector(conn, SpaceSector(name="Also outside", edge_ly=13.0))
+        conn.commit()
+        rows = {row["id"]: row for row in conn.execute("SELECT id, generator_epoch, run_id FROM sectors").fetchall()}
+        runs = {row["id"]: row for row in conn.execute("SELECT id, command, version_key FROM generation_runs").fetchall()}
+    finally:
+        conn.close()
+    assert {row["generator_epoch"] for row in rows.values()} == {generator_epoch.generator_epoch()}
+    assert rows[first]["run_id"] == run
+    # Saves outside a run share one row for the running code, which carries its key.
+    assert rows[second]["run_id"] == rows[third]["run_id"] != run
+    assert runs[rows[second]["run_id"]]["command"] == store.SAVE_RUN_COMMAND
+    assert runs[rows[second]["run_id"]]["version_key"] == RUNNING["version_key"]
 
 
 def _maker(release="7.1.1", python="3.11.9", platform="Linux x86_64", key="0007000100010003110900"):

@@ -1033,7 +1033,8 @@ def _unplaced_sector_task(args):
     """One `sector` subcommand sector, generated and saved -- a work queue
     task (see `_fill_sector_task`)."""
     _sector_name, sector = generate_directed_sector(args)
-    sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args))
+    sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
+                                  run_id=getattr(args, "generation_run_id", None))
     run_common._count_sector(sector)
     return {
         "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
