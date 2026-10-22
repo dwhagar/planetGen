@@ -16088,6 +16088,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fix), not here (the coordinator, 8:48 PM EDT 2026-10-21).
   Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
 
+- [ ] **PERF.149 A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs**
+  Boss, 4:55 PM EDT 2026-10-22 (relayed by the coordinator at 4:55 PM
+  EDT as the lane's clock reads), answering Core 5's question about
+  `ensure_sector_generated`: "Let's say no galaxy view during generation
+  and add to the queue". Two rules. (1) While a galaxy generation is
+  running, the Galaxy View is not offered (the map pages say a
+  generation is running and link to the queue page; nothing is drawn
+  from a half-built galaxy). (2) A sector that a map visit would
+  generate is queued as a run (one wrapper run, PERF.119) and the page
+  shows that it is queued, instead of generating the sector inside the
+  web request. Found by Core 5 (PERF.123 to PERF.125 work), which left
+  `ensure_sector_generated` as it was because it was Boss's call. Do:
+  replace the in-request call with a queued run and a status the page
+  can poll or refresh; gate the Galaxy View on "no galaxy generation
+  running" (the run record of PERF.98 and PERF.119 says which is
+  running), with a clear message; keep every other generate path as it
+  is. Done: a visit to an ungenerated sector returns at once with a
+  queued state and a run appears in the queue; the Galaxy View refuses
+  to open while a galaxy generation runs and opens when it ends; browser
+  tests for both. Owner: Core 5 (the coordinator, 4:55 PM EDT as the
+  lane's clock reads, with PERF.119).
+  Prerequisites: PERF.119. Related: PERF.98, PERF.119, PERF.123,
+  PERF.124, PERF.125, MAP.146.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -20373,6 +20397,33 @@ clears each one.
   the test passes in 20 full-gate runs. Owner: Bug Hunt (proposed, after
   TEST.275).
   Prerequisites: none. Related: PERF.144, TEST.265.
+
+- [ ] **TEST.279 Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug)**
+  Found by Core 3 (relayed 4:54 PM EDT 2026-10-22 as the lane's clock
+  reads), filed by the TODO thread. Kind: eight tests fail on main with
+  an assertion: a phenomenon page answers 404 where the test expects
+  200. Tests: src/tests/test_web_system_phen.py (test_phenomenon_detail,
+  test_phenomenon_page_shows_it_on_the_galaxy_map,
+  test_phenomenon_page_has_a_bookmark_button,
+  test_remnant_page_keeps_the_au_diagram,
+  test_phenomenon_page_pick_mode_offers_only_the_pick_button) and
+  src/tests/test_class_pages.py (test_phenomenon_page_links_its_class
+  for nebula and supernova_remnant,
+  test_phenomenon_unknown_class_stays_text). Fails on main: yes, in a
+  clean worktree of origin/main at the Release 8.0.1930 commit on Core
+  3's machine; other machines not checked. Frequency: every run.
+  Reproducer: python3 -m pytest -q src/tests/test_web_system_phen.py
+  src/tests/test_class_pages.py (about 40 s). Core 3's reading: the
+  phenomenon fixture finds no phenomenon row in that machine's seeded
+  galaxy, so it may be the fixture or the seed and not a page bug. Do:
+  find out whether the fixture creates its own phenomenon or relies on a
+  seeded galaxy; if it relies on one, make the fixture create the row it
+  needs; if it creates one and the page 404s, fix the page (UX.144's
+  phenomenon contents route #2485 and UX.143's object pages #2432 touch
+  these pages). No skip and no retry. Done: the eight tests pass on a
+  clean checkout of main and in a full gate. Owner: Bug Hunt (proposed,
+  urgent: it blocks any lane that runs these two files).
+  Prerequisites: none. Related: UX.143, UX.144, TEST.267.
 
 ## USR: User accounts
 
