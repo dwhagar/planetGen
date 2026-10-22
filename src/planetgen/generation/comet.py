@@ -175,17 +175,18 @@ class Comet(SmallBody):
             velocity relative to the star, km/s (`orbital_speed_kms` long).
     """
 
-    SERIALIZABLE_FIELDS = [
-        "name", "orbit_type", "period_class", "nucleus_diameter_km",
-        "perihelion_distance_au", "eccentricity", "inclination_deg",
-        "arg_periapsis_deg", "ascending_node_deg", "orbital_period_years",
-        "mean_anomaly_deg", "parabolic_mean_anomaly", "min_update_interval_years",
-        "primary_mass_solar", "is_active",
-        "distance_au", "position_x_au", "position_y_au", "position_z_au", "orbital_speed_kms",
-        "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
-        "rotation_period_hours", *spin.SPIN_FIELDS,
-    ]
-    """Every attribute set by `__init__`, excluding `system_config` (a
+    FIELD_UNITS = {
+        "name": "text", "orbit_type": "text", "period_class": "text", "nucleus_diameter_km": "km",
+        "perihelion_distance_au": "au", "eccentricity": "ratio", "inclination_deg": "deg",
+        "arg_periapsis_deg": "deg", "ascending_node_deg": "deg", "orbital_period_years": "yr",
+        "mean_anomaly_deg": "deg", "parabolic_mean_anomaly": "ratio", "min_update_interval_years": "yr",
+        "primary_mass_solar": "Msun", "is_active": "flag",
+        "distance_au": "au", "position_x_au": "au", "position_y_au": "au", "position_z_au": "au",
+        "orbital_speed_kms": "km_s", "velocity_x_kms": "km_s", "velocity_y_kms": "km_s", "velocity_z_kms": "km_s",
+        "rotation_period_hours": "h", **spin.SPIN_UNITS,
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
+    """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
     `to_dict`/`from_dict`, mirroring `InterstellarComet.SERIALIZABLE_FIELDS`'s
     identical exclusion)."""

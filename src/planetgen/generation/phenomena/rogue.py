@@ -22,14 +22,14 @@ import math
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
-from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
+from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
+from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS, MassObject
 from planetgen.generation.small_body import SmallBody
 from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.util.random import sample_power_law
@@ -175,13 +175,13 @@ class RoguePlanet(LazySaladName, MassObject):
             surface conditions (`rogueSurface.rogue_surface_conditions`).
     """
 
-    SERIALIZABLE_FIELDS = [
-        "name", "planet_type", "planet_class", "mass_bin", "mass_kg", "radius_km", "composition",
-        "has_internal_heat", "has_moons", *ROGUE_SURFACE_FIELDS,
-        *GALACTIC_MOTION_FIELDS,
-        "rotation_period_hours", *spin.SPIN_FIELDS,
-    ]
-    """Every attribute set by `__init__`, excluding `system_config` (a
+    FIELD_UNITS = {
+        "name": "text", "planet_type": "text", "planet_class": "text", "mass_bin": "text", "mass_kg": "kg",
+        "radius_km": "km", "composition": "text", "has_internal_heat": "flag", "has_moons": "flag",
+        **ROGUE_SURFACE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
+    """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
     shared back-reference). The `galactic_orbital_*` fields (see
     `nebulaData.Nebula`'s identical fields' docstring) reflect that a
     rogue planet is unbound from any specific STAR, not from the galaxy
@@ -389,12 +389,12 @@ class InterstellarComet(SmallBody):
             sublimating ices.
     """
 
-    SERIALIZABLE_FIELDS = [
-        "name", "nucleus_diameter_km", "velocity_kms", "is_active",
-        *GALACTIC_MOTION_FIELDS,
-        "rotation_period_hours", *spin.SPIN_FIELDS,
-    ]
-    """Every attribute set by `__init__`, excluding `system_config` (a
+    FIELD_UNITS = {
+        "name": "text", "nucleus_diameter_km": "km", "velocity_kms": "km_s", "is_active": "flag",
+        **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
+    """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
     `to_dict`/`from_dict` -- a plain list, but kept alongside the others
     for symmetry with `AsteroidBelt.composition`'s own separate handling).

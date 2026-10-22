@@ -12,20 +12,27 @@ import pytest
 
 from planetgen.db import column_units, store
 from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.mass_object import PLAIN, MassObject
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.star import Star
 from planetgen.generation.stellar_object import StellarObject
 from planetgen.physics import unit_registry as units
 from planetgen.physics.quantity import Quantity
 
 STELLAR = (Star, BlackHole, NeutronStar, BinaryStarProxy)
+DECLARED = STELLAR + (Comet, InterstellarComet, AsteroidField, RoguePlanet)
 
 # The kind table each class is stored in, with the `Field` list that writes and loads it and how many unit-valued
 # attributes the comparison must reach (a remnant's own row holds only its own columns).
 STORED = ((Star, "stars", store.STAR_FIELDS, 25), (NeutronStar, "neutron_stars", store.NEUTRON_STAR_FIELDS, 4),
-          (BlackHole, "black_holes", store.BLACK_HOLE_FIELDS, 4))
+          (BlackHole, "black_holes", store.BLACK_HOLE_FIELDS, 4), (Comet, "comets", store.COMET_FIELDS, 15),
+          (InterstellarComet, "interstellar_comets", store.INTERSTELLAR_COMET_FIELDS, 6),
+          (AsteroidField, "asteroid_fields", store.ASTEROID_FIELD_FIELDS, 4),
+          (RoguePlanet, "rogue_planets", store.ROGUE_PLANET_FIELDS, 6))
 
 
 class _Row(dict):
@@ -35,20 +42,20 @@ class _Row(dict):
         return 1.0
 
 
-@pytest.mark.parametrize("cls", STELLAR)
+@pytest.mark.parametrize("cls", DECLARED)
 def test_the_persisted_list_is_the_declared_table(cls):
     assert cls.SERIALIZABLE_FIELDS == list(cls.FIELD_UNITS)
     assert len(set(cls.SERIALIZABLE_FIELDS)) == len(cls.SERIALIZABLE_FIELDS)
 
 
-@pytest.mark.parametrize("cls", STELLAR)
+@pytest.mark.parametrize("cls", DECLARED)
 def test_every_declaration_is_a_registry_unit_or_a_plain_word(cls):
     for name, unit in cls.FIELD_UNITS.items():
         assert unit in units.UNITS or unit in PLAIN, f"{cls.__name__}.{name}: {unit!r}"
     assert not set(PLAIN) & set(units.UNITS)
 
 
-@pytest.mark.parametrize("cls", STELLAR)
+@pytest.mark.parametrize("cls", DECLARED)
 def test_a_unit_in_a_name_is_the_unit_declared(cls):
     for name, unit in cls.FIELD_UNITS.items():
         stated = column_units.unit_matching_suffix(name)
@@ -119,6 +126,20 @@ def test_a_quantity_refuses_what_is_not_one():
     assert Star.field_unit("mass") == "kg"
 
 
+def test_a_comet_answers_in_the_units_its_orbit_is_held_in():
+    comet = Comet(SystemConfig(), 1.0)
+    comet.perihelion_distance_au = 0.6
+    comet.orbital_speed_kms = 40.0
+    assert comet.quantity("perihelion_distance_au").km == pytest.approx(0.6 * 149_597_870.7)
+    assert comet.quantity("orbital_speed_kms").m_s == pytest.approx(40_000.0)
+    assert comet.quantity("primary_mass_solar").Msun == pytest.approx(1.0)
+    field = AsteroidField(SystemConfig())
+    assert field.quantity("radius_ly").ly == field.radius_ly
+    rogue = RoguePlanet(SystemConfig())
+    assert rogue.quantity("mass_kg").kg == rogue.mass_kg
+    assert rogue.quantity("radius_km").Rearth == pytest.approx(rogue.radius_km * 1e3 / 6.371e6)
+
+
 def test_a_remnant_and_a_binary_proxy_answer_in_their_own_units():
     hole = BlackHole(SystemConfig())
     hole.mass_solar = 10.0
@@ -143,9 +164,9 @@ def _mass_object_classes(base=MassObject):
         yield from _mass_object_classes(subclass)
 
 
-# Classes whose fields wait for their own declaration slice of GEN.570 (the planetary and small-body families); a class
+# Classes whose fields wait for their own declaration slice of GEN.570 (the planet and moon); a class
 # leaves this list when it declares, and the test below fails if one declares and stays on it.
-WAITING = {"Planet", "RoguePlanet", "Comet", "InterstellarComet", "AsteroidField"}
+WAITING = {"Planet"}
 
 
 def test_a_class_with_persisted_fields_declares_them_or_waits_in_the_list():
