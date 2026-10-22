@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1900] - 2026-10-22
+
+**Headline:** A test now holds the rule that nothing inside a system stores an absolute position.
+
+### Changed
+- `db/point_columns.py` names the columns that tie a row to its system or body (`BODY_PARENT_COLUMNS`) and the four tables that keep a free galactic point despite one (`ABSOLUTE_WITH_A_PARENT`: bright_stars, black_holes, neutron_stars, facilities), each with its reason and its way out in the 8.4 revision.
+- The rule (a body in a system is stored parent-relative, about the parent's central object, in the galactic axes, with its epoch) is written into the header of `physics/position.py` and into docs/design/unified-system-barycentre.md.
+
+### Added
+- `tests/test_parent_relative_positions.py` lists every table with a parent link and a point, fails if one is stored in another frame and is not allowed, fails for a table given an absolute position, and refuses an exception that is no longer needed.
+
+TODO items resolved: TEST.241. Added: none.
+
 ## [8.0.1899] - 2026-10-22
 
 **Headline:** The speed at which an ejected neutron star streams out of a galaxy now follows its natal kick and the galaxy's escape speed.
