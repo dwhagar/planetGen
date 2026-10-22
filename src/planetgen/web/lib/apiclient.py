@@ -799,6 +799,16 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
     return _request("/phenomena", [(key, value) for key, value in params if value is not None])
 
 
+def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
+                    sector_id=None):
+    """Returns `GET /api/object-lists/<kind>`'s `items`/`next`/`total` -- one keyset page of the object index
+    (`db.objectlist.list_objects`). `after` is the printed object ID the previous page ended on (UX.141)."""
+    _require_db(db)
+    params = [("db", db), ("limit", limit), ("sort", sort), ("order", "desc" if descending else None),
+              ("after", after), ("name", name), ("class", object_class), ("sector_id", sector_id)]
+    return _request(f"/object-lists/{kind}", [(key, value) for key, value in params if value is not None])
+
+
 def get_phenomenon(db, phenomenon_type, phenomenon_id):
     """Returns `GET /api/phenomena/<type>/<id>`'s detail dict -- see
     `db.query.phenomenon_detail`'s docstring for the shape."""
