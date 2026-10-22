@@ -739,7 +739,7 @@ with `clamp()`.
   its name, so the user sees roughly what the model looks like before
   creating the galaxy.
   Lands in the Start a new galaxy task of the admin control suite: needs
-  ADM.110.
+  ADM.110 (done, #2498).
   Update (TODO thread, 2026-10-21): Boss (6:46 PM EDT) asked for a Shape
   selector now, unfilled: GEN.608 adds the lever-table row (key `shape`,
   flag `--shape`) and the dropdown with one entry, Spiral, in 8.1. This
@@ -17976,73 +17976,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the same plan as a recipe (API.28). If it grows past a day, split the
   command line recipe into its own item after the editor.
 
-- [ ] **ADM.55 Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout**
-  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
-  update on everything once this is done so all the controls work
-  properly, then run the ADM update chain since our admin pages need
-  desperately to be streamlined and fixed, they aren't very usable."
-  Done: walk every admin page and task (the admin start page, stats and
-  its tables, generation and its jobs, sectors and system generator, the
-  queue and its confirmations, facility types, maintenance and the edit
-  actions on object pages) as an administrator would, one real task at a
-  time (add a sector, regenerate, backfill, erase, edit an object, read
-  a job, change a setting); for each record clicks needed, controls that
-  fail or mislead, wording, missing feedback, missing or doubled pages,
-  and the order of the menu; write a design note in docs/design (with
-  its README row in the same PR) that ranks the defects and proposes one
-  admin layout: one shell with one navigation, the same table, form,
-  confirmation and job-log pattern everywhere. Queued after UX.115; the
-  audit starts the ADM chain.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. This audit narrows to the pages other than
-  Generate and Settings (key K8); the Generate and Settings audit is the
-  report.
-  Prerequisites: none (UX.115 dropped, Boss 6:01 PM EDT 2026-10-21: the redesign starts now). Related: ADM.98, ADM.56, ADM.43, ADM.35, UX.102, UX.115.
-
-- [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
-  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
-  update on everything once this is done so all the controls work
-  properly, then run the ADM update chain since our admin pages need
-  desperately to be streamlined and fixed, they aren't very usable."
-  Done: build the layout the audit (ADM.55) proposes and fix every
-  defect it ranks above its line, so the admin pages are usable end to
-  end: one shell and navigation, the same table, form, confirmation and
-  job-log pattern on every page, clear feedback and error messages, and
-  nothing left that is doubled or dead. The new admin items of the chain
-  (ADM.13, ADM.35, ADM.32, ADM.36, ADM.52) are built inside this shell;
-  the settings page (ADM.43, ADM.44) is built earlier, in 8.1, in the
-  admin layout of the day, and this item moves it into the shell.
-  Prerequisites: none. Related: ADM.43, ADM.44, ADM.13,
-  ADM.35, UX.102, UX.49.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: ADM.92, ADM.93. ADM.56 is 'build the audit's
-  layout and fix every defect it ranks above its line': its size is
-  unknown until ADM.55 reports, and one PR cannot restyle and repair
-  every admin page.
-  Scope after the review (2026-10-16 review): this item is the umbrella
-  of the shell (child a: one layout, one navigation and the shared
-  table, form, confirmation and job-log components) and moving every
-  existing admin page onto it with the fixes the audit ranks above its
-  line (child b). The new admin items ADM.32, ADM.36, ADM.52 and POP.13
-  build on the shell.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once.
-
 - [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
   Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
   headline feature for 8.6, and by that I mean that the admin has
@@ -18580,122 +18513,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.8. Related: API.3.
-
-- [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
-  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
-  somewhere? generate is horribly to use, it needs a full redesign as
-  it's grown too complicated for it's simplistic format, the settings
-  page is incomprehensible and we need nice, clean, settings that don't
-  look like I'm writing a linux config file, also a lot of stuff in
-  there can't be changed, so how about just not list the things that
-  cannot be changed or have an option to hide them that is defaulted to
-  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
-  own dedicated thread, add an issue for it to group all the todo items
-  together in if one doesn't exist. Start researching ways to pack a lot
-  of options into an admin control suite that will include the generate
-  control suite. The interface needs to get out of the way. All items
-  related to this not already in progress move immediately to the new
-  thread -- however, before it's begins building, it's going to
-  research, generate a report, and give me decision / choice cards." The
-  page has grown past its simple format (layer specs, spans, radial
-  fills, directives, one-off systems, jobs, and soon the switches of
-  UX.134 and UX.137 and the missing-data option of GEN.599). Do:
-  redesign the Generate control suite from the report and the answered
-  cards of ADM.98: the common task first and every other option
-  reachable without clutter, presets and the last runs, the plan shown
-  before a run, the job text and log on the shared job-log part (ADM.92,
-  UX.123), every control on the field macro (this replaces UX.125).
-  Done: the Generate suite is built on the admin shell, every control of
-  today's page is reachable, a browser test runs one common job and one
-  advanced job in both themes and at phone width, and the page help
-  (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
-  the cards of ADM.98.
-  Prerequisites: ADM.110, ADM.111, ADM.112,
-  ADM.114, ADM.116, ADM.117. Related: UX.125,
-  UX.134, UX.137, DOC.13, GEN.599.
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Closes with its children ADM.107 to ADM.117
-  (G1 to G11) and the shared suite items ADM.118 to ADM.123.
-
-- [ ] **ADM.110 Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G4).
-  UX.134 and UX.137 add their controls here. Done: the shape fields are
-  the dials panel ADM.124 (built from the lever table GEN.601; the old
-  absolute boxes are gone); pinned and unpinned dials produce the
-  table's flags (GEN.602) and an Auto dial adds none; the confirmation
-  refuses a wrong name. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Rewritten onto the lever table (Boss, 6:45 PM EDT 2026-10-21, 'Redesign
-  around the five dials'; Boss 6:49 PM EDT: fold the existing items into
-  the new chain).
-  Prerequisites: none. Related: ADM.99, UX.134,
-  UX.137.
-
-- [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G5).
-  One reset and the stored values shown; the controls GEN.301 adds are
-  placed in this block by their own items. Done: one definition of each
-  limit renders once; Reset all restores the defaults; the three old
-  actions build the same jobs as before. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.99, UX.116, UX.137, GEN.301.
-
-- [ ] **ADM.112 Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G6).
-  One definition used by Add sectors and Start a new galaxy. Done: the
-  100 percent total checker works; the 'usual' values are shown; Add
-  sectors and Start a new galaxy use the one block. Owner: the admin
-  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
-  (Boss's answer 1: Settings first, then the shell and palette, then
-  Generate).
-  Prerequisites: none. Related: ADM.99, ADM.16, ADM.45.
-
-- [ ] **ADM.114 Generate: the Check and Wipe tasks and the History tab**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G8).
-  Wipe is last, red and needs the typed database name (Reset and New
-  galaxy always do). Done: Wipe needs the typed name; History lists the
-  same rows as Recent jobs. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.99.
-
-- [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G10).
-  Done: the removed files are gone; no unused CSS; the docs match.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Also removes the old absolute shape boxes and their handlers (retired
-  by GEN.602); ADM.124 replaces them.
-  Prerequisites: ADM.110, ADM.111, ADM.112, ADM.114.
-  Related: ADM.99.
-
-- [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G11).
-  Joins TEST.168 and TEST.169 as the Generate share. Done: a failing
-  step fails the test with a screenshot. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.110, ADM.111, ADM.112, ADM.114.
-  Related: ADM.99, TEST.168, TEST.169.
 
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19493,7 +19310,7 @@ clears each one.
   edit an object, read a job and its log, change a setting, confirm and
   cancel a queue action), written on the harness of TEST.168; it adds
   nothing to the failure rules.
-  Prerequisites: ADM.56, TEST.168. Related: TEST.168, ADM.55.
+  Prerequisites: TEST.168. Related: TEST.168, ADM.55.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin

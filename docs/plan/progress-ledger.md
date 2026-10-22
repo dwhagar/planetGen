@@ -1021,3 +1021,12 @@ Baseline: PR #1817.
 | ADM.115 | 8.1 | Admin control suite |
 | ADM.121 | 8.1 | Admin control suite |
 | ADM.93 | 8.1 | Admin control suite |
+| ADM.55 | 8.1 | Admin control suite |
+| ADM.110 | 8.1 | Admin control suite |
+| ADM.111 | 8.1 | Admin control suite |
+| ADM.112 | 8.1 | Admin control suite |
+| ADM.114 | 8.1 | Admin control suite |
+| ADM.116 | 8.1 | Admin control suite |
+| ADM.117 | 8.1 | Admin control suite |
+| ADM.56 | 8.1 | Admin control suite |
+| ADM.99 | 8.1 | Admin control suite |

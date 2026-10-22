@@ -91,7 +91,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | ADM.56, TEST.168 | Quality; queued admin chain |
+| TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | TEST.168 | Quality; queued admin chain |
 
 ### Help framework
 
