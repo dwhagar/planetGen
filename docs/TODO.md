@@ -14239,7 +14239,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1's DB.73 and DB.74 table shape agreed first; (4) GEN.554 after
   GEN.553, with the explosion-map sources verified before use. GEN.555
   is Core 3's; GEN.568 and GEN.569 are Core 4's too (GEN.569 assigned by
-  the coordinator, 8:16 AM EDT 2026-10-22).
+  the coordinator, 8:16 AM EDT 2026-10-22). Core 4 also holds GEN.585,
+  GEN.586 and the family-class slices GEN.565d (StellarObject) and
+  GEN.565e (SmallBody) (the coordinator, relayed 11:21 AM EDT 2026-10-22
+  as the lane's clock reads); GEN.565d and GEN.565e still wait on Core
+  1's DB.74 shape.
   Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
   4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
   field name or draw changes): `generation/mass_object.py`
@@ -15083,8 +15087,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   file group by file group, and only where the golden set is
   bit-identical. Boss's question (12:09 AM EDT): do we need converters
   from one type of unit to another by putting two or more units together
-  in the right order. Proposed owner, not assigned by a card: Core 5
-  (the owner proposed for GEN.568). Do: extend the registry of GEN.568
+  in the right order. Owner: Core 4 (the coordinator, relayed 11:21 AM EDT
+  2026-10-22 as the lane's clock reads; it was proposed for Core 5). Do: extend the registry of GEN.568
   so the dimension (exponent vector over mass, length, time and
   temperature; angle and counts stay dimensionless kinds) is required on
   every unit and kind, and list the derived kinds the code uses with
@@ -15119,8 +15123,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them, so 4 pi squared comes from G's dimension and is no longer typed;
   R4 the relations replace the hand-written laws with the UN5 sweep,
   file group by file group, and only where the golden set is
-  bit-identical. Proposed owner, not assigned by a card: Core 4 (the
-  note offers Core 4). Do: one module where each relation is declared
+  bit-identical. Owner: Core 4 (the coordinator, relayed 11:21 AM EDT
+  2026-10-22 as the lane's clock reads; the note offered Core 4). Do: one module where each relation is declared
   once: its name, its input kinds, its output kind and a formula written
   with `+ - * / **` (a `relations.sqrt` accepts the probe objects). Two
   entry points come from each declaration: a float kernel in SI for
@@ -21337,17 +21341,26 @@ clears each one.
 - [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**
   Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, in a full gate),
   filed by the TODO thread. Kind: test fails on main, browser. Test: the
-  browser test test_a_star_in_an_opened_sector_is_selectable. It fails
-  on main with a different failure than on Core 3's branch (the failure
-  text was not relayed); it passes alone on Core 3's branch. Frequency:
-  1 of 2 gates. Reproducer: a full `scripts/test.py changed` gate; the
-  exact text is needed from the next failure. Do: capture the failure
+  browser test test_a_star_in_an_opened_sector_is_selectable. Failure text (Core 3, relayed 11:18 AM EDT 2026-10-22 as the lane's
+  clock reads, from its GEN.370 gate on the #2460 head; the earlier note
+  that it came from the #2473 gate was wrong): worker gw0, fixture
+  moving_page, sector 1000000000, page loaded at
+  /galaxy?sector=1000000000&open=1; line 167 calls _star_spots (line 97),
+  `page.request.get(f"{base_url}/sector/{sector_id}/scene")` raises
+  `playwright._impl._errors.TimeoutError: APIRequestContext.get: Timeout
+  30000ms exceeded` on GET /sector/1000000000/scene. In one earlier run of
+  the same gate the test errored at setup instead. Passes alone in 29.4 s.
+  Frequency: 2 of 4 full gates, in the browser phase with 2 workers, never
+  alone. It looks like the /scene route taking over 30 s while another
+  browser test loads the site, a load timeout and not a selection bug.
+  Reproducer: a full `scripts/test.py changed` gate (the log is on Core 3's
+  lane at /tmp/claude-0/work/gate370h.log, lines 520 to 580). Do: capture the failure
   text and the page state when it fails, find whether it is load-related
   (browser tests under load are a known flake class) or a real selection
   bug, and fix the cause. Done: the cause is on this item and the test
   passes 20 runs in a row under load. Owner: Bug Hunt, after its current
   work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
-  text from Core 3 was not in the relay and is still needed.
+  text is now recorded above.
   Prerequisites: none. Related: TEST.262, TEST.270.
 
 ## USR: User accounts
