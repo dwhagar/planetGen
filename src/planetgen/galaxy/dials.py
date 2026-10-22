@@ -232,7 +232,7 @@ LEVERS = (
         law="the total mass of the galaxy's stars (not its dark halo, which the Halo dial sets); the size, the halo, "
             "the thick disc, the bulge and the black hole all follow it through their laws; under about 4.6e6 the "
             "galaxy has no dark halo (no halo draw, no halo law runs), and under 3e8 it is one disc plus a bulge",
-        auto_text="drawn from the galaxy stellar mass function (Baldry et al. 2012)",
+        auto_text="drawn from the galaxy stellar mass function (Baldry et al. 2012) between 3e9 and 6e9 solar masses, a small spiral (Boss, 10-21)",
         help="The total mass of the galaxy's stars, solar masses. Size and density follow it unless pinned; pin any "
              "two of mass, size and density and the third is shown.",
         source="Boss, 10-21 (7:04 to 7:31 PM EDT): floor half the stellar mass of Segue 1, 562 solar masses (Local "

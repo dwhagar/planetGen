@@ -12,6 +12,7 @@ import pytest
 
 from planetgen.galaxy import density, shape_draw, structure as galaxyStructure
 from planetgen.galaxy import structure_draw as sd
+from tests.wide_masses import wide_mass
 
 
 def _seed(number):
@@ -19,7 +20,7 @@ def _seed(number):
 
 
 SEEDS = [_seed(n) for n in range(1, 1201)]
-SHAPES = [shape_draw.draw_galaxy(s) for s in SEEDS]
+SHAPES = [shape_draw.draw_galaxy(s, stellar_mass_solar=wide_mass(s)) for s in SEEDS]
 SOURCE = Path(__file__).resolve().parent.parent / "planetgen"
 
 

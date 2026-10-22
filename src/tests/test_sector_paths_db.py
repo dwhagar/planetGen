@@ -15,6 +15,8 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants
 
+pytestmark = pytest.mark.usefixtures("large_spiral_fallback")
+
 ADDRESS = (1500, 2, 700)
 EDGE_LY = 11.5
 EDGE_PC = EDGE_LY * constants.LIGHTYEAR_M / constants.PARSEC_M

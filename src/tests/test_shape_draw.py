@@ -12,6 +12,7 @@ import pytest
 from planetgen import tuning
 from planetgen.cli.generate import add_plan_arguments
 from planetgen.galaxy import density, mass_chain, shape_draw
+from tests.wide_masses import wide_mass
 
 
 def _seed(number):
@@ -23,7 +24,7 @@ SEEDS = range(1, 2001)
 
 @pytest.fixture(scope="module")
 def draws():
-    return [shape_draw.draw_galaxy(_seed(number)) for number in SEEDS]
+    return [shape_draw.draw_galaxy(_seed(number), stellar_mass_solar=wide_mass(_seed(number))) for number in SEEDS]
 
 
 def _spread(values):
@@ -243,3 +244,12 @@ def test_a_plan_with_no_shape_options_draws_every_one_from_its_seed():
 def test_no_milky_way_shape_is_left_in_the_tuning():
     for name in ("GALAXY_DISK_SCALE_LENGTH_PC_DEFAULT", "DEFAULT_DISK_SCALE_LENGTH_PC", "DEFAULT_BULGE_AMPLITUDE"):
         assert not hasattr(tuning, name)
+
+
+def test_a_galaxy_with_nothing_pinned_is_a_small_spiral():
+    """GEN.603 (Boss, 10-21): the defaults give roughly half the size of a large spiral (2.6 kpc), the user pushes up."""
+    lengths = sorted(shape_draw.draw_galaxy(_seed(number)).disk_scale_length_pc for number in range(1, 401))
+    assert 1100.0 < lengths[len(lengths) // 2] < 1700.0
+    assert lengths[int(len(lengths) * 0.9)] < 2600.0 and lengths[0] > 28.0
+    masses = [mass_chain.draw_mass_chain(_seed(number)).stellar_mass_solar for number in range(1, 401)]
+    assert 3.0e9 <= min(masses) and max(masses) <= 6.0e9 * (1 + 1e-9)

@@ -21,6 +21,8 @@ from planetgen.physics import black_hole_formation as formation
 from planetgen.physics.units import ly_to_pc
 from tests import test_gen_scatter_tiers as tiers
 
+pytestmark = pytest.mark.usefixtures("large_spiral_fallback")
+
 SHAPE = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
     arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
