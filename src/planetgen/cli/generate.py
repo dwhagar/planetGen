@@ -49,6 +49,7 @@ from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy import scatter_limits
+from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.galaxy.density import arm_terms
 from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL, DEFAULT_REACH_SHELL
@@ -884,36 +885,10 @@ def add_plan_arguments(parser):
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
     """
-    shape_group = parser.add_argument_group("galaxy shape (galaxyDensity.GalaxyShape)")
-    shape_group.add_argument('--disk-scale-length-pc', type=finite_float, default=None,
-                             help="Thin disk exponential scale length, parsecs (the thick disk's is 0.77x). "
-                                  "Default: drawn from the galaxy seed by the size-mass relation of the galaxy's "
-                                  "stellar mass (galaxy/shape_draw.py).")
-    shape_group.add_argument('--disk-scale-height-pc', type=finite_float, default=None,
-                             help="Thin disk exponential scale height, parsecs (the thick disk's is 3x). "
-                                  "Default: drawn from the seed, the scale length over 7.3 with a 0.13 dex scatter.")
-    shape_group.add_argument('--bulge-scale-radius-pc', type=finite_float, default=None,
-                             help="Bar bulge scale length along the bar, parsecs (0.39x across it, 0.27x "
-                                  "vertically). Default: drawn from the seed, a third of the bar's length.")
-    shape_group.add_argument('--bulge-amplitude', type=finite_float, default=None,
-                             help="Bulge central density, relative to the thin disk's at the center. "
-                                  "Default: solved from a bulge-to-total ratio drawn from the seed.")
-    shape_group.add_argument('--arm-count', type=int, default=None,
-                             help="Number of spiral arms. Default: drawn from the seed (two arms in about two "
-                                  "thirds of spirals).")
-    shape_group.add_argument('--pitch-angle-deg', type=finite_float, default=None,
-                             help="Spiral arm pitch angle, degrees. Default: drawn from the seed, tighter for "
-                                  "heavier galaxies.")
-    shape_group.add_argument('--arm-density', type=finite_float, default=1.4,
-                             help="The thin disk's density on a spiral arm crest, in the disk's own units "
-                                  "(the usual local disk is 1). At least --interarm-density. Default: 1.4.")
-    shape_group.add_argument('--interarm-density', type=finite_float, default=0.6,
-                             help="The thin disk's density midway between arms, in the same units, 0 or more. "
-                                  "Default: 0.6.")
-    shape_group.add_argument('--nuclear-amplitude', type=finite_float, default=1.0,
-                             help="How much of the observed nuclear star cluster (2.5e7 solar masses within a few "
-                                  "parsecs) and nuclear stellar disc (1.5e9, 90 pc long) the galactic centre holds, "
-                                  "scaled to the bulge: 1 is the observed pair, 0 is none. Default: 1.")
+    shape_group = parser.add_argument_group(
+        "galaxy shape (the lever table, planetgen.galaxy.dials: every option is Auto, drawn from the galaxy seed, "
+        "until given)")
+    dials.add_arguments(shape_group)
 
     parser.add_argument('--seed', type=_galaxy_seed_arg, default=None, metavar="HEX",
                         help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "
@@ -1031,11 +1006,9 @@ def validate_plan_args(args, parser):
         parser (argparse.ArgumentParser): The parser to raise errors through.
     """
     try:
-        arm_terms(args.arm_density, args.interarm_density)
+        arm_terms(dials.resolved(args, "arm_density"), dials.resolved(args, "interarm_density"))
     except ValueError as exc:
         parser.error(f"--arm-density and --interarm-density: {exc}.")
-    if args.nuclear_amplitude < 0 or (args.bulge_amplitude is not None and args.bulge_amplitude < 0):
-        parser.error("--nuclear-amplitude and --bulge-amplitude must be 0 or more.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
     if args.cell_star_ceiling is not None and args.cell_star_ceiling < 1:
@@ -1055,13 +1028,6 @@ def validate_plan_args(args, parser):
             parser.error(f"--halo-min-luminosity: {exc}")
     if args.max_shell < 1:
         parser.error("--max-shell must be a positive integer.")
-    for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):
-        if getattr(args, option) is not None and getattr(args, option) <= 0:
-            parser.error(f"--{option.replace('_', '-')} must be a positive number.")
-    if args.arm_count is not None and args.arm_count < 1:
-        parser.error("--arm-count must be a positive integer.")
-    if args.pitch_angle_deg is not None and not 0 < abs(args.pitch_angle_deg) <= 90:
-        parser.error("--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude.")
     # Anything else that still can't be normalized.
     try:
         shape, _drawn = shapeDraw.plan_shape(args, args.seed)

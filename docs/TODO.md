@@ -799,16 +799,43 @@ with `clamp()`.
   off), each with a one-line plain explanation that halo and satellite
   galaxies are separate, each running its own command (GEN.539, GEN.540)
   as a step; turning one on offers the commands that will run (the step
-  list, with its estimate); turning one off says that nothing is
-  deleted; the command line and the API set them through the same
-  commands. Owner: Core 2 (proposed).
+  list, with its estimate); turning one off says that nothing is deleted
+  and nothing stored is hidden; the command line and the API set them
+  through the same commands. Owner: Core 2 (proposed).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported; the row stays in 8.5).
-  Needs the Generate tasks it lands in: ADM.110 (Start a new galaxy) and
-  ADM.111 (Scatter), per the admin control suite report.
-  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116, ADM.110, ADM.111.
+  PM EDT as the lane reported; the row stays in 8.5). Needs the Generate
+  tasks it lands in: ADM.110 (Start a new galaxy) and ADM.111 (Scatter),
+  per the admin control suite report.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the halo control also offers the halo reach (a value with L, pc, kpc
+  or Mpc, default the 262 kpc ceiling) and shows the expected rows and
+  time before it runs; the satellite control is on or off only; turning
+  one off says that generation stops and nothing stored is deleted or
+  hidden (card 7); a switch is disabled with the reason for a galaxy
+  below the halo threshold or with no satellites in its draw.
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116,
+  ADM.110, ADM.111.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  halo control offers the destructive removal as a separate, confirmed
+  admin action, distinct from the non-destructive switch-off, showing
+  what will be deleted; the specifics wait for the design thread's
+  report.
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the admin page offers "switch off and remove" as one chained action
+  for the halo and for the satellites (a separate removal command
+  underneath, GEN.620): a Review step lists the counts of generated
+  rows, facilities and hand edits that will go, a typed database name
+  confirms, a backup is offered first, and it runs as a queued job; this
+  replaces the pending detail above.
 
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -2353,19 +2380,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sector plan and control how far scatters can go around the galaxy
   and what sector addresses are valid." Done: the Galaxy Map and the
   pages read the boundaries and the two switches from the plan
-  configuration (GEN.538); with the halo off they draw no halo scatter
-  beyond the outline and offer no halo layer toggle, with the satellite
-  galaxies off no satellites are drawn or listed (each switch
-  independent of the other), "Show on Galaxy Map" and the uncharted
-  address pages for an address outside the configured boundaries say it
-  is outside the generated galaxy and which switch is off (not just
-  "outside the galaxy"), the tiles carry nothing beyond them, and the
-  pick and the zoom hand-off of MAP.243 are not offered where nothing
-  exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
-  works as built in 8.1; a browser test per combination of the switches.
+  configuration (GEN.538); with a switch off nothing new is generated
+  beyond its boundary and the stored halo or satellite content stays
+  drawn, searchable and routable, and the layer toggles stay (each
+  switch independent of the other), "Show on Galaxy Map" and the
+  uncharted address pages for an address outside the configured
+  boundaries say it is outside the generated galaxy and which switch is
+  off (not just "outside the galaxy") when nothing is stored there, the
+  tiles carry the stored content and nothing is generated for them, and
+  the pick and the zoom hand-off of MAP.243 are not offered where
+  nothing exists; with a switch on everything of MAP.207, MAP.243 and
+  MAP.239 works as built in 8.1; a browser test per combination of the
+  switches.
   Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538,
-  GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
+  GEN.540, MAP.207, MAP.243, MAP.239.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  card 7: switching a switch off only stops generation; the maps and
+  pages do NOT hide stored content. They show, search and route whatever
+  is stored and generate nothing new beyond the boundaries; an address
+  that is refused is one with nothing stored (decision 2). The browser
+  test per combination of the switches checks both a galaxy generated
+  with a switch on and then switched off (content still drawn,
+  searchable and routable) and one that never had it on (nothing there).
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  after a removal the region's cells answer "outside the generated
+  galaxy: the halo was removed" (or satellites), saved references
+  (bookmarks, saved courses) show as removed, and the tiles and the
+  query caches stop serving the region once the deletion epoch is bumped
+  (GEN.620).
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
   Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
@@ -5610,7 +5657,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
-  GEN.530, SEC.33, TEST.261.
+  SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -7023,16 +7070,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spiral family written as components. No fixed content (Boss, 4:11 and
   4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234,
-  GEN.280.
+  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234, GEN.280.
   Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
   one call site in `galaxy/density_modulation.py` (GEN.393) that
   multiplies each population's density after the component sum; this
   rewrite keeps that one call and does not move the factor into the
-  components.
-  Design merged (GEN.378, #2368): docs/design/galaxy-types.md is the
-  checked design; Boss reads and approves its table before this item and
-  DB.66 are built (Needs Boss list).
+  components. Design merged (GEN.378, #2368):
+  docs/design/galaxy-types.md is the checked design; Boss reads and
+  approves its table before this item and DB.66 are built (Needs Boss
+  list).
+  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
+  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
+  the table in docs/design/galaxy-types.md is approved as written. The
+  approval that held this item is given.
+  Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
+  gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
+  Core 1's queue.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -10200,150 +10253,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread. Part D
-  (small bodies and moons) is the evidence: the taxon classes with their
-  meteorite analogues, grain densities, porosities and albedos, the
-  zone-weight kernel in a / a_snow, the comet refractory-to-ice ratio
-  and volatile shares, the compaction law (porosity falls to zero near
-  1e20 kg), the mixing rule rho = 1 / sum(w_i / rho_i) kept below the
-  compaction mass and handed to the structure solver above it, and the
-  moon origin types (disk, impact, captured, ring, binary) with the ice
-  fraction from the circumplanetary-disk ice line. Write
-  docs/design/small-bodies-composition.md and have Boss approve it. It
-  settles: which kinds of body draw the density first and fill in the
-  composition and which derive the density (Decided, Boss, 2026-10-17,
-  1:21 AM EDT, card "Composition first": new bodies get their
-  composition drawn from the formation distance and the star and the
-  bulk figures derived, route 2; route 1 stays as the inverse for
-  editing and for an imported density; part D had recommended route 1
-  for bodies whose density is already drawn, so this note says how those
-  are handled); the hand-off mass to the structure solver of GEN.426;
-  which values are stored and which derived (the schema is DB.69 and
-  DB.70); the parametrisations the lane lists (part D section 3.5) each
-  with a replace-when-sourced rule; and the test targets (part D section
-  4, as tolerances and never presets). Done: the note carries the
-  decisions, a worked example (a main-belt-like field, a comet, a
-  Kuiper-like object, a regular moon and a captured moon, as test
-  targets only) and the test targets, and Boss approves it. Owner: Core
-  4 (proposed, with the composition chain).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the small-body design writes its tables in the gated
-  format: the taxon table, the comet volatile table and the moon origin
-  table (disk, impact, captured, ring, binary) are possibility tables
-  with the supported classes and weights of part D (the zone-weight
-  kernel in a / a_snow) and a source each; the note lists every open
-  weight.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the taxon shares and the zone
-  kernel are `stand-in` rows until GEN.473 replaces them.
-  Finding F11 of the Body composition research lane (section 14.5 of
-  docs/design/body-composition-research.md, tables E1 to E4; 2026-10-17,
-  1:47 AM EDT as the lane reported, read from the code at the commit it
-  names), filed by the TODO thread. The existing belt draw it replaces
-  is GEN.477.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G1) the comet volatile draw of part D 3.4.2 becomes the
-  comet population table of GEN.495; 67P stays a test target.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
-  and Schmitt 2009 and Bierson and Nimmo 2019 were on Boss's own list
-  (Boss, 3:07 PM EDT 2026-10-18: he has provided all the data he can, so
-  the bracket from NIST and PubChem stays as a labelled stand-in).
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
-  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
-  thread can fetch.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC7: Bierson and Nimmo (accepted
-  manuscript) Table 1 and Eq. 1 to 2: ice density 920 and silicate 3500
-  kg/m^3, initial porosity 0.60, strength-supported porosity 0.20 (ice),
-  compaction b1 -0.1 per MPa (ice) and b2 -0.11 (silicate); ice porosity
-  phi_i = max(0.60 exp(-0.1 P), 0.20), P in MPa; silicate phi_s =
-  min(0.6 P^-0.11, 0.6) [V, re-read]. A constant 70 percent rock mass
-  fraction matches 14 of 17 Kuiper Belt objects within 2 sigma; minimum
-  formation time 4 Myr (rock fraction 0.5) or 5 Myr (0.7) from early
-  Al-26; Makemake and 2007 OR10 about 1800 kg/m^3 and MU69 about 750
-  predicted. Contradiction, the paper wins: our ice compaction guess has
-  the reference pressure P0 = 1e6 Pa, ten times lower than the paper's
-  10 MPa with the 0.2 floor; our 0.08 scatter and 0.58 to 0.82 range are
-  not in the paper. Eq. 3 (dphi/dt = phi P/eta) prints a positive sign,
-  which would make porosity grow, and the file carries the note 'error
-  in equation 2b': check against Besserer 2013 or the published version
-  before coding it. Fray and Schmitt (paid) is still missing.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC6 moons: Sasaki 2010 (ice line 20 R_J (M_p/M_J)^(2/3) (tau/5
-  Myr)^(-1/3)) and Cilibrasi 2018 (85 percent icy, Galilean-like in 20
-  percent) disagree on the ice fraction: two verified sources, the
-  newest wins (Cilibrasi 2018), the 0.5 to 0.85 bracket stays where
-  either is in doubt. T19 Kuiper Belt rock fraction: rising with size
-  against a constant 70 percent with porosity; the dates were not
-  recorded, so the draw stays.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. T15, the
-  cometary organic fraction (no probability exists; N(0.60, 0.15)
-  clipped to [0, 1] is the lane's proposal).
-  Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in
-  words; bulk-composition.md approve item 6, Decisions 25 and 26): the
-  paper's compaction law stays and the 1e20 kg hand-over is shifted
-  until the porosity jump (0.86 to 1.55 g/cm3) disappears; a Galilean-
-  class solver test comes before the 1e20 kg to 0.1 Earth mass range is
-  called validated; viscous compaction can replace the hand-over later
-  once the Eq. 3 sign check passes.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 15, "0.5 to 0.85,
-  Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
-  bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
-  a labelled stand-in replaced when a measurement exists.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 4's).
-  Design merged (Blocker 2, 8:14 PM EDT 2026-10-21 as the lane reported,
-  #2374, docs only): docs/design/small-bodies-composition.md settles the
-  kind-by-kind route, mixing rule, taxon, comet, icy-body and
-  moon-origin tables, stored versus derived (DB.69, DB.70 columns),
-  parametrisations, a worked example and test targets. Decided (Boss,
-  8:13 PM EDT 2026-10-21, card "Taper porosity, 1e19 to 1e21 kg"
-  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
-  Blocker 2 lane, decision S9 of
-  docs/design/small-bodies-composition.md): porosity tapers to zero in
-  log mass between 1e19 and 1e21 kg (the paper's law stays; the
-  endpoints are flagged stand-in until viscous compaction replaces
-  them), and the Galilean-class solver test still comes before 1e21 kg
-  to 0.1 Earth masses is called validated. This replaces the hand-over
-  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
-  close the 1e20 kg porosity jump by moving the hand-over (density stays
-  1.32 to 1.35 times low up to 3e23 kg). The other two defaults
-  (stand-in taxon rows with concentration 10, the cometary organic share
-  N(0.60, 0.15)) have no card and stand as defaults.
-  Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
-
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -11315,7 +11224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stored thresholds; a test says so and that the same galaxy gives
   the same belts at any worker count. Owner: Core 4 (proposed, with the
   composition chain and the small bodies of GEN.442).
-  Prerequisites: GEN.442, GEN.457, GEN.458, DB.70. Related:
+  Prerequisites: GEN.442, GEN.458, DB.70. Related:
   GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -12115,7 +12024,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the comet volatile draw reads the table, each range carries its source
   and label, and a test checks the ranges and determinism. Owner: Core 4
   (proposed, with the composition chain).
-  Prerequisites: GEN.457. Related: GEN.442, GEN.455, GEN.457,
+  Prerequisites: none. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
@@ -12955,35 +12864,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
-- [ ] **GEN.530 A pre-placed star's hosted nebula shows from its scatter row on the maps and pages**
-  Residual of GEN.320 (merged #2014, 10:07 AM EDT as Core 3 reported;
-  found by Core 3 and filed by the TODO thread). GEN.320 rolls a star's
-  hosted nebula from the star's own seed and added the helper
-  `hosted_nebula_of`, so a scatter row can say it before any sector is
-  filled (folds MAP.182's intent), but nothing reads that helper from a
-  row: the maps and pages do not show the hosted nebula of a pre-placed
-  star until its sector has been built. Do: the Galaxy Map, the sector
-  view and the star pages read `hosted_nebula_of` for a scatter row, so
-  a pre-placed O or B star shows the same nebula before and after its
-  sector is built. Done: a test shows the nebula of a pre-placed star
-  from its row equals the one the built sector holds, and a map tile or
-  page lists it without a fill. It belongs before GEN.301 (Core 3, 10:07
-  AM EDT). Owner: Core 3 (proposed, GEN.320's author; the map and page
-  reads may go to Core 2 if Core 3 prefers).
-  Owner: Core 3 for the generator side (done) and Core 2 for the map
-  and page reads, after PERF.105 and UX.118 in its order (Core 3
-  agreed 2026-10-17, 10:22 AM EDT and Core 2 at 10:27 AM EDT, both as
-  the lanes reported). Pointers for Core 2:
-  generation/nebula_contents.py `hosted_nebula_of(star,
-  chance_factor=1.0, markdown=False)` takes anything with `type` (a
-  main-sequence class such as B2V), `age` in Gy, `mass` and
-  `temperature`, and returns the Nebula or None; the star's seed is
-  `hosted_seed(star)` (mass, age and temperature); `chance_factor` is
-  the sector profile's "nebula" factor (GEN.236), 1.0 where no profile
-  is read. Core 3 knows the generator side. This replaces the proposed
-  owner above.
-  Prerequisites: none. Related: GEN.320, GEN.241, MAP.182.
-
 - [ ] **GEN.531 Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system**
   Filed by the TODO thread from the GEN.406 research thread (2026-10-17,
   finished 10:38 AM EDT as it reported;
@@ -13432,6 +13312,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1. Point (4) of this design is therefore settled.
+  Decided (Boss, 9:02 PM EDT 2026-10-21, tapped "Answer now", card
+  cmsg_01RuNTFUNB92A8cm5CbojQAiQEpSHqXuHrfwkEi57MUfJd): the plan
+  configuration cards are answered now, not at 8.5. A design thread
+  posts the cards (boundaries, scatter reach, the halo and satellite
+  switches, storage) and writes docs/design from the answers; the
+  coordinator starts it. 8.1 still builds halo and satellites always on
+  (GEN.301).
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  (1) Boundaries: the 262 kpc addressing ceiling (`reach_shell_index`,
+  96-bit IDs) stays stored, with a halo reach and a satellite reach
+  added below it; the outline stays derived by `plan` (the Edge dial,
+  GEN.605); valid addresses are the outline, plus the halo region out to
+  the halo reach when halo is on, plus the satellite volumes when
+  satellite galaxies are on. (2) An address beyond the switches is
+  refused with the reason ("outside the generated galaxy", naming the
+  switch that is off); this supersedes the GEN.235 rule that any address
+  inside the reach is generated on demand and the `outside_ok` path
+  (GEN.81); 8.9 "generate anywhere" may reopen it. (3) The halo reach
+  defaults to the 262 kpc ceiling; the halo command takes a smaller
+  reach in L, pc, kpc or Mpc like the Edge dial and shows the expected
+  rows and time first; no virial-radius default (its ratio has no
+  source). (4) By place: beyond the outline everything that is not a
+  satellite galaxy follows the halo switch (stellar halo, halo globular
+  clusters, hypervelocity and ejected stars, high-velocity clouds, hot
+  halo gas); satellite galaxies and their own stars, clusters and
+  phenomena follow the satellite switch; anything inside the outline is
+  always generated. (5) `scatter` keeps one kind per run and gains one
+  region parameter (interior, halo or satellites); the wrapper's step
+  list holds one run per kind per region the configuration enables;
+  completion is stored per kind and region, so turning a switch on later
+  runs only the missing regions; this replaces the 4:49 PM EDT
+  2026-10-17 wording that each scatter kind reads only its switch. (6)
+  The satellite switch is on or off only; count, places and sizes always
+  come from the seed's draw (GEN.369); same seed, same satellites; no
+  distance cap and no count dial for now. (7) Switching off keeps stored
+  content visible (not the recommended option): only generation stops;
+  stored rows stay drawn, searchable and routable. (8) Storage: a new
+  one-row `plan_configuration` table holding the two switches, the halo
+  reach, the satellite reach and the ceiling (moved out of
+  `galaxy_shape`); only the halo and satellite commands write it; `plan`
+  reads it and never rewrites it; it joins the plan fingerprint tables
+  (`PLAN_TABLES` in `db/fingerprint.py`); the 8.5 migration fills it
+  from what an existing galaxy holds. Applied defaults, not carded: if a
+  new `plan` outline would grow past a stored halo reach, `plan` refuses
+  and names the halo command; a request to generate beyond the
+  boundaries is refused but a sector with stored content stays readable
+  for display, search and routing after its switch is turned off; the
+  halo and satellite commands refuse a galaxy that has nothing to switch
+  on (below the halo threshold `dials.HALO_MIN_HALO_MASS_SOLAR`,
+  GEN.606; a satellite draw of none, GEN.369), saying why; turning a
+  switch on later makes only the missing region. The design note in
+  docs/design is written from the report; confirm with the design
+  thread.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): besides
+  the non-destructive switch-off (card 7, stored content stays), an
+  admin can switch the halo off on an already-made galaxy destructively:
+  the halo content is removed from the database and every halo cell
+  becomes an invalid address (refused with the reason, decision 2). The
+  Plan configuration design thread is working out the specifics
+  (confirmation, what exactly is deleted, the fingerprint and the
+  completion records, whether satellites get the same) and reports;
+  until then it is a pending detail, not a decision.
 
 
 - [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
@@ -13494,6 +13441,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retired by GEN.602; `--reach-shells` stays the addressing detail here.
   The Halo dial GEN.606 sets how big the halo is; GEN.539's switch
   decides whether it is generated at all.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the configuration is a new one-row `plan_configuration` table
+  (decision 8), not an extension of `galaxy_shape`: it holds the two
+  switches, the halo reach, the satellite reach and the ceiling, and
+  joins `PLAN_TABLES`; `SCATTER_COVERS_REACH` and the `min(high, reach)`
+  clamps go; an address beyond the switches is refused with the reason,
+  which supersedes GEN.235's generate-anywhere-in-reach rule and
+  `outside_ok` (decision 2); the scatter gets one region parameter
+  (interior, halo, satellites) with completion stored per kind and
+  region, which replaces the "each kind reads only its switch" wording
+  above (decision 5) and is this item's work after PERF.121 merges, not
+  a change to the PERF.121 gate in flight (the PERF.121 follow-up);
+  beyond the outline, everything that is not a satellite galaxy follows
+  the halo switch (decision 4). Done also: a test per kind and region
+  that a switch turned on later makes only its missing regions; `plan`
+  refuses, naming the halo command, when its outline would pass a stored
+  halo reach.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  destructive halo removal on a made galaxy deletes the halo rows and
+  the per-kind-per-region completion records for the halo region and
+  updates `plan_configuration` (halo off, halo reach cleared); the
+  specifics wait for the design thread's report.
 
 - [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13523,6 +13497,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Distinct from the Halo dial GEN.606 (Boss, 6:45 PM EDT 2026-10-21):
   this is the on/off switch of the halo scatter; the dial sets the dark
   halo mass and the stellar halo share.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the halo reach defaults to the 262 kpc ceiling and the command takes a
+  smaller reach in L, pc, kpc or Mpc like the Edge dial, showing the
+  expected rows and time first (decision 3); no virial-radius default;
+  everything beyond the outline that is not a satellite galaxy follows
+  this switch (decision 4); it refuses to switch halo on for a galaxy
+  below the halo threshold (`dials.HALO_MIN_HALO_MASS_SOLAR`, GEN.606)
+  and says why; the commands that run are one scatter per kind for the
+  halo region (decision 5).
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  halo command (or a flag on it) gains the destructive switch-off for a
+  made galaxy, with a confirmation and a count of what it will remove;
+  the specifics wait for the design thread's report.
 
 - [ ] **GEN.540 The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13551,6 +13543,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.120, GEN.371.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the switch is on or off only: count, places and sizes always come from
+  the seed's draw (GEN.369), the same seed gives the same satellites
+  when turned on later, and there is no distance cap or count dial for
+  now (decision 6); this replaces "sets their parameters (how many and
+  how far)" above; satellite galaxies and their own stars, clusters and
+  phenomena follow this switch (decision 4); the command refuses a
+  galaxy whose draw gives no satellites, saying why.
 
 - [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
   Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
@@ -13626,6 +13628,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default (derive it) stands. The old Core 1 draft branch
   claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
   gen545-core1-draft.patch are superseded.
+  Epoch 42 is also claimed by GEN.370 (Core 3) and PERF.148 (Bug Hunt);
+  whichever merges later renumbers to the next free epoch on its rebase
+  (the TODO thread, 8:52 PM EDT 2026-10-21).
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -16331,6 +16336,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   masses, the scale height floor 4 pc and the bulge floor 2 pc are
   unchanged. GEN.619 (a variable sector edge) may lower the scale length
   floor later.
+  Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Labelled placeholder
+  brackets", card cmsg_01RuNTFUNB92A8cm5CbojQAiThueq5RtgKafJmWNFrqMvQ):
+  the three unsourced gaps (the size law below log M* 5.5, the
+  stellar-to-halo formula below 5e5 solar masses, and dwarf scale
+  height) use labelled placeholder brackets; the dials accept the whole
+  range now and the item no longer waits on Boss for sources.
   Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
 
 - [ ] **GEN.613 Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them**
@@ -16465,6 +16476,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.601, GEN.605, GEN.603. Related: GEN.385, GEN.616,
   GEN.617, GEN.613, GEN.280.
 
+- [ ] **GEN.620 The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off)**
+  Boss, 2026-10-21, 9:26 PM EDT: "admin should have the ability to
+  switch off halo's to a made galaxy but it would be destructive and
+  actually remove them from the database and make all halo cells invalid
+  addresses." Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to
+  11, section "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  (9) A separate admin removal command that needs the switch already
+  off; only the halo and satellite commands (GEN.539, GEN.540) write the
+  plan configuration and only removal deletes; the admin page chains
+  "switch off and remove" as one action. (10) It deletes all hand-made
+  content in the region: the Review step lists the counts of generated
+  rows, facilities and hand edits that will go and a typed database name
+  confirms; saved references (bookmarks, saved courses) show as removed:
+  outside the generated galaxy. (11) Satellites get the same: one
+  command takes a region argument, halo or satellites, with the same
+  Review, counts and typed confirmation; satellite removal also deletes
+  the satellite component rows, and switching on later places them again
+  from the seed. Done: the command deletes, in the region, the sectors
+  with their star systems, bodies and facilities, standalone phenomena,
+  nearest-system lists (refreshed around the edge), sector stats, bright
+  stars, phenomenon scatter rows with their member trees, nebula field
+  cells and the halo components (for satellites also the satellite
+  component rows), in batches like the existing clear functions in
+  `db/edits.py` and `db/store.py`; it leaves `plan_configuration`
+  unchanged (the end state is the switch off with an empty region); it
+  bumps the deletion epoch (`note_sector_deleted`, read by
+  `sector_deletions`, part of the map cache keys) and clears the
+  region's tile cache without rerunning `planetgen warm`; it clears the
+  per-kind-per-region completion marks of the region (GEN.538) so
+  switching on again regenerates it from the seed, with the same stars
+  and object IDs and no hand-made content restored; it keeps the admin
+  suite's safety (Review step with counts, typed database name, an offer
+  of a backup first, an audit row, a queued job that waits while a
+  generate or scatter job runs); a request for a removed address answers
+  "outside the generated galaxy: the halo was removed" (the card 2
+  refusal); a test that after removal no row remains in the region, the
+  cells are refused, the interior is unchanged and switching on again
+  regenerates the region.
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
+  GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16498,6 +16551,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of PERF.133 (keeping a tile until the data changes cannot work with a
   per-version stamp). The condition "decide after PERF.31 shows the cold
   rebuild cost" no longer applies.
+  Decided (Boss, 9:04 PM EDT 2026-10-21, tapped "Skip it, build
+  PERF.41", card cmsg_01RuNTFUNB92A8cm5CbojQAi6fWhrKGtqtN7aYG1tmJwTs):
+  no cold-rebuild time is needed; the item is built as a required
+  prerequisite of PERF.133 (fork 11). The wait on Boss's number is gone.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
@@ -16979,6 +17036,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to drop its remaining references.
   Design:
   [docs/design/command-inventory.md](design/command-inventory.md)
+  Follow-up from the plan configuration decisions (Boss, 9:21 to 9:24 PM
+  EDT 2026-10-21, decision 5): `scatter` gains one region parameter
+  (interior, halo or satellites) with completion stored per kind and
+  region; it is GEN.538's work after this item merges and does not
+  change this item's gate in flight.
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -17452,28 +17514,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
 
 - [ ] **PERF.148 Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line**
-  Boss's stalled-job investigation is Bug Hunt's top priority (the
-  coordinator, 2026-10-21; the lane's findings arrive with its reports,
-  and this item records them as they come). Related fixes already
-  merged: a killed run no longer blocks new runs (PERF.142, PERF.143,
-  #2345) and every RQ enqueue has a finite limit (PERF.144, #2366).
-  Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt thread,
-  approved by Boss as part of this fix, as the coordinator relayed 8:48
+  Found by Bug Hunt (8:51 PM EDT 2026-10-21 as the lane reported), filed
+  by the TODO thread. Boss's stalled Generate job. Cause: GEN.324 added
+  the clusters' and satellites' stars (scatter-mass, luminosity, band)
+  and their phenomena as ONE task each (run_plan._plan_shape and
+  _plan_phenomena). At the 500 solar-luminosity halo floor that single
+  unit held about 1.5M of the stage's 1.6M expected stars (the LMC 937k,
+  the SMC 151k); one worker draws about 4 to 5 ms per star (over an
+  hour), the other workers idled at the stage barrier, and the unit
+  reported no progress, so the bar stuck near 2 percent with a 30 hour
+  ETA. The phenomena stage has the same single unit (about 20M expected
+  candidates, the LMC 15.6M). Fix: components are cut by expected rows
+  alone into units of about 25,000 stars (1,000,000 phenomena
+  candidates); bigger components go in slices with their own random
+  streams (component_pass.parts, STAR_SLICE_STARS,
+  PHENOMENON_SLICE_ROWS) and small ones are bundled; units report
+  progress every 200 stars; log lines say "(unit k of N, about X stars
+  expected)". Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt
+  thread, approved as part of this fix, as the coordinator relayed 8:48
   PM EDT): "So here is what I'd like, instead of unit chunks being based
   on expected work, just break up the task space evenly so each chunk is
   as close to the same size as possible to get. That will make my
-  readings of the logs significantly easier." So the units are cut so
-  that each has the same expected work, as close to equal as the task
-  space allows, and the log line shows the unit and its expected work.
-  Do: root-cause the stall and fix the cause, never raise a limit to
-  hide it; cut the task space into equal units; show the unit's expected
-  work in the log line. Done: the cause is written on this item with the
-  evidence; a run that stalled before now finishes or fails with a clear
-  line; the units of one task differ in expected work by no more than
-  the grain of the task space allows (a test on the unit planner); the
-  log line shows the unit and its expected work. Owner: Bug Hunt (top
-  priority). Filed by the TODO thread because the item did not exist;
-  Bug Hunt corrects the wording with its findings.
+  readings of the logs significantly easier." Decided (Boss, cards, 8:47
+  PM EDT 2026-10-21, as the lane reported): the shell cut stays equal
+  expected work. Output change: the LMC, the SMC, Sagittarius and any
+  component past the limit draw different stars, so this takes a
+  generator epoch bump; epoch 42 is already claimed by GEN.545 (Core 1)
+  and GEN.370 (Core 3, which renumbers on rebase), so there is no free
+  number to reserve: whichever of the three merges later renumbers to
+  the next free epoch on its rebase (the rule: take main's epochs and
+  renumber). Done: the cause above is on this item; a Generate run at
+  the 500 solar-luminosity floor finishes with all workers busy and a
+  bar that moves; the units of one task differ in expected work by no
+  more than the grain of the task space allows (a test on the unit
+  planner); the log line shows the unit and its expected work. Owner:
+  Bug Hunt (top priority).
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.144, PERF.145,
   PERF.147.
 
@@ -17559,6 +17634,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -17660,31 +17743,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Database adds migrations" becomes "any lane writes its own migration,
   and Core 1 settles the revision number", which matches Core 4 owning
   this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
-
-- [ ] **DB.31 Store structure, not prose, for life and flavour**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Replace planet_evolutionary_paragraphs and
-  moon_evolutionary_paragraphs text with the stage, the pace and the
-  ages; flavor_text with a flavour key; drop hab_note (computed) and the
-  run-config markdown column. Then life_stage_from_paragraphs and the
-  string searches in decide_flavor_text go. Changes what generation
-  stores, not the galaxy (draws are unchanged). Database
-  owns the migration and agrees its timing; Foundations Wording writes
-  the code against it. The phi4* column names stay (decided default); a
-  rename to phi6* is not planned.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DB.50, DB.51, DB.52. It mixes two migrations
-  (adding the structure columns, then dropping three kinds of prose
-  columns and two tables) with a cross-cutting code change that another
-  lane writes ('Database owns the migration and agrees its timing;
-  Foundations Wording writes the code against it').
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
@@ -17761,6 +17828,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration, the regenerated models, an old-schema fixture, an
   idempotent upgrade and a round-trip test; no code reads the tables
   yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: ADM.57, ADM.58, ADM.59.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -17772,6 +17847,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   reason): a lock is a standing keep mark. Core 1 owns the migration
   number. Done: the migration, models and an idempotent upgrade with a
   round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -17784,6 +17867,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
   a region too. Core 1 owns the migration number. Done: the migration,
   models and an idempotent upgrade with a round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: MAP.119, ADM.57, GEN.391.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -17799,6 +17890,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   created) and `request_notifications` (request, recipient, kind, sent).
   Core 1 owns the migration number. Done: the migration, models and an
   idempotent upgrade with a round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). It follows DB.36.
+  This replaces any earlier owner line on this item.
   Prerequisites: none. Related: USR.25, DB.36.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
@@ -17888,6 +17987,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.44 Migration only: the sector storage checksum and the parity dirty flag**
@@ -18006,6 +18113,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
@@ -18058,6 +18173,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   one Owner), a second Owner insert fails in MySQL, a moderator row
   inserts and reads back, and the schema
   header comments are updated.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: USR.2, USR.26.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
@@ -18072,6 +18195,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   The stored density multiplier is also added to the stored directive of
   GEN.179 (or to the DB.38 migration); say so in both items (2026-10-16
   review).
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). It cannot start
+  before DB.38 merges. This replaces any earlier owner line on this
+  item.
   Prerequisites: DB.38. Related: MAP.119.
 
 - [ ] **DB.61 Migration: unnamed clusters and a star-to-cluster parent link (migration only)**
@@ -18085,12 +18217,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   models, an old-schema fixture, an idempotent upgrade and a round-trip
   test; existing clusters keep their names and no code writes the link
   yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.209.
 
 - [ ] **DB.62 Upload bookkeeping tables in the control database (migration only)**
   Split from API.11 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). One Alembic migration on the control
-  database (control v12 in api-design-standards.md section 7.3) adds
+  database (the control database is at version 14, so a later one) adds
   `upload_runs` (id, owner, key id, galaxy database, state, created,
   last contact), `upload_batches` (run, seq, sha256, bytes, received
   at), `upload_units` (run, unit key, state open, sealed, verified,
@@ -18099,6 +18239,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   last id). Core 1 owns the migration number. Done: the migration,
   models, an old-schema fixture, an idempotent upgrade and a round-trip
   test; no code reads the tables yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: API.11.
 
 - [ ] **DB.63 Table for ships and stations, user-owned or generated (migration only)**
@@ -18112,6 +18260,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration number and settles the columns. Done: the
   migration, models, an old-schema fixture, an idempotent upgrade and a
   round-trip test; no code reads the table yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: USR.10.
 
 - [ ] **DB.64 Table for stored constellations (migration only)**
@@ -18123,6 +18279,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the migration number. Done: the migration, models, an old-schema
   fixture, an idempotent upgrade and a round-trip test; no code writes
   it yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: VIEW.3.
 
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
@@ -18137,18 +18301,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   table lists them. The migration gives every existing galaxy the spiral
   family and the values the model derives for it today, so no stored
   density changes. No reader changes in this item. The early-alpha
-  schema is not a constraint.
-  Boss (12:56 PM EDT, card "Draw it in 8.1", relayed in words): the bar
-  is drawn in 8.1 by GEN.533 without a stored column, so nothing in 8.1
-  needs this item; it stays in 8.3 and later stores the drawn values
-  (bar presence, axis ratios and angle) with the other component
-  columns.
-  Design merged (Blocker 2, 7:58 PM EDT 2026-10-21 as the lane reported,
-  GEN.378, #2368, docs only): docs/design/galaxy-types.md section 10
-  lists this item's columns. Boss must read and approve the design's
-  table before this item and GEN.379 are built (see the Needs Boss
-  list); the three questions with defaults are in section 12 and the ten
-  research requests R1 to R10 in section 11.
+  schema is not a constraint. Boss (12:56 PM EDT, card "Draw it in 8.1",
+  relayed in words): the bar is drawn in 8.1 by GEN.533 without a stored
+  column, so nothing in 8.1 needs this item; it stays in 8.3 and later
+  stores the drawn values (bar presence, axis ratios and angle) with the
+  other component columns. Design merged (Blocker 2, 7:58 PM EDT
+  2026-10-21 as the lane reported, GEN.378, #2368, docs only):
+  docs/design/galaxy-types.md section 10 lists this item's columns. Boss
+  must read and approve the design's table before this item and GEN.379
+  are built (see the Needs Boss list); the three questions with defaults
+  are in section 12 and the ten research requests R1 to R10 in section
+  11.
+  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
+  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
+  the table in docs/design/galaxy-types.md is approved as written. The
+  approval that held this item is given.
+  Owner: the Blocker 2 lane (the author of the approved design; the
+  coordinator, 9:15 PM EDT 2026-10-21). The next Alembic revision is
+  0114 unless another lane takes it first.
   Prerequisites: none. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -18721,6 +18891,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
   fails by design, so a lane's machine must run MySQL 8 (the recipe is
   in project memory). Owner: not assigned.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.276.
 
 - [ ] **DB.81 Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn'**
@@ -21913,15 +22091,18 @@ clears each one.
   same seed with every combination of the halo and the satellite
   galaxies (both off, either, both on) and compares the interior
   sectors, bright stars and phenomena inside the outline row for row; a
-  test that with a switch off no row exists beyond the boundary it
-  controls and none of its commands was selected; a test that sector
-  generation refuses an address outside the configured boundaries with
-  the reason, and that scatter and sector generation take their
-  boundaries only from the configuration; the whole-sphere audits
-  (TEST.159, TEST.160, TEST.185) run with both switches on and say so; a
-  migration test that an existing galaxy with halo or satellite content
-  reads those switches as on and one without as off. Owner: Quality
-  (proposed).
+  test that with a switch off no new row is made beyond the boundary it
+  controls and none of its commands was selected, and that content
+  already stored stays readable for display, search and routing after
+  the switch is turned off (Boss, card 7); a test that sector generation
+  refuses an address outside the configured boundaries with the reason,
+  naming the switch that is off (the refusal supersedes GEN.235's
+  generate-anywhere-in-reach rule and `outside_ok`), and that scatter
+  and sector generation take their boundaries only from the
+  configuration; the whole-sphere audits (TEST.159, TEST.160, TEST.185)
+  run with both switches on and say so; a migration test that an
+  existing galaxy with halo or satellite content reads those switches as
+  on and one without as off. Owner: Quality (proposed).
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
   GEN.540, TEST.159, TEST.160, TEST.185.
   Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
@@ -21930,6 +22111,22 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  card 7 keeps stored content visible when a switch is turned off, so
+  "nothing drawn, picked or offered beyond the boundaries" no longer
+  holds; the tests above are worded to that. Add a test that turning a
+  switch on later makes only the missing kind-and-region runs (decision
+  5), and that `plan` refuses, naming the halo command, when its outline
+  would pass a stored halo reach.
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  a test (GEN.620) that after a removal no row remains in the region,
+  its cells are refused with the reason, the interior is identical, and
+  switching on again regenerates the region from the seed with the same
+  object IDs.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
   Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
@@ -23260,11 +23457,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   prints the `markdown` version; no requirements file and no code uses
   `markdown`, so a fresh machine exits 1 at the verify step (the failure
   that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
-  install markdown`. Do: drop `markdown` from the verify imports and the
-  version line (or add it to the requirements if something needs it); no
-  shim. Done: the script exits 0 on a fresh machine. Owner: not assigned
-  (OPS queue; the environment settings copy of the script is Boss's, so
-  the lane edits the example and tells the coordinator).
+  install markdown`. Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Add
+  markdown to the requirements", card cmsg_01RuNTFUNB92A8cm5CbojQAi
+  MYJwm2dfDuwgBEf8JuSxKD): add `markdown` to the requirements, so the
+  verify step stays as it is; no shim. Do: add `markdown` to the
+  requirements file the setup script installs from. Done: the script
+  exits 0 on a fresh machine. Owner: not assigned (OPS queue; the
+  environment settings copy of the script is Boss's, so the lane edits
+  the example and tells the coordinator).
   Prerequisites: none. Related: TEST.254.
 
 ## DOC: Documentation

@@ -180,8 +180,9 @@ connectivity to that specific schema rather than the default one.
   `system_mass_solar` (the mass the point carries, `null` for a single star): the stored
   members of a star that has company (UX.114).
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
-  `system_id` (the system built around it, `null` while it is uncharted) and, for a star with company that is not
-  built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`) and `nodes` (`node_no`,
+  `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
+  its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that
+  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`) and `nodes` (`node_no`,
   `parent_node_no`, `kind` of `close`, `wide`, `compact` or `group`, `mass_solar`, `separation_au`,
   `period_years`, `eccentricity`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
@@ -357,8 +358,9 @@ connectivity to that specific schema rather than the default one.
   generated in (MAP.162): `shell_index`/`band_index`/`wedge_index`,
   `designation`, `center_pc`, `edge_pc`, `sector_id` (the generated sector
   there, or `null`), `stars` (its waiting bright stars,
-  `queryDb.bright_stars_in_sector`) and the unbuilt scattered phenomena
-  (`queryDb.uncharted_sector_contents`). `400` for a missing or
+  `queryDb.bright_stars_in_sector`), the unbuilt scattered phenomena
+  (`queryDb.uncharted_sector_contents`) and `hosted_nebulae`, the nebulae its waiting stars light (`star_id`, the
+  star's `x`, `y`, `z` in parsecs and the fields of `hosted_nebula` above, GEN.530). `400` for a missing or
   non-integer address, a negative shell, or a cell outside the grid.
 - `GET /api/galaxy/made?since=<unix>[&until=<unix>]` — the galaxy-placed
   sectors created in a time window, for the Galaxy Map's "Show on Galaxy Map"

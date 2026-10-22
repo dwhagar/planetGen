@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1871] - 2026-10-22
+
+**Headline:** The galaxy shape options are one table: the command line, the Generate page and the docs are all built from it, and every value is range gated with its source named.
+
+### Changed
+- **The lever table (GEN.601, `planetgen/galaxy/dials.py`).** Every shape option of `planetgen plan` is a row with a flag, label, unit, range, step, what Auto means, the law it moves and the source and label (verified, derived, bracket, theory or placeholder) of its range. The flags, the Generate page's fields, the help lines and the table in `docs/cli.md` are built from it, and `tests/test_galaxy_dials.py` fails when one is missing or extra. Every option is Auto (left out, drawn from the galaxy seed) until given; a value outside its range is refused with the allowed range and its source.
+- **Lengths take their unit (GEN.601).** `--disk-scale-length-pc 2600` is now `--disk-scale-length 2600pc` (or `2.6kpc`); a bare number is refused with the units. The unit column is shared by the parser and the Generate page's unit selector and also carries a relative unit (the scale length `L`) for the Edge dial.
+- **A Shape option (GEN.608).** `--shape spiral` and a Shape dropdown on the Generate page, with Spiral as the only entry for now; the 9.4 galaxy types fill the list from the same row.
+- **The size limits (Boss, 10-21).** Smallest is half of Ursa Major III / UNIONS 1 and largest about 50 percent above Andromeda, for scale length, scale height and mass. The scale length is limited to 0.9 to 8000 pc and the scale height to 0.3 to 750 pc; the figures are recalled, not read in a file of the repository, so they are labelled placeholders. The Scale dial's Auto draw will default to about half the size of the Milky Way (GEN.603).
+- `--arm-density`, `--interarm-density`, `--nuclear-amplitude` and the other options now default to Auto instead of fixed numbers; Auto means the same numbers as before (1.4, 0.6, 1).
+
+## [8.0.1870] - 2026-10-22
+
+**Headline:** The object index writes its rows without the deprecated `VALUES()` function.
+
+### Changed
+- **Object index upsert (DB.82).** The index builder takes its rows from a derived table and updates from that table's columns instead of calling `VALUES()`, which MySQL deprecated in 8.0.20. The rows it writes are the same.
+
+TODO items resolved / Added: DB.82 / Added: none
+
+## [8.0.1869] - 2026-10-22
+
+**Headline:** A pre-placed star's nebula shows before its sector is built: the star's page names it and the uncharted sector's map draws it.
+
+### Changed
+- **Hosted nebula from the star's row (GEN.530).** An O, B, A or Wolf-Rayet star that the scatter placed but nothing has built now shows the nebula it lights, the same one its sector builds. The uncharted star's page has a "Lights a nebula" line with its name, kind, class and radius; the map of an uncharted sector draws the nebula at the star, and clicking it opens the star's page. A star already built into a system shows none there, since the system holds it. `GET /api/uncharted-systems/<id>` gains `hosted_nebula` and `GET /api/galaxy/uncharted` gains `hosted_nebulae`.
+- The Galaxy Map's tiles are unchanged: they list scattered phenomena by their own rows, and a hosted nebula has none until it is built.
+
+TODO items resolved / Added: GEN.530 / Added: none
+
 ## [8.0.1868] - 2026-10-22
 
 **Headline:** When the Galaxy Map has more stars on screen than it can show, it dims the satellite-galaxy stars first, then the halo's, then the farthest and faintest.

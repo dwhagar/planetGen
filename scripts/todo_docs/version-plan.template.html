@@ -123,6 +123,21 @@ li.item.flash{animation:flash 1.6s ease-out}
 .badge.bug{background:var(--bug-soft);color:var(--bug)}
 .badge.new{background:var(--new-soft);color:var(--new)}
 .badge.cat{background:var(--sunk);color:var(--muted)}
+.dn{display:grid;grid-template-columns:2.2rem 6.4rem minmax(0,1fr);gap:10px;align-items:start;padding:7px 16px;color:var(--muted);border-top:1px solid var(--line)}
+.dn:first-child{border-top:0}
+.dn .mk{font:700 .9rem/1.7 var(--f-mono);color:var(--ground);text-align:center}
+.dn.dropped .mk{color:var(--bug)}
+.dn .id{color:var(--muted);text-decoration:line-through}
+.dn .t{font-weight:500;text-decoration:line-through;text-decoration-color:var(--muted)}
+.dn .tagd{font:600 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;margin-left:6px;color:var(--bug);text-decoration:none;display:inline-block}
+.gprog{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);font:600 .78rem var(--f-mono);color:var(--muted);cursor:pointer}
+.gprog:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.gprog .meter{flex:0 0 140px}
+details.retired{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details.retired>summary{cursor:pointer;padding:12px 16px;font-weight:600}
+details.retired>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details.retired h4{margin:0;padding:8px 16px;border-top:1px solid var(--line);font:600 .78rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:640px){.dn{grid-template-columns:2rem minmax(0,1fr)}.dn .id{grid-column:2}.dn .ttl{grid-column:2}}
 .chip{font:500 .74rem/1 var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:3px 5px;color:var(--ink);background:var(--surface);text-decoration:none;white-space:nowrap}
 a.chip:hover{border-color:var(--accent);color:var(--accent)}
 .detail{padding:4px 16px 18px calc(16px + 2.2rem + 10px);display:grid;gap:12px}
@@ -255,8 +270,10 @@ const ps=document.getElementById('phaseSel');
 VERS.forEach(v=>{const o=document.createElement('option');o.value=v.key;o.textContent=(v.key==='later'?'Later':'Version '+v.key)+': '+v.title;ps.appendChild(o)});
 // render versions, their phases, their threads
 const host=document.getElementById('phases');
+const doneRows=l=>(l||[]).map(d=>'<li class="dn'+(d.dropped?' dropped':'')+'"><span class="mk" title="'+(d.dropped?'dropped':'finished')+'">'+(d.dropped?'\u2717':'\u2713')+'</span><span class="id">'+d.id+'</span><span class="ttl"><span class="t">'+inline(d.title).replace(/<a class="chip"[^>]*>([^<]*)<\/a>/g,'$1')+'</span>'+(d.dropped?'<span class="tagd">dropped</span>':'')+'</span></li>').join('');
 function group(g){
-  let h='<div class="group" data-group><header><h3>'+esc(g.name.charAt(0).toUpperCase()+g.name.slice(1))+'</h3><span class="n">'+g.ids.length+' item'+(g.ids.length===1?'':'s')+'</span></header>'+(g.intro?'<div class="intro">'+inline(g.intro.replace(/\n/g,' '))+'</div>':'')+'<ol class="items">';
+  const dn=g.done||[], fin=dn.filter(d=>!d.dropped).length, tot=fin+g.ids.length;
+  let h='<div class="group" data-group'+(dn.length?' data-done="1"':'')+'><header><h3>'+esc(g.name.charAt(0).toUpperCase()+g.name.slice(1))+'</h3><span class="n">'+g.ids.length+' item'+(g.ids.length===1?'':'s')+'</span></header>'+(g.intro?'<div class="intro">'+inline(g.intro.replace(/\n/g,' '))+'</div>':'')+(dn.length?'<details class="dnbox"'+(dn.length<=10?' open':'')+'><summary class="gprog">'+meter({pct:tot?Math.round(1000*fin/tot)/10:0},g.name)+'<span>'+fin+' of '+tot+' finished'+(dn.length>fin?' \u00b7 '+(dn.length-fin)+' dropped':'')+'</span></summary><ol class="items done-list">'+doneRows(dn)+'</ol></details>':'')+'<ol class="items">';
   g.ids.forEach((id,k)=>{
     const it=items[id];
     const sub=(it.deps.length?'<span>needs</span>'+it.deps.map(d=>'<a class="chip" href="#'+d+'" data-jump="'+d+'">'+d+'</a>').join(''):'');
@@ -272,8 +289,10 @@ VERS.forEach(v=>{
   h+='<div class="goal">'+md(v.goal)+'</div>';
   vp.forEach(p=>{
     const pids=p.groups.flatMap(g=>g.ids);
-    h+='<div class="phase-sub" data-phase><h3 class="psub"><span class="tag2">'+esc(p.label)+'</span> '+esc(p.theme)+' <span class="n">'+pids.length+' open · '+p.groups.length+' thread'+(p.groups.length===1?'':'s')+'</span></h3>'+(p.intro?'<p class="goal">'+inline(p.intro.replace(/\n/g,' '))+'</p>':'')+'<div class="lanes">'+p.groups.map(group).join('')+'</div></div>';
+    h+='<div class="phase-sub" data-phase><h3 class="psub"><span class="tag2">'+esc(p.label)+'</span> '+esc(p.theme)+' <span class="n">'+pids.length+' open'+(p.groups.some(g=>(g.done||[]).length)?' · '+p.groups.reduce((n,g)=>n+(g.done||[]).filter(d=>!d.dropped).length,0)+' finished':'')+' · '+p.groups.length+' thread'+(p.groups.length===1?'':'s')+'</span></h3>'+(p.intro?'<p class="goal">'+inline(p.intro.replace(/\n/g,' '))+'</p>':'')+'<div class="lanes">'+p.groups.map(group).join('')+'</div></div>';
   });
+  const rt=(D.retired||{})[v.key]||[];
+  if(rt.length){const n=rt.reduce((c,r)=>c+r.items.length,0);h+='<details class="retired"><summary>Finished threads of this version no longer on the plan: '+n+' item'+(n===1?'':'s')+' in '+rt.length+' thread'+(rt.length===1?'':'s')+'</summary>'+rt.map(r=>'<h4>'+esc(r.thread)+' \u00b7 '+r.items.length+'</h4><ol class="items">'+doneRows(r.items)+'</ol>').join('')+'</details>';}
   s.innerHTML=h; host.appendChild(s);
 });
 function fill(li){
@@ -306,7 +325,7 @@ const q=document.getElementById('q'),bg=document.getElementById('bugs');
 function clearFilters(){q.value='';cs.value='';ps.value='';bg.checked=false;apply()}
 function apply(){
   const t=q.value.trim().toLowerCase(), c=cs.value, ph=ps.value, ob=bg.checked;
-  let shown=0;
+  let shown=0; const filtering=!!(t||c||ph||ob);
   document.querySelectorAll('section.phase').forEach(s=>{
     let sv=0;
     const okPhase=!ph||s.dataset.ix===ph;
@@ -317,10 +336,10 @@ function apply(){
         const ok=okPhase&&(!c||cat(it.id)===c)&&(!ob||it.bug)&&(!t||(it.id+' '+it.title+' '+(it.text||'')+' '+it.note+' '+(it.issues||[]).map(n=>'#'+n).join(' ')).toLowerCase().includes(t));
         li.hidden=!ok; if(ok){gv++}
       });
-      g.hidden=!gv; sv+=gv;
+      g.hidden=filtering?!gv:(!gv&&!g.dataset.done); sv+=gv;
     });
     s.querySelectorAll('[data-phase]').forEach(p=>{p.hidden=!p.querySelector('[data-group]:not([hidden])')});
-    s.hidden=!sv; shown+=sv;
+    s.hidden=filtering?!sv:false; shown+=sv;
   });
   document.getElementById('count').textContent=shown+' of '+all.length+' items';
   document.getElementById('empty').hidden=shown>0;
