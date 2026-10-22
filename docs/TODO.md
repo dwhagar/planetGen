@@ -980,6 +980,9 @@ with `clamp()`.
   Open for the later parts: facility pages, and nebula, region and
   cluster pages (not in the reference kinds yet). Core 2 does MAP.139
   with MAP.254 next as one PR.
+  Progress (Core 2, relayed 12:52 PM EDT 2026-10-22 as the lane's clock
+  reads, with #2485): still open are the facility pages (a facility is
+  not in the reference registry) and the cluster and region pages.
   Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
 
 - [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
@@ -1011,7 +1014,14 @@ with `clamp()`.
   /api/phenomena/<type>/<id>/contents`. The cluster and region part
   waits on DB.85 (globular clusters and superbubbles are not stored as
   containers).
-  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
+  Progress (Core 2, UX.144 merged in part as #2485, 12:52 PM EDT
+  2026-10-22 as the lane reported): the Location block is on item, system
+  and phenomenon pages (the chain from the galaxy down, each a link), nebula and remnant
+  pages list what is inside them, through the new API `GET
+  /api/phenomena/<type>/<id>/contents`. Still open here: the 'Inside:'
+  line naming a containing globular cluster or superbubble, which waits
+  on DB.85 (no such records are stored as containers).
+  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2531,6 +2541,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own. MAP.139 is retired. Still open here: the navigation chart and the
   list and search results keep their own links, and the browser table of
   every kind by every view is not written.
+  Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock reads):
+  unchanged by #2485; the remainder is the navigation chart, the list
+  and search results, and the browser table of kinds by views.
 
 - [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
   Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
@@ -21019,22 +21032,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
-  Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
-  a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
-  test on random data (src/tests/test_object_list.py, UX.141's page-walk
-  test). It failed once with "the galaxy has too few planets for a page
-  walk" (3 planets, 6 needed) and passed alone 3 of 3 times. Fails on
-  main: not checked. Frequency: 1 in 4 runs seen. Reproducer: loop the
-  test on a fresh database. Do: make the test's galaxy deterministic (a
-  seed that always holds enough planets, or generate until the minimum
-  is met under a fixed seed) so the page walk always has the planets it
-  needs; no skip when the galaxy is short. Done: the test passes in 20
-  runs on fresh databases. Owner: Core 2 (the coordinator, about 6:01 AM
-  EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
-  test).
-  Prerequisites: none. Related: UX.141, TEST.266.
-
 - [ ] **TEST.268 Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug)**
   Found by the Galaxy dials lane (about 7:05 AM EDT 2026-10-22 as the
   lane reported, while merging GEN.607), filed by the TODO thread. Kind:
@@ -21189,6 +21186,23 @@ clears each one.
   work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
   text is now recorded above.
   Prerequisites: none. Related: TEST.262, TEST.270.
+
+- [ ] **TEST.273 test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake)**
+  Found by Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock
+  reads, in a full run for UX.144), filed by the TODO thread. Kind:
+  flake. Test: test_the_index_takes_its_size_off_the_tile_cache_budget.
+  Failure: it compared max_cache_bytes 1073577984 against 1073741824
+  (the cache.max_mb budget of 1024 MB) and failed in a full run; it
+  passes alone. Fails on main: not checked. Frequency: 1 sighting.
+  Reproducer: a full `scripts/test.py changed` gate; not reproducible
+  alone. It looks like state left by another test in the cache area (the
+  tile cache budget, PERF.140 and `planetgen warm`). Do: find which test
+  or fixture leaves the cache budget or `max_cache_bytes` changed for
+  this worker and make that test restore it, or give this test its own
+  configuration; no retry loop that hides the cause. Done: the cause is
+  on this item and the test passes in 20 full-gate runs. Owner: Bug Hunt
+  (proposed; a test-flake finding of the TEST.265 family).
+  Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
 
 ## USR: User accounts
 
