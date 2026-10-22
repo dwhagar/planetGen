@@ -767,14 +767,14 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Twenty tables, versioned independently via `control_schema_migrations`
-(currently version 15, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
+Twenty-five tables, versioned independently via `control_schema_migrations`
+(currently version 16, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs` and v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`; the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses` and v16 the five upload tables; the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -798,6 +798,19 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 - **`invite_uses`** — v15 (DB.58), who registered through an invite link:
   `token_id` (the invite's `account_tokens` row) and `account_id`, one row
   per account, and `used_at`. Nothing writes it yet.
+- **`upload_runs`, `upload_batches`, `upload_units`, `upload_claims`,
+  `upload_id_ranges`** — v16 (DB.62), the bookkeeping for sectors uploaded
+  from a remote run (API.11, [api-design-standards.md](design/api-design-standards.md)
+  section 7.3); nothing writes or reads them yet. `upload_runs` is one remote run:
+  `owner_id` (an account), `key_id` (the API key, NULL once it is removed),
+  `galaxy_database`, `state` (set by API.11), `created_at` and `last_contact_at`.
+  `upload_batches` is one row per `(run_id, seq)` with the `sha256` and `bytes`
+  of the received batch. `upload_units` is one row per `(run_id, unit_key)` with
+  its `state` (`open`, `sealed`, `verified`, `finalized` or `rejected`), the
+  `manifest_hash` and the `errors` (JSON). `upload_claims` holds a sector address
+  (`galaxy_database`, `shell_index`, `band_index`, `wedge_index`) for one run, so
+  a sector can be claimed once. `upload_id_ranges` is the ids a run may use, one
+  `first_id` to `last_id` range per table and lease. Every table goes with its run.
 - **`admin_sessions`** — web-UI login sessions (`token_hash`, a SHA-256
   digest of the actual cookie value — never the raw token itself;
   `expires_at`, a fixed lifetime set at creation, no sliding renewal).
