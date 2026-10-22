@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.622 |
 | PERF | PERF.149 |
-| DB | DB.85 |
+| DB | DB.86 |
 | API | API.32 |
 | ADM | ADM.126 |
 | SEC | SEC.34 |
@@ -629,6 +629,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
+| DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1461,7 +1462,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | done, PR #797 |
 | MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | done, PR #797 |
 | MAP.138 | Recenter the camera in every 3D view (bug) | none | done, PR #797 |
-| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
+| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | done, PR #2468 |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
 | MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |

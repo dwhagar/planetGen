@@ -214,7 +214,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
-| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |
