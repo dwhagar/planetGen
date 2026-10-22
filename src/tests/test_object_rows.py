@@ -101,6 +101,9 @@ from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
 
+_STAR_CONTEXT = {"star_system_id": 1, "role": "single", "parent_node_id": None, "offset_au": (0.0, 0.0, 0.0)}
+
+
 def _stored(fields, obj, context):
     """The row an insert of `obj` writes, as the mapping a `SELECT` hands back."""
     return dict(zip(object_rows.columns_of(fields), object_rows.values_of(fields, obj, context)))
@@ -125,7 +128,7 @@ def _system(seed):
 @_pytest.mark.parametrize("seed", [1, 2, 3])
 def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
     star = _system(seed).star
-    row = _stored(store.STAR_FIELDS, star, {"star_system_id": 1, "role": "single"})
+    row = _stored(store.STAR_FIELDS, star, _STAR_CONTEXT)
     loaded = store._star_row_to_dict(row, 12.5)
     assert loaded["galactic_orbital_speed_kms"] == 12.5
     original = star.to_dict()
@@ -143,7 +146,7 @@ def test_a_stored_temperature_that_is_whole_comes_back_as_the_int_the_generator_
 
 def test_a_null_reflex_offset_and_a_null_wide_binary_limit_come_back_as_the_objects_defaults():
     star = _system(1).star
-    row = _stored(store.STAR_FIELDS, star, {"star_system_id": 1, "role": "single"})
+    row = _stored(store.STAR_FIELDS, star, _STAR_CONTEXT)
     row.update(reflex_offset_x_km=None, reflex_offset_y_km=None, reflex_offset_z_km=None, wide_binary_a_crit_km=None)
     loaded = store._star_row_to_dict(row, 0.0)
     assert (loaded["reflex_offset_x"], loaded["reflex_offset_y"], loaded["reflex_offset_z"]) == (0.0, 0.0, 0.0)
@@ -152,7 +155,7 @@ def test_a_null_reflex_offset_and_a_null_wide_binary_limit_come_back_as_the_obje
 
 def test_a_stored_metallicity_is_not_lost_on_the_way_back():
     star = _system(1).star
-    row = _stored(store.STAR_FIELDS, star, {"star_system_id": 1, "role": "single"})
+    row = _stored(store.STAR_FIELDS, star, _STAR_CONTEXT)
     assert store._star_row_to_dict(row, 0.0)["metallicity_fe_h"] == star.metallicity_fe_h is not None
 
 
