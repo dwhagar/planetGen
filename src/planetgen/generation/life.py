@@ -25,7 +25,7 @@ from planetgen import tuning
 from planetgen.physics import habitability_world
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation.star import get_star_evolutionary_profile, get_star_spectral_class
+from planetgen.generation.stellar_object import get_star_evolutionary_profile, get_star_spectral_class
 
 
 def get_viable_life_chemicals(planet, spectral_class=None):

@@ -31,6 +31,11 @@ The rules:
   period and its angular rate).
 * **Keys are ASCII and unique** across the registry (`km_s`, `Msun`, `degC`, `uW`); symbols are what the display
   shows (`km/s`, `M☉`, `°C`, `µW`) and are unique within a kind.
+* **Unit systems and constants** (GEN.585): a `UnitSystem` is four registry units (length, mass, time, temperature); SI
+  is the kernels' own and `au-yr-msun` is the orbit work's. A physical constant's number in a system (`constant_in`)
+  is worked out from its dimension and the system's base units, never typed. The typed `4 pi squared` of
+  `kepler.AU3_PER_YR2_PER_SOLAR_MASS` is 39.4784; G for this solar mass in the Julian year is 39.4769, 3.8e-5 less
+  (the typed one is the Gaussian year's); the sweep of GEN.587 decides which stands.
 * **No astropy.** The registry has no dependency beyond `constants`.
 
 The functions are pure.
@@ -211,8 +216,12 @@ _kind("angular_rate", dimension(time=-1, angle=1), "rad_s")
 _kind("angular_momentum", dimension(length=2, mass=1, time=-1), "kg_m2_s")
 _kind("power", _POWER, "W", NON_NEGATIVE)
 _kind("energy", _ENERGY, "J", NON_NEGATIVE)
+_kind("force", dimension(length=1, mass=1, time=-2), "N")
+_kind("mass_flow", dimension(mass=1, time=-1), "kg_s", NON_NEGATIVE)
 _kind("pressure", _PRESSURE, "Pa", NON_NEGATIVE)
 _kind("density", dimension(length=-3, mass=1), "kg_m3", NON_NEGATIVE)
+_kind("area", dimension(length=2), "m2", NON_NEGATIVE)
+_kind("volume", dimension(length=3), "m3", NON_NEGATIVE)
 _kind("number_density", dimension(length=-3), "m-3", NON_NEGATIVE)
 _kind("flux", dimension(mass=1, time=-3), "W_m2", NON_NEGATIVE)
 _kind("magnetic_field", dimension(mass=1, time=-2), "T", NON_NEGATIVE)
@@ -325,6 +334,14 @@ def _energetic():
     _unit("eV", "energy", "eV", "electronvolts", constants.ELECTRON_VOLT_J, singular="electronvolt")
     _unit("keV", "energy", "keV", "kiloelectronvolts", constants.ELECTRON_VOLT_J * 1e3, singular="kiloelectronvolt")
     _unit("MeV", "energy", "MeV", "megaelectronvolts", constants.ELECTRON_VOLT_J * 1e6, singular="megaelectronvolt")
+    _prefixed("force", "N", "N", "newtons", 1.0, SI_PREFIXES[2:9], singular="newton")
+    _unit("dyn", "force", "dyn", "dynes", 1e-5)
+    _unit("kg_s", "mass_flow", "kg/s", "kilograms per second", 1.0, parts=(("kg", 1), ("s", -1)))
+    _unit("g_s", "mass_flow", "g/s", "grams per second", 1e-3, parts=(("g", 1), ("s", -1)))
+    _unit("Msun_yr", "mass_flow", "M☉/yr", "solar masses per year", constants.SOLAR_MASS_TO_KG / _JULIAN_YEAR_S,
+          parts=(("Msun", 1), ("yr", -1)))
+    _unit("Mearth_yr", "mass_flow", "M⊕/yr", "Earth masses per year", constants.EARTH_MASS_TO_KG / _JULIAN_YEAR_S,
+          parts=(("Mearth", 1), ("yr", -1)))
     _prefixed("pressure", "Pa", "Pa", "pascals", 1.0, SI_PREFIXES[:12], singular="pascal")
     _unit("bar", "pressure", "bar", "bars", 1e5)
     _unit("mbar", "pressure", "mbar", "millibars", 1e2)
@@ -337,6 +354,13 @@ def _energetic():
 
 
 def _fields():
+    _unit("m2", "area", "m²", "square meters", 1.0, parts=(("m", 2),))
+    _unit("km2", "area", "km²", "square kilometers", 1e6, parts=(("km", 2),))
+    _unit("cm2", "area", "cm²", "square centimeters", 1e-4)
+    _unit("m3", "volume", "m³", "cubic meters", 1.0, parts=(("m", 3),))
+    _unit("km3", "volume", "km³", "cubic kilometers", 1e9, parts=(("km", 3),))
+    _unit("cm3", "volume", "cm³", "cubic centimeters", 1e-6)
+    _unit("L", "volume", "L", "liters", 1e-3, singular="liter")
     _unit("kg_m3", "density", "kg/m³", "kilograms per cubic meter", 1.0, parts=(("kg", 1), ("m", -3)))
     _unit("g_cm3", "density", "g/cm³", "grams per cubic centimeter", 1e3)
     _unit("Msun_pc3", "density", "M☉/pc³", "solar masses per cubic parsec",
@@ -375,6 +399,79 @@ _relation("period-frequency", "period", "duration", "frequency", "frequency", la
           lambda frequency: 1.0 / frequency)
 _relation("rotation_period-angular_rate", "rotation_period", "duration", "angular_rate", "angular_rate",
           lambda period: 2.0 * math.pi / period, lambda rate: 2.0 * math.pi / rate)
+
+
+# --- Unit systems and constants ------------------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class UnitSystem:
+    """A coherent set of base units: one unit of length, mass, time and temperature (keys of the registry). The kernels
+    work in SI; another system (AU, year and solar mass for orbits) is generated from the registry where a kernel wants
+    one, never typed."""
+
+    name: str
+    length: str
+    mass: str
+    time: str
+    temperature: str
+
+    def base_factors(self):
+        """`(length, mass, time, temperature)`, the SI value of one of each base unit."""
+        return (UNITS[self.length].factor, UNITS[self.mass].factor, UNITS[self.time].factor,
+                UNITS[self.temperature].factor)
+
+
+UNIT_SYSTEMS = {}
+"""dict: `UnitSystem.name` -> `UnitSystem`."""
+
+
+def _system(name, length, mass, time, temperature="K"):
+    for key, expected in ((length, "length"), (mass, "mass"), (time, "duration"), (temperature, "temperature")):
+        if UNITS[key].kind != expected or UNITS[key].offset:
+            raise ValueError(f"unit system {name!r}: {key!r} is not a {expected} unit without an offset")
+    UNIT_SYSTEMS[name] = UnitSystem(name, length, mass, time, temperature)
+
+
+_system("si", "m", "kg", "s")
+_system("au-yr-msun", "au", "Msun", "yr")
+
+PHYSICAL_CONSTANTS = {
+    "G": (constants.G, dimension(length=3, mass=-1, time=-2)),
+    "c": (constants.SPEED_OF_LIGHT_M_S, dimension(length=1, time=-1)),
+    "sigma": (constants.STEFAN_BOLTZMANN_CONSTANT, dimension(mass=1, time=-3, temperature=-4)),
+    "k_B": (constants.BOLTZMANN, dimension(length=2, mass=1, time=-2, temperature=-1)),
+    "hbar": (constants.REDUCED_PLANCK, dimension(length=2, mass=1, time=-1)),
+}
+"""dict: Name -> `(SI value, dimension)` of the constants the kernels use; a constant's number in another system is
+worked out from its dimension (`constant_in`)."""
+
+
+def system_factor(dimension_vector, system):
+    """How many SI units one unit of dimension `dimension_vector` is in `system` (`UnitSystem` or its name): the product
+    of each base unit's SI value to the dimension's exponent; the angle exponent counts for nothing (an angle is
+    dimensionless here)."""
+    system = UNIT_SYSTEMS[system] if isinstance(system, str) else system
+    factor = 1.0
+    for base, exponent in zip(system.base_factors(), (dimension_vector[0], dimension_vector[1], dimension_vector[2],
+                                                    dimension_vector[3])):
+        if exponent:
+            factor *= base ** exponent
+    return factor
+
+
+def in_system(value_si, dimension_vector, system):
+    """`value_si`, a value of dimension `dimension_vector` in SI, as its number in `system`."""
+    return value_si / system_factor(dimension_vector, system)
+
+
+def constant_in(name, system="si"):
+    """The number of the physical constant `name` ("G", "c", "sigma", "k_B", "hbar") in `system`: G is 4 pi squared
+    (about) in AU, year and solar mass, worked out here from its dimension and the three units, not typed."""
+    try:
+        value_si, vector = PHYSICAL_CONSTANTS[name]
+    except KeyError:
+        raise ValueError(f"unknown constant {name!r} ({', '.join(PHYSICAL_CONSTANTS)})") from None
+    return in_system(value_si, vector, system)
 
 
 # --- Lookups ---------------------------------------------------------------------------------------------------------

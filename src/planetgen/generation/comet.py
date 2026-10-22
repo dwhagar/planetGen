@@ -45,8 +45,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
-from planetgen.names.wordsalad import LazySaladName
-from planetgen.generation.mass_object import MassObject
+from planetgen.generation.small_body import SmallBody
 from planetgen.physics.orbits import minimum_update_interval_years
 
 PERIOD_CLASS_LABELS = {
@@ -122,7 +121,7 @@ def _activity_chance(perihelion_distance_au):
     return max_chance - fraction * (max_chance - min_chance)
 
 
-class Comet(LazySaladName, MassObject):
+class Comet(SmallBody):
     """
     A comet gravitationally bound to a star, on either a periodic
     elliptical orbit or a single-apparition parabolic one (see this
@@ -220,11 +219,9 @@ class Comet(LazySaladName, MassObject):
                 (a range that lies wholly above the cut gives the cut itself). A parabolic comet is unbound
                 on purpose and reads no ceiling.
         """
-        self.system_config = system_config
-        # A placeholder: `store.insert_star_system` replaces it with the
+        # The name is a placeholder: `store.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
-        self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        super().__init__(system_config, name=name)
         self.primary_mass_solar = primary_mass_solar
 
         if orbit_type:
@@ -329,12 +326,6 @@ class Comet(LazySaladName, MassObject):
         to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
         self.set_velocity_kms(state["velocity_x_au_per_year"] * to_kms, state["velocity_y_au_per_year"] * to_kms,
                               state["velocity_z_au_per_year"] * to_kms)
-
-    def _encode(self, data):
-        data["composition"] = list(self.composition)
-
-    def _decode(self, data):
-        self.composition = list(data["composition"])
 
     def get_composition_summary(self):
         """

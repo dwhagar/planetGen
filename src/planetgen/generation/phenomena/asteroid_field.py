@@ -27,8 +27,8 @@ from planetgen import tuning
 from planetgen.physics import constants as pc
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.names.wordsalad import LazySaladName
-from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
+from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS
+from planetgen.generation.small_body import SmallBody
 
 
 AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
@@ -89,7 +89,7 @@ def asteroid_field_designation(field_class, sector_code, index):
     return f"AF {field_class}-{index:02d}"
 
 
-class AsteroidField(LazySaladName, MassObject):
+class AsteroidField(SmallBody):
     """
     A basic class to store information for a standalone field of asteroid
     debris drifting in open space, bound to no star.
@@ -138,11 +138,9 @@ class AsteroidField(LazySaladName, MassObject):
                 (its settings).
             name (str, optional): An explicit name. Random if omitted.
         """
-        self.system_config = system_config
-        # A placeholder: `store.insert_asteroid_field` replaces it with the
+        # The name is a placeholder: `store.insert_asteroid_field` replaces it with the
         # field's designation (`asteroid_field_designation`, v40).
-        self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        super().__init__(system_config, name=name)
 
         self.density = draw.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid field density", self.density, "uniform draw among dense/sparse/typical")
