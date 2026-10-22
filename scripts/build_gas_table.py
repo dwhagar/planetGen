@@ -567,12 +567,10 @@ def build():
                          + (f"; {PART_01} section 9" if formula in viscosity else "")
                          + (f"; {PART_03} table 2.1" if formula in infrared else "")
                          + (f"; {PART_02} section 2.3" if formula in uv["species"] else ""))
-        row["licence"] = "open"
         gases.append(row)
 
     return {
         "retrieved": RETRIEVED,
-        "licence": "open",
         "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
         "sources": [
             "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, "
@@ -583,9 +581,6 @@ def build():
             "photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Burkholder 2020, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) "
             "binned to 35 bins in part 02 section 2.3",
         ],
-        "licence_note": ("Boss, 2026-10-17, 2:35 PM EDT: every paper and dataset acquired is usable; the raw tables are not "
-                         "redistributed and the licence column is a record. NIST SRD is copyrighted (permission noted in "
-                         "body-composition part G4); PubChem and USGS are public domain; 'open' means none was found."),
         "notes": ("Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, "
                   "NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass "
                   "in the file is the research part's, kept for the audit; the loader computes the working value from "

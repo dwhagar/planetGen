@@ -60,7 +60,6 @@ DATASET = fetch.Dataset(
     key="neutron_star_matter",
     title="Neutron-star equations of state (Malik et al. 2024) and outer-crust compositions (Servais and Chamel 2026)",
     source="Malik, Pais and Providência 2024 (A&A 689, A242) and Servais and Chamel 2026 (A&A 710, A322), Zenodo",
-    licence="CC BY 4.0",
     pieces=(fetch.Piece(COMPOSITIONS, "https://zenodo.org/records/20085135/files/compositions.zip?download=1",
                         "b98680f3b1d55786aea7db077e8be9e00f1949925d5b8858104eea4c9839a39c", 1830018),)
     + tuple(fetch.Piece(f"EOS{n}.txt", f"https://zenodo.org/records/10950421/files/EOS{n}.txt?download=1", sha, size)

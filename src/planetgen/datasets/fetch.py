@@ -93,7 +93,7 @@ class Piece:
 class Dataset:
     """A set of files from one published source and what stands in for it until they are present.
 
-    `key` names the cache sub-folder. `source` is the citation and `licence` the licence of the data (a record only).
+    `key` names the cache sub-folder. `source` is the citation.
     `replaces` says in a few words what the data replaced (the stand-in of the gap plan's registry, named in the message
     when the files are missing), and `fill` is the registry id (gap plan section 6) of that fill. A dataset that keeps only compact files derived from a large
     archive names them in `derived`, the function that writes them in `derive` (`derive(folder)` returns
@@ -106,7 +106,6 @@ class Dataset:
     key: str
     title: str
     source: str
-    licence: str
     pieces: tuple
     replaces: str
     fill: str

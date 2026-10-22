@@ -3,7 +3,7 @@
 """
 GEN.472: the gated possibility table and its loader (`planetgen.generation.possibility_table`): the class gate and its
 condition predicates, a weight function, normalisation to 100 percent, the empty-gate and all-zero errors, the refusal of a
-row without a source or a licence, the open and stand-in report, the Dirichlet fractions, the shared components table,
+row without a source, the open and stand-in report, the Dirichlet fractions, the shared components table,
 the registry, and determinism at any worker count. Also `draw.gamma` and `draw.dirichlet`, which the fractions use.
 """
 
@@ -20,12 +20,11 @@ from planetgen.util import draw
 
 def row(name, classes=("rocky",), weight=1.0, **kw):
     kw.setdefault("source", "Test et al. 2020")
-    kw.setdefault("licence", "CC BY 4.0")
     return Row(name, classes, weight, **kw)
 
 
 def open_row(name, classes=("rocky",), **kw):
-    return Row(name, classes, OPEN, "open", "open", state=OPEN_STATE, **kw)
+    return Row(name, classes, OPEN, "open", state=OPEN_STATE, **kw)
 
 
 def probs(table, body_class="rocky", **quantities):
@@ -177,11 +176,11 @@ def test_a_table_whose_passing_weights_are_all_zero_is_an_error():
         table.draw("rocky")
 
 
-def test_a_row_without_a_source_or_a_licence_is_refused():
+def test_a_row_without_a_source_is_refused_and_a_row_has_no_licence_field():
     with pytest.raises(TableError, match="no source"):
         row("a", source="  ")
-    with pytest.raises(TableError, match="no licence"):
-        row("a", licence="")
+    with pytest.raises(TypeError):
+        row("a", licence="CC BY 4.0")
 
 
 def test_a_row_with_no_classes_or_no_name_is_refused():
@@ -193,11 +192,11 @@ def test_a_row_with_no_classes_or_no_name_is_refused():
 
 def test_the_open_state_and_the_open_weight_go_together():
     with pytest.raises(TableError, match="open"):
-        Row("a", ("rocky",), OPEN, "Test 2020", "CC0")                      # an open weight with a source and state
+        Row("a", ("rocky",), OPEN, "Test 2020")                            # an open weight with a source and state
     with pytest.raises(TableError, match="open"):
-        Row("a", ("rocky",), 0.3, "open", "CC0", state=OPEN_STATE)
+        Row("a", ("rocky",), 0.3, "open", state=OPEN_STATE)
     with pytest.raises(TableError, match="open"):
-        Row("a", ("rocky",), OPEN, "open", "open")                          # the state defaults to verified
+        Row("a", ("rocky",), OPEN, "open")                          # the state defaults to verified
 
 
 def test_a_weight_must_be_a_finite_number_of_zero_or_more():
