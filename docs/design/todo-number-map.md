@@ -561,7 +561,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
 | DB.15 | A migration progress bar with the time remaining | none | done, PR #924 |
-| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
+| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | done, PR #2522 |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | done, PR #1901 |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
@@ -575,16 +575,16 @@ Parents marked "new parent" had no old number of their own.
 | DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | done, PR #1446 |
 | DB.28 | One migration for the facility type tables and the new facility columns | none | done, PR #1476 |
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
-| DB.30 | One migration for the per-species environment limits | none | open |
+| DB.30 | One migration for the per-species environment limits | none | done, PR #2520 |
 | DB.31 | Store structure, not prose, for life and flavour | none | done, PR #2206 |
 | DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | done, PR #1607 |
 | DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) | none | done, PR #2436 |
 | DB.34 | Cell key and covering index on every table that holds a position, in the shared 0093 migration | none | done, PR #1757 |
 | DB.35 | Scatter rows keep their address columns and gain the point columns and the cell key | none | done, PR #1757 |
-| DB.36 | Tables for change plans, their operations and the edit journal (migration only) | none | open |
-| DB.37 | Lock marks table (migration only) | none | open |
-| DB.38 | Region density overrides table (migration only) | none | open |
-| DB.39 | Edit request support tables (migration only): request comments and notification records | none | open |
+| DB.36 | Tables for change plans, their operations and the edit journal (migration only) | none | done, PR #2523 |
+| DB.37 | Lock marks table (migration only) | none | done, PR #2524 |
+| DB.38 | Region density overrides table (migration only) | none | done, PR #2525 |
+| DB.39 | Edit request support tables (migration only): request comments and notification records | none | done, PR #2527 |
 | DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | none | open |
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
@@ -594,7 +594,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | open |
-| DB.49 | Migration only: the leaf digest column and the shell-band tree table | none | open |
+| DB.49 | Migration only: the leaf digest column and the shell-band tree table | none | done, PR #2521 |
 | DB.50 | Migration only: structure columns for life and flavour | none | done, PR #2206 |
 | DB.51 | Generation stores structure, not prose; the readers and the string searches go | none | done, PR #2206 |
 | DB.52 | Migration only: drop the prose columns and tables | none | done, PR #2206 |
@@ -605,11 +605,11 @@ Parents marked "new parent" had no old number of their own.
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | none | open |
 | DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | open |
 | DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | done, already built (v87, DB.26 and GEN.150), found by Core 2 2026-10-16 6:05 PM EDT |
-| DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | none | open |
-| DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) | none | open |
+| DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | none | done, PR #2526 |
+| DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) | none | done, PR #2528 |
 | DB.62 | Upload bookkeeping tables in the control database (migration only) | none | open |
-| DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | open |
-| DB.64 | Table for stored constellations (migration only) | none | open |
+| DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | done, PR #2530 |
+| DB.64 | Table for stored constellations (migration only) | none | done, PR #2529 |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | done, PR #2439 |
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
@@ -1083,7 +1083,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` | none | open |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | none | open |
 | GEN.378 | The galaxy type families: the checked design with its scaling relation table and the draw order | none | done, PR #2368 |
-| GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | none | open |
+| GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | none | done, PR #2531 |
 | GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | none | open |
 | GEN.381 | A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass | none | open |
 | GEN.382 | The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage | none | open |

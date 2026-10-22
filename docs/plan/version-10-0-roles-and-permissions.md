@@ -26,7 +26,6 @@ The permission catalogue, the moderator role, the sweep that moves every guard t
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.39 | Edit request support tables (migration only): request comments and notification records |  | Core 1 owns migrations |
 
 ## Phase 2: Submitting and deciding requests
 
@@ -49,7 +48,7 @@ The approver screen, comments, the request lifecycle, limits, email notices and 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | USR.18 | Approver screen: the requester's note, the plan preview and the decision buttons | USR.17, ADM.66 |  |
-| USR.19 | Comments on a request between the requester and the approver | DB.39, USR.17 |  |
+| USR.19 | Comments on a request between the requester and the approver | USR.17 |  |
 | USR.20 | "My requests" in the user interface: state of each request and withdraw | USR.16, USR.7 |  |
 
 ### Lifecycle
@@ -79,4 +78,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24 |  |
 | TEST.179 | Permission matrix test: every route and page checked for every role against the catalogue | USR.14 |  |
 | DOC.55 | Help: roles, edit requests and how an approval works | TEST.178 |  |
-| USR.25 | Headline of 10.0: roles and permissions, user edit requests and moderators | USR.13, USR.14, DB.39, TEST.178, TEST.179, DOC.55 | Headline; a major version needs Boss's word for the .major note |
+| USR.25 | Headline of 10.0: roles and permissions, user edit requests and moderators | USR.13, USR.14, TEST.178, TEST.179, DOC.55 | Headline; a major version needs Boss's word for the .major note |

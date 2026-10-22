@@ -31,9 +31,8 @@ The foundations every editor stands on: the change plan and its store, the unit 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.36 | Tables for change plans, their operations and the edit journal (migration only) |  | Core 1 owns migrations; schema is not a constraint |
 | ADM.58 | Change plan engine: operations, the effect diff and the plan states, as a library |  | Builds on planetgen/admin/edits.py |
-| ADM.59 | Change plan store: save, load and list plans, and mark them stale | DB.36, ADM.58 |  |
+| ADM.59 | Change plan store: save, load and list plans, and mark them stale | ADM.58 |  |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons |  | Shared with 8.9 (API.8) |
 | ADM.60 | Apply, undo and audit a plan: one job, one activity-log entry per operation | ADM.59, ADM.82 | Uses the update guard (OPS.41, OPS.53, OPS.54) |
 | ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | ADM.60, DB.17, DB.9, GEN.57 | Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database |
@@ -46,16 +45,13 @@ The foundations every editor stands on: the change plan and its store, the unit 
 | ADM.63 | Aspect catalogue for phenomena: black holes, neutron stars, nebulae, remnants, rogue planets, comets, asteroid fields and quasars | ADM.62 |  |
 | ADM.64 | Keep-or-regenerate resolution: from the admin's marks to the exact set of aspects redrawn | ADM.62 |  |
 | API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | ADM.62, ADM.64 | Shared with 8.9 (API.18, API.19) |
-| DB.37 | Lock marks table (migration only) |  | Core 1 owns migrations |
 
 ### Regions
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.38 | Region density overrides table (migration only) |  | Core 1 owns migrations |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it |  | Reads by the cell key built in 8.1 |
 | MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302 |  |
-| DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | DB.38 | Split from MAP.119. Core 1 owns migrations. |
 
 ## Phase 2: Interfaces: approval, locks, regen screens, density overrides
 
@@ -75,7 +71,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | DB.37, ADM.62, ADM.58 |  |
+| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | ADM.62, ADM.58 |  |
 | ADM.69 | Keep-or-regenerate matrix: the one screen component every regen screen uses | ADM.64, ADM.65 |  |
 | ADM.70 | Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options | ADM.62, ADM.69, API.28 | Reuses the system file of the system command |
 
@@ -83,9 +79,9 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | DB.38, DB.60, GEN.302 | Split from MAP.119. |
-| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | ADM.94, DB.38, GEN.302, MAP.212 | Split from MAP.119. |
-| MAP.119 | Expected star density editable by admins on the Galaxy Map | DB.60, ADM.94, MAP.218 |  |
+| ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | GEN.302 | Split from MAP.119. |
+| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | ADM.94, GEN.302, MAP.212 | Split from MAP.119. |
+| MAP.119 | Expected star density editable by admins on the Galaxy Map | ADM.94, MAP.218 |  |
 
 ### Admin shell
 

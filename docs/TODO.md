@@ -1033,7 +1033,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Moved to phase 2 with its children (the migration child sits in the
   Regions thread); its block or slab case is a Span region (see GEN.302)
   and the table is DB.38 (2026-10-16 review).
-  Prerequisites: DB.60, ADM.94, MAP.218.
+  Prerequisites: ADM.94, MAP.218.
 
 - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
   Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus in
@@ -1947,7 +1947,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   effect over it, confirms and can undo; the override table of DB.38
   holds it and every later fill reads it; each change is logged; and a
   test shows that two overlapping regions combine in a stated order.
-  Prerequisites: ADM.94, DB.38, GEN.302, MAP.212. Related: MAP.119.
+  Prerequisites: ADM.94, GEN.302, MAP.212. Related: MAP.119.
 
 - [ ] **MAP.219 Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -4062,7 +4062,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.304, DB.49, GEN.305.
+  Prerequisites: GEN.304, GEN.305.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
@@ -4479,7 +4479,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector fill linking cluster stars and naming the cluster at its first
   fill (child b), and the cluster pages and the Galaxy Map using the
   link (child c).
-  Prerequisites: DB.61, GEN.359, MAP.224. Related: GEN.160, GEN.164.
+  Prerequisites: GEN.359, MAP.224. Related: GEN.160, GEN.164.
 
 - [ ] **GEN.212 Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update)**
   Math Research (2026-10-14;
@@ -5586,7 +5586,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.304, DB.49. Related: GEN.136.
+  Prerequisites: GEN.304. Related: GEN.136.
 
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
   Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -5946,7 +5946,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
   9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
   kpc are reference radii for tests only.
-  Prerequisites: GEN.369, GEN.379. Related: GEN.115.
+  Prerequisites: GEN.369. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6311,7 +6311,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A catalogue cluster (GEN.297) keeps its catalogue name. Done: the link
   and the once-only name, with tests for a first fill, a second sector
   of the same cluster, a resumed fill and two workers filling at once.
-  Prerequisites: DB.61. Related: GEN.209.
+  Prerequisites: none. Related: GEN.209.
 
 - [ ] **GEN.360 Asteroid fields and belts render from their uid: one seeded generator in a shared asteroidfield.js for dust, rocks and heroes**
   Split from GEN.112 (2026-10-16, Boss (2026-10-16, 3:00 PM EDT):
@@ -6692,54 +6692,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   caps may go as low as 50. Owner: Core 3.
   Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
-- [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. `relative_density`, `population_densities` and
-  the array form in `galaxy/density.py` sum named components (thin disk
-  with arms, thick disk, spheroid or bulge with its bar, halo, nuclear
-  cluster and disc), each read from the shape's own amplitudes; an
-  amplitude of 0 removes the component exactly.
-  `component_masses(shape)` returns each component's mass in solar
-  masses by integrating its profile; the potential (GEN.338) reads its
-  bulge, disk and halo masses from it. Done: a golden test over a grid
-  of positions shows today's spiral shape gives the same density and
-  population split as before (relative error under 1e-12); the array
-  form is no slower than today's on the sector gate (within 5 percent);
-  `component_masses` matches a numerical integral of each profile within
-  1e-4; the population keys do not change. No new content: this is the
-  spiral family written as components. No fixed content (Boss, 4:11 and
-  4:14 PM EDT): no named galaxy, preset or hand-set value; reference
-  galaxies only check the result.
-  Prerequisites: none. Related: DB.66 (done, #2439), GEN.338, GEN.381,
-  GEN.234, GEN.280. Superbubble density (2026-10-16, 9:27 PM EDT): the
-  bubble factor is one call site in `galaxy/density_modulation.py`
-  (GEN.393) that multiplies each population's density after the
-  component sum; this rewrite keeps that one call and does not move the
-  factor into the components. Design merged (GEN.378, #2368):
-  docs/design/galaxy-types.md is the checked design; Boss reads and
-  approves its table before this item and DB.66 are built (Needs Boss
-  list).
-  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
-  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
-  the table in docs/design/galaxy-types.md is approved as written. The
-  approval that held this item is given.
-  Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
-  gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
-  Core 1's queue. Reading of the stored columns (Blocker 2, DB.66 merged
-  as #2439, Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane
-  reported): `galaxy_shape` has `family` (default spiral) and fourteen
-  component columns (bar, thick disk, Sersic spheroid, clump share) with
-  a CHECK per number. The design table says the bar and thick-disk
-  defaults are "the drawn value", but those were never stored, so those
-  five columns are NULL, meaning "as the structure draw gives them from
-  the seed"; the other columns default to 0 or 1. This item reads them:
-  a NULL means ask the structure draw, never a fixed number. Scope note
-  (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane reported): the
-  first slice, `density_components`, is merged as #2465 (relayed 9:01 AM
-  EDT 2026-10-22); the rest of this item stays open.
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
-
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -6764,7 +6716,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2e11 solar stellar mass (Boss, 2026-10-16, 9:40 PM EDT, reported by
   Core 1); docs/design/galaxy-types.md states the other families'
   ranges.
-  Prerequisites: GEN.379. Related: GEN.368, GEN.369, GEN.381, GEN.608,
+  Prerequisites: none. Related: GEN.368, GEN.369, GEN.381, GEN.608,
   GEN.606. The Scale dial's Auto window (GEN.603) and this Schechter
   draw both set the stellar mass, and the galaxy types design (GEN.378,
   #2368) does not say how they combine per family: this item decides it
@@ -6792,7 +6744,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.379. Related: GEN.383, GEN.385, GEN.384.
+  Prerequisites: none. Related: GEN.383, GEN.385, GEN.384.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.382 The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage**
@@ -6817,7 +6769,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are tested only as values the draw can produce, never as defaults. No
   fixed content (Boss, 4:11 and 4:14 PM EDT): no named galaxy, preset or
   hand-set value; reference galaxies only check the result.
-  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369, GEN.603,
+  Prerequisites: GEN.380. Related: GEN.134, GEN.369, GEN.603,
   GEN.604, GEN.611. Design merged (GEN.378, #2368): this item replaces
   the Kelvin Table 1 stage stand-in in shape_draw.py with the
   single-Schechter fractions of docs/design/galaxy-types.md section 5.
@@ -16310,29 +16262,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: DB.45, DB.46, DB.47, DB.48.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
-  DB.7 stored `version_key`, the version, python and platform as text on
-  every sector; at 12 billion sectors those strings repeat. Store
-  `generator_epoch` (SMALLINT) and `run_id` (foreign key to the existing
-  `generation_runs`) instead, with the key text looked up from the run.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: epoch
-  plus run id): or keep the full
-  key text per sector as DB.7 shipped. ALGORITHM=INSTANT, idempotent
-  migration, per db-check-and-parity-repair.md.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
   The second half of DB.9: when the parity file cannot rebuild a sector,
   regenerate it from the galaxy seed, the sector's stored directives and
@@ -16408,129 +16337,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
-
-- [ ] **DB.30 One migration for the per-species environment limits**
-  Needed by POP.12 (done, PR #1554; Generate), same rule as DB.27 and
-  DB.28: any lane writes its own migration and Core 1 settles the revision number. Add the columns or
-  the table that hold each species' own environment limits, one value
-  per row of `LIMIT_ROWS` in `planetgen/physics/protection_limits.py`
-  (pressure, oxygen, temperature, wet-bulb, dose and the other rows it
-  holds), NULL for the human default, as laid out in
-  docs/design/habitability-index.md section 9 ("a later per-species
-  limit replaces a row in this table and nothing else"). Done: the
-  migration (next after DB.29's if that lands first) with its old-schema
-  fixture and tests, merged so the species limits of POP.12 (done, PR #1554) can be stored. Owner:
-  Database, after DB.29.
-  No longer waits on DB.29 (2026-10-16 review): DB.29 moved into the
-  queue thread before PERF.100, and DB.30 is the urgent one for POP.12.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the rule "only
-  Database adds migrations" becomes "any lane writes its own migration,
-  and Core 1 settles the revision number", which matches Core 4 owning
-  this item.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
-
-- [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
-  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
-  has complete control; the world adjusts to what the admin wants, after
-  the admin approves the generation plan. One Alembic migration adds
-  `change_plans` (who asked and in which role, the request, the state:
-  draft, requested, proposed, approved, applied, undone, stale, rejected
-  or withdrawn, the role that must approve it, who approved or rejected
-  it and when with a note, the job that applied it; 10.0 adds only
-  request comments and notices, DB.39, so the plan tables hold requests
-  from the start and need no rebuild), `change_plan_ops` (plan, order,
-  operation
-  kind, target object ID, before and after values as JSON, status) and
-  `edit_journal` (an append-only list of every applied operation: plan,
-  object ID, aspect, before, after and the generator epoch, indexed by
-  object ID and by sector). Core 1 owns the migration number. Done: the
-  migration, the regenerated models, an old-schema fixture, an
-  idempotent upgrade and a round-trip test; no code reads the tables
-  yet.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: ADM.57, ADM.58, ADM.59.
-  Design: [docs/design/edit-everything.md](design/edit-everything.md)
-
-- [ ] **DB.37 Lock marks table (migration only)**
-  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
-  has complete control; the world adjusts to what the admin wants, after
-  the admin approves the generation plan. One Alembic migration adds
-  `object_locks` (object ID, aspect or all, locked by, locked at,
-  reason): a lock is a standing keep mark. Core 1 owns the migration
-  number. Done: the migration, models and an idempotent upgrade with a
-  round-trip test.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: ADM.57.
-  Design: [docs/design/edit-everything.md](design/edit-everything.md)
-
-- [ ] **DB.38 Region density overrides table (migration only)**
-  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
-  has complete control; the world adjusts to what the admin wants, after
-  the admin approves the generation plan. One Alembic migration adds
-  `region_density_overrides` (region shape and parameters, multiplier
-  from 0.1 to 10, set by, set at, undone at), append-only, for the
-  density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
-  a region too. Core 1 owns the migration number. Done: the migration,
-  models and an idempotent upgrade with a round-trip test.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: MAP.119, ADM.57, GEN.391.
-  Design: [docs/design/edit-everything.md](design/edit-everything.md)
-
-- [ ] **DB.39 Edit request support tables (migration only): request comments and notification records**
-  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
-  roles, User, Moderator and Admin; users submit edit requests,
-  moderators approve user requests, admins approve moderator requests,
-  and an admin's own edits need no approval (only the preview and
-  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
-  of 8.6. The requester, the required approver role and the decision are
-  columns of the change plan tables (DB.36), so a request is a plan. One
-  Alembic migration adds `request_comments` (request, author, body,
-  created) and `request_notifications` (request, recipient, kind, sent).
-  Core 1 owns the migration number. Done: the migration, models and an
-  idempotent upgrade with a round-trip test.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). It follows DB.36.
-  This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: USR.25, DB.36.
-  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 - [ ] **DB.40 Parity data backup part: the parity file of the DB repair copied into the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -16682,28 +16488,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: DB.47. Related: DB.9.
 
-- [ ] **DB.49 Migration only: the leaf digest column and the shell-band tree table**
-  Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One Alembic revision adds
-  `sectors.leaf_digest` (BINARY(32), NULL) and a `sector_tree_nodes`
-  table for the tree over the shell, band and wedge ladder: a band node
-  (shell, band) over its wedge leaves, a shell node over its bands, the
-  galaxy root on demand. Written with the DB.18 helpers; Core 1 owns the
-  number. Done: the migration, models, an old-schema fixture, an
-  idempotent upgrade and a round-trip test; no code reads them yet.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: GEN.136.
-
 - [ ] **DB.57 The update records what it moved: a replace-each-run table of previous and new positions**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). The advance step writes one row
@@ -16742,50 +16526,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   earlier owner line on this item.
   Prerequisites: none. Related: USR.2, USR.26.
 
-- [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
-  Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One Alembic migration adds
-  `density_multiplier_used` (decimal) and `override_id` to the
-  filled-sector record, so a rebuilt galaxy can tell which override a
-  sector was filled under (map-ui-and-frontend-libraries.md section 8).
-  Core 1 owns the migration number. Done: the migration, models, an
-  old-schema fixture, an idempotent upgrade and a round-trip test; no
-  code writes the columns yet.
-  The stored density multiplier is also added to the stored directive of
-  GEN.179 (or to the DB.38 migration); say so in both items (2026-10-16
-  review).
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). It cannot start
-  before DB.38 merges. This replaces any earlier owner line on this
-  item.
-  Prerequisites: DB.38. Related: MAP.119.
-
-- [ ] **DB.61 Migration: unnamed clusters and a star-to-cluster parent link (migration only)**
-  Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One Alembic migration makes
-  `galaxy_components.name` nullable (the unique key stays over named
-  rows) and adds a nullable cluster link, a reference to
-  `galaxy_components.id`, on `stars` and on `bright_stars`, indexed, so
-  a star can point to its cluster as its parent. Core 1 owns the
-  migration number and settles the column names. Done: the migration,
-  models, an old-schema fixture, an idempotent upgrade and a round-trip
-  test; existing clusters keep their names and no code writes the link
-  yet.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: GEN.209.
-
 - [ ] **DB.62 Upload bookkeeping tables in the control database (migration only)**
   Split from API.11 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). One Alembic migration on the control
@@ -16807,46 +16547,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
   earlier owner line on this item.
   Prerequisites: none. Related: API.11.
-
-- [ ] **DB.63 Table for ships and stations, user-owned or generated (migration only)**
-  Split from USR.10 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic migration adds the table
-  for vessels and stations: object ID (a new object-kind code, shared
-  with the kind list of names/object_id.py), kind (ship or station),
-  name, an owner that is a user or NULL for a generated one, the
-  SpatialPosition3D columns of GEN.294 (position, point mass, movement
-  vector), a course (the route plan, JSON) and creation data. Core 1
-  owns the migration number and settles the columns. Done: the
-  migration, models, an old-schema fixture, an idempotent upgrade and a
-  round-trip test; no code reads the table yet.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: USR.10.
-
-- [ ] **DB.64 Table for stored constellations (migration only)**
-  Split from VIEW.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic migration adds the
-  per-system constellation store: system uid, constellation index, name
-  object ID (the `constellation` kind, VIEW.4), the member stars and the
-  edges (JSON), and the seed and version it was built under. Core 1 owns
-  the migration number. Done: the migration, models, an old-schema
-  fixture, an idempotent upgrade and a round-trip test; no code writes
-  it yet.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: VIEW.3.
 
 - [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -17415,8 +17115,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /api/phenomena/<type>/<id>/contents`). Done: for a star inside a
   globular cluster and a star inside a superbubble, the query names the
   container; a container lists what it holds; the stored rows come from
-  the generator with no fixed content. Owner: none (the coordinator
-  assigns; Core 2 asked for it).
+  the generator with no fixed content. Owner: the DB items chain lane,
+  after DB.58 and DB.62 (proposed by the coordinator, relayed 5:40 PM EDT
+  2026-10-22 as the lane's clock reads; Core 2 asked for it).
   Prerequisites: none. Related: UX.144, MAP.254, UX.143.
 
 - [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
@@ -18085,7 +17786,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   plan touches is edited by anything else. Done: the store with tests
   against MySQL, and a plan that survives a restart with its computed
   diff intact so the admin approves exactly what they were shown.
-  Prerequisites: DB.36, ADM.58. Related: ADM.57.
+  Prerequisites: ADM.58. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.60 Apply, undo and audit a plan: one job, one activity-log entry per operation**
@@ -18183,7 +17884,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   registered predicate, the marks, and a test that the plan engine
   refuses a change to a locked aspect (the regeneration, rearrangement
   and density items each test their own).
-  Prerequisites: DB.37, ADM.62, ADM.58. Related: ADM.57.
+  Prerequisites: ADM.62, ADM.58. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.66 Plan approval screen: every operation with its before and after, approve, reject one, or cancel**
@@ -18542,7 +18243,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: the library over `region_density_overrides` (DB.38), the fill
   read, and tests for set, undo, two overlapping regions in a stated
   order, a filled sector left alone and the logged entry.
-  Prerequisites: DB.38, DB.60, GEN.302. Related: MAP.119.
+  Prerequisites: GEN.302. Related: MAP.119.
 
 - [ ] **ADM.95 A remote run is a job: it shows in the job tree and the job page with its progress and report**
   Split from API.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -20878,7 +20579,7 @@ clears each one.
   for ships and stations (a, Core 1), the vessel and station objects
   with ownership (b) and the pages and map display (c); POP.11 needs
   only a and b.
-  Prerequisites: DB.63, USR.29, USR.30. Related: USR.8, GEN.105, NAV.4.
+  Prerequisites: USR.29, USR.30. Related: USR.8, GEN.105, NAV.4.
 
 - [ ] **USR.11 A "home" field on user accounts: where the Galaxy Map zooms to when it opens**
   GitHub issue #1232 (Boss, 2026-10-14 13:27Z): "users have the option
@@ -21019,7 +20720,7 @@ clears each one.
   requester answers; the requester can edit and resubmit, which
   recomputes the plan. Done: the thread on the request page, resubmit,
   and tests for ordering and permissions.
-  Prerequisites: DB.39, USR.17. Related: USR.25.
+  Prerequisites: USR.17. Related: USR.25.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 - [ ] **USR.20 "My requests" in the user interface: state of each request and withdraw**
@@ -21098,7 +20799,7 @@ clears each one.
   of 8.6. Umbrella of 10.0, broken into items in the 10.0 version file;
   it is done when its items are. Headline: 10.0 (roles and permissions:
   user edit requests, moderators and admins).
-  Prerequisites: USR.13, USR.14, DB.39, TEST.178, TEST.179, DOC.55.
+  Prerequisites: USR.13, USR.14, TEST.178, TEST.179, DOC.55.
   Related: USR.1, ADM.57.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
@@ -21161,7 +20862,7 @@ clears each one.
   Done: add, list, get and track routes with the usual API scopes,
   ownership checks, and tests for a course, a track and a refused edit
   by another user.
-  Prerequisites: DB.63, NAV.4, GEN.105. Related: USR.10.
+  Prerequisites: NAV.4, GEN.105. Related: USR.10.
 
 - [ ] **USR.30 Add a ship or station from a page and see it and its track on the maps**
   Split from USR.10 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -22082,7 +21783,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     `planetgen.web.seo_pages.register_card_renderer("system" or
     "sector", fn)` and turn on the setting `og.generated_cards`; any new
     web page VIEW.3 adds must be classified in `planetgen/web/seo.py`.
-    Prerequisites: VIEW.15, DB.64, VIEW.16, VIEW.17.
+    Prerequisites: VIEW.15, VIEW.16, VIEW.17.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
     Boss: "add to our
@@ -22240,7 +21941,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   library and its stored result for a seeded system, with tests for
   determinism, stability when the limiting magnitude changes slightly,
   and unique names.
-  Prerequisites: DB.64, VIEW.12. Related: VIEW.3.
+  Prerequisites: VIEW.12. Related: VIEW.3.
 
 - [ ] **VIEW.17 Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card**
   Split from VIEW.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -22280,7 +21981,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   level allows vessels and which stations is set from the tech-level
   design (docs/design/Technological Assessment.md and the "Tech levels"
   section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
-  Prerequisites: DB.63, USR.29. Related: POP.7 (done, PR #1461), POP.10
+  Prerequisites: USR.29. Related: POP.7 (done, PR #1461), POP.10
   (done, PRs #1517 and #1524), USR.10.
 
 - [ ] **POP.13 A species editor: create and edit species and their environment limits**
@@ -22331,7 +22032,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   is only acceptable with equipment counts as outside the limits unless
   the placement says it is a habitat or vessel (default: only unaided
   survival counts for a planet or moon surface).
-  Prerequisites: DB.30. Related: POP.13, POP.11, POP.10 (done, PRs #1517
+  Prerequisites: none. Related: POP.13, POP.11, POP.10 (done, PRs #1517
   and #1524).
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
