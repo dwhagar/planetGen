@@ -970,3 +970,5 @@ Baseline: PR #1817.
 | GEN.545 | 8.1 | Galaxy laws build |
 | DB.33 | 8.1 | Bugs and flaky tests |
 | DB.66 | 8.3 | Galactic gravity |
+| TEST.265 | 8.1 | Bugs and flaky tests |
+| GEN.607 | 8.1 | Galaxy laws build |
