@@ -451,3 +451,93 @@ CREATE TABLE IF NOT EXISTS invite_uses (
     CONSTRAINT fk_invite_uses_account
         FOREIGN KEY (account_id) REFERENCES admin_users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v16 (DB.62): bookkeeping for the uploads of generated sectors from a remote
+-- run (API.11; docs/design/api-design-standards.md section 7.3). Nothing
+-- reads or writes these tables until API.11. One `upload_runs` row is one
+-- remote run: its owner (`owner_id`, an account) and the API key it used
+-- (`key_id`, NULL once the key is removed), the galaxy database it uploads
+-- to, its `state` (set by API.11) and when it began and was last heard from.
+CREATE TABLE IF NOT EXISTS upload_runs (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    owner_id          BIGINT UNSIGNED NOT NULL,
+    key_id            BIGINT UNSIGNED NULL,
+    galaxy_database   VARCHAR(64) NOT NULL,
+    state             VARCHAR(16) NOT NULL DEFAULT 'open',
+    created_at        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    last_contact_at   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    KEY idx_upload_runs_owner (owner_id, state),
+    KEY idx_upload_runs_galaxy (galaxy_database, state),
+    CONSTRAINT fk_upload_runs_owner
+        FOREIGN KEY (owner_id) REFERENCES admin_users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_upload_runs_key
+        FOREIGN KEY (key_id) REFERENCES admin_api_keys(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v16 (DB.62): the gzip batches a run has sent, one row per (run, sequence
+-- number): the SHA-256 of the received bytes and their size, so a resent batch
+-- with the same hash is answered from the record and a different one is refused.
+CREATE TABLE IF NOT EXISTS upload_batches (
+    run_id        BIGINT UNSIGNED NOT NULL,
+    seq           INT UNSIGNED NOT NULL,
+    sha256        CHAR(64) NOT NULL,
+    bytes         BIGINT UNSIGNED NOT NULL,
+    received_at   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (run_id, seq),
+    CONSTRAINT fk_upload_batches_run
+        FOREIGN KEY (run_id) REFERENCES upload_runs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v16 (DB.62): the units (a sector with what is in it) of a run, each written to
+-- the galaxy only when complete: `open` while batches arrive, `sealed` when the
+-- client says it is whole, `verified` when the counts and hash match the
+-- manifest, then `finalized` (saved) or `rejected` with its reasons in `errors`.
+CREATE TABLE IF NOT EXISTS upload_units (
+    run_id          BIGINT UNSIGNED NOT NULL,
+    unit_key        VARCHAR(64) NOT NULL,
+    state           VARCHAR(12) NOT NULL DEFAULT 'open',
+    manifest_hash   CHAR(64) NULL,
+    errors          JSON NULL,
+    updated_at      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (run_id, unit_key),
+    KEY idx_upload_units_state (state),
+    CONSTRAINT fk_upload_units_run
+        FOREIGN KEY (run_id) REFERENCES upload_runs(id) ON DELETE CASCADE,
+    CONSTRAINT chk_upload_units_state CHECK (state IN ('open', 'sealed', 'verified', 'finalized', 'rejected'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v16 (DB.62): which run holds a sector's address. One claim per sector address
+-- in a galaxy database (`galaxy_database` repeats the run's, so the key can say
+-- so), so a second run asking for a claimed sector is refused.
+CREATE TABLE IF NOT EXISTS upload_claims (
+    galaxy_database   VARCHAR(64) NOT NULL,
+    shell_index       INT NOT NULL,
+    band_index        INT NOT NULL,
+    wedge_index       INT NOT NULL,
+    run_id            BIGINT UNSIGNED NOT NULL,
+    state             VARCHAR(16) NOT NULL DEFAULT 'claimed',
+    claimed_at        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (galaxy_database, shell_index, band_index, wedge_index),
+    KEY idx_upload_claims_run (run_id),
+    CONSTRAINT fk_upload_claims_run
+        FOREIGN KEY (run_id) REFERENCES upload_runs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v16 (DB.62): the row ids a run may use, from the galaxy's id blocks (API.10):
+-- one contiguous range per table and lease, `first_id` to `last_id` inclusive.
+CREATE TABLE IF NOT EXISTS upload_id_ranges (
+    run_id       BIGINT UNSIGNED NOT NULL,
+    table_name   VARCHAR(64) NOT NULL,
+    first_id     BIGINT UNSIGNED NOT NULL,
+    last_id      BIGINT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (run_id, table_name, first_id),
+    CONSTRAINT fk_upload_id_ranges_run
+        FOREIGN KEY (run_id) REFERENCES upload_runs(id) ON DELETE CASCADE,
+    CONSTRAINT chk_upload_id_ranges_order CHECK (last_id >= first_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
