@@ -86,7 +86,7 @@ A pinned family (`--family`, UX.134) fixes step 2 only. Every size and count is 
 
 - `E` becomes `elliptical`.
 - `Sab-Scd` and `Sd-Irr` become `spiral` at or above 3e9 (the lower edge of the first family, Boss, 9:40 PM EDT on 2026-10-16) and `irregular` below it. A disk-dominated galaxy under 3e9 has no arm law to draw from (section 6.1).
-- `S0-Sa` splits into `lenticular` and `spiral` (the Sa part). Kelvin et al. merge the two, so the split is a placeholder: **half and half** [P], research request R1. Below 3e9 the Sa part becomes `irregular`.
+- `S0-Sa` splits into `lenticular` and `spiral` (the Sa part). Kelvin et al. merge the two, so the split is derived: **0.55 lenticular and 0.45 Sa spiral, constant in mass** (range 0.50 to 0.62; Calvi 2012, Kelvin 2014 and ATLAS3D, no catalogue separates them by mass; `reports/s0-sa-galaxies-2026-10-21.md`; Decided by Boss, card tapped 8:19 PM EDT on 2026-10-21) [D], research request R1 answered in part (the mass dependence stays open). Below 3e9 the Sa part becomes `irregular`.
 - **Below 1e9** (under Kelvin's limit) the family is `irregular` or `dwarf_spheroid`. The dwarf spheroid share is the isolated-dwarf quenched fraction of ELVES-Field (2602.16778 abstract): essentially zero above 1e7 solar and about 30 percent below it [V]. As a step: `p(dwarf_spheroid) = 0.30` below 1e7 and `0` from 1e7 to 1e9 [P for the shape of the step; the two levels are V]. Between 1e9 and 3e9 the Kelvin fractions apply with the rules above.
 
 The quenched fraction rests on a few dozen isolated dwarfs ("the statistics on the quenched fraction are rather poor", the paper), so R2 asks for a better one.
@@ -239,9 +239,9 @@ Relations no paper read here gives. Each stays a labelled placeholder until answ
 
 ## 12. Questions for Boss (defaults stand if unanswered)
 
-- **Q1.** Is a half-and-half split of the S0-Sa class into lenticular and Sa spiral acceptable until R1 is answered? Default: yes, labelled placeholder.
-- **Q2.** The dwarf spheroid share of galaxies under 1e9: use the isolated-dwarf step (30 percent under 1e7, none from 1e7 to 1e9)? Default: yes.
-- **Q3.** Is the common upper limit of 2e11 solar masses for every family right, given that the elliptical rule gives 1.9e11? Default: yes.
+- **Q1.** Decided (Boss, card tapped 8:19 PM EDT on 2026-10-21): the S0-Sa class splits 0.55 lenticular and 0.45 Sa spiral, constant in mass.
+- **Q2.** The dwarf spheroid share of galaxies under 1e9: use the isolated-dwarf step (30 percent under 1e7, none from 1e7 to 1e9)? Decided: yes (Boss, card tapped 8:10 PM EDT on 2026-10-21).
+- **Q3.** Is the common upper limit of 2e11 solar masses for every family right, given that the elliptical rule gives 1.9e11? Decided: yes (Boss, card tapped 8:11 PM EDT on 2026-10-21).
 
 ## 13. Defaults standing as decided
 
