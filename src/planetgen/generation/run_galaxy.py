@@ -29,7 +29,7 @@ from planetgen.db import nebula_blocks, query, region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
-from planetgen.queue import commands, wrapper
+from planetgen.queue import commands, redisqueue, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.profile import profile_at, sector_profile
@@ -493,7 +493,7 @@ BACKFILL_UNITS_MAX = 2000
 def expand_backfill_bright_stars(params):
     """
     The `scatter-backfill` command's stage (PERF.108): the sectors to draw (`backfill_targets` around the sectors
-    created since `params["since"]`) are found once, here, and cut in order into static chunks of at least
+    created since `params["since"]`, or around `params["center_pc"]` for an API job's one requested sector) are found once, here, and cut in order into static chunks of at least
     `BACKFILL_UNIT_CELLS` sectors (and at most `BACKFILL_UNITS_MAX` chunks), the same at any worker count. A stage with
     nothing to draw is one empty unit, so the stage still stores its row.
     """
@@ -503,7 +503,9 @@ def expand_backfill_bright_stars(params):
         todo = {}
         if skeleton is not None:
             limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
-            todo = backfill_targets(conn, skeleton, limits, store.sector_centers_since(conn, params["since"]))
+            centers = ([tuple(params["center_pc"])] if params.get("center_pc") is not None
+                       else store.sector_centers_since(conn, params["since"]))
+            todo = backfill_targets(conn, skeleton, limits, centers)
     finally:
         conn.close()
     addresses = sorted(todo)
@@ -551,12 +553,16 @@ def backfill_bright_stars_unit(unit_args, report):
                        for shell, types in shells.items()}}
 
 
-def _backfill_on_queue(args, started_at):
+def _backfill_on_queue(args, started_at, center_pc=None):
     """
     The backfill of a `galaxy` run on the new queue (PERF.108): the wrapper selects the `scatter-backfill` command from
     this run's steps, finds the sectors to draw once and cuts them into units (`expand_backfill_bright_stars`), this
     process follows the units with a bar of the sectors they visit (PERF.28) and says how many stars each shell was
     given, and the unit that completes the stage stores the stage's row.
+
+    Args:
+        center_pc (tuple, optional): Backfill around this one point instead of around the sectors created since
+            `started_at` (an API job's requested sector, GEN.30).
 
     Returns:
         dict: `sectors` (drawn) and `stars` (placed), summed over the units.
@@ -564,7 +570,8 @@ def _backfill_on_queue(args, started_at):
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
     step, listing = wrapper.step_for(args, "backfill", "Bright-star backfill", {
-        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers})
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers,
+        **({} if center_pc is None else {"center_pc": list(center_pc)})})
     row = stages.hand_over_open_stage()
     summary = {"sectors": 0, "stars": 0}
     shells = {}
@@ -638,7 +645,10 @@ def backfill_after_run(args, edge_pc, started_at):
 
 def _sectors_since(params):
     """The ids of the galaxy sectors a run created: those saved at or after `params["since"]` (the database's clock when
-    the run started, as text), the set a unit of the link or the settle stage works on."""
+    the run started, as text), the set a unit of the link or the settle stage works on; or, for a run that names them
+    (`params["sector_ids"]`), exactly those."""
+    if params.get("sector_ids") is not None:      # an API job names the sectors it made or changed (PERF.119)
+        return list(params["sector_ids"])
     conn = store.get_connection(_mysql_config_of(params))
     try:
         return sector_paths.sector_ids_since(conn, params["since"])
@@ -797,7 +807,8 @@ def save_sector_paths_unit(params, report):
     created = _sectors_since(params)
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        return {"saved": sector_paths.settle_sectors(conn, created, report, workers=params["workers"])}
+        return {"saved": sector_paths.settle_sectors(conn, created, report, workers=params["workers"],
+                                                     expand=params.get("expand", True))}
     finally:
         conn.close()
 
@@ -974,12 +985,36 @@ def _default_generation_args(config=None):
     return args
 
 
+def settle_named_sectors(sector_ids, config, expand=True):
+    """
+    Saves the sector paths of `sector_ids` (and, with `expand`, of the sectors around them) as a run of
+    `settle-sector-paths` (GEN.126; PERF.119: the body of the API's settle job and of a regenerate).
+
+    Returns:
+        int: How many paths were saved.
+    """
+    sector_ids = sorted(sector_ids)
+    if not sector_ids:
+        return 0
+    args = _default_generation_args(config=config)
+    args.workers = 1
+    conn = store.get_connection(config)
+    try:
+        started_at = store.database_now(conn)
+    finally:
+        conn.close()
+    return _one_unit_stage(args, "settle", "Sector paths", "paths", len(sector_ids), started_at, "saved",
+                           extra={"sector_ids": sector_ids, "expand": expand})
+
+
 def queue_settle(config, sector_ids):
     """
     Saves the sector paths of `sector_ids` and the sectors around them
     (GEN.126) as a queued job, so a caller that generated a sector on the
-    spot doesn't wait for up to 125 sectors of integration. With no Redis
-    server to queue it on, it runs here instead.
+    spot doesn't wait for up to 125 sectors of integration. When the job
+    cannot be queued (an update is running) it runs here, as a run through
+    the wrapper like the job's; with no Redis server for that run either, the
+    paths are not saved and the next settle covers them.
 
     Returns:
         str | None: The job's id, or `None` when it ran inline.
@@ -989,8 +1024,83 @@ def queue_settle(config, sector_ids):
     try:
         return api_jobs.submit(api_jobs.settle_sectors, sector_ids, config)
     except api_jobs.NoQueue:
-        api_jobs.settle_sectors(sector_ids, config)
+        try:
+            api_jobs.settle_sectors(sector_ids, config)
+        except redisqueue.Unavailable as exc:
+            log.error(f"The sector paths of {len(sector_ids)} sector(s) were not saved: {exc}")
         return None
+
+
+def _cell_to_generate(address, config, link=True):
+    """
+    What generating the sector of grid cell `address` takes (`ensure_sector_generated`, `regenerate_sector_cell`): the
+    answer already when there is nothing to generate, else the arguments, the center and the sector edge to generate with.
+
+    Returns:
+        tuple: `(early, args, position_pc, qualifies, edge_pc)`. `early` is the dict `ensure_sector_generated` returns
+            for a cell that already holds a sector or lies past the grid's reach, else `None` (and the rest is set).
+
+    Raises:
+        RuntimeError: The galaxy's skeleton has never been built.
+    """
+    conn = store.get_connection(config)
+    try:
+        existing_id = store.get_sector_id_at(conn, *address)
+        if existing_id is not None:
+            return ({"created": False, "qualifies": True, "in_reach": True, "sector_id": existing_id,
+                     "sector_name": None}, None, None, None, None)
+
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError(
+                "The galaxy's skeleton has never been built (no galaxy_shape row) -- run "
+                "'planetgen plan' first."
+            )
+
+        bounds = store.get_galaxy_bounds(conn)
+    finally:
+        conn.close()
+
+    if not bounds.contains(address[0], address[1]):
+        # Past the grid's reach: the cell has no address (the object ID cannot name it).
+        return ({"created": False, "qualifies": False, "in_reach": False, "sector_id": None, "sector_name": None},
+                None, None, None, None)
+
+    position_pc = sector_position_pc(*address, skeleton.edge_pc)
+    qualifies = bounds.qualifies(address[0], address[1])
+
+    # Every address in the reach generates, however sparse (GEN.76): the
+    # profile's density sets the draw's expected count, never whether the
+    # draw happens.
+    args = _default_generation_args(config=config)
+    args.density = sector_profile(address, skeleton).density
+    args.num_systems = None
+    args.link_later = not link
+    return None, args, position_pc, qualifies, skeleton.edge_pc
+
+
+def regenerate_sector_cell(address, config):
+    """
+    Generates the sector of grid cell `address` again as the runs of an API job (PERF.119; the new sector of
+    `api_jobs.regenerate_sector`, whose old one is deleted): the sector as a run of `generate-sectors` and the bright-star
+    backfill around it as a run of `scatter-backfill`. The caller settles the paths.
+
+    Returns:
+        dict: `sector_id` and `sector_name` of the new sector (`None` when the cell is beyond the grid's reach).
+    """
+    early, args, position_pc, _qualifies, edge_pc = _cell_to_generate(address, config)
+    if early is not None:
+        return {"sector_id": early["sector_id"], "sector_name": early["sector_name"]}
+    args.workers = 1
+    conn = store.get_connection(config)
+    try:
+        started_at = store.database_now(conn)
+    finally:
+        conn.close()
+    [saved] = _submit_batch(args, [(address, position_pc, args, "")], f"Sector ({_format_address(address)})", edge_pc,
+                            None, None, count=1, collect=True)
+    _backfill_on_queue(args, started_at, center_pc=position_pc)
+    return {"sector_id": saved["sector_id"], "sector_name": saved["name"]}
 
 
 def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, backfill=True,
@@ -1036,41 +1146,13 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
                      run `planetgen plan` first.
     """
     address = (shell_index, band_index, wedge_index)
-    conn = store.get_connection(config)
-    try:
-        existing_id = store.get_sector_id_at(conn, *address)
-        if existing_id is not None:
-            return {"created": False, "qualifies": True, "in_reach": True, "sector_id": existing_id, "sector_name": None}
-
-        skeleton = store.get_galaxy_shape(conn)
-        if skeleton is None:
-            raise RuntimeError(
-                "The galaxy's skeleton has never been built (no galaxy_shape row) -- run "
-                "'planetgen plan' first."
-            )
-
-        bounds = store.get_galaxy_bounds(conn)
-    finally:
-        conn.close()
-
-    if not bounds.contains(shell_index, band_index):
-        # Past the grid's reach: the cell has no address (the object ID cannot name it).
-        return {"created": False, "qualifies": False, "in_reach": False, "sector_id": None, "sector_name": None}
-
-    position_pc = sector_position_pc(shell_index, band_index, wedge_index, skeleton.edge_pc)
-    qualifies = bounds.qualifies(shell_index, band_index)
-
-    # Every address in the reach generates, however sparse (GEN.76): the
-    # profile's density sets the draw's expected count, never whether the
-    # draw happens.
-    args = _default_generation_args(config=config)
-    args.density = sector_profile(address, skeleton).density
-    args.num_systems = None
-    args.link_later = not link
+    early, args, position_pc, qualifies, edge_pc = _cell_to_generate(address, config, link)
+    if early is not None:
+        return early
 
     try:
         sector_id, sector_name, sector = generate_and_save_sector_at(
-            args, address, position_pc, skeleton.edge_pc,
+            args, address, position_pc, edge_pc,
         )
     except pymysql.err.IntegrityError:
         conn = store.get_connection(config)
@@ -1574,6 +1656,31 @@ def estimate_cell(density, systems, config=None):
             "seconds": round(result.seconds, 1), "measured": result.measured}
 
 
+def _generate_batch_as_runs(args, batch, title, edge_pc, config, center_pc):
+    """
+    The runs of an API job that generates sectors (PERF.119): the sectors of `batch` as one run of `generate-sectors`,
+    then, when any were made, the bright-star backfill around `center_pc` (GEN.30, once, around the requested sector) as a
+    run of `scatter-backfill` and the paths of the new sectors and their neighbours as a run of `settle-sector-paths`
+    (GEN.126), each through the wrapper like the stages of `planetgen galaxy`. A run that finds the machine taken waits in
+    line for it (PERF.153).
+
+    Returns:
+        tuple: `(created_ids, generated)`: the ids of the sectors made, in the order they were saved, and how many.
+    """
+    conn = store.get_connection(config)
+    try:
+        started_at = store.database_now(conn)
+    finally:
+        conn.close()
+    saved = _submit_batch(args, batch, title, edge_pc, None, None, count=len(batch), collect=True)
+    created_ids = [item["sector_id"] for item in saved]
+    if created_ids:
+        _backfill_on_queue(args, started_at, center_pc=center_pc)
+        _one_unit_stage(args, "settle", "Sector paths", "paths", len(created_ids), started_at, "saved",
+                        extra={"sector_ids": sorted(created_ids)})
+    return created_ids, len(created_ids)
+
+
 def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, estimate_only=False):
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
@@ -1657,7 +1764,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     # num_systems=10 default.
     args.density = None
     args.num_systems = None
-    args.workers = 1   # one sector at a time, in whichever process called this
+    args.workers = 1   # one worker generates the run's sectors, one at a time
 
     pending = _Pending.of_candidates(args, candidates, occupied, batch_density)
     batch, estimate_args, total = _plan_pending(pending)
@@ -1675,26 +1782,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         run_common._RUN_STATS.clear()
         raise GenerationRefused(estimate.refusal)
 
-    generated = 0
-    created_ids = []
-    try:
-        for address, position_pc, sector_args, _suffix in batch:
-            started = time.monotonic()
-            sector_id, _name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-            created_ids.append(sector_id)
-            run_common._record_sector(args, {"density": run_common._sector_density(sector_args), "systems": len(sector.entries),
-                                  "stars": run_sector.sector_star_count(sector)}, time.monotonic() - started)
-            generated += 1
-    finally:
-        run_common._finish_stats(args)
-    if generated:
-        backfill_bright_stars(config, center)  # GEN.30: once, around the requested sector
-        # GEN.126: once the neighbours are final; this runs as the API's queued job.
-        conn = store.get_connection(config)
-        try:
-            sector_paths.settle_sectors(conn, created_ids)
-        finally:
-            conn.close()
+    _created_ids, generated = _generate_batch_as_runs(args, batch, f"Sectors (around sector {center_sector_id})", edge_pc,
+                                                     config, center_pc=center)
     return {"generated": generated, "estimate": estimate.as_dict(), **counts}
 
 
