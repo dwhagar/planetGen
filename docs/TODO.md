@@ -7260,6 +7260,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thick-disk term; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
+  Related: GEN.619 (a variable sector edge for galaxies under 28 pc
+  scale length); not a blocker.
   Prerequisites: GEN.369, GEN.380, GEN.381. Related: GEN.382, GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -15742,23 +15744,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
   half-light radius, 12 pc, sits in the extended star cluster range
   (report section 4); the lane decides whether that needs a warning.
-  Registry minimums: mass 281 solar masses, scale length 7.1 pc, scale
-  height 4.8 pc, labelled derived with the Segue 1 source. Density
-  limits (report
+  Registry minimums: mass 281 solar masses, scale length 28 pc (Boss,
+  8:08 PM EDT; the Segue half was 7.1 pc), scale height 4.8 pc (the
+  lever table floor is 4 pc), labelled derived with the Segue 1 source.
+  Density limits (report
   /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
   section 3): the lever table's hard limits come from this report, not
-  from guesses. Recommended (the low-mass cut is decided below; two
-  cards stay open, the Segue floor length and the density floor, and the
-  numbers stand until he answers): every length above 0; scale height at
-  least 4 pc (warn under 8); scale length at least 7.1 pc (warn under
-  28); bulge scale radius at least 2 pc (warn under 4); stellar mass 281
-  to 1.55e11 solar masses; thin-disc crest density D at least about 1
-  (warn under 20 with the share of stars in planned sectors); surface
-  density at most 1e5 solar masses per pc^2 and at most the value that
-  puts a sector over 1e8 systems; pitch angle from 1 degree and arm
-  count from 1. The Sigma0 row 1e-8 to 1e9 is wrong at both ends (six
-  decades too low at the bottom, four too high at the top): gate the
-  pair (Sigma0, h) or show D under the dial.
+  from guesses. Recommended (the low-mass cut and the density floor are
+  decided below; all three cards are answered): every length above 0;
+  scale height at least 4 pc (warn under 8); scale length at least 28 pc
+  (Boss, 8:08 PM EDT: no warn band below it); bulge scale radius at
+  least 2 pc (warn under 4); stellar mass 281 to 1.55e11 solar masses;
+  thin-disc crest density D at least about 1 (warn under 20 with the
+  share of stars in planned sectors); surface density at most 1e5 solar
+  masses per pc^2 and at most the value that puts a sector over 1e8
+  systems; pitch angle from 1 degree and arm count from 1. The Sigma0
+  row 1e-8 to 1e9 is wrong at both ends (six decades too low at the
+  bottom, four too high at the top): gate the pair (Sigma0, h) or show D
+  under the dial.
   Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
   relayed by the galaxy size research thread): the thick disc, the bar,
   the stellar halo and the nuclear cluster and disc switch off below 3e8
@@ -15766,6 +15769,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lever table records it as the structure threshold (GEN.615): the
   Structure dial's thick-disc, bar and halo levers and the nuclear
   structures are inactive below 3e8 solar masses and the form says so.
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
+  relayed by the galaxy size research thread): refuse only when the
+  outline would be empty; warn under D = 20 and show the share of stars
+  in planned sectors. GEN.617 shows the line.
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
+  relayed by the galaxy size research thread): the scale length floor is
+  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
+  fixed 4 pc edge span the scale length. The mass floor 281 solar
+  masses, the scale height floor 4 pc and the bulge floor 2 pc are
+  unchanged. GEN.619 (a variable sector edge) may lower the scale length
+  floor later.
   Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
 
 - [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
@@ -15904,7 +15918,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   include the nuclear cluster and disc (12 to 80 percent of the stars of
   the Auto-sized galaxies from 1e9 down to 281 solar masses at the
   default amplitude, one seed) (the low-mass cut is decided: 3e8 solar
-  masses, GEN.615).
+  masses, GEN.615). Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue
+  floor length card, relayed by the galaxy size research thread): the
+  scale length floor is 28 pc, replacing the Segue-half 7.1 pc, so that
+  about 7 cells of the fixed 4 pc edge span the scale length. The mass
+  floor 281 solar masses, the scale height floor 4 pc and the bulge
+  floor 2 pc are unchanged. GEN.619 (a variable sector edge) may lower
+  the scale length floor later. Nothing under 28 pc is accepted until
+  GEN.619 lands.
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
   Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
@@ -15986,6 +16007,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the reach the plan stores today (`reach_shell_index`, set by `plan
   --reach-shells`); GEN.538 (8.5) later moves the reach into the plan
   configuration and repoints it, so this item never depends on GEN.538.
+  The one-star outline rule becomes a density threshold in GEN.619
+  (Boss, 8:08 PM EDT 2026-10-21, later item); until then Edge keeps
+  today's rule.
   Prerequisites: GEN.601. Related: GEN.603, ADM.109, GEN.538, PERF.121.
 
 - [ ] **GEN.606 Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning**
@@ -16191,6 +16215,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stellar halo and the nuclear cluster and disc switch off below 3e8
   solar masses of stars; below it a galaxy is one disc plus a bulge. The
   sources check covers the thresholds' sources (GEN.615).
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
+  relayed by the galaxy size research thread): the scale length floor is
+  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
+  fixed 4 pc edge span the scale length. The mass floor 281 solar
+  masses, the scale height floor 4 pc and the bulge floor 2 pc are
+  unchanged. GEN.619 (a variable sector edge) may lower the scale length
+  floor later.
   Prerequisites: none.
 
 - [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
@@ -16322,6 +16353,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   solar masses of stars; below it a galaxy is one disc plus a bulge. The
   structure laws of this item stop at the cut (GEN.615); below it a
   galaxy is one disc plus a bulge.
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
+  relayed by the galaxy size research thread): the scale length floor is
+  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
+  fixed 4 pc edge span the scale length. The mass floor 281 solar
+  masses, the scale height floor 4 pc and the bulge floor 2 pc are
+  unchanged. GEN.619 (a variable sector edge) may lower the scale length
+  floor later.
   Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
 
 - [ ] **GEN.613 Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them**
@@ -16348,7 +16386,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table's placeholder and sourced limits (GEN.609) against it, and lists
   any limit change as a new item for the TODO thread to file. Owner: the
   Galaxy size research thread (Boss's request, 7:33 PM EDT, relayed by
-  the coordinator).
+  the coordinator). Cards answered: the low-mass cut 3e8 solar masses
+  (7:58 PM EDT) and the density floor (8:08 PM EDT); the Segue floor
+  length card (8:08 PM EDT): the scale length floor is 28 pc. All three
+  cards are answered.
   Prerequisites: none. Related: GEN.601, GEN.603, GEN.404, GEN.609.
 
 - [ ] **GEN.614 The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster**
@@ -16386,34 +16427,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed; the coordinator confirms). No longer blocked on a card.
   Prerequisites: GEN.601. Related: GEN.606, GEN.609, GEN.612, GEN.604.
 
-- [ ] **GEN.616 Average the galaxy density over each planned sector (or a 3 by 3 by 3 sample) instead of taking its centre point, for galaxies under 28 pc scale length**
-  Found by the galaxy size research thread's density limits report
-  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
-  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
-  the TODO thread. Centre-point sampling overcounts tiny galaxies and
-  compact bulges: plus 50 to 184 percent systems at a scale length of
-  7.1 pc, plus 12 to 49 percent at 14.2 pc, plus 4 to 15 percent at 28
-  pc (report section 2.1). Not blocking: the warn limits of GEN.601
-  cover it until this lands. Do: average the model over each planned
-  sector, or over a 3 by 3 by 3 sample, below 28 pc. Done: the overcount
-  at 7.1 pc, 14.2 pc and 28 pc falls to within the sampling error, and
-  galaxies of 28 pc and above are byte-identical to today's. Takes a
-  generator epoch for the affected small galaxies only. Owner: none yet.
-  Prerequisites: none. Related: GEN.601, GEN.603.
-
 - [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
   Found by the galaxy size research thread's density limits report
   (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
   section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
   the TODO thread. A galaxy can have an empty outline or most of its
   stars outside the planned sectors; the user should see it before a
-  run. Do: one line on the Generate form under the dials (ADM.124) and
-  in the command-line plan output with D (thin-disc crest density), the
-  share of stars in planned sectors (the table of report section 2.2)
-  and the outline size, with a warning under D 20 and a refusal when the
-  outline would be empty. Done: the line appears in both places with the
-  same numbers (a test compares them); an empty outline is refused with
-  the reason. Owner: the Galaxy dials lane (proposed).
+  run. Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
+  relayed by the galaxy size research thread): refuse only when the
+  outline would be empty; warn under D = 20 and show the share of stars
+  in planned sectors. This item is required, not optional. Do: one line
+  on the Generate form under the dials (ADM.124) and in the command-line
+  plan output with D (thin-disc crest density), the share of stars in
+  planned sectors (the table of report section 2.2) and the outline
+  size, with a warning under D 20 and a refusal when the outline would
+  be empty. Done: the line appears in both places with the same numbers
+  (a test compares them); an empty outline is refused with the reason.
+  Owner: the Galaxy dials lane (proposed).
   Prerequisites: GEN.601. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
@@ -16430,6 +16460,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none yet (whoever owns the Moster inversion; the coordinator
   assigns).
   Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.380.
+
+- [ ] **GEN.619 A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold**
+  Boss (2026-10-21, 8:08 PM EDT, on the card "Yes, file it as a later
+  item", relayed by the galaxy size research thread; report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, section 7).
+  Today every sector edge is 4 pc (a decision of 2026-10-08), so a
+  galaxy under about 28 pc scale length has fewer than 7 cells across
+  its scale length and the centre-point density is wrong there (plus 50
+  to 184 percent systems at 7.1 pc, report section 2.1). Do: a galaxy
+  gets an edge of 4, 2 or 1 pc chosen by its scale length, whole
+  parsecs, so that about 7 cells span the scale length; the one-star
+  outline rule becomes a density threshold so the planned region keeps
+  its size when the edge shrinks; the chosen edge is stored in
+  galaxy_shape (edge_pc is already a column). The 4 pc constant is named
+  in about 15 non-test files (the map, the tiles, the API and the sector
+  page), and the object-ID reach in parsecs scales with the edge, so
+  each use reads the galaxy's edge. This reopens the 2026-10-08 decision
+  to keep 4 pc, for small galaxies only. This replaces the
+  cell-averaging item (GEN.616, dropped) as the fix for tiny galaxies,
+  and is not built before the shape dials ship: until then the lever
+  table's scale length floor is 28 pc (Boss, 8:08 PM EDT). Done: the
+  lever table's scale length floor drops from 28 pc to the Segue half
+  7.1 pc (or the value this item's report sets), and a galaxy under 28
+  pc scale length is planned with the 2 or 1 pc edge and the overcount
+  of report section 2.1 falls to within the sampling error; galaxies of
+  28 pc and above are byte-identical to today's; the map, tiles, API and
+  sector page read the stored edge (a test lists the constant's
+  remaining uses and fails on a new one); the Object ID reach in parsecs
+  is checked at each edge; a new generator epoch for the small galaxies
+  only. Owner: none yet; the version is an estimate (9.4, next to the
+  dwarf families, which are the galaxies it serves).
+  Prerequisites: GEN.601, GEN.605, GEN.603. Related: GEN.385, GEN.616,
+  GEN.617, GEN.613, GEN.280.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
