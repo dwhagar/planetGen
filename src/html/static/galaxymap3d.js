@@ -63,6 +63,7 @@ const { formatDistancePc, formatLuminositySol, formatMassSolar, LIGHTYEAR_M, PAR
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
+const { drawnSignature, entriesInTiles } = await import(`./tileview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
@@ -2047,11 +2048,6 @@ function initGalaxyMap3d(canvasEl, data) {
   // They are whole (no tile share) until the tile arrives and takes over.
   function carriedStars(key, into) {
     var box = tileBox(key);
-    starEntries.forEach(function (entry) {
-      if (!into.has(entry.id) && inBox(box, entry.star)) {
-        into.set(entry.id, { id: entry.id, star: entry.star, fade: POINT_FADE });
-      }
-    });
     var ancestor = cachedAncestor(key);
     if (!ancestor) {
       return;
@@ -2131,6 +2127,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // what's still missing.
   function renderFromCache(need) {
     lastNeed = need;
+    // MAP.249: a view whose tiles are the ones already drawn (a fetch that brought nothing new, a settled camera)
+    // is known from the tiles alone, so nothing is built or sorted.
+    var view = drawnSignature(need.keys, need.detail, getTile);
+    var tilesDrawn = currentStamp + "|" + filterStamp() + "|" + view.signature;
+    if (!view.missing.length && tilesDrawn === starSignature) {
+      return [];
+    }
     var missing = [];
     var clouds = new Map();
     var stars = new Map();
@@ -2155,12 +2158,17 @@ function initGalaxyMap3d(canvasEl, data) {
         stars.set(id, { id: id, star: star, fade: fade });
       });
     });
+    // The stars drawn there now (one pass over them, MAP.249), then a cached coarser tile's.
+    entriesInTiles(starEntries, missing, TILE_ROOT, function (id) { return stars.has(id); }).forEach(function (entry) {
+      stars.set(entry.id, { id: entry.id, star: entry.star, fade: POINT_FADE });
+    });
     missing.forEach(function (key) {
       carriedStars(key, stars);
     });
     noteLuminosityRange(need);
-    var starKeys = currentStamp + "|" + filterStamp() + "|" + drawn.join(";") + "|"
-      + Array.from(stars.keys()).sort().join(",");
+    var starKeys = missing.length
+      ? currentStamp + "|" + filterStamp() + "|" + drawn.join(";") + "|" + Array.from(stars.keys()).sort().join(",")
+      : tilesDrawn;
     if (starKeys !== starSignature) {
       starSignature = starKeys;
       setStars(Array.from(stars.values()));
