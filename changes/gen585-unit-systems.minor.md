@@ -9,3 +9,4 @@
   module header and pinned by a test, and GEN.587's sweep decides which stands.
 - Kinds force and mass flow, with newtons, dynes, kg/s, g/s and solar and Earth masses per year; a test that every kind
   has a five-integer dimension and that the derived kinds the code uses have theirs.
+- The column registry (DB.76) lost its local `km3`: the unit registry now holds it with the area and volume kinds.
