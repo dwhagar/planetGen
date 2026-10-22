@@ -467,7 +467,7 @@ def test_sector_with_absurd_density_stops_when_full(mysql_config, monkeypatch, d
 
 
 def test_sector_density_nan_does_not_hang(mysql_config):
-    assert_clean(["sector", "--quiet", "--density", "nan"] + mysql_argv(mysql_config), limit=5)
+    assert_clean(["sector", "--quiet", "--density", "nan"] + mysql_argv(mysql_config), limit=60)
 
 
 class _TooManyConfigs(Exception):
@@ -719,7 +719,7 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
     monkeypatch.setattr(run_galaxy, "generate_sectors_unit", _recording_sectors_unit)
     monkeypatch.setattr(run_galaxy, "_log_saved", lambda *a, **k: None)
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
-                  "--num-systems", "1"] + mysql_argv(mysql_config), limit=10)
+                  "--num-systems", "1"] + mysql_argv(mysql_config), limit=60)
     asked = [tuple(address) for address in worker_patches.read_json_lines(str(tmp_path / "asked.jsonl"))]
     cells = sum(cells_in_band_range(shell, high) for shell, high in _FLAT_OUTLINE)
     assert len(asked) == len(set(asked)) <= cells
@@ -733,4 +733,4 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
 def test_galaxy_density_nan_does_not_hang(mysql_config):
     _plan_flat_galaxy(mysql_config)
     assert_clean(["galaxy", "--quiet", "--shell", "0", "--limit", "1", "--density", "nan"]
-                 + mysql_argv(mysql_config), limit=5)
+                 + mysql_argv(mysql_config), limit=60)

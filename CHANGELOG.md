@@ -2,6 +2,38 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1890] - 2026-10-22
+
+**Headline:** The double-click flight tests wait for the camera to hold still, and the slow-first-click test says what happened when it fails.
+
+### Fixed
+- **`test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click` failed once under load (TEST.262).** It passed alone and in 41 runs under a four-way browser load, so the cause was not found. The tests of the flight to a star now wait until no flight is under way and the camera has not moved for a quarter second before they aim at the star, which `_ready` did not guarantee, and the slow-click test's failure message now carries the times of the pointer events and the camera before the click.
+
+TODO items resolved: none. Added: none.
+
+## [8.0.1889] - 2026-10-22
+
+**Headline:** A star near the hydrogen-burning limit no longer draws a companion lighter than any brown dwarf can be.
+
+### Fixed
+- **A multi-star tree failed for a primary near 0.08 solar masses.** The other members took `m1 * U(0.1, 1)`, which reaches
+  0.0085 solar masses for a primary of 0.085, below the lowest cooling track (0.01) and the deuterium limit of 13 Jupiter
+  masses (`brown_dwarf.mass_range_solar`), so `brown_dwarf.state` raised "no cooling track". The mass ratio is now no lower
+  than puts the member at the deuterium limit; lighter objects are planets, filled in as planets are (GEN.596). A primary
+  of 0.124 solar masses or more draws as it did.
+
+generation-output: changed
+
+## [8.0.1888] - 2026-10-22
+
+**Headline:** The three fuzz tests that guard against a hang no longer fail on a loaded machine, and the page tests know the list pages' kind.
+
+### Fixed
+- **`test_galaxy_absurd_radius_is_clean` timed out on a busy machine (TEST.260).** It passed alone in under 4 seconds but had a 10 second limit, and the two "does not hang" density tests had 5 seconds. A real hang never ends, so each now has the 60 second limit the other fuzz tests use.
+- **The page tests failed for `/lists/<kind>` (TEST.264).** `sample_params` in `test_web_a11y.py` had no value for `kind`, so every layout and accessibility test of `web.object_list` stopped with "add a sample value"; it now holds `planet`.
+
+TODO items resolved: TEST.260, TEST.264. Added: none.
+
 ## [8.0.1887] - 2026-10-22
 
 **Headline:** A sector now has room for the checksum and the parity flag that its storage protection will use.

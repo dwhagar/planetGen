@@ -6936,6 +6936,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
   2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
   GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
+  Epoch (Core 4, GEN.596 merged as #2428, about 5:01 AM EDT 2026-10-22
+  as the lane reported): epoch 45 is now taken on main (44 is the Auto
+  default), so this item renumbers to epoch 46 or later on its rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13641,6 +13644,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
   2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
   GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
+  Epoch (Core 4, GEN.596 merged as #2428, about 5:01 AM EDT 2026-10-22
+  as the lane reported): epoch 45 is now taken on main (44 is the Auto
+  default), so this item renumbers to epoch 46 or later on its rebase.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -14570,20 +14576,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one unit code that stores any kind of unit the project uses and
   answers in every other form, as the point in space does for position.
   Owner: Core 4 (accepted, the coordinator, 2:21 AM EDT 2026-10-22),
-  after GEN.596 and GEN.554 slice 4; Core 5 does not start it (the note
-  offered Core 5 or Core 4). Do: one module with every unit, built from
-  `physics/constants.py` (which stays the home of the exact numbers),
-  each with its kind (length, mass, duration, instant, speed,
-  temperature, delta temperature, angle, power, pressure, density, flux
-  and the others the ladders carry), its dimension, factor, offset,
-  symbol, ASCII key, name, the allowed range (finite, mass at least 0,
-  speed below c) and the declared relations (mass and mu, radius and
-  diameter, period and frequency). It is new code and touches no
-  existing file; the old duplicate names stay until GEN.571 removes
-  them. Keep it free of an astropy import. Done: tests of every factor
-  against the exact definition, compound units agree with their parts
-  (km/s is km over s), round trips, and a file header that states the
-  unit rules. Registry additions (Boss's cards S10 to S18, 12:30 to
+  after GEN.554 slice 4 (GEN.596 merged, #2428); Core 5 does not start
+  it (the note offered Core 5 or Core 4). Do: one module with every
+  unit, built from `physics/constants.py` (which stays the home of the
+  exact numbers), each with its kind (length, mass, duration, instant,
+  speed, temperature, delta temperature, angle, power, pressure,
+  density, flux and the others the ladders carry), its dimension,
+  factor, offset, symbol, ASCII key, name, the allowed range (finite,
+  mass at least 0, speed below c) and the declared relations (mass and
+  mu, radius and diameter, period and frequency). It is new code and
+  touches no existing file; the old duplicate names stay until GEN.571
+  removes them. Keep it free of an astropy import. Done: tests of every
+  factor against the exact definition, compound units agree with their
+  parts (km/s is km over s), round trips, and a file header that states
+  the unit rules. Registry additions (Boss's cards S10 to S18, 12:30 to
   12:32 AM EDT, 2026-10-18, as the coordinator relayed;
   docs/design/unified-system-barycentre.md, section 13.5): the kinds
   angular rate (unit rad/s, period forms shown through the time ladder)
@@ -15545,24 +15551,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its test (TEST.215) still passing. Suggested owner: a research
   thread, then Core 4 (the comet sampler lane); version 8.4.
   Prerequisites: none.
-
-- [ ] **GEN.596 A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug)**
-  Found by Core 1 (2:02 PM EDT 2026-10-21 as the lane reported; relayed
-  by the coordinator at 2:02 PM EDT), filed by the TODO thread.
-  `multistar.draw_member_tree` (src/planetgen/generation/multistar.py)
-  raises `ValueError: no cooling track for ... solar masses`
-  (src/planetgen/physics/brown_dwarf.py, the models run from their
-  lowest tabulated mass) when a companion is drawn below 0.01 solar
-  masses. Frequency: 21 of 3,000 trees (0.7%) for a 0.085 solar mass
-  primary. Fails on main: yes, Core 1 reproduced it on current main.
-  Reproducer: `Placed("star", 0.085)`, age 5e9 years, streams b"f0" to
-  b"f2999"; 21 of 3,000 fail. Do: find where the companion mass is drawn
-  below the cooling table's lowest mass and either clamp the draw to the
-  table's range (the draw's own lower limit) or take the planetary-mass
-  branch, whichever the mass function's design says; no try/except that
-  hides it. Done: the reproducer gives 0 failures in 3,000 and a test
-  covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
-  Prerequisites: none. Related: GEN.545, GEN.262.
 
 - [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
   Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
@@ -21704,53 +21692,6 @@ clears each one.
   symptom is a loaded-gate failure).
   Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
 
-- [ ] **TEST.260 test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug)**
-  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
-  Core 3's note, in its `scripts/test.py changed` gate), filed by the
-  TODO thread. Kind: test infrastructure, the PERF.142 family.
-  `src/tests/test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-the
-  largest allowed radius, wider than the test galaxy]` fails with `hang:
-  planetgen galaxy --quiet --center-sector 1 --radius-pc 200.0 ... did
-  not finish within 10s` (`_Timeout` at units.py `follow_stage`). Fails
-  on main: yes, alone, a 25 s run on a worktree of main d839e5d (4
-  cores, no load). Frequency: 2 of 2. Effect: the timed-out run leaves
-  `planetgen:run:active` set in the test Redis, so every later test that
-  starts a run fails with `Busy: run ... is running`; in one gate 170
-  tests (test_galaxy_gen, test_phenomenon_scatter, test_work_units and
-  every browser fixture) failed or errored and the gate's rerun phase
-  kept failing them for two hours. Reproducer: run the test, then
-  `redis-cli get planetgen:run:active` shows a live run id. Do: make the
-  radius-200 case finish inside the limit (or give it the limit its work
-  needs, from the recorded stats, PERF.144), and make the test release
-  the lock when its run times out; PERF.142 covers the lock having no
-  expiry. Done: the test passes alone and leaves no run key behind.
-  Owner: Bug Hunt (proposed).
-  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): the hung run
-  leaving `planetgen:run:active` set is the same path as PERF.142, and
-  its takeover should clear it after the owner dies; the lane checks the
-  test once that PR is in, and the 10 s hang itself stays this item's.
-  Sightings (Bug Hunt, PERF.148's `changed` gate, about 11:10 PM EDT
-  2026-10-21 as the lane reported, filed by the TODO thread): (1)
-  src/tests/test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
-  failed once with `Busy: run ... is running`: it launches a real galaxy
-  run and collides on the global `planetgen:run:active` lock with
-  another xdist worker's run; it passes alone on main and on the lane's
-  branch; frequency 1 in that gate. The lock collision between tests is
-  this item's family (PERF.142 is done). (2) Run alone, the same test
-  leaves 2 `planetgen.cli.worker` processes running afterwards; they
-  keep taking units of later runs without the database password, so
-  those runs fail with "Access denied ... using password: NO". Do
-  (added): the test and every test that starts a real run use their own
-  run lock key or run serially, and leave no worker process behind. (3)
-  Environment: a gate run without PLANETGEN_TEST_REDIS_URL fails about
-  200 tests with `Busy` (saved to team memory as
-  gate-needs-redis-test-env); a lane's gate must set it.
-  Second sighting of the run lock collision (Core 2, UX.141's gate,
-  about 1:44 AM EDT 2026-10-22 as the lane reported):
-  test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
-  failed once under load; it passes alone.
-  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
-
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full bug hunt audit, and it MUST be done before every single
@@ -21833,6 +21774,31 @@ clears each one.
   test_web_browser_units), and test_old_jobs_are_pruned timed out at 30
   seconds once; all pass alone. Same load class as the sightings above;
   Bug Hunt looks at all of them.
+  Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM EDT 2026-10-22
+  as the lane reported, filed by the TODO thread):
+  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
+  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
+  Same load class as the sightings above; Bug Hunt takes TEST.262 next.
+  Seventh sighting (Galaxy dials lane, `full --check` on main at
+  c92c4fc, about 4:50 AM EDT 2026-10-22 as the lane reported, filed by
+  the TODO thread): GET /api/databases (survive_hostile_query and
+  every_param_at_every_edge) and the GET /api/systems/<uid>/description
+  xss probe in test_fuzz_web_routes returned 500 or 503 from "Lost
+  connection to MySQL server during query" inside `store.list_databases`
+  (the information_schema size query) while four xdist workers created
+  and dropped test databases; they pass alone, and the lane saw it in 3
+  of 4 runs on its machine. Same load class as the sightings above, and
+  a pointer for Bug Hunt: the information_schema query is the one that
+  loses the connection when databases are being created and dropped
+  beside it.
+  Eighth sighting (Core 4, GEN.596's gate, about 5:01 AM EDT 2026-10-22
+  as the lane reported, filed by the TODO thread):
+  test_fuzz_web_routes.py::test_admin_pages_survive_hostile_query_when_logged_in[GET
+  /admin/stats] got ApiError 503 "database unavailable"
+  (admin_pages.admin_stats to apiclient.admin_stats) in the non-browser
+  phase at load average about 9 with 4 workers; it passes alone in 21 s.
+  Same load class as the sightings above (a hostile-query route losing
+  its database connection under load); Bug Hunt looks at all of them.
   Prerequisites: none. Related: TEST.252.
 
 ## USR: User accounts
