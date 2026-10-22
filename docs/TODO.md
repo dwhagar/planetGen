@@ -799,16 +799,43 @@ with `clamp()`.
   off), each with a one-line plain explanation that halo and satellite
   galaxies are separate, each running its own command (GEN.539, GEN.540)
   as a step; turning one on offers the commands that will run (the step
-  list, with its estimate); turning one off says that nothing is
-  deleted; the command line and the API set them through the same
-  commands. Owner: Core 2 (proposed).
+  list, with its estimate); turning one off says that nothing is deleted
+  and nothing stored is hidden; the command line and the API set them
+  through the same commands. Owner: Core 2 (proposed).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported; the row stays in 8.5).
-  Needs the Generate tasks it lands in: ADM.110 (Start a new galaxy) and
-  ADM.111 (Scatter), per the admin control suite report.
-  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116, ADM.110, ADM.111.
+  PM EDT as the lane reported; the row stays in 8.5). Needs the Generate
+  tasks it lands in: ADM.110 (Start a new galaxy) and ADM.111 (Scatter),
+  per the admin control suite report.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the halo control also offers the halo reach (a value with L, pc, kpc
+  or Mpc, default the 262 kpc ceiling) and shows the expected rows and
+  time before it runs; the satellite control is on or off only; turning
+  one off says that generation stops and nothing stored is deleted or
+  hidden (card 7); a switch is disabled with the reason for a galaxy
+  below the halo threshold or with no satellites in its draw.
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116,
+  ADM.110, ADM.111.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  halo control offers the destructive removal as a separate, confirmed
+  admin action, distinct from the non-destructive switch-off, showing
+  what will be deleted; the specifics wait for the design thread's
+  report.
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the admin page offers "switch off and remove" as one chained action
+  for the halo and for the satellites (a separate removal command
+  underneath, GEN.620): a Review step lists the counts of generated
+  rows, facilities and hand edits that will go, a typed database name
+  confirms, a backup is offered first, and it runs as a queued job; this
+  replaces the pending detail above.
 
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -2353,19 +2380,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sector plan and control how far scatters can go around the galaxy
   and what sector addresses are valid." Done: the Galaxy Map and the
   pages read the boundaries and the two switches from the plan
-  configuration (GEN.538); with the halo off they draw no halo scatter
-  beyond the outline and offer no halo layer toggle, with the satellite
-  galaxies off no satellites are drawn or listed (each switch
-  independent of the other), "Show on Galaxy Map" and the uncharted
-  address pages for an address outside the configured boundaries say it
-  is outside the generated galaxy and which switch is off (not just
-  "outside the galaxy"), the tiles carry nothing beyond them, and the
-  pick and the zoom hand-off of MAP.243 are not offered where nothing
-  exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
-  works as built in 8.1; a browser test per combination of the switches.
+  configuration (GEN.538); with a switch off nothing new is generated
+  beyond its boundary and the stored halo or satellite content stays
+  drawn, searchable and routable, and the layer toggles stay (each
+  switch independent of the other), "Show on Galaxy Map" and the
+  uncharted address pages for an address outside the configured
+  boundaries say it is outside the generated galaxy and which switch is
+  off (not just "outside the galaxy") when nothing is stored there, the
+  tiles carry the stored content and nothing is generated for them, and
+  the pick and the zoom hand-off of MAP.243 are not offered where
+  nothing exists; with a switch on everything of MAP.207, MAP.243 and
+  MAP.239 works as built in 8.1; a browser test per combination of the
+  switches.
   Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538,
-  GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
+  GEN.540, MAP.207, MAP.243, MAP.239.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  card 7: switching a switch off only stops generation; the maps and
+  pages do NOT hide stored content. They show, search and route whatever
+  is stored and generate nothing new beyond the boundaries; an address
+  that is refused is one with nothing stored (decision 2). The browser
+  test per combination of the switches checks both a galaxy generated
+  with a switch on and then switched off (content still drawn,
+  searchable and routable) and one that never had it on (nothing there).
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  after a removal the region's cells answer "outside the generated
+  galaxy: the halo was removed" (or satellites), saved references
+  (bookmarks, saved courses) show as removed, and the tiles and the
+  query caches stop serving the region once the deletion epoch is bumped
+  (GEN.620).
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
   Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
@@ -13272,6 +13319,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switches, storage) and writes docs/design from the answers; the
   coordinator starts it. 8.1 still builds halo and satellites always on
   (GEN.301).
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  (1) Boundaries: the 262 kpc addressing ceiling (`reach_shell_index`,
+  96-bit IDs) stays stored, with a halo reach and a satellite reach
+  added below it; the outline stays derived by `plan` (the Edge dial,
+  GEN.605); valid addresses are the outline, plus the halo region out to
+  the halo reach when halo is on, plus the satellite volumes when
+  satellite galaxies are on. (2) An address beyond the switches is
+  refused with the reason ("outside the generated galaxy", naming the
+  switch that is off); this supersedes the GEN.235 rule that any address
+  inside the reach is generated on demand and the `outside_ok` path
+  (GEN.81); 8.9 "generate anywhere" may reopen it. (3) The halo reach
+  defaults to the 262 kpc ceiling; the halo command takes a smaller
+  reach in L, pc, kpc or Mpc like the Edge dial and shows the expected
+  rows and time first; no virial-radius default (its ratio has no
+  source). (4) By place: beyond the outline everything that is not a
+  satellite galaxy follows the halo switch (stellar halo, halo globular
+  clusters, hypervelocity and ejected stars, high-velocity clouds, hot
+  halo gas); satellite galaxies and their own stars, clusters and
+  phenomena follow the satellite switch; anything inside the outline is
+  always generated. (5) `scatter` keeps one kind per run and gains one
+  region parameter (interior, halo or satellites); the wrapper's step
+  list holds one run per kind per region the configuration enables;
+  completion is stored per kind and region, so turning a switch on later
+  runs only the missing regions; this replaces the 4:49 PM EDT
+  2026-10-17 wording that each scatter kind reads only its switch. (6)
+  The satellite switch is on or off only; count, places and sizes always
+  come from the seed's draw (GEN.369); same seed, same satellites; no
+  distance cap and no count dial for now. (7) Switching off keeps stored
+  content visible (not the recommended option): only generation stops;
+  stored rows stay drawn, searchable and routable. (8) Storage: a new
+  one-row `plan_configuration` table holding the two switches, the halo
+  reach, the satellite reach and the ceiling (moved out of
+  `galaxy_shape`); only the halo and satellite commands write it; `plan`
+  reads it and never rewrites it; it joins the plan fingerprint tables
+  (`PLAN_TABLES` in `db/fingerprint.py`); the 8.5 migration fills it
+  from what an existing galaxy holds. Applied defaults, not carded: if a
+  new `plan` outline would grow past a stored halo reach, `plan` refuses
+  and names the halo command; a request to generate beyond the
+  boundaries is refused but a sector with stored content stays readable
+  for display, search and routing after its switch is turned off; the
+  halo and satellite commands refuse a galaxy that has nothing to switch
+  on (below the halo threshold `dials.HALO_MIN_HALO_MASS_SOLAR`,
+  GEN.606; a satellite draw of none, GEN.369), saying why; turning a
+  switch on later makes only the missing region. The design note in
+  docs/design is written from the report; confirm with the design
+  thread.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): besides
+  the non-destructive switch-off (card 7, stored content stays), an
+  admin can switch the halo off on an already-made galaxy destructively:
+  the halo content is removed from the database and every halo cell
+  becomes an invalid address (refused with the reason, decision 2). The
+  Plan configuration design thread is working out the specifics
+  (confirmation, what exactly is deleted, the fingerprint and the
+  completion records, whether satellites get the same) and reports;
+  until then it is a pending detail, not a decision.
 
 
 - [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
@@ -13334,6 +13441,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retired by GEN.602; `--reach-shells` stays the addressing detail here.
   The Halo dial GEN.606 sets how big the halo is; GEN.539's switch
   decides whether it is generated at all.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the configuration is a new one-row `plan_configuration` table
+  (decision 8), not an extension of `galaxy_shape`: it holds the two
+  switches, the halo reach, the satellite reach and the ceiling, and
+  joins `PLAN_TABLES`; `SCATTER_COVERS_REACH` and the `min(high, reach)`
+  clamps go; an address beyond the switches is refused with the reason,
+  which supersedes GEN.235's generate-anywhere-in-reach rule and
+  `outside_ok` (decision 2); the scatter gets one region parameter
+  (interior, halo, satellites) with completion stored per kind and
+  region, which replaces the "each kind reads only its switch" wording
+  above (decision 5) and is this item's work after PERF.121 merges, not
+  a change to the PERF.121 gate in flight (the PERF.121 follow-up);
+  beyond the outline, everything that is not a satellite galaxy follows
+  the halo switch (decision 4). Done also: a test per kind and region
+  that a switch turned on later makes only its missing regions; `plan`
+  refuses, naming the halo command, when its outline would pass a stored
+  halo reach.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  destructive halo removal on a made galaxy deletes the halo rows and
+  the per-kind-per-region completion records for the halo region and
+  updates `plan_configuration` (halo off, halo reach cleared); the
+  specifics wait for the design thread's report.
 
 - [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13363,6 +13497,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Distinct from the Halo dial GEN.606 (Boss, 6:45 PM EDT 2026-10-21):
   this is the on/off switch of the halo scatter; the dial sets the dark
   halo mass and the stellar halo share.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the halo reach defaults to the 262 kpc ceiling and the command takes a
+  smaller reach in L, pc, kpc or Mpc like the Edge dial, showing the
+  expected rows and time first (decision 3); no virial-radius default;
+  everything beyond the outline that is not a satellite galaxy follows
+  this switch (decision 4); it refuses to switch halo on for a galaxy
+  below the halo threshold (`dials.HALO_MIN_HALO_MASS_SOLAR`, GEN.606)
+  and says why; the commands that run are one scatter per kind for the
+  halo region (decision 5).
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  halo command (or a flag on it) gains the destructive switch-off for a
+  made galaxy, with a confirmation and a count of what it will remove;
+  the specifics wait for the design thread's report.
 
 - [ ] **GEN.540 The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13391,6 +13543,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.120, GEN.371.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the switch is on or off only: count, places and sizes always come from
+  the seed's draw (GEN.369), the same seed gives the same satellites
+  when turned on later, and there is no distance cap or count dial for
+  now (decision 6); this replaces "sets their parameters (how many and
+  how far)" above; satellite galaxies and their own stars, clusters and
+  phenomena follow this switch (decision 4); the command refuses a
+  galaxy whose draw gives no satellites, saying why.
 
 - [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
   Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
@@ -16314,6 +16476,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.601, GEN.605, GEN.603. Related: GEN.385, GEN.616,
   GEN.617, GEN.613, GEN.280.
 
+- [ ] **GEN.620 The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off)**
+  Boss, 2026-10-21, 9:26 PM EDT: "admin should have the ability to
+  switch off halo's to a made galaxy but it would be destructive and
+  actually remove them from the database and make all halo cells invalid
+  addresses." Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to
+  11, section "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  (9) A separate admin removal command that needs the switch already
+  off; only the halo and satellite commands (GEN.539, GEN.540) write the
+  plan configuration and only removal deletes; the admin page chains
+  "switch off and remove" as one action. (10) It deletes all hand-made
+  content in the region: the Review step lists the counts of generated
+  rows, facilities and hand edits that will go and a typed database name
+  confirms; saved references (bookmarks, saved courses) show as removed:
+  outside the generated galaxy. (11) Satellites get the same: one
+  command takes a region argument, halo or satellites, with the same
+  Review, counts and typed confirmation; satellite removal also deletes
+  the satellite component rows, and switching on later places them again
+  from the seed. Done: the command deletes, in the region, the sectors
+  with their star systems, bodies and facilities, standalone phenomena,
+  nearest-system lists (refreshed around the edge), sector stats, bright
+  stars, phenomenon scatter rows with their member trees, nebula field
+  cells and the halo components (for satellites also the satellite
+  component rows), in batches like the existing clear functions in
+  `db/edits.py` and `db/store.py`; it leaves `plan_configuration`
+  unchanged (the end state is the switch off with an empty region); it
+  bumps the deletion epoch (`note_sector_deleted`, read by
+  `sector_deletions`, part of the map cache keys) and clears the
+  region's tile cache without rerunning `planetgen warm`; it clears the
+  per-kind-per-region completion marks of the region (GEN.538) so
+  switching on again regenerates it from the seed, with the same stars
+  and object IDs and no hand-made content restored; it keeps the admin
+  suite's safety (Review step with counts, typed database name, an offer
+  of a backup first, an audit row, a queued job that waits while a
+  generate or scatter job runs); a request for a removed address answers
+  "outside the generated galaxy: the halo was removed" (the card 2
+  refusal); a test that after removal no row remains in the region, the
+  cells are refused, the interior is unchanged and switching on again
+  regenerates the region.
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
+  GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16832,6 +17036,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to drop its remaining references.
   Design:
   [docs/design/command-inventory.md](design/command-inventory.md)
+  Follow-up from the plan configuration decisions (Boss, 9:21 to 9:24 PM
+  EDT 2026-10-21, decision 5): `scatter` gains one region parameter
+  (interior, halo or satellites) with completion stored per kind and
+  region; it is GEN.538's work after this item merges and does not
+  change this item's gate in flight.
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -18617,27 +18826,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
   Prerequisites: GEN.601. Related: GEN.603, DB.66.
-
-- [ ] **DB.82 The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug)**
-  Found by the Blocker 2 lane (9:12 PM EDT 2026-10-21 as the lane
-  reported), filed by the TODO thread. Kind: test failure. Test:
-  src/tests/test_sql_portability.py::test_no_new_values_function_in_on_duplicate_key_update.
-  Text: "planetgen/db/objectindex.py:134: VALUES(__expr__) in:
-  object_index . __expr__ = VALUES ( __expr__ )" (VALUES() in ON
-  DUPLICATE KEY UPDATE is deprecated since MySQL 8.0.20). Fails on main:
-  yes (objectindex.py and the test match origin/main 5f4f32b); the code
-  came in with PERF.140 (#2370, Core 2). Frequency: every run,
-  deterministic. Reproducer: python -m pytest
-  src/tests/test_sql_portability.py -q. It blocks the DB.44 gate. Do:
-  write the upsert with the row alias form (INSERT ... AS new ... ON
-  DUPLICATE KEY UPDATE col = new.col), which works on the MySQL 8.0.19
-  minimum, and leave no VALUES() use in the file; no shim. Done: the
-  test passes and the object index tests still pass. Owner: Core 2,
-  fixing it (row alias form in objectindex.py; its gate started 9:17 PM
-  EDT as the lane reported, merge expected within about 30 minutes);
-  Core 2 notes the `changed` selection did not pick up
-  test_sql_portability for PERF.140. Blocker 2 does not need to take it.
-  Prerequisites: none. Related: PERF.140, DB.79, DB.44.
 
 ## API: The JSON API
 
@@ -21806,15 +21994,18 @@ clears each one.
   same seed with every combination of the halo and the satellite
   galaxies (both off, either, both on) and compares the interior
   sectors, bright stars and phenomena inside the outline row for row; a
-  test that with a switch off no row exists beyond the boundary it
-  controls and none of its commands was selected; a test that sector
-  generation refuses an address outside the configured boundaries with
-  the reason, and that scatter and sector generation take their
-  boundaries only from the configuration; the whole-sphere audits
-  (TEST.159, TEST.160, TEST.185) run with both switches on and say so; a
-  migration test that an existing galaxy with halo or satellite content
-  reads those switches as on and one without as off. Owner: Quality
-  (proposed).
+  test that with a switch off no new row is made beyond the boundary it
+  controls and none of its commands was selected, and that content
+  already stored stays readable for display, search and routing after
+  the switch is turned off (Boss, card 7); a test that sector generation
+  refuses an address outside the configured boundaries with the reason,
+  naming the switch that is off (the refusal supersedes GEN.235's
+  generate-anywhere-in-reach rule and `outside_ok`), and that scatter
+  and sector generation take their boundaries only from the
+  configuration; the whole-sphere audits (TEST.159, TEST.160, TEST.185)
+  run with both switches on and say so; a migration test that an
+  existing galaxy with halo or satellite content reads those switches as
+  on and one without as off. Owner: Quality (proposed).
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
   GEN.540, TEST.159, TEST.160, TEST.185.
   Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
@@ -21823,6 +22014,22 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  card 7 keeps stored content visible when a switch is turned off, so
+  "nothing drawn, picked or offered beyond the boundaries" no longer
+  holds; the tests above are worded to that. Add a test that turning a
+  switch on later makes only the missing kind-and-region runs (decision
+  5), and that `plan` refuses, naming the halo command, when its outline
+  would pass a stored halo reach.
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  a test (GEN.620) that after a removal no row remains in the region,
+  its cells are refused with the reason, the interior is identical, and
+  switching on again regenerates the region from the seed with the same
+  object IDs.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
   Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
