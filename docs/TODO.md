@@ -21741,7 +21741,49 @@ clears each one.
   code, or a test that does not wait for the fly to finish) and fix the
   cause, not the load. Done: the cause is on this item and the test
   passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
-  TEST.252 test).
+  TEST.252 test). Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM
+  EDT 2026-10-22 as the lane reported, filed by the TODO thread): under
+  load five browser tests failed in module-fixture setup after 1,988 to
+  2,063 seconds (test_web_browser_crumbs at 1280 and at 320, and three
+  in test_web_browser_units), and test_old_jobs_are_pruned timed out at
+  30 seconds once; all pass alone. A browser and job-timing load class,
+  separate from the MySQL sightings of TEST.265; Bug Hunt looks at them
+  with this item. Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM
+  EDT 2026-10-22 as the lane reported, filed by the TODO thread):
+  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
+  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
+  Same load class as the fifth sighting; Bug Hunt took this item next.
+  Update (Bug Hunt, about 5:30 AM EDT 2026-10-22 as the lane reported):
+  PR #2430 merged: the flight tests wait for a still camera, and the
+  slow-click test's failure message now carries the pointer event times.
+  The double-click failure itself did not reproduce in 41 runs under
+  four-way browser load, so this item stays open for the double-click
+  part only, as "watch for the new message". The MySQL lost-connection
+  sightings moved to their own item, TEST.265 (root cause found).
+  Prerequisites: none. Related: TEST.252.
+
+- [ ] **TEST.265 A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug)**
+  Split from TEST.262 by the TODO thread at Bug Hunt's request (about
+  5:30 AM EDT 2026-10-22 as the lane reported). ROOT CAUSE found by Bug
+  Hunt: `tests/dbpool.py` `drop_database` KILLs every connection that
+  holds a metadata lock on the database being dropped, and another
+  worker's `store.list_databases(with_counts)` holds exactly that lock
+  while it counts rows (the information_schema size query), so that
+  worker's query is killed mid-way and the test sees "Lost connection to
+  MySQL server during query" or a 503 "database unavailable". A
+  reproducer (3 listers beside 3 create-and-drop loops) gave 222 errors
+  in 60 s before the fix and 0 after. The fix is in a PR Bug Hunt is
+  gating; Bug Hunt will say which sightings it closes. The redo log
+  capacity (100 MB default on one lane machine, 84 "log_checkpointer
+  lagging" warnings) is a real but separate slowdown and not the cause
+  of the lost connections; the lane machine notes already ask for a
+  larger `innodb_redo_log_capacity`. Do: stop the drop from killing a
+  connection that is only reading (kill only the dropped database's own
+  test connections, or let the lister retry), with a test that runs
+  listers beside create-and-drop loops. Done: the reproducer gives 0
+  errors in 60 s and the full gate shows none of the sightings below.
+  Owner: Bug Hunt (its own find; the fix PR is being gated).
+  Sightings moved here from TEST.262 (the TODO thread):
   Related sighting (Core 2, about 7:25 PM EDT 2026-10-21 as the lane
   reported, filed by the TODO thread): once under load, the facilities
   route in test_fuzz_web_routes failed with "Lost connection to MySQL
@@ -21767,18 +21809,6 @@ clears each one.
   sightings above; Bug Hunt looks at all of them. The same gate saw
   test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
   fail once under load (TEST.260's run lock collision).
-  Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread): under load five
-  browser tests failed in module-fixture setup after 1,988 to 2,063
-  seconds (test_web_browser_crumbs at 1280 and at 320, and three in
-  test_web_browser_units), and test_old_jobs_are_pruned timed out at 30
-  seconds once; all pass alone. Same load class as the sightings above;
-  Bug Hunt looks at all of them.
-  Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread):
-  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
-  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
-  Same load class as the sightings above; Bug Hunt takes TEST.262 next.
   Seventh sighting (Galaxy dials lane, `full --check` on main at
   c92c4fc, about 4:50 AM EDT 2026-10-22 as the lane reported, filed by
   the TODO thread): GET /api/databases (survive_hostile_query and
@@ -21799,7 +21829,7 @@ clears each one.
   phase at load average about 9 with 4 workers; it passes alone in 21 s.
   Same load class as the sightings above (a hostile-query route losing
   its database connection under load); Bug Hunt looks at all of them.
-  Prerequisites: none. Related: TEST.252.
+  Prerequisites: none. Related: TEST.262, TEST.252.
 
 ## USR: User accounts
 
