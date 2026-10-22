@@ -93,7 +93,7 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
-from planetgen.db import objectlist
+from planetgen.db import cloudcontents, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
@@ -1401,6 +1401,22 @@ def phenomenon(phenomenon_type, phenomenon_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(detail)
+
+
+@bp.route("/phenomena/<phenomenon_type>/<uid:phenomenon_id>/contents")
+def phenomenon_contents(phenomenon_type, phenomenon_id):
+    """
+    `GET /api/phenomena/<type>/<id>/contents` -- what sits inside a nebula or supernova remnant (UX.144): `counts` by
+    kind, `total`, and up to `limit` (default 100, at most 500) `items` (`kind`, `id`, `name`) in kind, name order. 404
+    for another type or an id that is no row.
+    """
+    conn = get_db()
+    try:
+        query_phenomenon_detail(conn, phenomenon_type, phenomenon_id)
+        limit = min(max(_int_arg(request.args, "limit", cloudcontents.DEFAULT_LIMIT), 1), 500)
+        return jsonify(cloudcontents.cloud_contents(conn, phenomenon_type, phenomenon_id, limit))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
 
 
 @bp.route("/uncharted-phenomena/<int:scatter_id>")

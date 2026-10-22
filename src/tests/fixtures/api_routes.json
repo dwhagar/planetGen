@@ -99,6 +99,7 @@
   "/api/phenomena GET",
   "/api/phenomena/<phenomenon_type>/<uid:phenomenon_id> DELETE",
   "/api/phenomena/<phenomenon_type>/<uid:phenomenon_id> GET",
+  "/api/phenomena/<phenomenon_type>/<uid:phenomenon_id>/contents GET",
   "/api/phenomena/<phenomenon_type>/<uid:phenomenon_id>/regenerate POST",
   "/api/planets/<uid:body_id> DELETE",
   "/api/planets/<uid:body_id>/class POST",

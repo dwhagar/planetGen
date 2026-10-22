@@ -539,6 +539,10 @@ connectivity to that specific schema rather than the default one.
   404 for an id that is no row (`queryDb.scattered_phenomenon_detail`). The rows of `GET /api/phenomena` that are
   scattered carry `scatter_id`, `member_count` and `system_mass_solar`. The `bright_stars` of
   `GET /api/galaxy/bright-stars` and the `stars` and `scattered` of `GET /api/galaxy/uncharted` carry the same two.
+- `GET /api/phenomena/<type>/<id>/contents` — what sits inside a nebula or supernova remnant (UX.144): `counts` by kind
+  (`system`, `nebula`, `asteroid_field`, `rogue_planet`, `interstellar_comet`, `black_hole`, `neutron_star`), `total`, and
+  up to `limit` (default 100, at most 500) `items` (`{kind, id, name}`, by kind then name). A type that cannot contain
+  anything, or an id that is no row, is a 404 (`db.cloudcontents`). A system's own compact remnant is not counted.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/
