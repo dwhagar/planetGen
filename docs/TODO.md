@@ -21791,6 +21791,18 @@ clears each one.
   test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
   took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
   Same load class as the sightings above; Bug Hunt takes TEST.262 next.
+  Seventh sighting (Galaxy dials lane, `full --check` on main at
+  c92c4fc, about 4:50 AM EDT 2026-10-22 as the lane reported, filed by
+  the TODO thread): GET /api/databases (survive_hostile_query and
+  every_param_at_every_edge) and the GET /api/systems/<uid>/description
+  xss probe in test_fuzz_web_routes returned 500 or 503 from "Lost
+  connection to MySQL server during query" inside `store.list_databases`
+  (the information_schema size query) while four xdist workers created
+  and dropped test databases; they pass alone, and the lane saw it in 3
+  of 4 runs on its machine. Same load class as the sightings above, and
+  a pointer for Bug Hunt: the information_schema query is the one that
+  loses the connection when databases are being created and dropped
+  beside it.
   Prerequisites: none. Related: TEST.252.
 
 ## USR: User accounts
