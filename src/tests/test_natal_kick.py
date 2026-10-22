@@ -10,6 +10,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import mass_chain, natal_kick, structure as galaxyStructure, structure_draw
+from tests.wide_masses import wide_mass
 
 MILKY_WAY_STARS = 5.0e10
 MILKY_WAY_HALO = 1.15e12           # the published halo mass the repository's tests quote (test_sector_gen.py, TEST.245)
@@ -93,8 +94,8 @@ def test_a_seed_draws_the_share_its_galaxy_has_and_the_same_every_time():
 
 
 def test_small_galaxies_lose_more_of_their_neutron_stars_than_large_ones():
-    rows = sorted((mass_chain.draw_mass_chain(n.to_bytes(16, "big")).stellar_mass_solar,
-                   structure_draw.draw_neutron_star_unbound_share(n.to_bytes(16, "big"))) for n in range(120))
+    seeds = [n.to_bytes(16, "big") for n in range(120)]
+    rows = sorted((wide_mass(seed), structure_draw.draw_neutron_star_unbound_share(seed, wide_mass(seed))) for seed in seeds)
     small, large = [share for _m, share in rows[:30]], [share for _m, share in rows[-30:]]
     assert sum(small) / 30 > sum(large) / 30 + 0.2
     assert min(share for _m, share in rows) < 0.1 and max(share for _m, share in rows) > 0.5

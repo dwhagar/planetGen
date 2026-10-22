@@ -646,3 +646,11 @@ def _site_open():
     except FileNotFoundError:
         pass
     shutil.rmtree(updateguard.running_dir(), ignore_errors=True)
+
+
+@pytest.fixture
+def large_spiral_fallback(monkeypatch):
+    """The galaxy a unit with no galaxy bound belongs to is a 2.6 kpc spiral, as the hand-built shapes of the tests that
+    place things at 8 kpc assume: the fallback seed's own galaxy is a small spiral since the Auto window narrowed (GEN.603)."""
+    from planetgen.galaxy import scales
+    monkeypatch.setattr(scales, "_drawn_scale_length_pc", lambda _seed: 2600.0)

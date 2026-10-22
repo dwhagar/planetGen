@@ -117,10 +117,10 @@ def stellar_mass_density_per_dex(log_mass):
     return math.log(10.0) * x * math.exp(-x) * (PHI_1 * x ** ALPHA_1 + PHI_2 * x ** ALPHA_2)
 
 
-@functools.lru_cache(maxsize=1)
-def _mass_cdf():
-    """`(grid of log10 masses, cumulative share at each)` over the Auto window, by the trapezoid rule."""
-    low, high = AUTO_LOG_MASS_RANGE
+@functools.lru_cache(maxsize=4)
+def _mass_cdf(log_range=AUTO_LOG_MASS_RANGE):
+    """`(grid of log10 masses, cumulative share at each)` over `log_range` (the Auto window), by the trapezoid rule."""
+    low, high = log_range
     step = (high - low) / _GRID_STEPS
     grid = [low + step * i for i in range(_GRID_STEPS + 1)]
     density = [stellar_mass_density_per_dex(point) for point in grid]
@@ -131,10 +131,10 @@ def _mass_cdf():
     return tuple(grid), tuple(value / total for value in cumulative)
 
 
-def log_stellar_mass_at(share):
-    """log10 of the stellar mass below which `share` (0 to 1) of the Auto window's galaxies lie, the inverse of the
-    mass function's cumulative sum (linear between grid points)."""
-    grid, cumulative = _mass_cdf()
+def log_stellar_mass_at(share, log_range=AUTO_LOG_MASS_RANGE):
+    """log10 of the stellar mass below which `share` (0 to 1) of the galaxies of `log_range` (the Auto window) lie, the
+    inverse of the mass function's cumulative sum (linear between grid points)."""
+    grid, cumulative = _mass_cdf(log_range)
     share = min(max(share, 0.0), 1.0)
     low, high = 0, len(cumulative) - 1
     while high - low > 1:
