@@ -1,0 +1,26 @@
+{#- One star, planet, moon, belt or comet (/object/<ref>, web/item_pages.py, UX.143). -#}
+{% extends "base.html" %}
+{% block subhead %}
+<p class="badges">
+  <span class="badge">{{ kind_label }}</span>
+  <span class="badge">Object ID {{ object_id }}</span>
+  <span class="badge">{{ system_name }} system</span>
+</p>
+{% endblock %}
+{% block content %}
+<section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
+  <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
+  {% if facts %}{{ facts }}{% else %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
+  <p><a href="{{ row_url }}">Show it in the system's list</a> or <a href="{{ system_url }}">open the {{ system_name }} system</a>.</p>
+</section>
+{% if children %}
+<section class="panel" id="item-members" aria-labelledby="item-members-heading">
+  <div class="panel-header"><h2 id="item-members-heading">Belonging to it</h2></div>
+  <ul>
+    {%- for child in children %}
+    <li><a href="{{ child.url }}">{{ child.title }}</a> ({{ child.kind|lower }})</li>
+    {%- endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}
