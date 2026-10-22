@@ -10,6 +10,7 @@ from planetgen import tuning
 from planetgen.generation import companion_classes, place_terms
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from planetgen.physics import remnant_progenitors
 from planetgen.util import draw
 
 POINTS = sorted(tuning.CLOSE_BINARY_FRACTION_BY_FE_H.items())
@@ -75,22 +76,25 @@ def test_the_remnants_raise_the_perturber_mass_and_the_black_holes_do_most_of_it
     disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
     stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
     everything = place_terms.mass_weighted_perturber_mass_solar(disk)
-    assert 2.0 < everything / stars < 4.0
+    assert 1.3 < everything / stars < 2.5
     assert place_terms.PlaceTerms(1.0, 30.0).perturber_mass_solar == pytest.approx(everything)
 
 
 def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     """GEN.541 (docs/design/placement-by-population.md): the share of core-collapse stars that leave a hole
-    (Sukhbold et al. 2016, Table 4: 26 to 45 percent), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
+    (the failed share, GEN.554: inside the verified 0 to 45 percent, Sukhbold et al. 2016, Table 4), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
     Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
-    low, high = tuning.BLACK_HOLE_PROGENITOR_SOL[0], tuning.IMF_BREAKS_SOL[-1]
-    collapse = place_terms._imf_integral(0.0, tuning.NEUTRON_STAR_PROGENITOR_SOL[0], high)
-    assert 0.26 <= place_terms._imf_integral(0.0, low, high) / collapse <= 0.45
+    low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
+    collapse = place_terms._imf_integral(0.0, low, high)
+    holes = remnant_progenitors.number("black-hole")
+    assert holes / collapse == pytest.approx(remnant_progenitors.reference_failed_share(), rel=1e-4)
+    assert 0.0 <= holes / collapse <= 0.45
     assert 9.0 <= sum(tuning.BLACK_HOLE_MASS_RANGE_SOLAR) / 2.0 <= 14.2
-    per_solar_mass_formed = place_terms._imf_integral(0.0, low, high) / place_terms._imf_integral(
-        1.0, tuning.IMF_BREAKS_SOL[0], high)
-    assert 1.0e8 <= 5.0e10 * per_solar_mass_formed <= 1.0e9
+    per_solar_mass_formed = holes / place_terms._imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high)
+    widest = remnant_progenitors.number("black-hole", 0.0, tuning.BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE[1])
+    assert 1.0e8 <= 5.0e10 * widest / place_terms._imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high) <= 1.0e9
+    assert 2.0e7 <= 5.0e10 * per_solar_mass_formed < 1.0e8, "the gap: the middle draw's count is under the published range"
 
 
 def test_the_black_holes_carry_the_share_of_the_second_moment_the_design_note_records():
@@ -98,13 +102,13 @@ def test_the_black_holes_carry_the_share_of_the_second_moment_the_design_note_re
     stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
     everything = place_terms.mass_weighted_perturber_mass_solar(disk)
     assert stars == pytest.approx(0.55, abs=0.06)
-    assert everything == pytest.approx(1.44, abs=0.08)
+    assert everything == pytest.approx(1.01, abs=0.06)
 
 
 def test_a_young_population_has_the_heavier_perturbers():
     young = place_terms.mass_weighted_perturber_mass_solar([(1.0, tuning.STELLAR_POPULATION_AGE_RANGES_GY["young"])])
     old = place_terms.mass_weighted_perturber_mass_solar([(1.0, tuning.STELLAR_POPULATION_AGE_RANGES_GY["old"])])
-    assert young > old > 1.0
+    assert young > old > 0.5
     mixed = place_terms.mass_weighted_perturber_mass_solar([(0.5, (0.0, 0.1)), (0.5, (3.0, 10.0))])
     assert old < mixed < young
 
@@ -127,8 +131,8 @@ def test_the_limits_scale_the_way_the_formulas_do():
 def test_the_design_notes_table_follows():
     # docs/design/placement-by-population.md 3.3, 2 solar masses, 10 Gyr, the default perturber mass (<M^2> / <M> of the
     # whole disk with remnants).
-    for density, sigma, encounter, tide in ((0.048, 30, 11_400, 500_000), (6.9, 120, 317, 95_000),
-                                            (77, 120, 28, 42_000), (660, 120, 3.3, 21_000)):
+    for density, sigma, encounter, tide in ((0.048, 30, 16_400, 500_000), (6.9, 120, 456, 95_000),
+                                            (77, 120, 41, 42_000), (660, 120, 4.8, 21_000)):
         terms = place_terms.PlaceTerms(density, float(sigma))
         assert place_terms.encounter_limit_au(terms, 2.0, 10.0) == pytest.approx(encounter, rel=0.1)
         assert place_terms.tidal_limit_au(terms, 2.0) == pytest.approx(tide, rel=0.1)

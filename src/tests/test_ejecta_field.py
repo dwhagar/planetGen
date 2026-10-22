@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import ejecta_field
+from planetgen.galaxy import ejecta_field, structure as galaxyStructure, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.sector import SpaceSector
@@ -39,14 +39,14 @@ def test_the_galaxys_systems_are_its_stellar_mass_over_the_mean_system_mass():
     assert systems == pytest.approx(5.0e10 / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-6)   # GEN.404: the mass sets the count
 
 
-def test_the_unbound_share_is_a_draw_of_the_range_for_neutron_stars_and_two_percent_for_black_holes():
-    low, high = tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE
+def test_the_unbound_share_is_the_galaxys_own_for_neutron_stars_and_two_percent_for_black_holes():
     seeds = [bytes([n]) * 16 for n in range(40)]
-    shares = [ejecta_field.unbound_fraction("neutron-star", seed) for seed in seeds]
-    assert all(low <= share <= high for share in shares) and len(set(shares)) > 30
-    assert shares == [ejecta_field.unbound_fraction("neutron-star", seed) for seed in seeds]
-    assert ejecta_field.unbound_fraction("neutron-star") == pytest.approx((low + high) / 2)
-    assert ejecta_field.unbound_fraction("black-hole", seeds[0]) == tuning.BLACK_HOLE_UNBOUND_FRACTION == 0.02
+    shapes = [SHAPE._replace(structure=structure_draw.draw_structure(seed)) for seed in seeds]
+    shares = [ejecta_field.unbound_fraction("neutron-star", shape) for shape in shapes]
+    assert shares == [shape.structure.neutron_star_unbound_share for shape in shapes]
+    assert all(0.0 <= share <= 1.0 for share in shares) and len(set(shares)) > 30
+    assert ejecta_field.unbound_fraction("neutron-star") == galaxyStructure.REFERENCE_STRUCTURE.neutron_star_unbound_share
+    assert ejecta_field.unbound_fraction("black-hole", shapes[0]) == tuning.BLACK_HOLE_UNBOUND_FRACTION == 0.02
 
 
 def test_the_density_is_n_over_four_pi_r_squared_v_t_out_to_v_t_and_none_beyond():
@@ -70,7 +70,7 @@ def test_a_cell_far_out_holds_about_the_expected_ejecta_of_the_design_note():
     near = _density("neutron-star", 5.0e4) * CELL_PC3
     far = _density("neutron-star", 1.0e5) * CELL_PC3
     assert 5.0e-8 < near < 2.0e-7 and 1.2e-8 < far < 5.0e-8
-    assert _density("black-hole", 5.0e4) < _density("neutron-star", 5.0e4) / 50
+    assert _density("black-hole", 5.0e4) < _density("neutron-star", 5.0e4) / 30
 
 
 def test_a_cells_ejecta_never_exceed_the_cap_so_a_dense_galaxy_cannot_stall_the_draw():

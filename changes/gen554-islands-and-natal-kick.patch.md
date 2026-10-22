@@ -1,0 +1,13 @@
+**Headline:** A star's fate as a neutron star or a black hole now depends on its initial mass in windows, and the neutron stars a galaxy ejects now follow from its escape speed, instead of two overlapping ranges and a drawn 20% to 40%.
+
+### Changed
+- A neutron star's or black hole's progenitor is drawn from the windows of initial mass where massive stars explode or fail (`physics/remnant_progenitors`): the verified islands at 23 to 25 and 35 to 45 solar masses (O'Connor and Ott 2011, Sukhbold et al. 2016), shrunk or widened to hold the failed share of the 8 to 150 solar mass stars, down to about 14.5 solar masses at the widest verified share. A black hole whose progenitor failed collapsed directly; the fixed 40 solar mass rule is gone.
+- Remnant ages follow the new progenitors (`collapse_age_gy` moved to `physics/remnant_progenitors`). The perturber mass of the placement limits follows the failed share: 1.01 solar masses for the whole disk (1.44 before), so a wide pair near the Sun survives to about 1.6e4 AU (1.1e4 before). `docs/design/explosion-islands.md` records the model.
+- The share of a galaxy's neutron stars its natal kicks eject is derived (`galaxy/natal_kick.py`): a Maxwellian kick of 265 km/s against the escape speed of the galaxy's halo and stars, averaged over the thin disc's birth radii, replacing the uniform 20% to 40% draw. A galaxy of the Milky Way's published masses ejects 27% (inside the old range, now a test target), the generator's median halo 16% and escape speed 539 km/s at 8.2 kpc; the galaxies the generator draws run from none to 74%, the small ones losing most. The black hole share cap is the Milky Way-like galaxy's for every galaxy, so a galaxy that ejects most of its neutron stars is not left with no stellar black holes. At the middle draw a standalone sector rolls 4.66e-3 neutron stars per star (Boss's 4.0e-3 research density is a test target, 16% under) and 8.6e-4 black holes. `docs/design/natal-kick.md` records the model.
+
+### Fixed
+- **A rocky planet of a wide pair could have a light swing above 1 (GEN.597).** When the planet's star is the dim one of the pair (a white dwarf or a brown dwarf beside a bright star) the companion's swing over the mean total light passed 1 (1.6 to 2.6 in seeds 36 and 106 of the test's sweep). `insolation.companion_swing` is now capped at 1, as the circumbinary swing is. The insolation test sweeps 240 seeds instead of 60.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 slices 2 and 3 (mass islands, the kick step's ejected share; GEN.554 stays open for the neutron star mass function and the placement of kicked remnants) / Added: none

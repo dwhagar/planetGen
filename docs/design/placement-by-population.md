@@ -181,7 +181,7 @@ constant 0.002 is Bahcall, Hut and Tremaine's, reproduced through equation (1).
 The same source gives its worked value: 3.1 x 10^4 AU for M_1 + M_2 = 2, sigma = 50 km/s, rho_2 = 0.03 and t = 10 Gyr, which I
 reproduced to 31,300 AU [C]. It is linear in 1/rho_2 and 1/t, which is what the code needs: a_1/2 follows the cell's density
 and the star's age with nothing stored by place. In the solar neighbourhood (a one-dimensional sigma of 30 km/s, rho 0.08 solar masses per pc^3, the default
-mass-weighted perturber mass of 1.44 solar masses below) it gives 1.1 x 10^4 AU for two solar masses at 10 Gyr, under Boss's
+mass-weighted perturber mass of 1.01 solar masses below) it gives 1.6 x 10^4 AU for two solar masses at 10 Gyr, just under Boss's
 2 to 5 x 10^4 AU and Jiang and Tremaine's 50% survival near 30,000 AU, because the generator counts the remnants they leave out (see GEN.447 below).
 
 **GEN.447 (built, 2026-10-17).** Two corrections to the first version of this limit, which read sigma as the population's own
@@ -190,9 +190,8 @@ population dispersion (`STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional),
 computes `<M^2> / <M>` from the generator's own initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), aged to each
 population's age range at a steady rate (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`), with the remnants of what has left the main
 sequence: stars up to the turn-off where the main-sequence lifetime of Hurley, Pols and Tout 2000 (`ms_lifetime.mass_for_lifetime_gy`) reaches the age, white dwarfs from the
-`WHITE_DWARF_PROGENITOR_SOL` range by the initial-final relation (`WD_IFMR_*`), neutron stars from there to the black hole range's
-start (`BLACK_HOLE_PROGENITOR_SOL[0]`, 20 solar masses) and black holes above it, the last two uniform over their mass ranges as
-the generator draws them. A cell takes the share-weighted mix of the populations it holds (`from_profile`). The two corrections go
+`WHITE_DWARF_PROGENITOR_SOL` range by the initial-final relation (`WD_IFMR_*`), neutron stars and black holes from the windows of initial mass the generator draws them from (`remnant_progenitors`,
+`explosion-islands.md`) above the white dwarf range, the last two uniform over their mass ranges as the generator draws them. A cell takes the share-weighted mix of the populations it holds (`from_profile`). The two corrections go
 opposite ways: root 2 makes the limit 1.41 times longer, and the perturber mass, 1.44 solar masses for the whole disk against
 the 0.4 used before, makes it about 3.6 times shorter, so the limit is about 2.5 times shorter than the first version's. For the stars alone,
 aged over the disk's 10 Gyr of star formation, the mass-weighted mean is 0.553, 14% under Jiang and Tremaine's 0.644 (the check in
@@ -202,6 +201,8 @@ about 2.2 times the second moment of all the stars. That is the initial mass fun
 1e11 stars, the order of the Galaxy's estimated number), but it rests on every such hole staying in the disk; kicks that eject
 holes would lower it, and Jiang and Tremaine count observed stars only. The follow-up question for Boss and TEST.196 is whether the
 perturbers should include the dark remnants; the stars-only value is `remnants=False`.
+
+**GEN.554 (2026-10-21): the black holes follow the failed share.** The neutron stars and black holes of the cohort now come from the windows of initial mass of the failed share of the middle draw at solar metallicity (13.6% of the 8 to 150 solar mass stars, `explosion-islands.md`; the natal kick of `natal-kick.md` ejects 16% of the neutron stars, which lets the cap on the black hole share rise), not from the old 20 to 100 solar mass range (29% of them). The perturber mass of the whole disk falls from 1.44 to 1.01 solar masses (the stars alone stay 0.553), the encounter limits lengthen by 1.4 times (the table of limits by place below is the new one), and the black holes' count falls to 7e7 for 5e10 solar masses of stars, under the published 1e8 to 1e9 (the shares a galaxy can draw, up to 45%, give 2.4e8 and are inside it). The figures below this paragraph (1.44, 175, the 0.61 share, the 0.29 of core-collapse stars) are the GEN.541 check as it was made.
 
 **GEN.541 (checked 2026-10-18): the black hole inputs hold, so the remnants stay in.** Four sources, read in full where quoted:
 
@@ -243,18 +244,18 @@ mass density (1.9 pc for 0.1 solar masses per pc^3 [C]) and serves as the check.
 The widest axis a wide pair may keep is the smaller of the two (answer 4: a **sharp cut** at a_1/2, a pair wider than that does not exist). It takes the
 place of the fixed 10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`, answer 5), as section 6.6 now says: the axis is drawn from the companion lines of Moe and Di Stefano (GEN.448, 3.1) from the 0.25 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 0.25 AU keeps no wide pair: the wide roll then gives the primary alone
 (the pair dissolved), which is the whole effect at the very centre. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (`companion_classes.odds`). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
-model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), the default perturber mass of 1.44 and the one-dimensional sigma [C]:
+model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), the default perturber mass of 1.01 (GEN.554; 1.44 before the black holes followed the failed share) and the one-dimensional sigma [C]:
 
 | Place | rho (solar masses per pc^3) | sigma (km/s) | Encounter limit a_1/2 | Tidal limit | Widest axis kept |
 |---|---|---|---|---|---|
-| 8.2 kpc out, in the plane | 0.048 | 30 | 11,400 AU | 500,000 AU | 11,400 AU |
-| bulge, 500 pc from the centre | 6.9 | 120 | 317 AU | 95,000 AU | 317 AU |
-| bulge, 100 pc from the centre | 77 | 120 | 28 AU | 42,000 AU | 28 AU |
-| 10 pc from the centre | 660 | 120 | 3 AU | 21,000 AU | 3 AU |
+| 8.2 kpc out, in the plane | 0.048 | 30 | 16,400 AU | 500,000 AU | 16,400 AU |
+| bulge, 500 pc from the centre | 6.9 | 120 | 456 AU | 95,000 AU | 456 AU |
+| bulge, 100 pc from the centre | 77 | 120 | 41 AU | 42,000 AU | 41 AU |
+| 10 pc from the centre | 660 | 120 | 5 AU | 21,000 AU | 5 AU |
 | 2 pc from the centre | 61,000 | 150 | under 1 AU | 4,600 AU | under 1 AU, or none under 0.25 AU |
 
 So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disc's limit
-(11,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
+(16,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector holds only tight pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
 and `dark_matter` are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
 cell's populations (`profile._dispersion_kms`: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest `tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.

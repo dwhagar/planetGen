@@ -10,13 +10,13 @@ from planetgen import tuning
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import remnant_progenitors, stellar_evolution as evolution
 from planetgen.util import draw
 
 
 def _ages(kind, population=None, age_law=None, age_bias=None, count=300):
     with draw.bound(553):
-        return [evolution.collapse_age_gy(kind, age_bias, draw, population, age_law) for _ in range(count)]
+        return [remnant_progenitors.collapse_age_gy(kind, age_bias, draw, population, age_law) for _ in range(count)]
 
 
 @pytest.mark.parametrize("kind", ["neutron-star", "black-hole"])
@@ -55,12 +55,12 @@ def test_a_remnant_follows_the_populations_age_law():
 
 
 def test_a_window_no_progenitor_can_have_collapsed_in_gives_the_youngest_age():
-    """A black hole's progenitors (20 solar masses and up) take millions of years: none can have collapsed in a window
+    """A black hole's progenitors (8 solar masses and up) take millions of years: none can have collapsed in a window
     that closes sooner, so the remnant is as young as a remnant is."""
     floor = tuning.COMPACT_REMNANT_AGE_RANGE_GY[0]
-    assert evolution.youngest_progenitor_sol(1.0) > tuning.BLACK_HOLE_PROGENITOR_SOL[1]
-    assert evolution.collapse_age_gy("black-hole", population="cluster", age_law=None) >= floor
-    assert evolution.collapse_age_gy("black-hole", None, draw, "open_cluster_00") == floor
+    assert evolution.youngest_progenitor_sol(1.0) > tuning.CORE_COLLAPSE_MASS_RANGE_SOL[1]
+    assert remnant_progenitors.collapse_age_gy("black-hole", population="cluster", age_law=None) >= floor
+    assert remnant_progenitors.collapse_age_gy("black-hole", None, draw, "open_cluster_00") == floor
 
 
 def test_the_formation_time_falls_with_the_progenitors_mass():
