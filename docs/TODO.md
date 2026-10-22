@@ -909,54 +909,6 @@ with `clamp()`.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
-- [ ] **UX.141 List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Today
-  there is a systems list, a phenomena list and sector lists, but stars,
-  planets and moons are only search panels, and the search panels page
-  by `OFFSET`. Do: one list page per kind (stars, planets, moons, belts,
-  comets, each phenomenon type, systems) reading `object_index` with
-  keyset paging, filters and sort on the indexed columns, and the search
-  panels and the phenomena name search read the same index. Done: each
-  list opens on a large test galaxy in the time the Generate page's
-  probe sets, the phenomenon name search finds a name, and none of these
-  queries uses `OFFSET`. Suggested owner: Core 2; filed in 8.2.
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the list pages are filed in 8.2 with the
-  tile cache; their index is kept first when the shared budget is short.
-  PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
-  lane reported): the index builder is in, so the list pages can read
-  it. Prerequisites: none. Related: PERF.137, PERF.140.
-  First part merged as #2401 (Core 2, about 12:08 AM EDT 2026-10-22 as
-  the lane reported; gate 11,271 passed), release 8.0.1874: `GET
-  /api/object-lists/<kind>` returns one keyset page of the objects of a
-  kind from the object index, sorted by name, class, mass or radius,
-  with name, class and sector filters (docs/api.md). The route was first
-  `/api/objects/<kind>` and was renamed after a clash with
-  `/api/objects/<ref>`. Still open, with Core 2: the list pages and the
-  search panels that read these lists (they still page by OFFSET), and
-  the deeper PERF.141 pages.
-  Second part merged as #2404 (Core 2, about 1:44 AM EDT 2026-10-22 as
-  the lane reported): the list pages `/lists` and `/lists/<kind>` for
-  stars, planets, moons, belts, comets and each phenomenon type,
-  sortable and keyset paged from the object index, with a "Lists" link
-  in the header. Still open, with Core 2: the name search (the header
-  ?q= and the search panels) reading the same index, and the deeper
-  PERF.141 pages.
-
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
   for 8.2): "we need to scale and size the viewing windows for the
