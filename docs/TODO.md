@@ -7084,6 +7084,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are NULL, meaning "as the structure draw gives them from the seed";
   the other columns default to 0 or 1. This item reads them: a NULL
   means ask the structure draw, never a fixed number.
+  Scope note (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane
+  reported): the lane's pending PR (gating with GEN.600, GEN.311 and
+  GEN.269) delivers the first slice only, `density_components`; the rest
+  of this item stays open.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7959,6 +7963,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 4's, proposed).
+  Progress (Blocker 2, slices 1 and 2 merged as #2450, release 8.0.1898,
+  about 7:31 AM EDT 2026-10-22 as the lane reported): the gas table plus
+  the Henry and viscosity constants. This item stays open for a third
+  slice: the IR band strengths (research part 03) and the UV absorption
+  flags and bin tables (part 02 section 2.3). The saturation-pressure
+  curves are GEN.452, a separate item. The class gate is GEN.411.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
