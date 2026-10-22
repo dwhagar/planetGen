@@ -16061,6 +16061,173 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.119. Related: PERF.98, PERF.119, PERF.123,
   PERF.124, PERF.125, MAP.146.
 
+- [ ] **PERF.150 Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1)**
+  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
+  (design report
+  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
+  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
+  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
+  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
+  and shows its position; the run line holds up to 8 runs, a setting;
+  jobs expected over 60 s go to a long lane; the wait bound defaults to
+  60 minutes, a setting). No Alembic revision and no generator epoch;
+  the same seed must still give the same sectors at 1 and 4 workers.
+  Every new setting needs the settings model, `config.schema.json`, the
+  admin settings page entry (ADM.84) and `docs/cli.md`. F1, size M. Move
+  the cache warm-up, the tile prefetch and rebuild and the database
+  check to the queue `planetgen-maintenance`, with a worker cap of its
+  own, a guaranteed minimum and a lend rule (a bulk worker finishes its
+  unit and exits when the maintenance lane needs it). Files:
+  `redisqueue.py` (queue constants, JSON prefixes, `QUEUES`),
+  `workers.py` (`ensure_workers` takes the lane's cap), `runrecord.py`
+  (store the queue), `wrapper.py` (`run` passes it), `tileprefetch.py`,
+  `cli/warm.py`, `cli/checkdb.py`. Done: a maintenance unit queued
+  behind 200 bulk units starts within one unit; after the maintenance
+  lane drains the pool is back to `wanted` workers (a bulk worker told
+  to exit leaves it one short until the next `ensure_workers` call).
+  Collision: Core 5 owns `wrapper.py` and `runrecord.py` (PERF.119,
+  PERF.123 to PERF.125); F1 touches `wrapper.run` and `runrecord` by a
+  line or two each, so it waits for Core 5's next merge or goes to Core
+  5 as a subitem; Core 2 owns `tileprefetch.py`. Owner: proposed, a new
+  Fair scheduling lane (the coordinator decides; it takes F2, F3, F4 and
+  F1 in one lane because they share `workers.py` and `cli/worker.py`) or
+  Core 5. Order: after F2 and F3, once Core 5 has merged its current
+  wrapper change.
+  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
+  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
+- [ ] **PERF.151 A reserved interactive worker outside `wanted` at nice 5, and a long-job lane (cap 1) for API jobs expected to run over 60 seconds (F2)**
+  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
+  (design report
+  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
+  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
+  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
+  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
+  and shows its position; the run line holds up to 8 runs, a setting;
+  jobs expected over 60 s go to a long lane; the wait bound defaults to
+  60 minutes, a setting). No Alembic revision and no generator epoch;
+  the same seed must still give the same sectors at 1 and 4 workers.
+  Every new setting needs the settings model, `config.schema.json`, the
+  admin settings page entry (ADM.84) and `docs/cli.md`. F2, size S to M.
+  One interactive worker is reserved outside the `wanted` count and runs
+  at nice 5; API jobs expected to run over 60 s (Boss's answer) go to a
+  long lane with a cap of 1. Files: `api_jobs.submit`, `workers.py`,
+  `cli/worker.py` (nice per lane), the settings (the reserve and the
+  long-lane cap) and `config.schema.json`. Done: with `wanted` 1 and a
+  long job running, a short job starts within seconds; Ludicrous Speed
+  keeps its share of the cores for bulk and leaves the reserve. Owner:
+  proposed, a new Fair scheduling lane (the coordinator decides; it
+  takes F2, F3, F4 and F1 in one lane because they share `workers.py`
+  and `cli/worker.py`) or Core 5. Order: first.
+  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
+  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
+- [ ] **PERF.152 Pause and resume reach the worker queues: a Redis flag the workers honour, written by the Queue page (F3)**
+  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
+  (design report
+  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
+  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
+  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
+  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
+  and shows its position; the run line holds up to 8 runs, a setting;
+  jobs expected over 60 s go to a long lane; the wait bound defaults to
+  60 minutes, a setting). No Alembic revision and no generator epoch;
+  the same seed must still give the same sectors at 1 and 4 workers.
+  Every new setting needs the settings model, `config.schema.json`, the
+  admin settings page entry (ADM.84) and `docs/cli.md`. F3, size S.
+  Workers honour Pause and Resume through a Redis flag (the WarmWorker
+  in `cli/worker.py` waits while it is set); the Queue page buttons
+  write it. It must not use `work_lease`, which PERF.100 drops.
+  Coordinate with PERF.99 (the Queue page reads Redis) and sequence with
+  Core 5's Queue page changes. Done: a paused queue starts no new unit,
+  a resume releases it, and a test shows both. Owner: proposed, a new
+  Fair scheduling lane (the coordinator decides; it takes F2, F3, F4 and
+  F1 in one lane because they share `workers.py` and `cli/worker.py`) or
+  Core 5. Order: second.
+  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
+  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
+- [ ] **PERF.153 An API job that finds a live generation run waits (a bounded retry, shown as waiting for run X) instead of failing Busy, and a Generate stage waits for an API job holding the key (F4)**
+  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
+  (design report
+  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
+  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
+  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
+  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
+  and shows its position; the run line holds up to 8 runs, a setting;
+  jobs expected over 60 s go to a long lane; the wait bound defaults to
+  60 minutes, a setting). No Alembic revision and no generator epoch;
+  the same seed must still give the same sectors at 1 and 4 workers.
+  Every new setting needs the settings model, `config.schema.json`, the
+  admin settings page entry (ADM.84) and `docs/cli.md`. F4, size S; an
+  interim fix until F5. A regenerate or neighbourhood job that finds a
+  live GENERATION run waits for it, and a Generate job's stage that
+  finds the key taken by an API job waits for it, instead of failing
+  with Busy. The wait is a bounded retry; the job shows as "waiting for
+  run X". Bound decided (Boss, 5:10 PM EDT 2026-10-22): a default of 60
+  minutes, then fail with the run named, and it is a setting. A
+  one-sector regenerate waits in line and shows its position (Boss, 5:08
+  to 5:10 PM EDT). Files: `api_jobs.submit` and the Generate stage
+  start. Done: both waits are tested, the failure after the bound names
+  the run, and F5 removes this interim code. PERF.147's progress bar
+  needs a "waiting at position n" state; use the same wording. Owner:
+  proposed, a new Fair scheduling lane (the coordinator decides; it
+  takes F2, F3, F4 and F1 in one lane because they share `workers.py`
+  and `cli/worker.py`) or Core 5. Order: third (after F2, which also
+  edits `api_jobs.submit`).
+  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
+  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
+- [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
+  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
+  (design report
+  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
+  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
+  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
+  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
+  and shows its position; the run line holds up to 8 runs, a setting;
+  jobs expected over 60 s go to a long lane; the wait bound defaults to
+  60 minutes, a setting). No Alembic revision and no generator epoch;
+  the same seed must still give the same sectors at 1 and 4 workers.
+  Every new setting needs the settings model, `config.schema.json`, the
+  admin settings page entry (ADM.84) and `docs/cli.md`. F5, size L. A
+  run that cannot start joins one Redis waiting list (maximum 8, a
+  setting) instead of failing with Busy; the list is ordered data, the
+  job strip (ADM.119) reads it, and a waiting run or one-sector
+  regenerate shows its position. It removes ADM.123's `next.json` file
+  slot, the file lock and the Busy path, and F4's interim retry. Redis
+  only. Done: a ninth run is refused with the line named; the strip
+  shows the order; a test that the same seed gives the same sectors
+  whichever position it ran from. Collision: needs PERF.119, PERF.123
+  and PERF.99 merged first, and touches the same files as Core 5. Owner:
+  Core 5 (proposed; it owns those files), last in the order.
+  Prerequisites: PERF.119, PERF.123, PERF.99. Related: PERF.98, PERF.99,
+  PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
+- [ ] **PERF.155 A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6)**
+  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
+  (design report
+  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
+  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
+  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
+  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
+  and shows its position; the run line holds up to 8 runs, a setting;
+  jobs expected over 60 s go to a long lane; the wait bound defaults to
+  60 minutes, a setting). No Alembic revision and no generator epoch;
+  the same seed must still give the same sectors at 1 and 4 workers.
+  Every new setting needs the settings model, `config.schema.json`, the
+  admin settings page entry (ADM.84) and `docs/cli.md`. F6, size M. No
+  unit of a stage is expected to run longer than a ceiling (default 5
+  minutes, a setting) unless the stage is a one-unit command; longer
+  ones are split (PERF.113 to PERF.117 decide the splits). It bounds the
+  lend wait of F1 and the cancel wait. The number is chosen from the
+  unit lengths PERF.146 measures. Done: a test fails when a registered
+  stage has a unit expected over the ceiling; the splits keep the same
+  stored rows for the same seed. Owner: the Performance thread
+  (proposed; it holds the PERF.146 data), after PERF.146.
+  Prerequisites: PERF.146. Related: PERF.98, PERF.99, PERF.100,
+  PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
