@@ -205,9 +205,11 @@ class BlackHole(CompactRemnant):
             visible, actively-accreting disk.
     """
 
-    SERIALIZABLE_FIELDS = StellarObject.SERIALIZABLE_FIELDS + [
-        "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk", "mass_class",
-    ]
+    FIELD_UNITS = {
+        **StellarObject.FIELD_UNITS, "mass_solar": "Msun", "event_horizon_radius_km": "km", "spin": "ratio",
+        "has_accretion_disk": "flag", "mass_class": "text",
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Extends `StellarObject.SERIALIZABLE_FIELDS` (minus `yerkes_class`'s normal
     meaning, repurposed here as the literal marker `"BH"` so `stars.
     yerkes_class` -- `NOT NULL` -- still holds a value) with this class's
@@ -358,9 +360,11 @@ class NeutronStar(CompactRemnant):
             also `self.temperature`.
     """
 
-    SERIALIZABLE_FIELDS = StellarObject.SERIALIZABLE_FIELDS + [
-        "mass_solar", "spin_period_ms", "magnetic_field_gauss", "pulsar_type", "surface_temperature_k",
-    ]
+    FIELD_UNITS = {
+        **StellarObject.FIELD_UNITS, "mass_solar": "Msun", "spin_period_ms": "ms", "magnetic_field_gauss": "G",
+        "pulsar_type": "text", "surface_temperature_k": "K",
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """See `BlackHole.SERIALIZABLE_FIELDS`'s docstring for the same
     `StellarObject.SERIALIZABLE_FIELDS`-extension convention; `yerkes_class` here is
     the literal marker `"NS"`."""

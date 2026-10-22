@@ -278,6 +278,9 @@ def _times():
     _unit("unix_ms", "instant", "ms (Unix)", "milliseconds since the Unix epoch", 1e-3)
     _unit("unix_yr", "instant", "yr (Unix)", "years since the Unix epoch", _JULIAN_YEAR_S)
     _prefixed("frequency", "Hz", "Hz", "hertz", 1.0, SI_PREFIXES[2:9])
+    _unit("1/s", "frequency", "1/s", "per second", 1.0, parts=(("s", -1),))
+    _unit("1/yr", "frequency", "1/yr", "per year", 1.0 / _JULIAN_YEAR_S, parts=(("yr", -1),))
+    _unit("1/Gy", "frequency", "1/Gy", "per billion years", 1.0 / (_JULIAN_YEAR_S * 1e9), parts=(("Gyr", -1),))
 
 
 def _kinematics():

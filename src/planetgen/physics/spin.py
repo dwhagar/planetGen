@@ -269,8 +269,12 @@ def black_hole_horizon_period_s(mass_kg, spin):
     return 2.0 * math.pi / omega
 
 
-SPIN_FIELDS = ("spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg")
-"""tuple: The attributes (and columns) every spinning object gets."""
+SPIN_UNITS = {"spin_axis_x": "unit-vector", "spin_axis_y": "unit-vector", "spin_axis_z": "unit-vector",
+              "axial_tilt_deg": "deg"}
+"""dict: The attributes (and columns) every spinning object gets, with each attribute's native unit."""
+
+SPIN_FIELDS = tuple(SPIN_UNITS)
+"""tuple: The names of `SPIN_UNITS`."""
 
 
 def set_spin(body, normal, tilt_deg):
