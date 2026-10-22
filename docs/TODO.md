@@ -2430,116 +2430,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays open for PERF.131 and PERF.132 (separate PRs) and the settled-view
   before and after its Done asks for.
 
-- [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
-  Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
-  the coordinator): "BUG: The system needs to choose what stars or
-  objects to drop evenly across the viewing space rather than just
-  truncating off the data, always most massive / brightest within the
-  galaxy go last, halo and satellite galaxies go first." Today a budget
-  that is exceeded truncates its ranked list, so the dropped stars come
-  from one region (the tail of the ordering) and leave holes. The rule:
-  when a budget cuts, the removed stars are spread evenly over the
-  visible volume (for example a thinning by a fixed per-star random
-  number inside each rank tier, the hash thinning of
-  docs/design/zoom-star-visibility.md, so a cut thins every region by
-  the same fraction and the nested lists stay subsets); the order of
-  what goes last is the most massive and brightest stars of the galaxy;
-  what goes first is, per MAP.250 (Decided, Boss 6:57 PM EDT),
-  satellite-galaxy stars, then halo stars, then everything else. This is
-  the thinning rule inside each tier that MAP.250 puts in front of the
-  luminosity key, so it edits the same star-budget code as MAP.250 (Core
-  2, coded on branch map250) and as MAP.249 (the galaxy map lag): Bug
-  Hunt builds on MAP.250 once it merges and does not edit the budget
-  code before. Applies to every place that spends a star or object
-  budget (the tile lists, the nested lists, the 70,000-star view cap,
-  the stage views, the Sector Map, the phenomena lists). Done: one
-  function holds the order and the even thinning, every budget reads it
-  and none keeps its own; a test fills a budget-limited view with stars
-  over a wide area and checks the dropped stars are spread over every
-  region by about the same fraction, that no more massive or brighter
-  star is dropped while a less massive one of the same tier is shown,
-  and that satellite and halo stars go first; the rule is written in
-  docs/design/zoom-star-visibility.md. Owner: Bug Hunt (Boss, 7:38 PM
-  EDT).
-  Checked with Core 2 (2026-10-17, 7:43 PM EDT as the lane reported):
-  MAP.250 is only the tier order. Inside each tier a full list keeps the
-  top N by the brightness key and drops the rest wherever they lie, so
-  the uneven truncation this item describes is still there after MAP.250
-  and MAP.251 stays as filed, not narrowed. Bug Hunt is designing it
-  while it waits for the MAP.250 merge (7:45 PM EDT as the lane
-  reported).
-  Amendment, Decided (Boss, 2026-10-17, 7:45 PM EDT and 7:46 PM EDT,
-  typed in the project chat, relayed by the coordinator): "amendment so
-  MAP.251 and MAP.252, dim order: Satellite Galaxies, Halo. The
-  following 2 should happen at the same [time]: Small phenomena (by mass
-  excluding nebulae) <-> Large phenomena (by mass excluding nebulae);
-  Small dim stars to Large bright stars." And: "Then also incorporated
-  is distance, the farther away it is the faster it should be removed."
-  So the dim and drop order, first to last, is (1) satellite-galaxy
-  stars, (2) halo stars, then (3) two ramps that run at the same time:
-  phenomena from small to large by mass (nebulae are left out of the
-  mass ranking), and stars from small dim ones to large bright ones; the
-  most massive and the brightest go last. Distance from the viewer is
-  part of it: the farther an object is, the sooner it is removed.
-  Default for Bug Hunt's design (stands unless Boss overrules): distance
-  moves each object's place on its ramp earlier the farther it is (the
-  ramp position is the object's rank by mass or brightness shifted
-  toward the front by its distance), within the satellite and halo tiers
-  first; nebulae are not ranked by mass, so they are cut with the
-  phenomena ramp by their visible size until Boss says otherwise.
-  MAP.251 thins evenly in space inside this order (a cut removes the
-  same fraction in every region), and the order above decides who goes
-  first within each region.
-  The distance default above is now Decided (Boss, 2026-10-17, 7:46 PM
-  EDT, replying to the coordinator's post of that default: "That is
-  exactly what I mean, thank you"): distance moves each object earlier
-  on its ramp the farther it is, and the brightest and most massive near
-  objects still go last. Design constraint (Core 2, 7:48 PM EDT as the
-  lane reported): the server tile build knows no viewer (tiles are a
-  pure function of key and database, cached by key and stamp), so the
-  distance rule lives in the per-level tile budgets
-  (GALAXY_TILE_BRIGHT_BUDGET, GALAXY_TILE_STAR_BUDGET and
-  GALAXY_TILE_POINT_BUDGET falling with distance, nested), in the cut's
-  reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
-  client's per-frame limit (starfade.js, starmagnitude.js), never in the
-  tile query.
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item: nebulae are cut with the phenomena
-  ramp by their visible size.
-  MAP.250 merged as #2155 (Core 2, reported as 10:49 PM EDT on the
-  lane's clock; release 8.0.1767): bright-star lists rank by tier
-  (satellite galaxies cut first, then halo, then everything else) before
-  brightness. Bug Hunt was told (10:49 PM EDT as the coordinator
-  relayed) it can build this item and MAP.252's grading on top of it.
-  Where the tier lives (Core 2, 2026-10-17, 10:48 PM EDT as the lane
-  reported): in `_top_by_key` in `db/query.py` (halo 1, satellite* 2,
-  ahead of `_map_key`); the even-thinning and distance ramps of this
-  item go on top of it.
-  Coded (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported; no PR
-  yet): tile lists thin by band with the best tenth kept exact
-  (docs/design/zoom-star-visibility.md section 11). Not covered: stage
-  views, the Sector Map and the client limits, so the lane does not
-  claim to resolve the item; those parts stay open.
-  Merged in part (Bug Hunt, #2252, reported 10:59 AM EDT 2026-10-18 as
-  the lane reported; release 8.0.1814): the tile lists (the pre-placed
-  bright stars, the placed point phenomena and the scattered points)
-  thin evenly by band through one function (`_even_pick`;
-  docs/design/zoom-star-visibility.md section 11). Still open here: the
-  stage views, the Sector Map and the client limits. The graded dim of
-  MAP.252 merged in the same PR (release 8.0.1815) and MAP.252 is
-  retired.
-  Owner of the rest (coordinator, relaying Core 2, 11:05 AM EDT
-  2026-10-18 as the lane reported): Core 2 takes the stage views, the
-  Sector Map and the client limits, to start after MAP.249 and its cache
-  warming (PERF.130 to PERF.132) merge.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the star
-  cap is 45,000, not 70,000: MAP.249 (merged #2263, reported 2026-10-18,
-  about 12:55 PM EDT) set `GALAXY_VIEW_MAX_STARS` to 45,000 (was
-  70,000).
-  Prerequisites: none. Related: MAP.249, MAP.250.
-
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-system-barycentre.md, decided: Boss's nine cards
@@ -7153,6 +7043,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draw both set the stellar mass, and the galaxy types design (GEN.378,
   #2368) does not say how they combine per family: this item decides it
   with the dials lane, so that the visible extent fits the reach.
+  Decided (Boss, 8:11 PM EDT 2026-10-21 as the Blocker 2 lane reported,
+  galaxy types design questions Q2 and Q3 in docs/design/galaxy-types.md
+  section 12): the top mass limit is 2e11 solar masses for every family
+  (the Scale dial still cuts it to 1.55e11).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.381 A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass**
@@ -7240,6 +7134,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   young population; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
+  Open (galaxy types design Q1): the S0 versus Sa split; an S0 to Sa
+  research thread is running at Boss's request (8:11 PM EDT 2026-10-21
+  as the Blocker 2 lane reported), and the half-and-half default stands
+  until it answers.
   Prerequisites: GEN.382, GEN.383. Related: GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7262,6 +7160,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxies only check the result.
   Related: GEN.619 (a variable sector edge for galaxies under 28 pc
   scale length); not a blocker.
+  Decided (Boss, 8:11 PM EDT 2026-10-21 as the Blocker 2 lane reported,
+  galaxy types design questions Q2 and Q3 in docs/design/galaxy-types.md
+  section 12): the dwarf spheroid share steps, 30 percent under 1e7
+  solar masses and none from 1e7 to 1e9.
   Prerequisites: GEN.369, GEN.380, GEN.381. Related: GEN.382, GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -9458,6 +9360,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided for the compaction hand-over (Boss, 8:13 PM EDT 2026-10-21,
+  card "Taper porosity, 1e19 to 1e21 kg"
+  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
+  Blocker 2 lane, decision S9 of
+  docs/design/small-bodies-composition.md): porosity tapers to zero in
+  log mass between 1e19 and 1e21 kg (the paper's law stays; the
+  endpoints are flagged stand-in until viscous compaction replaces
+  them), and the Galilean-class solver test still comes before 1e21 kg
+  to 0.1 Earth masses is called validated. This replaces the hand-over
+  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
+  close the 1e20 kg porosity jump by moving the hand-over (density stays
+  1.32 to 1.35 times low up to 3e23 kg).
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10383,6 +10297,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 4's).
+  Design merged (Blocker 2, 8:14 PM EDT 2026-10-21 as the lane reported,
+  #2374, docs only): docs/design/small-bodies-composition.md settles the
+  kind-by-kind route, mixing rule, taxon, comet, icy-body and
+  moon-origin tables, stored versus derived (DB.69, DB.70 columns),
+  parametrisations, a worked example and test targets. Decided (Boss,
+  8:13 PM EDT 2026-10-21, card "Taper porosity, 1e19 to 1e21 kg"
+  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
+  Blocker 2 lane, decision S9 of
+  docs/design/small-bodies-composition.md): porosity tapers to zero in
+  log mass between 1e19 and 1e21 kg (the paper's law stays; the
+  endpoints are flagged stand-in until viscous compaction replaces
+  them), and the Galilean-class solver test still comes before 1e21 kg
+  to 0.1 Earth masses is called validated. This replaces the hand-over
+  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
+  close the 1e20 kg porosity jump by moving the hand-over (density stays
+  1.32 to 1.35 times low up to 3e23 kg). The other two defaults
+  (stand-in taxon rows with concentration 10, the cometary organic share
+  N(0.60, 0.15)) have no card and stand as defaults.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -10893,6 +10825,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
   bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
   a labelled stand-in replaced when a measurement exists.
+  Decided for the compaction hand-over (Boss, 8:13 PM EDT 2026-10-21,
+  card "Taper porosity, 1e19 to 1e21 kg"
+  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
+  Blocker 2 lane, decision S9 of
+  docs/design/small-bodies-composition.md): porosity tapers to zero in
+  log mass between 1e19 and 1e21 kg (the paper's law stays; the
+  endpoints are flagged stand-in until viscous compaction replaces
+  them), and the Galilean-class solver test still comes before 1e21 kg
+  to 0.1 Earth masses is called validated. This replaces the hand-over
+  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
+  close the 1e20 kg porosity jump by moving the hand-over (density stays
+  1.32 to 1.35 times low up to 3e23 kg).
 
 - [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
