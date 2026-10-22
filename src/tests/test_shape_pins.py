@@ -107,10 +107,10 @@ def _columns(conn):
         " AND table_name = 'galaxy_shape'").fetchall()}
 
 
-def test_a_v112_galaxy_gains_the_pins_and_keeps_its_row(mysql_config):
+def test_a_v113_galaxy_gains_the_pins_and_keeps_its_row(mysql_config):
     config = mysql_config
-    load_old_schema(config, 112)
-    assert store.schema_status(config)[0] == 112
+    load_old_schema(config, 113)
+    assert store.schema_status(config)[0] == 113
     conn = store.get_connection(config, ensure_schema=False)
     try:
         assert "pinned_stellar_mass_solar" not in _columns(conn)
@@ -135,12 +135,12 @@ def test_a_v112_galaxy_gains_the_pins_and_keeps_its_row(mysql_config):
 
 def test_a_migration_run_again_changes_nothing(mysql_config):
     config = mysql_config
-    load_old_schema(config, 112)
+    load_old_schema(config, 113)
     store.migrate_database(config)
     conn = store.get_connection(config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM alembic_version")
-        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('0112')")
+        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('0113')")
         conn.commit()
     finally:
         conn.close()

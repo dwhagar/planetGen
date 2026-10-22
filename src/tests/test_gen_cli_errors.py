@@ -208,7 +208,6 @@ PLAN_ERRORS = [
     (["--edge", "3pc"], "argument --edge: 3 is outside 4 to 262140 pc, or 3 to 20 L ("),
     (["--edge", "2L"], "argument --edge: 2 L is outside 3 to 20 L ("),
     (["--edge", "300"], "argument --edge: '300' is not a length (a length needs its unit: L, pc, kpc, Mpc)"),
-    (["--max-shell", "40"], "unrecognized arguments: --max-shell 40"),
     (["--disk-scale-length", "0pc"], "argument --disk-scale-length: 0 is outside 28 to 8250 pc ("),
     (["--disk-scale-length", "2600"], "argument --disk-scale-length: '2600' is not a length (a length needs its unit: pc, kpc)"),
     (["--disk-scale-length", "5Mpc"], "argument --disk-scale-length: '5Mpc' is not a length ('Mpc' is not one of the units pc, kpc)"),
@@ -229,6 +228,14 @@ PLAN_ERRORS = [
 @pytest.mark.parametrize("argv, message", PLAN_ERRORS)
 def test_plan_error_messages(monkeypatch, capsys, argv, message):
     assert _error(monkeypatch, capsys, "plan", argv).startswith(message)
+
+
+def test_the_retired_plan_max_shell_is_not_an_option(monkeypatch, capsys):
+    capsys.readouterr()
+    with pytest.raises(SystemExit) as excinfo:
+        _parse(monkeypatch, "plan", ["--max-shell", "40"])
+    assert excinfo.value.code == 2
+    assert "unrecognized arguments: --max-shell 40" in capsys.readouterr().err
 
 
 def test_plan_shape_edges_that_are_allowed(monkeypatch):
