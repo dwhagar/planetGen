@@ -55,12 +55,14 @@ def _all(config, kind):
 @pytest.mark.parametrize("descending", [False, True])
 def test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort(indexed, sort, descending):
     config, _sector = indexed
-    kind = "planet"
+    # The fixture's three systems are single stars with a drawn number of planets, so the stars are the kind that is
+    # always there (TEST.267: a draw of too few planets made a walk of planets fail one run in four).
+    kind = "star"
     everything = _all(config, kind)
     column = objectlist.SORTS[sort][0]
     wanted = [row for row in everything if row[column] is not None]
-    assert len(wanted) >= 6, "the galaxy has too few planets for a page walk"
-    items, pages, total = _walk(config, kind, 2, sort=sort, descending=descending)
+    assert len(wanted) >= 3, "the galaxy has too few stars for a page walk"
+    items, pages, total = _walk(config, kind, 1, sort=sort, descending=descending)
     assert pages >= 3 and total == len(wanted)
     assert len(items) == len({item["id"] for item in items}) == len(wanted)
     key = {"name": "name", "class": "object_class", "mass": "mass_kg", "radius": "radius_km"}[sort]
