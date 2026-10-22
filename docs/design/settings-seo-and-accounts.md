@@ -46,11 +46,13 @@ Field metadata goes in `json_schema_extra` under `x-` keys, declared through one
 | `ge`, `le`, `min_length`, `max_length`, `pattern` (Pydantic) | validation and the HTML `min`, `max`, `maxlength` |
 | `x-restart` | change applies only after a restart |
 | `x-secret` | never sent to the browser or logged; redacted in export and audit |
-| `x-category` | form section |
+| `x-label`, `x-summary` | the setting's name in plain words and one sentence on what it does (required; the long `description` is the help under Details) |
+| `x-group` | the purpose-based group the page lists it under (`settings_view.GROUPS`) |
+| `x-advanced` | listed under Advanced in its group; search always reaches it |
 | `x-editable` | `false`: command line only, shown read-only |
 | `x-min_role` | `admin` or `owner`: who may save it |
 | `x-env` | environment variable that overrides it; field shown disabled |
-| `x-widget` | optional override (`textarea`, `color`, `file`) |
+| `x-control` | the control when the type alone doesn't say: `slider`, `duration`, `rate`, `color`, `asset`, `language` (`x-widget` of the first draft, now built) |
 
 **One file (Boss, 2026-10-16, 2:25 and 2:26 PM EDT).** All program configuration lives in one file, the user's own `config.json`: the user copies the shipped `config.json.example` to `config.json` once and edits it (the deployment instructions, unchanged), and nothing else is a settings file. An earlier draft of this note kept a second file, `settings.json`, because the web process could not write a root-owned `config.json`; that obstacle is gone, because `set-permissions.sh` makes the web user own `config.json` (mode 640) and the checkout belongs to that account since 2026-10-16. The load order, lowest to highest, is: model default, `config.json`, `PLANETGEN_*` environment, explicit argument. The settings page and the command line write only that copy, atomically (a temporary file in the same folder, fsync, rename, owner and mode kept), never the example; `update.sh` and the installers never overwrite or recreate it. ADM.96 removes the overlay layer that ADM.42 built.
 

@@ -23,27 +23,34 @@ from typing import Literal, get_args, get_origin
 
 from planetgen.util import settings, settings_writer
 
-CATEGORY_TITLES = {
-    "site": "Site",
-    "web": "Web pages",
-    "icons": "Icons",
-    "seo": "Search engines",
-    "og": "Link previews",
-    "security": "Security",
-    "database": "Database",
-    "cache": "Caches",
-    "jobs": "Background jobs",
-    "backups": "Backups",
-    "wiki": "Wiki upload",
+GROUPS = {
+    "site": "Site identity",
+    "look": "Look",
+    "search": "Search engines",
+    "previews": "Link previews",
+    "speed": "Speed and disk",
+    "protection": "Abuse protection",
+    "housekeeping": "Housekeeping",
+    "database": "Database connection",
+    "queue": "Queue server",
     "logging": "Logging",
     "proxy": "Reverse proxy",
-    "file": "This file",
-    "general": "General",
+    "security": "Security",
+    "paths": "Folders and addresses",
+    "wiki": "Wiki upload",
+    "file": "Settings file",
 }
-"""dict: The heading of each `x-category`, in the order the page lists them (a category not named here follows,
-under its own name)."""
+"""dict: Each `x-group` and its heading, in the order the page lists them. The first seven are the groups an admin
+works in; the rest hold what only the server's file can change (or the Owner), listed after them. Every option's
+group must be named here (a test checks it)."""
 
 KINDS = ("bool", "int", "float", "text", "list", "choice")
+
+CONTROLS = {"bool": "switch", "int": "number", "float": "number", "text": "text", "list": "chips", "choice": "choice"}
+"""dict: The control an option's type gives when its `x-control` names none."""
+
+CONTROL_NAMES = frozenset(CONTROLS.values()) | {"textarea", "secret", "slider", "duration", "rate", "color", "asset", "language"}
+"""frozenset: Every control the page may draw."""
 
 
 def kind_of(annotation):
@@ -73,10 +80,6 @@ def _limits(info):
     return found
 
 
-def _title(path):
-    return path.replace("_", " ").replace(".", " > ")
-
-
 def _source(path, meta, document, environ):
     var = meta.get("x-env")
     if var and (environ.get(var) not in (None, "") or (meta.get("x-env-empty") and var in environ)):
@@ -94,9 +97,10 @@ def describe(role="admin", environ=None):
 
     Returns:
         dict: `file_hash` (what a save sends back as `expect_hash`), `problem` (why the page can't save, or
-            `""`), `file_error` (why config.json can't be read, or `""`), `groups` (`[{"category", "title",
+            `""`), `file_error` (why config.json can't be read, or `""`), `groups` (`[{"key", "title",
             "options"}]`, in page order) and `options`, the same options in one flat list. Each option is
-            `{"path", "section", "name", "title", "description", "category", "kind", "choices", "limits", "unit", "multiline",
+            `{"path", "section", "name", "title", "summary", "description", "group", "control", "advanced", "kind", "choices",
+            "limits", "unit", "multiline",
             "default", "value", "effective", "is_set", "source", "env", "restart", "secret", "editable",
             "min_role", "allowed", "reason"}`. `value` is what the file holds (the default where it holds
             nothing): what the form edits. `effective` is the value in use, which differs from `value` when an
@@ -133,9 +137,12 @@ def describe(role="admin", environ=None):
             "path": path,
             "section": section,
             "name": name,
-            "title": _title(path),
+            "title": meta["x-label"],
+            "summary": meta["x-summary"],
             "description": meta["description"],
-            "category": meta["x-category"],
+            "group": meta["x-group"],
+            "control": meta["x-control"] or ("secret" if secret else "textarea" if meta["x-multiline"] else CONTROLS[kind]),
+            "advanced": bool(meta["x-advanced"]),
             "kind": kind,
             "choices": list(get_args(annotation)) if kind == "choice" else [],
             "limits": _limits(info),
@@ -154,14 +161,10 @@ def describe(role="admin", environ=None):
             "allowed": permitted,
             "reason": "" if permitted else why,
         })
-    order = list(CATEGORY_TITLES)
-    present = []
-    for option in options:
-        if option["category"] not in present:
-            present.append(option["category"])
-    present.sort(key=lambda c: order.index(c) if c in order else len(order))
-    groups = [{"category": c, "title": CATEGORY_TITLES.get(c, c.capitalize()),
-               "options": [o for o in options if o["category"] == c]} for c in present]
+    order = list(GROUPS)
+    present = sorted({option["group"] for option in options}, key=order.index)
+    groups = [{"key": key, "title": GROUPS[key], "options": [o for o in options if o["group"] == key]}
+              for key in present]
     return {"file_hash": file_hash, "problem": problem, "file_error": file_error, "groups": groups,
             "options": options}
 
@@ -215,4 +218,5 @@ def pending_restart():
         now = _restart_values()
     except settings.SettingsError:
         return []
-    return [(path, _title(path)) for path in now if now[path] != started.get(path)]
+    titles = {path: meta["x-label"] for path, _info, meta in settings.iter_fields()}
+    return [(path, titles[path]) for path in now if now[path] != started.get(path)]

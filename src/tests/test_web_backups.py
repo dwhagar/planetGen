@@ -321,7 +321,7 @@ def test_the_import_page_checks_reviews_and_saves(site, config):
 @pytest.mark.parametrize("payload, shown", [
     (b"not json", "not valid JSON"),
     (b"[1, 2]", "JSON object"),
-    (json.dumps({"jobs": {"keep": 0}}).encode(), "jobs &gt; keep"),
+    (json.dumps({"jobs": {"keep": 0}}).encode(), "Finished jobs kept"),
     (json.dumps({"mysql": {"password": "x"}}).encode(), "on the server"),
     (json.dumps({"no_such": 1}).encode(), "is not a setting"),
     (b"x" * (1024 * 1024 + 1), "too big"),

@@ -53,8 +53,11 @@ def test_every_option_of_the_model_is_listed_with_its_help(config):
     view = settings_view.describe("admin")
     listed = [option["path"] for option in view["options"]]
     assert listed == [path for path, _info, _meta in settings.iter_fields()]
-    assert all(option["description"] and option["title"] and option["kind"] in settings_view.KINDS
+    assert all(option["description"] and option["title"] and option["summary"]
+               and option["kind"] in settings_view.KINDS and option["control"] in settings_view.CONTROL_NAMES
                for option in view["options"])
+    assert [group["key"] for group in view["groups"]] == [key for key in settings_view.GROUPS
+                                                          if any(o["group"] == key for o in view["options"])]
     assert [option["path"] for group in view["groups"] for option in group["options"]].count("site_name") == 1
     assert sorted(o["path"] for g in view["groups"] for o in g["options"]) == sorted(listed)
 
@@ -121,7 +124,7 @@ def test_a_saved_restart_option_is_pending_until_the_process_restarts(config):
     settings_view.remember_startup()
     assert settings_view.pending_restart() == []
     settings_writer.save({"page_cache.enabled": False, "jobs.keep": 5}, actor="boss")
-    assert settings_view.pending_restart() == [("page_cache.enabled", "page cache > enabled")]
+    assert settings_view.pending_restart() == [("page_cache.enabled", "Page answer cache")]
     settings_writer.save({"page_cache.enabled": settings_writer.RESET}, actor="boss")
     assert settings_view.pending_restart() == []     # back to what the process started with
 
@@ -306,7 +309,7 @@ def test_the_api_save_backs_up_audits_and_masks(site, config):
                                                    ("config.update", "config:site_name")]
     assert ("config.update", "config:site_name", {"old": "Mine", "new": "Home"}) in rows
     assert site.get("/api/admin/settings").get_json()["pending_restart"] == [
-        {"path": "page_cache.enabled", "title": "page cache > enabled"}]
+        {"path": "page_cache.enabled", "title": "Page answer cache"}]
 
 
 def test_the_api_refuses_a_save_from_a_stale_form(site, config):
@@ -413,7 +416,7 @@ def test_the_restart_banner_shows_on_every_admin_page_until_the_restart(site, co
     assert "waiting for a restart" not in site.get("/admin").get_data(as_text=True)
     settings_writer.save({"page_cache.enabled": False}, actor="boss")
     for path in ("/admin", "/admin/settings", "/admin/queue"):
-        assert "waiting for a restart of the web server: page cache &gt; enabled" in site.get(path).get_data(as_text=True)
+        assert "waiting for a restart of the web server: Page answer cache" in site.get(path).get_data(as_text=True)
     assert "waiting for a restart" not in site.application.test_client().get("/").get_data(as_text=True)
 
 

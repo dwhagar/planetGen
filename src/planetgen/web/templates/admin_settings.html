@@ -99,7 +99,7 @@
   <nav aria-label="Settings sections">
     <ul class="settings-jump">
       {%- for group in view.groups %}
-      <li><a href="#cat-{{ group.category }}">{{ group.title }}</a></li>
+      <li><a href="#cat-{{ group.key }}">{{ group.title }}</a></li>
       {%- endfor %}
     </ul>
   </nav>
@@ -110,8 +110,8 @@
   <input type="hidden" name="action" value="review">
   <input type="hidden" name="expect_hash" value="{{ view.file_hash }}">
   {%- for group in view.groups %}
-  <section class="panel" id="cat-{{ group.category }}" aria-labelledby="cat-{{ group.category }}-heading">
-    <h2 id="cat-{{ group.category }}-heading">{{ group.title }}</h2>
+  <section class="panel" id="cat-{{ group.key }}" aria-labelledby="cat-{{ group.key }}-heading">
+    <h2 id="cat-{{ group.key }}-heading">{{ group.title }}</h2>
     {%- for option in group.options %}
     {{ option_row(option) }}
     {%- endfor %}
