@@ -16096,10 +16096,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Collision: Core 5 owns `wrapper.py` and `runrecord.py` (PERF.119,
   PERF.123 to PERF.125); F1 touches `wrapper.run` and `runrecord` by a
   line or two each, so it waits for Core 5's next merge or goes to Core
-  5 as a subitem; Core 2 owns `tileprefetch.py`. Owner: proposed, a new
-  Fair scheduling lane (the coordinator decides; it takes F2, F3, F4 and
-  F1 in one lane because they share `workers.py` and `cli/worker.py`) or
-  Core 5. Order: after F2 and F3, once Core 5 has merged its current
+  5 as a subitem; Core 2 owns `tileprefetch.py`. Owner: the Fair
+  scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM EDT
+  2026-10-22 as the lane's clock reads, by the coordinator; it takes
+  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
+  share `workers.py` and `cli/worker.py`). Order: after F2 and F3, once Core 5 has merged its current
   wrapper change.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
   PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
@@ -16123,10 +16124,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `cli/worker.py` (nice per lane), the settings (the reserve and the
   long-lane cap) and `config.schema.json`. Done: with `wanted` 1 and a
   long job running, a short job starts within seconds; Ludicrous Speed
-  keeps its share of the cores for bulk and leaves the reserve. Owner:
-  proposed, a new Fair scheduling lane (the coordinator decides; it
-  takes F2, F3, F4 and F1 in one lane because they share `workers.py`
-  and `cli/worker.py`) or Core 5. Order: first.
+  keeps its share of the cores for bulk and leaves the reserve. Owner: the
+  Fair scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM
+  EDT 2026-10-22 as the lane's clock reads, by the coordinator; it takes
+  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
+  share `workers.py` and `cli/worker.py`). Order: first.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
   PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
@@ -16148,10 +16150,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   write it. It must not use `work_lease`, which PERF.100 drops.
   Coordinate with PERF.99 (the Queue page reads Redis) and sequence with
   Core 5's Queue page changes. Done: a paused queue starts no new unit,
-  a resume releases it, and a test shows both. Owner: proposed, a new
-  Fair scheduling lane (the coordinator decides; it takes F2, F3, F4 and
-  F1 in one lane because they share `workers.py` and `cli/worker.py`) or
-  Core 5. Order: second.
+  a resume releases it, and a test shows both. Owner: the Fair
+  scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM EDT
+  2026-10-22 as the lane's clock reads, by the coordinator; it takes
+  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
+  share `workers.py` and `cli/worker.py`). Order: second.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
   PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
@@ -16178,10 +16181,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 5:10 PM EDT). Files: `api_jobs.submit` and the Generate stage
   start. Done: both waits are tested, the failure after the bound names
   the run, and F5 removes this interim code. PERF.147's progress bar
-  needs a "waiting at position n" state; use the same wording. Owner:
-  proposed, a new Fair scheduling lane (the coordinator decides; it
-  takes F2, F3, F4 and F1 in one lane because they share `workers.py`
-  and `cli/worker.py`) or Core 5. Order: third (after F2, which also
+  needs a "waiting at position n" state; use the same wording. Owner: the
+  Fair scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM
+  EDT 2026-10-22 as the lane's clock reads, by the coordinator; it takes
+  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
+  share `workers.py` and `cli/worker.py`). Order: third (after F2, which also
   edits `api_jobs.submit`).
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
   PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
