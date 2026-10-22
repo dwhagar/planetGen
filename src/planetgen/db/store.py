@@ -7149,6 +7149,57 @@ def system_content_blockers(conn, star_system_id):
     return {"facilities": facilities, "bright_star": bright}
 
 
+def _body_slots(conn, system_id):
+    """
+    `{(table, row id): slot}` for the bodies of a system: where each one sits in the system, which is what its ID
+    follows when the system's content is drawn again (DB.75).
+
+    A slot is `(kind, host, index)`: a star's is its role (`primary`, `secondary`, `single`); a planet's or a belt's
+    is the role of the star it orbits (`system` for a circumbinary one) and its place in that star's list of orbits; a
+    moon's is its planet's slot and its place among the planet's moons; a comet's is the star it belongs to and its
+    rank among the system's comets.
+    """
+    roles = {row["id"]: row["role"] for row in conn.execute(
+        "SELECT id, role FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
+    slots = {("stars", star_id): ("star", role, 0) for star_id, role in roles.items()}
+    planet_slots = {}
+    for table, kind in (("planets", "planet"), ("asteroid_belts", "belt")):
+        for row in conn.execute(f"SELECT id, star_id, orbital_index FROM {table} WHERE star_system_id = ?",
+                                (system_id,)).fetchall():
+            slot = (kind, roles.get(row["star_id"], "system"), row["orbital_index"])
+            slots[table, row["id"]] = slot
+            if table == "planets":
+                planet_slots[row["id"]] = slot
+    for row in conn.execute("SELECT id, planet_id, orbital_index FROM moons WHERE star_system_id = ?",
+                            (system_id,)).fetchall():
+        slots["moons", row["id"]] = ("moon", planet_slots[row["planet_id"]], row["orbital_index"])
+    comet_rank = {}
+    for row in conn.execute("SELECT id, star_id FROM comets WHERE star_system_id = ? ORDER BY id",
+                            (system_id,)).fetchall():
+        host = roles.get(row["star_id"], "system")
+        slots["comets", row["id"]] = ("comet", host, comet_rank.get(host, 0))
+        comet_rank[host] = comet_rank.get(host, 0) + 1
+    return slots
+
+
+def _slot_uids(conn, system_id):
+    """`{slot: uid bytes}` of the bodies of a system that have an ID."""
+    out = {}
+    for (table, row_id), slot in _body_slots(conn, system_id).items():
+        row = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row_id,)).fetchone()
+        if row is not None and row["uid"] is not None:
+            out[slot] = row["uid"]
+    return out
+
+
+def _carry_uids(conn, system_id, kept):
+    """Gives the bodies of a system that have no ID yet the ID of the body that held their slot (`kept`, from
+    `_slot_uids`): a body of the same kind in the same place is the same body to the outside."""
+    for (table, row_id), slot in _body_slots(conn, system_id).items():
+        if slot in kept:
+            conn.execute(f"UPDATE {table} SET uid = ? WHERE id = ? AND uid IS NULL", (kept[slot], row_id))
+
+
 def replace_star_system_content(conn, star_system_id, star_system, system_config):
     """
     Swaps a stored system's generated content -- its stars, planets,
@@ -7176,6 +7227,8 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     # dropped, which also drops its name reservation.
     temp_id = insert_star_system(conn, star_system, system_config)
     temp_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (temp_id,)).fetchone()["name"]
+    keep_body_numbers(conn, star_system_id)  # a number the old bodies held is not given to another body
+    kept_uids = _slot_uids(conn, star_system_id)
     conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (star_system_id,))
     for table in ("moons", "planets", "asteroid_belts", "comets", "stars"):
         conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
@@ -7196,7 +7249,8 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
         conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                      " modified_at = modified_at WHERE id = ?", (*velocity, star_system_id))
     _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
-    assign_uids(conn, system_ids=[star_system_id])  # the new bodies take the IDs the old ones had
+    _carry_uids(conn, star_system_id, kept_uids)  # a body keeps the ID of the one that held its place (DB.75)
+    assign_uids(conn, system_ids=[star_system_id])  # the others take the system's next body numbers
     return True
 
 

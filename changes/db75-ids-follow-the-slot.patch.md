@@ -1,0 +1,7 @@
+**Headline:** Drawing a system's content again keeps the ID of every star, planet, moon, belt and comet that keeps its place.
+
+### Changed
+- **A body's ID follows its slot, not its row (DB.75).** `replace_star_system_content` (the regenerate of `PATCH /api/systems/<id>`) used to delete a system's bodies and number the new ones from the system's counter, so every body got a new ID and a planet's public URL died with the redraw. A body now has a slot: a star's is its role, a planet's or belt's is the star it orbits and its place in that star's orbit list, a moon's is its planet's slot and its place among that planet's moons, a comet's is its star and its rank. The new body of a slot that the old content held takes that body's ID; a slot that is new takes the system's next body number; a slot that is gone leaves its number used for good (the counter is brought past every old body before the delete). Editing a system in place (`save_system_edits`) already kept every ID.
+- `tests/test_stable_body_ids.py` redraws a system with fewer, then more, orbits and checks that every slot present before and after keeps its number, that a new slot takes a number no earlier body held, and that a fresh system still numbers its bodies 1, 2, 3 in the order it always did.
+
+TODO items resolved: none (DB.75 stays open for a body that changes parent, which the shared parent link of the 8.4 revision gives: its ID is in its row and the parent is a column). Added: none.
