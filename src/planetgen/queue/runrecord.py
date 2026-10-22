@@ -235,7 +235,7 @@ def active_run(conn, kind=GENERATION):
 
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
-              steps=None, kind=GENERATION):
+              steps=None, kind=GENERATION, disregard_missing_data=False):
     """
     Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
     generation run and one of those may be live together).
@@ -245,6 +245,8 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         stages (list[Stage]): The run's stages, in order (at least one).
         steps (list[dict], optional): The wrapper's step list (`queue.commands.Step.as_dict`), one per stage; the
             unit that completes a stage reads the next one from here (PERF.118).
+        disregard_missing_data (bool): Whether the run was told to take a labelled fallback for a missing downloaded data
+            file (GEN.599); every unit's worker is set the same (`queue.units.run_unit`).
 
     Returns:
         str: The run id.
@@ -270,7 +272,7 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
     pipe.hset(run_key(run_id), mapping={
         "title": title, "kind": kind, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
-        "steps": json.dumps(steps or []), "current": 0, "created": now, "started": now, "updated": now,
+        "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "", "current": 0, "created": now, "started": now, "updated": now,
         "finished": "", "error": "", "owner": _owner()})
     for index, stage in enumerate(declared):
         pipe.hset(stage_key(run_id, index), mapping={"units": stage["units"], "cost_total": stage["cost"], "done": 0,

@@ -1721,12 +1721,13 @@ def generate_sector_neighborhood_route(sector_id):
         raise ApiError("request body must be a JSON object")
     request_body = parse_body(NeighborhoodRequest, body)
     radius_ly, estimate_only = request_body.radius_ly, request_body.estimate_only
+    disregard = request_body.disregard_missing_data
 
     config = _resolve_requested_write_db_config()
     if not estimate_only:
         try:
             run_galaxy.require_math_check()
-            run_galaxy.require_datasets()
+            run_galaxy.require_datasets(disregard)
         except RuntimeError as exc:
             raise ApiError(str(exc), status_code=409)
     try:
@@ -1749,13 +1750,13 @@ def generate_sector_neighborhood_route(sector_id):
         raise ApiError(result["estimate"]["refusal"], status_code=507)
 
     try:
-        job_id = api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config,
+        job_id = api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config, disregard,
                                  expected_seconds=result["estimate"].get("seconds"))
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
     audit(
         "sector.generate_neighborhood", target=f"sector:{sector_id}",
-        detail=f"radius_ly={radius_ly!r} job={job_id}",
+        detail=f"radius_ly={radius_ly!r} job={job_id}" + (" disregard_missing_data" if disregard else ""),
     )
     return accepted(job_id)
 

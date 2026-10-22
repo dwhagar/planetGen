@@ -42,14 +42,18 @@ and not the photosphere (stellar-composition.md D14); an age law for the photosp
 has not been read.
 
 The downloaded files (`planetgen.datasets`, GEN.548) are required (GEN.590, Boss's answer on the card): a kind that reads them
-raises `fetch.StandIn` when they were not downloaded, and there is no fallback value. Bulk generation does not start without them
-(`run_galaxy.require_datasets`), so a derived makeup never differs between a machine with the files and one without.
+raises `fetch.DataMissing` when they were not downloaded, and bulk generation does not start without them
+(`run_galaxy.require_datasets`), so a derived makeup never differs between a machine with the files and one without. The one
+exception is a run told in so many words to disregard missing data (GEN.599, `fetch.set_disregard_missing_data`): each kind
+then takes its dataset's labelled fallback, says so in its `open_items` and is listed in `fetch.stand_ins_used()`. A main-sequence
+star has no fallback value (no luminosity, temperature, radius or lifetime), a white dwarf the radius of the zero-temperature
+Chandrasekhar table and no layers, a neutron star the Chamel and Haensel 2008 outer crust.
 """
 
 from dataclasses import dataclass, field
 
 from planetgen import tuning
-from planetgen.datasets import isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
 from planetgen.physics import elements
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
@@ -229,7 +233,10 @@ def wolf_rayet_surface(subtype, u):
 def _neutron_star_crust(draws):
     """The outer crust of a neutron star: the nuclei, surface inward, of the nuclear mass model `draws.u_crust_model` picks among
     the downloaded ones (the 20 models are the spread of the theory, so one is drawn per star), and the density at which
-    neutron drip ends it."""
+    neutron drip ends it. A run that disregards missing data takes the one sequence of Chamel and Haensel 2008 instead."""
+    if fetch.locate(neutron_star_matter.DATASET).use_stand_in("the Chamel and Haensel 2008 outer crust"):
+        return {"crust_model": None, "outer_crust": tuple(nucleus for nucleus, _density in sa.NEUTRON_STAR_OUTER_CRUST),
+                "neutron_drip_g_cm3": sa.NEUTRON_DRIP_DENSITY_G_CM3, "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
     models = neutron_star_matter.crust_models()
     model = models[min(int(draws.u_crust_model * len(models)), len(models) - 1)]
     layers = neutron_star_matter.outer_crust(model)
@@ -254,8 +261,8 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
 
     Raises:
         StarMakeupError: An unknown kind, or a kind that needs a [Fe/H], a subtype or a temperature and has none.
-        planetgen.datasets.fetch.StandIn: The kind reads a downloaded file (main sequence, white dwarf, neutron star) and
-            the file was not downloaded.
+        planetgen.datasets.fetch.DataMissing: The kind reads a downloaded file (main sequence, white dwarf, neutron star), the
+            file was not downloaded and the run was not told to disregard missing data.
     """
     if kind not in KINDS:
         raise StarMakeupError(f"unknown kind {kind!r}; expected one of {', '.join(KINDS)}")
@@ -263,8 +270,11 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
     if kind == BLACK_HOLE:
         return StarMakeup(kind, None, None, None, draws, {"hole": sa.black_hole(mass_sol, spin)})
     if kind == NEUTRON_STAR:
-        return StarMakeup(kind, None, None, None, draws, _neutron_star_crust(draws),
-                          open_items=("inner crust and core need the equation of state integrated (nothing does yet)",))
+        crust = _neutron_star_crust(draws)
+        open_items = ("inner crust and core need the equation of state integrated (nothing does yet)",)
+        if crust["crust_model"] is None:
+            open_items += (f"the outer crust is the stand-in sequence: {neutron_star_matter.DATASET.fallback}",)
+        return StarMakeup(kind, None, None, None, draws, crust, open_items=open_items)
     if fe_h is None:
         raise StarMakeupError(f"a {kind} needs a [Fe/H]")
     branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)
@@ -279,11 +289,15 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
         open_items = ("surface shifts of the later phases (the dredge-up grid stops at 2.5 solar masses)",
                       "the carbon-to-oxygen ratio of a carbon star")
     elif kind == MAIN_SEQUENCE:
-        point = isochrones.main_sequence_point(mass_sol, age_gy, fe_h)
+        if fetch.locate(isochrones.DATASET).use_stand_in("no main-sequence values"):
+            point, detail["main_sequence_lifetime_gy"] = None, None
+            open_items = (f"the isochrones are missing: {isochrones.DATASET.fallback}",)
+        else:
+            point = isochrones.main_sequence_point(mass_sol, age_gy, fe_h)
+            detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, fe_h)
+            if point is None:
+                open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)
         detail["main_sequence"] = None if point is None else dict(zip(("log_luminosity_sol", "log_teff_k", "log_radius_sol"), point))
-        detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, fe_h)
-        if point is None:
-            open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)
     elif kind == WOLF_RAYET:
         if wolf_rayet is None:
             raise StarMakeupError("a Wolf-Rayet star needs its subtype")
@@ -308,8 +322,17 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
         detail["atmosphere"] = "DA" if draws.u_atmosphere < DA_SHARE else "non-DA"
         envelope = "thick" if detail["atmosphere"] == "DA" else "thin"
         detail["envelope"] = envelope
-        detail["radius_solar"] = white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
-        detail["layers"] = white_dwarf_models.layer_mass_fractions(mass_sol, envelope) if detail["core"] == "carbon-oxygen" else None
-        open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",
-                      "the layers and the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)")
+        if fetch.locate(white_dwarf_models.DATASET).use_stand_in("the Chandrasekhar mass-radius table"):
+            try:
+                detail["radius_solar"] = sa.white_dwarf_radius_solar(mass_sol)
+            except sa.StellarAbundanceError:
+                detail["radius_solar"] = None
+            detail["layers"] = None
+            open_items = (f"the white-dwarf sequences are missing: {white_dwarf_models.DATASET.fallback}",)
+        else:
+            detail["radius_solar"] = white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+            detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope)
+                                if detail["core"] == "carbon-oxygen" else None)
+            open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",
+                          "the layers and the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)")
     return StarMakeup(kind, branch, birth, surface, draws, detail, open_items)

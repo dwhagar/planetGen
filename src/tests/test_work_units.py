@@ -769,3 +769,20 @@ def test_a_backfill_with_nothing_to_draw_is_one_empty_unit_and_stores_its_stage(
     assert [unit[0]["items"] for unit in cut.units] == [[]] and cut.plan == {"sectors": 0}
     result = commands.run_alone("scatter-backfill", cut.units[0][0])
     assert result == {"sectors": 0, "stars": 0, "visited": 0, "shells": {}}
+
+
+def _says_whether_missing_data_is_disregarded(args, report):
+    from planetgen.datasets import fetch
+    return {"disregarding": fetch.disregarding_missing_data()}
+
+
+@pytest.mark.parametrize("told", [True, False])
+def test_a_unit_runs_with_the_switch_its_run_was_started_with(monkeypatch, told):
+    """GEN.599: a worker is a process of its own, so the run record carries the option to every unit."""
+    from planetgen.datasets import fetch
+    fetch.set_disregard_missing_data(told)
+    try:
+        run_id, results = _run(monkeypatch, _says_whether_missing_data_is_disregarded, count=3)
+    finally:
+        fetch.set_disregard_missing_data(False)
+    assert [result["disregarding"] for result in results.values()] == [told] * 3

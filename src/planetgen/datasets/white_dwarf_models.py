@@ -37,6 +37,7 @@ DATASET = fetch.Dataset(
                         + ARCHIVE, "5c99114fcba0087395fcde2779ad7bdc9b7ace224abb71322d45165facae45ac", 2519040),),
     replaces="the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split",
     fill="SC2",
+    fallback="the radius of the zero-temperature Chandrasekhar table (Sirius B check, no temperature or layers), and no layer fractions",
 )
 
 ENVELOPES = ("thick", "thin")

@@ -66,6 +66,7 @@ from planetgen.generation import run_galaxy
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
+from planetgen.datasets import fetch
 from planetgen.db import dataversion
 from planetgen.generation import run_sector
 from planetgen.generation import run_system
@@ -183,7 +184,9 @@ def _validate_name(args, parser):
 def add_logging_arguments(parser):
     """
     Adds the logging options every subcommand shares to `parser`:
-    `--debug` and `--quiet`/`--silent`.
+    `--debug` and `--quiet`/`--silent`, and `--disregard-missing-data`
+    (GEN.599: not logging, but a run-wide switch every subcommand takes, so a
+    command that reads no downloaded data accepts it and ignores it).
 
     `--debug` alone enables debug-severity output to the console; giving it
     a filename (`--debug FILE`) additionally mirrors that same output to
@@ -201,6 +204,9 @@ def add_logging_arguments(parser):
                              "console. If FILE is given, also mirror that output to FILE.")
     parser.add_argument('--quiet', '--silent', dest='quiet', action='store_true',
                         help="Suppress all output except errors.")
+    parser.add_argument('--disregard-missing-data', action='store_true',
+                        help="Generate even when a downloaded data file is missing (GEN.590 refuses by default), taking "
+                             "each missing dataset's labelled fallback; the run says which. Setup downloads the files.")
 
 
 def validate_logging_args(args, parser):
@@ -1611,10 +1617,12 @@ def main():
     # TEST.68: a bulk run checks the math first and writes nothing at all
     # (not even the activity log's start line) when it fails. GEN.590: so it
     # does when a downloaded data file is missing.
+    fetch.set_disregard_missing_data(getattr(args, "disregard_missing_data", False))
     if is_bulk_run(args):
         try:
             run_galaxy.require_math_check()
-            run_galaxy.require_datasets()
+            for line in run_galaxy.disregard_notice(run_galaxy.require_datasets()):
+                log.normal(line)
         except (run_galaxy.MathCheckFailed, run_galaxy.DatasetsMissing) as exc:
             _fatal(str(exc))
 

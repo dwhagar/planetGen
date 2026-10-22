@@ -12,8 +12,11 @@ size the catalogue states, compares the sha256 and puts the file in the cache fo
 dataset missing; it never raises, so a host that is down cannot stop an update. `locate` is the run-time half:
 it opens no connection, only looks in the folder (hashing each file once per process), and answers with the folder or
 that the dataset is missing. The generator requires every dataset (GEN.590, Boss's answer on the card): a reader raises
-`DataMissing` and bulk generation refuses to start (`run_galaxy.require_datasets`), so no value ever comes from a fallback.
-What each fill replaced is in the stand-in registry (docs/design/gap-filling-plan.md section 6).
+`DataMissing` and bulk generation refuses to start (`run_galaxy.require_datasets`), so no value comes from a fallback unless
+the run was told, in so many words, to disregard missing data (GEN.599, `set_disregard_missing_data`: `--disregard-missing-data`
+on the command line, a checkbox on the Generate page). Then a reader asks `Located.use_stand_in` and takes the dataset's own
+labelled `fallback`, and `stand_ins_used` lists what was taken. What each fill replaced is in the stand-in registry
+(docs/design/gap-filling-plan.md section 6).
 
 Some sources are large archives of which only a few columns are used (the MIST isochrones are 220 MB). A dataset can
 then name a `derive` function and the compact files it writes (`derived`); its archive piece is `transient`: the step
@@ -25,6 +28,7 @@ Tests never reach the network: `fetch` takes the function that opens a request (
 serves bytes it built itself, with the sha256 computed from them.
 """
 
+import contextlib
 import hashlib
 import http.client
 import json
@@ -94,7 +98,9 @@ class Dataset:
     when the files are missing), and `fill` is the registry id (gap plan section 6) of that fill. A dataset that keeps only compact files derived from a large
     archive names them in `derived`, the function that writes them in `derive` (`derive(folder)` returns
     `{file name: bytes}` from the verified pieces in `folder`) and a `derive_version` to raise when that function
-    changes; the archive pieces are marked `transient` and are removed once derived.
+    changes; the archive pieces are marked `transient` and are removed once derived. `fallback` says in a few words what a
+    reader answers with when the files are missing and the run disregards missing data (GEN.599); empty when there is
+    none, and then a missing dataset is refused whatever the run was told.
     """
 
     key: str
@@ -107,6 +113,7 @@ class Dataset:
     derived: tuple = ()
     derive: object = None
     derive_version: int = 1
+    fallback: str = ""
 
     def __post_init__(self):
         if not _FILE_NAME.fullmatch(self.key):
@@ -169,11 +176,31 @@ class Located:
             return f"missing ({self.dataset.fill}, replaces {self.dataset.replaces})"
         return f"downloaded: {self.dataset.source}"
 
+    def describe(self):
+        """The refusal text for a missing dataset: its name, why, every file to download with its URL and the setup
+        command (GEN.599)."""
+        urls = ", ".join(piece.url for piece, _reason in self.lacking) or "none"
+        return (f"{self.dataset.key} ({self.dataset.fill}): {self.reason}; files to download: {urls}; "
+                f"run 'python3 -m planetgen.cli.datasets fetch {self.dataset.key}' (update.sh does it at setup)")
+
     def require(self):
         """Self, or `DataMissing` when the files are missing, for a reader that has no value of its own to give."""
         if self.missing:
-            raise DataMissing(f"{self.label} ({self.reason}); setup downloads it ('python3 -m planetgen.cli.datasets fetch')")
+            raise DataMissing(f"{self.label}: {self.describe()}")
         return self
+
+    def use_stand_in(self, what):
+        """
+        Whether a reader answers from the dataset's labelled fallback instead of the files: False when the files are there,
+        True when they are missing and the run disregards missing data (`what` names what was taken, for the run's record),
+        and `DataMissing` when they are missing and it does not (or the dataset has no fallback).
+        """
+        if not self.missing:
+            return False
+        if not _DISREGARD or not self.dataset.fallback:
+            self.require()
+        _STAND_INS.add((self.dataset.key, what))
+        return True
 
     def path(self, name):
         """The path of the file `name`; not available while the files are missing."""
@@ -182,6 +209,39 @@ class Located:
         if name not in {piece.name for piece in self.dataset.pieces if not piece.transient} | set(self.dataset.derived):
             raise KeyError(f"{self.dataset.key} has no file {name!r}")
         return os.path.join(self.folder, name)
+
+
+_DISREGARD = False
+_STAND_INS = set()
+
+
+def set_disregard_missing_data(on):
+    """Tells the process whether a reader may answer from a dataset's fallback while its files are missing (GEN.599). Only
+    a run that was told to (`--disregard-missing-data`) turns it on; the default is to refuse."""
+    global _DISREGARD
+    _DISREGARD = bool(on)
+
+
+def disregarding_missing_data():
+    """Whether this process was told to disregard missing data."""
+    return _DISREGARD
+
+
+@contextlib.contextmanager
+def disregard_missing_data():
+    """Disregards missing data inside the block and forgets what was used when it ends (for a test or a one-off call)."""
+    before = _DISREGARD
+    set_disregard_missing_data(True)
+    try:
+        yield
+    finally:
+        set_disregard_missing_data(before)
+        _STAND_INS.clear()
+
+
+def stand_ins_used():
+    """The fallbacks taken in this process so far, as sorted `(dataset key, what)` pairs."""
+    return sorted(_STAND_INS)
 
 
 def cache_dir():
