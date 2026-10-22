@@ -7392,8 +7392,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383,
-  GEN.608, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.390 Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules**
@@ -15657,285 +15656,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Blocker 2 proposed (small; it can go first).
   Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
 
-- [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Do: generate the
-  `plan` and `generate` flags from the table (GEN.601); Each old option
-  retires with no shim in the item that replaces it, never before:
-  `--disk-scale-height-pc`, `--bulge-scale-radius-pc` and
-  `--bulge-amplitude` in GEN.604, `--max-shell` in GEN.605,
-  `--arm-density` and `--interarm-density` in GEN.611 (arm contrast);
-  the absolute scale length stays only as the advanced pin of the Scale
-  dial (GEN.603); `--reach-shells` and `--nuclear-amplitude` become
-  internal or advanced (GEN.610). This item builds the flag generator,
-  the docs table, `docs/command-inventory.md` and the help text, and
-  lists the places the retiring options touch so each dial item can
-  update them: generate.py, run_plan.py, run_galaxy.py, stages.py,
-  limits.py, skeleton.py, density.py, shape_draw.py, store.py,
-  web/generate_page.py, web/maps/galaxymap3d.py, cli/benchmark.py, and
-  the tests test_gen_cli_errors, test_parallel_generation,
-  test_galaxy_seed, test_db_scatter_limits, test_shape_draw,
-  test_web_a11y, test_galaxy_core_ball and the visualizer CLI in tests.
-  `--max-shell` is also an option of the `galaxy` command (random-start
-  mode): the Edge item decides whether that one stays. Done: the
-  registry generates every flag of the finished dials and the docs
-  table; with no dial touched the plan's stored shape is identical to
-  today's for the same seed (a golden test; if any default draw changes,
-  the change takes the next free generator epoch and says so); each new
-  flag has a test that pins it alone.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Progress (the Galaxy dials lane, #2395, about 10:20 PM EDT 2026-10-21
-  as the lane reported): the flag generator is built on the lever table
-  (GEN.601 merged): `plan` and `generate` take their shape flags from
-  `galaxy/dials.py`, docs/cli.md carries the generated table, the old
-  options stay until the dial item that replaces each one retires it.
-  Open: the rest of this item (each retiring option's removal rides its
-  own dial item) and the remaining places in the list above; the lane
-  reports when it is done.
-  Prerequisites: GEN.601. Related: GEN.611, ADM.110.
-
-- [ ] **GEN.603 Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown**
-  Boss's rulings (galaxy size research thread, 2026-10-21): 6:41 PM EDT
-  chose mass, size and density as one 'any two of three' group with the
-  third shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH). Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8. Resolution order: the seed draws mass and the
-  compactness z; a pinned lever replaces its draw; then mass, then size
-  (from compactness, an absolute scale length or a pinned density, L =
-  sqrt(M_disc / (2 pi Sigma0))), then every ratio of L (thick disc,
-  stellar halo break, bulge, bar, reference radii), then the density
-  normalisation. Mass stays the master: the galaxy still holds mass over
-  the mean system mass in systems. Pinning all three of mass, size and
-  density is refused: the third is shown with the value the other two
-  imply and the message names which was dropped. A dial replaces only
-  its draw's median; the draw's random number is untouched, so the same
-  seed at a new mass gives the same residuals in sigma (turning the dial
-  moves the galaxy smoothly). Default size and limits (Boss, via the
-  coordinator): 6:57 PM EDT "we will make the default size level to be
-  on the smaller size, still a spiral, just a smaller one no more than
-  half the size of the milky way. That is still more than enough space
-  for a role play."; 7:05 PM EDT (Galaxy dials thread): the slider
-  defaults give a galaxy roughly half the Milky Way's size, the user can
-  push up, and the cap (slider maximum) is about 50 percent bigger than
-  Andromeda; 7:09 PM EDT: the slider minimums are half the size of Ursa
-  Major III / UNIONS 1 (the smallest known galaxy); 7:13 PM EDT: the
-  lower and upper limits apply to scale length, scale height and mass.
-  Placeholder numbers reported by the Galaxy dials lane (7:16 PM EDT as
-  the lane reported; placeholders until Boss gives sources, listed in
-  the gap plan and GEN.609): scale length 0.9 to 8000 pc, scale height
-  0.3 to 750 pc, mass 8 to 2e11 solar masses; Auto default about 1.3 kpc
-  scale length and 3e9 to 4e9 solar masses. They are plain numbers with
-  a label, never a preset of a named galaxy (no fixed content). The
-  advanced absolute scale length is a length with units, pc or kpc,
-  through the lever table's unit column (GEN.601; Boss, 7:01 PM EDT); on
-  the command line the unit is part of the value, as for Edge. The first
-  family's mass range 3e9 to 2e11 (Boss, 2026-10-16) stays the family
-  draw's range for 9.4 (docs/design/galaxy-types.md); the pin range of
-  this dial is wider at the low end, and masses below the lowest size
-  where the halo functions work are accepted and run no halo function
-  (GEN.606, Boss 7:33 PM EDT). This is the only dial item that changes
-  the default galaxy: the new default window takes the next free
-  generator epoch and the golden files are regenerated, and system
-  counts and the cost of a full generation drop (check against GEN.545's
-  mean system mass and measure with PERF.146). Every other dial item
-  keeps the default output identical (a golden test); if this item lands
-  first, their baseline is main at that point. Done: tests for each pair
-  of pins reproducing the third within tolerance; the refusal and its
-  message; same seed, mass doubled, gives the same size sigma and thick
-  disc sigma; the lever table's scale length, scale height and mass rows
-  carry exactly the limits above as named constants labelled
-  placeholder; the Auto draw stays inside the default window over many
-  seeds and a pin reaches the minimum and the maximum, and a value
-  outside either is refused with the limit and its label; with the new
-  default, golden files are regenerated under the new epoch.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609,
-  GEN.612. Sources arrived (report
-  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md): the
-  upper limit is now sourced (scale length 8.25 kpc, scale height 1.16
-  kpc, mass 1.5e11 to 2.3e11 solar masses, 1.5 times Andromeda; see
-  GEN.609) and the lower limit's example, Ursa Major III / UNIONS 1, is
-  argued to be a star cluster; the floor example is an open card with
-  Boss (Segue 1, Reticulum II or Willman 1: floors 281, 1,476 or 889
-  solar masses). The placeholder limits above stand until the lane
-  applies the sourced ones and Boss answers the floor card.
-  Decided (Boss, 2026-10-21, 7:31 PM EDT, card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
-  floor example, replacing the Ursa Major III / UNIONS 1 placeholder
-  (argued to be a star cluster). The floors are half the example:
-  stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
-  pc, scale height 4.8 pc (report
-  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
-  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
-  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
-  half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
-  half-light radius, 12 pc, sits in the extended star cluster range
-  (report section 4); the lane decides whether that needs a warning. The
-  slider minimums are therefore mass 281 solar masses, scale length 7.1
-  pc and scale height 4.8 pc (replacing the placeholder minimums above);
-  the maximums are the sourced ones; the Auto default window is
-  unchanged. The halo and size laws below 1e8 solar masses are sourced
-  down to log M* 5.5 and not below (GEN.612), so the floor of 281 solar
-  masses (log M* 2.45) is accepted: it runs no halo function (GEN.606,
-  Boss 7:33 PM EDT) and takes its size from the best available law until
-  GEN.612 sources one. Superseded wording (Boss, 7:33 PM EDT, via the
-  coordinator): masses below the lowest size where the halo functions
-  work are no longer refused; they skip all halo functions (GEN.606).
-  The earlier 'refused with the reason until GEN.612 lands' no longer
-  applies; GEN.612 now only extends the size law and the non-halo laws.
-  Density limits (report
-  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613):
-  hard and warn limits are listed in GEN.601; Sigma0's definition must
-  include the nuclear cluster and disc (12 to 80 percent of the stars of
-  the Auto-sized galaxies from 1e9 down to 281 solar masses at the
-  default amplitude, one seed) (the low-mass cut is decided: 3e8 solar
-  masses, GEN.615). Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue
-  floor length card, relayed by the galaxy size research thread): the
-  scale length floor is 28 pc, replacing the Segue-half 7.1 pc, so that
-  about 7 cells of the fixed 4 pc edge span the scale length. The mass
-  floor 281 solar masses, the scale height floor 4 pc and the bulge
-  floor 2 pc are unchanged. GEN.619 (a variable sector edge) may lower
-  the scale length floor later. Nothing under 28 pc is accepted until
-  GEN.619 lands.
-
-- [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Flatness
-  replaces the absolute `--disk-scale-height-pc` (default the 7.3 median
-  with the 0.13 dex draw, range 3 to 20); bulge share is the
-  bulge-to-total mass fraction (default drawn by stage; range 0 to 0.9)
-  and replaces `--bulge-amplitude`, which the code already solves from
-  the share; bulge size is a ratio of L (default one third of a bar of
-  0.2 to 3 L, range 0.02 to 1 L) and replaces `--bulge-scale-radius-pc`.
-  Ratios keep their meaning when the Scale dial moves L. Do: wire the
-  three through `draw_galaxy` replacing only their own draws; recompute
-  everything downstream. Done: each dial alone is tested; with all three
-  on Auto the shape is unchanged; raising mass with a pinned flatness
-  keeps the ratio; a bulge share of 0 gives a disc with no bulge
-  density.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Also retires, with no shim and in this item: `--disk-scale-height-pc`,
-  `--bulge-scale-radius-pc` and `--bulge-amplitude` (refused as unknown
-  flags), with the tests and web fields that used them updated (list in
-  GEN.602).
-  Prerequisites: GEN.601. Related: GEN.382, GEN.603, GEN.610.
-
-- [ ] **GEN.605 Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces
-  `--max-shell`; `--reach-shells` stays an addressing detail (object IDs
-  name shells up to 262 kpc). Decided (Boss, 2026-10-21, 7:01 PM EDT, on
-  the Edge card): "B and C give the option for both so the user will
-  have a selector of some kind so that the interface knows, the options
-  in the command line are determined by the units used (xxx L for
-  lengths and pc, kpc, Mpc for radius)". Edge takes both forms with a
-  unit selector. Web: a selector with L, pc, kpc and Mpc beside the
-  slider; the range and step follow the unit. Command line: the unit is
-  part of the value (`--edge 12L`, `--edge 30kpc`, `--edge 18000pc`,
-  `--edge 0.03Mpc`); a bare number is refused with the list of units.
-  Auto (the default) keeps today's one-system-per-sector outline and
-  shows the resulting radius in the chosen unit; the star-count
-  threshold is not a user unit. Range 3 to 20 L, and as a radius up to
-  the grid's reach (262 kpc), so Mpc above 0.262 is refused with the
-  reach quoted. A radius in L resolves against the planned galaxy's thin
-  disc scale length, so the same 12L is a different radius in pc for a
-  different L (documented). Detail:
-  design-drafts/galaxy-size-levers-2026-10-21.md, section 9.1. Systems
-  scale with mass and sectors with volume, so a large thin low-density
-  galaxy has many sectors with few stars; the plan already computes both
-  counts and this dial shows them before anything runs, and warns when
-  the job is impossible. Done: each unit parses, converts and
-  range-gates from the lever table's unit column (GEN.601); a bare
-  number and Mpc above the reach are refused with the allowed units and
-  the reach; the web selector changes the slider's range and step;  the
-  radius and the counts are shown; Auto gives today's
-  one-system-per-sector threshold; `--max-shell` is gone.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21); the edge form is decided, so it is no longer blocked.
-  Also retires `plan --max-shell` with no shim in this item (refused as
-  an unknown flag; PERF.121's finding that it does not shrink the
-  scatter is moot); whether `galaxy --max-shell` stays is decided here
-  and its tests updated (list in GEN.602). Reach: the Edge dial reads
-  the reach the plan stores today (`reach_shell_index`, set by `plan
-  --reach-shells`); GEN.538 (8.5) later moves the reach into the plan
-  configuration and repoints it, so this item never depends on GEN.538.
-  The one-star outline rule becomes a density threshold in GEN.619
-  (Boss, 8:08 PM EDT 2026-10-21, later item); until then Edge keeps
-  today's rule.
-  Prerequisites: GEN.601. Related: GEN.603, ADM.109, GEN.538, PERF.121.
-
-- [ ] **GEN.606 Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Dark halo mass
-  (halo over stellar 10 to 300) sets the total mass and r200, which the
-  code computes and nothing reads today; stellar halo share (0.1 to 30
-  percent) sets the faint outer light. Both Auto by default, drawn from
-  the stellar-halo law and the stellar-to-halo relation. With the dial
-  live, the stellar half-light radius should sit near 1.5 to 1.8 percent
-  of R200c with 0.2 dex scatter (Kravtsov 2013 and Somerville 2018,
-  secondhand in the report, so a labelled bracket until GEN.609 checks
-  them): offer it as a warning, never a clamp. It is the only dial that
-  changes total mass. Done: tests that the dark halo changes r200 and
-  the total mass and nothing in the disc; the stellar halo share changes
-  only the halo's light; the warning fires on a deliberately odd galaxy
-  and does not block it.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Decided (Boss, 2026-10-21, 7:33 PM EDT, via the coordinator):
-  "anything under a reasonable galaxy to have a halo (the lowest size
-  our functions work for reliably) does not run any halo functions." A
-  galaxy below the lowest size where the halo functions work reliably
-  (today the lowest mass the halo laws cover, 1e8 solar masses; the
-  Galaxy dials lane confirms the number) skips ALL halo functions: no
-  dark halo, no stellar halo, no r200, no halo scatter, no satellites
-  that need a halo; the mass is accepted, not refused. Done (added):
-  below the threshold the dial's two sliders are disabled with the
-  reason, no halo function runs (a test patches each halo function to
-  fail and plans a galaxy below the threshold), and at and above the
-  threshold nothing changes. The threshold is one named constant with
-  its source.
-  Prerequisites: GEN.601. Related: GEN.297, GEN.380, GEN.603, GEN.539.
-
 - [ ] **GEN.607 Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default**
   Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
   mass, size and density as one 'any two of three' group with the third
@@ -15962,167 +15682,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: the Galaxy dials lane, after GEN.545 merges (the coordinator,
   6:55 PM EDT 2026-10-21; the richness choice is decided).
   Prerequisites: GEN.545. Related: GEN.603.
-
-- [ ] **GEN.609 Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Every slider
-  needs a range with a source (proposal section 8.5), and several are
-  only recalled in the note: the Shen 2003 size-mass law's valid mass
-  span (about 1e8 to 1e12, unchecked because arXiv was blocked), the
-  flatness span 3 to 20, the bulge-share span 0 to 0.9, the bulge size
-  0.02 to 1 L, the edge span, the halo-to-stellar ratio 10 to 300 and
-  the stellar halo share 0.1 to 30 percent. Do: for each, read the
-  source already in the repo or the files Boss provided, apply the
-  source rules (verified wins; two verified in doubt, newest wins; two
-  in question, widest range), and write the range, its source and its
-  label (verified, derived, bracket, theory or placeholder) into
-  docs/design/gap-filling-plan.md's registry and the lever table
-  (GEN.601). Network access is closed, so a value with no included
-  source stays a labelled placeholder and the slider still ships. Done:
-  every registry row has a source and a label; a test fails on a row
-  with neither.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Decided (Boss, 2026-10-21, via the coordinator): 6:57 PM EDT the
-  default galaxy is a smaller spiral, no more than half the size of the
-  Milky Way, 'still more than enough space for a role play'; 7:05 PM EDT
-  (Galaxy dials thread) refined: the slider DEFAULTS give a galaxy
-  roughly half the Milky Way's size, the user can push up, and the CAP
-  (slider maximum) is about 50 percent bigger than Andromeda; 7:09 PM
-  EDT: the slider MINIMUMS are half the size of Ursa Major III / UNIONS
-  1 (the smallest known galaxy); 7:13 PM EDT ('yes, scale height and
-  mass, same for andromeda upper limit, scale height and mass'): the
-  lower limit (half of that dwarf) and the upper limit (about 1.5 times
-  Andromeda) apply to scale length, scale height and mass. Sources for
-  the two reference galaxies' scale length, scale height and mass (Ursa
-  Major III / UNIONS 1 for the minimum, Andromeda for the maximum, the
-  Milky Way for the default window) are looked up or taken from files in
-  the repo and recorded as plain numbers with their labels (verified,
-  derived, bracket or placeholder); the galaxies themselves are never
-  presets in the generator, only the source of the stated limits (Boss's
-  no-fixed-content rule, 4:11 PM EDT 2026-10-16).
-  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
-  2026-10-21 as the lane reported, all placeholders until Boss gives
-  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
-  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
-  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
-  4e9 solar masses. Done (added): each of these limits is recorded in
-  the gap-plan registry's note on the shape dial limits
-  (docs/design/gap-filling-plan.md, section 2.1) and replaced when Boss
-  gives a source; the reference galaxies are never presets, only the
-  stated origin of the limits.
-  Checked sources (the Galaxy size research thread, report
-  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, written
-  after 7:30 PM EDT 2026-10-21 at Boss's 7:20, 7:22 and 7:24 PM EDT
-  requests; labels V = full text read, C = calculated, D = Local Volume
-  Database v1.1.1, Pace 2025, arXiv:2411.07424): Upper limit, 1.5 times
-  Andromeda (C from V values): scale length 8.25 kpc (Andromeda 5.5 kpc,
-  range 5.3 to 5.8: Courteau 2011 arXiv:1106.3564, Dorman 2013
-  arXiv:1310.4179; widest 4.8 to 5.9 kpc); scale height 1.16 kpc
-  (Andromeda 770 pc, Dalcanton 2023 arXiv:2304.08613; up to 4.2 kpc if
-  the 2.8 kpc thick disc of Collins 2011, summary only, is used);
-  stellar mass 1.5e11 solar masses (Andromeda 10.3e10, Sick 2014
-  arXiv:1410.0017; 10 to 15e10, Tamm 2012 arXiv:1208.5712, which gives
-  2.3e11); Andromeda halo 0.6 to 2.8e12 solar masses (widest of three
-  disagreeing sources). The placeholder 8000 pc, 750 pc and 2e11 are
-  replaced by these when the Galaxy dials lane applies them; the
-  scale-height placeholder 750 pc was below the sourced 1.16 kpc. Lower
-  limit: Ursa Major III / UNIONS 1 (16 solar masses, half-light radius 3
-  pc, Smith 2024 arXiv:2311.10147) is argued to be a star cluster (Cerny
-  2025 arXiv:2510.02431; the Local Volume Database flags it a star
-  cluster), so it is not a floor. A card is open with Boss on the floor
-  example: Segue 1, Reticulum II or Willman 1, whose floors (half of the
-  example) are stellar mass 281, 1,476 or 889 solar masses, scale length
-  7.1, 17.2 or 8.2 pc and scale height 4.8, 6.9 or 4.3 pc (report
-  section 4). Until Boss answers, the 0.9 pc, 0.3 pc and 8 solar masses
-  placeholders stay labelled placeholder and known to be below any
-  accepted galaxy. Milky Way check values only (Bland-Hawthorn and
-  Gerhard 2016 arXiv:1602.07702): stellar mass 5e10, thin disc scale
-  length 2.6 kpc, scale height 300 pc, M200 1.1e12. Done (added): each
-  constant in the lever table carries one of these sources and its
-  label, and the gap-plan note on the shape dial limits is updated.
-  Decided (Boss, 2026-10-21, 7:31 PM EDT, card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
-  floor example, replacing the Ursa Major III / UNIONS 1 placeholder
-  (argued to be a star cluster). The floors are half the example:
-  stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
-  pc, scale height 4.8 pc (report
-  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
-  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
-  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
-  half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
-  half-light radius, 12 pc, sits in the extended star cluster range
-  (report section 4); the lane decides whether that needs a warning.
-  These replace the 0.9 pc, 0.3 pc and 8 solar masses placeholders; the
-  upper limits and the dwarf laws are sourced as listed above, and the
-  lower limits are now verified-derived (half of a sourced example), not
-  placeholders.
-  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
-  relayed by the galaxy size research thread): the thick disc, the bar,
-  the stellar halo and the nuclear cluster and disc switch off below 3e8
-  solar masses of stars; below it a galaxy is one disc plus a bulge. The
-  sources check covers the thresholds' sources (GEN.615).
-  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
-  relayed by the galaxy size research thread): the scale length floor is
-  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
-  fixed 4 pc edge span the scale length. The mass floor 281 solar
-  masses, the scale height floor 4 pc and the bulge floor 2 pc are
-  unchanged. GEN.619 (a variable sector edge) may lower the scale length
-  floor later.
-  Prerequisites: none.
-
-- [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
-  Found by the galaxy size research thread (2026-10-21, from reading
-  `cli/generate.py` at main commit 3bc3ecc), filed by the TODO thread.
-  The option's unit is a fixed copy of the Milky Way's nuclear cluster
-  and disc, which conflicts with Boss's no-fixed-content rule (4:11 PM
-  EDT 2026-10-16). Fails on main: yes, the help text and the unit. Do:
-  make the nuclear amplitude a ratio of the galaxy's own mass or bulge,
-  drawn from a law with a source, advanced and hidden by default in the
-  table; update the help text. Done: no nuclear value in the code or the
-  help is a Milky Way number; a test scans for the two constants.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Prerequisites: GEN.601. Related: GEN.602, GEN.604.
-
-- [ ] **GEN.611 Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. The proposal
-  (section 2) folds `--arm-density` and `--interarm-density` into one
-  number, arm contrast; their mean is absorbed by the mass normalisation
-  once bulge share is a share. Arm count and pitch angle are already
-  drawn (GEN.382's laws) and stay drawn, with an optional pin through
-  the table. All lengths are ratios of L, so the pattern follows the
-  galaxy's size. Filed by the TODO thread as the replacement the
-  retiring arm flags need; the proposal calls it the later pattern set,
-  so whether it ships with the other dials or stays as the old arm flags
-  until then is for the coordinator to confirm. Done: the contrast
-  slider alone is tested; Auto gives today's arm look; the retired pair
-  is refused.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Also retires `--arm-density` and `--interarm-density` with no shim in
-  this item, so the arm look is never without a control (list of places
-  in GEN.602).
-  Prerequisites: GEN.601. Related: GEN.602, GEN.382.
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
@@ -16226,7 +15785,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the lane reported): the Shen size law is extrapolated far below its
   range in the dial's current limits, so this item needs its own dwarf
   size law (the Carlsten law above) and not an extension of Shen.
-  Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
+  Prerequisites: none. Related: GEN.603, GEN.609, GEN.369, GEN.380.
 
 - [ ] **GEN.613 Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them**
   Boss (2026-10-21, 7:33 PM EDT, via the coordinator): "we want to
@@ -16291,7 +15850,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   those components (a test patches each component's draw to fail below
   it); at and above it nothing changes. Owner: the Galaxy dials lane
   (proposed; the coordinator confirms). No longer blocked on a card.
-  Prerequisites: GEN.601. Related: GEN.606, GEN.609, GEN.612, GEN.604.
+  Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.604.
 
 - [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
   Found by the galaxy size research thread's density limits report
@@ -16310,7 +15869,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   be empty. Done: the line appears in both places with the same numbers
   (a test compares them); an empty outline is refused with the reason.
   Owner: the Galaxy dials lane (proposed).
-  Prerequisites: GEN.601. Related: ADM.124, GEN.605, GEN.603.
+  Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
   Found by the galaxy size research thread's density limits report
@@ -16357,7 +15916,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is checked at each edge; a new generator epoch for the small galaxies
   only. Owner: none yet; the version is an estimate (9.4, next to the
   dwarf families, which are the galaxies it serves).
-  Prerequisites: GEN.605, GEN.603. Related: GEN.385, GEN.616,
+  Prerequisites: none. Related: GEN.385, GEN.616,
   GEN.617, GEN.613, GEN.280.
 
 - [ ] **GEN.620 The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off)**
@@ -16401,6 +15960,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regenerates the region.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
+
+- [ ] **GEN.621 The Scale dial's Auto default draws a galaxy about half the Milky Way's size, with an epoch bump**
+  Boss (galaxy size research thread, 2026-10-21, 7:05 PM EDT): the
+  slider defaults give a galaxy roughly half the Milky Way's size, the
+  user can push up. Split from GEN.603 (the Galaxy dials lane, 1:37 AM
+  EDT 2026-10-22 as the lane reported, when #2403 delivered the Scale
+  dial's sliders, limits and pins but not the Auto default): the Scale
+  dial's Auto draw is about 1.3 kpc scale length and 3e9 to 4e9 solar
+  masses (the window in GEN.603's history), drawn from the seed and
+  never a named galaxy (no fixed content). Do: set the Auto default
+  window from the sourced values, draw it from the seed through the one
+  wrapper, and bump the generator epoch (epoch 44, the lane's claim at
+  1:40 AM EDT 2026-10-22 as the lane reported, 43 being GEN.554's;
+  GEN.545 and GEN.370 renumber to 45 or later if this merges first); the
+  lane's window is a stellar mass of 3e9 to 6e9 solar masses, a small
+  spiral, a thin disc scale length of about 1.3 to 1.5 kpc. Done: an
+  Auto galaxy lands inside the window across many seeds, a pinned dial
+  is unchanged, the epoch is bumped and the golden entry added, and the
+  Generate page and docs/cli.md state the default. Owner: the Galaxy
+  dials lane (the coordinator, 1:37 AM EDT 2026-10-22).
+  Prerequisites: none. Related: GEN.603, GEN.607, GEN.612.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -17865,6 +17445,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Migration number: DB.81 (the Galaxy dials lane) is also numbered 0114
   on its branch; whichever merges second renumbers to the next free
   revision (the coordinator, about 10:20 PM EDT 2026-10-21).
+  Migration number: 0114 is taken on main by DB.81 (the shape pins,
+  #2403, Galaxy dials lane, about 1:37 AM EDT 2026-10-22 as the lane
+  reported), so this migration renumbers to 0115 (or the next free
+  revision at its merge).
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
@@ -18748,33 +18332,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
   earlier owner line on this item.
   Prerequisites: none. Related: GEN.276.
-
-- [ ] **DB.81 Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn'**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. The plan stores
-  the resolved shape; it should also store which dials were pinned and
-  their values (proposal section 8.5). Needs a stored column or a
-  settings record. Done: a pinned mass, compactness and flatness
-  round-trip through the plan and the API; an unpinned slider reads as
-  Auto; the galaxy page shows the pinned and drawn split; the migration
-  takes the next free Alembic revision at merge. The Shape selector is
-  stored with the family column in DB.66, not here.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
-  2026-10-21).
-  Migration number (the Galaxy dials lane, about 10:20 PM EDT 2026-10-21
-  as the lane reported): the lane's migration is numbered 0114 because
-  DB.79 took 0113; DB.44 (Blocker 2) also uses 0114; whichever merges
-  second renumbers to the next free revision.
-  Prerequisites: GEN.601. Related: GEN.603, DB.66.
 
 ## API: The JSON API
 
@@ -20317,7 +19874,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Rewritten onto the lever table (Boss, 6:45 PM EDT 2026-10-21, 'Redesign
   around the five dials'; Boss 6:49 PM EDT: fold the existing items into
   the new chain).
-  Prerequisites: ADM.108, GEN.602. Related: ADM.99, UX.134,
+  Prerequisites: ADM.108. Related: ADM.99, UX.134,
   UX.137.
 
 - [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
@@ -20508,7 +20065,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   unit; the absolute scale length has pc and kpc; both read the lever
   table's unit column (GEN.601). The first release shows four dials,
   Scale, Structure, Edge and Halo; Census follows GEN.607 after GEN.545.
-  Prerequisites: GEN.602, GEN.603, GEN.604, ADM.108.
+  Prerequisites: ADM.108.
   Related: ADM.99, ADM.112, DB.81.
 
 ## SEC: Security
