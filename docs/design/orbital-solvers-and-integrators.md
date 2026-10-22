@@ -482,6 +482,8 @@ and 50 to 140 ms for brute force; the tree is for tests only. In production the
 table reads come from the database per sector, so cost is cell count times the
 read.
 
+**Built (GEN.341).** `galaxy/influence.py` holds the search: `largest_hill_radius_pc` (the one radius, from each sector's heaviest mass and the galaxy's enclosed mass at its radius, the central black hole skipped), `influence_set` (the sectors from `spherical.cells_touching_sphere`'s reach margin of 1.3 edges, the members within the radius, the `max_exact_members` nearest exact and one `Monopole` per sector for the rest, a stable order so the result does not depend on how the sectors were stored) and `galactic_hill_radius_pc`. The cover lists of 6.3 are not built: a global radius that is the largest Hill radius needs none. `tests/test_influence.py` runs the plan below on a seeded catalogue (core, ring face, mid radius, rim, either side of the slot-0 seam, top and bottom layers; radii 2, 6, 20 and 60 pc) against brute force and `cKDTree` with no mismatch, the negative control without the margin, the exact pairwise criterion with injected heavy objects, the cap and the shuffled order.
+
 **Test plan for the TODO's "same nearest bodies as brute force" test.**
 
 1. Seeded synthetic catalogue at the sites above (plus a ring-0 pie wedge and
@@ -518,6 +520,35 @@ read.
 | Skipped rows lose time | global `last_updated_at` | per-object epoch column (GEN.106) |
 | Non-finite values | NaN, inf, e < 0 | `finite_domain` decorators and `ValueError` raises; test each |
 | Ill-conditioned solves, trajectory fits, rotation drift | element growth; BFGS curvature turns non-positive; round-off leaves rotation matrices non-orthonormal | LU with partial pivoting, then rook pivoting or Householder QR (growth 1), then equilibrate and mpmath; Wolfe line search, Powell's damped update, reset to steepest descent; re-orthonormalise (SVD or quaternion) on every save |
+
+**Checked against the table (GEN.140).** Each row of this section is either built and held by a test, or waits on
+code that is not written yet:
+
+- Series Stumpff functions below `|z| = 1` (`kepler.STUMPFF_SERIES_LIMIT`, ten terms), in `kepler.stumpff_c2_c3` and the
+  compiled `state_kernel._stumpff`: 1e-17 to 1e-16 relative everywhere in the range against exact rational arithmetic
+  (the closed forms the first build used below `|z| = 1e-3` were off by 4e-13 for a hyperbolic `c3` at 1e-3 and by
+  1e-14 to 1e-15 up to 0.1). `tests/test_orbital_limits.py` holds the accuracy, the join at the limit and the compiled
+  copy equal to the Python one.
+- The `fmod` phase form: `universal_step` drops whole orbits with `math.fmod(dt, period)`, `store._phase_turn_sql` does the
+  same in SQL, and `kepler.wrapped_turn_deg` (GEN.374) is the phase form of `body_positions`, `system_tree` and
+  `orbitpositions.js` (`wrappedTurnDeg`); the JavaScript Kepler solver's tolerance is 1e-12 as the Python one's. Tests hold
+  each against exact arithmetic, and the browser copy against Python at 3,000 to 100,000 years. Past about 1e6 orbits the
+  two copies of the universal step differ by rounding of the period itself (4e-8 relative at 1e7 years of a one-year
+  orbit), which is the period's 1e-16, not the form.
+- DOUBLE period and phase columns: a test walks every table and fails on any narrower float in a column named for a
+  period, phase, anomaly, epoch, longitude, periapsis or node. The only FLOAT in the schema is `map_luminosity_sol`.
+- Radial orbits (h = 0): the elements are undefined and `elements_from_state` still refuses, as the display
+  functions say. Motion does not need them: `universal_step` moves a radial body on its line (below, at and above the
+  escape speed, forward and back) and keeps its energy; the test shows both.
+- Retrograde equatorial equinoctial elements: `equinoctial_from_state` raises and the caller propagates the state
+  vector (tested).
+- `r = 0`: `universal_step` and the compiled kernel refuse a body on its primary (`BAD_INPUT`).
+- `b = 0` (a head-on pass): `classify_encounter` calls a closest approach of 0 a collision, and `closest_approach.sweep`
+  returns a hit at 0. The hyperbolic deflection formula for a pass at impact parameter 0 is not written (its item
+  carries the `b = 0` case with it).
+- The galactic centre: `calculate_galactic_orbit` keeps the core's solid-body turn (finite at 0) and
+  `sector_path.integrate_path` softens each point mass at 1 pc and takes steps a fraction of the shortest dynamical
+  time, so no step shrinks to nothing. The finite-acceleration test at `(0, 0, 0)` is GEN.115's first child.
 
 ## 8. Hill-radius warnings and the admin email (GEN.111)
 

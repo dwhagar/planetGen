@@ -28,7 +28,7 @@ checks the two against each other. NAV.6 plans courses on this one.
 import math
 
 from planetgen.physics import body_state, constants
-from planetgen.physics.kepler import comet_orbital_state, gravitational_parameter_au3_yr2
+from planetgen.physics.kepler import comet_orbital_state, gravitational_parameter_au3_yr2, wrapped_turn_deg
 from planetgen.physics.orbits import orbital_position_au
 
 AU_KM = constants.AU_TO_KM
@@ -37,7 +37,7 @@ AU_KM = constants.AU_TO_KM
 def _relative_circular_km(orbit, years):
     """A circular orbit's position relative to what it goes round, in km."""
     period = orbit["period_years"]
-    phase = orbit["phase_deg"] + (360.0 * years / period if period else 0.0)
+    phase = orbit["phase_deg"] + wrapped_turn_deg(years, period)
     x, y, z = orbital_position_au(orbit["distance_km"] / AU_KM, orbit["inclination_deg"],
                                   orbit["ascending_node_deg"], phase % 360.0)
     return [x * AU_KM, y * AU_KM, z * AU_KM]
@@ -59,7 +59,7 @@ def _comet_relative_km(orbit, years):
     k = orbit["kepler"]
     q_au = k["perihelion_distance_km"] / AU_KM
     if orbit["type"] == "elliptical":
-        anomaly = math.radians(k["mean_anomaly_deg"] + 360.0 * years / k["period_years"])
+        anomaly = math.radians(k["mean_anomaly_deg"] + wrapped_turn_deg(years, k["period_years"]))
         state = comet_orbital_state(
             "elliptical", q_au, k["eccentricity"], k["inclination_deg"], k["arg_periapsis_deg"],
             k["ascending_node_deg"], k["primary_mass_solar"], mean_anomaly_rad=anomaly,

@@ -373,20 +373,46 @@ UNIVERSAL_MAX_ITERATIONS = 60
 caller), never returns a guess."""
 
 
+def wrapped_turn_deg(elapsed, period):
+    """
+    The degrees an orbit of `period` turns in `elapsed` (the same unit), whole orbits dropped first (GEN.374): the
+    remainder `fmod(elapsed, period)` is exact in IEEE arithmetic, where `360 * elapsed / period` of a long step
+    leaves few digits for the fraction (1.7e-6 rad at 1e9 days of a 0.319 day period against 0). Zero for no period.
+    """
+    if not period:
+        return 0.0
+    return 360.0 * (math.fmod(elapsed, period) / period)
+
+
+STUMPFF_SERIES_LIMIT = 1.0
+"""float: `stumpff_c2_c3` sums its series below this `abs(z)`. The closed forms keep 13 digits at `abs(z)` = 1e-3 (the
+`sin` and `cosh` differences cancel; a hyperbolic `c3` is off by 4e-13 there) and all 16 only from about `abs(z)` = 1
+(GEN.140, docs/design/orbital-solvers-and-integrators.md section 7)."""
+
+STUMPFF_SERIES_TERMS = 10
+"""int: Terms of each series: the next is below 1e-21 of `c2` at `abs(z) < 1`."""
+
+_C2_COEFFICIENTS = tuple(1.0 / math.factorial(2 * k + 2) for k in range(STUMPFF_SERIES_TERMS))
+_C3_COEFFICIENTS = tuple(1.0 / math.factorial(2 * k + 3) for k in range(STUMPFF_SERIES_TERMS))
+
+
 def stumpff_c2_c3(z):
     """
     The Stumpff functions `c2(z) = (1 - cos sqrt z) / z` and
     `c3(z) = (sqrt z - sin sqrt z) / z^(3/2)` (hyperbolic forms for `z < 0`),
-    with their series near `z = 0`, where the closed forms cancel to
-    nothing: the near-parabolic case.
+    summed as their series `sum (-z)^k / (2k + 2)!` and `sum (-z)^k / (2k + 3)!`
+    below `STUMPFF_SERIES_LIMIT`, where the closed forms cancel: the
+    near-parabolic case and every orbit within a few times the parabola's
+    step.
 
     Returns:
         tuple: `(c2, c3)`.
     """
-    if abs(z) < 1e-3:
-        # Six terms of each series: the next is below 1e-20 at |z| < 1e-3.
-        c2 = 1 / 2 - z / 24 + z * z / 720 - z ** 3 / 40320 + z ** 4 / 3628800 - z ** 5 / 479001600
-        c3 = 1 / 6 - z / 120 + z * z / 5040 - z ** 3 / 362880 + z ** 4 / 39916800 - z ** 5 / 6227020800
+    if abs(z) < STUMPFF_SERIES_LIMIT:
+        c2 = c3 = 0.0
+        for k in range(STUMPFF_SERIES_TERMS - 1, -1, -1):
+            c2 = c2 * -z + _C2_COEFFICIENTS[k]
+            c3 = c3 * -z + _C3_COEFFICIENTS[k]
         return c2, c3
     if z > 0:
         root = math.sqrt(z)

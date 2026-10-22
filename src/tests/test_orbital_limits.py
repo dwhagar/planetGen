@@ -6,6 +6,7 @@ guard is hit here (docs/design/orbital-updates.md section 7).
 """
 
 import math
+from fractions import Fraction
 
 import pytest
 
@@ -120,11 +121,34 @@ def test_the_universal_step_refuses_what_it_cannot_move():
         kepler.universal_step((1.0, 0.0, 0.0), (0.0, math.nan, 0.0), MU_SUN, 1.0)
 
 
+def _stumpff_exact(z):
+    """The Stumpff functions as exact rational series, to 40 terms: the reference for rounding."""
+    z = Fraction(z)
+    return (sum((-z) ** k / math.factorial(2 * k + 2) for k in range(40)),
+            sum((-z) ** k / math.factorial(2 * k + 3) for k in range(40)))
+
+
 def test_the_stumpff_series_joins_the_closed_forms():
-    for z in (1e-3, -1e-3):
+    limit = kepler.STUMPFF_SERIES_LIMIT
+    for z in (limit, -limit):
         series = kepler.stumpff_c2_c3(z * 0.999999)
         closed = kepler.stumpff_c2_c3(z * 1.000001)
-        assert series == pytest.approx(closed, rel=1e-8)
+        assert series == pytest.approx(closed, rel=1e-5)
+        assert kepler.stumpff_c2_c3(z * 0.999999999) == pytest.approx(kepler.stumpff_c2_c3(z * 1.000000001), rel=1e-8)
+
+
+@pytest.mark.parametrize("z", [1e-9, 1e-3, 0.01, 0.1, 0.5, 0.9, 0.999, -1e-3, -0.01, -0.1, -0.5, -0.999, 2.0, -2.0, 30.0, -30.0])
+def test_the_stumpff_functions_keep_sixteen_digits_inside_the_series_limit(z):
+    c2, c3 = kepler.stumpff_c2_c3(z)
+    exact2, exact3 = _stumpff_exact(z)
+    assert abs(Fraction(c2) - exact2) / exact2 < 2e-15
+    assert abs(Fraction(c3) - exact3) / exact3 < 2e-15
+
+
+def test_the_compiled_stumpff_functions_are_the_python_ones():
+    from planetgen.physics import state_kernel
+    for z in (0.0, 1e-5, -1e-5, 0.4, -0.4, 0.99, -0.99, 1.0, -1.0, 7.0, -7.0):
+        assert state_kernel._stumpff(z) == pytest.approx(kepler.stumpff_c2_c3(z), rel=1e-15, abs=0.0)
 
 
 # --- Circular and equatorial orbits -----------------------------------------------------
@@ -168,12 +192,65 @@ def test_the_sql_phase_turn_drops_whole_orbits(mysql_config):
         conn.close()
 
 
+@pytest.mark.parametrize("period, elapsed", [(0.319, 1e9), (0.319, -1e9), (1.0, 3.0e6), (11.86, 2.5e8), (4.5e9, 1.0e6)])
+def test_the_wrapped_turn_is_exact_where_the_plain_ratio_is_not(period, elapsed):
+    """`fmod(t, P) / P` against exact rational arithmetic on the same two floats (GEN.374; Io's period over 1e9 days)."""
+    exact = 360.0 * float((Fraction(elapsed) % Fraction(period)) / Fraction(period))
+    assert (kepler.wrapped_turn_deg(elapsed, period) - exact + 180.0) % 360.0 - 180.0 == pytest.approx(0.0, abs=1e-12)
+    if (period, elapsed) == (0.319, 1e9):
+        plain = (360.0 * elapsed / period) % 360.0
+        assert abs(plain - exact) > 1e-5  # the plain form has lost the fraction (about 1e-4 degrees)
+    assert kepler.wrapped_turn_deg(elapsed, 0.0) == 0.0
+
+
+def test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it():
+    from planetgen.physics.body_positions import _relative_circular_km
+    orbit = {"period_years": 0.319 / 365.25, "phase_deg": 40.0, "distance_km": 1.8e6, "inclination_deg": 3.0,
+             "ascending_node_deg": 10.0}
+    years = 1.0e9 / 365.25
+    turn = kepler.wrapped_turn_deg(years, orbit["period_years"])
+    same = _relative_circular_km(orbit, years)
+    near = _relative_circular_km({**orbit, "phase_deg": 40.0 + turn}, 0.0)
+    assert same == pytest.approx(near, abs=1e-6)
+
+
 def test_a_universal_step_of_many_orbits_lands_where_the_remainder_does():
     position, velocity = _state(1.0, 0.3, 0.4)
     period = 2 * math.pi * math.sqrt((1.0 / 0.7) ** 3 / MU_SUN)
     far, _ = kepler.universal_step(position, velocity, MU_SUN, 1000 * period + 0.3)
     near, _ = kepler.universal_step(position, velocity, MU_SUN, 0.3)
     assert max(abs(x - y) for x, y in zip(far, near)) < 1e-9
+
+
+def test_the_period_and_phase_columns_are_double_precision():
+    """A 24-bit FLOAT phase is off by hundreds of radians over a billion days (GEN.108, section 7)."""
+    import sqlalchemy as sa
+    from sqlalchemy.dialects import mysql
+    from planetgen.db import models
+    words = ("period", "phase", "anomaly", "epoch", "longitude", "periapsis", "ascending_node")
+    narrow = [f"{table.name}.{column.name}" for table in models.metadata.tables.values() for column in table.columns
+              if any(word in column.name for word in words)
+              and isinstance(column.type, sa.Float) and not isinstance(column.type, mysql.DOUBLE)]
+    assert not narrow, narrow
+
+
+# --- Radial orbits ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("speed", [0.5, 0.9, 1.0, 1.2, 3.0])  # below, at and above the circular speed
+@pytest.mark.parametrize("dt", [0.2, 1.0, -0.2])
+def test_a_radial_body_moves_on_its_line_and_keeps_its_energy(speed, dt):
+    """h = 0: the elements are undefined (`elements_from_state` refuses) but the state still moves."""
+    mu = 1.0
+    position, velocity = (1.0, 0.0, 0.0), (speed * math.sqrt(mu), 0.0, 0.0)
+    with pytest.raises(ValueError):
+        sv.elements_from_state(position, velocity, mu)
+    after_position, after_velocity = kepler.universal_step(position, velocity, mu, dt)
+    assert after_position[1] == 0.0 and after_position[2] == 0.0
+    assert after_velocity[1] == 0.0 and after_velocity[2] == 0.0
+    energy = 0.5 * speed ** 2 - mu / 1.0
+    assert 0.5 * after_velocity[0] ** 2 - mu / abs(after_position[0]) == pytest.approx(energy, abs=1e-11)
+    back = kepler.universal_step(after_position, after_velocity, mu, -dt)
+    assert back[0][0] == pytest.approx(1.0, abs=1e-10)
 
 
 # --- Close passes ------------------------------------------------------------------------

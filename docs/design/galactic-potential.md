@@ -612,7 +612,7 @@ this document is the reference.
    rounds to 8.19). No test uses 8.128 yet, because GEN.115 is unbuilt. The
    potential itself does not care; the test calibration radius and Sol's
    placement do. Pick one reference and move the others to it.
-   *GEN.404:* the constant and the density's calibration radius are gone; the Sun's 8.2 kpc is `mathcheck.SUN_REFERENCE_RADIUS_PC`, a test reference.
+   *GEN.404:* the constant and the density's calibration radius are gone; the Milky Way's 8.128 kpc is `mathcheck.SUN_REFERENCE_RADIUS_PC` (GEN.144: the one named value, a test reference).
 5. **"Singularity-free" and "vanishes at the origin".** The document calls the
    Hernquist derivatives singularity-free and says Plummer softening makes the
    net acceleration vanish at the origin. The Hernquist and NFW forces are

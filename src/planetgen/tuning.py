@@ -3495,6 +3495,35 @@ ASTEROID_FIELD_COMPOSITIONS = {
 `ASTEROID_COMPONENTS` (a mixed field, or a collisional family whose
 parent body could have been anything)."""
 
+# --- Collisions (GEN.345, docs/design/collisions-and-mergers.md section 5.1) ---
+
+ALWAYS_DESTROY_TERRESTRIAL = False
+"""bool: Boss's literal rule for two rocky or icy bodies (2026-10-03): any contact destroys both and leaves one field of
+the total mass. Off, the outcome table of section 5.1 decides (merge, hit-and-run, erosion or disruption by speed,
+angle and mass ratio)."""
+
+COLLISION_MERGE_SPEED_RATIO = 1.2
+"""float: Two terrestrial bodies that meet slower than this many mutual escape speeds merge (a design value, section 5.1)."""
+
+COLLISION_HIT_AND_RUN_SPEED_RATIO = 1.5
+"""float: A grazing pass faster than this many escape speeds is a hit-and-run, slower a graze-and-merge (Genda, Kokubo
+and Ida 2012; a design value)."""
+
+COLLISION_EROSION_X = 0.1
+"""float: Below this share of the catastrophic energy a head-on pass of two terrestrial bodies is a clean merger; above it
+(and under 1) a partial erosion."""
+
+COLLISION_FIELD_MIN_SHARE = 0.01
+"""float: A hit-and-run's eroded mass becomes an asteroid field only when it is at least this share of the pair's mass,
+else it is only logged."""
+
+GIANT_MERGER_LOSS_RANGE = (0.01, 0.5)
+"""tuple: The share of a merged giant's mass lost as gas, `Q_R / (2 Q*_RD)` held between these (SPH finds at least 97 percent
+kept for quick Jupiter-Jupiter mergers, section 4.2)."""
+
+COLLISION_BORDERLINE_SHARE = 0.03
+"""float: A merger within this share of the hydrogen-burning limit is flagged borderline in the report (section 4.3)."""
+
 ASTEROID_FIELD_SIZE_DIGIT_RANGE = (1, 4)
 """tuple: The size digit's clamp -- floor(log10(radius in AU)) over
 `ASTEROID_FIELD_RADIUS_RANGE_LY` (63 AU to 63,241 AU)."""

@@ -39,7 +39,7 @@ export function orbitalPosition(distance, inclinationDeg, ascendingNodeDeg, phas
 }
 
 // Kepler's equation M = E - e sin E (kepler.solve_eccentric_anomaly).
-export function solveEccentricAnomaly(meanAnomaly, eccentricity, tolerance = 1e-10) {
+export function solveEccentricAnomaly(meanAnomaly, eccentricity, tolerance = 1e-12) {
   const m = ((meanAnomaly % TWO_PI) + TWO_PI) % TWO_PI;
   let e = eccentricity < 0.8 ? m : Math.PI;
   for (let n = 0; n < 100; n += 1) {
@@ -68,18 +68,37 @@ export function solveBarker(parabolicMeanAnomaly) {
 }
 
 function relativeCircularKm(orbit, years) {
-  const phase = orbit.phase_deg + (orbit.period_years ? (360 * years) / orbit.period_years : 0);
+  const phase = orbit.phase_deg + wrappedTurnDeg(years, orbit.period_years);
   const p = orbitalPosition(orbit.distance_km / AU_KM, orbit.inclination_deg, orbit.ascending_node_deg, ((phase % 360) + 360) % 360);
   return [p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM];
 }
 
-// The Stumpff functions c2 and c3 (kepler.stumpff_c2_c3).
-function stumpff(z) {
-  if (Math.abs(z) < 1e-3) {
-    return [
-      1 / 2 - z / 24 + (z * z) / 720 - z ** 3 / 40320 + z ** 4 / 3628800 - z ** 5 / 479001600,
-      1 / 6 - z / 120 + (z * z) / 5040 - z ** 3 / 362880 + z ** 4 / 39916800 - z ** 5 / 6227020800,
-    ];
+// The degrees an orbit of `period` turns in `elapsed`, whole orbits dropped first so a long step keeps its fraction
+// (kepler.wrapped_turn_deg; `%` is C's fmod, exact).
+export function wrappedTurnDeg(elapsed, period) {
+  return period ? 360 * ((elapsed % period) / period) : 0;
+}
+
+// The Stumpff functions c2 and c3 (kepler.stumpff_c2_c3): ten terms of the series below |z| = 1, the closed forms beyond.
+const STUMPFF_SERIES_LIMIT = 1;
+const C2_COEFFICIENTS = [];
+const C3_COEFFICIENTS = [];
+for (let k = 0, f = 2; k < 10; k += 1, f += 2) {
+  let factorial2 = 1;
+  for (let n = 2; n <= f; n += 1) factorial2 *= n;
+  C2_COEFFICIENTS.push(1 / factorial2);
+  C3_COEFFICIENTS.push(1 / (factorial2 * (f + 1)));
+}
+
+export function stumpff(z) {
+  if (Math.abs(z) < STUMPFF_SERIES_LIMIT) {
+    let c2 = 0;
+    let c3 = 0;
+    for (let k = C2_COEFFICIENTS.length - 1; k >= 0; k -= 1) {
+      c2 = c2 * -z + C2_COEFFICIENTS[k];
+      c3 = c3 * -z + C3_COEFFICIENTS[k];
+    }
+    return [c2, c3];
   }
   if (z > 0) {
     const root = Math.sqrt(z);
@@ -189,7 +208,7 @@ function cometRelativeKm(orbit, years) {
   let trueAnomaly;
   let distance;
   if (orbit.type === "elliptical") {
-    const anomaly = rad(k.mean_anomaly_deg + (360 * years) / k.period_years);
+    const anomaly = rad(k.mean_anomaly_deg + wrappedTurnDeg(years, k.period_years));
     const a = q / (1 - k.eccentricity);
     const ecc = solveEccentricAnomaly(anomaly, k.eccentricity);
     trueAnomaly = 2 * Math.atan2(

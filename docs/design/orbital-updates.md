@@ -1,6 +1,6 @@
 # Orbital updates, positions and spin
 
-**Status (2026-10-15):** partly built. Done: the per-object clocks `epoch_unix` and `next_update_due` (GEN.106, #802), GEN.107 (#817), GEN.108 (#815) and starting velocities (GEN.121, #735). Open: the umbrella GEN.105, the influence set and collisions (GEN.109, GEN.110) and the galactic potential (GEN.115).
+**Status (2026-10-15):** partly built. Done: the per-object clocks `epoch_unix` and `next_update_due` (GEN.106, #802), GEN.107 (#817), GEN.108 (#815) and starting velocities (GEN.121, #735). Built since (GEN.370, GEN.341): Hill spheres read the galaxy's mass inside the object's own radius (`galaxy/enclosed_mass.py`), and the influence-set search (`galaxy/influence.py`: the galaxy's largest Hill radius as the one search radius, the sectors that can hold part of the sphere, the nearest 64 members exact and one point mass per sector for the rest). Open: the umbrella GEN.105, the acceleration kernel and collisions (GEN.342, GEN.110) and the galactic potential (GEN.115).
 
 How planetGen will move things: one position object for every body, a
 positional update that only touches what has visibly moved, gravity from
