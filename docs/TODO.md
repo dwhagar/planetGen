@@ -20563,9 +20563,18 @@ clears each one.
   needs; if it creates one and the page 404s, fix the page (UX.144's
   phenomenon contents route #2485 and UX.143's object pages #2432 touch
   these pages). No skip and no retry. Done: the eight tests pass on a
-  clean checkout of main and in a full gate. Owner: Bug Hunt (proposed,
+  clean checkout of main and in a full gate. Owner: Core 3 (the
+  coordinator, relayed 5:26 PM EDT 2026-10-22 as the lane's clock reads;
   urgent: it blocks any lane that runs these two files).
   Prerequisites: none. Related: UX.143, UX.144, TEST.267.
+  Cause found (the coordinator, relayed 5:26 PM EDT 2026-10-22 as the
+  lane's clock reads): environment dependent, from UX.144 (#2485).
+  `test_web_system_phen.py`'s `_FAKED` lacks
+  `apiclient.get_phenomenon_contents`, so on a machine with Apache up on
+  port 80 the call gets an HTML 404, raises `NotFoundError` (not an
+  `ApiError` subclass) and the phenomenon route answers 404. Fix: add
+  the function to `_FAKED` (one line) and catch `NotFoundError` in
+  `_phenomenon_contents`. Not a seed or fixture problem as first guessed.
 
 ## USR: User accounts
 
