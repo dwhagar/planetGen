@@ -167,7 +167,8 @@ def test_the_history_never_stops_a_run(mysql_config, monkeypatch):
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
     _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
               "--backfill-from", "none")
-    assert _runs(mysql_config) == []
+    # The sectors it saved still point at the shared row for saves made outside a run (DB.16), but the run has no row.
+    assert [run for run in _runs(mysql_config) if run["command"] != store.SAVE_RUN_COMMAND] == []
 
 
 # ---------------------------------------------------------------------------

@@ -894,7 +894,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
             sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
                                         galaxy_position=galaxy_position,
                                         link_neighbors=not getattr(args, "link_later", False),
-                                        progress=save_step)
+                                        progress=save_step, run_id=getattr(args, "generation_run_id", None))
     run_common._count_sector(sector)
     _save_object_timing(args, timings, sector_id)
     return sector_id, sector.name, sector

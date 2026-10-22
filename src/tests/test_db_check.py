@@ -50,7 +50,10 @@ def _problem_text(report, name):
 
 
 def _heal_key(config):
-    _sql(config, "UPDATE sectors SET version_key = '0008000000030F030D1000' WHERE version_key IS NULL")
+    """Points a sector that has no run (the fixture's) at a run with a well formed key."""
+    _sql(config, "INSERT INTO generation_runs (command, version_key, planetgen_version, python_version, platform)"
+                 " VALUES ('test', '0008000000030F030D1000', '8.0.3', '3.15.13', 'Linux x86_64')",
+         "UPDATE sectors SET run_id = LAST_INSERT_ID() WHERE run_id IS NULL")
 
 
 def test_a_healthy_database_passes(saved):
@@ -106,7 +109,7 @@ def test_a_stale_system_count_is_a_warning_not_damage(saved):
 
 
 def test_a_malformed_version_key_is_found(saved):
-    _sql(saved, "UPDATE sectors SET version_key = 'nonsense'")
+    _sql(saved, "UPDATE generation_runs SET version_key = 'nonsense' WHERE id IN (SELECT run_id FROM sectors)")
     assert "'nonsense'" in _problem_text(_run(saved), "version keys")
 
 

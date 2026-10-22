@@ -148,6 +148,8 @@ NEVER_READ = {
                       "spheroid_amplitude", "spheroid_sersic_n", "spheroid_effective_radius_pc", "spheroid_axis_ratio_b",
                       "spheroid_axis_ratio_c", "spheroid_orientation_1_rad", "spheroid_orientation_2_rad",
                       "spheroid_orientation_3_rad", "body_clump_share")},
+    **{("sectors", column): "read in a query by the version check, not by a loader (DB.16)"
+       for column in ("generator_epoch", "run_id")},
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
@@ -171,8 +173,7 @@ NEVER_READ = {
     ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
     ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",
     **{("generation_runs", column): "run history (DB.6)" for column in
-       ("id", "command", "run_seed", "galaxy_seed", "version_key", "planetgen_version",
-        "python_version", "platform", "started_at", "finished_at", "outcome")},
+       ("id", "command", "run_seed", "galaxy_seed", "started_at", "finished_at", "outcome")},
     # DB.55 and DB.53 columns nothing loads yet (the gravity sum, GEN.109 and the DB.53 chain read them).
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
