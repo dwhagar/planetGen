@@ -12,6 +12,9 @@ or as the installed `planetgen` command):
     planetgen sector [options]      -- one or more independent sectors
     planetgen galaxy [options]      -- many sectors placed as one galaxy
     planetgen plan [options]        -- the galaxy's density skeleton
+    planetgen link --since TIME     -- link the sectors saved since TIME to their neighbours
+    planetgen backfill --since TIME -- the bright-star backfill out from the sectors saved since TIME
+    planetgen settle --since TIME   -- save the paths of the sectors saved since TIME and of those around them
     planetgen scatter --KIND        -- one scatter (mass, luminosity, phenomena, nebula-field, band)
     planetgen fill-map-luminosity   -- fill the map luminosity of the scattered phenomena
     planetgen rescore-habitability  -- re-derive the stored habitability numbers
@@ -1092,6 +1095,25 @@ def add_fill_arguments(parser):
     add_logging_arguments(parser)
 
 
+def _database_time(text):
+    """A `--since` value: a time on the database's clock, `YYYY-MM-DD HH:MM:SS` (a `T` between the date and the time
+    also works)."""
+    import datetime
+    try:
+        return datetime.datetime.fromisoformat(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a time like '2026-10-22 17:30:00'") from None
+
+
+def add_since_arguments(parser):
+    """Adds the options of a command that works on the galaxy sectors saved since a time (`link`, `backfill`, `settle`,
+    PERF.123): `--since` (the database's clock; a `galaxy` run says its start time), then the common ones."""
+    parser.add_argument('--since', type=_database_time, required=True, metavar='TIME',
+                        help="Work on the galaxy sectors saved at or after TIME, 'YYYY-MM-DD HH:MM:SS' on the "
+                             "database's clock.")
+    add_fill_arguments(parser)
+
+
 def validate_fill_args(args, parser):
     """Validates `add_fill_arguments`'s options."""
     if args.workers is not None and args.workers < 0:
@@ -1315,6 +1337,28 @@ def build_parser():
         help="Count (and with --apply delete) the stored field clouds the nebula keep rate rejects.")
     add_clean_nebula_field_arguments(clean_nebula_field_parser)
 
+    link_parser = subparsers.add_parser(
+        'link',
+        description="Link the galaxy sectors saved since a time to their neighbours: containment, nearest systems and "
+                    "quadrants, and the new systems merged into the lists of the sectors around them. Nothing else "
+                    "changes; it can be run again.",
+        help="Link the sectors saved since a time to their neighbours.")
+    add_since_arguments(link_parser)
+
+    backfill_parser = subparsers.add_parser(
+        'backfill',
+        description="The bright-star backfill out from the galaxy sectors saved since a time: the sectors around them "
+                    "get the stars born from 1, 2, 5 and 8 solar masses up, each only where it is not drawn yet.",
+        help="Backfill the bright stars out from the sectors saved since a time.")
+    add_since_arguments(backfill_parser)
+
+    settle_parser = subparsers.add_parser(
+        'settle',
+        description="Save the path of every body in the galaxy sectors saved since a time and in the sectors around "
+                    "them, so each path sees the final set of neighbours.",
+        help="Save the sector paths of the sectors saved since a time.")
+    add_since_arguments(settle_parser)
+
     phenomenon_parser = subparsers.add_parser(
         'phenomenon',
         description="Exotic Stellar Phenomenon Generation Options",
@@ -1415,6 +1459,9 @@ def build_parser():
         'rescore-habitability': rescore_habitability_parser,
         'fill-nebula-blocks': fill_nebula_blocks_parser,
         'clean-nebula-field': clean_nebula_field_parser,
+        'link': link_parser,
+        'backfill': backfill_parser,
+        'settle': settle_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
         'check-math': check_math_parser,
@@ -1455,7 +1502,8 @@ def process_args():
         validate_plan_args(args, command_parser)
     elif args.command == 'scatter':
         validate_scatter_args(args, command_parser)
-    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'clean-nebula-field'):
+    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'clean-nebula-field',
+                          'link', 'backfill', 'settle'):
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
@@ -1560,6 +1608,9 @@ _COMMAND_HANDLERS = {
     'rescore-habitability': run_plan.run_rescore_habitability,
     'fill-nebula-blocks': run_plan.run_fill_nebula_blocks,
     'clean-nebula-field': run_plan.run_clean_nebula_field,
+    'link': run_galaxy.run_link,
+    'backfill': run_galaxy.run_backfill,
+    'settle': run_galaxy.run_settle,
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
 }

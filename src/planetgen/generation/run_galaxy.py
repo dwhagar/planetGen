@@ -985,6 +985,81 @@ def _default_generation_args(config=None):
     return args
 
 
+def _sectors_made_since(args):
+    """The ids of the galaxy sectors saved at or after `args.since` (the database's clock, `--since`)."""
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        return sector_paths.sector_ids_since(conn, args.since)
+    finally:
+        conn.close()
+
+
+def run_link(args):
+    """
+    `planetgen link --since TIME` (PERF.123): links the sectors saved since `TIME` to their neighbours (the
+    `link-neighbours` command, one unit): containment, nearest systems and quadrants, and the new systems merged into the
+    lists of the sectors around them. Nothing else; a failure ends the run.
+    """
+    stages.begin(stages.for_command("link", args), args, "link")
+    created = _sectors_made_since(args)
+    if not created:
+        stages.skip("link", "no sector was saved since then")
+        log.normal(f"No sector was saved since {args.since}: nothing to link.")
+        stages.finish()
+        return
+    stages.enter("link")
+    stages.note(sectors=len(created))
+    log.normal("Linking the sectors to their neighbours...")
+    linked = _one_unit_stage(args, "link", "Neighbours", "link", len(created) * store.LINK_PHASES, args.since, "linked")
+    log.normal(f"Linked {linked:,} sectors to their neighbours.")
+    stages.finish()
+
+
+def run_backfill(args):
+    """
+    `planetgen backfill --since TIME` (PERF.123): the bright-star backfill out from the sectors saved since `TIME`
+    (`scatter-backfill`, GEN.30): the sectors a face away from them get the stars born from 1, 2, 5 and 8 solar masses
+    up, each only where it is not drawn yet. Nothing else.
+    """
+    stages.begin(stages.for_command("backfill", args), args, "backfill")
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        any_made = bool(store.sector_centers_since(conn, args.since))
+    finally:
+        conn.close()
+    if not any_made:
+        stages.skip("backfill", "no sector was saved since then")
+        log.normal(f"No sector was saved since {args.since}: nothing to backfill.")
+        stages.finish()
+        return
+    stages.enter("backfill")
+    log.normal("Backfilling the bright stars out from the sectors...")
+    summary = _backfill_on_queue(args, args.since)
+    stages.note(sectors=summary["sectors"], objects=summary["stars"])
+    log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['sectors']:,} sectors.")
+    stages.finish()
+
+
+def run_settle(args):
+    """
+    `planetgen settle --since TIME` (PERF.123, GEN.126): saves the path of every body in the sectors saved since `TIME` and
+    in the sectors around them (`settle-sector-paths`), so each path sees the final set of neighbours. Nothing else.
+    """
+    stages.begin(stages.for_command("settle", args), args, "settle")
+    created = _sectors_made_since(args)
+    if not created:
+        stages.skip("settle", "no sector was saved since then")
+        log.normal(f"No sector was saved since {args.since}: nothing to settle.")
+        stages.finish()
+        return
+    stages.enter("settle")
+    stages.note(sectors=len(created))
+    log.normal("Saving the sector paths...")
+    saved = _one_unit_stage(args, "settle", "Sector paths", "paths", len(created), args.since, "saved")
+    log.normal(f"Saved {saved:,} sector paths.")
+    stages.finish()
+
+
 def settle_named_sectors(sector_ids, config, expand=True):
     """
     Saves the sector paths of `sector_ids` (and, with `expand`, of the sectors around them) as a run of
@@ -2243,6 +2318,9 @@ def run_galaxy(args):
         started_at = store.database_now(conn)
     finally:
         conn.close()
+    if not estimate_only:
+        log.normal(f"Run started at {started_at:%Y-%m-%d %H:%M:%S} on the database's clock (the --since of "
+                   f"'planetgen link', 'backfill' and 'settle' for this run's sectors).")
     try:
         with run_common._generation_progress(disable=estimate_only) as progress:
             log.set_console(progress.console)

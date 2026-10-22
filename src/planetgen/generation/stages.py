@@ -149,8 +149,11 @@ def clear_stages(args):
 SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill the map luminosity"),
                          "rescore-habitability": Stage("habitability", "Re-score the habitability"),
                          "fill-nebula-blocks": Stage("nebula-blocks", "Make the nebula block totals"),
-                         "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field")}
-"""dict: The commands that do one stage and nothing else (PERF.122), by command name."""
+                         "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field"),
+                         "link": Stage("link", "Link the neighbours"),
+                         "backfill": Stage("backfill", "Scatter the massive stars from the neighborhood"),
+                         "settle": Stage("settle", "Save the sector paths")}
+"""dict: The commands that do one stage and nothing else (PERF.122, PERF.123), by command name."""
 
 
 def for_command(command, args):
