@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1943] - 2026-10-22
+
+**Headline:** The database gets the table that will keep each system's constellations, ready for the view from a planet.
+
+### Changed
+- **`constellations` (DB.64, schema v128).** The stored constellations of a system's sky: which system, the number within it, the object ID of its name, the member stars and the edges between them, and the seed and version it was built under. The migration only makes the table; nothing writes or reads it yet.
+
+TODO items resolved / Added: DB.64 / Added: none
+
 ## [8.0.1942] - 2026-10-22
 
 **Headline:** A cluster can now be unnamed, and a star can point to the cluster that is its parent, ready for the deep-sky work.
