@@ -76,7 +76,7 @@ def test_the_floor_of_every_table_with_a_position_is_the_documented_one():
 
 def test_the_stability_ceiling_is_the_hill_sphere_of_the_largest_star_at_the_suns_distance():
     from planetgen.galaxy import enclosed_mass
-    from planetgen.generation.star import calculate_hill_sphere
+    from planetgen.physics.orbits import calculate_hill_sphere
     parsecs = 8000.0
     hill_m = calculate_hill_sphere(parsecs * constants.PARSEC_M, 150.0 * constants.SOLAR_MASS_TO_KG,
                                    enclosed_mass.current_enclosed_mass_kg(parsecs))
