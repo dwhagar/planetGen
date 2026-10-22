@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1881] - 2026-10-22
+
+**Headline:** The cache warm-up also builds the Lists page and the first page of every kind's list.
+
+### Changed
+- **Warm the new list pages (PERF.141).** The `lists` warm family now visits `/lists` and `/lists/<kind>` for every kind, so the first visit to a list of stars, planets, moons, belts, comets or a phenomenon type is answered from the cache. Deeper pages are not warmed, because a page of these lists starts after the last object of the one before and costs the same at any depth.
+
+TODO items resolved / Added: none / Added: none
+
 ## [8.0.1880] - 2026-10-22
 
 **Headline:** Every setting now has a plain-language name, a one-line description and a purpose-based group, ready for the redesigned Settings page.
