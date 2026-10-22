@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1942] - 2026-10-22
+
+**Headline:** A cluster can now be unnamed, and a star can point to the cluster that is its parent, ready for the deep-sky work.
+
+### Changed
+- **Unnamed clusters and `cluster_id` on `stars` and `bright_stars` (DB.61, schema v127).** `galaxy_components.name` may be empty, with the unique key kept over the named rows, and each star table gains an indexed `cluster_id` that refers to a cluster. Existing clusters keep their names and every star's link starts empty. The migration rebuilds the two star tables once (the time grows with their rows); nothing writes or reads the link yet.
+
+TODO items resolved / Added: DB.61 / Added: none
+
 ## [8.0.1941] - 2026-10-22
 
 **Headline:** The database gets the tables for comments and notices on edit requests, ready for the 10.0 roles.
