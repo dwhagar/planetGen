@@ -179,6 +179,16 @@ connectivity to that specific schema rather than the default one.
   `order` is a 400. Each item also has `member_count` (0 for a single star) and
   `system_mass_solar` (the mass the point carries, `null` for a single star): the stored
   members of a star that has company (UX.114).
+- `GET /api/object-lists/<kind>` — one keyset page of the objects of a kind from the object index (UX.141): `kind` is
+  `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility` or a phenomenon type. `sort` (`name`, the default,
+  `class`, `mass` or `radius`; the last three list the objects that have one) with `order` (`asc` or `desc`), `limit`
+  (50 by default, 200 at most), `after=<object ID>` (the `next` of the previous page; there is no `offset`), `name`
+  (names starting with it, case not significant), `class` (exactly this class) and `sector_id`. Answers `items`
+  (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
+  `mass_kg`, `radius_km`, `placed`), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
+  what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
+  kind, sort or order, a `limit` or `sector_id` that is not a number, or an `after` that is not an object ID
+  (`objectlist.list_objects`).
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
   `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
   its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that

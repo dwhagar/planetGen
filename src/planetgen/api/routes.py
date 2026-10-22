@@ -93,6 +93,7 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
+from planetgen.db import objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
@@ -1230,6 +1231,34 @@ def uncharted_systems():
         "items": items, "total": total, "total_capped": is_capped(total), "limit": limit, "offset": offset,
         "past_end": past_end,
     })
+
+
+@bp.route("/object-lists/<kind>")
+def object_list(kind):
+    """
+    `GET /api/object-lists/<kind>` -- one keyset page of the objects of a kind from the object index (UX.141): `kind` is
+    `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility` or a phenomenon type. Query parameters: `sort`
+    (`name` -- the default --, `class`, `mass` or `radius`; the last three list the objects that have one) with
+    `order` (`asc` or `desc`), `limit` (50 by default, 200 at most), `after=<object ID>` (the `next` of the previous
+    page: no `offset`), `name` (names starting with it), `class` (exactly this class) and `sector_id`. Answers `items`
+    (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
+    `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
+    that is not an object ID, or a `sector_id` that is not a number.
+    """
+    sort, descending = _parse_sort(request.args, objectlist.SORTS)
+    try:
+        limit = int(request.args.get("limit") or objectlist.DEFAULT_LIMIT)
+        sector_id = int(request.args["sector_id"]) if request.args.get("sector_id") else None
+    except ValueError:
+        raise ApiError("limit and sector_id must be whole numbers")
+    try:
+        page = objectlist.list_objects(
+            get_db(), kind, limit=limit, sort=sort, descending=descending, after=request.args.get("after") or None,
+            name=(request.args.get("name") or "").strip()[:MAX_START_LENGTH] or None,
+            object_class=request.args.get("class") or None, sector_id=sector_id)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    return jsonify({**page, "total_capped": is_capped(page["total"]), "limit": min(limit, objectlist.MAX_LIMIT)})
 
 
 @bp.route("/uncharted-systems/<int:bright_star_id>")

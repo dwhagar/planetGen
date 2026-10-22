@@ -92,6 +92,7 @@
   "/api/near GET",
   "/api/nebulae/<uid:nebula_id>/shape GET",
   "/api/nebulae/<uid:nebula_id>/surroundings GET",
+  "/api/object-lists/<kind> GET",
   "/api/objects/<ref> GET",
   "/api/page-jobs/<job_id> GET",
   "/api/page-jobs/<job_id>/cancel POST",
