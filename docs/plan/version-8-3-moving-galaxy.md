@@ -74,10 +74,6 @@ N-body influence, collisions, encounters and the Quantity class.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders |  | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
-| GEN.348 | Describer, CLI query lines and class page ranges take Quantity | GEN.299 | Split from GEN.300. |
-| UX.128 | Map side panels and other browser call sites take Quantity | GEN.299 | Split from GEN.300. |
-| GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | GEN.348, UX.128 | Split from GEN.300. |
-| GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | GEN.348, UX.128, GEN.349 | The call-site sweep. |
 
 ## Phase 3: Events, long steps and the evaluator
 
