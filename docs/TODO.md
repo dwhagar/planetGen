@@ -21414,6 +21414,28 @@ clears each one.
   as the lane reported).
   Prerequisites: none. Related: ADM.101.
 
+- [ ] **TEST.270 check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake)**
+  Found by Core 1 (9:50 AM EDT 2026-10-22 as the lane reported, in the
+  GEN.598 gate), filed by the TODO thread. Kind: flake. Tests:
+  src/tests/test_db_check.py::test_the_command_exits_one_on_damage_and_zero_when_clean
+  and ::test_a_check_run_does_not_take_the_generation_slot. Failure
+  text: `check-db` printed "FAIL: revision" ("The database is DAMAGED"),
+  so the command exited 1 where the test expects 0 after `_heal_key`.
+  Fails on main: not checked; each passes alone in 10 s and both passed
+  on `--resume`. Frequency: 2 of 20,106 in one full `scripts/test.py
+  changed` gate (4 workers, 86 minutes), both on the first pass and on
+  the re-run pass. Reproducer: a full `changed` gate on a lane with one
+  MySQL server; not reproducible alone. Something else in the full run
+  (a concurrent migration or revision test on the same server) leaves
+  the revision check unhappy; that cause is not found. Do: find which
+  test or fixture changes the `alembic_version` row or the revision the
+  check reads while these two run, and give the check tests a database
+  of their own or make the other test restore it; no retry loop that
+  hides the cause. Done: the cause is on this item and the two tests
+  pass in 20 full-gate runs. Owner: Bug Hunt (proposed; a test-flake
+  finding of the TEST.265 family).
+  Prerequisites: none. Related: TEST.265, TEST.262.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
