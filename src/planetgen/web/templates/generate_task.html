@@ -8,6 +8,7 @@
 <script type="module" src="{{ static_url('limitsliders.js') }}"></script>
 <script type="module" src="{{ static_url('generatestarmix.js') }}"></script>
 <script type="module" src="{{ static_url('generatefinder.js') }}"></script>
+<script type="module" src="{{ static_url('generateplace.js') }}"></script>
 {% endblock %}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
@@ -20,48 +21,37 @@
     <input type="hidden" name="action" value="{{ task.actions[0] }}">
     {%- endif %}
     {%- if task.key == "add-sectors" %}
-    {%- set chosen = form.get("mode", "random") if form else "random" %}
-    {%- for mode, label, text in galaxy_modes %}
-    <fieldset class="generate-mode">
-      <legend><label><input type="radio" name="mode" value="{{ mode }}"{% if mode == chosen %} checked{% endif %}> {{ label }}</label></legend>
-      <p class="hint">{{ text }}</p>
-      <div class="search-fields">
-      {%- if mode == "random" %}
-        {{ field("radius_pc", "Radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
-        {{ field("max_shell", "Highest shell", placeholder="Milky Way size", step="1", min=0, max=max_shell) }}
-        {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
-        {{ field("neighborhoods", "Neighborhoods", placeholder="1", step="1", min=1, max=max_neighborhoods,
-                 hint="More than one makes that many, each whole inside the galaxy and at least twice the radius from the others.") }}
-        {{ field("neighborhood_gamma", "Density bias", placeholder="0", min=0, max=10,
-                 hint="0 picks starts evenly by volume; higher favors denser space.") }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
-      {%- elif mode == "shell" %}
-        {{ field("shell_index", "Shell", step="1", min=0, max=max_shell) }}
-        {{ field("shell_band", "Band", placeholder="every band", step="1") }}
-        {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
-      {%- elif mode == "center" %}
-        {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="A sphere around the center.") }}
-      {%- elif mode == "address" %}
-        {{ field("address_shell", "Shell", step="1", min=0, max=max_shell) }}
-        {{ field("address_band", "Band", placeholder="0", step="1") }}
-        {{ field("address_wedge", "Wedge", step="1", min=0) }}
-        {{ field("address_radius_ly", "Neighborhood radius (ly)", placeholder="just this sector", min=min_radius_ly, max=max_radius_ly) }}
-      {%- elif mode == "span" %}
-        {{ field("span_shells", "Shells", kind="text", placeholder="all, e.g. 10:20") }}
-        {{ field("span_bands", "Bands", kind="text", placeholder="all, e.g. -2:2") }}
-        {{ field("span_wedges", "Wedges (one shell and band only)", kind="text", placeholder="the whole band, e.g. 4:9") }}
-        {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
-      {%- endif %}
+    {%- set grid = form.get("mode") if form and form.get("mode") in ("shell", "span") else "shell" %}
+    {%- set what = form.get("what") if form and form.get("what") else ("grid" if form and form.get("mode") in ("shell", "span") else "place") %}
+    {%- set place = form.get("place", "random") if form else "random" %}
+    <div class="add-sectors" data-add-sectors>
+    <fieldset class="generate-mode what-choice">
+      <legend>What do you want to add?</legend>
+      <label class="choice"><input type="radio" name="what" value="place"{% if what != "grid" %} checked{% endif %}> Sectors around a place</label>
+      <label class="choice"><input type="radio" name="what" value="grid"{% if what == "grid" %} checked{% endif %}> Sectors by shell, band and wedge</label>
+    </fieldset>
+    <fieldset class="generate-mode" data-what-panel="place">
+      <legend>Where</legend>
+      <div class="place-tabs" role="group" aria-label="How to name the place">
+        {%- for value, label, hint in place_tabs %}
+        <label class="place-tab"><input type="radio" name="place" value="{{ value }}"{% if value == place %} checked{% endif %}> {{ label }}</label>
+        {%- endfor %}
       </div>
-      {%- if mode == "center" %}
-      {%- set center_by = form.get("center_by", "sector") if form else "sector" %}
-      {%- for by, by_label, by_hint in center_choices %}
-      <fieldset class="generate-mode generate-center">
-        <legend><label><input type="radio" name="center_by" value="{{ by }}"{% if by == center_by %} checked{% endif %}> {{ by_label }}</label></legend>
-        <p class="hint">{{ by_hint }}</p>
-        {%- if by == "sector" %}
+      {%- for value, label, hint in place_tabs %}
+      <div class="place-panel" data-place-panel="{{ value }}">
+        <p class="hint">{{ hint }}{% if value == "random" %} Generates the sectors within a radius of it (12 pc, about 39 ly, when the radius is left blank); the four steps of sectors out from every generated one get their heavier stars either way, {{ backfill_text }}.{% endif %}</p>
+        {%- if value == "random" %}
+        <div class="search-fields">
+          {{ field("radius_pc", "Radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
+          {{ field("max_shell", "Highest shell", placeholder="Milky Way size", step="1", min=0, max=max_shell) }}
+          {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
+          {{ field("neighborhoods", "Neighborhoods", placeholder="1", step="1", min=1, max=max_neighborhoods,
+                   hint="More than one makes that many, each whole inside the galaxy and at least twice the radius from the others.") }}
+          {{ field("neighborhood_gamma", "Density bias", placeholder="0", min=0, max=10,
+                   hint="0 picks starts evenly by volume; higher favors denser space.") }}
+          <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
+        </div>
+        {%- elif value == "sector" %}
         <div class="sector-finder" data-finder data-locate-url="{{ url_for('web.galaxy_locate') }}"
           data-list-url="{{ url_for('web.generate_sectors') }}" hidden>
           <div class="search-fields">
@@ -83,26 +73,55 @@
         </div>
         <div class="search-fields">
           {{ field("center_sector", "Sector ID", step="1", min=1) }}
+          {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of its center.") }}
         </div>
         <p class="hint" data-finder-chosen role="status" aria-live="polite"></p>
-        {%- elif by == "address" %}
+        {%- elif value == "address" %}
         <div class="search-fields">
           {{ field("center_shell", "Shell", step="1", min=0, max=max_shell) }}
           {{ field("center_band", "Band", placeholder="0", step="1") }}
           {{ field("center_wedge", "Wedge", step="1", min=0) }}
+          {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of its center.") }}
         </div>
         {%- else %}
         <div class="search-fields">
           {{ field("center_x_pc", "x (pc)") }}
           {{ field("center_y_pc", "y (pc)") }}
           {{ field("center_z_pc", "z (pc)", placeholder="0") }}
+          {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of its center.") }}
         </div>
         {%- endif %}
-      </fieldset>
+      </div>
       {%- endfor %}
-      {%- endif %}
     </fieldset>
-    {%- endfor %}
+    <fieldset class="generate-mode" data-what-panel="grid">
+      <legend>Which sectors</legend>
+      <div class="place-tabs" role="group" aria-label="Whole shell or a range">
+        {%- for value, label, hint in grid_choices %}
+        <label class="place-tab"><input type="radio" name="mode" value="{{ value }}"{% if value == grid %} checked{% endif %}> {{ label }}</label>
+        {%- endfor %}
+      </div>
+      {%- for value, label, hint in grid_choices %}
+      <div class="place-panel" data-grid-panel="{{ value }}">
+        <p class="hint">{{ hint }} Large ones need a limit or the confirmation box past 2,000 sectors.</p>
+        <div class="search-fields">
+        {%- if value == "shell" %}
+          {{ field("shell_index", "Shell", step="1", min=0, max=max_shell) }}
+          {{ field("shell_band", "Band", placeholder="every band", step="1") }}
+          {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
+          <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
+        {%- else %}
+          {{ field("span_shells", "Shells", kind="text", placeholder="all, e.g. 10:20") }}
+          {{ field("span_bands", "Bands", kind="text", placeholder="all, e.g. -2:2") }}
+          {{ field("span_wedges", "Wedges (one shell and band only)", kind="text", placeholder="the whole band, e.g. 4:9") }}
+          {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
+          <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
+        {%- endif %}
+        </div>
+      </div>
+      {%- endfor %}
+    </fieldset>
+    </div>
     {{ advanced_sector_inputs() }}
     {%- elif task.key == "new-galaxy" %}
     <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code>, plans a new galaxy,

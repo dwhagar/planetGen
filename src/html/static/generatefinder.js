@@ -40,10 +40,13 @@ function setUpFinder(box) {
 
   function pick(id, text) {
     idInput.value = id;
-    const byRadio = form.querySelector('input[name="center_by"][value="sector"]');
-    const modeRadio = form.querySelector('input[name="mode"][value="center"]');
-    if (byRadio) byRadio.checked = true;
-    if (modeRadio) modeRadio.checked = true;
+    for (const [name, value] of [["what", "place"], ["place", "sector"]]) {
+      const radio = form.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
     if (chosen) chosen.textContent = `Center: ${text}.`;
   }
 

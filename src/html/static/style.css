@@ -3596,8 +3596,47 @@ body.app {
   margin: 0.25rem 0 0.5rem;
 }
 
-.generate-center {
-  margin-left: 0.25rem;
+.what-choice .choice {
+  display: inline-block;
+  margin: 0 1.25rem 0.5rem 0;
+  font-weight: 400;
+}
+
+/* The Add sectors place picker: radios drawn as tabs once script shows one panel at a time. */
+.place-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+}
+
+.place-tab {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.tabs-on .place-tab:has(input:checked) {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.tabs-on .place-tab input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tabs-on .place-tab:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.place-panel[hidden],
+[data-what-panel][hidden] {
+  display: none;
 }
 
 .sector-finder [hidden] {

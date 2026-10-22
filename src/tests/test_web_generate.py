@@ -330,6 +330,35 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
 
 
+@pytest.mark.parametrize("new, old", [
+    ({"what": "place", "place": "random", "radius_pc": "50", "max_shell": "30"},
+     {"mode": "random", "radius_pc": "50", "max_shell": "30"}),
+    ({"what": "place", "place": "sector", "center_sector": "9", "center_radius_pc": "20"},
+     {"mode": "center", "center_by": "sector", "center_sector": "9", "center_radius_pc": "20"}),
+    ({"what": "place", "place": "address", "center_shell": "40", "center_band": "-1", "center_wedge": "7",
+      "center_radius_pc": "12"},
+     {"mode": "center", "center_by": "address", "center_shell": "40", "center_band": "-1", "center_wedge": "7",
+      "center_radius_pc": "12"}),
+    ({"what": "place", "place": "position", "center_x_pc": "10", "center_y_pc": "0", "center_z_pc": "4",
+      "center_radius_pc": "20"},
+     {"mode": "center", "center_by": "position", "center_x_pc": "10", "center_y_pc": "0", "center_z_pc": "4",
+      "center_radius_pc": "20"}),
+    ({"what": "grid", "mode": "shell", "shell_index": "5", "shell_band": "-2", "shell_limit": "40"},
+     {"mode": "shell", "shell_index": "5", "shell_band": "-2", "shell_limit": "40"}),
+    ({"what": "grid", "mode": "span", "span_shells": "7", "span_bands": "0", "span_wedges": "4:9", "span_limit": "3"},
+     {"mode": "span", "span_shells": "7", "span_bands": "0", "span_wedges": "4:9", "span_limit": "3"}),
+    # the tab that is not shown still posts its boxes; the choice made decides
+    ({"what": "grid", "place": "sector", "center_sector": "9", "center_radius_pc": "20", "mode": "shell",
+      "shell_index": "5"},
+     {"mode": "shell", "shell_index": "5"}),
+    ({"what": "place", "place": "random", "mode": "span", "span_shells": "3"}, {"mode": "random"}),
+])
+def test_the_add_sectors_choices_build_the_same_command_as_the_old_modes(new, old):
+    """ADM.108 (G3): two choices and a four-tab place picker reproduce every old mode and center choice byte for byte."""
+    edge = 4.0
+    assert generate_page.galaxy_argv(new, edge) == generate_page.galaxy_argv(old, edge)
+
+
 @pytest.mark.parametrize("form, argv", [
     ({"mode": "random"}, []),
     ({"mode": "random", "radius_pc": "50", "max_shell": "30", "min_start_density": "1.5"},
@@ -560,10 +589,15 @@ def test_a_form_shown_again_is_its_tasks_page_with_the_draft(site, client, no_sp
     assert f'id="task-{key}"' in html and 'role="alert"' in html
 
 
-def test_around_a_sector_offers_every_way_to_name_the_center(site, client):
+def test_add_sectors_offers_two_choices_and_a_four_tab_place_picker(site, client):
     html = _forms_html(client)
-    for by in ("sector", "address", "position"):
-        assert f'name="center_by" value="{by}"' in html
+    for what in ("place", "grid"):
+        assert f'name="what" value="{what}"' in html
+    for tab in ("random", "sector", "address", "position"):
+        assert f'name="place" value="{tab}"' in html
+    for grid in ("shell", "span"):
+        assert f'name="mode" value="{grid}"' in html
+    assert 'name="center_by"' not in html
     for name in ("center_sector", "center_shell", "center_band", "center_wedge", "center_x_pc", "center_y_pc",
                  "center_z_pc", "center_radius_pc"):
         assert f'name="{name}"' in html

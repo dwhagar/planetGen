@@ -112,37 +112,36 @@ BACKFILL_TEXT = _backfill_text()
 """str: How far down the bright-star backfill around the generated sectors
 goes, step by step (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 
-GALAXY_MODES = (
-    ("random", "Around a random start",
-     "Picks a random populated spot and generates the sectors within a radius of it "
-     "(12 pc, about 39 ly, when the radius is left blank; the four steps of sectors out from every "
-     f"generated one get their heavier stars either way, {BACKFILL_TEXT})."),
-    ("shell", "A whole shell",
-     "Every not-yet-generated sector in one shell, the 4 pc deep sphere of cells at one distance from the "
-     "center (shell 0 is the core ball), optionally only one band of it. A shell holds up to thousands of "
-     "sectors, so it needs a limit or the confirmation box past 2,000."),
-    ("center", "Around a sector",
-     "Every not-yet-generated sector within a radius of a center: an existing filled sector "
-     "(found by name or picked from the list), a sector address, or a position in the galaxy."),
-    ("address", "One address",
-     "Exactly one sector, by shell, band and wedge (the address the Galaxy Map shows). "
-     "With a radius, its neighborhood too."),
-    ("span", "A span of shells, bands or wedges",
-     "Every not-yet-generated sector in a range of shells, a range of bands, or both, or one arc of "
-     "wedges in a single band of a single shell. Leave a box blank for all of it. Ranges are "
-     "FIRST:LAST, both included; a single number is just that one. Large spans need a limit or the "
-     "confirmation box past 2,000."),
-)
-
-CENTER_CHOICES = (
-    ("sector", "A filled sector", "Find it by name, pick it from the list, or type its ID."),
+PLACE_TABS = (
+    ("random", "A random populated spot", "Picks a spot at random where stars are dense enough and generates around it."),
+    ("sector", "A named sector", "Find a filled sector by name, pick it from the list, or type its ID."),
     ("address", "A sector address", "Shell, band and wedge, as the Galaxy Map shows them. "
                                     "The sector there is generated first if it isn't yet."),
     ("position", "A position (pc)", "Galaxy-frame x, y and z in parsecs (the center is 0, 0, 0; "
                                     "z is height above the plane). The sector holding that point is the center."),
 )
-"""tuple: How "Around a sector" names its center (`center_by`):
-`(value, label, hint)`."""
+"""tuple: The tabs of the Add sectors place picker (`place`), `(value, label, hint)`: the random start and the three
+ways to name the center of "Around a sector" (`center_by`)."""
+
+GRID_CHOICES = (
+    ("shell", "A whole shell", "Every not-yet-generated sector in one shell, optionally only one band of it."),
+    ("span", "A range", "A range of shells, a range of bands, or one arc of wedges. Leave a box blank for all of it."),
+)
+"""tuple: The two ways to pick sectors by their grid address (`mode` with `what=grid`), `(value, label, hint)`."""
+
+
+def where(form):
+    """
+    The `(mode, center_by)` the Add sectors form means. The page posts `what` (`place` or `grid`) and, for a place,
+    the picked `place` tab: `random` is the random start, any other tab is "Around a sector" naming its center that way.
+    A grid choice keeps `mode` (`shell` or `span`). A post without `what` (the Galaxy Map's dialog, the sector page's
+    button) names `mode` and `center_by` itself.
+    """
+    place = form.get("place")
+    if place and form.get("what") != "grid":
+        return ("random", None) if place == "random" else ("center", place)
+    return form.get("mode") or "random", form.get("center_by") or "sector"
+
 
 FINDER_PAGE_SIZE = 50
 """int: Sectors per page in the "Around a sector" list (every web list
@@ -469,7 +468,7 @@ def center_argv(form, edge_pc=None):
     Returns:
         tuple: `(argv, description)`.
     """
-    by = form.get("center_by") or "sector"
+    by = where(form)[1]
     if by == "sector":
         sector_id = _number(form, "center_sector", "Sector ID", int, required=True, minimum=1)
         description = f"around sector {sector_id}"
@@ -510,7 +509,7 @@ def galaxy_argv(form, edge_pc=None):
     Returns:
         tuple: `(argv, description)`.
     """
-    mode = form.get("mode") or "random"
+    mode = where(form)[0]
     if mode == "random":
         return random_start_argv(form), "around a random start"
     if mode == "center":
@@ -1024,7 +1023,7 @@ def _edge_pc(action, form, database):
     sector" was given a position (the one form that needs it); `None`
     otherwise, or when the database doesn't answer (the standard edge is
     then used)."""
-    if action != "galaxy" or form.get("mode") != "center" or form.get("center_by") != "position":
+    if action != "galaxy" or where(form) != ("center", "position"):
         return None
     try:
         shape = apiclient.get_galaxy_shape(database)
@@ -1296,14 +1295,14 @@ def page_context(admin, form=None, error=None, status=200):
         compact_presets=tuning.COMPACT_MIN_MASS_PRESETS,
         compact_warnings=COMPACT_STORAGE_WARNINGS,
         backfill_text=BACKFILL_TEXT,
-        galaxy_modes=GALAXY_MODES,
+        place_tabs=PLACE_TABS,
+        grid_choices=GRID_CHOICES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
         min_radius_ly=MIN_NEIGHBORHOOD_RADIUS_LY,
         max_radius_ly=MAX_GENERATE_RADIUS_LY,
         max_shell=MAX_GENERATE_SHELL,
         max_limit=MAX_GENERATE_LIMIT,
         max_neighborhoods=MAX_GENERATE_NEIGHBORHOODS,
-        center_choices=CENTER_CHOICES,
         advanced_open=bool(form) and any(name.startswith(ADVANCED_PREFIXES) for name in form),
         error=error,
         form=form or {},
