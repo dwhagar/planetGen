@@ -68,7 +68,7 @@ from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.db import dataversion, store
 from planetgen.util import generator_epoch, log, stagemark
-from planetgen.galaxy import objectref
+from planetgen.galaxy import dials, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -84,21 +84,9 @@ from .helpers import crumb, current_admin, db_name, page_url, pager, render_page
 # Form fields
 # ---------------------------------------------------------------------
 
-PLAN_FIELDS = (
-    # (form name, planetgen flag, label, type, default, minimum, exclusive maximum); a default of None is drawn from the
-    # galaxy seed (GEN.401) and shown as a placeholder
-    ("disk_scale_length_pc", "--disk-scale-length-pc", "Disk scale length (pc)", float, None, 1.0, None),
-    ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, None, 1.0, None),
-    ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, None, 1.0, None),
-    ("bulge_amplitude", "--bulge-amplitude", "Bulge density", float, None, 0.0, 100.0),
-    ("nuclear_amplitude", "--nuclear-amplitude", "Nuclear structures", float, 1.0, 0.0, 10.0),
-    ("arm_count", "--arm-count", "Spiral arms", int, None, 0, None),
-    ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, None, 1.0, 90.0),
-    ("arm_density", "--arm-density", "Arm density", float, 1.4, 0.01, 10.0),
-    ("interarm_density", "--interarm-density", "Inter-arm density", float, 0.6, 0.0, 10.0),
-)
-"""tuple: The `plan` options the page offers, with `planetgen`'s own
-defaults (a test checks they still match `planetgen plan`'s parser)."""
+PLAN_FIELDS = dials.LEVERS
+"""tuple: The `plan` options the page offers: the rows of the lever table (`planetgen.galaxy.dials`), which also builds
+`planetgen plan`'s flags, so the page and the command line cannot differ. Every row is Auto (blank) until given."""
 
 MASS_LIMIT_LABEL = "Mass limit (solar masses)"
 COMPACT_LIMIT_LABEL = "Neutron star and black hole limit (solar masses)"
@@ -399,11 +387,30 @@ def plan_argv(form):
     """`planetgen plan` arguments from the Plan fields (blank means
     the default) and the limits stored with the galaxy (`limits_argv`)."""
     argv = limits_argv(form)
-    for name, flag, label, kind, _default, minimum, maximum in PLAN_FIELDS:
-        value = _number(form, name, label, kind, minimum=minimum, maximum=maximum, exclusive_max=True)
+    for row in PLAN_FIELDS:
+        value = _lever_text(form, row)
         if value is not None:
-            argv += [flag, str(value)]
+            argv += [row.flag, value]
     return argv
+
+
+def _lever_text(form, row):
+    """The text of a lever's flag value from the form (blank is Auto, so `None`), checked against the row's range;
+    a length goes with the unit chosen beside it (`2600pc`)."""
+    raw = (form.get(row.name) or "").strip()
+    if not raw:
+        return None
+    unit = (form.get(f"{row.name}_unit") or "").strip() if row.kind == "length" else ""
+    try:
+        value = row.convert(raw + unit)
+    except ValueError as exc:
+        _problem(f"{row.label}: {exc}.")
+        return None
+    message = row.problem(value)
+    if message:
+        _problem(f"{row.label}: {message}.")
+        return None
+    return raw + unit if row.kind == "length" else str(value)
 
 
 def random_start_argv(form):

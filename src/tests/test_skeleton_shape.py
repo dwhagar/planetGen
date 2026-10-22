@@ -27,7 +27,7 @@ from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 EDGE_LY = 11.5
 EDGE_PC = EDGE_LY / 3.26156
 
-# planetgen's own `plan` defaults (--disk-scale-length-pc etc.).
+# planetgen's own `plan` defaults (--disk-scale-length etc.).
 DEFAULT_SHAPE = build_galaxy_shape(
     disk_scale_length_pc=2600.0,
     disk_scale_height_pc=300.0,

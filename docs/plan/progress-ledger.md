@@ -939,3 +939,6 @@ Baseline: PR #1817.
 | GEN.530 | 8.1 | Components and wanderers |
 | DB.82 | 8.2 | Robust tile caching |
 | DB.31 | 8.1 | Description layer |
+| GEN.601 | 8.1 | Admin control suite |
+| GEN.608 | 8.1 | Admin control suite |
+| PERF.148 | 8.1 | Queue, caches and performance |

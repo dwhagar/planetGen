@@ -22,6 +22,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.queue.commands import DEEP_CHECKS
+from planetgen.galaxy import dials
 from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
@@ -272,14 +273,13 @@ def test_page_survives_an_unreachable_database(site, client, monkeypatch):
     assert "Database unavailable" in html
 
 
-def test_plan_defaults_match_generate_py():
+def test_every_plan_option_is_auto_on_the_command_line():
     from planetgen.cli import generate as generate_cli
 
     _parser, parsers = generate_cli.build_parser()
     defaults = vars(parsers["plan"].parse_args([]))
-    for name, flag, _label, kind, default, _minimum, _maximum in generate_page.PLAN_FIELDS:
-        assert defaults[flag.lstrip("-").replace("-", "_")] == default, flag
-        assert default is None or isinstance(default, kind)
+    for row in generate_page.PLAN_FIELDS:
+        assert defaults[row.dest] is None, row.flag
 
 
 # --- Building jobs ----------------------------------------------------------------
@@ -584,9 +584,9 @@ def test_sector_list_needs_an_admin(site, client):
 
 
 def test_plan_rejects_out_of_range(site, client, no_spawn):
-    resp = _post(client, action="plan", arm_density="10")
+    resp = _post(client, action="plan", arm_density="10.5")
     assert resp.status_code == 400
-    assert "Arm density must be less than 10." in resp.get_data(as_text=True)
+    assert "Arm density: 10.5 is outside 0.01 to 10" in resp.get_data(as_text=True)
 
 
 @pytest.mark.parametrize("action", ["reset", "new_galaxy"])
@@ -1575,3 +1575,44 @@ def test_redo_scatters_needs_at_least_one_scatter_ticked(site, client, no_spawn)
     resp = _post(client, action="redo_scatters", phenomenon_min_mass="12")
     assert resp.status_code == 400 and "Tick at least one scatter to redo." in resp.get_data(as_text=True)
     assert no_spawn == []
+
+
+# --- The lever table's form (GEN.601) ---------------------------------------------
+
+def test_the_form_turns_each_field_into_its_flag(site):
+    form = {"shape": "spiral", "disk_scale_length": "2.6", "disk_scale_length_unit": "kpc", "arm_count": "3",
+            "pitch_angle_deg": "-12.5"}
+    argv = generate_page.plan_argv(form)
+    pairs = {argv[i]: argv[i + 1] for i in range(len(argv) - 1) if argv[i].startswith("--") and not argv[i + 1].startswith("--")}
+    assert pairs["--shape"] == "spiral" and pairs["--disk-scale-length"] == "2.6kpc"
+    assert pairs["--arm-count"] == "3" and pairs["--pitch-angle-deg"] == "-12.5"
+    assert "--arm-density" not in argv and "--nuclear-amplitude" not in argv
+
+
+def test_a_blank_form_field_is_auto_and_adds_no_flag(site):
+    argv = generate_page.plan_argv({row.name: "" for row in dials.LEVERS})
+    assert not any(row.flag in argv for row in dials.LEVERS)
+
+
+def test_the_form_refuses_a_value_outside_the_range_naming_it(site):
+    for form in ({"arm_count": "11"}, {"disk_scale_length": "9", "disk_scale_length_unit": "kpc"},
+                 {"pitch_angle_deg": "0"}, {"shape": "elliptical"}):
+        with pytest.raises(generate_page.FormError) as excinfo:
+            with generate_page.collecting_problems():
+                generate_page.plan_argv(form)
+        assert "outside" in str(excinfo.value) or "not one of" in str(excinfo.value)
+
+
+def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    for row in dials.LEVERS:
+        assert f'name="{row.name}"' in html, row.name
+        assert f'data-lever="{row.name}"' in html, row.name
+        if row.kind != "enum":
+            assert re.search(rf'data-lever="{row.name}" data-step="{re.escape(str(row.step))}"', html), row.name
+            assert f'min="{row.minimum}" max="{row.maximum}"' in html, row.name
+        else:
+            assert all(choice.capitalize() in html for choice in row.choices)
+        if row.kind == "length":
+            assert f'name="{row.name}_unit"' in html
+    assert "Spiral" in html

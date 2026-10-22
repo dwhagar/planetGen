@@ -136,7 +136,8 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     argv = []
     for key, value in _TOY.items():
         if key != "arm_amplitude":
-            argv += [f"--{key.replace('_', '-')}", str(value)]
+            flag = "--disk-scale-length" if key == "disk_scale_length_pc" else f"--{key.replace('_', '-')}"
+            argv += [flag, f"{value}pc" if key == "disk_scale_length_pc" else str(value)]
     argv += ["--arm-density", "1.4", "--interarm-density", "0.6"]  # the arm amplitude 0.4 in the density terms
     run_cli("plan", argv + mysql_argv(mysql_config))
 

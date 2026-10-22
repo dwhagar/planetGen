@@ -115,9 +115,9 @@ def test_the_command_line_and_the_page_offer_the_same_defaults():
     parser = argparse.ArgumentParser()
     add_plan_arguments(parser)
     args = parser.parse_args([])
-    assert (args.arm_density, args.interarm_density, args.nuclear_amplitude) == (1.4, 0.6, 1.0)
-    defaults = {name: default for name, _flag, _label, _kind, default, _lo, _hi in generate_page.PLAN_FIELDS}
-    assert defaults["arm_density"] == 1.4 and defaults["interarm_density"] == 0.6 and defaults["nuclear_amplitude"] == 1.0
+    assert (args.arm_density, args.interarm_density, args.nuclear_amplitude) == (None, None, None)
+    fixed = {row.name: row.auto_value for row in generate_page.PLAN_FIELDS}
+    assert fixed["arm_density"] == 1.4 and fixed["interarm_density"] == 0.6 and fixed["nuclear_amplitude"] == 1.0
 
 
 def test_the_page_turns_the_settings_into_plan_options():

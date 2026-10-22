@@ -235,6 +235,7 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     summary = run_plan.scatter_phenomena(_scatter_args(mysql_config, "--workers", "1"))
     shell_lines = [m for m in messages if m.startswith("Phenomena, shell")]
     assert shell_lines and all(": placed " in m for m in shell_lines)
+    assert all(" (unit " in m and " rows expected): placed " in m for m in shell_lines)
     assert any(m.startswith("Special phenomena: ") for m in messages)
     assert any(m.startswith("Phenomena landed in ") and " runs of shells." in m for m in messages)
     final = next(m for m in messages if m.startswith("Placed "))

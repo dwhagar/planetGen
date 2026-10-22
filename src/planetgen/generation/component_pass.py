@@ -15,6 +15,12 @@ share the pass kept), so no pre-placed star is drawn twice.
 Every component draws from a stream of its own (the scatter's seed and the component's kind and name), so one
 component's stars do not depend on another's, on the order, or on the worker that draws them.
 
+A component with a great many stars (a Magellanic Cloud, at a low luminosity floor, holds a million) is drawn in slices,
+each a unit of the queue's own: a slice has a stream of its own (the component's, then `:slice:` and its number) and
+the share `1 / slices` of the component's Poisson mean, so the slices together are a draw of the whole component. How
+many slices a component has comes from its expected stars alone (`parts`), never from the worker count, so a seed
+draws the same stars on one worker or twenty. A component that needs no slices keeps its stream's name, and its stars.
+
 The phenomena follow the same way: each class's rate per star (`phenomenon_scatter._scattered_rates`) times the
 component's systems, at the same positions. A component's remnants are not the disk's: the thin disk's thicker remnant
 layer does not apply. A cluster has no gas to speak of (no supernova remnants) and no young stars (no magnetars). A
@@ -37,6 +43,14 @@ from planetgen.physics import component_profiles
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
+STAR_SLICE_STARS = 25000.0
+"""float: The most stars a slice of a component is expected to draw: about two minutes of a worker's time (the draw of
+each star's properties, its members and the write of its row cost a few milliseconds)."""
+
+PHENOMENON_SLICE_ROWS = 1000000.0
+"""float: The most candidate phenomena a slice of a component draws; a phenomenon is cheap to draw (about 10 us) and
+about a fifth of the candidates are kept."""
+
 COMPONENT_KINDS = ("cluster", "satellite")
 """tuple: The kinds of component the pass draws; each is also the population of its stars (a satellite's three, a young
 open cluster's one by its age)."""
@@ -45,6 +59,70 @@ open cluster's one by its age)."""
 def systems_of(component):
     """The systems (stars, counting a pair as one) a component holds: its mass over the mean system mass."""
     return component.mass_solar / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+
+
+def part_count(expected, size):
+    """How many slices a component expected to draw `expected` rows is cut into: one for a component of `size` rows
+    or fewer, the rows over `size` rounded up for a larger one."""
+    return max(1, math.ceil(expected / size))
+
+
+def parts(weighted, size):
+    """
+    The components cut into tasks, from their expected rows alone (the same at any worker count): a component that
+    holds more than `size` is cut into slices, one task each, and the others are bundled in order, a task of them
+    closed before the component that would take it past `size` rows, so no task holds more than `size`. A component expected to draw nothing is left out.
+
+    Args:
+        weighted (list): `(component, expected rows)`, in the order the tasks are to hold them.
+        size (float): `STAR_SLICE_STARS` or `PHENOMENON_SLICE_ROWS`.
+
+    Returns:
+        list[tuple]: `(expected rows, parts)` per task, `parts` the `[kind, name, slice, slices]` lists that
+            `chosen` turns back into components and their slices.
+    """
+    tasks, bundle, held = [], [], 0.0
+    for component, expected in weighted:
+        if expected <= 0.0:
+            continue
+        slices = part_count(expected, size)
+        if slices > 1:
+            tasks.extend((expected / slices, [[component.kind, component.name, index, slices]])
+                         for index in range(slices))
+            continue
+        if bundle and held + expected > size:
+            tasks.append((held, bundle))
+            bundle, held = [], 0.0
+        bundle.append([component.kind, component.name, 0, 1])
+        held += expected
+        if held >= size:
+            tasks.append((held, bundle))
+            bundle, held = [], 0.0
+    if bundle:
+        tasks.append((held, bundle))
+    return tasks
+
+
+def chosen(components, task_parts):
+    """
+    `(components, slices)` of one task: the stored `components` that `task_parts` (`parts`) names, in its order, and
+    their slices as `scatter_stars` and `scatter_phenomena` take them.
+
+    Raises:
+        ValueError: A named component is not among `components` (it was removed after the run was cut).
+    """
+    by_name = {(component.kind, component.name): component for component in components}
+    missing = [f"{kind} {name}" for kind, name, _index, _slices in task_parts if (kind, name) not in by_name]
+    if missing:
+        raise ValueError(f"The galaxy no longer has the component {missing[0]!r} this run was cut for; plan again.")
+    return ([by_name[(kind, name)] for kind, name, _index, _slices in task_parts],
+            {(kind, name): (index, slices) for kind, name, index, slices in task_parts})
+
+
+def _stream_name(name, slices):
+    """The stream of a component's slice: the component's own for a whole one."""
+    index, count = slices
+    return name if count == 1 else f"{name}:slice:{index}"
 
 
 def positions_mpc(component, uniform):
@@ -75,7 +153,7 @@ def _address(point, edge_pc):
     return sector_address_at(tuple(float(value) / MPC_PER_PC for value in point), edge_pc)
 
 
-def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses):
+def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses, slices=1):
     """
     The stars of one component the pass keeps, population by population (a satellite's three, `galaxy.satellite_history`):
     Poisson in its systems times the population's share of its stars times the largest share of that population any
@@ -84,6 +162,7 @@ def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses):
     Args:
         by_tier (list): `band_fractions` per tier, one for an untiered pass.
         tier_of (callable or None): `tier_of(shell, band)` the tier of a band, `None` for one tier.
+        slices (int): How many slices the component is drawn in; this one draws its share of them.
 
     Yields:
         tuple: `(shell, band, wedge, point, population, tier)`; `population` is the cluster's or one of the satellite's
@@ -96,7 +175,7 @@ def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses):
         best = max(shares)
         if best <= 0.0:
             continue
-        points, (keep, _spare) = _candidates(component, systems_of(component) * share_of_stars * best, rng)
+        points, (keep, _spare) = _candidates(component, systems_of(component) * share_of_stars * best / slices, rng)
         for index in range(points.shape[1]):
             point = tuple(int(value) for value in points[:, index])
             address = _address(point, edge_pc)
@@ -107,11 +186,12 @@ def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses):
                 yield (*address, point, population, tier)
 
 
-def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None, skip_addresses=None):
+def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None, skip_addresses=None, slices=None):
     """
     The pass's stars in the components (`COMPONENT_KINDS`) among `components`, one stream each, in
     `store.BRIGHT_STAR_COLUMNS` order. Arguments as `bright_stars.scatter_far`; `fractions` and `pass_bands` are
-    `bright_stars.pass_of`'s.
+    `bright_stars.pass_of`'s. `slices` says which slice of a component to draw, `{(kind, name): (slice, slices)}`
+    (`chosen`); a component it leaves out is drawn whole.
     """
     by_tier = fractions if tiered is not None else [fractions]
     tier_of = None if tiered is None else tiered.limits.tier_at
@@ -119,10 +199,11 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
     for component in components:
         if component.kind not in COMPONENT_KINDS:
             continue
-        rng = draw.Stream(f"{seed}:objects:component:{component.kind}:{component.name}")
+        here = (slices or {}).get((component.kind, component.name), (0, 1))
+        rng = draw.Stream(f"{seed}:objects:component:{component.kind}:{_stream_name(component.name, here)}")
         placed = {(tier, population): [] for population in POPULATIONS for tier in range(len(pass_bands))}
         for shell_index, band_index, wedge, point, population, tier in component_spots(
-                component, edge_pc, by_tier, tier_of, rng, skip_addresses):
+                component, edge_pc, by_tier, tier_of, rng, skip_addresses, here[1]):
             placed[(tier, population)].append((shell_index, band_index, wedge, point))
         yield from bright_stars.draw_placed(placed, pass_bands, rng)
 
@@ -130,10 +211,15 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
 def expected_stars(components, fractions, tiered=None):
     """About how many stars `scatter_stars` places, the progress bar's weight: each component's systems times the
     largest share of its population any tier keeps (an upper bound, the tiers differing by place)."""
+    return sum(each for _component, each in star_weights(components, fractions, tiered))
+
+
+def star_weights(components, fractions, tiered=None):
+    """`(component, expected stars)` for each component of the pass's kinds, as `expected_stars` counts them."""
     by_tier = fractions if tiered is not None else [fractions]
-    return sum(systems_of(component) * share * max(item[population] for item in by_tier)
-               for component in components if component.kind in COMPONENT_KINDS
-               for population, share in component_field.population_shares(component).items())
+    return [(component, sum(systems_of(component) * share * max(item[population] for item in by_tier)
+                            for population, share in component_field.population_shares(component).items()))
+            for component in components if component.kind in COMPONENT_KINDS]
 
 
 def phenomenon_rates(min_mass_solar):
@@ -212,7 +298,7 @@ def _class_mean(component, kind, subtype, rate, shape):
     return mean
 
 
-def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_solar=None, shape=None):
+def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_solar=None, shape=None, slices=None):
     """
     The phenomena in the components, in `PHENOMENON_SCATTER_COLUMNS` order: per component and class, Poisson in its
     systems times the class's rate per system (and its factor, `_class_mean`), at positions from the profile. A
@@ -222,6 +308,8 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
     Args:
         shape (GalaxyShape): The galaxy's shape, with its components: the solar circle's young share and a satellite's
             gas (`gas_by_radius`) come from it. Needed for a satellite, and for the planetary nebulae of any component.
+        slices (dict): Which slice of a component to draw, `{(kind, name): (slice, slices)}` (`chosen`), as
+            `scatter_stars` takes them; a component it leaves out is drawn whole.
     """
     if min_mass_solar is None:
         min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
@@ -232,10 +320,12 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
         if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
             continue
         gas = gas_by_radius(component, shape) if component.kind == "satellite" else None
+        here = (slices or {}).get((component.kind, component.name), (0, 1))
         for kind, subtype, rate in rates + (extra if gas is not None else []):
             rng = phenomenon_scatter.class_stream(
-                f"{seed}:phenomena:component:{component.kind}:{component.name}", kind, subtype)
-            points, (mass_draw, keep) = _candidates(component, _class_mean(component, kind, subtype, rate, shape), rng)
+                f"{seed}:phenomena:component:{component.kind}:{_stream_name(component.name, here)}", kind, subtype)
+            points, (mass_draw, keep) = _candidates(
+                component, _class_mean(component, kind, subtype, rate, shape) / here[1], rng)
             masses = phenomenon_scatter._masses(kind, subtype, min_mass_solar, mass_draw)
             if kind in phenomenon_scatter.GAS_WEIGHTED_KINDS and points.shape[1]:
                 offsets = points / MPC_PER_PC - np.asarray(component.center_pc, dtype=float)[:, None]

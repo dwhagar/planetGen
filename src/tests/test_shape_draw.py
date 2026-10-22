@@ -160,15 +160,15 @@ def test_a_plan_with_no_shape_options_draws_every_one_from_its_seed():
     parser = argparse.ArgumentParser()
     add_plan_arguments(parser)
     args = parser.parse_args([])
-    for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
-                   "arm_count", "pitch_angle_deg"):
+    for option in ("disk_scale_length", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
+                   "arm_count", "pitch_angle_deg", "shape", "nuclear_amplitude", "arm_density", "interarm_density"):
         assert getattr(args, option) is None, option
     shape, drawn = shape_draw.plan_shape(args, _seed(21))
     assert shape.disk_scale_length_pc == drawn.disk_scale_length_pc
     assert shape.arm_count == drawn.arm_count and shape.k_norm > 0
     other, _ = shape_draw.plan_shape(args, _seed(22))
     assert other.disk_scale_length_pc != shape.disk_scale_length_pc
-    explicit = parser.parse_args(["--disk-scale-length-pc", "2000", "--arm-count", "3"])
+    explicit = parser.parse_args(["--disk-scale-length", "2000pc", "--arm-count", "3"])
     shape, _ = shape_draw.plan_shape(explicit, _seed(21))
     assert shape.disk_scale_length_pc == 2000.0 and shape.arm_count == 3
 

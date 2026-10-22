@@ -204,18 +204,21 @@ ARM_DENSITY_ERROR = ("--arm-density and --interarm-density: the arm density must
 
 PLAN_ERRORS = [
     (["--interarm-density", "2"], ARM_DENSITY_ERROR),
-    (["--interarm-density", "-0.01"], ARM_DENSITY_ERROR),
-    (["--arm-density", "0", "--interarm-density", "0"], ARM_DENSITY_ERROR),
-    (["--nuclear-amplitude", "-1"], "--nuclear-amplitude and --bulge-amplitude must be 0 or more."),
+    (["--interarm-density", "-0.01"], "argument --interarm-density: -0.01 is outside 0 to 10 ("),
+    (["--arm-density", "0", "--interarm-density", "0"], "argument --arm-density: 0 is outside 0.01 to 10 ("),
+    (["--nuclear-amplitude", "-1"], "argument --nuclear-amplitude: -1 is outside 0 to 10 ("),
+    (["--bulge-amplitude", "-1"], "argument --bulge-amplitude: -1 is outside 0 to 100 ("),
     (["--workers", "-1"], "--workers must be 0 (automatic) or more."),
     (["--max-shell", "0"], "--max-shell must be a positive integer."),
-    (["--disk-scale-length-pc", "0"], "--disk-scale-length-pc must be a positive number."),
-    (["--disk-scale-height-pc", "-1"], "--disk-scale-height-pc must be a positive number."),
-    (["--bulge-scale-radius-pc", "0"], "--bulge-scale-radius-pc must be a positive number."),
-    (["--arm-count", "0"], "--arm-count must be a positive integer."),
-    (["--pitch-angle-deg", "0"], "--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude."),
-    (["--pitch-angle-deg", "-90.001"], "--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude."),
-    (["--disk-scale-length-pc", "1e80"], "these galaxy shape parameters can't be normalized ("),
+    (["--disk-scale-length", "0pc"], "argument --disk-scale-length: 0 is outside 0.9 to 8000 pc ("),
+    (["--disk-scale-length", "2600"], "argument --disk-scale-length: '2600' is not a length (a length needs its unit: pc, kpc)"),
+    (["--disk-scale-length", "5Mpc"], "argument --disk-scale-length: '5Mpc' is not a length ('Mpc' is not one of the units pc, kpc)"),
+    (["--disk-scale-height-pc", "-1"], "argument --disk-scale-height-pc: -1 is outside 0.3 to 750 pc ("),
+    (["--bulge-scale-radius-pc", "0"], "argument --bulge-scale-radius-pc: 0 is outside 1 to 100000 pc ("),
+    (["--arm-count", "0"], "argument --arm-count: 0 is outside 1 to 10 ("),
+    (["--pitch-angle-deg", "0"], "argument --pitch-angle-deg: 0 is outside -90 to 90 degrees, not 0 ("),
+    (["--pitch-angle-deg", "-90.001"], "argument --pitch-angle-deg: -90.001 is outside -90 to 90 degrees, not 0 ("),
+    (["--shape", "elliptical"], "argument --shape: 'elliptical' is not one of spiral ("),
 ]
 
 SCATTER_ERRORS = [
