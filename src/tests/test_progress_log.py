@@ -14,7 +14,7 @@ import pytest
 from tests import buildid, progress_log
 
 SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SERVERS = lambda: {"mysql": "10.11.0-MariaDB", "redis": "7.0.0"}  # noqa: E731
+SERVERS = lambda: {"mysql": "8.0.19", "redis": "7.0.0"}  # noqa: E731
 NOW = datetime.datetime(2026, 10, 15, 12, 0, tzinfo=datetime.timezone.utc)
 
 

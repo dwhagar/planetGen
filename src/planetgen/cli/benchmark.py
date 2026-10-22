@@ -120,10 +120,7 @@ def _table_sizes(connection, database):
     """Every table of `database` as `{"table", "rows", "data_bytes", "index_bytes"}`, the largest first. `rows` is
     the server's estimate. MySQL 8 caches these figures for a day unless told not to."""
     with connection.cursor() as cur:
-        try:
-            cur.execute("SET SESSION information_schema_stats_expiry = 0")
-        except pymysql.MySQLError:
-            pass  # MariaDB reads them live
+        cur.execute("SET SESSION information_schema_stats_expiry = 0")
         cur.execute("SELECT table_name, table_rows, data_length, index_length FROM information_schema.tables "
                     "WHERE table_schema = %s AND table_type = 'BASE TABLE'", (database,))
         rows = cur.fetchall()

@@ -385,47 +385,26 @@ within the same process without the two stomping on each other's pooled
 connections."""
 
 
-STATEMENT_TIMEOUT_ERRORS = (1969, 3024)
-"""tuple: The errors a statement stopped by `statement_timeout_s` raises:
-MariaDB's `max_statement_time` and MySQL's `MAX_EXECUTION_TIME`."""
+STATEMENT_TIMEOUT_ERRORS = (3024,)
+"""tuple: The errors a statement stopped by `statement_timeout_s` raises: MySQL's `MAX_EXECUTION_TIME`."""
 
 LOCK_WAIT_ERRORS = (1205, 1213)
 """tuple: The errors of a statement that waited too long for a row lock (1205) or lost a deadlock (1213): the
 transaction holding the lock is somebody else's, and a short web write gives up on it rather than wait (ADM.53)."""
 
-_mariadb_servers = {}
-
-
-def _is_mariadb(config):
-    """Whether `config`'s server is MariaDB (cached per host and port) --
-    the two name their statement time limit differently."""
-    server = (config.host, config.port)
-    if server not in _mariadb_servers:
-        probe = login.connect(host=config.host, port=config.port, user=config.user,
-                                password=config.password, connect_timeout=10)
-        try:
-            _mariadb_servers[server] = "mariadb" in probe.get_server_info().lower()
-        finally:
-            probe.close()
-    return _mariadb_servers[server]
-
-
-def _statement_timeout_sql(config, seconds):
-    if _is_mariadb(config):
-        return f"SESSION max_statement_time = {float(seconds):g}"
+def _statement_timeout_sql(seconds):
     return f"SESSION MAX_EXECUTION_TIME = {int(float(seconds) * 1000)}"
 
 
 SQL_MODE_ENV_VAR = "PLANETGEN_MYSQL_SQL_MODE"
 """str: Env var that, when set, pins every pooled connection's session
 `sql_mode` to its value (TEST.7). The test suite sets it to MySQL 8's
-default (`STRICT_SQL_MODE`), so a GROUP BY or a truncation MariaDB's
-looser default forgives fails locally too, not only in CI. Unset (every
-deployment): the server's own `sql_mode` applies."""
+default (`STRICT_SQL_MODE`), so a GROUP BY or a truncation a looser
+`sql_mode` forgives fails in the tests too. Unset (every deployment): the server's own `sql_mode` applies."""
 
 STRICT_SQL_MODE = ("ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,"
                    "ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION")
-"""str: MySQL 8.0's default `sql_mode`, valid on MariaDB too."""
+"""str: MySQL 8.0's default `sql_mode`."""
 
 
 def _session_sql_mode():
@@ -441,7 +420,7 @@ def _get_pool(config, statement_timeout_s=None, lock_wait_s=None):
     if key not in _pools:
         init = "SET time_zone = '+00:00'"
         if statement_timeout_s:
-            init += ", " + _statement_timeout_sql(config, statement_timeout_s)
+            init += ", " + _statement_timeout_sql(statement_timeout_s)
         if lock_wait_s:
             init += f", SESSION innodb_lock_wait_timeout = {max(int(lock_wait_s), 1)}"
         sql_mode = _session_sql_mode()
@@ -924,21 +903,18 @@ class Connection:
         if self._config is None:
             yield
             return
-        mariadb = _is_mariadb(self._config)
-        variable = "max_statement_time" if mariadb else "max_execution_time"
         cur = self._conn.cursor()
-        cur.execute(f"SELECT @@SESSION.{variable}")
+        cur.execute("SELECT @@SESSION.max_execution_time")
         row = cur.fetchone()
-        current = float((list(row.values())[0] if isinstance(row, dict) else row[0]) or 0) / (1 if mariadb else 1000)
+        current = float((list(row.values())[0] if isinstance(row, dict) else row[0]) or 0) / 1000
         if current and current <= seconds:
             yield
             return
-        cur.execute("SET " + _statement_timeout_sql(self._config, seconds))
+        cur.execute("SET " + _statement_timeout_sql(seconds))
         try:
             yield
         finally:
-            cur.execute("SET " + (_statement_timeout_sql(self._config, current) if current else
-                                  f"SESSION {variable} = 0"))
+            cur.execute("SET " + (_statement_timeout_sql(current) if current else "SESSION max_execution_time = 0"))
 
     def execute(self, sql, params=()):
         shape = _insert_shape(sql)
@@ -1803,8 +1779,7 @@ def _add_control_columns(conn):
     """
     Adds `_CONTROL_COLUMNS` (and the job tree's index and parent key) to
     control tables created before them -- each only when missing, so it
-    is safe to run on every deploy, on MySQL as well as MariaDB (MySQL
-    has no `ADD COLUMN IF NOT EXISTS`).
+    is safe to run on every deploy (MySQL has no `ADD COLUMN IF NOT EXISTS`).
     """
     def existing(sql, table):
         return {row["name"] for row in conn.execute(sql, (table,)).fetchall()}
@@ -9055,10 +9030,9 @@ def finish_orbit_update(conn, clock):
     own epoch holds (`orbit_simulation_state.last_updated_at`): the start of
     the next update. `planetgen.cli.orbits` calls it after the last step.
 
-    The column holds whole seconds. MariaDB drops a fraction on insert but
-    MySQL 8.4 rounds it, which could store a second after "now" and make the
-    next run read a clock that went backwards (TEST.129), so the fraction
-    is dropped here, the same way on both."""
+    The column holds whole seconds. MySQL 8.4 rounds a fraction on insert, which
+    could store a second after "now" and make the next run read a clock that
+    went backwards (TEST.129), so the fraction is dropped here."""
     whole_seconds = math.floor(clock.end_unix)
     conn.execute(
         "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, FROM_UNIXTIME(?)) "

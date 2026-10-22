@@ -223,7 +223,7 @@
         },
         "host": {
           "default": "127.0.0.1",
-          "description": "The MySQL or MariaDB server's host name or address.",
+          "description": "The MySQL server's host name or address.",
           "title": "Host",
           "type": "string",
           "x-category": "database",

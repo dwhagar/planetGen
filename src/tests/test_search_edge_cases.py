@@ -11,7 +11,7 @@ characters in names and terms, words shorter than the server's
 the server's own stopwords, and LIKE wildcards typed into a search.
 
 Token sizes and stopwords are read from the server at run time, so each
-engine (MySQL 8, MariaDB) is held to its own settings. Every test takes
+server is held to its own settings. Every test takes
 `mysql_config` (see `conftest.py`).
 """
 

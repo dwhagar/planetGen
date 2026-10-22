@@ -90,7 +90,7 @@ class _Section(BaseModel):
 
 
 class MySQL(_Section):
-    host: str = opt("127.0.0.1", "The MySQL or MariaDB server's host name or address.", env="PLANETGEN_MYSQL_HOST",
+    host: str = opt("127.0.0.1", "The MySQL server's host name or address.", env="PLANETGEN_MYSQL_HOST",
                     restart=True, editable=False, category="database", env_empty=True)
     port: int = opt(3306, "The server's port.", env="PLANETGEN_MYSQL_PORT", restart=True, editable=False,
                     category="database", ge=1, le=65535, env_empty=True)
