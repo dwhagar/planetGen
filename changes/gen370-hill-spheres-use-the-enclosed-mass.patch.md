@@ -6,7 +6,7 @@
   - A unit reads the galaxy's stored shape (`seeded(..., shape=...)`, bound by `run_galaxy`, `nebula_field` and `superbubble_field`), or the shape its seed draws with every option at its default (`shape_draw.default_shape`; `plan` and `generate` take the same default arm and nuclear options from it).
   - A galaxy twice the size encloses less at one radius, and so has wider Hill spheres (`tests/test_enclosed_mass.py`).
   - **The placement fill is rechecked** (`docs/design/course-avoidance.md` section 4.1): the Hill spheres of a mean-mass system fill 0.3 to 0.9 of the volume over a disk's inner and middle radii (the old value never passed 0.03), and in a dense galaxy the placer now fits 60 to 70% of the requested systems of a 4 pc cell at 1 kpc and 35 to 45% at 3 kpc, where it fitted all of them; sparser galaxies are unchanged except 1 system in 16 at 3.7 kpc.
-- The generator epoch is 45.
+- The generator epoch is 44.
 generation-output: changed
 
 ### Added
