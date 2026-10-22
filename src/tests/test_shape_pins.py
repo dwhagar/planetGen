@@ -3,7 +3,7 @@
 """
 DB.81: the plan stores which shape levers it was told (`galaxy_shape_pins`) and the stellar mass the Scale dial fixed
 (`galaxy_shape.pinned_stellar_mass_solar`); a loaded shape is drawn again at that mass, the API and the Generate page say
-what was pinned and what was drawn, and migration 0113 adds both to a v112 galaxy without touching a row.
+what was pinned and what was drawn, and migration 0114 adds both to a v113 galaxy without touching a row.
 """
 
 import importlib
@@ -20,7 +20,7 @@ pytestmark = pytest.mark.fresh_database
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 EDGE_PC = 4.0
 
-migration = importlib.import_module("planetgen.db.migrations.versions.0113_shape_pins")
+migration = importlib.import_module("planetgen.db.migrations.versions.0114_shape_pins")
 
 
 def _args(**given):
