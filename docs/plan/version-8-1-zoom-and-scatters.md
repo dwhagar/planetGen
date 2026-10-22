@@ -135,6 +135,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) |  |  |
 | TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) |  |  |
 | TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) |  |  |
+| TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) |  |  |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
@@ -235,10 +236,9 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention |  | Boss 11:24 PM EDT; the one table the rest reads. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios | GEN.410 | Body lane G-2: photolysis lifetimes as constants of the species table. Core 4 proposed. |
+| GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios |  | Body lane G-2: photolysis lifetimes as constants of the species table. Core 4 proposed. |
 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |  | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
-| GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | GEN.410, GEN.427 | Body composition research lane part F items F1 and F1t; no behaviour change until GEN.452 reads it. Core 4 proposed. |
+| GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | GEN.427 | Body composition research lane part F items F1 and F1t; no behaviour change until GEN.452 reads it. Core 4 proposed. |
 | GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted |  | Body lane G-4 (part G3): one IW reference scale (Hirschmann 2021), delta-IW stored on it. Core 4 proposed. |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | GEN.470 | Body lane G-3 (part G4): the corrected cold-end tables and Span and Wagner CO2 extend GEN.470. Core 4 proposed. |
 
@@ -336,7 +336,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 |---|---|---|---|
 | TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism |  | Boss 11:58 PM EDT; the proof of the star composition. |
 | TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | TEST.211 | Boss 1:44 AM EDT, Stand-in only: R5, calibration rows fenced into tests. |
-| TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | GEN.410, GEN.427 | Boss 1:40 AM EDT: the gated weights add up to 100 percent; registry walk, so later tables are covered. Core 4 proposed. |
+| TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | GEN.427 | Boss 1:40 AM EDT: the gated weights add up to 100 percent; registry walk, so later tables are covered. Core 4 proposed. |
 
 ## Phase 5: New scatters: core, halo, interface update and docs
 

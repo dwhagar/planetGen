@@ -1036,3 +1036,4 @@ Baseline: PR #1817.
 | TEST.185 | 8.1 | The headline closes |
 | TEST.159 | 8.1 | The headline closes |
 | TEST.160 | 8.1 | The headline closes |
+| GEN.410 | 8.1 | Composition tables |

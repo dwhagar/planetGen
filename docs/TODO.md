@@ -668,6 +668,8 @@ with `clamp()`.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): takes the JavaScript
   Quantity built from GEN.569's class and the registry table of UX.140
   (the browser copy), instead of GEN.299's.
+  Owner: Core 3, after UX.140 (the coordinator, relayed 3:56 PM EDT
+  2026-10-22 as the lane's clock reads).
   Prerequisites: UX.140. Related: GEN.300, GEN.299.
 
 - [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
@@ -874,7 +876,9 @@ with `clamp()`.
   first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
   one unit code that stores any kind of unit the project uses and
   answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 2 (browser). Do: generate
+  Owner: Core 3 (the coordinator, relayed 3:56 PM EDT 2026-10-22 as the
+  lane's clock reads; it takes UX.140 before UX.128; the earlier proposal
+  was Core 2). Do: generate
   the registry to JS as `build_unit_ladders.py` does for the ladders,
   with a test that fails when the committed file is stale (as
   `test_unit_ladders.py`); remove the three `AU_KM = 149597870.7`
@@ -2519,6 +2523,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gap was a browser check of the System Map View button on a star and a
   moon; that check and a change note are built and in the gate. The item
   retires when that PR merges.
+  The coordinator confirmed it (relayed 3:56 PM EDT 2026-10-22): Core 2
+  is on the MAP.254 remainder per Boss's instruction to it.
 
 - [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
   Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
@@ -6276,7 +6282,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   none, Titan 0.59) and the answer written in the design note.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): its species list reads the gas table of GEN.410.
-  Prerequisites: GEN.410. Related: GEN.91.
+  Prerequisites: none. Related: GEN.91.
 
 - [ ] **GEN.356 Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed**
   Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -7482,183 +7488,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star abundance regression BC2 (plan 4.7, Brewer 2016
   whole-catalogue fit; the builder applies the quality cut).
 
-- [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/sky-colour-analysis.md): "atmospheric composition will
-  probably need a table of gasses that might be in atmospheres, not sure
-  if there is an existing library but if needed define constants in the
-  program. These aren't just atomic or diatomic gasses though we need to
-  track all the possible compounds that would matter, also everything
-  that a planet description says might be in the planet atmosphere
-  because we're going to have to make it all match and be consistent."
-  Build one constants module (formula, name, molar mass, Rayleigh
-  refractivity and King factor, condensation and freezing curve,
-  greenhouse strength, absorption flags, and the source of each number)
-  for every gas and compound that can occur, starting from the ten
-  stored partials (O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2) and
-  adding helium, ammonia, ozone, sulphur dioxide and trioxide, sulphuric
-  acid vapour, hydrogen cyanide, ethane, neon, sodium and the rest the
-  audit finds. The audit lists every gas or compound named in the
-  describer, in `docs/design/Atmospheric Toxicity.md`, in the planet
-  class text labels (`tuning.PLANET_CLASSES`), in the habitability and
-  toxicity code and in the docs, and each appears in the table or is
-  dropped from the text. Sources check (GEN.408, section 2 of the
-  report): the table stores, per gas, the reference temperature its
-  refractivity formula was fitted at (N2, Ar, CO2, CO, CH4 at 288.15 K;
-  O2 at 273.15 K), because the wrong one is 1.1 percent off for O2 and
-  about 8 percent for codes that mix conventions; CO uses the Allen/Cox
-  form (n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K), not the
-  coded Sneep and Ubachs form; H2 and He use the cross-section laws of
-  Dalgarno and Williams and of Kurucz/Dalgarno; the CH4 value is 15 percent high in the Sneep and Ubachs formalism (the 30 percent given below is a different comparison, see the Decided note); water vapour uses the
-  vapour depolarization 2.99e-4, not the liquid's 0.17; H2S, SO2 and the
-  King factor of NH3 are not found and stay marked open. Done: a test
-  fails when a gas named anywhere in the code is missing from the table;
-  every number has a source.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: none. Related:
-  GEN.208,
-  GEN.85,
-  GEN.355, GEN.411, GEN.415, DB.71.
-  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
-  the generation chain of 8.4 reads it; its molar masses come from the
-  element table GEN.438 and the design is GEN.437's.
-  Merged research (2026-10-17): part 01 holds 72 gases and volatile
-  compounds (formula, CAS, molar mass, flags, photolysis threshold,
-  triple and critical points, heat capacity, gamma, latent heats,
-  saturation curves with errors, Henry constants for 35, viscosity,
-  real-gas Z); part 02 the Rayleigh cross sections of 28 gases (13
-  verified, 15 from one polarizability formula good to -9 to +6 percent)
-  with the depolarization spreads (N2 0.020 to 0.031, H2/N2 ratio 0.202
-  to 0.217) and the corrected CH4 refractivity (the older coded form is
-  about 30 percent above the measured value; He 2021 gives the
-  replacement; the water-vapour refractivity has no known reference
-  temperature, so use the generic polarizability route). The added
-  species the descriptions and class mixes already name are listed in
-  part 05 section 13 (He, Ne, Kr, Xe, NH3, NH4SH, HCN, C2H6, C2H2, OCS,
-  HCl, HF, N2O, NO2, O3, Na, K, SiO, Mg, Fe, TiO, VO, PH3); storage of
-  their partials is DB.71. The 72 molar masses were recomputed by the
-  lane (70 agree to 0.01 g/mol; 3He and Rn are isotope masses). Each
-  item's checked design samples a few rows of the vapour-pressure,
-  optical-constant and Mie tables against the cited file before coding
-  them. Fields: docs/design/atmosphere-composition.md section 4.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): the licensing list (Heays 2017 Leiden data,
-  Huebner 2015, Burkholder 2020, the Mainz and Serdyuchenko files:
-  verify redistribution rights before embedding cross-section files) and
-  the list of publisher domains to open for primary sources; the lane
-  found the same licence question (master section 6 item 13). Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Part F of the Body composition research lane
-  (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F5: every data file the loader
-  reads (NIST, PubChem and USGS public domain; published compilations
-  with a citation) states its source and licence, and the loader refuses
-  a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
-  EDT: every acquired paper and dataset is usable; was master
-  section 6 item 13 of docs/design/atmosphere-composition.md).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the gas and compound table is the constants table the
-  others cite, and it is also a gated table: each gas row carries the
-  supported classes (the gate) and a source and licence column, so a
-  class's possible gases are the rows that pass its gate; the weights of
-  the atmosphere recipes that draw from it are in GEN.411 and GEN.454 to
-  GEN.456. Every number keeps its source.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. (1) Cold curves: the 'sign inversions' Boss's note
-  names are unsupported (two copies of the Lisse 2021 table agree); the
-  real error is model error below about 50 K, so the table uses the
-  composite: Wagner liquid above the triple point, Fray and Schmitt
-  above about 50 K, and the Grundy 2024 and Blakley 2024 laboratory fits
-  below (Fray and Schmitt is 1.4 to 2.3 times high for alpha-N2 at 25 to
-  33 K, 6 times for alpha-CO at 31 K and 1.9 times for CH4 at 30 K); the
-  original Fray and Schmitt table with its validity limits stays on
-  Boss's list. (2) Rayleigh: the reference density is per gas (288.15 K
-  for N2, Ar, CO2, CO and CH4; 273.15 K for O2), not the 2.68678e19 of
-  the note for all, which biases sigma by 5.5 percent; the claim that
-  the SO2 and H2S King factors exceed 1.20 is contradicted by its own
-  formula (needs rho 0.105; rho 0.04 gives 1.07). (3) Licences: Mainz is
-  settled (cite Keller-Rudek 2013, Zenodo copy CC BY 4.0); Heays 2017 is
-  the Leiden photodissociation database and not LAMDA (that is Schoier
-  2005); Bremen states no licence; the terms of Huebner 2015 and JPL
-  19-5 were not reached. (4) Ammonia: the 'Coles 2018' of the note is
-  Coles, Yurchenko and Tennyson 2019 (MNRAS 490, 4638) and the claim
-  that it resolved anomalies near 500 mbar is unsupported.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
-  (Mainz CC BY 4.0, Leiden citation request, JPL 19-5 public domain,
-  Bremen unspecified, NMSU processed tables only) for the licence
-  column.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) licences: NIST SRD is copyrighted (permission
-  needed), JPL 19-5 is protected by copyright with US government purpose
-  use rights and is not public domain, only the 2013 Mainz snapshot
-  states CC BY 4.0, Leiden, Bremen and Karkoschka state none; derived
-  tables from NIST SRD, JPL 19-5, Leiden, Bremen and Karkoschka need
-  permission or a re-derivation from the primary measurements; the audit
-  (GEN.500) was removed by Boss (2:35 PM EDT), and the photolysis lifetimes are constants of this table
-  (GEN.496).
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): cold curves are lab fits
-  only inside their windows (N2 23 to 31 K, CO 26 to 35, CH4 31 to 43
-  from Grundy 2024; beta-O2 29 to 37 and NH3 88 to 105 from Blakley 2024), blended into Fray and Schmitt where the ratio reaches 1; the
-  earlier factor 4 at 24 K for O2 is dropped (extrapolation); never
-  scale p_vap by a sticking coefficient; no Rayleigh coefficient from
-  the note is adopted (its CO2, O2, CH4 dispersion formulas are wrong,
-  N_s is right; SO2 and H2S stay on the polarizability route until
-  Bogaard 1978); licences: JPL 19-5 is not public domain, Huebner and
-  Mukherjee, NMSU and Bremen have no licence found, Mainz is CC BY 4.0.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/atmosphere-colour.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
-  GEN.500 removed): every paper and dataset Boss acquired was obtained
-  legally and is usable, so no licence audit gates this table and no
-  permission list is needed. The raw papers and downloaded datasets stay
-  out of the public repository and are never redistributed or sold; the
-  research results and the values derived from them are fine to publish,
-  and the program stays free forever. The source and licence column
-  stays as a record; write 'open' where none is found (the loader of
-  GEN.472 already accepts that).
-  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
-  molar masses in `habitability_world.MOLAR_KG` (SO2 and CH4) sit about
-  1.9e-4 above the sums of the element table of GEN.438
-  (`physics.elements.molar_mass`); it left them because changing them
-  would alter derived values. This table should take its molar masses
-  from `physics.elements.molar_mass`.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the NIST
-  line "NIST, PubChem and USGS public domain" is corrected by the later
-  check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
-  needed), PubChem and USGS are public domain. The licence column is a
-  record only (Boss, 2:35 PM EDT).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the two CH4 Rayleigh
-  errors name different quantities and both stay: the 15 percent is the
-  CH4 value in the Sneep and Ubachs formalism; the 30 percent is the
-  older coded refractivity form against the measured value.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 4's, proposed).
-  Progress (Blocker 2, slices 1 and 2 merged as #2450, release 8.0.1898,
-  about 7:31 AM EDT 2026-10-22 as the lane reported): the gas table plus
-  the Henry and viscosity constants. This item stays open for a third
-  slice: the IR band strengths (research part 03) and the UV absorption
-  flags and bin tables (part 02 section 2.3). The saturation-pressure
-  curves are GEN.452, a separate item. The class gate is GEN.411.
-  Related: DB.71.
-
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "since we're doing an atmosphere
@@ -7685,7 +7514,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
   density, scale height and greenhouse from the mix, the balance gas).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.429, GEN.478. Related: GEN.85, GEN.355,
+  Prerequisites: GEN.429, GEN.478. Related: GEN.85, GEN.355,
   GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
@@ -8035,7 +7864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208,
+  Prerequisites: GEN.411, GEN.413. Related: GEN.208,
   GEN.218,
   TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -8127,7 +7956,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Rayleigh cross section at 532 nm stores both values (He 2021,
   13.3e-27; Sneep and Ubachs, 12.4e-27) and the draw uses the spread
   between them.
-  Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
+  Prerequisites: GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8401,7 +8230,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse multiplier that follow from its stored mixture, a test
   changes the mix and the values move as the formulas say.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411, GEN.412. Related: GEN.411, GEN.422,
+  Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.422,
   TEST.209.
   Merged research (2026-10-17): part 03 gives the greenhouse multiplier
   in the repo's own variable, (T_s / T_e)^4 - 1, and its inverse for the
@@ -8497,7 +8326,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   28; habitability, the scale height and the molar density all read the
   same stored number; a test says so.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
+  Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
 - [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9429,7 +9258,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only. Generator epoch bump; it joins the one rescatter of 8.4's
   stored-value changes. Owner: Core 4 (the 8.4 atmosphere chain,
   proposed).
-  Prerequisites: GEN.410, GEN.428, GEN.478, GEN.498. Related: GEN.409,
+  Prerequisites: GEN.428, GEN.478, GEN.498. Related: GEN.409,
   GEN.411,
   GEN.422,
   GEN.428.
@@ -9552,7 +9381,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hydrogen sulphide row is its own curve, GEN.422 reads the new curves,
   and the old table and the copy line are gone. Owner: Core 4 (the 8.4
   atmosphere chain, proposed).
-  Prerequisites: GEN.410, GEN.470. Related: GEN.409, GEN.410,
+  Prerequisites: GEN.470. Related: GEN.409, GEN.410,
   GEN.422, GEN.451, GEN.414, GEN.434, GEN.470.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -9725,7 +9554,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (hydrogen, helium and the metals sum to the drawn metallicity), the
   dominant carbon and nitrogen carriers by temperature, and determinism.
   Owner: Core 4 (proposed).
-  Prerequisites: GEN.410, GEN.411, GEN.460, GEN.478. Related:
+  Prerequisites: GEN.411, GEN.460, GEN.478. Related:
   GEN.409,
   GEN.410,
   GEN.411,
@@ -9808,7 +9637,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the source and loss rates of part 04 within the stated spread,
   and that a body with an atmosphere of any pressure never gets an
   exosphere. Owner: Core 4 (proposed).
-  Prerequisites: GEN.441, GEN.442, GEN.410, GEN.478. Related:
+  Prerequisites: GEN.441, GEN.442, GEN.478. Related:
   GEN.409,
   GEN.410,
   GEN.441, GEN.442, DB.70, GEN.446.
@@ -9894,7 +9723,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   three melt temperatures within the stated spread, that the partials
   sum to the surface pressure, and determinism. Owner: Core 4
   (proposed).
-  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.478,
+  Prerequisites: GEN.441, GEN.411, GEN.414, GEN.451, GEN.478,
   GEN.499.
   Related:
   GEN.409,
@@ -10547,7 +10376,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   IAPWS values within 0.1 percent, that out-of-range calls are flagged,
   and that no other module holds a vapour-pressure constant. Owner: Core
   4 (proposed, with the composition chain).
-  Prerequisites: GEN.410, GEN.427. Related: GEN.410, GEN.427, GEN.452,
+  Prerequisites: GEN.427. Related: GEN.410, GEN.427, GEN.452,
   GEN.422, GEN.442, GEN.461.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
@@ -10997,7 +10826,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the `open` rows are listed with their AR number (GEN.480 to GEN.494),
   and a draw is deterministic at any worker count. Owner: Core 4
   (proposed, with the composition chain).
-  Prerequisites: GEN.410. Related: GEN.472, GEN.410, GEN.411,
+  Prerequisites: none. Related: GEN.472, GEN.410, GEN.411,
   GEN.413, GEN.414, GEN.451, GEN.454, GEN.455, GEN.456, GEN.479,
   TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
   GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492,
@@ -11768,7 +11597,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): reconciled by the Body composition lane (3:00 AM EDT as the lane reported; section 15.1 of body-composition-research.md): not a conflict. 6.7e3 s (1.5e-4 per s; Heays 2017 with the Liang 2007 cross section, reproduced to four digits by the Atmosphere lane; Biver 2007 agrees) is the default and 5.6e3 s (1.8e-4 per s; Huebner 1992 and Huebner and Mukherjee 2015, called quiet Sun by two sources and a quiet and active mean by Drozdovskaya 2023, inputs not reached) the other end of the published range 5.4e3 to 7.7e3 s. Settled by the two lanes (Atmosphere lane about 3:25 AM EDT as the lane reported, part 10E): the table stores the quiet-Sun rate and an NH3 activity factor of 1.05 to 1.10 (NH3 absorbs mainly at 170 to 217 nm, so active over quiet is small; the lane's own recomputation gives quiet 1.28 to 1.54e-4 and active 1.35 to 1.70e-4 per s), and a hard 200 nm cut would be wrong by a factor 2 because 200 to 226 nm supplies half of the rate. The Huebner and Mukherjee tables stay on the research item GEN.501 to replace the bracket.
   The NH3 activity factor is the research item GEN.501.
-  Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472,
+  Prerequisites: none. Related: GEN.410, GEN.455, GEN.413, GEN.472,
   GEN.501.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -11894,7 +11723,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checks the species list and the mean molar mass against part G3's
   computed values within its stated error at 2000 K and 3000 K. Owner:
   Core 4 (proposed, with the composition chain).
-  Prerequisites: GEN.410, GEN.427. Related: GEN.456, GEN.451, GEN.441,
+  Prerequisites: GEN.427. Related: GEN.456, GEN.451, GEN.441,
   GEN.478.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -17034,7 +16863,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration test upgrades and downgrades, the partials of every stored
   row sum to the pressure, and a species outside the table cannot be
   stored. Owner: Core 4 (proposed, with the atmosphere chain).
-  Prerequisites: GEN.411, GEN.410, DB.67. Related: DB.67, DB.68,
+  Prerequisites: GEN.411, DB.67. Related: DB.67, DB.68,
   GEN.411, GEN.413, GEN.415.
 
 - [ ] **DB.73 Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue**
@@ -19727,7 +19556,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.410, GEN.427. Related: TEST.211,
+  Prerequisites: GEN.427. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
@@ -20443,6 +20272,13 @@ clears each one.
   route is retired; after its current queue: TEST.268, TEST.270,
   TEST.271, TEST.272), urgent because the test also blocks any lane that
   runs test_fuzz_web_routes.
+  Second sighting (Blocker 2, relayed 3:30 PM EDT 2026-10-22 as the
+  lane's clock reads, when #2508 merged): the same test timed out in two
+  of its gates under 4-worker load (one call took 1787 s at load 7.5) and
+  passes alone, so it is slow per hostile query, not wrong. Cause named
+  by the lane: the route runs `plan_outline.preview`, which calls
+  `system_mass.mean_system_mass_at_age_solar` on a 1209 by 32 array
+  through `component_field`; bound that work for a hostile dial value.
   Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
@@ -20461,6 +20297,23 @@ clears each one.
   full-gate runs. Owner: Core 5 (proposed; it wrote the test) or Bug
   Hunt.
   Prerequisites: none. Related: PERF.121, PERF.122, TEST.265.
+
+- [ ] **TEST.277 test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake)**
+  Found by Blocker 2 (relayed 3:30 PM EDT 2026-10-22 as the lane's clock
+  reads, when GEN.410's third slice merged as #2508), filed by the TODO
+  thread. Kind: flake (a test over its time limit under load). Test:
+  src/tests/test_work_queue_failures.py::test_a_dead_worker_never_hangs_the_run[1]
+  and [2]. Failure: each hit its 60 s call limit once under load (load
+  14 to 20 on the lane machine); both pass alone. Fails on main: not
+  checked. Frequency: one sighting each, in Blocker 2's gates.
+  Reproducer: a full `scripts/test.py changed` gate on a loaded machine;
+  not reproducible alone. Do: find what the test waits on (a worker
+  process that takes longer than the limit to start or die under load)
+  and make the wait follow the event it needs, not a fixed time; no
+  timeout bump and no retry loop. Done: the cause is on this item and
+  the test passes in 20 full-gate runs. Owner: Bug Hunt (proposed, after
+  TEST.275).
+  Prerequisites: none. Related: ['PERF.144', 'TEST.265'].
 
 ## USR: User accounts
 
