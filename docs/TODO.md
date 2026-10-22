@@ -6923,10 +6923,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   45 or later on its rebase. Epoch (Core 4, GEN.596 merged as #2428,
   about 5:01 AM EDT 2026-10-22 as the lane reported): epoch 45 is now
   taken on main (44 is the Auto default), so this item renumbers to
-  epoch 46 or later on its rebase.
-  Epoch (Core 1, GEN.545 merged as #2434, about 5:42 AM EDT 2026-10-22
-  as the lane reported): epoch 46 is now taken on main (pending; the
-  next release stamps it), so this item takes epoch 47 or later on its
+  epoch 46 or later on its rebase. Epoch (Core 1, GEN.545 merged as
+  #2434, about 5:42 AM EDT 2026-10-22 as the lane reported): epoch 46 is
+  now taken on main (stamped in release 8.0.1893), so this item takes
+  epoch 47 or later on its rebase.
+  Epoch (Core 4, GEN.554 slice 4 merged as #2452, about 8:03 AM EDT
+  2026-10-22 as the lane reported): epoch 47 is now taken on main
+  (release 8.0.1899), so this item takes epoch 48 or later on its
   rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
@@ -13862,47 +13865,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U5 of the draft. A neutron star or
-  black hole becomes a star-like object whose state is 'remnant', with a
-  progenitor mass and a birth time like every other star. Quick check by
-  the design thread (its own computation with the generator's IMF breaks
-  0.08, 0.5, 150 Msun and slopes 1.3, 2.3, not sourced): 0.45% of stars
-  born above 0.08 Msun have progenitors in 8 to 20 Msun, 0.53% in 8 to
-  30 Msun and 0.17% in 20 to 100 Msun, against the generator's fixed
-  0.4% for neutron stars and 0.05% for black holes (densities 5.6e-4 and
-  7e-5 per pc^3). So the neutron star count is already the right size
-  and the black hole count needs a verified failed-supernova and
-  direct-collapse share and a kick-escape share (about 40% of neutron
-  stars and 2% of black holes leave the galaxy per
-  `compact-remnant-regions.md`). Do: derive the counts from the body
-  draw's origin row 'remnant of a star'; `remnant_distribution.py` keeps
-  its role as the placement of the kick (thicker layer, black hole core
-  excess, the Lorimer pulsar profile); a remnant above the mass cut
-  (default 14 Msun in code) is still a scatter row and one below is
-  still drawn at fill (the GEN.168 pattern); intermediate and
-  supermassive black holes keep their own origin rows. The progenitor
-  ranges 8 to 30 and 20 to 100 and the explosion maps need verified
-  sources first (recalled and unverified: O'Connor and Ott 2011,
-  Sukhbold et al. 2016, Fryer et al. 2012). Decided (card D2): derive the counts from the mass function and the verified explosion maps, Boss's densities become test targets, and the black hole share needs a verified source first. Done:
-  counts are outputs, the old densities are tests with the gap shown,
-  each source is verified or the row is labelled a placeholder. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules
-  for the whole chain: NO FIXED CONTENT (nothing copied from the Solar
-  System or the Milky Way), the database schema is not a constraint, no
-  backward-compatibility shims, every draw through the one wrapper
-  `util/draw.py` (GEN.56), every recalled source verified by a lane
-  before use under the standing source rules, and any change to a drawn
-  value bumps the generator epoch (OPS.56 rule).
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
+  design thread 'Unify star-like objects (2026-10-17)'; now
+  docs/design/unified-star-like-objects.md, approved by Boss's eight
+  cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as
+  the coordinator relayed (each the draft's recommended option)). Owners
+  are Boss's card D7. U5 of the draft. A neutron star or black hole
+  becomes a star-like object whose state is 'remnant', with a progenitor
+  mass and a birth time like every other star. Quick check by the design
+  thread (its own computation with the generator's IMF breaks 0.08, 0.5,
+  150 Msun and slopes 1.3, 2.3, not sourced): 0.45% of stars born above
+  0.08 Msun have progenitors in 8 to 20 Msun, 0.53% in 8 to 30 Msun and
+  0.17% in 20 to 100 Msun, against the generator's fixed 0.4% for
+  neutron stars and 0.05% for black holes (densities 5.6e-4 and 7e-5 per
+  pc^3). So the neutron star count is already the right size and the
+  black hole count needs a verified failed-supernova and direct-collapse
+  share and a kick-escape share (about 40% of neutron stars and 2% of
+  black holes leave the galaxy per `compact-remnant-regions.md`). Do:
+  derive the counts from the body draw's origin row 'remnant of a star';
+  `remnant_distribution.py` keeps its role as the placement of the kick
+  (thicker layer, black hole core excess, the Lorimer pulsar profile); a
+  remnant above the mass cut (default 14 Msun in code) is still a
+  scatter row and one below is still drawn at fill (the GEN.168
+  pattern); intermediate and supermassive black holes keep their own
+  origin rows. The progenitor ranges 8 to 30 and 20 to 100 and the
+  explosion maps need verified sources first (recalled and unverified:
+  O'Connor and Ott 2011, Sukhbold et al. 2016, Fryer et al. 2012).
+  Decided (card D2): derive the counts from the mass function and the
+  verified explosion maps, Boss's densities become test targets, and the
+  black hole share needs a verified source first. Done: counts are
+  outputs, the old densities are tests with the gap shown, each source
+  is verified or the row is labelled a placeholder. Owner: Core 4
+  (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator
+  relayed; Core 4's 8.4 items stay held until its 8.1 chain is built),
+  8.4 phase 1. Standing rules for the whole chain: NO FIXED CONTENT
+  (nothing copied from the Solar System or the Milky Way), the database
+  schema is not a constraint, no backward-compatibility shims, every
+  draw through the one wrapper `util/draw.py` (GEN.56), every recalled
+  source verified by a lane before use under the standing source rules,
+  and any change to a drawn value bumps the generator epoch (OPS.56
+  rule).
   Prerequisites: GEN.553. Related: GEN.550, GEN.463, GEN.467, GEN.469,
-  GEN.377.
-  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
-  EDT, 2026-10-17, as the coordinator relayed): the black hole density
-  constant alone moves to 8.1 as GEN.563 (needs GEN.560); the derived
-  counts for every remnant, the kick step and the rest of this item stay
-  in 8.4; the neutron star count already matches and does not change.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): O'Connor
-  and Ott 2011 (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821, 38) and
-  Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
+  GEN.377. Back-scatter answer (Boss's back-scatter cards, taps 11:38 to
+  11:40 PM EDT, 2026-10-17, as the coordinator relayed): the black hole
+  density constant alone moves to 8.1 as GEN.563 (needs GEN.560); the
+  derived counts for every remnant, the kick step and the rest of this
+  item stay in 8.4; the neutron star count already matches and does not
+  change. Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT;
+  the newer note wins, report todo-contradictions-2026-10-18.md):
+  O'Connor and Ott 2011 (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821,
+  38) and Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
   2026-10-17, 11:55 PM EDT); "recalled and unverified" no longer applies
   to them. The kick-escape share stays unverified.
   Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
@@ -13911,56 +13923,64 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stale: the hold is lifted. Core 4 started its 8.4 items in the draft
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
-  (reported 4:33 PM EDT 2026-10-18).
-  Slice 1 merged as #2314 (Core 4, 1:15 PM EDT 2026-10-21 as the lane
-  reported): the neutron star count is the massive stars minus the black
-  holes, `remnant_density.py` replaces `black_hole_density.py`, the
-  unbound share of neutron stars is a structure field, and the generator
-  epoch 40 is pending (it takes its stamp at the next release). Boss
-  chose 'Keep the cap' on the black hole cap card (12:39 PM EDT
-  2026-10-21, as Core 4 reported). The item stays open for the mass
-  islands and the kick step. Boss's 1:17 PM EDT 2026-10-21 note (as the
-  coordinator relayed): Network access to arxiv.org, doi.org and
-  crossref stays closed until he opens it, and information already
-  included in the repository or in files he provided is valid; so the
-  kick-escape share and any other source this step cannot read stay
-  labelled recalled or placeholder in the gap registry and do not block
-  the step.
-  Slices 2 and 3 in flight (Core 4, 4:40 PM EDT 2026-10-21 as the lane
-  reported): explosion islands, the natal kick and the black hole cap at
-  the reference unbound share; docs explosion-islands.md and
-  natal-kick.md are new and four design notes are edited; its `changed`
-  gate on MySQL 8 started 3:54 PM EDT (51 percent at 4:39 PM EDT).
-  Epoch: the branch stamps 41, but 41 is taken on main by GEN.544
-  (8.0.1855), so it renumbers at merge to the next free one. Stand-ins
-  for the gap registry that this slice adds: nesting of failure windows
-  above the verified islands (stand-in); kick sigma 265 km/s (recalled,
-  Hobbs 2005, unverified); black hole unbound share 2 percent
-  (placeholder); a single Maxwellian instead of two components; birth
-  only in the thin disc; ejecta speed not yet the kick tail above
-  escape; `remnant_distribution` placement still empirical; the neutron
-  star and black hole mass function unchanged (a later slice); magnetars
-  still use the tuning rate as their stand-in. Reference neutron star
-  unbound share is 16 percent (the old 20 to 40 percent is a test target
-  only; the published Milky Way halo gives 27 percent). Perturber mass
-  changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
-  AU because of the new rates. Network access is closed (Boss, 1:17 PM
-  EDT), so the unverified sources stay labelled recalled.
-  Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT 2026-10-21
-  as the lane reported; GEN.597 was fixed inside it), release 8.0.1873,
-  generator epoch 43. Effects: the standalone neutron star rate is
-  4.66e-3 per star (Boss's 4.0e-3 stays a test target), the black hole
-  rate 8.6e-4, the perturber mass changes from 1.44 to 1.01 solar masses
-  (not the 0.88 reported while the branch was in flight). The stand-ins
-  this slice adds are labelled in docs/design/explosion-islands.md and
-  docs/design/natal-kick.md: nesting of failure windows above the
-  verified islands [stand-in]; kick sigma 265 km/s [recalled, Hobbs
-  2005]; black hole unbound share 2 percent [placeholder]; one
-  Maxwellian [stand-in]; birth in the thin disc only [stand-in]; the
-  black hole ejecta speed range [stand-in]. Still open in this item: the
-  neutron star mass function, the placement of kicked remnants, the
-  ejected neutron star speed (slice 4, coded, next) and the magnetar
-  rate stand-in.
+  (reported 4:33 PM EDT 2026-10-18). Slice 1 merged as #2314 (Core 4,
+  1:15 PM EDT 2026-10-21 as the lane reported): the neutron star count
+  is the massive stars minus the black holes, `remnant_density.py`
+  replaces `black_hole_density.py`, the unbound share of neutron stars
+  is a structure field, and the generator epoch 40 is pending (it takes
+  its stamp at the next release). Boss chose 'Keep the cap' on the black
+  hole cap card (12:39 PM EDT 2026-10-21, as Core 4 reported). The item
+  stays open for the mass islands and the kick step. Boss's 1:17 PM EDT
+  2026-10-21 note (as the coordinator relayed): Network access to
+  arxiv.org, doi.org and crossref stays closed until he opens it, and
+  information already included in the repository or in files he provided
+  is valid; so the kick-escape share and any other source this step
+  cannot read stay labelled recalled or placeholder in the gap registry
+  and do not block the step. Slices 2 and 3 in flight (Core 4, 4:40 PM
+  EDT 2026-10-21 as the lane reported): explosion islands, the natal
+  kick and the black hole cap at the reference unbound share; docs
+  explosion-islands.md and natal-kick.md are new and four design notes
+  are edited; its `changed` gate on MySQL 8 started 3:54 PM EDT (51
+  percent at 4:39 PM EDT). Epoch: the branch stamps 41, but 41 is taken
+  on main by GEN.544 (8.0.1855), so it renumbers at merge to the next
+  free one. Stand-ins for the gap registry that this slice adds: nesting
+  of failure windows above the verified islands (stand-in); kick sigma
+  265 km/s (recalled, Hobbs 2005, unverified); black hole unbound share
+  2 percent (placeholder); a single Maxwellian instead of two
+  components; birth only in the thin disc; ejecta speed not yet the kick
+  tail above escape; `remnant_distribution` placement still empirical;
+  the neutron star and black hole mass function unchanged (a later
+  slice); magnetars still use the tuning rate as their stand-in.
+  Reference neutron star unbound share is 16 percent (the old 20 to 40
+  percent is a test target only; the published Milky Way halo gives 27
+  percent). Perturber mass changes from 1.44 to 0.88 and the encounter
+  limit from 1.1e4 to 1.9e4 AU because of the new rates. Network access
+  is closed (Boss, 1:17 PM EDT), so the unverified sources stay labelled
+  recalled. Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT
+  2026-10-21 as the lane reported; GEN.597 was fixed inside it), release
+  8.0.1873, generator epoch 43. Effects: the standalone neutron star
+  rate is 4.66e-3 per star (Boss's 4.0e-3 stays a test target), the
+  black hole rate 8.6e-4, the perturber mass changes from 1.44 to 1.01
+  solar masses (not the 0.88 reported while the branch was in flight).
+  The stand-ins this slice adds are labelled in
+  docs/design/explosion-islands.md and docs/design/natal-kick.md:
+  nesting of failure windows above the verified islands [stand-in]; kick
+  sigma 265 km/s [recalled, Hobbs 2005]; black hole unbound share 2
+  percent [placeholder]; one Maxwellian [stand-in]; birth in the thin
+  disc only [stand-in]; the black hole ejecta speed range [stand-in].
+  Still open in this item: the neutron star mass function, the placement
+  of kicked remnants, the ejected neutron star speed (slice 4, merged
+  below) and the magnetar rate stand-in.
+  Slice 4 merged as #2452 (Core 4, about 8:03 AM EDT 2026-10-22 as the
+  lane reported), release 8.0.1899, generator epoch 47: an ejected
+  neutron star leaves at the speed its natal kick leaves above the
+  escape speed (a galaxy's own quantiles; mean about 386 km/s for a
+  Milky Way structure, the coordinator's figure; the epoch note says
+  about 390) instead of a uniform 300 to 500 km/s; the field is
+  `Structure.neutron_star_ejecta_speeds_kms`. Still open in this item:
+  the neutron star mass function, the black hole mass from the
+  progenitor, the placement of kicked remnants and the magnetar
+  stand-in.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
