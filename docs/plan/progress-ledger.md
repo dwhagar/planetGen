@@ -963,3 +963,5 @@ Baseline: PR #1817.
 | UX.145 | 8.1 | Admin control suite |
 | GEN.621 | 8.1 | Admin control suite |
 | DB.44 | 8.1 | Reproducible galaxies |
+| TEST.260 | 8.1 | Bugs and flaky tests |
+| TEST.264 | 8.1 | Bugs and flaky tests |
