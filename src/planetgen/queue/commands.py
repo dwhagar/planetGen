@@ -32,7 +32,9 @@ class CommandSpec:
     returns the `Expansion` of the command's stage; `finish(params, plan, results, seconds)`, when given, is called
     once by the unit that completes the stage (PERF.106) with the step's parameters, the stage's plan, every unit's
     result in unit order and the seconds the stage took, records what the command's speed statistics need and returns
-    the metrics the stage's row is stored with. A command with no `unit` is inline.
+    the metrics the stage's row is stored with. `warm(unit_args)`, when given, is called by the worker before it forks
+    a horse for a unit of this command (`units.warm_unit`, PERF.146): it works out in the worker what every unit
+    would otherwise work out for itself. A command with no `unit` is inline.
     """
 
     kind: str
@@ -40,6 +42,7 @@ class CommandSpec:
     unit: tuple = None
     expand: tuple = None
     finish: tuple = None
+    warm: tuple = None
 
     @property
     def inline(self):
@@ -86,25 +89,30 @@ REGISTRY = _commands(
     CommandSpec("scatter-mass", "Scatter the massive stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_mass"),
-                finish=("planetgen.generation.run_plan", "finish_scatter")),
+                finish=("planetgen.generation.run_plan", "finish_scatter"),
+                warm=("planetgen.generation.run_plan", "scatter_shells_warm")),
     CommandSpec("plan-skeleton", "Plan the galaxy's density skeleton: one unit",
                 unit=("planetgen.generation.run_plan", "plan_skeleton_unit"),
                 expand=("planetgen.generation.run_plan", "expand_plan_skeleton")),
     CommandSpec("scatter-phenomena", "Scatter the phenomena: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_phenomena_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_phenomena"),
-                finish=("planetgen.generation.run_plan", "finish_scatter_phenomena")),
+                finish=("planetgen.generation.run_plan", "finish_scatter_phenomena"),
+                warm=("planetgen.queue.units", "warm_shape")),
     CommandSpec("scatter-luminosity", "Scatter the bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_luminosity"),
-                finish=("planetgen.generation.run_plan", "finish_scatter")),
+                finish=("planetgen.generation.run_plan", "finish_scatter"),
+                warm=("planetgen.generation.run_plan", "scatter_shells_warm")),
     CommandSpec("scatter-backfill", "Scatter the massive stars from the neighborhood: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "backfill_bright_stars_unit"),
-                expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars")),
+                expand=("planetgen.generation.run_galaxy", "expand_backfill_bright_stars"),
+                warm=("planetgen.queue.units", "warm_shape")),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_band"),
-                finish=("planetgen.generation.run_plan", "finish_scatter")),
+                finish=("planetgen.generation.run_plan", "finish_scatter"),
+                warm=("planetgen.generation.run_plan", "scatter_shells_warm")),
     CommandSpec("fill-map-luminosity", "Fill the map luminosity: one unit per run of ids",
                 unit=("planetgen.generation.run_plan", "fill_map_luminosity_unit"),
                 expand=("planetgen.generation.run_plan", "expand_fill_map_luminosity")),
@@ -119,16 +127,20 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_clear_scatter")),
     CommandSpec("draw-nebula-field", "Draw the nebula field: one unit per slab of cells",
                 unit=("planetgen.generation.run_plan", "draw_nebula_field_unit"),
-                expand=("planetgen.generation.run_plan", "expand_draw_nebula_field")),
+                expand=("planetgen.generation.run_plan", "expand_draw_nebula_field"),
+                warm=("planetgen.queue.units", "warm_shape")),
     CommandSpec("generate-start-sector", "Generate the starting sector: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "generate_sectors_unit"),
-                expand=("planetgen.generation.run_galaxy", "expand_generate_sectors")),
+                expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
+                warm=("planetgen.queue.units", "warm_shape")),
     CommandSpec("generate-neighborhood", "Generate the neighborhood: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "generate_sectors_unit"),
-                expand=("planetgen.generation.run_galaxy", "expand_generate_sectors")),
+                expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
+                warm=("planetgen.queue.units", "warm_shape")),
     CommandSpec("generate-sectors", "Generate the sectors: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "generate_sectors_unit"),
-                expand=("planetgen.generation.run_galaxy", "expand_generate_sectors")),
+                expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
+                warm=("planetgen.queue.units", "warm_shape")),
     CommandSpec("link-neighbours", "Link the neighbours: one unit",
                 unit=("planetgen.generation.run_galaxy", "link_neighbours_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_link_neighbours")),
@@ -250,6 +262,17 @@ def unit_function(kind):
     if command.unit is None:
         raise ValueError(f"command {kind!r} is inline: it has no units yet")
     return _function(command.unit)
+
+
+def warm_function(kind):
+    """The function a worker calls with a unit's arguments before it forks the horse that runs it, or `None`
+    (`CommandSpec.warm`).
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.warm is None else _function(command.warm)
 
 
 def finish_function(kind):
