@@ -72,7 +72,7 @@ import traceback
 
 from planetgen.admin import updateguard
 from planetgen.generation import stats as generationStats
-from planetgen.queue import progress_rate, redisqueue
+from planetgen.queue import pause, progress_rate, redisqueue
 from planetgen.util import log
 from planetgen.util import draw
 
@@ -173,11 +173,11 @@ def worker_count(requested=None, mysql_host=None):
     return count
 
 
-def lower_priority():
-    """Lowers this process's scheduling priority so everything else on
+def lower_priority(niceness=WORKER_NICENESS):
+    """Lowers this process's scheduling priority (by `WORKER_NICENESS`, or by `niceness`) so everything else on
     the machine comes first. Never raises."""
     try:
-        os.nice(WORKER_NICENESS)
+        os.nice(niceness)
     except Exception:  # noqa: BLE001 -- a normal-priority worker is still a worker
         pass
 
@@ -354,7 +354,7 @@ class _ControlStore:
             # schema up to date, runs go on without the rows and lease.
             conn.execute("SELECT 1 FROM work_lease LIMIT 1").fetchall()
             conn.execute("SELECT parent_id, control FROM work_jobs LIMIT 1").fetchall()
-            conn.execute("SELECT paused FROM work_lease LIMIT 1").fetchall()
+            conn.execute("SELECT holder FROM work_lease LIMIT 1").fetchall()
         finally:
             conn.close()
 
@@ -456,13 +456,12 @@ class _ControlStore:
                 " AND control IS NOT NULL",
                 list(chain),
             ).fetchall()
-            lease = conn.execute("SELECT paused FROM work_lease WHERE id = 1").fetchone()
             conn.rollback()
         finally:
             conn.close()
         return {
             "cancel": [row["id"] for row in rows if row["control"] == "cancel"],
-            "pause": any(row["control"] == "pause" for row in rows) or bool(lease and lease["paused"]),
+            "pause": any(row["control"] == "pause" for row in rows) or pause.is_paused(),
         }
 
     def set_state(self, job_id, state):
@@ -490,13 +489,14 @@ class _ControlStore:
             with conn:
                 conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
                 row = conn.execute(
-                    "SELECT holder, job_id, paused, paused_by, heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale"
+                    "SELECT holder, job_id, heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale"
                     " FROM work_lease WHERE id = 1 FOR UPDATE",
                     (STALE_SECONDS,),
                 ).fetchone()
-                if row["paused"] or (row["holder"] not in (None, holder) and not row["stale"]):
+                paused = pause.state()
+                if paused["paused"] or (row["holder"] not in (None, holder) and not row["stale"]):
                     conn.execute("UPDATE work_jobs SET heartbeat_at = NOW(6) WHERE id = ?", (job_id,))
-                    return False, dict(row)
+                    return False, {**dict(row), "paused": paused["paused"], "paused_by": paused["by"]}
                 conn.execute(
                     "UPDATE work_lease SET holder = ?, job_id = ?, heartbeat_at = NOW(6) WHERE id = 1",
                     (holder, job_id),
@@ -1106,9 +1106,9 @@ def queue_status(conn):
     conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
     conn.commit()
     lease = conn.execute(
-        "SELECT holder, job_id, paused, paused_by, UNIX_TIMESTAMP(paused_at) AS paused_at,"
-        " TIMESTAMPDIFF(MICROSECOND, heartbeat_at, NOW(6)) / 1e6 AS age FROM work_lease WHERE id = 1"
+        "SELECT holder, job_id, TIMESTAMPDIFF(MICROSECOND, heartbeat_at, NOW(6)) / 1e6 AS age FROM work_lease WHERE id = 1"
     ).fetchone()
+    paused = pause.state()
     live = conn.execute(
         "SELECT kind, parent_id, state, workers FROM work_jobs"
         " WHERE state IN ('waiting', 'running', 'paused') AND heartbeat_at >= NOW(6) - INTERVAL ? SECOND",
@@ -1117,9 +1117,9 @@ def queue_status(conn):
     conn.rollback()
     age = float(lease["age"]) if lease["age"] is not None else None
     return {
-        "paused": bool(lease["paused"]),
-        "paused_by": lease["paused_by"],
-        "paused_at": _float_or_none(lease["paused_at"]),
+        "paused": paused["paused"],
+        "paused_by": paused["by"],
+        "paused_at": _float_or_none(paused["at"]),
         "holder": lease["holder"],
         "job_id": lease["job_id"],
         "heartbeat_age_s": age,
@@ -1189,25 +1189,6 @@ def _subtree_ids(conn, root_id, node_id):
         found.append(current)
         todo.extend(children.get(current, []))
     return found
-
-
-def pause_queue(conn, who):
-    """"Pause the queue": no run takes the lease or hands out a task
-    until `resume_queue`. Returns whether it wasn't paused already."""
-    with conn:
-        conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
-        cur = conn.execute("UPDATE work_lease SET paused = 1, paused_by = ?, paused_at = NOW(6)"
-                           " WHERE id = 1 AND paused = 0", (str(who or "")[:64] or None,))
-        return cur.rowcount > 0
-
-
-def resume_queue(conn):
-    """Lets runs take the lease and tasks again. Returns whether it was
-    paused."""
-    with conn:
-        cur = conn.execute("UPDATE work_lease SET paused = 0, paused_by = NULL, paused_at = NULL"
-                           " WHERE id = 1 AND paused = 1")
-        return cur.rowcount > 0
 
 
 def clear_stale_lease(conn):

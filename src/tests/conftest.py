@@ -474,6 +474,7 @@ def _api_jobs_queue_of_its_own(monkeypatch):
     import uuid
     from planetgen.queue import api_jobs
     monkeypatch.setattr(api_jobs, "QUEUE_NAME", f"planetgen-api-test-{uuid.uuid4().hex[:12]}")
+    monkeypatch.setattr(api_jobs, "LONG_QUEUE_NAME", f"planetgen-api-test-long-{uuid.uuid4().hex[:12]}")
     yield
 
 

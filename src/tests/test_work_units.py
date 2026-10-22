@@ -4,9 +4,12 @@ started by the wrapper, `planetgen/queue/wrapper.py`, PERF.118).
 The autouse `_run_queue_inline` fixture gives each test a queue and key prefix of its own and runs the waiting units
 in this process when `ensure_workers` is called."""
 
+import threading
+
 import pytest
 
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.util.settings import get_settings
 
 
 @pytest.fixture
@@ -149,12 +152,50 @@ def test_an_interrupt_in_the_starter_cancels_the_run_and_frees_the_machine(monke
     assert run["state"] == "cancelled" and runrecord.active_run(conn) is None
 
 
-def test_a_second_run_is_refused_while_one_has_the_machine(monkeypatch, conn):
+def test_a_second_run_is_refused_while_one_has_the_machine_when_it_may_not_wait(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(get_settings().queue, "wait_minutes", 0)
     first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
     with pytest.raises(runrecord.Busy):
         wrapper.run("Second", [_step(1)], lambda index, plan: None, lambda index, unit, result: None)
     assert runrecord.active_run(conn) == first
+
+
+def test_a_second_run_waits_in_line_for_the_first_and_then_runs(monkeypatch, conn):
+    """PERF.153: a generation run that finds the machine taken waits for it instead of failing Busy."""
+    _handlers(monkeypatch, test=_square)
+    first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
+    waits = []
+    monkeypatch.setattr(wrapper, "report_wait", lambda holder, position: waits.append((holder, position)))
+    timer = threading.Timer(1.5, lambda: runrecord.finish_run(conn, first, "done"))
+    timer.start()
+    try:
+        results = {}
+        run_id = wrapper.run("Second", [_step(2)], lambda index, plan: None,
+                             lambda index, unit, result: results.__setitem__(unit, result))
+    finally:
+        timer.join()
+    assert runrecord.read_run(conn, run_id)["state"] == "done" and len(results) == 2
+    assert waits[0] == (first, 1) and waits[-1] == (None, None)
+
+
+def test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for(monkeypatch, conn):
+    _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(get_settings().queue, "wait_minutes", 0.03)           # 1.8 seconds
+    first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
+    with pytest.raises(runrecord.Busy) as refused:
+        wrapper.run("Second", [_step(1)], lambda index, plan: None, lambda index, unit, result: None)
+    assert first in str(refused.value) and "waited" in str(refused.value)
+    assert runrecord.active_run(conn) == first
+
+
+def test_a_maintenance_run_still_gets_busy_and_does_not_wait(monkeypatch, conn):
+    _handlers(monkeypatch, test=_square)
+    first = runrecord.start_run(conn, "Warm", [runrecord.Stage("test", "T", units=1)], kind=runrecord.MAINTENANCE)
+    with pytest.raises(runrecord.Busy):
+        wrapper.run("Warm again", [_step(1)], lambda index, plan: None, lambda index, unit, result: None,
+                    kind=runrecord.MAINTENANCE)
+    assert runrecord.active_run(conn, runrecord.MAINTENANCE) == first
 
 
 def test_a_stage_of_no_units_ends_at_once(monkeypatch, conn):

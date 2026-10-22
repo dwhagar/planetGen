@@ -714,7 +714,7 @@ python3 -m planetgen.cli.orbits
 
 One RQ worker, at the lowered priority generation workers run at. The site and the generation runs start these themselves (`planetgen.queue.workers.ensure_workers`); run one by hand only to add capacity or to watch one. Redis is read from `--url`, else `PLANETGEN_REDIS_URL`, else `redis.url` in `config.json`.
 
-*   `QUEUE ...`: the queues to serve, first one first (default: the interactive queue). A worker serves one kind of queue, the web queues or a run's own, never both.
+*   `QUEUE ...`: the queues to serve, first one first (default: the interactive queue). A worker serves one kind of queue, the web queues or a run's own, never both. The site keeps lanes of its own: `planetgen-bulk` (a run's units, up to the admin's worker count), `planetgen-interactive` (short API jobs: `queue.interactive_workers` workers, outside that count, at a higher priority than the others) and `planetgen-long` (API jobs expected to take longer than `queue.long_job_seconds`, a neighbourhood or a large settle: `queue.long_workers` workers), so a long job never holds the worker kept for short ones (PERF.151).
 *   `--burst`: exit once the queues are empty.
 *   `--idle-seconds <int>`: exit after this long without work (default 60; ignored with `--burst`).
 *   `--name <name>`: the worker's name (default: RQ picks one).

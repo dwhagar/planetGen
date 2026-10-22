@@ -25,7 +25,9 @@ PERF.128 give it units.
 import json
 import time
 
-from planetgen.queue import commands, redisqueue, runrecord, units, workers
+from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, units, workers
+from planetgen.util import log
+from planetgen.util.settings import get_settings
 
 
 def database_args(mysql_config):
@@ -180,6 +182,31 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         sleep(units.POLL_SECONDS)
 
 
+def waiting_text(holder, position):
+    """What a run waiting for the machine says (PERF.153; PERF.147's bar uses the same words)."""
+    return f"Waiting at position {position} for run {holder}"
+
+
+def report_wait(holder, position):
+    """
+    `runwait.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
+    progress file) and where its job is (the API job's `meta`, which `api_jobs.status` reports as `waiting`), and
+    says so in the log. `holder` `None` clears it.
+    """
+    if holder is not None:
+        log.normal(waiting_text(holder, position))
+        progress_file.report(0, None, description=waiting_text(holder, position), force=True)
+    try:
+        import rq
+        job = rq.get_current_job()
+        if job is not None:
+            job.meta["waiting"] = None if holder is None else {"run": holder, "position": position,
+                                                               "text": waiting_text(holder, position)}
+            job.save_meta()
+    except Exception:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
+        pass
+
+
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None):
     """
@@ -207,7 +234,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
 
     Raises:
         redisqueue.Unavailable: No Redis server answers.
-        runrecord.Busy: Another run of that kind is running.
+        runrecord.Busy: Another run of that kind is running. A `GENERATION` run waits in line for it first, up to
+            `queue.wait_minutes` (PERF.153), and fails with the run named when the wait is over.
         units.RunStopped: A unit failed or the run was cancelled.
     """
     url = url or redisqueue.redis_url()
@@ -219,11 +247,16 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                                      f"start Redis to run this: {exc}") from exc
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]
-    run_id = runrecord.start_run(
-        conn, title, [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
-                                      expected_seconds=expected_seconds(step, (rows or {}).get(step.key)),
-                                      row=(rows or {}).get(step.key)) for step in steps],
-        who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded], kind=kind)
+    stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
+                              expected_seconds=expected_seconds(step, (rows or {}).get(step.key)),
+                              row=(rows or {}).get(step.key)) for step in steps]
+    start = lambda: runrecord.start_run(       # noqa: E731
+        conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
+        kind=kind)
+    if kind == runrecord.GENERATION:
+        run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
+    else:
+        run_id = start()
     ensure = lambda: workers.ensure_workers(redisqueue.BULK_QUEUE, conn, url, count=workers_count)  # noqa: E731
     try:
         advance(conn, run_id, 0)

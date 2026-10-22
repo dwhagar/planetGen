@@ -19,7 +19,7 @@ import pytest
 
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
-from planetgen.queue import load as systemLoad, work as workQueue
+from planetgen.queue import load as systemLoad, pause, work as workQueue
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 
@@ -171,15 +171,15 @@ def test_a_cancelled_run_starts_no_new_phase(control_config):
 
 
 def test_pausing_the_whole_queue_holds_every_run(control_config, redis_server):
-    assert _call(control_config, workQueue.pause_queue, "boss")
-    assert not _call(control_config, workQueue.pause_queue, "boss")
+    assert pause.pause("boss")
+    assert not pause.pause("boss")
     waits = []
 
     def before():
         _wait_for(lambda: waits)
         time.sleep(0.2)
 
-    helper = _ResumeLater(before, lambda: _call(control_config, workQueue.resume_queue))
+    helper = _ResumeLater(before, pause.resume)
     helper.start()
     started = time.monotonic()
     with workQueue.WorkQueue("Waits", workers=2, control_config=control_config, on_wait=waits.append) as queue:
@@ -188,11 +188,12 @@ def test_pausing_the_whole_queue_holds_every_run(control_config, redis_server):
     assert waits[0]["paused"] and waits[0]["paused_by"] == "boss"
     assert time.monotonic() - started >= 0.2
     assert not _call(control_config, workQueue.queue_status)["paused"]
+    assert not pause.is_paused()
 
 
-def test_a_one_worker_run_also_waits_for_a_paused_queue(control_config):
-    _call(control_config, workQueue.pause_queue, "boss")
-    timer = threading.Timer(0.3, lambda: _call(control_config, workQueue.resume_queue))
+def test_a_one_worker_run_also_waits_for_a_paused_queue(control_config, redis_server):
+    pause.pause("boss")
+    timer = threading.Timer(0.3, pause.resume)
     timer.start()
     started = time.monotonic()
     with workQueue.WorkQueue("Serial", workers=1, control_config=control_config) as queue:
@@ -329,7 +330,7 @@ def test_the_api_needs_an_admin(web_app):
     assert client.post("/api/admin/work/queue", json={"action": "pause"}).status_code == 401
 
 
-def test_the_api_lists_trees_and_controls_them(admin_client, control_config):
+def test_the_api_lists_trees_and_controls_them(admin_client, control_config, redis_server):
     with workQueue.job_node("galaxy", "Live run", control_config, argv=["galaxy", "--shell", "1"]) as root:
         with workQueue.WorkQueue("Batch", workers=1, control_config=control_config) as queue:
             queue.expect(3)
@@ -426,7 +427,7 @@ def test_the_tree_page_expands_down_to_tasks(admin_client, control_config):
     assert admin_client.get("/admin/queue/20260101-000000-00000000").status_code == 404
 
 
-def test_every_control_is_confirmed_first(web_app, admin_client, control_config):
+def test_every_control_is_confirmed_first(web_app, admin_client, control_config, redis_server):
     with workQueue.job_node("galaxy", "Fill shell 1", control_config) as root:
         page = admin_client.get(f"/admin/queue/confirm/pause?node={root.id}").get_data(as_text=True)
         assert "Pause “Fill shell 1” and everything under it?" in page

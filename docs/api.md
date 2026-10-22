@@ -858,8 +858,10 @@ forced credential change. They back the admin stats page
   finished tree by its root; `POST /api/admin/work/clear-finished`
   deletes every finished tree and answers `{"cleared": count}`.
   `POST /api/admin/work/queue`
-  `{"action": "pause"|"resume"}` pauses the whole queue (no run takes the
-  lease or a task) or resumes it. `POST /api/admin/work/lease/clear`
+  `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
+  `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
+  until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
+  or resumes it; `503` when Redis does not answer. `POST /api/admin/work/lease/clear`
   frees a lease whose holder stopped refreshing it. Each answers
   `{"ok": bool}` (`{"cleared": holder}` for the lease) and writes the
   change to the audit and activity logs (`work.pause`, `work.queue.pause`,
@@ -1671,8 +1673,10 @@ request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
 
 - `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
-  "error_status", "made_url"}`; `error_status` is the HTTP status of a
-  refusal; `made_url` is, for a finished job that generated sectors
+  "error_status", "made_url", "waiting"}`; `error_status` is the HTTP status of a
+  refusal; `waiting` is, for a running job that waits in line for the generation run in front of it
+  (PERF.153: `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
+  (`text` reads "Waiting at position 1 for run ..."), else `null`; `made_url` is, for a finished job that generated sectors
   (a neighborhood or a regenerate), the Galaxy Map fitted to them and
   highlighting them, else `null`.
   `state` is `queued`, `running`, `succeeded` or `failed`; `result` is
