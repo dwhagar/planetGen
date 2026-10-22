@@ -171,9 +171,9 @@ ABSOLUTE_WITH_A_PARENT = {
     "bright_stars": "the scatter point a system is built from: it is the system's own position (its row points at the "
                     "system it grows into), not a body inside it",
     "black_holes": "a remnant is placed free, at its own galactic point; `star_id` only names the star it replaced. "
-                   "A remnant that joins a system takes a parent-relative state with the 8.4 revision (DB.73, GEN.550)",
+                   "A remnant that joins a system takes a parent-relative state with the 8.4 revision",
     "neutron_stars": "the same as black_holes",
-    "facilities": "a facility keeps a free galactic point until the 8.4 revision (DB.73) gives it a parent-relative "
+    "facilities": "a facility keeps a free galactic point until the 8.4 revision gives it a parent-relative "
                   "state; no 8.1 item stores a position for one",
 }
 """dict: Table -> why a table with a parent link stores an absolute position. The rule (TEST.241, section 5 point 3 of
