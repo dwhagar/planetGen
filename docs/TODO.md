@@ -6878,9 +6878,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that, `galaxy/galactic_orbit.py`). Done: the central mass is the
   galaxy's mass enclosed within the star's radius from the density
   model, the default distance is already gone (GEN.404), and a test
-  shows a galaxy twice the size changes the Hill
-  radius. Fails on main: no failure, a fixed assumption. Related:
-  GEN.368, GEN.285.
+  shows a galaxy twice the size changes the Hill radius. Fails on main:
+  no failure, a fixed assumption. Related: GEN.368, GEN.285.
   Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
   and "GEN.370 wins", as the coordinator reported it): the galaxy's own
   enclosed mass and the cell's own distance replace the
@@ -6888,44 +6887,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/course-avoidance.md's "do not change this for routing" is
   superseded; the placement keep-apart fill (6 percent at the old radius
   against up to 108 percent at 1.4 pc) is rechecked in this item's gate
-  and the result is stated in its PR.
-  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
-  built on branch claude/project-thread-l8ulna (commit d5f78e8),
-  generator epoch 42 pending (renumbers if GEN.545 merges first); design
-  docs and a note are included, and its `changed` gate's second run
-  started 4:24 PM EDT (40 percent at 4:40 PM EDT; the first run was lost
-  to the stale run key, TEST.260). It removes
-  `mass_chain.central_mass_kg`, `current_central_mass_kg` and
+  and the result is stated in its PR. Status from Core 3 (4:40 PM EDT
+  2026-10-21 as the lane reported): built on branch
+  claude/project-thread-l8ulna (commit d5f78e8), generator epoch 42
+  pending (GEN.545 merged first as #2434 with epoch 46, so it renumbers
+  to epoch 47 or later); design docs and a note are included, and its
+  `changed` gate's second run started 4:24 PM EDT (40 percent at 4:40 PM
+  EDT; the first run was lost to the stale run key, TEST.260). It
+  removes `mass_chain.central_mass_kg`, `current_central_mass_kg` and
   `MassChain.halo_mass_kg`, and records a placement-fill recheck in
   docs/design/course-avoidance.md: in a dense galaxy the placer now fits
   60 to 70 percent of the requested systems at 1 kpc and 35 to 45
   percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
   galaxies are unchanged; the old fill never passed 0.03. The text above
-  that the default distance is already gone (GEN.404) is true.
-  Density limits (report
+  that the default distance is already gone (GEN.404) is true. Density
+  limits (report
   /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613, from
   the galaxy size research thread): a galaxy with no halo needs a
   central mass for the Hill sphere, and a dense small core must be
   checked: the Segue floor core has a mean spacing of about 0.66 pc and
   a keep-out of order 0.9 pc if the enclosed mass is used, so placement
-  could fail (back-of-envelope, label B).
-  Epoch (Bug Hunt, PERF.148 merged as #2397, about 11:10 PM EDT
-  2026-10-21 as the lane reported): epoch 42 is now taken on main by
-  PERF.148 (the components are drawn in slices; the Large and Small
-  Magellanic Clouds, the Sagittarius dwarf and any other component past
-  25,000 expected stars draw different stars than before), so this item
-  renumbers to the next free epoch on its rebase (43, or the one after
-  if the other waiting item merges first).
-  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
-  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
-  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
-  its rebase.
-  Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
-  2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
-  GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
-  Epoch (Core 4, GEN.596 merged as #2428, about 5:01 AM EDT 2026-10-22
-  as the lane reported): epoch 45 is now taken on main (44 is the Auto
-  default), so this item renumbers to epoch 46 or later on its rebase.
+  could fail (back-of-envelope, label B). Epoch (Bug Hunt, PERF.148
+  merged as #2397, about 11:10 PM EDT 2026-10-21 as the lane reported):
+  epoch 42 is now taken on main by PERF.148 (the components are drawn in
+  slices; the Large and Small Magellanic Clouds, the Sagittarius dwarf
+  and any other component past 25,000 expected stars draw different
+  stars than before), so this item renumbers to the next free epoch on
+  its rebase (43, or the one after if the other waiting item merges
+  first). Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about
+  11:43 PM EDT 2026-10-21 as the lane reported): epoch 43 is now taken
+  on main (epoch 42 is PERF.148), so this item renumbers to epoch 44 or
+  later on its rebase. Epoch (Galaxy dials lane, GEN.621 merged as
+  #2418, about 3:48 AM EDT 2026-10-22 as the lane reported): epoch 44 is
+  now taken on main (43 is GEN.554's), so this item renumbers to epoch
+  45 or later on its rebase. Epoch (Core 4, GEN.596 merged as #2428,
+  about 5:01 AM EDT 2026-10-22 as the lane reported): epoch 45 is now
+  taken on main (44 is the Auto default), so this item renumbers to
+  epoch 46 or later on its rebase.
+  Epoch (Core 1, GEN.545 merged as #2434, about 5:42 AM EDT 2026-10-22
+  as the lane reported): epoch 46 is now taken on main (pending; the
+  next release stamps it), so this item takes epoch 47 or later on its
+  rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13557,85 +13559,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
-  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
-  lane reported), filed by the TODO thread.
-  `tuning.MEAN_SYSTEM_MASS_SOLAR = 0.4` is documented as "recalled,
-  within a factor of 1.5"; today it only turns unresolved mass into a
-  system count (`generation/place_terms.py`, `galaxy/resolution.py`),
-  but with GEN.404's mass-normalised density it becomes the divisor of
-  the stellar mass for every galaxy (stellar mass over 0.4 gives the
-  system count), so a factor of 1.5 here moves every galaxy's star count
-  by up to 50 percent. Boss's rule is no fixed content. Fails on main:
-  no (the constant matters once GEN.404 merges). Frequency: every
-  galaxy. Reproducer: change the constant by 1.5 in `tuning.py` and
-  compare the system count of one seed. Do: compute the mean mass of a
-  system from the generator's own stellar mass function and multiplicity
-  (GEN.103's pooled Moe trend, the IMF in use) so the constant goes, or,
-  if the integral cannot be done in closed form, a seeded measurement at
-  build time; where a source is needed, GEN.366 or the next research
-  pass names it and the lane verifies the citation first. Default
-  (stands unless Boss overrules): derive it from the generator's own
-  distribution, no new constant. Done: no code reads
-  `MEAN_SYSTEM_MASS_SOLAR`, a test checks the derived mean against a
-  seeded draw of systems within the scatter, and the design note says
-  where the number comes from. Owner: Core 1 proposed, after GEN.404
-  merges.
-  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
-  relayed by the coordinator): "No that is approved, sounds like the two
-  new items will fix the star count drop". The default on this item
-  stands as the decision; Boss expects GEN.544 and GEN.545 together to
-  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
-  follow GEN.404).
-  Core 1 after GEN.544 merged (#2323, 1:43 PM EDT 2026-10-21 as the lane
-  reported, epoch 41): the density at the reference radius is now 0.75
-  of the old pinned value (0.376 of it under GEN.404, which is twice the
-  GEN.404 value), the column through that point is unchanged at 524.26
-  pc of relative density, and the reference galaxy outline reaches shell
-  3,596 (was 3,147). The remaining gap is the mean system mass
-  (`tuning.MEAN_SYSTEM_MASS_SOLAR` 0.4), which this item derives.
-  Core 1 (2:02 PM EDT 2026-10-21 as the lane reported): the derived mean
-  system mass is 0.51 solar masses, not the recalled 0.4, so the
-  reference galaxy's system count goes down about 21%; Core 1 proceeds
-  with the approved default (derive it; generator epoch 42).
-  Status from the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
-  reported): built on branch claude/project-thread-6lw1fr (commit
-  bc7f1e8 on main 8.0.1861) and in its `changed` gate (97 percent at
-  4:39 PM EDT). It derives the mean system mass from the IMF, the
-  star-count table, the companion draw and the remnants (new
-  `generation/system_mass.py` and `galaxy/system_mass.py`), removes
-  `tuning.MEAN_SYSTEM_MASS_SOLAR`, and takes generator epoch 42.
-  Reference galaxy: 0.504 solar masses a system (not 0.4), 9.9e10
-  systems (was 1.25e11), density at the reference radius 0.595 of the
-  pinned value (was 0.750). Superseded: the sentence above that Boss
-  expects GEN.544 and GEN.545 to undo most of the star count drop no
-  longer holds, because the derived mean lowers the count about 21
-  percent (the coordinator told Boss at 2:03 PM EDT); the approved
-  default (derive it) stands. The old Core 1 draft branch
-  claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
-  gen545-core1-draft.patch are superseded.
-  Epoch 42 is also claimed by GEN.370 (Core 3) and PERF.148 (Bug Hunt);
-  whichever merges later renumbers to the next free epoch on its rebase
-  (the TODO thread, 8:52 PM EDT 2026-10-21).
-  Epoch (Bug Hunt, PERF.148 merged as #2397, about 11:10 PM EDT
-  2026-10-21 as the lane reported): epoch 42 is now taken on main by
-  PERF.148 (the components are drawn in slices; the Large and Small
-  Magellanic Clouds, the Sagittarius dwarf and any other component past
-  25,000 expected stars draw different stars than before), so this item
-  renumbers to the next free epoch on its rebase (43, or the one after
-  if the other waiting item merges first).
-  Epoch (Core 4, GEN.554 slices 2 and 3 merged as #2399, about 11:43 PM
-  EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
-  (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
-  its rebase.
-  Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
-  2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
-  GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
-  Epoch (Core 4, GEN.596 merged as #2428, about 5:01 AM EDT 2026-10-22
-  as the lane reported): epoch 45 is now taken on main (44 is the Auto
-  default), so this item renumbers to epoch 46 or later on its rebase.
-  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
-
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
   addendum typed in the design thread at 11:21 PM EDT, both as the
@@ -15554,9 +15477,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bottom-heavy or top-heavy IMF), the derivation takes it from the
   component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
   test checks the derived mean against a seeded draw. Owner: Core 1
-  (proposed, after GEN.545 merges); a generator change, so it takes the
-  next free epoch.
-  Prerequisites: GEN.545. Related: GEN.545, GEN.404.
+  (proposed; GEN.545 merged as #2434, so it is free to start, in Core
+  1's queue after DB.33 and TEST.241); a generator change, so it takes
+  the next free epoch.
+  Prerequisites: none. Related: GEN.545 (done, #2434), GEN.404.
 
 - [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
   Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
@@ -15629,18 +15553,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces the
   constant `tuning.MEAN_SYSTEM_MASS_SOLAR` as a user lever: how many
   systems the mass holds, so the density in systems and the cost of a
-  full generation. Default the value GEN.545 derives (about 0.51 solar
-  mass per system, 2.0 per solar mass); the range is a narrow band about
-  the IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped
-  "No, wait for GEN.545", card
+  full generation. Default the value GEN.545 derived (about 0.48 solar
+  mass per system for the reference galaxy, about 2.1 per solar mass;
+  merged as #2434, epoch 46, release 8.0.1893); the range is a narrow band about the
+  IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped "No,
+  wait for GEN.545", card
   cmsg_01RuNTFUNB92A8cm5CbojQAiEVg9cpevtSbXZPtt2uETHf): the Census dial
   is added after GEN.545 settles the mean system mass; the first release
   of the dials has four: Scale, Structure, Edge and Halo. Done: the
   slider is tested alone; Auto gives GEN.545's derived value; the system
   count scales as stated; hidden unless Advanced is shown.
-  Owner: the Galaxy dials lane, after GEN.545 merges (the coordinator,
-  6:55 PM EDT 2026-10-21; the richness choice is decided).
-  Prerequisites: GEN.545. Related: GEN.603.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT 2026-10-21;
+  the richness choice is decided). Unblocked: GEN.545 merged as #2434
+  (about 5:42 AM EDT 2026-10-22 as the lane reported).
+  Prerequisites: none. Related: GEN.603, GEN.545 (done, #2434).
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
