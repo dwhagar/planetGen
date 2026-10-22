@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1929] - 2026-10-22
+
+**Headline:** The 8.1 closing audits run in the suite: every region of the galaxy is filled with seeded sectors and every kind is counted against its expectation.
+
+### Changed
+- **The representation audit and the two whole-sphere audits exist (TEST.160, TEST.184, TEST.185; TEST.159 is done with them).** `tests/audit/representation.py` fills seeded sectors in eight region classes (the bulge, an arm, the space between arms, the thick disk, the halo, a Magellanic-type satellite, a globular cluster, the intergalactic floor) with every per-star rate dialed up, and `test_census_representation.py` holds each kind to four Poisson sigma of the rate, the stars and the place's factor, requires a kind expected 20 times or more to appear, and requires none where the place forbids it. `test_census_nebula_wholesphere.py` checks that every planetary nebula sits on its white dwarf, that a core-collapse remnant holds a compact core in 60% (a Type Ia one in none), that every hosted nebula and Wolf-Rayet ring holds its host star, that cells tile and object IDs round-trip at shell 65,535 (the widest of the reach), and that a profile and an empty sector are the same on every call. `test_census_component_wholesphere.py` checks that a halo, an old cluster and the intergalactic floor make no emission nebula, cloud or supernova remnant, that every D and E region holds its members inside its radius at any distance of the reach, the pre-placed share of every population, and that no cluster star is counted by both the pass and the fill. `python -m tests.audit.representation [report.txt]` prints the audit as a report.
+
+TODO items resolved: TEST.159, TEST.160, TEST.184, TEST.185. Added: none.
+
 ## [8.0.1928] - 2026-10-22
 
 **Headline:** The generate tests no longer depend on the free space of the machine that runs them, and dead copies in two modules are gone.
