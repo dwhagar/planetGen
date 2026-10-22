@@ -92,8 +92,27 @@ def orbit_positions():
 
     scene = sample_scene()
     return {"scene": scene, "cases": [{"years": y, "positions": positions_at(scene, y)}
-                                      for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0)],
+                                      for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0, 3000.0, -2.7e4, 1.0e5)],
+            "turns": wrapped_turns(), "stumpff": stumpff_values(),
             "steps": universal_steps()}
+
+
+def wrapped_turns():
+    """GEN.374's `kepler.wrapped_turn_deg` for steps from a day to a billion days, for `wrappedTurnDeg` to match."""
+    from planetgen.physics.kepler import wrapped_turn_deg
+
+    return [{"elapsed": elapsed, "period": period, "degrees": wrapped_turn_deg(elapsed, period)}
+            for period in (0.319 / 365.25, 1.0, 11.86, 1.3e-3, 0.0)
+            for elapsed in (0.0, 1.0 / 365.25, 2.5, -7.25, 3000.0, 2.7e6, 1.0e9 / 365.25 * 1000.0, -4.0e6)]
+
+
+def stumpff_values():
+    """GEN.140's `kepler.stumpff_c2_c3` from deep in the series to well past the limit, for the compiled-for-the-browser
+    copy to match."""
+    from planetgen.physics.kepler import stumpff_c2_c3
+
+    return [{"z": z, "c": list(stumpff_c2_c3(z))}
+            for z in (0.0, 1e-9, 1e-3, -1e-3, 0.3, -0.3, 0.999, -0.999, 1.0, -1.0, 5.0, -5.0, 40.0, -40.0)]
 
 
 def universal_steps():

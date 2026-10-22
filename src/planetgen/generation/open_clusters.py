@@ -154,7 +154,7 @@ def ambient_density_msun_pc3(x, y, z, shape, expected_at_density_1, edge_pc):
     stars-and-gas one Lamers et al. 2005 use and the disruption slightly slower.
     """
     relative = galaxy_density.total_density_array(x, y, z, shape)
-    return relative * expected_at_density_1 / edge_pc ** 3 * tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+    return relative * expected_at_density_1 / edge_pc ** 3 * galaxy_density.mean_system_mass_solar(shape)
 
 
 def _circular_speed_kms(radius_pc, shape):

@@ -84,8 +84,8 @@ def test_a_component_is_cut_at_the_radius_its_table_says():
 def test_the_table_of_satellites_holds_the_clouds_at_the_distances_the_design_gives():
     found = _by_name(_placed())
     assert len(found) == len(satellites.MILKY_WAY_SATELLITES) == 11
-    for name, distance_kpc, systems in (("Large Magellanic Cloud", 49.6, 6.2e9), ("Small Magellanic Cloud", 62.4, 1.3e9),
-                                        ("Sagittarius dwarf", 24.0, 2.5e8), ("Fornax dwarf", 143.0, 5.0e7)):
+    for name, distance_kpc, systems in (("Large Magellanic Cloud", 49.6, 5.09e9), ("Small Magellanic Cloud", 62.4, 1.07e9),
+                                        ("Sagittarius dwarf", 24.0, 2.09e8), ("Fornax dwarf", 143.0, 4.15e7)):
         component = found[name]
         sun = np.array(satellites.sun_frame(SOLAR_RADIUS, SOLAR_ANGLE)[0])
         assert np.linalg.norm(np.array(component.center_pc) - sun) == pytest.approx(distance_kpc * 1000.0, rel=1e-9)

@@ -114,8 +114,7 @@ NULL_IN_THIS_GALAXY = {
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix", "flags",
-        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "state", "velocity_x_kms", "velocity_y_kms",
-        "velocity_z_kms")},
+        "state", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,

@@ -30,6 +30,22 @@ test("positionsAt matches the Python positions for every body at every time", ()
   }
 });
 
+test("wrappedTurnDeg matches kepler.wrapped_turn_deg, whole orbits dropped before the division", () => {
+  for (const c of F.orbitPositions.turns) {
+    assert.ok(Math.abs(P.wrappedTurnDeg(c.elapsed, c.period) - c.degrees) <= 1e-12 * 360,
+      `${c.elapsed} over ${c.period}: ${P.wrappedTurnDeg(c.elapsed, c.period)} vs ${c.degrees}`);
+  }
+});
+
+test("stumpff matches kepler.stumpff_c2_c3 inside and outside the series limit", () => {
+  for (const c of F.orbitPositions.stumpff) {
+    const got = P.stumpff(c.z);
+    c.c.forEach((expected, n) => {
+      assert.ok(Math.abs(got[n] - expected) <= 1e-15 * Math.abs(expected) + 1e-300, `c${n + 2}(${c.z}): ${got[n]} vs ${expected}`);
+    });
+  }
+});
+
 test("universalStep matches kepler.universal_step for every size and sign of step", () => {
   for (const c of F.orbitPositions.steps) {
     const { position, velocity } = P.universalStep(c.position, c.velocity, c.mu, c.dt);

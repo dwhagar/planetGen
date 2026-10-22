@@ -2,6 +2,89 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1915] - 2026-10-22
+
+**Headline:** A built star system now keeps its tree of orbits in the database, and the system scene places its stars from that tree.
+
+### Added
+- **The orbit tree is stored and loaded with the system (GEN.311).** `insert_star_system` writes the system's tree into `orbit_nodes`: a generated binary is one node made from the pair it was generated with (separation, eccentricity, plane, phase held at the database's orbit epoch, period, mass), and a system that carries its own tree has it stored as it is. `load_star_system` and the JSON form (`StarSystem.to_dict`, serialization version 4) bring it back as `StarSystem.orbit_nodes`. Each star row says where it hangs: `parent_node_id` and its offset from the system's centre of mass. The old binary columns stay filled and equal the node.
+- **The Roche classification is stored on the pair (GEN.269).** The node of a built pair carries its `interaction` (`detached`, `semi-detached`, `contact`, `accreting` or `post-common-envelope`), worked out from the stars' radii at the pair's closest approach by the same classifier the member-tree generator uses (`multistar.classify_pair`).
+
+### Changed
+- `GET /api/systems/<id>/scene` carries the system's `tree`, and `positions_at` places every star from it with the same function that places the members of a scatter row. A circular pair lands where the stored phase put it; a wide pair now follows its own eccentric Kepler orbit (the browser's copy of the star orbits still draws it as a circle, until the scene's JavaScript moves to the tree).
+
+generation-output: changed
+
+## [8.0.1914] - 2026-10-22
+
+**Headline:** The systems of a cluster or a satellite galaxy follow from a mean system mass worked out from its own age, not a recalled 0.4 solar masses.
+
+### Changed
+- **A component's mean system mass is derived (`Component.mean_system_mass_solar`).** `tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL` (0.4, "recalled, good to about a factor 1.5") is gone. A globular cluster, a young open cluster or a satellite galaxy holds its mass over the mean mass of a system whose stars formed `age_gy` ago (`generation.system_mass.mean_system_mass_at_age_solar`, the way GEN.545 does the galaxy's): 0.47 solar masses at 11 Gy, 0.49 for the Large Cloud, about 0.9 for a cluster a few Myr old. A cluster of 2e5 solar masses at 11 Gy holds 4.3e5 systems (it held 5.0e5), the Large Cloud 5.1e9 (6.2e9), so every seed's clusters and satellites hold about a sixth fewer systems and place their stars at that density.
+  - `Component.expected_systems`, `generation.component_pass.systems_of` and `galaxy.component_field.ComponentField` read it; `physics.king.expected_systems` takes the mean as an argument.
+  - `generation.open_clusters.ambient_density_msun_pc3` multiplies by the galaxy's own mean system mass (`density.mean_system_mass_solar`) instead of the cluster constant, because it is the density of the field stars around the clusters.
+  - `docs/design/globular-clusters.md` and `intergalactic-and-halo-contents.md` carry the new exemplar and satellite counts.
+- The generator epoch is 49.
+generation-output: changed
+
+### Added
+- `tests/test_gen_component_system_mass.py`: a component's mean against seeded systems at four ages (the generator's own samplers end to end), the systems as the mass over the mean, and that no constant holds it.
+
+TODO items resolved: GEN.598. Added: none.
+
+## [8.0.1913] - 2026-10-22
+
+**Headline:** Every unit the project uses is now one row in a single registry, with its kind, exact factor, symbol and allowed range.
+
+### Added
+- **`planetgen.physics.unit_registry`** (GEN.568). One row per unit: an ASCII key, a display symbol, a name, the kind it
+  measures, the factor to the kind's SI base unit and the offset of its zero (only the temperature scales have one).
+  Kinds carry a five-exponent dimension and the values they allow (a mass, duration, power or pressure is at least 0, a
+  speed is below c, everything is finite). A temperature difference is its own kind, so 10 K warmer is 10 degrees
+  Celsius warmer. Compound units (km/s, AU/yr, pc/Myr) are declared by their parts and tested against them. Relations
+  between kinds are data: a mass and its gravitational parameter, a radius and its diameter, a period and its
+  frequency, a rotation period and its angular rate. Angular rate and angular momentum are new kinds.
+- Tests hold every factor against its definition written out in full, each ladder rung of `util/ladders.py` against a
+  registry unit of the same factor, round trips, and the bounds. No existing file changes: the duplicate names in
+  `constants.py` stay until GEN.571 sweeps them.
+
+## [8.0.1912] - 2026-10-22
+
+**Headline:** What a collision does is one tested function: the outcome table for rocky bodies, giants, brown dwarfs and stars.
+
+### Added
+- **`physics/collision_outcome.py`** (GEN.345): `resolve(a, b, impact_parameter_m, window_start_unix)` turns two bodies that have come within `R1 + R2` into an `Outcome`, the rows of the section 5.1 table of `docs/design/collisions-and-mergers.md`: merger, graze-and-merge, hit-and-run, partial erosion and disruption for two rocky bodies (from the catastrophic energy of Leinhardt and Stewart and the lens a grazing pass overlaps), absorption by a giant or star, tidal disruption near a compact remnant, giant mergers that lose a little gas and then pass the deuterium and hydrogen fusion lines (`hydrogen_burning_limit_sol(z)`, a new star flagged "merger remnant" with no planets), and stellar mergers. Pure: no database, no draw, the same outcome in either order of the pair; mass and momentum are conserved to 1e-12. Settings: `ALWAYS_DESTROY_TERRESTRIAL` (Boss's literal rule) and the speed, energy and share cut-offs in `tuning.py`.
+- `tests/test_collision_outcome.py`: a case for every row, the numbers of the document's tables, the fusion lines and the borderline flag, a sweep for conservation, and the refusals.
+
+## [8.0.1911] - 2026-10-22
+
+**Headline:** The orbital update can find every mass within the galaxy's largest Hill radius of an object, the first step of changing a path by gravity.
+
+### Added
+- **The influence-set search** (`galaxy/influence.py`, GEN.341). `largest_hill_radius_pc` is the one search radius for the whole galaxy: the largest galactic Hill radius over each sector's heaviest mass, from the galaxy's own mass inside the object's radius (GEN.370), with the central black hole skipped (the smooth potential holds it). `influence_set` reads the sectors that can hold part of that sphere (found by sector bounds, the radius widened by the cells' reach of 1.3 edges, so no ring-and-slot stencil and no cover lists), keeps the members within the radius, returns the 64 nearest one by one and folds the rest into one point mass per sector, in an order that does not depend on how the sectors were stored. It moves nothing and reads no database; the caller gives `read_sector(address)`.
+  - `tests/test_influence.py` checks it against numpy brute force and a `cKDTree` at the core, a ring face, mid radius, the rim, both sides of the slot-0 seam and the top and bottom layers (radii 2, 6, 20 and 60 pc; no mismatch), shows that dropping the reach margin misses neighbours, checks that every object whose own Hill sphere holds the target is in the set with injected heavy objects, and checks the cap (the nearest 64 exact, the mass conserved, the pull within 5% of the full sum), the shuffled order, a lone rogue, a hierarchy given as one point and the refusals.
+
+## [8.0.1910] - 2026-10-22
+
+**Headline:** The orbital update has the pair closest-approach library its collision and encounter tests will use.
+
+### Added
+- **`physics/closest_approach.py`** (GEN.334): whether two paths come within `R` of each other in a window, and when. `sweep` is the closest-approach form (the miss distance as a vector first, then the entry time), exact where the swept-sphere form of the source document loses the miss distance once the start is far away; `Segment`, `linear_state_at` and `pair_window` give the pair-window rule (a body's update against the other's stored segment over `[max(e_X_prev, e_Y), e_X_now]`, positions differenced from sector-relative values); `window_cap` and `chunks` cut a long step at the galactic tide's curvature bound and one sector's crossing time (and 0.1 Myr); `first_hit` walks the chunks. No collision outcome or candidate search lives here (GEN.345, GEN.110, the broad phase).
+  - `tests/test_closest_approach.py`: head-on hit and its time, arrival after the window, a hit at the window end, a separating pair, a pair already overlapping, a tangent graze, a miss by a ten-millionth, no relative speed, no window, 300 far starts against exact arithmetic, and 20,000 random cases against dense time sampling.
+
+## [8.0.1909] - 2026-10-22
+
+**Headline:** The orbit stepper and the browser's orbit positions keep their digits over long times, and Python and JavaScript agree (GEN.140, GEN.374, GEN.144).
+
+### Changed
+- **Stumpff functions by series for `|z| < 1`** (GEN.140): `kepler.stumpff_c2_c3`, the compiled `state_kernel._stumpff` and `stumpff` in `orbitpositions.js` sum ten terms of the series below `|z| = 1` (it was `1e-3`), where the closed forms cancel and a hyperbolic `c3` was off by 4e-13. Body positions the universal step gives on the maps change in the thirteenth digit and below; nothing stored by a generate changes (the step runs on read, `physics/body_positions.py`).
+- **Orbit phases reduce first** (GEN.374): `kepler.wrapped_turn_deg(elapsed, period)` is `360 fmod(elapsed, period) / period`, used for circular bodies and elliptical comets (`physics/body_positions.py`), the nodes of a multi-star system (`physics/system_tree.py`) and `wrappedTurnDeg` in `orbitpositions.js`; the plain ratio is off by about 1e-4 degrees for a 0.3 day period at 1e9 days. The JavaScript Kepler solver's tolerance is 1e-12 (it was 1e-10), as the Python one.
+
+- **One named Sun radius, and the rotation-curve comment corrected** (GEN.144): `mathcheck.SUN_REFERENCE_RADIUS_PC` is the Gaia 8.128 kpc (it was 8.2 kpc), and the comment above `GALACTIC_ROTATION_FLAT_VELOCITY_KMS` says what the curve gives there (206 km/s, 242 Myr) and that it is a stand-in the potential replaces, instead of claiming the real Sun's values. The Milky Way plausibility tests (`test_sector_gen`, `test_star_matrix`) read that one radius.
+
+### Added
+- Tests (GEN.140, GEN.374): the Stumpff functions against exact rational arithmetic, the series-limit join, DOUBLE period and phase columns, radial (h = 0) motion, the wrapped turn against exact arithmetic, and Python and JavaScript agreeing on the Stumpff functions, the wrapped turn and the positions of every body at 3,000, 27,000 and 100,000 years. `docs/design/orbital-solvers-and-integrators.md` section 7 lists which guards are built and which wait on code not yet written.
+
 ## [8.0.1908] - 2026-10-22
 
 **Headline:** Planning a galaxy now says how dense it is and how much of it is planned, on the Generate page under the shape dials and in the plan output, and refuses a galaxy with nothing to plan.

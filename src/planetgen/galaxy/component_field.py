@@ -103,9 +103,9 @@ class ComponentField:
         self._centers = np.array([c.center_pc for c in held], dtype=float).reshape(-1, 3)
         self._reach = np.array([c.tidal_radius_pc for c in held], dtype=float)
         self._scale_pc = np.array([component_profiles.scale_radius_pc(c) for c in held], dtype=float)
-        # Systems per pc3 at the centre: the central density of the mass over the mean system mass.
-        self._central = np.array([component_profiles.central_density_per_pc3(c) for c in held],
-                                 dtype=float) / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+        # Systems per pc3 at the centre: the central density of the mass over the component's mean system mass.
+        self._central = np.array([component_profiles.central_density_per_pc3(c) / c.mean_system_mass_solar
+                                  for c in held], dtype=float)
         self._tables = tuple(component_profiles.table_for(c) for c in held)
         self._index = self._build_index()
         self._group_by_reach()

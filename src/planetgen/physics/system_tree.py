@@ -8,7 +8,7 @@ A scattered system is one point in space, its barycentre (the row's position,
 velocity and epoch columns, `system_mass_solar` as its mass), and a tree of
 orbits (`scatter_nodes`). Node `n` is the relative orbit of the child in slot 1
 about the child in slot 0; a child is a member or another node. Its mean anomaly
-at time `t` is `mean_anomaly_deg + 360 (t - epoch_unix) / period` (mod 360), so
+at time `t` is `mean_anomaly_deg + 360 fmod(t - epoch_unix, period) / period` (mod 360), so
 the nightly update, which only moves the barycentre, never has to write a node
 or a member row.
 
@@ -26,7 +26,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants
-from planetgen.physics.kepler import comet_orbital_state
+from planetgen.physics.kepler import comet_orbital_state, wrapped_turn_deg
 
 AU_KM = constants.AU_TO_KM
 SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
@@ -35,8 +35,8 @@ _KM_PER_S_TO_AU_PER_S = 1.0 / AU_KM
 
 @dataclass(frozen=True)
 class OrbitNode:
-    """One stored orbit, in the units of `scatter_nodes`: the relative orbit of the slot-1 child about the slot-0
-    child. `separation_km` is its semi-major axis."""
+    """One stored orbit, in the units of `scatter_nodes` and `orbit_nodes`: the relative orbit of the slot-1 child about
+    the slot-0 child. `separation_km` is its semi-major axis; `interaction` and `flags` are the pair's state (GEN.269)."""
     node_no: int
     parent_node_no: int | None
     slot: int | None
@@ -50,6 +50,8 @@ class OrbitNode:
     epoch_unix: float
     period_years: float
     kind: str = "close"
+    interaction: str | None = None
+    flags: int = 0
 
 
 @dataclass(frozen=True)
@@ -67,7 +69,7 @@ class TreeMember:
 def node_relative_au(node, unix):
     """The slot-1 child's position relative to the slot-0 child at `unix`, in AU, in the system's frame."""
     if node.period_years > 0:
-        anomaly = node.mean_anomaly_deg + 360.0 * (unix - node.epoch_unix) / (node.period_years * SECONDS_PER_YEAR)
+        anomaly = node.mean_anomaly_deg + wrapped_turn_deg(unix - node.epoch_unix, node.period_years * SECONDS_PER_YEAR)
     else:
         anomaly = node.mean_anomaly_deg
     axis_au = node.separation_km / AU_KM

@@ -236,6 +236,15 @@
       "epoch": 48,
       "first_release": "8.0.1902",
       "reason": "A star's, pair's and compact object's Hill sphere takes the galaxy's own mass inside its own distance from the centre (stars, central black hole and NFW dark halo), not the whole halo mass, so every system perimeter is several times larger inside the halo, and with it a wide pair's widest axis, a long-period comet's orbit and how many systems a dense cell can place (GEN.370)."
+    },
+    {
+      "epoch": 49,
+      "reason": "A globular cluster's, an open cluster's or a satellite galaxy's number of systems is its mass over a mean system mass worked out from its own age with the generator's mass function, remnants and multiplicity (0.47 solar masses at 11 Gy, 0.49 for the Large Cloud, about 0.9 for a cluster a few Myr old), not the recalled 0.4, so every seed's clusters and satellites hold about a sixth fewer systems and the open clusters read the galaxy's own mean for the density around them (GEN.598)."
+    },
+    {
+      "epoch": 50,
+      "first_release": "8.0.1915",
+      "reason": "A saved binary system stores its tree of orbits: one orbit_nodes row for the pair, its Roche interaction, and the parent node and offset of each star, so a seed's stored rows differ from before (GEN.311, GEN.269)"
     }
   ]
 }

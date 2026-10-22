@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login, point_columns, scatter_systems
+from planetgen.db import alembic_runner, login, orbit_trees, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
@@ -546,7 +546,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "asteroid_belt_composition",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -875,6 +875,8 @@ class Connection:
         self.sector_centers_pc = {}
         """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
+        self.orbit_epoch_unix = None
+        """int or None: the orbit epoch a binary's tree is stored at, read once inside a `batched()` scope (GEN.311)."""
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -1158,6 +1160,7 @@ class _BatchScope:
         if conn._batch_depth == 0:
             conn._batch = {}
             conn.sector_centers_pc = {}
+            conn.orbit_epoch_unix = None
         conn._batch_depth += 1
         return conn
 
@@ -1171,6 +1174,7 @@ class _BatchScope:
             finally:
                 conn._batch = None
                 conn.sector_centers_pc = {}
+                conn.orbit_epoch_unix = None
         return False
 
 
@@ -2726,7 +2730,7 @@ def _stored_names(conn, table, names):
     return found
 
 
-def insert_star(conn, star, star_system_id, role) -> int:
+def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0)) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
     `BinaryStarProxy` -- see `insert_star_system`).
@@ -2736,6 +2740,8 @@ def insert_star(conn, star, star_system_id, role) -> int:
         star: The `Star` instance.
         star_system_id (int): The owning `star_systems.id`.
         role (str): `'primary'`, `'secondary'`, or `'single'`.
+        parent_node_id (int, optional): The `orbit_nodes.node_no` the star is a child of; `None` for a single star.
+        offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's centre of mass, AU (GEN.311).
 
     Returns:
         int: The new `stars.id`.
@@ -2757,9 +2763,10 @@ def insert_star(conn, star, star_system_id, role) -> int:
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
             log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
             lethal_event_rate_per_gyr, metallicity_fe_h,
-            disk_kind, disk_mass_solar, disk_inner_au, disk_outer_au
+            disk_kind, disk_mass_solar, disk_inner_au, disk_outer_au,
+            parent_node_id, offset_x_au, offset_y_au, offset_z_au
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2781,6 +2788,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             *(getattr(star, name, None) for name in activity.STAR_ACTIVITY_FIELDS),
             getattr(star, "metallicity_fe_h", None),
             *(getattr(star, name, None) for name in pre_main_sequence.DISK_FIELDS),
+            parent_node_id, *offset_au,
         ),
     )
     return cur.lastrowid
@@ -4150,15 +4158,31 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     if system_epoch is not None:  # a scattered hypervelocity star holds at the time it was drawn (GEN.137)
         _update_by_id(conn, "star_systems", ("epoch_unix",), [(star_system_id, system_epoch)])
 
+    # GEN.311: the system's tree of orbits. A generated binary is one node, made from its pair; a tree the system was
+    # given (`orbit_nodes`) is stored as it is. The phases hold at the database's orbit epoch (now, before any update).
+    nodes = tuple(star_system.orbit_nodes)
+    if not nodes and star_system.binary_type is not None:
+        orbit_epoch = conn.orbit_epoch_unix if conn._batch is not None else None
+        if orbit_epoch is None:
+            orbit_epoch = get_orbit_epoch_unix(conn)
+            if orbit_epoch is None:
+                orbit_epoch = int(time.time())
+            if conn._batch is not None:
+                conn.orbit_epoch_unix = orbit_epoch
+        nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
+    orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
+    star_system.orbit_nodes = nodes
+    places = orbit_trees.star_places(star_system)
+
     if proxy_like:
-        insert_star(conn, star_system.primary_star, star_system_id, "primary")
-        insert_star(conn, star_system.secondary_star, star_system_id, "secondary")
+        insert_star(conn, star_system.primary_star, star_system_id, "primary", *places[0])
+        insert_star(conn, star_system.secondary_star, star_system_id, "secondary", *places[1])
         primary_star_id = secondary_star_id = None  # planets orbit the proxy, not a stored star row -- see planets.star_id
     elif binary_configuration == "wide":
-        primary_star_id = insert_star(conn, star_system.primary_star, star_system_id, "primary")
-        secondary_star_id = insert_star(conn, star_system.secondary_star, star_system_id, "secondary")
+        primary_star_id = insert_star(conn, star_system.primary_star, star_system_id, "primary", *places[0])
+        secondary_star_id = insert_star(conn, star_system.secondary_star, star_system_id, "secondary", *places[1])
     else:
-        primary_star_id = insert_star(conn, star_system.star, star_system_id, "single")
+        primary_star_id = insert_star(conn, star_system.star, star_system_id, "single", *places[0])
         secondary_star_id = None
         # v16: a StarSystem anchored by a compact remnant (generation/phenomena/compact_remnant.py,
         # phenomenonGen.py --anchor-system) -- insert_star above already
@@ -8684,6 +8708,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.star = star
     system.binary_type = binary_configuration
     system.wide_binary = wide_binary
+    system.orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
 
     # v20: only meaningful (non-NULL) for a 'close' pair -- see
     # schema.sql's "v20" header note and StarSystem.__init__'s own comment.

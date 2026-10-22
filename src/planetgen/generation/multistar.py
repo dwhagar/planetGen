@@ -474,6 +474,37 @@ class _Failed(Exception):
     """A pair could not be placed in `PAIR_RETRIES` tries; the tree restarts."""
 
 
+def classify_pair(a, b, axis_au, e):
+    """
+    The `interaction` of a pair of two single members from their geometry (GEN.269): `(interaction, gainers)`, where
+    `gainers` are the members that receive mass (a tuple of `a` and `b`). `a` and `b` have a `kind`, a `radius_au`, a
+    `mass` and an `initial` (a white dwarf's progenitor mass, solar masses). A lobe-filling donor feeds an accretor
+    (`accreting`); two stars past their lobes at closest approach are `contact`, one is `semi-detached`; a white dwarf
+    inside its progenitor's engulfment radius is `post-common-envelope`; otherwise `detached`.
+    """
+    peri = axis_au * (1.0 - e)
+    fill_a = roche.filling_factor(a.radius_au, peri, a.mass, b.mass)
+    fill_b = roche.filling_factor(b.radius_au, peri, b.mass, a.mass)
+    accretor_a, accretor_b = a.kind in ACCRETOR_KINDS, b.kind in ACCRETOR_KINDS
+    if accretor_a != accretor_b:
+        donor_fill = fill_b if accretor_a else fill_a
+        if donor_fill >= 1.0:
+            return "accreting", ()
+        dwarf = a if a.kind == "white-dwarf" else b if b.kind == "white-dwarf" else None
+        if dwarf is not None and axis_au < mass_loss.engulfment_radius_au(dwarf.initial):
+            return "post-common-envelope", ()
+        return "detached", ()
+    if accretor_a:
+        return "detached", ()
+    if fill_a >= 1.0 and fill_b >= 1.0:
+        return "contact", (a, b)
+    if fill_a >= 1.0:
+        return "semi-detached", (b,)
+    if fill_b >= 1.0:
+        return "semi-detached", (a,)
+    return "detached", ()
+
+
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
@@ -532,28 +563,8 @@ class _Builder:
         pair = self.pair_leaves(left, right)
         if pair is None:
             return "detached", {}
-        a, b = pair
-        peri = axis * (1.0 - e)
-        fill_a = roche.filling_factor(a.radius_au, peri, a.mass, b.mass)
-        fill_b = roche.filling_factor(b.radius_au, peri, b.mass, a.mass)
-        accretor_a, accretor_b = a.kind in ACCRETOR_KINDS, b.kind in ACCRETOR_KINDS
-        if accretor_a != accretor_b:
-            donor_fill = fill_b if accretor_a else fill_a
-            if donor_fill >= 1.0:
-                return "accreting", {}
-            dwarf = a if a.kind == "white-dwarf" else b if b.kind == "white-dwarf" else None
-            if dwarf is not None and axis < mass_loss.engulfment_radius_au(dwarf.initial):
-                return "post-common-envelope", {}
-            return "detached", {}
-        if accretor_a:
-            return "detached", {}
-        if fill_a >= 1.0 and fill_b >= 1.0:
-            return "contact", {left: MEMBER_MASS_GAINER, right: MEMBER_MASS_GAINER}
-        if fill_a >= 1.0:
-            return "semi-detached", {right: MEMBER_MASS_GAINER}
-        if fill_b >= 1.0:
-            return "semi-detached", {left: MEMBER_MASS_GAINER}
-        return "detached", {}
+        interaction, gainers = classify_pair(pair[0], pair[1], axis, e)
+        return interaction, {(left if gainer is pair[0] else right): MEMBER_MASS_GAINER for gainer in gainers}
 
     def wide_cap(self, sub):
         """The widest axis the pair can have: 1,000 AU if it holds a neutron star or a black hole that did not

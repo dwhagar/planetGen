@@ -23,10 +23,11 @@ E1 = 6.3
 """float: Systems a cell holds at density 1, about what the default edge gives."""
 
 EXEMPLARS = {
-    # name: (mass, r_h, W0, central cell range (low, high), cells with at least one system)
-    "typical": (2.0e5, 5.0, 5, (3.0e4, 8.4e4), 965),
-    "47 Tuc": (8.0e5, 6.0, 9, (1.1e5, 5.5e5), 5848),
-    "sparse": (5.0e4, 8.0, 3, (3.4e3, 5.1e3), 1099),
+    # name: (mass, r_h, W0, central cell range (low, high), cells with at least one system), at the mean system mass
+    # of the 11 Gy cluster of `_cluster` (0.47 solar masses, `generation.system_mass`)
+    "typical": (2.0e5, 5.0, 5, (2.6e4, 7.2e4), 905),
+    "47 Tuc": (8.0e5, 6.0, 9, (9.3e4, 4.7e5), 5500),
+    "sparse": (5.0e4, 8.0, 3, (2.8e3, 4.3e3), 1040),
 }
 
 
@@ -51,7 +52,7 @@ def test_the_cells_of_a_cluster_add_up_to_its_systems(name):
     mass, half, w0, _central, _count = EXEMPLARS[name]
     field = component_field.ComponentField([_cluster(mass, half, w0)], EDGE, E1)
     cells = _lattice(field, king.tidal_radius_pc(w0, half))
-    assert cells.sum() == pytest.approx(king.expected_systems(mass), rel=0.03)
+    assert cells.sum() == pytest.approx(king.expected_systems(mass, _cluster(mass, half, w0).mean_system_mass_solar), rel=0.03)
 
 
 @pytest.mark.parametrize("name", EXEMPLARS)
@@ -79,8 +80,8 @@ def test_the_density_follows_the_kings_table():
     field = component_field.ComponentField([_cluster(mass, half, w0)], EDGE, E1)
     for radius in (14.0, 18.0, 22.0):
         got = field.relative_density((radius, 0.0, 0.0)) * E1 / EDGE ** 3
-        assert got == pytest.approx(king.density_per_pc3(w0, mass, half, radius) / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL,
-                                    rel=0.05)
+        assert got == pytest.approx(king.density_per_pc3(w0, mass, half, radius)
+                                    / _cluster(mass, half, w0).mean_system_mass_solar, rel=0.05)
     assert field.relative_density((king.tidal_radius_pc(w0, half) + 10.0, 0.0, 0.0)) == 0.0
 
 

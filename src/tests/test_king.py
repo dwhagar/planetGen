@@ -40,8 +40,8 @@ def test_a_table_outside_the_range_is_refused():
 
 
 def test_the_expected_systems_are_the_mass_over_the_mean_system_mass():
-    assert king.expected_systems(2.0e5) == pytest.approx(5.0e5)
-    assert king.expected_systems(8.0e5) == pytest.approx(8.0e5 / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL)
+    assert king.expected_systems(2.0e5, 0.4) == pytest.approx(5.0e5)
+    assert king.expected_systems(8.0e5, 0.5) == pytest.approx(1.6e6)
 
 
 @pytest.mark.parametrize("w0", (3, 7, 12))
