@@ -1057,3 +1057,5 @@ Baseline: PR #1817.
 | GEN.348 | 8.4 | The Quantity call-site sweep |
 | TEST.279 | 8.1 | Bugs and flaky tests |
 | DB.87 | 8.2 | Viewers and object pages |
+| GEN.585 | 8.4 | Bulk composition |
+| GEN.586 | 8.4 | Bulk composition |

@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.624 |
 | PERF | PERF.156 |
-| DB | DB.88 |
+| DB | DB.89 |
 | API | API.32 |
 | ADM | ADM.127 |
 | SEC | SEC.34 |
@@ -633,6 +633,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | open |
 | DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | done, PR #2541 |
+| DB.88 | The vessels table has an Object ID but is not in db/kind_tables.py: test_kind_tables fails on main (bug) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1290,8 +1291,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.582 | Origin and present-state split: fields marked origin or state in the Field table, the draw record held until validation finishes, and the zone and class re-run from the seed | none | open |
 | GEN.583 | reparent: the state-preserving change of a body's parent, shared by re-primary at an event, an ejection, a capture and a merger | none | open |
 | GEN.584 | The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped | none | open |
-| GEN.585 | Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension | none | open |
-| GEN.586 | physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate | none | open |
+| GEN.585 | Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension | none | done, PR #2542 |
+| GEN.586 | physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate | none | done, PR #2542 |
 | GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | none | open |
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | none | open |
 | GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | open |

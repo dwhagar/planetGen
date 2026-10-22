@@ -40,9 +40,7 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | GEN.577 | Stored planet and moon states become the state of the barycentre of the body and its own members | GEN.576 |  |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | GEN.576, DB.73 |  |
 | GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | GEN.565, GEN.315 |  |
-| GEN.585 | Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension |  |  |
-| GEN.586 | physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate | GEN.585 |  |
-| GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | GEN.586 |  |
+| GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set |  |  |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set |  |  |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed |  |  |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} |  |  |

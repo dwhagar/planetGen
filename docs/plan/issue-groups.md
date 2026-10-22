@@ -111,7 +111,7 @@ Rules:
 | [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.119, PERF.149, PERF.150, PERF.151, PERF.152, PERF.153, PERF.154, PERF.155, PERF.120, PERF.121, PERF.122, PERF.123, PERF.124, PERF.125, PERF.128, PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.144, PERF.145, PERF.146, PERF.106, PERF.107, PERF.108, PERF.142, PERF.143 |
 | [#1228](https://github.com/dwhagar/planetGen/issues/1228) | closed | Star system editor | ADM.51, ADM.52 |
 | [#1227](https://github.com/dwhagar/planetGen/issues/1227) | closed | Show axis, tilt, and rotations | MAP.193 |
-| [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11, DB.63, USR.29, USR.30 |
+| [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11, DB.63, DB.88, USR.29, USR.30 |
 | [#1225](https://github.com/dwhagar/planetGen/issues/1225) | closed | Phenomena scatter possible hang before start. | PERF.83 |
 | [#1224](https://github.com/dwhagar/planetGen/issues/1224) | closed | Neighbor linking stalled out | PERF.84 |
 | [#1223](https://github.com/dwhagar/planetGen/issues/1223) | closed | Sector View Hides Black Holes | MAP.185 |
