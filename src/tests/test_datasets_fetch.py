@@ -345,3 +345,60 @@ def test_derive_must_make_exactly_the_files_the_catalogue_names(cache):
 def test_a_transient_file_needs_a_derive_function():
     with pytest.raises(ValueError):
         fetch.Dataset("a", "t", "s", "l", (fetch.Piece("x", "https://e.org/x", "0" * 64, 1, transient=True),), "s", "f")
+
+
+# ---- the URL of every file is printed (GEN.600) ----
+
+def test_fetch_prints_the_url_of_a_fetched_a_kept_and_a_failed_file(cache, monkeypatch, capsys):
+    first, second = _dataset(b"abc", b"def", key="mixed"), _dataset(b"xyz", key="bad")
+    monkeypatch.setattr(catalogue, "ALL", (first, second))
+    kept = cache / "mixed"
+    kept.mkdir(parents=True)
+    (kept / "part0.dat").write_bytes(b"abc")                       # already there with the right hash
+    host = _Host({first.pieces[1].url: b"def", second.pieces[0].url: b"zzz"})
+    monkeypatch.setattr(fetch.urllib.request, "urlopen", host)
+    assert datasets_cli.main(["fetch"]) == 1
+    out = capsys.readouterr().out
+    assert f"kept     {first.pieces[0].url}" in out
+    assert f"fetched  {first.pieces[1].url}" in out
+    assert f"failed   {second.pieces[0].url} (" in out and "sha256" in out
+    assert out.count(second.pieces[0].url) >= 2                    # in the dataset's summary and on its own line
+    assert [url for url, _headers, _timeout in host.requests] == [first.pieces[1].url, second.pieces[0].url]
+
+
+def test_fetch_gives_every_piece_a_result(cache):
+    dataset = _dataset(b"abc", b"def")
+    result = fetch.fetch(dataset, opener=_serve(dataset, b"abc", b"def"))
+    assert [(r.piece.name, r.state) for r in result.pieces] == [("part0.dat", "fetched"), ("part1.dat", "fetched")]
+    again = fetch.fetch(dataset, opener=_serve(dataset, b"abc", b"def"))
+    assert [r.state for r in again.pieces] == ["kept", "kept"]
+
+
+def test_status_prints_the_url_of_every_missing_file_and_none_of_a_present_one(cache, monkeypatch, capsys):
+    dataset = _dataset(b"abc", b"def", key="half")
+    monkeypatch.setattr(catalogue, "ALL", (dataset,))
+    (cache / "half").mkdir(parents=True)
+    (cache / "half" / "part0.dat").write_bytes(b"abc")
+    assert datasets_cli.main(["status"]) == 1
+    out = capsys.readouterr().out
+    assert dataset.pieces[1].url in out and dataset.pieces[0].url not in out
+    assert "part1.dat has not been downloaded" in out
+    (cache / "half" / "part0.dat").write_bytes(b"changed")
+    assert datasets_cli.main(["status"]) == 1
+    out = capsys.readouterr().out
+    assert dataset.pieces[0].url in out and dataset.pieces[1].url in out
+
+
+def test_status_of_a_present_dataset_prints_no_url(cache, monkeypatch, capsys):
+    dataset = _dataset(b"abc")
+    monkeypatch.setattr(catalogue, "ALL", (dataset,))
+    fetch.fetch(dataset, opener=_serve(dataset, b"abc"))
+    assert datasets_cli.main(["status"]) == 0
+    assert "https://" not in capsys.readouterr().out
+
+
+def test_status_of_a_stale_derived_dataset_names_the_archive_to_download(cache, monkeypatch, capsys):
+    dataset, payload = _archive_dataset()
+    monkeypatch.setattr(catalogue, "ALL", (dataset,))
+    assert datasets_cli.main(["status"]) == 1
+    assert dataset.pieces[0].url in capsys.readouterr().out

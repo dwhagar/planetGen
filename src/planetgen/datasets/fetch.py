@@ -124,22 +124,38 @@ class Dataset:
 
 
 @dataclass(frozen=True)
+class PieceResult:
+    """What `fetch` did with one file (GEN.600): `state` is `fetched` (requested and kept), `kept` (already there with
+    the right size and sha256, or an archive whose derived files are current: not requested) or `failed` (requested or
+    not writable; `reason` says why)."""
+
+    piece: Piece
+    state: str
+    reason: str = ""
+
+
+@dataclass(frozen=True)
 class Result:
     """What `fetch` did: `status` is `fetched` (something was downloaded), `present` (everything was already there)
-    or `missing` (a file could not be had; `reasons` say why for each)."""
+    or `missing` (a file could not be had; `reasons` say why for each). `pieces` is one `PieceResult` per file the
+    dataset lists, in order (empty when the folder could not be made)."""
 
     dataset: Dataset
     status: str
     reasons: tuple = ()
+    pieces: tuple = ()
 
 
 @dataclass(frozen=True)
 class Located:
-    """What a reader gets: the folder holding every verified file, or `folder` None and the reason it is missing."""
+    """What a reader gets: the folder holding every verified file, or `folder` None and the reason it is missing.
+    `lacking` is, for a missing dataset, one `(Piece, reason)` for each file that has to be downloaded again (GEN.600),
+    so a message can name every URL."""
 
     dataset: Dataset
     folder: str
     reason: str = ""
+    lacking: tuple = ()
 
     @property
     def missing(self):
@@ -245,19 +261,26 @@ def _derived_piece(name, sha256, size):
 
 def locate(dataset):
     """Where the dataset's files are, or that they are missing. Opens no connection (setup downloads, run time
-    only reads): a missing, short or altered file gives a `Located` with the reason, never an error."""
+    only reads): a missing, short or altered file gives a `Located` with the reason and every file to download again,
+    never an error."""
     where = folder(dataset)
+    lacking = []
     for piece in dataset.pieces:
         if piece.transient:
             continue
         path = os.path.join(where, piece.name)
         if not os.path.exists(path):
-            return Located(dataset, None, f"{piece.name} has not been downloaded")
-        if not _is_good(path, piece):
+            lacking.append((piece, f"{piece.name} has not been downloaded"))
+        elif not _is_good(path, piece):
             log.debug("dataset %s: %s does not match the catalogue (size or sha256)", dataset.key, piece.name)
-            return Located(dataset, None, f"{piece.name} does not match the catalogue's size or sha256")
+            lacking.append((piece, f"{piece.name} does not match the catalogue's size or sha256"))
+    if lacking:
+        return Located(dataset, None, lacking[0][1], tuple(lacking))
     if dataset.derived and not _derived_ok(dataset):
-        return Located(dataset, None, "its derived files have not been made from the current catalogue")
+        # the derived files are made again from the archive, so the archive is what a setup run downloads
+        reason = "its derived files have not been made from the current catalogue"
+        archive = [piece for piece in dataset.pieces if piece.transient] or list(dataset.pieces)
+        return Located(dataset, None, reason, tuple((piece, reason) for piece in archive))
     return Located(dataset, where)
 
 
@@ -362,7 +385,7 @@ def fetch(dataset, *, opener=None):
     """Brings the dataset's files into the cache folder. A file already there with the right size and sha256 is left
     alone; a different one is replaced. Never raises for a network or disk problem: the result is `missing` with a
     reason per file that could not be had, and the files that were fine stay. A dataset with a derive function whose
-    derived files are current does not download its archive again."""
+    derived files are current does not download its archive again. `Result.pieces` says what happened to each file."""
     opener = opener or urllib.request.urlopen
     where = folder(dataset)
     try:
@@ -370,24 +393,29 @@ def fetch(dataset, *, opener=None):
     except OSError as exc:
         return Result(dataset, "missing", (f"{where}: cannot be made ({exc})",))
     needs_derive = bool(dataset.derived) and not _derived_ok(dataset)
-    changed, reasons = False, []
+    changed, reasons, handled = False, [], []
     for piece in dataset.pieces:
         if piece.transient and not needs_derive:
+            handled.append(PieceResult(piece, "kept"))
             continue
         path = os.path.join(where, piece.name)
         if _is_good(path, piece):
+            handled.append(PieceResult(piece, "kept"))
             continue
         try:
             _download(piece, path, opener)
             changed = True
+            handled.append(PieceResult(piece, "fetched"))
         except DownloadError as exc:
             reasons.append(str(exc))
+            handled.append(PieceResult(piece, "failed", str(exc)))
     if reasons:
-        return Result(dataset, "missing", tuple(reasons))
+        return Result(dataset, "missing", tuple(reasons), tuple(handled))
     if needs_derive:
         try:
             _derive(dataset)
             changed = True
         except Exception as exc:  # a parser meeting an unexpected file must not stop an update
-            return Result(dataset, "missing", (f"{dataset.key}: deriving its files failed ({type(exc).__name__}: {exc})",))
-    return Result(dataset, "fetched" if changed else "present")
+            return Result(dataset, "missing", (f"{dataset.key}: deriving its files failed ({type(exc).__name__}: {exc})",),
+                          tuple(handled))
+    return Result(dataset, "fetched" if changed else "present", (), tuple(handled))

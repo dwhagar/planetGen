@@ -9,9 +9,12 @@ Downloads the static data the generator reads (GEN.548), or says where each data
 
 `fetch` is the setup step `update.sh` and `install.sh` run as root: each file is downloaded once with the standard
 User-Agent, checked against the catalogue's sha256 and kept in the cache folder (`PLANETGEN_DATA_DIR`, else
-`/var/cache/planetgen/datasets`). It prints one line per dataset and exits 1 when any is still missing, which
-the scripts report as a warning, never as a failure: a host that is down cannot stop an update. `status` fetches
-nothing and exits 1 the same way: it is the data check in front of every Generate job (GEN.590). Nothing in the generator or the site downloads at run time.
+`/var/cache/planetgen/datasets`). It prints one line per dataset, and under it one line per file with its https URL
+and what happened to it (`fetched`, `kept` when it was already there and not requested again, or `failed` with the
+reason), and exits 1 when any dataset is still missing, which the scripts report as a warning, never as a failure: a host
+that is down cannot stop an update. `status` fetches nothing and exits 1 the same way: it is the data check in front of
+every Generate job (GEN.590), and it prints the URL of every file that is missing. Nothing in the generator or the site
+downloads at run time.
 """
 
 import argparse
@@ -35,6 +38,11 @@ def _line(dataset, missing, text):
     return f"{dataset.key}: {text}" if not missing else f"{dataset.key}: missing ({dataset.fill}), {text}"
 
 
+def _piece_line(state, piece, reason=""):
+    reason = reason.removeprefix(piece.url + ": ")      # the download errors already start with the URL
+    return f"    {state:<8} {piece.url}" + (f" ({reason})" if reason else "")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", choices=("fetch", "status"))
@@ -53,11 +61,15 @@ def main(argv=None):
                 print(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))
             else:
                 print(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, {fetch.folder(dataset)})"))
+            for handled in result.pieces:
+                print(_piece_line(handled.state, handled.piece, handled.reason))
         else:
             located = fetch.locate(dataset)
             if located.missing:
                 absent += 1
                 print(_line(dataset, True, located.reason) + _CONSEQUENCE.format(dataset.replaces))
+                for piece, reason in located.lacking:
+                    print(_piece_line("missing", piece, reason))
             else:
                 print(_line(dataset, False, f"present in {located.folder}"))
     return 1 if absent else 0
