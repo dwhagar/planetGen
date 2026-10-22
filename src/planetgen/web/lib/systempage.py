@@ -29,7 +29,7 @@ from planetgen.describe.html import blocks_html
 from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import (
-    distance_km_html, esc, format_gravity_g_short, format_number, period_years_html, quantity_html, speed_kms_html,
+    distance_km_html, esc, format_gravity_g_short, format_number, measured_html, period_years_html, speed_kms_html,
 )
 from planetgen.web.lib.tabledisplay import format_star_radius
 
@@ -74,10 +74,10 @@ def stars_html(stars, class_url=None, notes_html=""):
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td data-label="Mass">{quantity_html("mass", star["mass_kg"])}</td>'
+        f'<td data-label="Mass">{measured_html("kg", star["mass_kg"])}</td>'
         f'<td data-label="Radius">{format_star_radius(star["radius_km"])}</td>'
         f'<td data-label="Temp">{format_number(star["temperature_k"])} K</td>'
-        f'<td data-label="Luminosity">{quantity_html("power", star["luminosity_w"])}</td>'
+        f'<td data-label="Luminosity">{measured_html("W", star["luminosity_w"])}</td>'
         "</tr>"
         for star in stars
     )

@@ -230,6 +230,7 @@ def _lengths():
     for key, symbol, name, factor in (
             ("au", "AU", "astronomical units", constants.AU_M),
             ("ly", "ly", "light-years", constants.LIGHTYEAR_M),
+            ("ld", "ld", "light-days", constants.SPEED_OF_LIGHT_M_S * _DAY_S),
             ("ft", "ft", "feet", constants.FOOT_M),
             ("mi", "mi", "miles", constants.MILE_M),
             ("Rsun", "R☉", "solar radii", constants.SOLAR_RADIUS_M),

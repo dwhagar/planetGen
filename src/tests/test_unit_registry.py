@@ -39,7 +39,7 @@ DEFINITIONS = {
     "rad": 1.0, "deg": math.pi / 180, "arcmin": math.pi / 10800, "arcsec": math.pi / 648000, "turn": 2 * math.pi,
     "W": 1.0, "kW": 1e3, "erg_s": 1e-7, "erg": 1e-7, "J": 1.0, "eV": 1.602176634e-19,
     "Pa": 1.0, "kPa": 1e3, "bar": 1e5, "atm": 101325.0, "psi": 0.45359237 * 9.80665 / 0.0254 ** 2,
-    "g0": 9.80665, "m_s2": 1.0, "ft_s2": 0.3048,
+    "ld": 299_792_458 * 86_400.0, "g0": 9.80665, "m_s2": 1.0, "ft_s2": 0.3048,
     "T": 1.0, "G": 1e-4, "W_m2": 1.0, "kg_m3": 1.0, "g_cm3": 1e3, "m-3": 1.0, "cm-3": 1e6,
     "m3_s2": 1.0, "km3_s2": 1e9,
 }
@@ -118,7 +118,7 @@ def test_dimensions_of_the_kinds_that_derive_from_others():
     (100.0, "degC", "K", 373.15), (0.0, "degC", "degF", 32.0), (212.0, "degF", "degC", 100.0),
     (-40.0, "degC", "degF", -40.0), (1.0, "au", "km", 149_597_870.7), (1.0, "Msun", "Mjup", 1047.57),
     (1.0, "yr", "d", 365.25), (180.0, "deg", "rad", math.pi), (1.0, "atm", "kPa", 101.325),
-    (1.0, "turn", "deg", 360.0), (1.0, "ly", "pc", 0.306601),
+    (1.0, "turn", "deg", 360.0), (1.0, "ly", "pc", 0.306601), (365.25, "ld", "ly", 1.0),
 ])
 def test_conversions(value, source, target, expected):
     assert units.convert(value, source, target) == pytest.approx(expected, rel=1e-5)

@@ -310,3 +310,18 @@ So about 50 sites write one of six laws, and the units are handled by hand at ea
 1. With the UN5 sweep and Q5's rule: a relation replaces a site only where the golden set is unchanged; the registry and the relations module first. **Recommended.**
 2. A dedicated relations sweep first. Cleaner start; touches 26 files at once and meets every lane's open branches.
 3. Only for new code. Least risk; the duplicates stay.
+
+## Built: the Python text output takes a Quantity (GEN.348)
+
+The describer holds each value in the unit it is stored in and writes the Document's `si` from the `Quantity`
+(`describe/model.measured`, `describe/build._held`), so `describe/build.py`, `describe/phenomena.py` and
+`describe/quantity.py` multiply by no unit factor; the registry gained `ld` (light-days) for a quasar's broad-line region. A page
+measurement is `fmt.quantity_html(Quantity)` or `fmt.measured_html(unit, value)` (a dash for a value its kind refuses, never a
+traceback), which the system pages, the object lists, the profile age labels, the population ages and the body radius
+ratio use. Text is unchanged: 380 generated Documents rendered in four formats were identical before and after, and the
+Document's numbers differ by at most 3e-16 relative (the AU to km step and the light-day product round differently).
+Left for later: `dose` has no registry kind, so `describe/quantity.py` still writes mSv by a factor of 1000; the thin
+`format_distance_km`-style wrappers stay (they hold no factor); the class pages' ranges already hold their numbers in the
+unit they print, so they convert nothing.
+
+The column registry (`db/column_units.py`) no longer has its own `light-day`: `broad_line_region_light_days` is declared in the registry's `ld`, so a unit lives in one place.

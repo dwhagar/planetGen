@@ -8,6 +8,7 @@ The Sector Profile as the sector pages show it (UX.113): `profile_view(profile)`
 from planetgen import tuning
 from planetgen.generation.run_galaxy import LARGE_RUN_WARNING_THRESHOLD
 from planetgen.generation.stats import format_bytes, format_duration
+from planetgen.physics.quantity import Quantity
 from planetgen.web.lib.fmt import format_number, format_speed_kms
 
 HEAVY_CELL_SECONDS = 120.0
@@ -23,7 +24,7 @@ def _age_label(age_gy):
     """An age in Gy as the label of an open cluster's population names it: Myr below a Gy, three significant figures."""
     if age_gy >= 1.0:
         return f"{age_gy:.3g} Gy"
-    return f"{age_gy * 1000.0:.3g} Myr"
+    return f"{Quantity('duration', age_gy, 'Gyr').Myr:.3g} Myr"
 
 
 REGION_LABELS = {

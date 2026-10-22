@@ -11,7 +11,7 @@ from flask import abort, request
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, read_from_start
-from planetgen.web.lib.fmt import distance_km_html, quantity_html
+from planetgen.web.lib.fmt import distance_km_html, measured_html
 
 from . import bp, tables
 from .helpers import crumb, db_name, page_url, render_page
@@ -49,7 +49,7 @@ def _row(item):
               if item["sector_id"] is not None else {"text": "None", "muted": True})
     return [name,
             {"text": _title(item["object_class"])} if item["object_class"] else {"text": "None", "muted": True},
-            {"text": quantity_html("mass", item["mass_kg"])},
+            {"text": measured_html("kg", item["mass_kg"])},
             {"text": distance_km_html(item["radius_km"])},
             sector]
 

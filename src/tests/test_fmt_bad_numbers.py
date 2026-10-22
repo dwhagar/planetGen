@@ -22,6 +22,7 @@ import re
 
 import pytest
 
+from planetgen.physics.quantity import Quantity
 from planetgen.web.lib import fmt  # noqa: E402
 from planetgen.web.lib import pagination  # noqa: E402
 from planetgen.web.lib import tabledisplay  # noqa: E402
@@ -41,6 +42,7 @@ NOT_NUMBER_FORMATTERS = {
     (fmt, "static_url"),
     (fmt, "quote"),  # urllib's, imported
     (fmt, "quantity_html"),  # the page spans (UX.78), tested below
+    (fmt, "measured_html"),
     (fmt, "distance_km_html"),
     (fmt, "distance_ly_html"),
     (fmt, "period_years_html"),
@@ -162,7 +164,7 @@ def test_distance_overflowing_to_infinite_km_is_a_dash():
 
 
 @pytest.mark.parametrize("formatter", [fmt.distance_km_html, fmt.distance_ly_html, fmt.period_years_html,
-                                       fmt.speed_kms_html, lambda v: fmt.quantity_html("mass", v)])
+                                       fmt.speed_kms_html, lambda v: fmt.measured_html("kg", v)])
 @pytest.mark.parametrize("value", NON_NUMBERS, ids=_id)
 def test_a_measurement_span_of_no_number_is_a_bare_dash(formatter, value):
     assert formatter(value) == "–"
@@ -170,18 +172,20 @@ def test_a_measurement_span_of_no_number_is_a_bare_dash(formatter, value):
 
 @pytest.mark.parametrize("value", BAD_NUMBERS, ids=_id)
 def test_a_measurement_span_never_raises_or_prints_garbage(value):
-    for quantity in ("length", "mass", "temperature", "number density"):
-        out = fmt.quantity_html(quantity, value)
+    for quantity, unit in (("length", "m"), ("mass", "kg"), ("temperature", "K"), ("number density", "cm-3")):
+        out = fmt.measured_html(unit, value)
         assert out == "–" or out.startswith('<span class="qty" data-q="' + quantity + '" data-si="')
         assert not _GARBAGE.search(re.sub(r"<[^>]*>", "", out)), out
 
 
 def test_a_measurement_span_carries_the_si_value_and_the_automatic_text():
-    assert str(fmt.quantity_html("length", 384_400, 1000.0)) == (
+    assert str(fmt.measured_html("km", 384_400)) == (
         '<span class="qty" data-q="length" data-si="384400000.0">384,400 km</span>')
-    assert str(fmt.quantity_html("temperature", 737, companions=False)) == (
+    assert str(fmt.measured_html("K", 737, companions=False)) == (
         '<span class="qty" data-q="temperature" data-si="737.0" data-nc>737 K</span>')
-    assert isinstance(fmt.quantity_html("mass", 1.0), type(fmt.Markup("")))
+    assert isinstance(fmt.measured_html("kg", 1.0), type(fmt.Markup("")))
+    assert str(fmt.quantity_html(Quantity("length", 384.4, "Mm"))) == str(fmt.measured_html("km", 384_400))
+    assert fmt.quantity_html(None) == "–"
 
 
 def test_format_number_keeps_ints_and_specs():
