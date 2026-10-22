@@ -410,6 +410,15 @@ Python 3.13).
   count within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a
   kind found where its expectation is zero, and `format_report` prints the one report. An audit adds its expectations
   and checks and keeps no counters of its own.
+  The representation audit (`tests/audit/representation.py`, TEST.160) is the first audit on it: eight region classes of
+  the Milky Way's shape (the bulge, which holds the bar; an arm and the space between arms; the thick disk; the halo; a
+  Magellanic-type satellite; a globular cluster; the intergalactic floor), filled with every per-star rate dialed up to
+  0.3 so that a kind the place's gate forbids has a chance to appear and the disk, where it is allowed, shows it does.
+  A fill holds a handful of systems, so the kinds that need a free spot of their own (a neutron star, a black hole, a
+  brown dwarf, a planetary nebula's central star) are audited from above only. The whole-sphere tests of TEST.184 and
+  TEST.185 (`test_census_nebula_wholesphere.py`, `test_census_component_wholesphere.py`) read the same regions.
+  `python -m tests.audit.representation [report.txt] [--sectors N]` prints the report and exits 1 when a count breaks a
+  rule.
 
 A known bug that is not fixed yet is kept as a test marked
 `xfail(strict=True)` whose reason names the bug and a repro. When someone
