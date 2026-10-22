@@ -1,0 +1,4 @@
+**Headline:** The generator now has one table of the gases and compounds that can be in an atmosphere, with the source of every number.
+
+### Added
+- `physics/gases.py` and `physics/data/gases.json` (built by `scripts/build_gas_table.py` from the atmosphere research tables): 78 gases and compounds with formula, name, CAS number, molar mass from the element table, infrared and near-ultraviolet flags, volatility class, photolysis threshold, triple, boiling and critical points, heat capacity, latent heats and, for 24 gases, the Rayleigh cross section with the reference temperature of its refractivity fit. Every row states its source, licence and how far it is checked, and the loader refuses a row that does not. Nothing reads the table yet (GEN.411 and the 8.4 atmosphere recipes do); a test fails when a gas named in a planet class text, in the atmosphere code or in the toxicity note is not a row.
