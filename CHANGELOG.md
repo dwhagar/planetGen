@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1897] - 2026-10-22
+
+**Headline:** The Census dial sets how many systems each solar mass of stars makes, from 1 to 3, with the generator's own derived value as Auto.
+
+### Changed
+- **The Census dial (GEN.607).** `--richness` (systems per solar mass, advanced and folded away on the Generate page, 1 to 3) sets the galaxy's number of systems and the mean mass of a system, which is its inverse. Left Auto, the galaxy keeps the mean system mass the generator derives for its populations (GEN.545), so nothing a seed generates changes. A pinned value scales the galaxy's system count, the mass of the unresolved systems in a cell and the star count of a place alike, and the plan stores it with the other pins so a loaded galaxy has the same mean system mass.
+- The density report's outline constant moves with the new mean system mass (0.483 solar masses a system, not the recalled 0.4): the smallest central surface density with a planned sector at a 4 pc scale height is 0.043 solar masses per square parsec, and the `--density` floor is 0.04.
+
 ## [8.0.1896] - 2026-10-22
 
 **Headline:** Dropping a test database no longer ends another worker's query that is counting its rows, which was the "Lost connection to MySQL server during query" failure under load.
