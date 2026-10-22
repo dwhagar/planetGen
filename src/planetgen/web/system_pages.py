@@ -50,7 +50,7 @@ from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 
 from . import bp, tables
-from . import edit_actions, system_facilities, system_species
+from . import edit_actions, item_pages, system_facilities, system_species
 from .class_pages import class_url
 from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
@@ -896,21 +896,11 @@ def object_url(kind, object_id, system_id=None):
 
 @bp.route("/object/<ref>")
 def object_page(ref):
-    """Any object reference (`planet:12`, `nebula:3`, `system:` and a printed ID) redirected to the page or row that shows it (NAV.8)."""
-    try:
-        kind, object_id = objectref.parse_public(ref)
-    except ValueError:
-        abort(404)
-    system_id = None
-    if kind in BODY_REF_KINDS:
-        found = apiclient.get_object(db_name(), objectref.format_public(kind, object_id))
-        system_id = next((p["ref"].split(":")[1] for p in found["parents"] if p["kind"] == "system"), None)
-        if system_id is None:
-            abort(404)
-    return redirect(object_url(kind, object_id, system_id), code=302)
+    """Any object reference (`planet:12`, `nebula:3`, `system:` and a printed ID): the page the site has for the kind, or,
+    for a star, planet, moon, belt or comet, its own page (UX.143, `web/item_pages.py`)."""
+    return item_pages.object_page_response(ref)
 
 
-object_page.json_only = True  # a redirect, not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/phenomenon/<phenomenon_type>/<uid:phenomenon_id>", methods=["GET", "POST"])

@@ -403,6 +403,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
     everywhere = items("/api/systems?limit=100")
     with_bodies = [s for s in everywhere if client.get(f"/api/systems/{s['id']}").get_json().get("planets")]
     sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
+    planet = client.get(f"/api/systems/{sample_system['id']}").get_json()["planets"][0]
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
     conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
@@ -422,6 +423,8 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "bright_star_id": bright_star_id,  # web.uncharted_star
         "quadrant": "I",
         "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
+        "kind": "planet",  # web.object_list: /lists/planet
+        "ref": f"planet:{planet['id']}",  # web.object_page: /object/planet:<id>, a planet's own page
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
