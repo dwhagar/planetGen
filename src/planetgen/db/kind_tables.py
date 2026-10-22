@@ -74,6 +74,7 @@ KIND_TABLES = (
     _row("interstellar_comets", "interstellar_comet", "comet", "uid", "containable", "path", *_PHENOMENON),
     _row("asteroid_fields", "asteroid_field", "asteroid-field", "uid", "containable", *_PHENOMENON),
     _row("facilities", "facility", None, "uid", "sector_filed", "system_filed"),
+    _row("vessels", "vessel", None, "uid"),
 )
 """tuple: Every kind table, in the order its groups list them."""
 
@@ -89,7 +90,7 @@ ORDERS = {
                     "asteroid_fields", "nebulae"),
     "slow": ("nebulae", "asteroid_fields", "black_holes", "neutron_stars", "supernova_remnants", "rogue_planets",
              "interstellar_comets", "quasars"),
-    "ids": ("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets", "facilities", "nebulae",
+    "ids": ("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets", "facilities", "vessels", "nebulae",
             "asteroid_fields", "black_holes", "neutron_stars", "supernova_remnants", "rogue_planets",
             "interstellar_comets", "quasars"),
     "phenomenon_kinds": ("nebulae", "asteroid_fields", "black_holes", "neutron_stars", "supernova_remnants",
