@@ -7037,6 +7037,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
   the table in docs/design/galaxy-types.md is approved as written. The
   approval that held this item is given.
+  Owner: Core 1's queue lists it after GEN.545 (lane report, 4:39 PM EDT
+  as the lane reported) and it has no branch, so it is queued, not in
+  progress. The Blocker 2 lane can take it only if Core 1 confirms it
+  has not started; until then it stays with Core 1 (the TODO thread,
+  9:09 PM EDT 2026-10-21).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -18046,6 +18051,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
   the table in docs/design/galaxy-types.md is approved as written. The
   approval that held this item is given.
+  Owner: none in any lane's queue and not in progress; the coordinator
+  proposes the Blocker 2 lane (the author of the approved design, 9:09
+  PM EDT 2026-10-21). The next Alembic revision is 0114 unless another
+  lane takes it first.
   Prerequisites: none. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
