@@ -1382,6 +1382,11 @@
 --   saved it) instead of the four version text columns of v67, which are gone: the version key, release, Python and platform are looked up from the run.
 --   A sector with no recorded version (made before v67) has a NULL `run_id`.
 --
+-- v122 (DB.36): `change_plans` (who asked and in which role, the request, the state, the role that must approve, who decided and
+--   when, the job that applied it), `change_plan_ops` (a plan's operations in order: kind, target object ID, before and after as
+--   JSON, status) and `edit_journal` (the append-only list of every applied operation: plan, object ID, sector, aspect, before,
+--   after, generator epoch), for the 8.6 edit-everything plans (docs/design/edit-everything.md). Nothing reads them yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4328,6 +4333,63 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v122 (DB.36): change plans, their operations and the edit journal; see the header note.
+CREATE TABLE IF NOT EXISTS change_plans (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    requester_id     BIGINT UNSIGNED NULL,
+    requester_name   VARCHAR(255) NOT NULL,
+    requester_role   VARCHAR(16) NOT NULL,
+    request_text     TEXT NULL,
+    state            VARCHAR(16) NOT NULL DEFAULT 'draft',
+    approver_role    VARCHAR(16) NULL,
+    decided_by_id    BIGINT UNSIGNED NULL,
+    decided_by_name  VARCHAR(255) NULL,
+    decided_at       TIMESTAMP(3) NULL,
+    decision_note    TEXT NULL,
+    apply_job_id     BIGINT UNSIGNED NULL,
+    created_at       TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at       TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    KEY idx_change_plans_state (state, id),
+    KEY idx_change_plans_requester (requester_id, id),
+    CONSTRAINT chk_change_plans_state CHECK (state IN
+        ('draft', 'requested', 'proposed', 'approved', 'applied', 'undone', 'stale', 'rejected', 'withdrawn')),
+    CONSTRAINT chk_change_plans_requester_role CHECK (requester_role IN ('user', 'moderator', 'admin')),
+    CONSTRAINT chk_change_plans_approver_role CHECK (approver_role IS NULL OR approver_role IN ('moderator', 'admin'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS change_plan_ops (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    plan_id     BIGINT UNSIGNED NOT NULL,
+    op_order    INT NOT NULL,
+    kind        VARCHAR(48) NOT NULL,
+    target_uid  BINARY(12) NULL,
+    before_json JSON NULL,
+    after_json  JSON NULL,
+    status      VARCHAR(16) NOT NULL DEFAULT 'pending',
+    UNIQUE KEY uq_change_plan_ops_order (plan_id, op_order),
+    KEY idx_change_plan_ops_target (target_uid),
+    CONSTRAINT fk_change_plan_ops_plan FOREIGN KEY (plan_id) REFERENCES change_plans(id) ON DELETE CASCADE,
+    CONSTRAINT chk_change_plan_ops_status CHECK (status IN ('pending', 'applied', 'undone', 'skipped', 'failed'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS edit_journal (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    plan_id          BIGINT UNSIGNED NOT NULL,
+    op_id            BIGINT UNSIGNED NULL,
+    object_uid       BINARY(12) NOT NULL,
+    sector_id        BIGINT UNSIGNED NULL,
+    aspect           VARCHAR(64) NOT NULL,
+    before_json      JSON NULL,
+    after_json       JSON NULL,
+    generator_epoch  SMALLINT UNSIGNED NOT NULL,
+    applied_at       TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    KEY idx_edit_journal_object (object_uid, id),
+    KEY idx_edit_journal_sector (sector_id, id),
+    KEY idx_edit_journal_plan (plan_id, id),
+    CONSTRAINT fk_edit_journal_plan FOREIGN KEY (plan_id) REFERENCES change_plans(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v120 (DB.49): the digests above the sector leaves; see the header note.
 CREATE TABLE IF NOT EXISTS sector_tree_nodes (

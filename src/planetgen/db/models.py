@@ -239,6 +239,51 @@ bright_stars = sa.Table(
 )
 
 
+change_plan_ops = sa.Table(
+    'change_plan_ops',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('plan_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('op_order', mysql.INTEGER(), nullable=False),
+    sa.Column('kind', sa.String(48), nullable=False),
+    sa.Column('target_uid', mysql.BINARY(12), nullable=True),
+    sa.Column('before_json', mysql.JSON(), nullable=True),
+    sa.Column('after_json', mysql.JSON(), nullable=True),
+    sa.Column('status', sa.String(16), server_default=sa.text("'pending'"), nullable=False),
+    sa.Index('idx_change_plan_ops_target', 'target_uid'),
+    sa.Index('uq_change_plan_ops_order', 'plan_id', 'op_order', unique=True),
+    sa.CheckConstraint("(`status` in (_utf8mb4'pending',_utf8mb4'applied',_utf8mb4'undone',_utf8mb4'skipped',_utf8mb4'failed'))", name='chk_change_plan_ops_status'),
+    sa.ForeignKeyConstraint(['plan_id'], ['change_plans.id'], name='fk_change_plan_ops_plan', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+change_plans = sa.Table(
+    'change_plans',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('requester_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('requester_name', sa.String(255), nullable=False),
+    sa.Column('requester_role', sa.String(16), nullable=False),
+    sa.Column('request_text', sa.Text(), nullable=True),
+    sa.Column('state', sa.String(16), server_default=sa.text("'draft'"), nullable=False),
+    sa.Column('approver_role', sa.String(16), nullable=True),
+    sa.Column('decided_by_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('decided_by_name', sa.String(255), nullable=True),
+    sa.Column('decided_at', mysql.TIMESTAMP(fsp=3), nullable=True),
+    sa.Column('decision_note', sa.Text(), nullable=True),
+    sa.Column('apply_job_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('created_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Column('updated_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_change_plans_requester', 'requester_id', 'id'),
+    sa.Index('idx_change_plans_state', 'state', 'id'),
+    sa.CheckConstraint("((`approver_role` is null) or (`approver_role` in (_utf8mb4'moderator',_utf8mb4'admin')))", name='chk_change_plans_approver_role'),
+    sa.CheckConstraint("(`requester_role` in (_utf8mb4'user',_utf8mb4'moderator',_utf8mb4'admin'))", name='chk_change_plans_requester_role'),
+    sa.CheckConstraint("(`state` in (_utf8mb4'draft',_utf8mb4'requested',_utf8mb4'proposed',_utf8mb4'approved',_utf8mb4'applied',_utf8mb4'undone',_utf8mb4'stale',_utf8mb4'rejected',_utf8mb4'withdrawn'))", name='chk_change_plans_state'),
+    mysql_engine="InnoDB",
+)
+
+
 comet_composition = sa.Table(
     'comet_composition',
     metadata,
@@ -300,6 +345,27 @@ comets = sa.Table(
     sa.CheckConstraint('(`is_active` in (0,1))', name='comets_chk_3'),
     sa.ForeignKeyConstraint(['star_id'], ['stars.id'], name='fk_comets_star', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_comets_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+edit_journal = sa.Table(
+    'edit_journal',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('plan_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('op_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('object_uid', mysql.BINARY(12), nullable=False),
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('aspect', sa.String(64), nullable=False),
+    sa.Column('before_json', mysql.JSON(), nullable=True),
+    sa.Column('after_json', mysql.JSON(), nullable=True),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('applied_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_edit_journal_object', 'object_uid', 'id'),
+    sa.Index('idx_edit_journal_plan', 'plan_id', 'id'),
+    sa.Index('idx_edit_journal_sector', 'sector_id', 'id'),
+    sa.ForeignKeyConstraint(['plan_id'], ['change_plans.id'], name='fk_edit_journal_plan'),
     mysql_engine="InnoDB",
 )
 

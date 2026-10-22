@@ -1504,6 +1504,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (122, _table_marker("change_plans")),
     (121, _column_marker("sectors", "run_id")),
     (120, _table_marker("sector_tree_nodes")),
     (119, _table_marker("species_limit_values")),

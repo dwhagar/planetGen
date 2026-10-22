@@ -38,6 +38,9 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE edit_journal")  # v122
+        conn.execute("DROP TABLE change_plan_ops")  # v122
+        conn.execute("DROP TABLE change_plans")  # v122
         conn.execute("ALTER TABLE sectors DROP FOREIGN KEY fk_sectors_run, DROP KEY idx_sectors_run, DROP COLUMN generator_epoch,"
                      " DROP COLUMN run_id, ADD COLUMN version_key CHAR(22) NULL, ALGORITHM=COPY")  # v121
         conn.execute("DROP TABLE sector_tree_nodes")  # v120
