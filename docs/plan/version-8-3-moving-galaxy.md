@@ -73,7 +73,6 @@ N-body influence, collisions, encounters and the Quantity class.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders |  | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
 
 ## Phase 3: Events, long steps and the evaluator
 

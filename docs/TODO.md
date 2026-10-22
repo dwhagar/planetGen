@@ -668,7 +668,7 @@ with `clamp()`.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): takes the JavaScript
   Quantity built from GEN.569's class and the registry table of UX.140
   (the browser copy), instead of GEN.299's.
-  Prerequisites: GEN.569, UX.140. Related: GEN.300, GEN.299.
+  Prerequisites: UX.140. Related: GEN.300, GEN.299.
 
 - [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -859,39 +859,6 @@ with `clamp()`.
   a lane before use under the standing source rules, and any change to a
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
-
-- [ ] **UX.139 Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 4, one owner with UX.107
-  (Core 4 owns the description layer, whose call sites move with this
-  item). Do: `util/ladders.py` and `html/static/unitladder.js` keep
-  their rung order, thresholds, asides and preference systems as display
-  data and take `symbol` and `factor` from the registry; the 21
-  `format_*` wrappers in `util/format.py` (about 230 lines) become one
-  `format_quantity(Quantity)` entry plus thin names where call sites
-  need them. Nothing the site shows changes. Done: the rendered pages
-  are identical, a factor is stated once, and the generated ladder table
-  is current.
-  Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
-  and GEN.569, and this item follows GEN.569.
-  Core 4 (relayed 11:07 AM EDT 2026-10-22): GEN.568 is merged as #2476,
-  so this item no longer waits on it; GEN.569, GEN.573 and UX.139 are
-  built and gate together as one PR from about 11:09 AM EDT (Core 4 will
-  report its number).
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -5466,60 +5433,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dropped from the generator's laws above.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
-- [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
-  Boss (2026-10-16, 11:35 AM EDT, project chat): "Add new item to Phase
-  3, a "unit" class, similar to what we do with the Point in space
-  class, so that whatever kind of unit it is (length, mass, luminosity,
-  etc...) the class itself makes sure that every version of that data is
-  available all the time, and it does all the conversions, uses the
-  shared ladders, etc" Design and build. A `Quantity` class (the unit
-  class), the way SpatialPosition3D (physics/position.py, GEN.74,
-  GEN.294) is the point-in-space class: one object per measured value,
-  built from a value in any unit of its kind, with every other version
-  of that value (the SI base value and each rung of the kind's ladder)
-  available at every moment as an attribute, kept in step when the value
-  changes, so no caller converts by hand and no copy of a unit version
-  can go stale. The kinds are the ladder families the repository already
-  shows (length, mass, luminosity, time, temperature, pressure, speed,
-  density, gravity, energy and the rest of
-  docs/design/units-and-number-formatting.md); the class reads the
-  shared ladders (util/ladders.py, the one data table that
-  scripts/build_unit_ladders.py also writes for the browser) for its
-  units, conversion factors and the rung a value is shown in, and the
-  browser gets the same class from the same table, so Python and
-  JavaScript cannot disagree. It does the conversions between kinds that
-  are really one dimension (a mass as a gravitational parameter,
-  SpatialPosition3D's length_unit_m and mu_of and mass_of), refuses a
-  conversion between kinds that are not (length to mass), takes a value
-  deterministically (GEN.135) and formats through format_quantity.
-  Default decisions (they stand unless Boss says otherwise): stored
-  columns stay one column per quantity in the SI base unit, with no
-  second column or JSON for a unit version; every other version is
-  computed from the class on read and is never stored. Kinds are added
-  to the ladder table, not declared on the class, so a new kind is one
-  table row. Done: the class and its kinds, all conversions and the
-  formatting algorithm in Python and in the browser from the one ladder
-  table, SpatialPosition3D reading its mass and length through it, a
-  property test that every kind round-trips through every rung and that
-  the Python and JavaScript copies agree, and the design note updated.
-  Prerequisites: none. Related: GEN.74, GEN.109, UX.107, UX.108.
-  Overlap to settle (the TODO thread, 10:45 AM EDT 2026-10-22, asked by
-  the coordinator whether anyone holds this item): no lane row holds it
-  and nothing is reported in progress (it is only in Core 3's queue).
-  But GEN.569 (The Quantity value class, owner Core 4, assigned by the
-  coordinator at 8:16 AM EDT 2026-10-22) defines the same class in the
-  unified unit plan (docs/design/unified-unit-quantity.md, Boss's six
-  cards of 11:56 to 11:57 PM EDT 2026-10-17), and that design doc does
-  not name GEN.299 or GEN.300. Core 4 answered (relayed 10:45 AM EDT
-  2026-10-22): see below.
-  Design:
-  [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-  Replaced (Core 4's answer, relayed 10:45 AM EDT 2026-10-22): GEN.299
-  is replaced by GEN.568 (the unit registry), GEN.569 (the Quantity
-  class), GEN.573 and UX.139; its browser copy is UX.140, and the
-  every-rung round-trip test goes into Core 4's PR. Retire this item
-  once GEN.569 merges. Core 3 does not start it (it does DB.56 first).
-
 - [ ] **GEN.300 Every quantity in the code moves onto the Quantity class, and hand conversions are removed**
   Boss (2026-10-16, 11:35 AM EDT): the Quantity class (GEN.299) makes
   every version of a value available and does all the conversions, so
@@ -5546,7 +5459,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is only partly covered by the unified unit plan (the factor sweep is
   GEN.571 and the describe and API shape is GEN.574). Its subitems
   GEN.348, UX.128 and GEN.349 are not retired: they now build on
-  GEN.569's Quantity instead of GEN.299's.
+  GEN.569's Quantity instead of GEN.299's. GEN.299, GEN.569, GEN.573 and
+  UX.139 merged as #2490 (Core 4, 2:20 PM EDT 2026-10-22 as the lane
+  reported), so the sweep items are unblocked.
   Prerequisites: GEN.348, UX.128, GEN.349. Related: GEN.294, UX.108.
 
 - [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
@@ -6229,7 +6144,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): takes GEN.569's Quantity
   (the class GEN.299 would have been); the prerequisite moved from
   GEN.299 to GEN.569.
-  Prerequisites: GEN.569. Related: GEN.300, GEN.299, GEN.571, GEN.574.
+  Prerequisites: none. Related: GEN.300, GEN.299, GEN.571, GEN.574.
 
 - [ ] **GEN.349 API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed**
   Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14277,43 +14192,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.4 phase 1, no behaviour change.
   Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
 
-- [ ] **GEN.569 The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Owner: Core 4 (assigned by the coordinator, 8:16 AM EDT 2026-10-22;
-  Core 5, the proposed owner, reported it is not in progress), after
-  GEN.568; GEN.570 and UX.139 then follow it. Do: `Quantity(kind, value,
-  unit)` that keeps the truth as given and never converts it (Q1 and the
-  point class's rule); other forms are `value * factor_given /
-  factor_wanted` from the truth on first read and cached, marked stale
-  by `set`; `__slots__`; declared relations (the point class's `mass_kg`
-  and `mu` becomes the first one); finite, sign and range checks and a
-  clear error for a unit of another kind; `to_dict` giving `{kind,
-  value, unit}`; temperature offsets, with a temperature difference as
-  its own kind. Generation kernels stay on plain floats (Q2), so a PERF
-  check on the sector fill benchmark is part of GEN.570. Done: tests of
-  every form in step after any set, the relations, the refusals and that
-  a conversion between units whose ratio is a power of ten stays exact
-  in the common range.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design:
-  [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-  Core 4 (relayed 11:07 AM EDT 2026-10-22): GEN.568 is merged as #2476,
-  so this item no longer waits on it; GEN.569, GEN.573 and UX.139 are
-  built and gate together as one PR from about 11:09 AM EDT (Core 4 will
-  report its number).
-
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -14340,7 +14218,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check. Done: the sector fill time stays inside its PERF budget, the
   serialized rows are bit-identical, and a test fails when a unit-valued
   field has no declaration.
-  Prerequisites: GEN.569, GEN.565. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.565. Related: GEN.550, GEN.565,
   DB.74.
   Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
   and GEN.569, and this item follows GEN.569.
@@ -14402,34 +14280,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
-- [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 4 (the point in space,
-  with the mass object core). Do: `physics/position.py` takes
-  `length_unit` by registry key instead of `length_unit_m`, loses its
-  own `SPEED_OF_LIGHT_MS` and the bare `1000.0` in `set_velocity_kms`,
-  and its `mass_kg` and `mu` pair becomes the first declared relation of
-  the Quantity class. Nothing in the point class's frames or forms
-  changes. Done: position tests unchanged and bit-identical.
-  Core 4 (relayed 11:07 AM EDT 2026-10-22): GEN.568 is merged as #2476,
-  so this item no longer waits on it; GEN.569, GEN.573 and UX.139 are
-  built and gate together as one PR from about 11:09 AM EDT (Core 4 will
-  report its number).
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **GEN.574 Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit}**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -14451,7 +14301,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565,
+  Prerequisites: none. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14614,7 +14464,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class changes. Done: the point class's tests pass and a body's
   absolute position equals the top barycentre plus the sum of the
   offsets down its chain.
-  Prerequisites: GEN.576, GEN.569, GEN.573. Related: GEN.550, GEN.552,
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Scope expanded (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
   2026-10-18, as the coordinator relayed;
@@ -15078,7 +14928,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   deliberately wrong formula fails the gate; kernel and wrapper agree
   bit for bit on the golden inputs; the module header states the unit
   rules and that kernels take plain SI floats.
-  Prerequisites: GEN.585, GEN.569. Related: GEN.550, GEN.565, GEN.568,
+  Progress (Core 4, relayed 2:20 PM EDT 2026-10-22 as the lane's clock
+  reads): built on a branch with 21 laws, gated separately from GEN.585,
+  not merged; the vector laws `obliquity` and `galactic_orbit` are left
+  for GEN.584 to declare because the formulas here take scalars only.
+  Prerequisites: GEN.585. Related: GEN.550, GEN.565, GEN.568,
   GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -22462,7 +22316,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `docs/design/database-schema.md` for the registry, Quantity, Field and
   column registry; the unit rules in the registry file header. Done: the
   docs gate passes and no page describes a second unit table.
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565,
+  Prerequisites: none. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
