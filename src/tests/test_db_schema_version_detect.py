@@ -38,6 +38,8 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        for table in ("orbital_event_bodies", "orbital_events"):
+            conn.execute(f"DROP TABLE {table}")  # v118
         conn.execute("ALTER TABLE galaxy_shape DROP CONSTRAINT chk_galaxy_shape_family, "
                      "DROP CONSTRAINT chk_galaxy_shape_bar_axis_ratio_b, DROP CONSTRAINT chk_galaxy_shape_bar_axis_ratio_c, "
                      "DROP CONSTRAINT chk_galaxy_shape_thick_disk_amplitude, DROP CONSTRAINT chk_galaxy_shape_spheroid_amplitude, "

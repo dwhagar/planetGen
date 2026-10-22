@@ -1504,6 +1504,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (118, _table_marker("orbital_events")),
     (117, _column_marker("galaxy_shape", "family")),
     (116, _table_marker("nebula_block_stats")),
     (115, _column_marker("sectors", "parity_dirty")),

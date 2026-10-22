@@ -66,6 +66,13 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
         " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
         " VALUES (1, 1, 2, 1e8, 0, 0, 0, 0, 0, 0, 1, 'close')"),
+    # DB.56: GEN.197's `record_event` writes these; the migration only makes the tables.
+    "orbital_events": (
+        "INSERT INTO orbital_events (kind, event_time_unix, detected_time_unix, seed_string)"
+        " VALUES ('collision', 0, 0, 'test')"),
+    "orbital_event_bodies": (
+        "INSERT INTO orbital_event_bodies (event_id, role, ordinal, uid, object_kind)"
+        " VALUES (1, 'participant', 0, UNHEX('000000000000000000000001'), 'rogue_planet')"),
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),
