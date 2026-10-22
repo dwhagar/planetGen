@@ -50,8 +50,10 @@ def test_the_unbound_share_is_the_galaxys_own_for_neutron_stars_and_two_percent_
 
 
 def test_the_density_is_n_over_four_pi_r_squared_v_t_out_to_v_t_and_none_beyond():
-    outer = ejecta_field.outer_radius_pc()
-    assert 3.0e6 < outer < 5.0e6                         # "v T (3 to 5 Mpc)" for 300 to 500 km/s over 10 Gyr
+    outer = ejecta_field.outer_radius_pc("neutron-star")
+    speed = ejecta_field.mean_speed_kms("neutron-star")
+    assert 100.0 < speed < 800.0 and outer == pytest.approx(speed * 1.0e9 * tuning.EJECTA_AGE_GY * 3.15576e7 / 3.0856775814913673e13, rel=1e-3)
+    assert 3.0e6 < ejecta_field.outer_radius_pc("black-hole") < 5.0e6    # "v T (3 to 5 Mpc)" for 300 to 500 km/s over 10 Gyr
     count = ejecta_field.unbound_count("neutron-star", SHAPE, E_VALUE, EDGE_PC)
     for radius in (1.0e3, 5.0e4, 2.62e5):
         assert _density("neutron-star", radius) == pytest.approx(count / (4 * math.pi * radius ** 2 * outer))
@@ -93,15 +95,33 @@ def test_a_profile_carries_the_ejecta_of_its_cell():
     assert more.ejecta["neutron-star"] > far.ejecta["neutron-star"] > 0.0
 
 
-def test_an_ejected_objects_velocity_has_a_speed_in_the_range_and_any_direction():
+def test_an_ejected_black_holes_velocity_has_a_speed_in_the_range_and_any_direction():
     rng = random.Random(1)
     low, high = tuning.EJECTA_SPEED_RANGE_KMS
-    velocities = [ejecta_field.draw_velocity_kms(rng) for _ in range(2000)]
+    velocities = [ejecta_field.draw_velocity_kms("black-hole", None, rng) for _ in range(2000)]
     speeds = [math.sqrt(sum(c * c for c in v)) for v in velocities]
     assert all(low - 1e-9 <= speed <= high + 1e-9 for speed in speeds)
     assert abs(sum(speeds) / len(speeds) - (low + high) / 2) < 10.0
     for axis in range(3):                                  # no preferred direction
         assert abs(sum(v[axis] / s for v, s in zip(velocities, speeds)) / len(speeds)) < 0.06
+
+
+def test_an_ejected_neutron_stars_speed_follows_the_kick_laws_quantiles_in_any_direction():
+    quantiles = ejecta_field.speeds_kms("neutron-star")
+    assert len(quantiles) == tuning.EJECTA_SPEED_QUANTILES and list(quantiles) == sorted(quantiles) and quantiles[0] > 0.0
+    rng = random.Random(2)
+    velocities = [ejecta_field.draw_velocity_kms("neutron-star", None, rng) for _ in range(4000)]
+    speeds = [math.sqrt(sum(c * c for c in v)) for v in velocities]
+    assert all(quantiles[0] - 1e-9 <= speed <= quantiles[-1] + 1e-9 for speed in speeds)
+    assert sum(speeds) / len(speeds) == pytest.approx(ejecta_field.mean_speed_kms("neutron-star"), rel=0.05)
+    for axis in range(3):
+        assert abs(sum(v[axis] / s for v, s in zip(velocities, speeds)) / len(speeds)) < 0.06
+
+
+def test_a_galaxy_that_ejects_no_neutron_star_has_no_ejecta_population():
+    still = SHAPE._replace(structure=SHAPE.structure._replace(neutron_star_unbound_share=0.0, neutron_star_ejecta_speeds_kms=()))
+    assert ejecta_field.mean_speed_kms("neutron-star", still) == 0.0
+    assert ejecta_field.density_pc3("neutron-star", 1.0e4, still, E_VALUE, EDGE_PC) == 0.0
 
 
 # --- The fill ---------------------------------------------------------------------------------------------------
@@ -136,9 +156,10 @@ def test_a_fill_draws_its_ejecta_with_a_velocity_in_place_of_an_orbit():
     sector, entries = _ejected(3, _fill(30.0, 20.0))
     kinds = {entry.phenomenon_type for entry in entries}
     assert kinds == {"neutron-star", "black-hole"} and len(entries) > 20
-    low, high = tuning.EJECTA_SPEED_RANGE_KMS
     for entry in entries:
         remnant = entry.phenomenon
+        speeds = ejecta_field.speeds_kms(entry.phenomenon_type)
+        low, high = min(speeds), max(speeds)
         assert isinstance(remnant, NeutronStar if entry.phenomenon_type == "neutron-star" else BlackHole)
         assert remnant.galactic_orbital_period_gy is None and remnant.galactic_orbital_speed_kms is None
         speed = math.sqrt(sum(c * c for c in remnant.ejecta_velocity_kms))

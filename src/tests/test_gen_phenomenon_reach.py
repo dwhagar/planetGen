@@ -8,6 +8,7 @@ places objects beyond its outline.
 """
 
 import collections
+import itertools
 import math
 
 import numpy as np
@@ -18,6 +19,7 @@ from planetgen.db import store
 from planetgen.galaxy import remnant_density, density, remnant_distribution, spherical, structure_draw
 from planetgen.generation import object_first, phenomenon_reach as reach, phenomenon_scatter as scatter, run_plan
 from tests import test_gen_scatter_tiers as tiers
+from tests.row_digest import count, digest
 from tests.wide_masses import wide_mass
 from tests.test_bright_star_scatter import EXTENTS
 from tests.test_phenomenon_scatter import _scatter_args
@@ -32,9 +34,13 @@ CUT = 1.0
 PLAN_SEED = bytes(range(16))
 
 
-def _rows(function, *args, seed=3, **kwargs):
+def _stream(function, *args, seed=3, **kwargs):
     kwargs.setdefault("min_mass_solar", CUT)
-    return list(function(SHAPE, *args, EDGE_PC, E_VALUE, seed, **kwargs))
+    return function(SHAPE, *args, EDGE_PC, E_VALUE, seed, **kwargs)
+
+
+def _rows(function, *args, seed=3, **kwargs):
+    return list(_stream(function, *args, seed=seed, **kwargs))
 
 
 def _labels(rows):
@@ -58,15 +64,18 @@ def test_a_shells_rows_beyond_the_outline_are_in_their_own_cells_and_never_insid
 
 
 def test_the_same_seed_gives_the_same_rows_and_another_seed_others():
-    assert _rows(reach.scatter_shell, 20, 5, seed=4) == _rows(reach.scatter_shell, 20, 5, seed=4)
-    assert _rows(reach.scatter_shell, 20, 5, seed=4) != _rows(reach.scatter_shell, 20, 5, seed=5)
+    # Streamed: a shell is over a million rows (TEST.258).
+    assert digest(_stream(reach.scatter_shell, 20, 5, seed=4)) == digest(_stream(reach.scatter_shell, 20, 5, seed=4))
+    assert digest(_stream(reach.scatter_shell, 20, 5, seed=4)) != digest(_stream(reach.scatter_shell, 20, 5, seed=5))
 
 
 def test_sectors_already_filled_get_no_row():
-    rows = _rows(reach.scatter_shell, 20, 5)
-    skipped = {tuple(row[:3]) for row in rows[:25]}
-    kept = _rows(reach.scatter_shell, 20, 5, skip_addresses=skipped)
-    assert [row for row in rows if tuple(row[:3]) not in skipped] == kept
+    first = _stream(reach.scatter_shell, 20, 5)
+    skipped = {tuple(row[:3]) for row in itertools.islice(first, 25)}
+    first.close()
+    kept = digest(_stream(reach.scatter_shell, 20, 5, skip_addresses=skipped))
+    assert kept[0] > 0
+    assert digest(_stream(reach.scatter_shell, 20, 5), keep=lambda row: tuple(row[:3]) not in skipped) == kept
 
 
 def test_the_rows_inside_the_outline_are_the_ones_the_band_walk_gives():
@@ -92,18 +101,23 @@ def test_the_inside_and_beyond_together_agree_with_the_band_walk_of_the_whole_sh
 
 @pytest.mark.parametrize("first, last", [(1500, 1540), (30000, 30400)])
 def test_the_far_pass_agrees_with_the_shells_one_by_one(first, last):
-    far = sum(len(_rows(reach.scatter_far, first, last, seed=seed, check=True)) for seed in range(2))
-    each = sum(len(_rows(reach.scatter_shell, shell, -1, seed=seed)) for seed in range(2)
+    far = sum(count(_stream(reach.scatter_far, first, last, seed=seed, check=True)) for seed in range(2))
+    each = sum(count(_stream(reach.scatter_shell, shell, -1, seed=seed)) for seed in range(2)
                for shell in range(first, last + 1))
     assert far > 100
     assert far == pytest.approx(each, rel=0.12)
 
 
 def test_the_far_pass_has_its_own_stream_and_is_reproducible():
-    a = _rows(reach.scatter_far, 1500, 1540, seed=6)
-    assert a == _rows(reach.scatter_far, 1500, 1540, seed=6) and a != _rows(reach.scatter_far, 1500, 1540, seed=7)
-    assert all(1500 <= row[0] <= 1540 for row in a)
+    def far(seed):   # streamed: the pass is nearly two million rows (TEST.258)
+        return digest(_stream(reach.scatter_far, 1500, 1540, seed=seed), check=lambda row: _in_far_shells(row))
+    a = far(6)
+    assert a[0] > 0 and a == far(6) and a != far(7)
     assert list(reach.scatter_far(SHAPE, 100, 99, EDGE_PC, E_VALUE, 1)) == []
+
+
+def _in_far_shells(row):
+    assert 1500 <= row[0] <= 1540, row
 
 
 def test_every_class_bound_covers_its_weight_at_random_points_of_a_group():

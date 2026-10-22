@@ -20,7 +20,7 @@ import pytest
 from planetgen.util import draw
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
-from planetgen.galaxy import mass_chain, scales
+from planetgen.galaxy import enclosed_mass, scales
 from planetgen.galaxy import sector as spaceSector_module
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import (
@@ -116,11 +116,11 @@ def test_hill_radius_ly_matches_real_solar_neighborhood_data(monkeypatch):
     Validates hill_radius_ly against real astronomy: the Sun's own Hill
     sphere relative to the Milky Way is commonly cited (Oort cloud outer
     boundary) at ~100,000-150,000 AU, i.e. ~1.6-2.4 ly. The generator draws
-    each galaxy's own virial mass (GEN.400), so the check sets a galaxy of
-    the Milky Way's mass (a test value, the plausibility target) as the
-    central mass.
+    each galaxy's own enclosed mass (GEN.370), so the check sets the Milky
+    Way's whole mass (a test value, the plausibility target the cited range
+    is for) as the central mass.
     """
-    monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e12 * constants.SOLAR_MASS_TO_KG)
+    monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e12 * constants.SOLAR_MASS_TO_KG)
     # The Sun's galactocentric distance, 8,200 pc (a test value, the plausibility target): a system with no place is
     # taken at the galaxy's half-mass radius instead (GEN.404).
     monkeypatch.setattr(scales, "default_galactocentric_ly", lambda: pc_to_ly(8200.0))

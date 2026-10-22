@@ -647,7 +647,7 @@ def add_ejecta(sector, args, fill, galactic_center_dist_ly=None):
     The neutron stars and black holes the galaxy ejected that stream through this sector (GEN.238): per kind, a Poisson
     count with the mean of the sector's profile (`SectorProfile.ejecta`, `ejecta_field`), each remnant built like any
     other (a stellar-mass black hole), placed like a rolled one (anywhere in the cube clear of the Hill spheres already
-    there), and given a velocity of its own (`ejecta_field.draw_velocity_kms`) in place of an orbit. They carry no
+    there), and given a velocity of its own (`ejecta_field.draw_velocity_kms`: the galaxy's kick law for a neutron star) in place of an orbit. They carry no
     planets: a kick that unbinds a star strips them. A sector with no profile (a standalone one) has none.
 
     Returns:
@@ -667,7 +667,7 @@ def add_ejecta(sector, args, fill, galactic_center_dist_ly=None):
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly, mass_class="stellar")
                 else:
                     remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly)
-                remnant.eject(ejecta_field.draw_velocity_kms())
+                remnant.eject(ejecta_field.draw_velocity_kms(kind, getattr(profile, "shape", None)))
                 try:
                     entries.append(sector.add_phenomenon(remnant, kind))
                 except ValueError:

@@ -10,9 +10,9 @@
     <tbody>
       {%- for row in rows %}
       <tr>
-        <th scope="row">{{ row.title }}<br><code class="setting-path">{{ row.path }}</code></th>
+        <th scope="row">{{ row.title }}</th>
         <td><code>{{ row.old_text if row.old_text != '' else '(empty)' }}</code></td>
-        <td><code>{% if row.reset %}default: {% endif %}{{ row.new_text if row.new_text != '' else '(empty)' }}</code>{% if row.restart %} <span class="setting-tag">needs a restart</span>{% endif %}</td>
+        <td><code>{% if row.reset %}default: {% endif %}{{ row.new_text if row.new_text != '' else '(empty)' }}</code>{% if row.restart %} <span class="setting-tag">applies after a restart</span>{% endif %}</td>
       </tr>
       {%- endfor %}
     </tbody>

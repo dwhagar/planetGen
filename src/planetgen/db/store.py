@@ -85,7 +85,7 @@ from planetgen.generation.comet import Comet, comet_designation, rename_comet_de
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.prevalence import FEATURES as PREVALENCE_FEATURES
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.galaxy.density import GalaxyShape
+from planetgen.galaxy.density import GalaxyShape, with_system_richness
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at,
@@ -7650,6 +7650,8 @@ def get_galaxy_shape(conn):
     if seed is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
         chain = massChain.draw_mass_chain(seed, pinned_mass, halo_mass_pinned(seed, pinned_mass, pins))
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
+    if pins.get("richness") is not None:     # the Census dial (GEN.607): the mean system mass follows the pinned richness
+        shape = with_system_richness(shape, pins["richness"])
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],

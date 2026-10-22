@@ -970,3 +970,14 @@ Baseline: PR #1817.
 | GEN.545 | 8.1 | Galaxy laws build |
 | DB.33 | 8.1 | Bugs and flaky tests |
 | DB.66 | 8.3 | Galactic gravity |
+| TEST.265 | 8.1 | Bugs and flaky tests |
+| GEN.607 | 8.1 | Galaxy laws build |
+| TEST.268 | 8.1 | Bugs and flaky tests |
+| TEST.241 | 8.1 | Multi-star and compact systems |
+| ADM.102 | 8.1 | Admin control suite |
+| ADM.103 | 8.1 | Admin control suite |
+| ADM.104 | 8.1 | Admin control suite |
+| ADM.97 | 8.1 | Admin control suite |
+| ADM.105 | 8.1 | Admin control suite |
+| ADM.106 | 8.1 | Admin control suite |
+| ADM.100 | 8.1 | Admin control suite |

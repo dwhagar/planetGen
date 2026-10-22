@@ -99,3 +99,33 @@ def test_small_galaxies_lose_more_of_their_neutron_stars_than_large_ones():
     small, large = [share for _m, share in rows[:30]], [share for _m, share in rows[-30:]]
     assert sum(small) / 30 > sum(large) / 30 + 0.2
     assert min(share for _m, share in rows) < 0.1 and max(share for _m, share in rows) > 0.5
+
+
+def test_the_ejected_speeds_are_ascending_quantiles_that_rise_with_the_kick_and_fall_with_the_well():
+    chain = _chain(MILKY_WAY_STARS, MILKY_WAY_HALO)
+    speeds = natal_kick.ejecta_speeds_kms(chain, 220.0, 2.6)
+    assert len(speeds) == tuning.EJECTA_SPEED_QUANTILES and list(speeds) == sorted(speeds) and speeds[0] > 0.0
+    assert sum(speeds) / len(speeds) < 700.0
+    faster = natal_kick.ejecta_speeds_kms(chain, 220.0, 2.6, sigma_kms=350.0)
+    assert sum(faster) / len(faster) > sum(speeds) / len(speeds)
+    deeper = natal_kick.ejecta_speeds_kms(_chain(MILKY_WAY_STARS, 4.0 * MILKY_WAY_HALO), 220.0, 2.6)
+    assert sum(deeper) / len(deeper) < sum(speeds) / len(speeds)
+
+
+def test_the_ejected_speed_law_integrates_to_the_unbound_share():
+    """The weights over the speeds above the escape speed add up to `survival` at that radius."""
+    chain = _chain(MILKY_WAY_STARS, MILKY_WAY_HALO)
+    sigma = tuning.NEUTRON_STAR_KICK_SIGMA_KMS
+    a = 220.0 / sigma
+    escape = natal_kick.escape_speed_kms(chain, 2.6, 8.2) / sigma
+    steps = int(natal_kick._EJECTA_SPEED_SPAN / natal_kick._EJECTA_SPEED_STEP)
+    total = sum(natal_kick._speed_density(escape + (i + 0.5) * natal_kick._EJECTA_SPEED_STEP, a)
+                for i in range(steps)) * natal_kick._EJECTA_SPEED_STEP
+    assert total == pytest.approx(natal_kick.survival(a, escape), rel=2e-3)
+
+
+def test_a_galaxy_with_a_well_too_deep_to_leave_ejects_nothing_and_has_no_speeds():
+    deep = _chain(MILKY_WAY_STARS, 1.0e15)
+    assert natal_kick.ejecta_speeds_kms(deep, 220.0, 2.6) == ()
+    assert galaxyStructure.REFERENCE_STRUCTURE.neutron_star_ejecta_speeds_kms == natal_kick.ejecta_speeds_kms(
+        galaxyStructure._MILKY_WAY_CHAIN, 220.0, 2.6)

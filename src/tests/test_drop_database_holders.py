@@ -108,3 +108,41 @@ def test_a_pooled_connection_that_was_never_returned_is_named_by_the_code_that_t
         assert "test_a_pooled_connection_that_was_never_returned" in str(caught[0].message)
     finally:
         store.close_pool(config)
+
+
+def test_a_connection_that_reads_a_table_for_a_moment_is_not_ended(server):
+    """TEST.262: `list_databases` of another worker counts the rows of every test database; it holds the table's
+    metadata lock until it commits, and ending it cut that worker's query off ("Lost connection to MySQL server")."""
+    import threading
+
+    kwargs, name, opened, admin = server
+    reader = pymysql.connect(**kwargs)   # no current database: it reads the table by its qualified name
+    opened.append(reader)
+    with reader.cursor() as cur:
+        cur.execute(f"SELECT COUNT(*) FROM `{name}`.t")   # a transaction: holds the table's lock until it ends
+    timer = threading.Timer(0.5, reader.commit)
+    timer.start()
+    try:
+        ended = dbpool.drop_database(kwargs, name)
+    finally:
+        timer.join()
+    assert ended == []
+    with reader.cursor() as cur:
+        cur.execute("SELECT 1")
+        assert cur.fetchone()[0] == 1
+    assert not _exists(admin, name)
+
+
+def test_a_connection_that_keeps_reading_a_table_is_ended_after_the_gentle_wait(server):
+    kwargs, name, opened, admin = server
+    reader = pymysql.connect(**kwargs)
+    opened.append(reader)
+    with reader.cursor() as cur:
+        cur.execute(f"SELECT COUNT(*) FROM `{name}`.t")   # never committed
+        reader_id = reader.thread_id()
+    started = time.monotonic()
+    with pytest.warns(UserWarning, match="TEST.193"):
+        ended = dbpool.drop_database(kwargs, name)
+    assert [row[0] for row in ended] == [reader_id]
+    assert dbpool.GENTLE_WAIT_SECONDS - 1 <= time.monotonic() - started < dbpool.DROP_WAIT_SECONDS + 3
+    assert not _exists(admin, name)

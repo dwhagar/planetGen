@@ -122,22 +122,34 @@ def watch_checkouts():
         watch_checkouts.started = True
 
 
+LOCK_WAIT_TIMEOUT = 1205
+"""int: MySQL's error for a statement that waited `lock_wait_timeout` seconds for a lock."""
+
 DROP_WAIT_SECONDS = 10
 """How long a `DROP DATABASE` of a test database waits for a lock before it fails (TEST.193). Without a limit the
 server waits as long as another connection holds a table of the database (it waited 853 s in a gate run)."""
 
 
-def database_holders(cur, name):
+GENTLE_WAIT_SECONDS = 3
+"""How long `drop_database` waits for the connections that merely read from a database to let go before it ends them
+too (TEST.262): another worker's `list_databases` counts the rows of every test database and holds each table's
+metadata lock for a moment, and a drop that ended it failed that worker's test with "Lost connection to MySQL
+server during query"."""
+
+
+def database_holders(cur, name, owned_only=False):
     """`[(connection id, user, host, command, idle seconds, state)]` of the other connections that use or hold a lock
     on database `name`: those whose current database it is, and those holding a granted metadata lock on one of its
     tables (a connection that did `USE` something else but read from it; needs the server's performance schema,
-    which some servers run without, and then only the first kind is found)."""
+    which some servers run without, and then only the first kind is found). With `owned_only` only the first kind."""
     found = {}
     cur.execute(
         "SELECT ID, USER, HOST, COMMAND, TIME, STATE FROM information_schema.PROCESSLIST"
         " WHERE DB = %s AND ID <> CONNECTION_ID()", (name,))
     for row in cur.fetchall():
         found[row[0]] = tuple(row)
+    if owned_only:
+        return sorted(found.values())
     try:
         cur.execute(
             "SELECT DISTINCT t.PROCESSLIST_ID, t.PROCESSLIST_USER, t.PROCESSLIST_HOST, t.PROCESSLIST_COMMAND,"
@@ -153,10 +165,12 @@ def database_holders(cur, name):
 
 
 def drop_database(server_kwargs, name, wait_seconds=DROP_WAIT_SECONDS):
-    """Drops test database `name`, first ending every connection that still holds it (TEST.193), and never waits
-    more than `wait_seconds` for a lock. A connection left open by a thread that outlived its test (a server thread
-    still writing a response the browser gave up on, a pooled connection checked out) would otherwise keep the
-    drop waiting for minutes.
+    """Drops test database `name`, first ending the connections whose current database it is (TEST.193), and never
+    waits more than `wait_seconds` for a lock. A connection left open by a thread that outlived its test (a server
+    thread still writing a response the browser gave up on, a pooled connection checked out) would otherwise keep
+    the drop waiting for minutes. A connection of another database that holds one of its tables (another worker
+    counting the rows of every test database) is given `GENTLE_WAIT_SECONDS` to let go first and is ended only if
+    it does not (TEST.262), so that worker's query is not cut off.
 
     Returns:
         list[tuple]: The connections it ended, as `database_holders` lists them (empty when none was open)."""
@@ -164,14 +178,21 @@ def drop_database(server_kwargs, name, wait_seconds=DROP_WAIT_SECONDS):
     ended = []
     try:
         with conn.cursor() as cur:
-            cur.execute("SET SESSION lock_wait_timeout = %s", (int(wait_seconds),))
-            for holder in database_holders(cur, name):
+            gentle = min(GENTLE_WAIT_SECONDS, int(wait_seconds))
+            for attempt, (owned_only, wait) in enumerate(((True, gentle), (False, int(wait_seconds)))):
+                cur.execute("SET SESSION lock_wait_timeout = %s", (wait,))
+                for holder in database_holders(cur, name, owned_only=owned_only):
+                    try:
+                        cur.execute(f"KILL {int(holder[0])}")
+                        ended.append(holder)
+                    except pymysql.MySQLError:  # it ended on its own meanwhile
+                        pass
                 try:
-                    cur.execute(f"KILL {int(holder[0])}")
-                    ended.append(holder)
-                except pymysql.MySQLError:  # it ended on its own meanwhile
-                    pass
-            cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
+                    cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
+                    break
+                except pymysql.err.OperationalError as error:
+                    if error.args[0] != LOCK_WAIT_TIMEOUT or attempt:
+                        raise
         conn.commit()
     finally:
         conn.close()

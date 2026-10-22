@@ -881,6 +881,8 @@ with `clamp()`.
   need them. Nothing the site shows changes. Done: the rendered pages
   are identical, a factor is stated once, and the generated ladder table
   is current.
+  Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
+  and GEN.569, and this item follows GEN.569.
   Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -6923,10 +6925,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   45 or later on its rebase. Epoch (Core 4, GEN.596 merged as #2428,
   about 5:01 AM EDT 2026-10-22 as the lane reported): epoch 45 is now
   taken on main (44 is the Auto default), so this item renumbers to
-  epoch 46 or later on its rebase.
-  Epoch (Core 1, GEN.545 merged as #2434, about 5:42 AM EDT 2026-10-22
-  as the lane reported): epoch 46 is now taken on main (pending; the
-  next release stamps it), so this item takes epoch 47 or later on its
+  epoch 46 or later on its rebase. Epoch (Core 1, GEN.545 merged as
+  #2434, about 5:42 AM EDT 2026-10-22 as the lane reported): epoch 46 is
+  now taken on main (stamped in release 8.0.1893), so this item takes
+  epoch 47 or later on its rebase.
+  Epoch (Core 4, GEN.554 slice 4 merged as #2452, about 8:03 AM EDT
+  2026-10-22 as the lane reported): epoch 47 is now taken on main
+  (release 8.0.1899), so this item takes epoch 48 or later on its
   rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
@@ -7084,6 +7089,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are NULL, meaning "as the structure draw gives them from the seed";
   the other columns default to 0 or 1. This item reads them: a NULL
   means ask the structure draw, never a fixed number.
+  Scope note (Blocker 2, about 7:31 AM EDT 2026-10-22 as the lane
+  reported): the lane's pending PR (gating with GEN.600, GEN.311 and
+  GEN.269) delivers the first slice only, `density_components`; the rest
+  of this item stays open.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7959,6 +7968,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 4's, proposed).
+  Progress (Blocker 2, slices 1 and 2 merged as #2450, release 8.0.1898,
+  about 7:31 AM EDT 2026-10-22 as the lane reported): the gas table plus
+  the Henry and viscosity constants. This item stays open for a third
+  slice: the IR band strengths (research part 03) and the UV absorption
+  flags and bin tables (part 02 section 2.3). The saturation-pressure
+  curves are GEN.452, a separate item. The class gate is GEN.411.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -13756,7 +13771,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U4 of the draft. Today the white dwarf
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
+  design thread 'Unify star-like objects (2026-10-17)'; now
+  docs/design/unified-star-like-objects.md, approved by Boss's eight
+  cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as
+  the coordinator relayed (each the draft's recommended option)). Owners
+  are Boss's card D7. U4 of the draft. Today the white dwarf
   initial-final relation is applied in four files (`stellar_evolution`,
   `multistar`, `scatter_companions`, `place_terms`), the neutron star
   and black hole mass in five, the Schwarzschild radius in two, and the
@@ -13778,42 +13798,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the rogue surface module's duplicated Burrows constants are replaced
   by the `brown_dwarf` module. Done: each rule lives in one function,
   the duplicated copies are gone with no shim, a brown dwarf takes the
-  population's age, and the tests for each kind pass. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules for
-  the whole chain: NO FIXED CONTENT (nothing copied from the Solar
-  System or the Milky Way), the database schema is not a constraint, no
-  backward-compatibility shims, every draw through the one wrapper
-  `util/draw.py` (GEN.56), every recalled source verified by a lane
-  before use under the standing source rules, and any change to a drawn
-  value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: none. Related: GEN.550, GEN.252,
-  GEN.463, GEN.467, GEN.469.
-  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
-  EDT, 2026-10-17, as the coordinator relayed): the relation function
-  for the white dwarf initial-final relation and the neutron star and
-  black hole mass draw moves to 8.1 as GEN.562 with no behaviour change;
-  the rest of this item (the five-step body draw, the free brown dwarf,
-  ages from the population) stays in 8.4.
-  The object classes this draw feeds (GEN.565, the mass object core and
-  its three family classes) are built with this item (card E3, 11:48 PM
-  EDT as relayed).
-  In progress (Core 4, reported 1:31 PM EDT 2026-10-18 on the lane's
-  clock, starting in the draft order of GEN.550 with card E3): sliced
-  plan, each slice its own gate and PR, golden output unchanged until
-  the value-changing slice: (1) GEN.565a the MassObject core (identity,
-  mass, radius, parent-relative state, age, spin, galactic motion) with
-  table-driven to_dict and from_dict, Star becoming the StellarObject
-  family with CompactRemnant, BlackHole and NeutronStar as states so the
-  `_skip_property_init` workaround and the duplicated constructor tails
-  go; (2) GEN.565b PlanetaryObject (Planet, moon, RoguePlanet) and
-  SmallBody (Comet, InterstellarComet) on the same core; (3) GEN.553 the
-  five-step body draw (origin table, birth with the IMF below 0.08 solar
-  masses and the population's age and [Fe/H], present state, a
-  composition hook for GEN.439 and GEN.440, motion with the remnant
-  kick), value-changing and taking a new epoch; the free brown dwarf
-  leaves `rogue_planets` there, which needs Core 1's DB.73 and DB.74
-  table shape agreed first; (4) GEN.554 after GEN.553, with the
-  explosion-map sources verified before use. Core 4 will not touch
-  GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  population's age, and the tests for each kind pass. Owner: Core 4
+  (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator
+  relayed; Core 4's 8.4 items stay held until its 8.1 chain is built),
+  8.4 phase 1. Standing rules for the whole chain: NO FIXED CONTENT
+  (nothing copied from the Solar System or the Milky Way), the database
+  schema is not a constraint, no backward-compatibility shims, every
+  draw through the one wrapper `util/draw.py` (GEN.56), every recalled
+  source verified by a lane before use under the standing source rules,
+  and any change to a drawn value bumps the generator epoch (OPS.56
+  rule).
+  Prerequisites: none. Related: GEN.550, GEN.252, GEN.463, GEN.467,
+  GEN.469. Back-scatter answer (Boss's back-scatter cards, taps 11:38 to
+  11:40 PM EDT, 2026-10-17, as the coordinator relayed): the relation
+  function for the white dwarf initial-final relation and the neutron
+  star and black hole mass draw moves to 8.1 as GEN.562 with no
+  behaviour change; the rest of this item (the five-step body draw, the
+  free brown dwarf, ages from the population) stays in 8.4. The object
+  classes this draw feeds (GEN.565, the mass object core and its three
+  family classes) are built with this item (card E3, 11:48 PM EDT as
+  relayed). In progress (Core 4, reported 1:31 PM EDT 2026-10-18 on the
+  lane's clock, starting in the draft order of GEN.550 with card E3):
+  sliced plan, each slice its own gate and PR, golden output unchanged
+  until the value-changing slice: (1) GEN.565a the MassObject core
+  (identity, mass, radius, parent-relative state, age, spin, galactic
+  motion) with table-driven to_dict and from_dict, Star becoming the
+  StellarObject family with CompactRemnant, BlackHole and NeutronStar as
+  states so the `_skip_property_init` workaround and the duplicated
+  constructor tails go; (2) GEN.565b PlanetaryObject (Planet, moon,
+  RoguePlanet) and SmallBody (Comet, InterstellarComet) on the same
+  core; (3) GEN.553 the five-step body draw (origin table, birth with
+  the IMF below 0.08 solar masses and the population's age and [Fe/H],
+  present state, a composition hook for GEN.439 and GEN.440, motion with
+  the remnant kick), value-changing and taking a new epoch; the free
+  brown dwarf leaves `rogue_planets` there, which needs Core 1's DB.73
+  and DB.74 table shape agreed first; (4) GEN.554 after GEN.553, with
+  the explosion-map sources verified before use. GEN.555 is Core 3's;
+  GEN.568 and GEN.569 are Core 4's too (GEN.569 assigned by the
+  coordinator, 8:16 AM EDT 2026-10-22).
   Merged in part: the first slice (Core 4, #2284, release 8.0.1843,
   reported 6:11 PM EDT 2026-10-18 on the lane's clock, generator epoch
   36 stamped): a free-floating brown dwarf gets its age from its place's
@@ -13827,21 +13849,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stale: the hold is lifted. Core 4 started its 8.4 items in the draft
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
-  (reported 4:33 PM EDT 2026-10-18).
-  Lane report (Core 4, 7:36 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): slice 2 is PR #2303 (draft, claims epoch
-  37, gate started 7:17 AM EDT, 42% at 7:36 AM EDT): a neutron star's or
-  stellar black hole's age follows its population (progenitor from the
-  IMF over its range, birth age from the population's window and age
-  law, less the time to collapse); intermediate and supermassive black
-  holes and given ages keep theirs; `youngest_progenitor_sol` moves from
-  multistar into stellar_evolution and the three progenitor ranges move
-  into tuning; new note docs/design/remnant-age.md. Still open: the
-  remnant row as star state, [Fe/H], the composition hook (GEN.439,
-  GEN.440), the free brown dwarf leaving `rogue_planets` (needs Core 1's
-  DB.73 and DB.74 shape), motion and kick.
+  (reported 4:33 PM EDT 2026-10-18). Lane report (Core 4, 7:36 AM EDT
+  2026-10-21 as the lane reported, filed by the TODO thread): slice 2 is
+  PR #2303 (draft, claims epoch 37, gate started 7:17 AM EDT, 42% at
+  7:36 AM EDT): a neutron star's or stellar black hole's age follows its
+  population (progenitor from the IMF over its range, birth age from the
+  population's window and age law, less the time to collapse);
+  intermediate and supermassive black holes and given ages keep theirs;
+  `youngest_progenitor_sol` moves from multistar into stellar_evolution
+  and the three progenitor ranges move into tuning; new note
+  docs/design/remnant-age.md. Still open: the remnant row as star state,
+  [Fe/H], the composition hook (GEN.439, GEN.440), the free brown dwarf
+  leaving `rogue_planets` (needs Core 1's DB.73 and DB.74 shape), motion
+  and kick.
   Merged in part: the second slice (Core 4, #2303, about 9:11 AM EDT
-  2026-10-21 as the lane reported, generator epoch 39, stamped by release 8.0.1850): a neutron star's or stellar black hole's age
+  2026-10-21 as the lane reported, generator epoch 39, stamped by
+  release 8.0.1850): a neutron star's or stellar black hole's age
   follows its population (progenitor from the IMF over its range, birth
   age from the population's window and age law, less the time to
   collapse); intermediate and supermassive black holes and given ages
@@ -13852,47 +13875,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U5 of the draft. A neutron star or
-  black hole becomes a star-like object whose state is 'remnant', with a
-  progenitor mass and a birth time like every other star. Quick check by
-  the design thread (its own computation with the generator's IMF breaks
-  0.08, 0.5, 150 Msun and slopes 1.3, 2.3, not sourced): 0.45% of stars
-  born above 0.08 Msun have progenitors in 8 to 20 Msun, 0.53% in 8 to
-  30 Msun and 0.17% in 20 to 100 Msun, against the generator's fixed
-  0.4% for neutron stars and 0.05% for black holes (densities 5.6e-4 and
-  7e-5 per pc^3). So the neutron star count is already the right size
-  and the black hole count needs a verified failed-supernova and
-  direct-collapse share and a kick-escape share (about 40% of neutron
-  stars and 2% of black holes leave the galaxy per
-  `compact-remnant-regions.md`). Do: derive the counts from the body
-  draw's origin row 'remnant of a star'; `remnant_distribution.py` keeps
-  its role as the placement of the kick (thicker layer, black hole core
-  excess, the Lorimer pulsar profile); a remnant above the mass cut
-  (default 14 Msun in code) is still a scatter row and one below is
-  still drawn at fill (the GEN.168 pattern); intermediate and
-  supermassive black holes keep their own origin rows. The progenitor
-  ranges 8 to 30 and 20 to 100 and the explosion maps need verified
-  sources first (recalled and unverified: O'Connor and Ott 2011,
-  Sukhbold et al. 2016, Fryer et al. 2012). Decided (card D2): derive the counts from the mass function and the verified explosion maps, Boss's densities become test targets, and the black hole share needs a verified source first. Done:
-  counts are outputs, the old densities are tests with the gap shown,
-  each source is verified or the row is labelled a placeholder. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules
-  for the whole chain: NO FIXED CONTENT (nothing copied from the Solar
-  System or the Milky Way), the database schema is not a constraint, no
-  backward-compatibility shims, every draw through the one wrapper
-  `util/draw.py` (GEN.56), every recalled source verified by a lane
-  before use under the standing source rules, and any change to a drawn
-  value bumps the generator epoch (OPS.56 rule).
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
+  design thread 'Unify star-like objects (2026-10-17)'; now
+  docs/design/unified-star-like-objects.md, approved by Boss's eight
+  cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as
+  the coordinator relayed (each the draft's recommended option)). Owners
+  are Boss's card D7. U5 of the draft. A neutron star or black hole
+  becomes a star-like object whose state is 'remnant', with a progenitor
+  mass and a birth time like every other star. Quick check by the design
+  thread (its own computation with the generator's IMF breaks 0.08, 0.5,
+  150 Msun and slopes 1.3, 2.3, not sourced): 0.45% of stars born above
+  0.08 Msun have progenitors in 8 to 20 Msun, 0.53% in 8 to 30 Msun and
+  0.17% in 20 to 100 Msun, against the generator's fixed 0.4% for
+  neutron stars and 0.05% for black holes (densities 5.6e-4 and 7e-5 per
+  pc^3). So the neutron star count is already the right size and the
+  black hole count needs a verified failed-supernova and direct-collapse
+  share and a kick-escape share (about 40% of neutron stars and 2% of
+  black holes leave the galaxy per `compact-remnant-regions.md`). Do:
+  derive the counts from the body draw's origin row 'remnant of a star';
+  `remnant_distribution.py` keeps its role as the placement of the kick
+  (thicker layer, black hole core excess, the Lorimer pulsar profile); a
+  remnant above the mass cut (default 14 Msun in code) is still a
+  scatter row and one below is still drawn at fill (the GEN.168
+  pattern); intermediate and supermassive black holes keep their own
+  origin rows. The progenitor ranges 8 to 30 and 20 to 100 and the
+  explosion maps need verified sources first (recalled and unverified:
+  O'Connor and Ott 2011, Sukhbold et al. 2016, Fryer et al. 2012).
+  Decided (card D2): derive the counts from the mass function and the
+  verified explosion maps, Boss's densities become test targets, and the
+  black hole share needs a verified source first. Done: counts are
+  outputs, the old densities are tests with the gap shown, each source
+  is verified or the row is labelled a placeholder. Owner: Core 4
+  (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator
+  relayed; Core 4's 8.4 items stay held until its 8.1 chain is built),
+  8.4 phase 1. Standing rules for the whole chain: NO FIXED CONTENT
+  (nothing copied from the Solar System or the Milky Way), the database
+  schema is not a constraint, no backward-compatibility shims, every
+  draw through the one wrapper `util/draw.py` (GEN.56), every recalled
+  source verified by a lane before use under the standing source rules,
+  and any change to a drawn value bumps the generator epoch (OPS.56
+  rule).
   Prerequisites: GEN.553. Related: GEN.550, GEN.463, GEN.467, GEN.469,
-  GEN.377.
-  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
-  EDT, 2026-10-17, as the coordinator relayed): the black hole density
-  constant alone moves to 8.1 as GEN.563 (needs GEN.560); the derived
-  counts for every remnant, the kick step and the rest of this item stay
-  in 8.4; the neutron star count already matches and does not change.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): O'Connor
-  and Ott 2011 (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821, 38) and
-  Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
+  GEN.377. Back-scatter answer (Boss's back-scatter cards, taps 11:38 to
+  11:40 PM EDT, 2026-10-17, as the coordinator relayed): the black hole
+  density constant alone moves to 8.1 as GEN.563 (needs GEN.560); the
+  derived counts for every remnant, the kick step and the rest of this
+  item stay in 8.4; the neutron star count already matches and does not
+  change. Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT;
+  the newer note wins, report todo-contradictions-2026-10-18.md):
+  O'Connor and Ott 2011 (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821,
+  38) and Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
   2026-10-17, 11:55 PM EDT); "recalled and unverified" no longer applies
   to them. The kick-escape share stays unverified.
   Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
@@ -13901,56 +13933,64 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stale: the hold is lifted. Core 4 started its 8.4 items in the draft
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
-  (reported 4:33 PM EDT 2026-10-18).
-  Slice 1 merged as #2314 (Core 4, 1:15 PM EDT 2026-10-21 as the lane
-  reported): the neutron star count is the massive stars minus the black
-  holes, `remnant_density.py` replaces `black_hole_density.py`, the
-  unbound share of neutron stars is a structure field, and the generator
-  epoch 40 is pending (it takes its stamp at the next release). Boss
-  chose 'Keep the cap' on the black hole cap card (12:39 PM EDT
-  2026-10-21, as Core 4 reported). The item stays open for the mass
-  islands and the kick step. Boss's 1:17 PM EDT 2026-10-21 note (as the
-  coordinator relayed): Network access to arxiv.org, doi.org and
-  crossref stays closed until he opens it, and information already
-  included in the repository or in files he provided is valid; so the
-  kick-escape share and any other source this step cannot read stay
-  labelled recalled or placeholder in the gap registry and do not block
-  the step.
-  Slices 2 and 3 in flight (Core 4, 4:40 PM EDT 2026-10-21 as the lane
-  reported): explosion islands, the natal kick and the black hole cap at
-  the reference unbound share; docs explosion-islands.md and
-  natal-kick.md are new and four design notes are edited; its `changed`
-  gate on MySQL 8 started 3:54 PM EDT (51 percent at 4:39 PM EDT).
-  Epoch: the branch stamps 41, but 41 is taken on main by GEN.544
-  (8.0.1855), so it renumbers at merge to the next free one. Stand-ins
-  for the gap registry that this slice adds: nesting of failure windows
-  above the verified islands (stand-in); kick sigma 265 km/s (recalled,
-  Hobbs 2005, unverified); black hole unbound share 2 percent
-  (placeholder); a single Maxwellian instead of two components; birth
-  only in the thin disc; ejecta speed not yet the kick tail above
-  escape; `remnant_distribution` placement still empirical; the neutron
-  star and black hole mass function unchanged (a later slice); magnetars
-  still use the tuning rate as their stand-in. Reference neutron star
-  unbound share is 16 percent (the old 20 to 40 percent is a test target
-  only; the published Milky Way halo gives 27 percent). Perturber mass
-  changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
-  AU because of the new rates. Network access is closed (Boss, 1:17 PM
-  EDT), so the unverified sources stay labelled recalled.
-  Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT 2026-10-21
-  as the lane reported; GEN.597 was fixed inside it), release 8.0.1873,
-  generator epoch 43. Effects: the standalone neutron star rate is
-  4.66e-3 per star (Boss's 4.0e-3 stays a test target), the black hole
-  rate 8.6e-4, the perturber mass changes from 1.44 to 1.01 solar masses
-  (not the 0.88 reported while the branch was in flight). The stand-ins
-  this slice adds are labelled in docs/design/explosion-islands.md and
-  docs/design/natal-kick.md: nesting of failure windows above the
-  verified islands [stand-in]; kick sigma 265 km/s [recalled, Hobbs
-  2005]; black hole unbound share 2 percent [placeholder]; one
-  Maxwellian [stand-in]; birth in the thin disc only [stand-in]; the
-  black hole ejecta speed range [stand-in]. Still open in this item: the
-  neutron star mass function, the placement of kicked remnants, the
-  ejected neutron star speed (slice 4, coded, next) and the magnetar
-  rate stand-in.
+  (reported 4:33 PM EDT 2026-10-18). Slice 1 merged as #2314 (Core 4,
+  1:15 PM EDT 2026-10-21 as the lane reported): the neutron star count
+  is the massive stars minus the black holes, `remnant_density.py`
+  replaces `black_hole_density.py`, the unbound share of neutron stars
+  is a structure field, and the generator epoch 40 is pending (it takes
+  its stamp at the next release). Boss chose 'Keep the cap' on the black
+  hole cap card (12:39 PM EDT 2026-10-21, as Core 4 reported). The item
+  stays open for the mass islands and the kick step. Boss's 1:17 PM EDT
+  2026-10-21 note (as the coordinator relayed): Network access to
+  arxiv.org, doi.org and crossref stays closed until he opens it, and
+  information already included in the repository or in files he provided
+  is valid; so the kick-escape share and any other source this step
+  cannot read stay labelled recalled or placeholder in the gap registry
+  and do not block the step. Slices 2 and 3 in flight (Core 4, 4:40 PM
+  EDT 2026-10-21 as the lane reported): explosion islands, the natal
+  kick and the black hole cap at the reference unbound share; docs
+  explosion-islands.md and natal-kick.md are new and four design notes
+  are edited; its `changed` gate on MySQL 8 started 3:54 PM EDT (51
+  percent at 4:39 PM EDT). Epoch: the branch stamps 41, but 41 is taken
+  on main by GEN.544 (8.0.1855), so it renumbers at merge to the next
+  free one. Stand-ins for the gap registry that this slice adds: nesting
+  of failure windows above the verified islands (stand-in); kick sigma
+  265 km/s (recalled, Hobbs 2005, unverified); black hole unbound share
+  2 percent (placeholder); a single Maxwellian instead of two
+  components; birth only in the thin disc; ejecta speed not yet the kick
+  tail above escape; `remnant_distribution` placement still empirical;
+  the neutron star and black hole mass function unchanged (a later
+  slice); magnetars still use the tuning rate as their stand-in.
+  Reference neutron star unbound share is 16 percent (the old 20 to 40
+  percent is a test target only; the published Milky Way halo gives 27
+  percent). Perturber mass changes from 1.44 to 0.88 and the encounter
+  limit from 1.1e4 to 1.9e4 AU because of the new rates. Network access
+  is closed (Boss, 1:17 PM EDT), so the unverified sources stay labelled
+  recalled. Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT
+  2026-10-21 as the lane reported; GEN.597 was fixed inside it), release
+  8.0.1873, generator epoch 43. Effects: the standalone neutron star
+  rate is 4.66e-3 per star (Boss's 4.0e-3 stays a test target), the
+  black hole rate 8.6e-4, the perturber mass changes from 1.44 to 1.01
+  solar masses (not the 0.88 reported while the branch was in flight).
+  The stand-ins this slice adds are labelled in
+  docs/design/explosion-islands.md and docs/design/natal-kick.md:
+  nesting of failure windows above the verified islands [stand-in]; kick
+  sigma 265 km/s [recalled, Hobbs 2005]; black hole unbound share 2
+  percent [placeholder]; one Maxwellian [stand-in]; birth in the thin
+  disc only [stand-in]; the black hole ejecta speed range [stand-in].
+  Still open in this item: the neutron star mass function, the placement
+  of kicked remnants, the ejected neutron star speed (slice 4, merged
+  below) and the magnetar rate stand-in.
+  Slice 4 merged as #2452 (Core 4, about 8:03 AM EDT 2026-10-22 as the
+  lane reported), release 8.0.1899, generator epoch 47: an ejected
+  neutron star leaves at the speed its natal kick leaves above the
+  escape speed (a galaxy's own quantiles; mean about 386 km/s for a
+  Milky Way structure, the coordinator's figure; the epoch note says
+  about 390) instead of a uniform 300 to 500 km/s; the field is
+  `Structure.neutron_star_ejecta_speeds_kms`. Still open in this item:
+  the neutron star mass function, the black hole mass from the
+  progenitor, the placement of kicked remnants and the magnetar
+  stand-in.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14309,43 +14349,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the brown dwarf fold into it as states: protostar,
   pre-main-sequence, main sequence, giant, white dwarf, neutron star,
   black hole, brown dwarf; the `_skip_property_init` workaround goes),
-  `PlanetaryObject` (`Planet` with its `is_moon`, `RoguePlanet`: a moon is a planetary object whose parent is a
-  planet, a rogue planet one with no parent), `SmallBody` (`Comet`,
-  `InterstellarComet`, belt and field members). Rule: subclass only
-  where behaviour differs and the object never changes kind; anything
-  that can change or is a matter of degree is state or parent data.
-  Groups (the nodes of a multi-star tree) are not bodies and stay
-  `OrbitNode`. The floor (E2): the class can represent any body of 10 m
-  diameter (5 m radius) or more across about 34 orders of magnitude of
-  mass (1.05e6 kg for a 10 m rock to the 2.0e40 kg black hole), with
-  every position relative to the parent, never galaxy-absolute (10 m at
-  262 kpc is a relative precision of 1e-21, beyond a double); rows are
-  generated from each population's own cut (a planet or moon always, a
-  comet above its size cut, belt members on demand: the k-th largest
-  member of a belt is a pure function of the belt's seed and k, nothing
-  stored). E4: the core is planned to take ships and stations
-  (`facilities` has no mass or size column) in 9.3, and nothing is built
-  for them now. E3: built inside the host chain, not as a separate
-  refactor; it removes the 17 copies of five rules (the white dwarf
-  initial-final relation in four places, the NS/BH mass in five, three
-  age rules, two Schwarzschild formulas, two Burrows luminosities) with
-  GEN.553, and the serializers and constructor boilerplate of the nine
-  classes (about 300 to 360 and 170 to 350 lines; whole net saving about
-  800 to 1,800 of about 9,000 lines touched, the design thread's own
-  estimate and not measured by running anything). Risk to watch: the
-  orbital update steps planets and moons as state vectors, stars and
-  wanderers by galactic-orbit phase, comets by their own Kepler state,
-  and the nightly batch order is the easiest place to break
-  reproducibility; one state vector for all is a real saving that was
-  not measured. Done: the nine classes are gone with no shim, every kind
-  loads and stores through the core and its profile, and the golden
-  output is unchanged by the refactor itself (it bumps no epoch unless
-  folded into GEN.553's changes). Owner: Core 4 (Boss's card D7, 11:28
-  to 11:31 PM EDT as relayed), built with GEN.553 and GEN.557; 8.4 phase
-  1.
+  `PlanetaryObject` (`Planet` with its `is_moon`, `RoguePlanet`: a moon
+  is a planetary object whose parent is a planet, a rogue planet one
+  with no parent), `SmallBody` (`Comet`, `InterstellarComet`, belt and
+  field members). Rule: subclass only where behaviour differs and the
+  object never changes kind; anything that can change or is a matter of
+  degree is state or parent data. Groups (the nodes of a multi-star
+  tree) are not bodies and stay `OrbitNode`. The floor (E2): the class
+  can represent any body of 10 m diameter (5 m radius) or more across
+  about 34 orders of magnitude of mass (1.05e6 kg for a 10 m rock to the
+  2.0e40 kg black hole), with every position relative to the parent,
+  never galaxy-absolute (10 m at 262 kpc is a relative precision of
+  1e-21, beyond a double); rows are generated from each population's own
+  cut (a planet or moon always, a comet above its size cut, belt members
+  on demand: the k-th largest member of a belt is a pure function of the
+  belt's seed and k, nothing stored). E4: the core is planned to take
+  ships and stations (`facilities` has no mass or size column) in 9.3,
+  and nothing is built for them now. E3: built inside the host chain,
+  not as a separate refactor; it removes the 17 copies of five rules
+  (the white dwarf initial-final relation in four places, the NS/BH mass
+  in five, three age rules, two Schwarzschild formulas, two Burrows
+  luminosities) with GEN.553, and the serializers and constructor
+  boilerplate of the nine classes (about 300 to 360 and 170 to 350
+  lines; whole net saving about 800 to 1,800 of about 9,000 lines
+  touched, the design thread's own estimate and not measured by running
+  anything). Risk to watch: the orbital update steps planets and moons
+  as state vectors, stars and wanderers by galactic-orbit phase, comets
+  by their own Kepler state, and the nightly batch order is the easiest
+  place to break reproducibility; one state vector for all is a real
+  saving that was not measured. Done: the nine classes are gone with no
+  shim, every kind loads and stores through the core and its profile,
+  and the golden output is unchanged by the refactor itself (it bumps no
+  epoch unless folded into GEN.553's changes). Owner: Core 4 (Boss's
+  card D7, 11:28 to 11:31 PM EDT as relayed), built with GEN.553 and
+  GEN.557; 8.4 phase 1.
   Prerequisites: none. Related: GEN.550, GEN.553, GEN.557, GEN.556,
-  GEN.552.
-  Units (Boss's cards Q1 to Q6, 11:56 to 11:57 PM EDT, as the
+  GEN.552. Units (Boss's cards Q1 to Q6, 11:56 to 11:57 PM EDT, as the
   coordinator relayed): its field table gets a declared kind and native
   unit per field in GEN.570, after the registry GEN.568 and the Quantity
   class GEN.569; this item does not wait on them (it is a prerequisite
@@ -14356,25 +14395,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cards S16 and S17): the core's point is the kinematic record of
   GEN.584 (position, velocity, spin axis and rate in rad/s, mass with
   mu, epoch and next-due), with identity, radius and age beside it; this
-  item declares the fields.
-  In progress (Core 4, reported 1:31 PM EDT 2026-10-18 on the lane's
-  clock, starting in the draft order of GEN.550 with card E3): sliced
-  plan, each slice its own gate and PR, golden output unchanged until
-  the value-changing slice: (1) GEN.565a the MassObject core (identity,
-  mass, radius, parent-relative state, age, spin, galactic motion) with
-  table-driven to_dict and from_dict, Star becoming the StellarObject
-  family with CompactRemnant, BlackHole and NeutronStar as states so the
-  `_skip_property_init` workaround and the duplicated constructor tails
-  go; (2) GEN.565b PlanetaryObject (Planet, moon, RoguePlanet) and
-  SmallBody (Comet, InterstellarComet) on the same core; (3) GEN.553 the
-  five-step body draw (origin table, birth with the IMF below 0.08 solar
-  masses and the population's age and [Fe/H], present state, a
-  composition hook for GEN.439 and GEN.440, motion with the remnant
-  kick), value-changing and taking a new epoch; the free brown dwarf
-  leaves `rogue_planets` there, which needs Core 1's DB.73 and DB.74
-  table shape agreed first; (4) GEN.554 after GEN.553, with the
-  explosion-map sources verified before use. Core 4 will not touch
-  GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  item declares the fields. In progress (Core 4, reported 1:31 PM EDT
+  2026-10-18 on the lane's clock, starting in the draft order of GEN.550
+  with card E3): sliced plan, each slice its own gate and PR, golden
+  output unchanged until the value-changing slice: (1) GEN.565a the
+  MassObject core (identity, mass, radius, parent-relative state, age,
+  spin, galactic motion) with table-driven to_dict and from_dict, Star
+  becoming the StellarObject family with CompactRemnant, BlackHole and
+  NeutronStar as states so the `_skip_property_init` workaround and the
+  duplicated constructor tails go; (2) GEN.565b PlanetaryObject (Planet,
+  moon, RoguePlanet) and SmallBody (Comet, InterstellarComet) on the
+  same core; (3) GEN.553 the five-step body draw (origin table, birth
+  with the IMF below 0.08 solar masses and the population's age and
+  [Fe/H], present state, a composition hook for GEN.439 and GEN.440,
+  motion with the remnant kick), value-changing and taking a new epoch;
+  the free brown dwarf leaves `rogue_planets` there, which needs Core
+  1's DB.73 and DB.74 table shape agreed first; (4) GEN.554 after
+  GEN.553, with the explosion-map sources verified before use. GEN.555
+  is Core 3's; GEN.568 and GEN.569 are Core 4's too (GEN.569 assigned by
+  the coordinator, 8:16 AM EDT 2026-10-22).
   Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
   4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
   field name or draw changes): `generation/mass_object.py`
@@ -14392,9 +14431,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (#2270) made a toy galaxy hold the Milky Way's stellar mass in a 40 pc
   disk and GEN.404's gate did not include that test; the test now reads
   in relative units (30 s for the whole file). Owned by Core 4, so no
-  TEST item.
-  Standing design rule (Boss, 2026-10-18, 5:20 PM EDT, typed in the
-  project chat, relayed by the coordinator;
+  TEST item. Standing design rule (Boss, 2026-10-18, 5:20 PM EDT, typed
+  in the project chat, relayed by the coordinator;
   docs/design/mass-object-class.md): "For all objects are objects with
   mass in the system. I want to make sure that galactic motion is not
   the only thing that they handle because the trajectory of all motion,
@@ -14406,13 +14444,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.565a (#2274) covers only the galactic-motion fields and the save
   and load, so GEN.565b and the kinematic record of GEN.584 must bring
   the planetary and lunar trajectory into the same core functions; Core
-  4 was told to check GEN.565b against this rule.
-  Re-scope (Core 4, reported 5:25 PM EDT 2026-10-18 on the lane's clock,
-  after Boss's standing rule above): GEN.565b changes from 'the
-  planetary and small-body families' to 'motion in the core'. One state
-  vector relative to the parent (position, velocity, epoch and parent
-  mass) and one `advance(seconds)` on `kepler.universal_step` for every
-  body, whatever its parent (a star, a planet or the galaxy);
+  4 was told to check GEN.565b against this rule. Re-scope (Core 4,
+  reported 5:25 PM EDT 2026-10-18 on the lane's clock, after Boss's
+  standing rule above): GEN.565b changes from 'the planetary and
+  small-body families' to 'motion in the core'. One state vector
+  relative to the parent (position, velocity, epoch and parent mass) and
+  one `advance(seconds)` on `kepler.universal_step` for every body,
+  whatever its parent (a star, a planet or the galaxy);
   `HoldsOrbitPosition` folds into `MassObject`. The family classes
   follow after that slice. No output change in this slice. GEN.584,
   DB.73 and DB.74 (Core 1) should store this same state vector.
@@ -14434,13 +14472,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator reported them): fork 14, "A stellar
   state": a free-floating brown dwarf is a StellarObject state, not a
   PlanetaryObject; the brown dwarf row is removed from the
-  PlanetaryObject text.
-  Lane report (Core 4, 7:36 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): 565c (the planetary, small-body and stellar
-  families folding CompactRemnant, BlackHole, NeutronStar and
-  BinaryStarProxy, and the S16 record declared with spin axis and rate
-  in rad/s and next-due) waits on Core 1's storage shape (DB.74);
-  position, velocity, mass, mu and epoch already sit on
+  PlanetaryObject text. Lane report (Core 4, 7:36 AM EDT 2026-10-21 as
+  the lane reported, filed by the TODO thread): 565c (the planetary,
+  small-body and stellar families folding CompactRemnant, BlackHole,
+  NeutronStar and BinaryStarProxy, and the S16 record declared with spin
+  axis and rate in rad/s and next-due) waits on Core 1's storage shape
+  (DB.74); position, velocity, mass, mu and epoch already sit on
   `SpatialPosition3D`.
   Merged in part: GEN.565c (Core 4, #2308, about 10:42 AM EDT 2026-10-21
   as the lane reported; no epoch, no stored change; gate 12,938 passed
@@ -14537,21 +14574,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
   one unit code that stores any kind of unit the project uses and
   answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 5 (or Core 4). Do:
-  `Quantity(kind, value, unit)` that keeps the truth as given and never
-  converts it (Q1 and the point class's rule); other forms are `value *
-  factor_given / factor_wanted` from the truth on first read and cached,
-  marked stale by `set`; `__slots__`; declared relations (the point
-  class's `mass_kg` and `mu` becomes the first one); finite, sign and
-  range checks and a clear error for a unit of another kind; `to_dict`
-  giving `{kind, value, unit}`; temperature offsets, with a temperature
-  difference as its own kind. Generation kernels stay on plain floats
-  (Q2), so a PERF check on the sector fill benchmark is part of GEN.570.
-  Done: tests of every form in step after any set, the relations, the
-  refusals and that a conversion between units whose ratio is a power of
-  ten stays exact in the common range.
+  Owner: Core 4 (assigned by the coordinator, 8:16 AM EDT 2026-10-22;
+  Core 5, the proposed owner, reported it is not in progress), after
+  GEN.568; GEN.570 and UX.139 then follow it. Do: `Quantity(kind, value,
+  unit)` that keeps the truth as given and never converts it (Q1 and the
+  point class's rule); other forms are `value * factor_given /
+  factor_wanted` from the truth on first read and cached, marked stale
+  by `set`; `__slots__`; declared relations (the point class's `mass_kg`
+  and `mu` becomes the first one); finite, sign and range checks and a
+  clear error for a unit of another kind; `to_dict` giving `{kind,
+  value, unit}`; temperature offsets, with a temperature difference as
+  its own kind. Generation kernels stay on plain floats (Q2), so a PERF
+  check on the sector fill benchmark is part of GEN.570. Done: tests of
+  every form in step after any set, the relations, the refusals and that
+  a conversion between units whose ratio is a power of ten stays exact
+  in the common range.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+  Design:
+  [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -14581,6 +14621,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   field has no declaration.
   Prerequisites: GEN.568, GEN.569, GEN.565. Related: GEN.550, GEN.565,
   DB.74.
+  Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
+  and GEN.569, and this item follows GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **GEN.571 Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set**
@@ -15486,9 +15528,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bottom-heavy or top-heavy IMF), the derivation takes it from the
   component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
   test checks the derived mean against a seeded draw. Owner: Core 1
-  (proposed; GEN.545 merged as #2434, so it is free to start, in Core
-  1's queue after DB.33 and TEST.241); a generator change, so it takes
-  the next free epoch.
+  (proposed; GEN.545 merged as #2434, so it is free to start, Core 1's
+  current item: the coordinator's order of 8:16 AM EDT 2026-10-22 is
+  GEN.598 now, then DB.76, DB.73 and DB.74 (TEST.241 merged as #2454));
+  a generator change, so it takes the next free epoch.
   Prerequisites: none. Related: GEN.545 (done, #2434), GEN.404.
 
 - [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
@@ -15547,35 +15590,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `update.sh --help` and the README row (DOC.72) mention it. Owner:
   Blocker 2 proposed (small; it can go first).
   Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
-
-- [ ] **GEN.607 Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces the
-  constant `tuning.MEAN_SYSTEM_MASS_SOLAR` as a user lever: how many
-  systems the mass holds, so the density in systems and the cost of a
-  full generation. Default the value GEN.545 derived (about 0.48 solar
-  mass per system for the reference galaxy, about 2.1 per solar mass;
-  merged as #2434, epoch 46, release 8.0.1893); the range is a narrow band about the
-  IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped "No,
-  wait for GEN.545", card
-  cmsg_01RuNTFUNB92A8cm5CbojQAiEVg9cpevtSbXZPtt2uETHf): the Census dial
-  is added after GEN.545 settles the mean system mass; the first release
-  of the dials has four: Scale, Structure, Edge and Halo. Done: the
-  slider is tested alone; Auto gives GEN.545's derived value; the system
-  count scales as stated; hidden unless Advanced is shown.
-  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT 2026-10-21;
-  the richness choice is decided). Unblocked: GEN.545 merged as #2434
-  (about 5:42 AM EDT 2026-10-22 as the lane reported).
-  Prerequisites: none. Related: GEN.603, GEN.545 (done, #2434).
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
@@ -15742,8 +15756,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Boss's ruling); below it only a thin disc and a bulge are drawn.
   Done: planning galaxies below and above the threshold draws exactly
   those components (a test patches each component's draw to fail below
-  it); at and above it nothing changes. Owner: the Galaxy dials lane
-  (proposed; the coordinator confirms). No longer blocked on a card.
+  it); at and above it nothing changes. Owner: none (the Galaxy dials
+  lane finished and retired, about 7:05 AM EDT 2026-10-22 as the lane
+  reported; the coordinator assigns a lane). No longer blocked on a
+  card.
   Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.604.
 
 - [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
@@ -15762,7 +15778,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   size, with a warning under D 20 and a refusal when the outline would
   be empty. Done: the line appears in both places with the same numbers
   (a test compares them); an empty outline is refused with the reason.
-  Owner: the Galaxy dials lane (proposed).
+  Owner: the Galaxy dials lane (assigned by the coordinator, 8:37 AM EDT
+  2026-10-22, so ADM.124 can show the line; the lane had finished and
+  retired about 7:05 AM EDT as the lane reported, and the coordinator
+  reopened its thread for this item at 8:40 AM EDT as the lane clock
+  reads).
   Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
@@ -17723,6 +17743,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
+  then DB.76, DB.73 and DB.74.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -17791,6 +17813,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   table. Derived, and their columns dropped in the DB.73 revision:
   speed, axial tilt, rotation period, a*, ms period, galactic orbital
   speed, period and phase, and min_update_interval_years.
+  Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
+  then DB.76, DB.73 and DB.74.
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -17854,6 +17878,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `test_point_columns.py` that fails when a numeric column has no
   declaration, and a test that each unit suffix equals the declared unit
   (Q4). Fits the load and insert of DB.74.
+  Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
+  then DB.76, DB.73 and DB.74.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -19218,51 +19244,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.13).
   Prerequisites: API.8. Related: API.3.
 
-- [ ] **ADM.97 The settings page can show a number as a slider: the cache size is the first one**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." The
-  settings page is generated from the settings model and renders every
-  number as a text box; only the Generate page has sliders
-  (`web/limit_sliders.py`, `static/limitsliders.js`, UX.116, log or
-  linear stops with a number box). Do: a `slider` option kind in the
-  generated form that reuses that widget (a number box beside it, stops
-  from the option's own range), the page and `config.json` stay in step,
-  and `cache.max_mb` uses it (range 64 MB to 8 GB on log stops, default
-  1 GB). Done: the settings page shows the slider for `cache.max_mb`,
-  moving it writes the key, editing `config.json` moves the slider, and
-  a test covers the round trip. Suggested owner: Core 2 with the
-  settings page code; filed in 8.2.
-  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
-  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch): the
-  key `cache.max_mb` now exists in the settings model,
-  `config.schema.json` and docs/config.md and the old
-  `tile_cache.max_mb` is gone with no shim; the settings-page slider is
-  still this item.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported).
-  Folded into ADM.104 (S4, the settings controls): the slider is built
-  there; this item closes with it (admin redesign thread, 6:12 PM EDT as
-  the thread reported).
-  Phase (TODO thread, 2026-10-21): this item moves from 8.2 to the 8.1
-  admin control suite section, after ADM.104, so it closes with the
-  slider it is folded into.
-  Prerequisites: ADM.104.
-
 - [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
   Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
   somewhere? generate is horribly to use, it needs a full redesign as
@@ -19302,114 +19283,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the shell, job strip and palette, then Generate; every admin page goes
   onto the one shell once. Closes with its children ADM.107 to ADM.117
   (G1 to G11) and the shared suite items ADM.118 to ADM.123.
-
-- [ ] **ADM.100 Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default**
-  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
-  somewhere? generate is horribly to use, it needs a full redesign as
-  it's grown too complicated for it's simplistic format, the settings
-  page is incomprehensible and we need nice, clean, settings that don't
-  look like I'm writing a linux config file, also a lot of stuff in
-  there can't be changed, so how about just not list the things that
-  cannot be changed or have an option to hide them that is defaulted to
-  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
-  own dedicated thread, add an issue for it to group all the todo items
-  together in if one doesn't exist. Start researching ways to pack a lot
-  of options into an admin control suite that will include the generate
-  control suite. The interface needs to get out of the way. All items
-  related to this not already in progress move immediately to the new
-  thread -- however, before it's begins building, it's going to
-  research, generate a report, and give me decision / choice cards."
-  Today the settings page reads like a Linux config file (ADM.43, ADM.44
-  built it, PR #1921), and many entries cannot be changed from the page.
-  Do: redesign the page from the report and the answered cards of
-  ADM.98: clear groups in plain words, a one-line description and the
-  unit for each setting, sensible controls (switch, slider as in ADM.97,
-  choice list) instead of raw values, a search box, a
-  changed-from-default mark, the Owner-tier settings of ADM.86 kept
-  behind their prompt, and a 'hide settings that cannot be changed'
-  toggle, on by default, remembered per admin, so read-only entries (set
-  in config.json or the environment, or fixed) are listed only when it
-  is turned off. Done: the page is rebuilt on the admin shell, every
-  changeable setting is reachable and described, nothing that cannot be
-  changed shows while the toggle is on, a browser test covers the toggle
-  both ways and a change that saves, and docs/config.md matches. Owner:
-  the admin redesign thread, after Boss answers the cards of ADM.98.
-  Prerequisites: ADM.102, ADM.103, ADM.104, ADM.105, ADM.106. Related: ADM.43, ADM.44, ADM.86,
-  ADM.97, UX.137.
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Closes with its children ADM.101 to ADM.106
-  (S1 to S6).
-
-- [ ] **ADM.102 Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S2).
-  `settings_view.describe` returns `class` (editable, owner, server,
-  overridden) and `fixed_reason`, plus counts; the page, the API and the
-  command line share it. Done: unit tests for each class on a fixture
-  model; the API returns them; the count of fixed options matches
-  `iter_fields`. Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.100.
-
-- [ ] **ADM.103 Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S3).
-  Boss's answers 7, 8 and 9: grouped rows with the two-step review kept,
-  settings the web cannot change hidden by default and remembered in
-  this browser and the URL, environment-overridden settings shown with a
-  warning badge. Owner-only options stay hidden with the fixed ones
-  until the Owner account exists (ADM.86, USR.31). Done: a browser test:
-  the page loads with the fixed options hidden, the switch shows them
-  with their reasons, search filters rows and groups, a change enables
-  the save bar; works with script off, in both themes, keyboard only.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Prerequisites: ADM.102, UX.124. Related: ADM.100, ADM.86,
-  UX.126.
-
-- [ ] **ADM.104 Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S4).
-  Absorbs ADM.97 (the cache size is the first slider); reuses the UX.116
-  limit sliders (`limit_slider`). Done: each control round-trips its
-  value through `collect` and the writer; a rate string stays valid for
-  the limiter; invalid input shows its error at the row. Owner: the
-  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
-  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
-  then Generate).
-  Prerequisites: ADM.103. Related: ADM.100, ADM.97, UX.116.
-
-- [ ] **ADM.105 Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S5).
-  Keeps the two-step review (answer 7). Done: review tests are updated;
-  the audit rows and the backup are byte-identical to today's. Owner:
-  the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
-  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
-  then Generate).
-  Prerequisites: ADM.103. Related: ADM.100.
-
-- [ ] **ADM.106 Settings: the server-files disclosure and the overridden-option badge**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S6).
-  Says in words which options live only in server files and names the
-  exact command; secrets show only set or empty. Done: the text names
-  the exact command; secrets show only 'set' or 'empty'. Owner: the
-  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
-  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
-  then Generate).
-  Prerequisites: ADM.102. Related: ADM.100.
 
 - [ ] **ADM.107 Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19512,16 +19385,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Settings first, then the shell and palette, then Generate).
   Prerequisites: ADM.107. Related: ADM.99.
 
-- [ ] **ADM.115 Generate: Run again from History, and named recipes saved per admin in the control database**
+- [ ] **ADM.115 Generate: Run again from History**
   Child of the admin control suite (Boss's 13 decision cards, tapped
   6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
   design note docs/design/admin-control-suite.md, section 5, key G9).
   Boss's answer 11. The job record must hold the form. Done: Run again
   re-runs a finished job with its stored settings; a failed job's Run
-  again goes back to its Review step; a recipe saves, lists, runs and
-  deletes per admin in the control database. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
+  again goes back to its Review step; (named recipes were split out to
+  ADM.125 at the admin redesign thread's suggestion, 8:30 AM EDT
+  2026-10-22 as the lane reported; Run again is built). Owner: the admin
+  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
+  (Boss's answer 1: Settings first, then the shell and palette, then
+  Generate).
+  Run again is built in the lane's pending shell and Generate PR
+  (ADM.118 to ADM.123, ADM.92, ADM.93, ADM.107 to ADM.109, ADM.113 to
+  ADM.115, ADM.121, plus TEST.269), which waits on one more full gate
+  (the coordinator, 8:31 AM EDT).
   Prerequisites: ADM.108, ADM.114. Related: ADM.99.
 
 - [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
@@ -19649,14 +19528,38 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   browser test moves each slider, pins and unpins it, and sees the argv
   in the Review step; the form never offers a value the command line
   refuses; works in both themes, without script and at phone width.
-  Owner: the admin redesign thread (the Generate suite); the lever table items belong to the Galaxy dials lane.
-  Unit selectors (Boss, 7:01 PM EDT 2026-10-21): Edge has a unit
-  selector (L, pc, kpc, Mpc) whose slider range and step follow the
-  unit; the absolute scale length has pc and kpc; both read the lever
-  table's unit column (GEN.601). The first release shows four dials,
-  Scale, Structure, Edge and Halo; Census follows GEN.607 after GEN.545.
-  Prerequisites: ADM.108.
-  Related: ADM.99, ADM.112, DB.81.
+  Owner: the admin redesign thread (the Generate suite); the lever table
+  items belong to the Galaxy dials lane. Unit selectors (Boss, 7:01 PM
+  EDT 2026-10-21): Edge has a unit selector (L, pc, kpc, Mpc) whose
+  slider range and step follow the unit; the absolute scale length has
+  pc and kpc; both read the lever table's unit column (GEN.601). The
+  first release shows four dials, Scale, Structure, Edge and Halo;
+  Census (GEN.607, merged as #2443) is the fifth dial.
+  GEN.617 supplies the density line this panel shows; the coordinator
+  assigned it to the Galaxy dials lane at 8:37 AM EDT 2026-10-22.
+  Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
+
+- [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G9).
+  Split out of ADM.115 (the admin redesign thread, 8:30 AM EDT
+  2026-10-22 as the lane reported: Run again is built, named recipes are
+  not, because they need a table in the control database and a
+  migration; the thread suggested filing them on their own once the
+  migration numbers settle). Boss's answer 11: a recipe is a named,
+  saved form, kept per admin. Do: a control-database table of recipes
+  (admin, name, the form as the job record stores it, created and
+  updated times) with its Alembic migration (the next free revision on
+  main at merge time; head is 0117, 0118 is free), a Save as recipe
+  action on the Review step, a recipe list on the Start screen that
+  fills the form, and rename and delete. Done: a recipe saves, lists,
+  runs and deletes per admin, one admin cannot see or run another's, the
+  migration upgrades and downgrades cleanly, and a browser test covers
+  save, run and delete. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.115. Related: ADM.99, ADM.108.
 
 ## SEC: Security
 
@@ -21323,58 +21226,6 @@ clears each one.
   Owner: Core 4 with the test lane (Boss's card D7), 8.4 phase 4.
   Prerequisites: GEN.565, DB.74. Related: GEN.550, TEST.239.
 
-- [ ] **TEST.241 Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
-  on the System design, as the coordinator relayed with the wake times
-  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
-  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
-  stay binary'), every one the recommended option: S1 a member's stored
-  orbit is its barycentre about the central object (a planet's stored
-  state is the barycentre of the planet and its moons), S2 the central
-  object's offset is derived on read and never stored (the wobble
-  columns go), S3 the most massive member is the central object and
-  comparable-mass pairs stay binary nodes, S4 a system node takes a
-  central child and any number of members, S5 a stand-in size cut of 1
-  km diameter for hosting satellites plus fit and stability checks, S6
-  moons may have satellites through the same gate with a tidal-survival
-  gate row first (the odds start at zero; this supersedes 'moons are the
-  lowest level'), S7 the point class's system frame measures from the
-  top-level barycentre with a new local frame from the immediate
-  parent's barycentre, S8 the stored values change in the 8.4 revision
-  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
-  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
-  2026-10-18 (project chat): a System is unified rules around the
-  central object (as binary stars are done now); every object other than
-  the central object can be another system with that object as its
-  central object, down to small objects that get no satellites; all
-  objects follow the same physics, so the origin of the system's space
-  is the gravitational center and the central object may move around it.
-  Item SY2 of the note (section 5 point 3), an 8.1 convention with a
-  test. Proposed owner, not assigned by a card: Core 1 (it owns
-  `point_columns.py`). Do: write the rule into docs/design and the
-  header of `physics/position.py` (never store an absolute sector or
-  galactic position for anything inside a system; store the
-  parent-relative state and let the barycentre be the system's row
-  point; this is already how the scatter rows and the planets are
-  stored), and add a test that lists every table that stores a body
-  position and fails if one stores an absolute position of a body inside
-  a system. It protects GEN.317, GEN.130, GEN.327 and GEN.273. No
-  behaviour change and no epoch. Done: the test passes on main and fails
-  on a table given an absolute position.
-  Convention extended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
-  2026-10-18, as the coordinator relayed;
-  docs/design/unified-system-barycentre.md, sections 12.2 point 4 and
-  13.5): a stored state (position and velocity) is always
-  parent-relative about the parent's central object, in a non-rotating
-  frame whose axes are the galactic axes, with its epoch; a stored spin
-  is a unit axis in those axes plus a rate in rad/s. Nothing in 8.1
-  stores a state about a barycentre, in a rotating frame, or a spin in
-  another form; GEN.104 (built) and GEN.142 (superseded by GEN.557) stay
-  as they are.
-  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
-  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
-
 - [ ] **TEST.242 Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-system-barycentre.md, decided: Boss's nine cards
@@ -21579,9 +21430,10 @@ clears each one.
   2,063 seconds (test_web_browser_crumbs at 1280 and at 320, and three
   in test_web_browser_units), and test_old_jobs_are_pruned timed out at
   30 seconds once; all pass alone. A browser and job-timing load class,
-  separate from the MySQL sightings of TEST.265; Bug Hunt looks at them
-  with this item. Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM
-  EDT 2026-10-22 as the lane reported, filed by the TODO thread):
+  separate from the MySQL sightings, which #2442 closed; Bug Hunt looks
+  at them with this item. Sixth sighting (Bug Hunt, #2425's gate, about
+  4:43 AM EDT 2026-10-22 as the lane reported, filed by the TODO
+  thread):
   test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
   took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
   Same load class as the fifth sighting; Bug Hunt took this item next.
@@ -21591,86 +21443,21 @@ clears each one.
   The double-click failure itself did not reproduce in 41 runs under
   four-way browser load, so this item stays open for the double-click
   part only, as "watch for the new message". The MySQL lost-connection
-  sightings moved to their own item, TEST.265 (root cause found).
+  sightings moved to their own item, TEST.265, which #2442 fixed.
+  Watch period (the TODO thread's judgment, about 7:05 AM EDT 2026-10-22
+  as the lane reported): #2442 (Bug Hunt, about 7:03 AM EDT) fixed the
+  MySQL cause: `tests/dbpool.py` `drop_database` no longer kills other
+  workers' `list_databases` connections (it ends only connections whose
+  current database it is, gives other lock holders 3 s, then ends them),
+  which closes every "Lost connection to MySQL server during query" and
+  503 "database unavailable" sighting recorded here (facilities,
+  /sectors, the information_schema size query, admin/stats, the
+  hostile-query routes). What stays open is the double-click test (and
+  the fifth and sixth sightings, which are browser-load timeouts):
+  retire this item when five full gates across the lanes pass with no
+  recurrence, or file the cause from the new failure message (pointer
+  event times) if one appears.
   Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.265 A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug)**
-  Split from TEST.262 by the TODO thread at Bug Hunt's request (about
-  5:30 AM EDT 2026-10-22 as the lane reported). ROOT CAUSE found by Bug
-  Hunt: `tests/dbpool.py` `drop_database` KILLs every connection that
-  holds a metadata lock on the database being dropped, and another
-  worker's `store.list_databases(with_counts)` holds exactly that lock
-  while it counts rows (the information_schema size query), so that
-  worker's query is killed mid-way and the test sees "Lost connection to
-  MySQL server during query" or a 503 "database unavailable". A
-  reproducer (3 listers beside 3 create-and-drop loops) gave 222 errors
-  in 60 s before the fix and 0 after. The fix is in a PR Bug Hunt is
-  gating; Bug Hunt will say which sightings it closes. The redo log
-  capacity (100 MB default on one lane machine, 84 "log_checkpointer
-  lagging" warnings) is a real but separate slowdown and not the cause
-  of the lost connections; the lane machine notes already ask for a
-  larger `innodb_redo_log_capacity`. Do: stop the drop from killing a
-  connection that is only reading (kill only the dropped database's own
-  test connections, or let the lister retry), with a test that runs
-  listers beside create-and-drop loops. Done: the reproducer gives 0
-  errors in 60 s and the full gate shows none of the sightings below.
-  Owner: Bug Hunt (its own find; the fix PR is being gated).
-  Sightings moved here from TEST.262 (the TODO thread):
-  Related sighting (Core 2, about 7:25 PM EDT 2026-10-21 as the lane
-  reported, filed by the TODO thread): once under load, the facilities
-  route in test_fuzz_web_routes failed with "Lost connection to MySQL
-  server"; it passes alone. Same class (load flake), no solo reproducer;
-  Bug Hunt looks at it with this item.
-  Second sighting (Core 2, about 8:15 PM EDT 2026-10-21 as the lane
-  reported, PERF.140's gate, filed by the TODO thread): once under load,
-  the /sectors route in test_fuzz_web_routes failed with "Lost
-  connection to MySQL server"; it passes alone. Same class as the
-  facilities sighting above; Bug Hunt looks at both.
-  Third sighting (Galaxy dials lane, about 10:20 PM EDT 2026-10-21 as
-  the lane reported, filed by the TODO thread): about six tests lost the
-  MySQL connection ("Lost connection during query") in one full gate on
-  that machine; they pass alone. Cause on that machine:
-  `innodb_redo_log_capacity` too small, the redo log lagging under the
-  parallel load. Same class as the two sightings above; Bug Hunt looks
-  at all of them, and the INSTALL.md or the lane machine notes may need
-  a recommended redo log size for a machine that runs the full gate.
-  Fourth sighting (Core 2, UX.141's gate, about 1:44 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread): once under load, the
-  habitable-species route in test_fuzz_web_routes got a 503 "database
-  unavailable"; it passes alone. Same class as the Lost connection
-  sightings above; Bug Hunt looks at all of them. The same gate saw
-  test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
-  fail once under load (TEST.260's run lock collision).
-  Seventh sighting (Galaxy dials lane, `full --check` on main at
-  c92c4fc, about 4:50 AM EDT 2026-10-22 as the lane reported, filed by
-  the TODO thread): GET /api/databases (survive_hostile_query and
-  every_param_at_every_edge) and the GET /api/systems/<uid>/description
-  xss probe in test_fuzz_web_routes returned 500 or 503 from "Lost
-  connection to MySQL server during query" inside `store.list_databases`
-  (the information_schema size query) while four xdist workers created
-  and dropped test databases; they pass alone, and the lane saw it in 3
-  of 4 runs on its machine. Same load class as the sightings above, and
-  a pointer for Bug Hunt: the information_schema query is the one that
-  loses the connection when databases are being created and dropped
-  beside it.
-  Eighth sighting (Core 4, GEN.596's gate, about 5:01 AM EDT 2026-10-22
-  as the lane reported, filed by the TODO thread):
-  test_fuzz_web_routes.py::test_admin_pages_survive_hostile_query_when_logged_in[GET
-  /admin/stats] got ApiError 503 "database unavailable"
-  (admin_pages.admin_stats to apiclient.admin_stats) in the non-browser
-  phase at load average about 9 with 4 workers; it passes alone in 21 s.
-  Same load class as the sightings above (a hostile-query route losing
-  its database connection under load); Bug Hunt looks at all of them.
-  Ninth sighting (Blocker 2, MAP.172's gate, about 5:34 AM EDT
-  2026-10-22 as the lane reported, filed by the TODO thread): in one
-  80-minute full gate on a loaded 4-worker machine,
-  test_fuzz_web_routes.py::test_get_routes_every_param_at_every_edge[GET
-  /api/galaxy/sectors] and
-  ::test_admin_pages_survive_hostile_query_when_logged_in[GET
-  /admin/stats] failed with 503 "database unavailable" ("Lost connection
-  to MySQL server during query (2013)"); 35 passed in 17 s alone. Same
-  cause as the sightings above.
-  Prerequisites: none. Related: TEST.262, TEST.252.
 
 - [ ] **TEST.266 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug)**
   Seen twice by Core 2 and filed by the TODO thread: UX.141's gate
@@ -21689,7 +21476,8 @@ clears each one.
   the next assertion) and fix the cause or make the test wait for the
   lock to clear; no retry loop that hides a real lock leak. Done: the
   cause is on this item and the test passes in 20 runs under load.
-  Owner: Bug Hunt (a test-flake finding; after TEST.262 and TEST.265).
+  Owner: Bug Hunt (a test-flake finding; TEST.265 is fixed, so it
+  follows TEST.258).
   Prerequisites: none. Related: TEST.260, TEST.265.
 
 - [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
@@ -21707,6 +21495,27 @@ clears each one.
   EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
   test).
   Prerequisites: none. Related: UX.141, TEST.266.
+
+- [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
+  Found by the Admin redesign lane (about 6:49 AM EDT 2026-10-22 as the
+  lane reported, in a full non-browser phase), filed by the TODO thread.
+  Kind: test bug (src/tests/test_settings_writer.py, line 198). The test
+  saves eight times and asserts `names == sorted(names, reverse=True)`.
+  When two saves land in the same second, the second archive is named
+  with a `-2` suffix (src/planetgen/backup/core.py, `{base}-{n}`), and
+  `list_archives` correctly lists it first (it sorts with `_order`), but
+  as plain strings `...02Z-2.tar.bz2` sorts before `...02Z.tar.bz2` (`-`
+  is 0x2d, `.` is 0x2e), so the assertion fails. The code is right and
+  the test's ordering is wrong. Failed names seen:
+  ['20261022T104902Z-2.tar.bz2', '20261022T104902Z.tar.bz2',
+  '20261022T104901Z-4.tar.bz2']. Fails on main: yes whenever two saves
+  fall in one second (1 in this gate; it should be common on a fast
+  machine). Reproducer: run the test in a loop. Do: compare with
+  `backup.core._order` (sort the names with the same key `list_archives`
+  uses), not as strings. Done: the test passes 50 runs in a row. Owner:
+  the Admin redesign lane (the coordinator, about 7:17 AM EDT 2026-10-22
+  as the lane reported).
+  Prerequisites: none. Related: ADM.101.
 
 ## USR: User accounts
 
@@ -23078,6 +22887,21 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   load (GEN.600). The README check compares both statements with the
   options in the code.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
+
+- [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
+  Suggested by Bug Hunt (about 7:03 AM EDT 2026-10-22 as the lane
+  reported), filed by the TODO thread. MySQL's
+  `innodb_redo_log_capacity` is the 100 MB default on the lane machines
+  and logs 'log_checkpointer lagging' (84 warnings in one gate) under
+  the parallel gate; it slows the gate and was seen with the Galaxy
+  dials lane's lost connections, but it was not the cause of the
+  lost-connection sightings (TEST.265, fixed). Do: add one line to
+  INSTALL.md's database setup (and to the test section) recommending a
+  larger value for a machine that runs `scripts/test.py full` (the lane
+  machine notes already ask for one), with the number the lanes found
+  enough. Done: INSTALL.md names the setting, the value and why. Owner:
+  not assigned (a docs line; any lane).
+  Prerequisites: none. Related: TEST.265.
 
 ## VIEW: The view from a planet
 

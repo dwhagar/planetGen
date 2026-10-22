@@ -1,76 +1,135 @@
-{#- planetgen/web/templates/admin_settings.html -- /admin/settings (ADM.84). -#}
+{#- planetgen/web/templates/admin_settings.html -- /admin/settings (ADM.84, ADM.103).
+    Settings in plain-language groups: a label, one sentence and the control that fits the value; the long help,
+    default, range and key sit under Details. A setting the web cannot change is drawn but hidden until "Show
+    settings that cannot be changed" is on (`?show=fixed`; static/settingspage.js remembers it per browser). -#}
 {% extends "base.html" %}
-{%- macro option_row(option) -%}
-{%- set key = option.path | replace('.', '-') %}
-<div class="setting" id="setting-{{ key }}">
-  {%- if option.allowed and can_save %}
-  {%- set described = 'help-' ~ key ~ (' err-' ~ key if option.error else '') %}
-  {%- if option.kind == 'bool' %}
-  <div class="setting-head">
-    <input type="hidden" name="opt.{{ option.path }}" value="0">
-    <label class="setting-name" for="opt-{{ key }}"><input type="checkbox" id="opt-{{ key }}" name="opt.{{ option.path }}" value="1"{% if option.shown %} checked{% endif %} aria-describedby="{{ described }}"> {{ option.title }}</label>
+{%- macro limits_text(limits) -%}
+{%- if 'ge' in limits %}at least {{ limits.ge }}{% endif -%}
+{%- if 'gt' in limits %}more than {{ limits.gt }}{% endif -%}
+{%- if 'le' in limits %}{{ ", " if 'ge' in limits or 'gt' in limits }}at most {{ limits.le }}{% endif -%}
+{%- if 'lt' in limits %}{{ ", " if 'ge' in limits or 'gt' in limits }}less than {{ limits.lt }}{% endif -%}
+{%- if 'min_length' in limits %}at least {{ limits.min_length }} characters{% endif -%}
+{%- if 'max_length' in limits %}{{ ", " if 'min_length' in limits }}at most {{ limits.max_length }} characters{% endif -%}
+{%- endmacro -%}
+{#- The control of one editable setting. `key` is the dashed path, `described` the ids of its help and error. -#}
+{%- macro control(option, key, described) -%}
+{%- set invalid = ' aria-invalid="true"'|safe if option.error else '' -%}
+{%- set c = option.control -%}
+{%- if c == 'switch' %}
+<input type="hidden" name="opt.{{ option.path }}" value="0">
+<label class="setting-switch"><input type="checkbox" role="switch" id="opt-{{ key }}" name="opt.{{ option.path }}" value="1"{% if option.shown %} checked{% endif %} aria-describedby="{{ described }}"><span class="setting-switch-track" aria-hidden="true"></span><span class="sr-only">{{ option.title }}</span></label>
+{%- elif c == 'choice' and option.choices|length <= 3 %}
+<fieldset class="setting-segments" aria-describedby="{{ described }}"{{ invalid }}>
+  <legend class="sr-only">{{ option.title }}</legend>
+  {%- for choice in option.choices %}
+  <label><input type="radio" name="opt.{{ option.path }}" value="{{ choice }}"{% if choice == option.shown %} checked{% endif %}><span>{{ option.choice_labels.get(choice, choice) }}</span></label>
+  {%- endfor %}
+</fieldset>
+{%- elif c == 'choice' %}
+<select id="opt-{{ key }}" name="opt.{{ option.path }}" aria-describedby="{{ described }}"{{ invalid }}>
+  {%- for choice in option.choices %}
+  <option value="{{ choice }}"{% if choice == option.shown %} selected{% endif %}>{{ option.choice_labels.get(choice, choice) }}</option>
+  {%- endfor %}
+</select>
+{%- elif c == 'chips' %}
+<textarea id="opt-{{ key }}" name="opt.{{ option.path }}" rows="3" aria-describedby="{{ described }}" data-chips{{ invalid }}>{{ option.shown }}</textarea>
+<span class="hint">One per line.</span>
+{%- elif c == 'textarea' %}
+<textarea id="opt-{{ key }}" name="opt.{{ option.path }}" rows="6" aria-describedby="{{ described }}"{{ invalid }}>{{ option.shown }}</textarea>
+{%- elif c == 'secret' %}
+<input type="password" id="opt-{{ key }}" name="opt.{{ option.path }}" value="" autocomplete="new-password" placeholder="{{ 'Set; type to replace' if option.is_set else 'Empty; type to set' }}" aria-describedby="{{ described }}"{{ invalid }}>
+{%- elif c == 'slider' %}
+{%- set spec = option.slider_spec %}
+<div class="generate-slider limit-slider setting-slider" data-limit-slider data-scale="{{ spec.scale }}" data-stops="{{ spec.stops_json }}" data-default="{{ option.shown }}">
+  <div class="limit-slider-row">
+    <input type="range" id="opt-{{ key }}-range" min="0" max="{{ spec.stops|length - 1 }}" step="1" value="{{ spec.position(option.shown|float) }}" aria-label="{{ option.title }}, slider" data-limit-range>
+    <input type="number" class="range-value" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" step="any" min="{{ spec.low }}" max="{{ spec.high }}" inputmode="decimal" aria-describedby="{{ described }}" data-limit-box{{ invalid }}>
+    <span class="setting-unit">{{ option.unit }}</span>
   </div>
-  {%- else %}
-  <div class="setting-head">
-    <label class="setting-name" for="opt-{{ key }}">{{ option.title }}</label>
-    {%- if option.unit %} <span class="hint">({{ option.unit }})</span>{% endif %}
-  </div>
-  {%- if option.kind == 'choice' %}
-  <select id="opt-{{ key }}" name="opt.{{ option.path }}" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>
-    {%- for choice in option.choices %}
-    <option value="{{ choice }}"{% if choice == option.shown %} selected{% endif %}>{{ choice }}</option>
+</div>
+{%- elif c == 'duration' %}
+<div class="setting-number">
+  <input type="text" inputmode="decimal" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" size="10" aria-describedby="{{ described }}" data-duration="{{ option.unit }}"{{ invalid }}>
+  <span class="setting-unit">{{ option.unit }}</span>
+  <span class="hint" data-duration-text>{{ duration_text(option.shown, option.unit) }}</span>
+</div>
+{%- elif c == 'rate' and option.rate is not none %}
+<div class="setting-rate" role="group" aria-label="{{ option.title }}" aria-describedby="{{ described }}">
+  <label class="setting-rate-off"><input type="checkbox" name="rate.{{ option.path }}.off" value="1"{% if not option.rate.limit %} checked{% endif %}> No limit</label>
+  <input type="text" inputmode="numeric" id="opt-{{ key }}" name="rate.{{ option.path }}.count" value="{{ option.rate.limit }}" size="6" aria-label="{{ option.title }}, requests"{{ invalid }}>
+  <span>per</span>
+  <select name="rate.{{ option.path }}.per" aria-label="{{ option.title }}, period">
+    {%- for per in ('second', 'minute', 'hour', 'day') %}
+    <option value="{{ per }}"{% if per == option.rate.period %} selected{% endif %}>{{ per }}</option>
     {%- endfor %}
   </select>
-  {%- elif option.kind == 'list' %}
-  <textarea id="opt-{{ key }}" name="opt.{{ option.path }}" rows="3" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>{{ option.shown }}</textarea>
-  <span class="hint">One per line.</span>
-  {%- elif option.multiline %}
-  <textarea id="opt-{{ key }}" name="opt.{{ option.path }}" rows="6" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>{{ option.shown }}</textarea>
-  {%- elif option.secret %}
-  <input type="password" id="opt-{{ key }}" name="opt.{{ option.path }}" value="" autocomplete="new-password" placeholder="{{ 'Set; type to replace' if option.is_set else 'Empty; type to set' }}" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>
-  {%- elif option.kind in ('int', 'float') %}
-  <input type="text" inputmode="{{ 'numeric' if option.kind == 'int' else 'decimal' }}" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>
-  {%- else %}
-  <input type="text" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>
-  {%- endif %}
-  {%- endif %}
-  {%- else %}
-  <div class="setting-head"><span class="setting-name">{{ option.title }}</span>{% if option.unit %} <span class="hint">({{ option.unit }})</span>{% endif %}</div>
-  {%- if option.secret %}
-  <p class="setting-value"><span class="setting-tag">{{ 'set' if option.is_set else 'empty' }}</span></p>
-  {%- else %}
-  <p class="setting-value"><code>{{ option.value_text if option.value_text != '' else '(empty)' }}</code></p>
-  {%- endif %}
-  {%- endif %}
-  <p class="hint setting-help" id="help-{{ key }}">{{ option.description }}</p>
-  <p class="setting-meta">
-    <code class="setting-path">{{ option.path }}</code>
-    {%- if option.secret %} <span class="setting-tag">secret: {{ 'set' if option.is_set else 'empty' }}</span>{% endif %}
-    {%- if option.restart %} <span class="setting-tag">needs a restart</span>{% endif %}
-    {%- if not option.secret and option.kind != 'bool' %} <span class="hint">Default: <code>{{ option.default_text if option.default_text != '' else '(empty)' }}</code></span>{% endif %}
-    {%- if not option.secret and option.kind == 'bool' %} <span class="hint">Default: {{ 'on' if option.default else 'off' }}</span>{% endif %}
-    {%- if option.limits %}
-    <span class="hint">
-      {%- if 'ge' in option.limits %} at least {{ option.limits.ge }}{% endif -%}
-      {%- if 'gt' in option.limits %} more than {{ option.limits.gt }}{% endif -%}
-      {%- if 'le' in option.limits %} at most {{ option.limits.le }}{% endif -%}
-      {%- if 'lt' in option.limits %} less than {{ option.limits.lt }}{% endif -%}
-      {%- if 'min_length' in option.limits %} at least {{ option.limits.min_length }} characters{% endif -%}
-      {%- if 'max_length' in option.limits %} at most {{ option.limits.max_length }} characters{% endif -%}
-    </span>
+</div>
+{%- elif c == 'rate' %}
+<input type="text" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" aria-describedby="{{ described }}"{{ invalid }}>
+<span class="hint">For example 30 per minute; separate several limits with semicolons.</span>
+{%- elif c == 'color' %}
+<div class="setting-number">
+  <input type="color" id="opt-{{ key }}-picker" value="{{ option.shown }}" aria-label="{{ option.title }}, picker" data-color-picker>
+  <input type="text" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" size="9" maxlength="7" aria-describedby="{{ described }}" data-color-text{{ invalid }}>
+</div>
+{%- elif c == 'asset' %}
+<p class="setting-value"><code>{{ option.shown if option.shown else '(built in)' }}</code> <a href="{{ page_url('admin_images') }}">Change it on the Images page</a></p>
+{%- elif c == 'number' %}
+<div class="setting-number">
+  <input type="text" inputmode="{{ 'numeric' if option.kind == 'int' else 'decimal' }}" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" size="10" aria-describedby="{{ described }}"{{ invalid }}>
+  {%- if option.unit %}<span class="setting-unit">{{ option.unit }}</span>{% endif %}
+</div>
+{%- else %}
+<input type="text" id="opt-{{ key }}" name="opt.{{ option.path }}" value="{{ option.shown }}" aria-describedby="{{ described }}"{{ invalid }}>
+{%- endif %}
+{%- endmacro -%}
+{%- macro option_row(option) -%}
+{%- set key = option.path | replace('.', '-') %}
+{%- set editable = option.allowed and can_save %}
+{%- set described = 'help-' ~ key ~ (' err-' ~ key if option.error else '') %}
+{%- set labelled = editable and option.control not in ('switch', 'asset') and not (option.control == 'choice' and option.choices|length <= 3) %}
+<div class="setting{% if not option.allowed %} setting-fixed{% endif %}" id="setting-{{ key }}" data-setting data-search="{{ option.search_text }}">
+  <div class="setting-main">
+    {%- if labelled %}
+    <label class="setting-name" for="opt-{{ key }}">{{ option.title }}</label>
+    {%- else %}
+    <span class="setting-name" id="name-{{ key }}">{{ option.title }}</span>
     {%- endif %}
-    {%- if option.source == 'environment' %} <span class="setting-tag">overridden by {{ option.env }}{% if not option.secret %}, in use: {{ option.effective_text if option.effective_text != '' else '(empty)' }}{% endif %}</span>
-    {%- elif option.source == 'config.json' %} <span class="hint">set in config.json</span>{% endif %}
-    {%- if not option.allowed %} <span class="setting-tag">{{ option.reason }}</span>{% endif %}
-  </p>
-  {%- if option.error %}<p class="error" id="err-{{ key }}">{{ option.error }}</p>{% endif %}
-  {%- if option.allowed and can_save and option.source == 'config.json' and not option.secret %}
-  <p class="setting-reset"><label><input type="checkbox" name="reset.{{ option.path }}" value="1"> Use the default</label></p>
-  {%- elif option.allowed and can_save and option.secret and option.source == 'config.json' %}
-  <p class="setting-reset"><label><input type="checkbox" name="clear.{{ option.path }}" value="1"> Clear it</label></p>
-  {%- endif %}
+    <p class="setting-summary" id="help-{{ key }}">{{ option.summary }}</p>
+    {%- if option.restart %}<span class="setting-tag">applies after a restart</span>{% endif %}
+    {%- if option.overridden %} <span class="setting-tag setting-warn">set on the server by {{ option.env }}{% if not option.secret %} (in use: {{ option.effective_text if option.effective_text != '' else '(empty)' }}){% endif %}: a change here has no effect</span>{% endif %}
+    {%- if not option.allowed %} <span class="setting-tag">{{ option.reason[:1] | upper }}{{ option.reason[1:] }}</span>{% endif %}
+  </div>
+  <div class="setting-control">
+    {%- if editable %}
+    {{ control(option, key, described) }}
+    {%- elif option.secret %}
+    <p class="setting-value"><span class="setting-tag">{{ 'set' if option.is_set else 'empty' }}</span></p>
+    {%- else %}
+    <p class="setting-value"><code>{{ option.value_text if option.value_text != '' else '(empty)' }}</code>{% if option.unit %} <span class="hint">{{ option.unit }}</span>{% endif %}</p>
+    {%- endif %}
+    {%- if editable and option.source == 'config.json' %}
+    <label class="setting-reset"><input type="checkbox" name="{{ 'clear.' if option.secret else 'reset.' }}{{ option.path }}" value="1"> {{ 'Clear it' if option.secret else 'Use the default' }}</label>
+    {%- endif %}
+  </div>
+  {%- if option.error %}<p class="error setting-error" id="err-{{ key }}">{{ option.error }}</p>{% endif %}
+  <details class="setting-details">
+    <summary>Details</summary>
+    <p class="hint">{{ option.description }}</p>
+    <p class="setting-meta">
+      <span>Setting: <code class="setting-path">{{ option.path }}</code></span>
+      {%- if not option.secret and option.kind != 'bool' %} <span>Default: <code>{{ option.default_text if option.default_text != '' else '(empty)' }}</code></span>{% endif %}
+      {%- if not option.secret and option.kind == 'bool' %} <span>Default: {{ 'on' if option.default else 'off' }}</span>{% endif %}
+      {%- if option.limits %} <span>{{ limits_text(option.limits) }}</span>{% endif %}
+      {%- if option.source == 'config.json' %} <span>Set in config.json</span>{% elif option.source == 'environment' %} <span>Set by {{ option.env }}</span>{% else %} <span>Using the default</span>{% endif %}
+    </p>
+  </details>
 </div>
 {%- endmacro -%}
+{% block head %}
+<script type="module" src="{{ static_url('limitsliders.js') }}"></script>
+<script type="module" src="{{ static_url('settingspage.js') }}"></script>
+{% endblock %}
 {% block content %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
@@ -93,33 +152,56 @@
   {%- endfor %}
 </ul>
 {%- endif %}
-<section class="panel" aria-labelledby="settings-intro">
-  <h2 id="settings-intro">config.json</h2>
-  <p>These are the options of the one configuration file. Review what you change below, then confirm: a backup archive of the old file is made first and each changed option is written to the audit log. An option with an environment variable set is still overridden by that variable.</p>
-  <nav aria-label="Settings sections">
+<div class="settings" data-settings data-show-fixed="{{ 'true' if show_fixed else 'false' }}" data-fixed-count="{{ view.fixed_count }}">
+<section class="panel settings-top" aria-label="Find a setting">
+  <form method="get" action="{{ url_for('web.admin_settings') }}" class="settings-filter" role="search">
+    <label class="sr-only" for="settings-q">Search settings</label>
+    <input type="search" id="settings-q" name="q" value="{{ q }}" placeholder="Search settings" autocomplete="off" data-settings-search>
+    <label class="setting-fixed-switch"><input type="checkbox" role="switch" name="show" value="fixed" data-show-fixed-toggle{% if show_fixed %} checked{% endif %}> Show settings that cannot be changed ({{ view.fixed_count }})</label>
+    <button type="submit" class="btn" data-settings-apply>Apply</button>
+  </form>
+  <p class="hint" role="status" aria-live="polite" data-settings-note>
+    {%- if q and not shown_count %}No setting matches "{{ q }}".{% endif -%}
+  </p>
+  <nav aria-label="Settings groups">
     <ul class="settings-jump">
       {%- for group in view.groups %}
-      <li><a href="#cat-{{ group.key }}">{{ group.title }}</a></li>
+      <li data-group-link="{{ group.key }}"{% if group.fixed_count == group.options|length %} class="setting-fixed"{% endif %}><a href="#cat-{{ group.key }}">{{ group.title }}</a></li>
       {%- endfor %}
     </ul>
   </nav>
+  <p class="inline-links"><a href="{{ page_url('admin_backups') }}">Backups, restore, export and import</a> · <a href="{{ page_url('admin_images') }}">Images (icons and link preview picture)</a></p>
 </section>
-<p class="inline-links"><a href="{{ page_url('admin_backups') }}">Backups, restore, export and import</a> · <a href="{{ page_url('admin_images') }}">Images (icons and link preview picture)</a></p>
-<form method="post" action="{{ url_for('web.admin_settings') }}" class="settings-form" autocomplete="off">
+<form method="post" action="{{ url_for('web.admin_settings') }}{{ '?show=fixed' if show_fixed else '' }}" class="settings-form" autocomplete="off">
   {{ csrf_field() }}
   <input type="hidden" name="action" value="review">
   <input type="hidden" name="expect_hash" value="{{ view.file_hash }}">
   {%- for group in view.groups %}
-  <section class="panel" id="cat-{{ group.key }}" aria-labelledby="cat-{{ group.key }}-heading">
+  {%- set main = group.options | rejectattr('advanced') | list %}
+  {%- set more = group.options | selectattr('advanced') | list %}
+  <section class="panel settings-group{% if group.fixed_count == group.options|length %} setting-fixed{% endif %}" id="cat-{{ group.key }}" data-group="{{ group.key }}" aria-labelledby="cat-{{ group.key }}-heading">
     <h2 id="cat-{{ group.key }}-heading">{{ group.title }}</h2>
-    {%- for option in group.options %}
+    {%- for option in main %}
     {{ option_row(option) }}
     {%- endfor %}
+    {%- if more %}
+    <details class="settings-advanced"{% if q or more | selectattr('error') | list %} open{% endif %}>
+      <summary>Advanced ({{ more | length }})</summary>
+      {%- for option in more %}
+      {{ option_row(option) }}
+      {%- endfor %}
+    </details>
+    {%- endif %}
   </section>
   {%- endfor %}
+  <section class="panel settings-server setting-fixed" id="server-files" aria-labelledby="server-files-heading">
+    <h2 id="server-files-heading">Changing the other settings</h2>
+    <p>The settings marked with a reason cannot be changed from this page. The server's own file, <code>config.json</code>, holds them: edit it on the server, or run <code>python3 -m planetgen.cli.config set NAME=VALUE</code> (the name is the <em>Setting</em> shown under Details), then restart the web server. An Owner-only setting is changed by the Owner.</p>
+  </section>
   {%- if can_save %}
-  <p class="settings-actions"><button type="submit" class="btn">Review the changes</button> <span class="hint">Nothing is saved until you confirm the next page.</span></p>
+  <p class="settings-actions settings-savebar"><button type="submit" class="btn" data-settings-save>Review the changes</button> <span class="hint" role="status" aria-live="polite" data-settings-changes>Nothing is saved until you confirm the next page.</span></p>
   {%- endif %}
 </form>
+</div>
 {%- endif %}
 {% endblock %}

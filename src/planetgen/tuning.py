@@ -3816,8 +3816,14 @@ BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6
 is averaged over (`galaxy.remnant_density.mean_rate_per_star`, GEN.563)."""
 
 EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
-"""tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)
-[I]. The population's density takes the middle of it; each object draws its own, uniform."""
+"""tuple: The speed an ejected stellar black hole has far out, above the galaxy's escape speed, km/s (GEN.238) [I]: a
+stand-in, since no kick model gives the black holes' (`BLACK_HOLE_UNBOUND_FRACTION` is a placeholder too). The population's
+density takes the middle of it; each object draws its own, uniform. An ejected neutron star's speed follows the kick law
+(`galaxy.natal_kick.ejecta_speeds_kms`)."""
+
+EJECTA_SPEED_QUANTILES = 16
+"""int: How many equal-share quantiles of an ejected neutron star's far speed a galaxy's structure holds
+(`Structure.neutron_star_ejecta_speeds_kms`); the density takes their mean and each object draws between two of them."""
 
 EJECTA_AGE_GY = 10.0
 """float: How long the ejecta of a galaxy have been leaving, Gyr: with `EJECTA_SPEED_RANGE_KMS` it sets where the

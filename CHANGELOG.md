@@ -2,6 +2,89 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1903] - 2026-10-22
+
+**Headline:** Five scatter tests that held a million rows or more in lists now stream them, so none holds more than a gigabyte.
+
+### Fixed
+- **Scatter tests of the toy galaxy held gigabytes (TEST.258).** Since GEN.404 the toy galaxy holds a real galaxy's stellar mass, so a shell of its scatter is a million rows and a pass over the far shells nearly two million. Measured alone, `test_the_far_pass_has_its_own_stream_and_is_reproducible` held 2.8 GB, the black hole stream test 1.4 GB, `test_the_same_seed_gives_the_same_rows_and_another_seed_others` 1.3 GB, `test_sectors_already_filled_get_no_row` 1.3 GB and the 1500 to 1540 case of `test_the_far_pass_agrees_with_the_shells_one_by_one` 1.1 GB. They now read the rows once and keep a count and a hash (`tests/row_digest.py`), and the largest of them holds 0.84 GB. The other 20 test files that scatter measured under 1 GB alone, the largest being `test_the_classes_every_component_has_keep_their_draws` at 0.98 GB.
+
+TODO items resolved: TEST.258. Added: none.
+
+## [8.0.1902] - 2026-10-22
+
+**Headline:** Every galaxy's Hill spheres use the mass the galaxy holds inside the object's own distance from the centre, not the whole halo's mass.
+
+### Changed
+- **A star's, binary's, compact object's and rogue's Hill sphere takes the galaxy's mass inside its own radius** (`galaxy/enclosed_mass.py`, GEN.370). The central mass was the mass chain's whole virial mass at every radius (`mass_chain.central_mass_kg`), but most of the halo lies outside a star's orbit, so the Hill spheres were several times too small (a drawn galaxy of 9.5e12 solar masses of halo and 9.0e10 of stars encloses 1.6e10 inside 1 kpc and 1.2e11 inside 8 kpc). The enclosed mass is the density model's stars (the smooth components integrated on a cylindrical grid, the arms averaged round each circle), the central black hole and the chain's own NFW dark halo (its halo mass less its stars, its virial radius and concentration). The gas is left out until GEN.338's potential gives the enclosed mass.
+  - `Star.calculate_system_perimeter`, `BinaryStarProxy._calculate_system_perimeter_static` and the keep-out query (`db/query.py` `keep_out_radius`) read it at the object's own distance; `mass_chain.central_mass_kg`, `current_central_mass_kg` and `MassChain.halo_mass_kg` are gone.
+  - A unit reads the galaxy's stored shape (`seeded(..., shape=...)`, bound by `run_galaxy`, `nebula_field` and `superbubble_field`), or the shape its seed draws with every lever on Auto (`shape_draw.default_shape`, what `plan` makes with no shape option). Dial-pinned masses (`GalaxyShape.masses`) reach the model, so a pinned Scale or Halo dial changes the Hill spheres.
+  - A galaxy twice the size encloses less at one radius, and so has wider Hill spheres (`tests/test_enclosed_mass.py`).
+  - **The placement fill is rechecked** (`docs/design/course-avoidance.md` section 4.1): the Hill spheres of a mean-mass system fill 0.3 to 0.9 of the volume over a disk's inner and middle radii (the old value never passed 0.03), and in a dense galaxy the placer now fits 60 to 70% of the requested systems of a 4 pc cell at 1 kpc and 35 to 45% at 3 kpc, where it fitted all of them; sparser galaxies are unchanged except 1 system in 16 at 3.7 kpc.
+- The generator epoch is 48.
+generation-output: changed
+
+### Added
+- `tests/test_enclosed_mass.py`: the mass grows with the radius and ends at the galaxy's whole mass, the black hole is most of the centre, the stars agree with a Monte Carlo of the density model within 6%, the dark halo follows NFW, a galaxy twice the size changes the Hill radius, and a star's and a pair's perimeter read the mass inside their own radius from the shape the unit is given.
+
+## [8.0.1901] - 2026-10-22
+
+**Headline:** The Settings page is now a clean, searchable page of plain-language settings, with the ones you cannot change hidden until you ask for them.
+
+### Changed
+- **Settings page redesigned.** Settings sit in seven groups an admin works in (Site identity, Look, Search engines, Link previews, Speed and disk, Abuse protection, Housekeeping), each as a name, one sentence and a control that fits the value: switches, a few-choice segmented control, a slider with a typed box for sizes, a duration that says what it means in words ("6 hours"), a number with its unit, a colour picker, and a number-per-period rate. The long help, default, allowed range and `config.json` key moved under each setting's Details, and the rarely needed ones sit under Advanced.
+- **Search and the hidden-settings switch.** A search box filters as you type (and works without script as a plain form). The 31 settings the web cannot change are hidden; "Show settings that cannot be changed" shows them with the reason, is remembered in this browser and is carried in the address as `?show=fixed`. A setting an environment variable overrides is shown with a warning that a change here has no effect.
+- **Save bar and review.** A sticky bar counts the changes made and keeps Review disabled until there is one. The review page lists each change by name with units, and says which apply after a restart.
+
+## [8.0.1900] - 2026-10-22
+
+**Headline:** A test now holds the rule that nothing inside a system stores an absolute position.
+
+### Changed
+- `db/point_columns.py` names the columns that tie a row to its system or body (`BODY_PARENT_COLUMNS`) and the four tables that keep a free galactic point despite one (`ABSOLUTE_WITH_A_PARENT`: bright_stars, black_holes, neutron_stars, facilities), each with its reason and its way out in the 8.4 revision.
+- The rule (a body in a system is stored parent-relative, about the parent's central object, in the galactic axes, with its epoch) is written into the header of `physics/position.py` and into docs/design/unified-system-barycentre.md.
+
+### Added
+- `tests/test_parent_relative_positions.py` lists every table with a parent link and a point, fails if one is stored in another frame and is not allowed, fails for a table given an absolute position, and refuses an exception that is no longer needed.
+
+TODO items resolved: TEST.241. Added: none.
+
+## [8.0.1899] - 2026-10-22
+
+**Headline:** The speed at which an ejected neutron star streams out of a galaxy now follows its natal kick and the galaxy's escape speed.
+
+### Changed
+- An ejected neutron star's far speed is what its kick leaves above the escape speed at its birth radius (`galaxy.natal_kick.ejecta_speeds_kms`), kept as 16 quantiles in the galaxy's structure (`Structure.neutron_star_ejecta_speeds_kms`), instead of a speed uniform from 300 to 500 km/s. For a galaxy of the Milky Way's structure the mean is 386 km/s; a deeper well or a slower kick gives slower ones, and a galaxy that ejects none has no ejecta population. The population's density and outer radius take the mean speed (`ejecta_field.mean_speed_kms`); ejected black holes keep the 300 to 500 km/s range, a stand-in until they have a kick model. `docs/design/natal-kick.md` records the model.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 (the ejected neutron stars' speed; GEN.554 stays open for the neutron star mass function and the placement of kicked remnants) / Added: none
+
+## [8.0.1898] - 2026-10-22
+
+**Headline:** The generator now has one table of the gases and compounds that can be in an atmosphere, with the source of every number.
+
+### Added
+- `physics/gases.py` and `physics/data/gases.json` (built by `scripts/build_gas_table.py` from the atmosphere research tables): 78 gases and compounds with formula, name, CAS number, molar mass from the element table, infrared and near-ultraviolet flags, volatility class, photolysis threshold, triple, boiling and critical points, heat capacity, latent heats and, for 24 gases, the Rayleigh cross section with the reference temperature of its refractivity fit. Every row states its source, licence and how far it is checked, and the loader refuses a row that does not. Nothing reads the table yet (GEN.411 and the 8.4 atmosphere recipes do); a test fails when a gas named in a planet class text, in the atmosphere code or in the toxicity note is not a row.
+- The gas table also carries the Henry constants of 35 gases (`Henry.kh(T)`, 273.15 to 323.15 K) and the Lennard-Jones constants of 38 (`Gas.viscosity_upa_s(T)`, Chapman-Enskog with the Neufeld integral). Water vapor has no viscosity law in the research and is refused. The research part printed the viscosity coefficient in micropoise; it is corrected there.
+
+## [8.0.1897] - 2026-10-22
+
+**Headline:** The Census dial sets how many systems each solar mass of stars makes, from 1 to 3, with the generator's own derived value as Auto.
+
+### Changed
+- **The Census dial (GEN.607).** `--richness` (systems per solar mass, advanced and folded away on the Generate page, 1 to 3) sets the galaxy's number of systems and the mean mass of a system, which is its inverse. Left Auto, the galaxy keeps the mean system mass the generator derives for its populations (GEN.545), so nothing a seed generates changes. A pinned value scales the galaxy's system count, the mass of the unresolved systems in a cell and the star count of a place alike, and the plan stores it with the other pins so a loaded galaxy has the same mean system mass.
+- The density report's outline constant moves with the new mean system mass (0.483 solar masses a system, not the recalled 0.4): the smallest central surface density with a planned sector at a 4 pc scale height is 0.043 solar masses per square parsec, and the `--density` floor is 0.04.
+
+## [8.0.1896] - 2026-10-22
+
+**Headline:** Dropping a test database no longer ends another worker's query that is counting its rows, which was the "Lost connection to MySQL server during query" failure under load.
+
+### Fixed
+- **Tests failed with "Lost connection to MySQL server during query" or a 503 "database unavailable" while four workers ran (TEST.262, the sightings listed on it).** The drop helper of the test suite ended every connection holding a lock on a table of the database it dropped, and another worker's `list_databases` (the database picker and the admin pages) holds exactly such a lock for a moment while it counts the rows of every test database. The helper now ends only the connections whose current database it is, gives any other connection three seconds to let go, and ends it only if it does not. A loop of three listers beside three create-and-drop loops failed 222 times in a minute before and 0 times after.
+
+TODO items resolved: none. Added: none.
+
 ## [8.0.1895] - 2026-10-22
 
 **Headline:** The galaxy shape row can now hold a galaxy's family and the numbers of its bar, thick disk and spheroid.

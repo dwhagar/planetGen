@@ -23,7 +23,7 @@ import pytest
 
 from planetgen.describe import build as describe_build
 from planetgen.describe.quantity import inline_text as describe_inline
-from planetgen.galaxy import mass_chain, scales
+from planetgen.galaxy import enclosed_mass, scales
 from planetgen.physics.units import pc_to_ly
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
@@ -278,7 +278,8 @@ def test_gravitational_sphere_of_influence_scales_with_mass_cube_root():
         return ((distance_ly or scales.default_galactocentric_ly()) * pc.LY_TO_M / pc.AU_TO_M
                 * (pc.SOLAR_MASS_TO_KG / (3.0 * central_kg)) ** (1 / 3))
 
-    assert ratios[0] == pytest.approx(per_cube_root_mass(mass_chain.current_central_mass_kg()), rel=1e-9)
+    assert ratios[0] == pytest.approx(per_cube_root_mass(
+        enclosed_mass.current_enclosed_mass_kg(scales.default_galactocentric_pc())), rel=1e-9)
     # At the Milky Way's 8.2 kpc and virial mass, the reference the plausibility range is set for.
     assert 80_000 <= per_cube_root_mass(1.15e12 * pc.SOLAR_MASS_TO_KG, pc_to_ly(8200.0)) <= 250_000
 

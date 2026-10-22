@@ -115,25 +115,17 @@ def current_disk_scale_length_pc():
     return _current_disk_scale_length_pc.get()
 
 
-_current_stellar_mass_solar = contextvars.ContextVar("stellar_mass_solar", default=None)
+_current_galaxy_shape = contextvars.ContextVar("galaxy_shape", default=None)
 
 
-def current_stellar_mass_solar():
-    """The stellar mass, solar masses, the plan pinned for the galaxy the running unit belongs to (the Scale dial,
-    GEN.603), when `seeded` was given it, or `None`: the mass chain then takes the mass the seed draws."""
-    return _current_stellar_mass_solar.get()
-
-
-_current_halo_mass_solar = contextvars.ContextVar("halo_mass_solar", default=None)
-
-
-def current_halo_mass_solar():
-    """The halo mass, solar masses, the plan pinned (the Halo dial, GEN.606), when `seeded` was given it, or `None`."""
-    return _current_halo_mass_solar.get()
+def current_galaxy_shape():
+    """The stored `GalaxyShape` of the galaxy the running unit belongs to, when `seeded` was given it, or `None`: the
+    Hill spheres' enclosed mass (`galaxy.enclosed_mass`) then uses the shape the galaxy seed draws."""
+    return _current_galaxy_shape.get()
 
 
 @contextlib.contextmanager
-def seeded(galaxy_seed, kind, address, disk_scale_length_pc=None, stellar_mass_solar=None, halo_mass_solar=None):
+def seeded(galaxy_seed, kind, address, disk_scale_length_pc=None, shape=None):
     """
     Runs one unit on its own seed: binds a `draw.Stream` seeded from
     `unit_seed` for the length of the block (in this thread only), so
@@ -143,22 +135,19 @@ def seeded(galaxy_seed, kind, address, disk_scale_length_pc=None, stellar_mass_s
     Args:
         disk_scale_length_pc (float, optional): The galaxy's thin disk scale length, which the laws quoted in the
             galaxy's own scales (GEN.404) read through `galaxy.scales`.
-        stellar_mass_solar (float, optional): The stellar mass the plan pinned, which the galaxy's tidal field
-            (`galaxy.mass_chain.current_central_mass_kg`) reads; `None` takes the seed's draw.
-        halo_mass_solar (float, optional): The halo mass the plan pinned, read the same way.
+        shape (GalaxyShape, optional): The galaxy's stored shape, which the Hill spheres' enclosed mass reads through
+            `galaxy.enclosed_mass` (GEN.370); without it the shape the seed draws stands in.
     """
     if galaxy_seed is None:
         yield
         return
     token = _current_galaxy_seed.set(bytes(galaxy_seed))
     length_token = _current_disk_scale_length_pc.set(disk_scale_length_pc)
-    mass_token = _current_stellar_mass_solar.set(stellar_mass_solar)
-    halo_token = _current_halo_mass_solar.set(halo_mass_solar)
+    shape_token = _current_galaxy_shape.set(shape)
     try:
         with draw.bound(unit_seed(galaxy_seed, kind, address)):
             yield
     finally:
-        _current_halo_mass_solar.reset(halo_token)
-        _current_stellar_mass_solar.reset(mass_token)
+        _current_galaxy_shape.reset(shape_token)
         _current_disk_scale_length_pc.reset(length_token)
         _current_galaxy_seed.reset(token)

@@ -54,6 +54,12 @@ that has to be re-stored (`THRESHOLDS_M`, from docs/design/orbital-updates.md
 section 3), capped at `MAX_UPDATE_INTERVAL_S`. A body at rest never comes
 due.
 
+Stored positions: nothing inside a system stores an absolute sector or galactic position (TEST.241, section 5 point 3 of
+docs/design/unified-system-barycentre.md). A body in a system is stored parent-relative: its state about the parent's central
+object, in the galactic axes (not rotating), with its epoch; the barycentre is the system's row point and the galactic frame
+is derived. `db.point_columns` names the tables and `tests/test_parent_relative_positions.py` fails if one with a parent link
+is stored in another frame.
+
 Limits (where the maths stops holding): a coordinate that is not finite, a
 negative radius, a polar angle outside [0, pi], and a speed at or above the
 speed of light are refused with `ValueError`; at the origin and on the polar

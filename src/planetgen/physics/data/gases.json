@@ -1,0 +1,5260 @@
+{
+ "retrieved": "2026-10-17",
+ "licence": "open",
+ "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity (GEN.410)",
+ "sources": [
+  "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
+  "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02"
+ ],
+ "licence_note": "Boss, 2026-10-17, 2:35 PM EDT: every paper and dataset acquired is usable; the raw tables are not redistributed and the licence column is a record. NIST SRD is copyrighted (permission noted in body-composition part G4); PubChem and USGS are public domain; 'open' means none was found.",
+ "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K).",
+ "gases": [
+  {
+   "formula": "H2",
+   "name": "hydrogen",
+   "cas": "1333-74-0",
+   "molar_mass_research_g_mol": 2.016,
+   "ir": "cia",
+   "volatility": "UV",
+   "photolysis_threshold_nm": 274.0,
+   "photolysis_channel": "H+H",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 13.957,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 7358.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 20.369,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 33.15,
+   "critical_temperature_range_k": [
+    33.15,
+    33.2
+   ],
+   "critical_temperature_n": "5",
+   "critical_pressure_pa": 1296000.0,
+   "critical_pressure_range_pa": [
+    1296000.0,
+    1313000.0
+   ],
+   "critical_pressure_n": "5",
+   "acentric_factor": -0.219,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 22.57,
+    "300": 28.85,
+    "1000": 30.16
+   },
+   "cp_source": {
+    "100": "NIST fluid at 1e-4 MPa",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.405,
+   "latent_heat_vaporisation_kj_mol": 0.9,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.31e-27,
+     "550": 1.008e-27,
+     "650": 5.09e-28
+    },
+    "ratio_to_n2_550": 0.217,
+    "king_factor_550": 1.038,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "H2, route A: Peck and Huang n-based",
+    "research_note": "(n-1) = 0.0148956/(180.7 - s^2) + 0.0049037/(92 - s^2), s = 1/lam in um^-1, at 273.15 K, valid 0.168 to 1.6945 um; refractiveindex.info `H2_nk_Peck.yml` (CC0) citing Peck and Huang, JOSA 67, 1550 (1977)",
+    "reference_temperature_k": 273.15,
+    "note": "Peck and Huang 1977 at 273.15 K; Dalgarno and Williams route gives 0.202 of N2 against 0.217: draw 0.20 to 0.22",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00078,
+    "kh_range_mol_kg_bar": [
+     0.00078,
+     0.00078
+    ],
+    "kh_n": 4,
+    "d_k": 500.0,
+    "thermo_kh_298_mol_kg_bar": 0.000782,
+    "thermo_d_k": 560.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.827,
+    "epsilon_over_k_k": 59.7,
+    "mu_300_research_upa_s": 8.89,
+    "nist_300_upa_s": 8.94,
+    "difference_percent": -0.6,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "HD",
+   "name": "hydrogen deuteride",
+   "cas": "13983-20-5",
+   "molar_mass_research_g_mol": 3.0219,
+   "ir": "weak",
+   "volatility": null,
+   "photolysis_threshold_nm": 272.0,
+   "photolysis_channel": "H+D",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "isotopes": {
+    "H-1": 1,
+    "H-2": 1
+   },
+   "triple_point_k": 16.6,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 36.0,
+   "critical_temperature_range_k": [
+    36.0,
+    36.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 1479000.0,
+   "critical_pressure_range_pa": [
+    1479000.0,
+    1479000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": null,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.29,
+    "300": 29.2,
+    "1000": 30.71
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.398,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "He",
+   "name": "helium",
+   "cas": "7440-59-7",
+   "molar_mass_research_g_mol": 4.0026,
+   "ir": "none",
+   "volatility": "UV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 2.1768,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 5039.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 4.2238,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 5.2,
+   "critical_temperature_range_k": [
+    5.19,
+    5.3
+   ],
+   "critical_temperature_n": "5",
+   "critical_pressure_pa": 228000.0,
+   "critical_pressure_range_pa": [
+    227000.0,
+    232000.0
+   ],
+   "critical_pressure_n": "5",
+   "acentric_factor": -0.383,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": 0.08,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 1.375e-28,
+     "550": 6.11e-29,
+     "650": 3.12e-29
+    },
+    "ratio_to_n2_550": 0.0132,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "He",
+    "research_note": "n-based from Mansfield and Peck (refractiveindex.info `He_nk_Mansfield.yml`); the report formula gives 6.04e-29 (ratio 0.0130)",
+    "reference_temperature_k": null,
+    "note": "Mansfield and Peck n-based; the report formula gives 6.04e-29",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.000375,
+    "kh_range_mol_kg_bar": [
+     0.00037,
+     0.00038
+    ],
+    "kh_n": 2,
+    "d_k": 226.0,
+    "thermo_kh_298_mol_kg_bar": 0.00039,
+    "thermo_d_k": 135.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.551,
+    "epsilon_over_k_k": 10.22,
+    "mu_300_research_upa_s": 20.23,
+    "nist_300_upa_s": 19.93,
+    "difference_percent": 1.5,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "3He",
+   "name": "helium-3",
+   "cas": "14762-55-1",
+   "molar_mass_research_g_mol": 3.016,
+   "ir": "none",
+   "volatility": "UV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "isotopes": {
+    "He-3": 1
+   },
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 3.2,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 3.31,
+   "critical_temperature_range_k": [
+    3.31,
+    3.31
+   ],
+   "critical_temperature_n": "2",
+   "critical_pressure_pa": 114000.0,
+   "critical_pressure_range_pa": [
+    114000.0,
+    117000.0
+   ],
+   "critical_pressure_n": "2",
+   "acentric_factor": -0.471,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "Ne",
+   "name": "neon",
+   "cas": "7440-01-9",
+   "molar_mass_research_g_mol": 20.1797,
+   "ir": "none",
+   "volatility": "UV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 24.556,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 43355.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 27.1,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 44.4,
+   "critical_temperature_range_k": [
+    44.4,
+    44.4
+   ],
+   "critical_temperature_n": "5",
+   "critical_pressure_pa": 2662000.0,
+   "critical_pressure_range_pa": [
+    2653000.0,
+    2756000.0
+   ],
+   "critical_pressure_n": "5",
+   "acentric_factor": -0.036,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": 1.73,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 4.93e-28,
+     "550": 2.187e-28,
+     "650": 1.115e-28
+    },
+    "ratio_to_n2_550": 0.0472,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "Ne",
+    "research_note": "Bideau-Mehu et al. fit, `Ne_nk_Bideau-Mehu.yml` (fitted 0.1404 to 0.5462 um, 650 nm is extrapolated); Cuthbertson gives 2.263e-28, Borzsonyi 2.260e-28. Spread 3.5 percent",
+    "reference_temperature_k": null,
+    "note": "Bideau-Mehu fit (650 nm extrapolated); Cuthbertson gives 2.263e-28, spread 3.5 percent",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00045,
+    "kh_range_mol_kg_bar": [
+     0.00045,
+     0.00045
+    ],
+    "kh_n": 2,
+    "d_k": 490.0,
+    "thermo_kh_298_mol_kg_bar": 0.000457,
+    "thermo_d_k": 488.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.82,
+    "epsilon_over_k_k": 32.8,
+    "mu_300_research_upa_s": 31.24,
+    "nist_300_upa_s": 31.84,
+    "difference_percent": -1.9,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "Ar",
+   "name": "argon",
+   "cas": "7440-37-1",
+   "molar_mass_research_g_mol": 39.95,
+   "ir": "none",
+   "volatility": "SV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 83.806,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 68891.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 87.302,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 150.69,
+   "critical_temperature_range_k": [
+    150.65,
+    150.86
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 4863000.0,
+   "critical_pressure_range_pa": [
+    4855000.0,
+    4898000.0
+   ],
+   "critical_pressure_n": "7-1out",
+   "acentric_factor": -0.002,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": 6.44,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 9.07e-27,
+     "550": 3.991e-27,
+     "650": 2.025e-27
+    },
+    "ratio_to_n2_550": 0.861,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "COMPUTED",
+    "research_row": "Ar",
+    "research_note": "report 2.2, re-evaluated",
+    "reference_temperature_k": 288.15,
+    "note": "n-based",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0014,
+    "kh_range_mol_kg_bar": [
+     0.0014,
+     0.0014
+    ],
+    "kh_n": 2,
+    "d_k": 1300.0,
+    "thermo_kh_298_mol_kg_bar": 0.0014,
+    "thermo_d_k": 1621.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.542,
+    "epsilon_over_k_k": 93.3,
+    "mu_300_research_upa_s": 22.82,
+    "nist_300_upa_s": 22.72,
+    "difference_percent": 0.4,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "Kr",
+   "name": "krypton",
+   "cas": "7439-90-9",
+   "molar_mass_research_g_mol": 83.798,
+   "ir": "none",
+   "volatility": "SV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 115.78,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 73534.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 119.73,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 209.48,
+   "critical_temperature_range_k": [
+    209.35,
+    209.48
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 5525000.0,
+   "critical_pressure_range_pa": [
+    5502000.0,
+    5525000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": -0.001,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": 8.97,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.106e-26,
+     "550": 9.208e-27,
+     "650": 4.656e-27
+    },
+    "ratio_to_n2_550": 1.99,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "Kr",
+    "research_note": "Bideau-Mehu `Kr_nk_Bideau-Mehu.yml` (fitted to 0.6234 um); Cuthbertson 9.195e-27, Borzsonyi 9.271e-27. Spread 0.8 percent",
+    "reference_temperature_k": null,
+    "note": "Bideau-Mehu fit; spread 0.8 percent",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00245,
+    "kh_range_mol_kg_bar": [
+     0.0024,
+     0.0025
+    ],
+    "kh_n": 2,
+    "d_k": 1700.0,
+    "thermo_kh_298_mol_kg_bar": 0.00199,
+    "thermo_d_k": 1840.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.655,
+    "epsilon_over_k_k": 178.9,
+    "mu_300_research_upa_s": 25.24,
+    "nist_300_upa_s": 25.45,
+    "difference_percent": -0.8,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "Xe",
+   "name": "xenon",
+   "cas": "7440-63-3",
+   "molar_mass_research_g_mol": 131.293,
+   "ir": "none",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 161.41,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 81772.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 165.05,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 289.73,
+   "critical_temperature_range_k": [
+    289.7,
+    289.74
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 5842000.0,
+   "critical_pressure_range_pa": [
+    5836000.0,
+    5842000.0
+   ],
+   "critical_pressure_n": "5",
+   "acentric_factor": 0.004,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": 12.55,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 5.567e-26,
+     "550": 2.402e-26,
+     "650": 1.205e-26
+    },
+    "ratio_to_n2_550": 5.18,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "Xe",
+    "research_note": "Bideau-Mehu `Xe_nk_Bideau-Mehu.yml`; Cuthbertson 2.489e-26, Borzsonyi 2.498e-26 (the database notes a typo in the paper's coefficient, 12.75e-6 should be 12.75e-3). Spread 4.0 percent",
+    "reference_temperature_k": null,
+    "note": "Bideau-Mehu fit; spread 4.0 percent",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0043,
+    "kh_range_mol_kg_bar": [
+     0.0043,
+     0.0043
+    ],
+    "kh_n": 2,
+    "d_k": 2050.0,
+    "thermo_kh_298_mol_kg_bar": 0.0045,
+    "thermo_d_k": 2386.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.047,
+    "epsilon_over_k_k": 231.0,
+    "mu_300_research_upa_s": 23.09,
+    "nist_300_upa_s": 23.15,
+    "difference_percent": -0.2,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "Rn",
+   "name": "radon",
+   "cas": "10043-92-2",
+   "molar_mass_research_g_mol": 222.0176,
+   "ir": "none",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "isotopes": {
+    "Rn-222": 1
+   },
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 211.45,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 377.0,
+   "critical_temperature_range_k": [
+    377.0,
+    377.5
+   ],
+   "critical_temperature_n": "3",
+   "critical_pressure_pa": 6282000.0,
+   "critical_pressure_range_pa": [
+    6280000.0,
+    6282000.0
+   ],
+   "critical_pressure_n": "3",
+   "acentric_factor": null,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.786,
+    "300": 20.786,
+    "1000": 20.786
+   },
+   "cp_source": {
+    "100": "computed 5R/2",
+    "300": "computed 5R/2",
+    "1000": "computed 5R/2"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "COMPUTED",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0093,
+    "kh_range_mol_kg_bar": [
+     0.0093,
+     0.0093
+    ],
+    "kh_n": 1,
+    "d_k": 2600.0,
+    "thermo_kh_298_mol_kg_bar": 0.00893,
+    "thermo_d_k": 2983.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "one compiled value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
+   "licence": "open"
+  },
+  {
+   "formula": "N2",
+   "name": "nitrogen",
+   "cas": "7727-37-9",
+   "molar_mass_research_g_mol": 28.014,
+   "ir": "cia",
+   "volatility": "SV",
+   "photolysis_threshold_nm": 127.0,
+   "photolysis_channel": "N+N",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 63.151,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 12520.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 77.355,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 126.19,
+   "critical_temperature_range_k": [
+    126.19,
+    128.45
+   ],
+   "critical_temperature_n": "9",
+   "critical_pressure_pa": 3396000.0,
+   "critical_pressure_range_pa": [
+    3394000.0,
+    3460000.0
+   ],
+   "critical_pressure_n": "7-2out",
+   "acentric_factor": 0.037,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.1,
+    "300": 29.13,
+    "1000": 32.68
+   },
+   "cp_source": {
+    "100": "NIST fluid at 1e-4 MPa",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.4,
+   "latent_heat_vaporisation_kj_mol": 5.58,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 1.054e-26,
+     "550": 4.635e-27,
+     "650": 2.351e-27
+    },
+    "ratio_to_n2_550": 1.0,
+    "king_factor_550": 1.035,
+    "king_factor_assumed": false,
+    "research_status": "COMPUTED",
+    "research_row": "N2",
+    "research_note": "report 2.2 formula, re-evaluated",
+    "reference_temperature_k": 288.15,
+    "note": "n-based, report 2.2 re-evaluated",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.000625,
+    "kh_range_mol_kg_bar": [
+     0.0006,
+     0.00065
+    ],
+    "kh_n": 2,
+    "d_k": 1300.0,
+    "thermo_kh_298_mol_kg_bar": 0.000628,
+    "thermo_d_k": 1427.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.798,
+    "epsilon_over_k_k": 71.4,
+    "mu_300_research_upa_s": 17.7,
+    "nist_300_upa_s": 17.88,
+    "difference_percent": -1.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "O2",
+   "name": "oxygen",
+   "cas": "7782-44-7",
+   "molar_mass_research_g_mol": 31.998,
+   "ir": "cia",
+   "volatility": "SV",
+   "photolysis_threshold_nm": 240.0,
+   "photolysis_channel": "O+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 54.361,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 146.3,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 90.188,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 154.58,
+   "critical_temperature_range_k": [
+    154.58,
+    155.15
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 5043000.0,
+   "critical_pressure_range_pa": [
+    4985000.0,
+    5046000.0
+   ],
+   "critical_pressure_n": "9",
+   "acentric_factor": 0.022,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.11,
+    "300": 29.39,
+    "1000": 34.88
+   },
+   "cp_source": {
+    "100": "NIST fluid at 1e-4 MPa",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.395,
+   "latent_heat_vaporisation_kj_mol": 6.82,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 9.32e-27,
+     "550": 4.072e-27,
+     "650": 2.062e-27
+    },
+    "ratio_to_n2_550": 0.879,
+    "king_factor_550": 1.102,
+    "king_factor_assumed": false,
+    "research_status": "COMPUTED, READ",
+    "research_row": "O2",
+    "research_note": "report 2.2, re-evaluated; He 2021 Table 2 measured 4.55e-27 at 532 nm against n-based 4.642e-27",
+    "reference_temperature_k": 273.15,
+    "note": "n-based; measured 4.55e-27 at 532 nm against n-based 4.642e-27 (He 2021 Table 2)",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0013,
+    "kh_range_mol_kg_bar": [
+     0.0012,
+     0.0013
+    ],
+    "kh_n": 6,
+    "d_k": 1700.0,
+    "thermo_kh_298_mol_kg_bar": 0.00128,
+    "thermo_d_k": 1602.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.467,
+    "epsilon_over_k_k": 106.7,
+    "mu_300_research_upa_s": 20.57,
+    "nist_300_upa_s": 20.63,
+    "difference_percent": -0.3,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "O3",
+   "name": "ozone",
+   "cas": "10028-15-6",
+   "molar_mass_research_g_mol": 47.997,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 1114.0,
+   "photolysis_channel": "O2+O",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 161.3,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 261.1,
+   "critical_temperature_range_k": [
+    261.0,
+    261.15
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 5573000.0,
+   "critical_pressure_range_pa": [
+    5532000.0,
+    5573000.0
+   ],
+   "critical_pressure_n": "4",
+   "acentric_factor": 0.212,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.29,
+    "300": 39.33,
+    "1000": 55.02
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.268,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 3.93e-26,
+     "550": 1.72e-26,
+     "650": 8.69e-27
+    },
+    "ratio_to_n2_550": 3.71,
+    "king_factor_550": 1.21,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "O3, CCCBDB alpha with DFT rho",
+    "research_note": "alpha 3.079 A^3, rho_n 0.1097; sigma(550) at B = 0.004 to 0.0075 um^2: 1.69e-26 to 1.75e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route; the Ranjan and Sasselov values give 1.64e-26 at 550 nm: use 1.5e-26 to 1.75e-26",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0115,
+    "kh_range_mol_kg_bar": [
+     0.0088,
+     0.013
+    ],
+    "kh_n": 10,
+    "d_k": 2400.0,
+    "thermo_kh_298_mol_kg_bar": 0.00155,
+    "thermo_d_k": 2413.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the NIST median and the thermo fit differ by a factor 7.4"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8",
+   "licence": "open"
+  },
+  {
+   "formula": "H2O",
+   "name": "water vapor",
+   "cas": "7732-18-5",
+   "molar_mass_research_g_mol": 18.015,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": 240.0,
+   "photolysis_channel": "H+OH",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 273.16,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 611.7,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 373.12,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 647.1,
+   "critical_temperature_range_k": [
+    647.0,
+    647.3
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 22064000.0,
+   "critical_pressure_range_pa": [
+    22046000.0,
+    22064000.0
+   ],
+   "critical_pressure_n": "10",
+   "acentric_factor": 0.344,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.3,
+    "300": 33.6,
+    "1000": 41.27
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.329,
+   "latent_heat_vaporisation_kj_mol": 40.65,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 7.72e-27,
+     "550": 3.38e-27,
+     "650": 1.71e-27
+    },
+    "ratio_to_n2_550": 0.73,
+    "king_factor_550": 1.001,
+    "king_factor_assumed": false,
+    "research_status": "COMPUTED",
+    "research_row": "H2O vapour (generic check only)",
+    "research_note": "report gives n - 1 = 2.362e-4 at 550 nm with unknown reference temperature: n-based sigma is 3.11e-27 (if 288.15 K) or 2.80e-27 (if 273.15 K); the generic formula with alpha = 1.501 A^3 gives 3.38e-27, 9 to 21 percent above. Use the report value",
+    "reference_temperature_k": null,
+    "note": "generic polarizability route (alpha 1.501 A^3), because the refractivity n - 1 = 2.362e-4 at 550 nm has no known reference temperature: n-based sigma(550) is 3.11e-27 if 288.15 K or 2.80e-27 if 273.15 K, so the generic value is 9 to 21 percent above; F_K 1.0010 from the vapor depolarization 2.99e-4 (linear), not the liquid's 0.17",
+    "sigma_550_n_based_cm2": {
+     "288.15": 3.11e-27,
+     "273.15": 2.8e-27
+    },
+    "state": "partly verified",
+    "limit": "reference temperature of the refractivity unknown: the generic value is 9 to 21 percent above the n-based 3.11e-27 or 2.80e-27 at 550 nm"
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.641,
+    "epsilon_over_k_k": 809.1,
+    "mu_300_research_upa_s": 10.76,
+    "nist_300_upa_s": 9.77,
+    "difference_percent": 10.1,
+    "polar": true,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "polar: Chapman-Enskog is 10 percent high and the research gives the NIST value at 300 K only, no temperature law"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "HDO",
+   "name": "semi-heavy water",
+   "cas": "14940-63-7",
+   "molar_mass_research_g_mol": 19.0209,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "isotopes": {
+    "H-1": 1,
+    "H-2": 1,
+    "O-16": 1
+   },
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 33.3,
+    "300": 33.8,
+    "1000": 43.28
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.326,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "H2O2",
+   "name": "hydrogen peroxide",
+   "cas": "7722-84-1",
+   "molar_mass_research_g_mol": 34.014,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": 556.0,
+   "photolysis_channel": "OH+OH",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 423.35,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 728.0,
+   "critical_temperature_range_k": [
+    728.0,
+    730.15
+   ],
+   "critical_temperature_n": "3",
+   "critical_pressure_pa": 22000000.0,
+   "critical_pressure_range_pa": [
+    21700000.0,
+    22000000.0
+   ],
+   "critical_pressure_n": "3",
+   "acentric_factor": 0.358,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.53,
+    "300": 43.22,
+    "1000": 62.84
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.238,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 89500.0,
+    "kh_range_mol_kg_bar": [
+     69000.0,
+     140000.0
+    ],
+    "kh_n": 8,
+    "d_k": 7300.0,
+    "thermo_kh_298_mol_kg_bar": 90200.0,
+    "thermo_d_k": 6973.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.196,
+    "epsilon_over_k_k": 289.3,
+    "mu_300_research_upa_s": 9.8,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CO",
+   "name": "carbon monoxide",
+   "cas": "630-08-0",
+   "molar_mass_research_g_mol": 28.01,
+   "ir": "ir",
+   "volatility": "SV",
+   "photolysis_threshold_nm": 111.0,
+   "photolysis_channel": "C+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 68.16,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 15537.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 81.638,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 132.86,
+   "critical_temperature_range_k": [
+    132.86,
+    134.45
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 3494000.0,
+   "critical_pressure_range_pa": [
+    3475000.0,
+    3521000.0
+   ],
+   "critical_pressure_n": "9",
+   "acentric_factor": 0.05,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.1,
+    "300": 29.14,
+    "1000": 33.18
+   },
+   "cp_source": {
+    "100": "NIST fluid at 1e-4 MPa",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.399,
+   "latent_heat_vaporisation_kj_mol": 6.01,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    7.6,
+    8.1
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 1.313e-26,
+     "550": 5.734e-27,
+     "650": 2.896e-27
+    },
+    "ratio_to_n2_550": 1.24,
+    "king_factor_550": 1.016,
+    "king_factor_assumed": false,
+    "research_status": "2ND-HAND, COMPUTED",
+    "research_row": "CO (Allen/Cox form)",
+    "research_note": "report 2.2 (2ND-HAND form, TauREx); no measurement reached",
+    "reference_temperature_k": 273.15,
+    "note": "Allen/Cox form n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K; no measurement reached",
+    "state": "partly verified",
+    "limit": "second-hand form, no measurement reached"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00095,
+    "kh_range_mol_kg_bar": [
+     0.00086,
+     0.0074
+    ],
+    "kh_n": 5,
+    "d_k": 1300.0,
+    "thermo_kh_298_mol_kg_bar": 0.00101,
+    "thermo_d_k": 1503.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 9"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.69,
+    "epsilon_over_k_k": 91.7,
+    "mu_300_research_upa_s": 17.68,
+    "nist_300_upa_s": 17.84,
+    "difference_percent": -0.9,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CO2",
+   "name": "carbon dioxide",
+   "cas": "124-38-9",
+   "molar_mass_research_g_mol": 44.009,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 225.0,
+   "photolysis_channel": "CO+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 216.59,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 518000.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 194.67,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": true,
+   "critical_temperature_k": 304.13,
+   "critical_temperature_range_k": [
+    304.1,
+    304.35
+   ],
+   "critical_temperature_n": "10",
+   "critical_pressure_pa": 7377000.0,
+   "critical_pressure_range_pa": [
+    7340000.0,
+    7383000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.225,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.21,
+    "300": 37.22,
+    "1000": 54.31
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.288,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": [
+    25.2,
+    27.2
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.663e-26,
+     "550": 1.164e-26,
+     "650": 5.88e-27
+    },
+    "ratio_to_n2_550": 2.51,
+    "king_factor_550": 1.145,
+    "king_factor_assumed": false,
+    "research_status": "COMPUTED, READ",
+    "research_row": "CO2",
+    "research_note": "report 2.2; He 2021 Table 2: 13.32 n-based and 13.3 measured (1e-27 cm2) at 532 nm, so the 550 nm value 1.164e-26 is consistent",
+    "reference_temperature_k": 288.15,
+    "note": "n-based; He 2021 measured 13.3e-27 at 532 nm",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.034,
+    "kh_range_mol_kg_bar": [
+     0.031,
+     0.045
+    ],
+    "kh_n": 15,
+    "d_k": 2400.0,
+    "thermo_kh_298_mol_kg_bar": 0.0375,
+    "thermo_d_k": 2357.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.941,
+    "epsilon_over_k_k": 195.2,
+    "mu_300_research_upa_s": 15.18,
+    "nist_300_upa_s": 14.99,
+    "difference_percent": 1.3,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CH4",
+   "name": "methane",
+   "cas": "74-82-8",
+   "molar_mass_research_g_mol": 16.043,
+   "ir": "ir",
+   "volatility": "SV",
+   "photolysis_threshold_nm": 272.0,
+   "photolysis_channel": "CH3+H",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 90.694,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 11696.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 111.67,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 190.56,
+   "critical_temperature_range_k": [
+    190.56,
+    190.6
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 4599000.0,
+   "critical_pressure_range_pa": [
+    4599000.0,
+    4610000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.011,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.28,
+    "300": 35.71,
+    "1000": 71.8
+   },
+   "cp_source": {
+    "100": "NIST fluid at 1e-4 MPa",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.304,
+   "latent_heat_vaporisation_kj_mol": 8.19,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    0.1,
+    10.0
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.27e-26,
+     "550": 9.905e-27,
+     "650": 5e-27
+    },
+    "ratio_to_n2_550": 2.14,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "READ, COMPUTED",
+    "research_row": "CH4 (He 2021 dispersion)",
+    "research_note": "He et al. 2021, ACP 21, 14927, Table 1: (n-1)e8 = 4869.8 + 4.1023e14/(1.133e10 - nu^2) at 288.15 K; Table 2: 11.34 n-based and 11.3 measured (1e-27 cm2) at 532 nm",
+    "reference_temperature_k": 288.15,
+    "note": "He 2021 dispersion, replacing the older coded form that is 30 percent above the measured value",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0014,
+    "kh_range_mol_kg_bar": [
+     0.00097,
+     0.0092
+    ],
+    "kh_n": 10,
+    "d_k": 1750.0,
+    "thermo_kh_298_mol_kg_bar": 0.00159,
+    "thermo_d_k": 1731.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 9"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.758,
+    "epsilon_over_k_k": 148.6,
+    "mu_300_research_upa_s": 11.19,
+    "nist_300_upa_s": 11.12,
+    "difference_percent": 0.6,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "C2H2",
+   "name": "acetylene",
+   "cas": "74-86-2",
+   "molar_mass_research_g_mol": 26.038,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 215.0,
+   "photolysis_channel": "C2H+H",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 191.75,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 123500.0,
+   "triple_point_pa_source": "heos_constants",
+   "boiling_point_k": 189.3,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": true,
+   "critical_temperature_k": 308.3,
+   "critical_temperature_range_k": [
+    308.3,
+    309.7
+   ],
+   "critical_temperature_n": "11",
+   "critical_pressure_pa": 5988000.0,
+   "critical_pressure_range_pa": [
+    5988000.0,
+    6240000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.191,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.35,
+    "300": 44.23,
+    "1000": 68.28
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.232,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": [
+    21.8,
+    25.2
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 4.42e-26,
+     "550": 1.94e-26,
+     "650": 9.78e-27
+    },
+    "ratio_to_n2_550": 4.17,
+    "king_factor_550": 1.062,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "C2H2",
+    "research_note": "alpha 3.487 A^3, rho_n 0.0356; sigma(550) at B = 0.004 to 0.0075 um^2: 1.90e-26 to 1.97e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.041,
+    "kh_range_mol_kg_bar": [
+     0.039,
+     0.042
+    ],
+    "kh_n": 3,
+    "d_k": 1800.0,
+    "thermo_kh_298_mol_kg_bar": 0.0584,
+    "thermo_d_k": 1713.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.033,
+    "epsilon_over_k_k": 231.8,
+    "mu_300_research_upa_s": 10.34,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "C2H4",
+   "name": "ethylene",
+   "cas": "74-85-1",
+   "molar_mass_research_g_mol": 28.054,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 257.0,
+   "photolysis_channel": "C2H3+H",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 103.99,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 122.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 169.38,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 282.35,
+   "critical_temperature_range_k": [
+    282.34,
+    282.5
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 5042000.0,
+   "critical_pressure_range_pa": [
+    5032000.0,
+    5060000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.087,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.27,
+    "300": 43.06,
+    "1000": 93.9
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.239,
+   "latent_heat_vaporisation_kj_mol": 13.53,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    15.0,
+    18.4
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 6.26e-26,
+     "550": 2.74e-26,
+     "650": 1.39e-26
+    },
+    "ratio_to_n2_550": 5.91,
+    "king_factor_550": 1.042,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "C2H4",
+    "research_note": "alpha 4.188 A^3, rho_n 0.0245; sigma(550) at B = 0.004 to 0.0075 um^2: 2.69e-26 to 2.79e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.163,
+    "epsilon_over_k_k": 224.7,
+    "mu_300_research_upa_s": 10.22,
+    "nist_300_upa_s": 10.36,
+    "difference_percent": -1.4,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "C2H6",
+   "name": "ethane",
+   "cas": "74-84-0",
+   "molar_mass_research_g_mol": 30.07,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 317.0,
+   "photolysis_channel": "CH3+CH3",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 90.368,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 1.142,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 184.57,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 305.32,
+   "critical_temperature_range_k": [
+    305.3,
+    305.42
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 4872000.0,
+   "critical_pressure_range_pa": [
+    4872000.0,
+    4900000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.1,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 35.52,
+    "300": 52.72,
+    "1000": 122.69
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.187,
+   "latent_heat_vaporisation_kj_mol": 14.72,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    20.5,
+    22.6
+   ],
+   "thermal_status": "DATA (x)",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 6.14e-26,
+     "550": 2.69e-26,
+     "650": 1.36e-26
+    },
+    "ratio_to_n2_550": 5.8,
+    "king_factor_550": 1.004,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "C2H6",
+    "research_note": "alpha 4.226 A^3, rho_n 0.0025; sigma(550) at B = 0.004 to 0.0075 um^2: 2.64e-26 to 2.74e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.002,
+    "kh_range_mol_kg_bar": [
+     0.0018,
+     0.011
+    ],
+    "kh_n": 6,
+    "d_k": 2350.0,
+    "thermo_kh_298_mol_kg_bar": 0.00171,
+    "thermo_d_k": 2438.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 6"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.443,
+    "epsilon_over_k_k": 215.7,
+    "mu_300_research_upa_s": 9.46,
+    "nist_300_upa_s": 9.28,
+    "difference_percent": 2.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "C3H8",
+   "name": "propane",
+   "cas": "74-98-6",
+   "molar_mass_research_g_mol": 44.097,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 323.0,
+   "photolysis_channel": "CH3+C2H5",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 85.525,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 0.0001724,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 231.04,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 369.89,
+   "critical_temperature_range_k": [
+    369.82,
+    369.95
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 4251000.0,
+   "critical_pressure_range_pa": [
+    4246000.0,
+    4251000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.153,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 41.58,
+    "300": 73.95,
+    "1000": 174.84
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.127,
+   "latent_heat_vaporisation_kj_mol": 18.77,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": 28.5,
+   "thermal_status": "DATA (x)",
+   "viscosity": {
+    "sigma_angstrom": 5.118,
+    "epsilon_over_k_k": 237.1,
+    "mu_300_research_upa_s": 8.27,
+    "nist_300_upa_s": 8.18,
+    "difference_percent": 1.1,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "C4H10",
+   "name": "butane",
+   "cas": "106-97-8",
+   "molar_mass_research_g_mol": 58.124,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 134.9,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 0.6657,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 272.66,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 425.12,
+   "critical_temperature_range_k": [
+    425.0,
+    425.2
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 3796000.0,
+   "critical_pressure_range_pa": [
+    3790000.0,
+    3800000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.201,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 58.29,
+    "300": 99.11,
+    "1000": 227.75
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.092,
+   "latent_heat_vaporisation_kj_mol": 22.42,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": 35.9,
+   "thermal_status": "DATA (x)",
+   "viscosity": {
+    "sigma_angstrom": 4.687,
+    "epsilon_over_k_k": 531.4,
+    "mu_300_research_upa_s": 7.46,
+    "nist_300_upa_s": 7.45,
+    "difference_percent": 0.1,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "C6H6",
+   "name": "benzene",
+   "cas": "71-43-2",
+   "molar_mass_research_g_mol": 78.114,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": 253.0,
+   "photolysis_channel": "C6H5+H",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 278.67,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 4785.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 353.22,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 562.02,
+   "critical_temperature_range_k": [
+    562.0,
+    562.16
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 4907000.0,
+   "critical_pressure_range_pa": [
+    4890000.0,
+    4907000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.211,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 82.48,
+    "1000": 211.32
+   },
+   "cp_source": {
+    "100": null,
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.112,
+   "latent_heat_vaporisation_kj_mol": 30.75,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    38.0,
+    53.9
+   ],
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.18,
+    "kh_range_mol_kg_bar": [
+     0.12,
+     0.22
+    ],
+    "kh_n": 23,
+    "d_k": 4050.0,
+    "thermo_kh_298_mol_kg_bar": 0.18,
+    "thermo_d_k": 3303.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 5.349,
+    "epsilon_over_k_k": 412.3,
+    "mu_300_research_upa_s": 7.58,
+    "nist_300_upa_s": 7.62,
+    "difference_percent": -0.6,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "HCN",
+   "name": "hydrogen cyanide",
+   "cas": "74-90-8",
+   "molar_mass_research_g_mol": 27.026,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 229.0,
+   "photolysis_channel": "H+CN",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 259.86,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 299.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 456.8,
+   "critical_temperature_range_k": [
+    456.65,
+    457.0
+   ],
+   "critical_temperature_n": "5",
+   "critical_pressure_pa": 5390000.0,
+   "critical_pressure_range_pa": [
+    5390000.0,
+    5400000.0
+   ],
+   "critical_pressure_n": "5",
+   "acentric_factor": 0.41,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.17,
+    "300": 35.93,
+    "1000": 50.23
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.301,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": [
+    35.6,
+    37.6
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.44e-26,
+     "550": 1.07e-26,
+     "650": 5.39e-27
+    },
+    "ratio_to_n2_550": 2.3,
+    "king_factor_550": 1.058,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "HCN",
+    "research_note": "alpha 2.593 A^3, rho_n 0.0331; sigma(550) at B = 0.004 to 0.0075 um^2: 1.05e-26 to 1.09e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 9.3,
+    "kh_range_mol_kg_bar": [
+     7.5,
+     12.0
+    ],
+    "kh_n": 3,
+    "d_k": 5000.0,
+    "thermo_kh_298_mol_kg_bar": 6.56,
+    "thermo_d_k": 4623.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.63,
+    "epsilon_over_k_k": 569.1,
+    "mu_300_research_upa_s": 8.2,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CH2O",
+   "name": "formaldehyde",
+   "cas": "50-00-0",
+   "molar_mass_research_g_mol": 30.026,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 325.0,
+   "photolysis_channel": "H+HCO",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 155.1,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 253.85,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 408.0,
+   "critical_temperature_range_k": [
+    408.0,
+    408.0
+   ],
+   "critical_temperature_n": "2",
+   "critical_pressure_pa": 6586000.0,
+   "critical_pressure_range_pa": [
+    6586000.0,
+    6586000.0
+   ],
+   "critical_pressure_n": "2",
+   "acentric_factor": 0.282,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.26,
+    "300": 35.46,
+    "1000": 61.99
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.306,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.75e-26,
+     "550": 1.2e-26,
+     "650": 6.09e-27
+    },
+    "ratio_to_n2_550": 2.6,
+    "king_factor_550": 1.047,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "H2CO",
+    "research_note": "alpha 2.770 A^3, rho_n 0.0275; sigma(550) at B = 0.004 to 0.0075 um^2: 1.18e-26 to 1.23e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "licence": "open"
+  },
+  {
+   "formula": "CH3OH",
+   "name": "methanol",
+   "cas": "67-56-1",
+   "molar_mass_research_g_mol": 32.042,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 309.0,
+   "photolysis_channel": "CH3+OH",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 175.61,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 0.1864,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 337.63,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 513.38,
+   "critical_temperature_range_k": [
+    512.5,
+    513.38
+   ],
+   "critical_temperature_n": "7",
+   "critical_pressure_pa": 8215999.999999999,
+   "critical_pressure_range_pa": [
+    8010000.0,
+    8215999.999999999
+   ],
+   "critical_pressure_n": "7",
+   "acentric_factor": 0.561,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 39.71,
+    "300": 44.15,
+    "1000": 89.66
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.232,
+   "latent_heat_vaporisation_kj_mol": 35.28,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA (x)",
+   "henry": {
+    "kh_298_mol_kg_bar": 220.0,
+    "kh_range_mol_kg_bar": [
+     140.0,
+     230.0
+    ],
+    "kh_n": 7,
+    "d_k": 5400.0,
+    "thermo_kh_298_mol_kg_bar": 47.3,
+    "thermo_d_k": 5275.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the NIST median and the thermo fit differ by a factor 4.7"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.626,
+    "epsilon_over_k_k": 481.8,
+    "mu_300_research_upa_s": 9.74,
+    "nist_300_upa_s": 9.72,
+    "difference_percent": 0.2,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "NH3",
+   "name": "ammonia",
+   "cas": "7664-41-7",
+   "molar_mass_research_g_mol": 17.031,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 264.0,
+   "photolysis_channel": "NH2+H",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 195.49,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 6053.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 239.83,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 405.56,
+   "critical_temperature_range_k": [
+    405.4,
+    405.65
+   ],
+   "critical_temperature_n": "7",
+   "critical_pressure_pa": 11363000.0,
+   "critical_pressure_range_pa": [
+    11277000.0,
+    11363000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.256,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.28,
+    "300": 35.7,
+    "1000": 56.49
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.304,
+   "latent_heat_vaporisation_kj_mol": 23.33,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": 31.2,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 1.661e-26,
+     "550": 7.168e-27,
+     "650": 3.597e-27
+    },
+    "ratio_to_n2_550": 1.55,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": true,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "NH3, Cuthbertson",
+    "research_note": "(n-1) = 0.032953/(90.392 - s^2) at 273.15 K, fitted 0.48 to 0.67 um; `NH3_nk_Cuthbertson.yml`",
+    "reference_temperature_k": 273.15,
+    "note": "Cuthbertson fit (0.48 to 0.67 um); the generic formula gives 6.65e-27",
+    "state": "partly verified",
+    "limit": "King factor assumed 1.00 (not found)"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 58.0,
+    "kh_range_mol_kg_bar": [
+     10.0,
+     78.0
+    ],
+    "kh_n": 15,
+    "d_k": 4100.0,
+    "thermo_kh_298_mol_kg_bar": 52.5,
+    "thermo_d_k": 3256.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 8"
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.9,
+    "epsilon_over_k_k": 558.3,
+    "mu_300_research_upa_s": 10.3,
+    "nist_300_upa_s": 10.18,
+    "difference_percent": 1.1,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "N2H4",
+   "name": "hydrazine",
+   "cas": "302-01-2",
+   "molar_mass_research_g_mol": 32.046,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": 423.0,
+   "photolysis_channel": "NH2+NH2",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 274.62,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 386.65,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 653.0,
+   "critical_temperature_range_k": [
+    653.0,
+    653.15
+   ],
+   "critical_temperature_n": "4",
+   "critical_pressure_pa": 14692000.0,
+   "critical_pressure_range_pa": [
+    14692000.0,
+    14700000.0
+   ],
+   "critical_pressure_n": "4",
+   "acentric_factor": 0.314,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 34.37,
+    "300": 51.02,
+    "1000": 96.36
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.195,
+   "latent_heat_vaporisation_kj_mol": 41.8,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "N2O",
+   "name": "nitrous oxide",
+   "cas": "10024-97-2",
+   "molar_mass_research_g_mol": 44.013,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 714.0,
+   "photolysis_channel": "N2+O",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 182.33,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 87837.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 184.68,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 309.52,
+   "critical_temperature_range_k": [
+    309.49,
+    309.65
+   ],
+   "critical_temperature_n": "9",
+   "critical_pressure_pa": 7245000.0,
+   "critical_pressure_range_pa": [
+    7235000.0,
+    7270000.0
+   ],
+   "critical_pressure_n": "8",
+   "acentric_factor": 0.162,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.35,
+    "300": 38.7,
+    "1000": 54.87
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.274,
+   "latent_heat_vaporisation_kj_mol": 16.47,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    23.6,
+    25.1
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 3.664e-26,
+     "550": 1.587e-26,
+     "650": 7.978e-27
+    },
+    "ratio_to_n2_550": 3.42,
+    "king_factor_550": 1.2237,
+    "king_factor_assumed": false,
+    "research_status": "READ, COMPUTED",
+    "research_row": "N2O",
+    "research_note": "He et al. 2021 Table 1: (n-1)e8 = 46890 + 4.12e-6 nu^2 at 288.15 K, valid 15453 to 21838 cm^-1 (458 to 647 nm); F_K = (3.3462 + 70.8e-12 nu^2)/(2.7692 - 47.2e-12 nu^2); Table 2: 18.19 n-based and 18.3 measured (1e-27 cm2) at 532 nm",
+    "reference_temperature_k": 288.15,
+    "note": "He 2021 Table 1; 18.3e-27 measured at 532 nm",
+    "state": "verified",
+    "limit": ""
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.025,
+    "kh_range_mol_kg_bar": [
+     0.024,
+     0.026
+    ],
+    "kh_n": 7,
+    "d_k": 2650.0,
+    "thermo_kh_298_mol_kg_bar": 0.0219,
+    "thermo_d_k": 2683.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.828,
+    "epsilon_over_k_k": 232.4,
+    "mu_300_research_upa_s": 14.9,
+    "nist_300_upa_s": 14.9,
+    "difference_percent": 0.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "NO",
+   "name": "nitric oxide",
+   "cas": "10102-43-9",
+   "molar_mass_research_g_mol": 30.006,
+   "ir": "ir",
+   "volatility": "SV",
+   "photolysis_threshold_nm": 190.0,
+   "photolysis_channel": "N+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 121.38,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 180.0,
+   "critical_temperature_range_k": [
+    180.0,
+    180.15
+   ],
+   "critical_temperature_n": "4",
+   "critical_pressure_pa": 6485000.0,
+   "critical_pressure_range_pa": [
+    6480000.0,
+    6485000.0
+   ],
+   "critical_pressure_n": "4",
+   "acentric_factor": 0.583,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 32.3,
+    "300": 29.84,
+    "1000": 33.99
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.386,
+   "latent_heat_vaporisation_kj_mol": 13.83,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0019,
+    "kh_range_mol_kg_bar": [
+     0.0014,
+     0.0019
+    ],
+    "kh_n": 5,
+    "d_k": 1500.0,
+    "thermo_kh_298_mol_kg_bar": 0.00166,
+    "thermo_d_k": 1446.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.492,
+    "epsilon_over_k_k": 116.7,
+    "mu_300_research_upa_s": 19.14,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "NO2",
+   "name": "nitrogen dioxide",
+   "cas": "10102-44-0",
+   "molar_mass_research_g_mol": 46.005,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 391.0,
+   "photolysis_channel": "NO+O",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 295.08,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 431.15,
+   "critical_temperature_range_k": [
+    431.0,
+    431.15
+   ],
+   "critical_temperature_n": "2",
+   "critical_pressure_pa": 10133000.0,
+   "critical_pressure_range_pa": [
+    10133000.0,
+    10133000.0
+   ],
+   "critical_pressure_n": "2",
+   "acentric_factor": 0.851,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.28,
+    "300": 37.03,
+    "1000": 52.17
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.29,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.024,
+    "kh_range_mol_kg_bar": [
+     0.007,
+     0.041
+    ],
+    "kh_n": 7,
+    "d_k": 2150.0,
+    "thermo_kh_298_mol_kg_bar": 0.0123,
+    "thermo_d_k": 2377.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 6"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
+   "licence": "open"
+  },
+  {
+   "formula": "N2O4",
+   "name": "dinitrogen tetroxide",
+   "cas": "10544-72-6",
+   "molar_mass_research_g_mol": 92.01,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 294.31,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 431.0,
+   "critical_temperature_range_k": [
+    431.0,
+    431.15
+   ],
+   "critical_temperature_n": "3",
+   "critical_pressure_pa": 10133000.0,
+   "critical_pressure_range_pa": [
+    10133000.0,
+    10133000.0
+   ],
+   "critical_pressure_n": "3",
+   "acentric_factor": 0.853,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 46.26,
+    "300": 77.49,
+    "1000": 119.21
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.12,
+   "latent_heat_vaporisation_kj_mol": 38.12,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "HNO3",
+   "name": "nitric acid",
+   "cas": "7697-37-2",
+   "molar_mass_research_g_mol": 63.012,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": 577.0,
+   "photolysis_channel": "OH+NO2",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 356.15,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 520.0,
+   "critical_temperature_range_k": [
+    520.0,
+    520.0
+   ],
+   "critical_temperature_n": "2",
+   "critical_pressure_pa": 6890000.0,
+   "critical_pressure_range_pa": [
+    6890000.0,
+    6890000.0
+   ],
+   "critical_pressure_n": "2",
+   "acentric_factor": 0.714,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.92,
+    "300": 53.53,
+    "1000": 90.42
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.184,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 210000.0,
+    "kh_range_mol_kg_bar": [
+     89000.0,
+     210000.0
+    ],
+    "kh_n": 3,
+    "d_k": 8700.0,
+    "thermo_kh_298_mol_kg_bar": 222000.0,
+    "thermo_d_k": 8750.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
+   "licence": "open"
+  },
+  {
+   "formula": "HNCO",
+   "name": "isocyanic acid",
+   "cas": "75-13-8",
+   "molar_mass_research_g_mol": 43.025,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": 241.0,
+   "photolysis_channel": "H+NCO",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 33.47,
+    "300": 45.16,
+    "1000": 67.52
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.226,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "C3O2",
+   "name": "carbon suboxide",
+   "cas": "504-64-3",
+   "molar_mass_research_g_mol": 68.031,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 436.0,
+   "photolysis_channel": "C2O+CO",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 279.95,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 431.8,
+   "critical_temperature_range_k": [
+    431.8,
+    431.8
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 5119000.0,
+   "critical_pressure_range_pa": [
+    5119000.0,
+    5119000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": null,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 45.31,
+    "300": 67.16,
+    "1000": 97.64
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.141,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "CN",
+   "name": "cyanogen radical",
+   "cas": "2074-87-5",
+   "molar_mass_research_g_mol": 26.018,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": 160.0,
+   "photolysis_channel": "C+N",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 29.1,
+    "300": 29.16,
+    "1000": 33.46
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.399,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "C2N2",
+   "name": "cyanogen",
+   "cas": "460-19-5",
+   "molar_mass_research_g_mol": 52.036,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 209.0,
+   "photolysis_channel": "CN+CN",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 245.32,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": 75100.0,
+   "triple_point_pa_source": "NIST WebBook median",
+   "boiling_point_k": 252.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 400.0,
+   "critical_temperature_range_k": [
+    397.0,
+    400.15
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 5978000.0,
+   "critical_pressure_range_pa": [
+    5924000.0,
+    6303000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.312,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 36.4,
+    "300": 56.86,
+    "1000": 76.3
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.171,
+   "latent_heat_vaporisation_kj_mol": 23.33,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": [
+    32.4,
+    34.4
+   ],
+   "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 4.361,
+    "epsilon_over_k_k": 348.6,
+    "mu_300_research_upa_s": 10.18,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CH3CN",
+   "name": "acetonitrile",
+   "cas": "75-05-8",
+   "molar_mass_research_g_mol": 41.053,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": 229.0,
+   "photolysis_channel": "CH3+CN",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 229.32,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 354.8,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 545.0,
+   "critical_temperature_range_k": [
+    545.0,
+    548.0
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 4870000.0,
+   "critical_pressure_range_pa": [
+    4833000.0,
+    4880000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.338,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 36.77,
+    "300": 52.39,
+    "1000": 98.42
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.189,
+   "latent_heat_vaporisation_kj_mol": 29.75,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA (x)",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "HC3N",
+   "name": "cyanoacetylene",
+   "cas": "1070-71-9",
+   "molar_mass_research_g_mol": 51.048,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 315.7,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "cp_source": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "gamma_300": null,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "NOT REACHED",
+   "state": "partly verified",
+   "limit": "phase points not reached; heat capacity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "C4H2",
+   "name": "diacetylene",
+   "cas": "460-12-8",
+   "molar_mass_research_g_mol": 50.06,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 284.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 478.02,
+   "critical_temperature_range_k": [
+    478.02,
+    478.02
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 5863000.0,
+   "critical_pressure_range_pa": [
+    5863000.0,
+    5863000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": 0.1,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 32.91,
+    "300": 73.92,
+    "1000": 111.25
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.127,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": [
+    36.2,
+    36.3
+   ],
+   "thermal_status": "DATA (x)",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "PH3",
+   "name": "phosphine",
+   "cas": "7803-51-2",
+   "molar_mass_research_g_mol": 33.9978,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 139.41,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 185.41,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 324.8,
+   "critical_temperature_range_k": [
+    324.75,
+    324.8
+   ],
+   "critical_temperature_n": "3",
+   "critical_pressure_pa": 6535000.0,
+   "critical_pressure_range_pa": [
+    6535000.0,
+    6540000.0
+   ],
+   "critical_pressure_n": "3",
+   "acentric_factor": 0.045,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.26,
+    "300": 37.18,
+    "1000": 64.3
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.288,
+   "latent_heat_vaporisation_kj_mol": 14.6,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": 17.2,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0081,
+    "kh_range_mol_kg_bar": [
+     0.0081,
+     0.0081
+    ],
+    "kh_n": 1,
+    "d_k": 2000.0,
+    "thermo_kh_298_mol_kg_bar": 0.00616,
+    "thermo_d_k": 2871.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "one compiled value"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.981,
+    "epsilon_over_k_k": 251.5,
+    "mu_300_research_upa_s": 11.67,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "H2S",
+   "name": "hydrogen sulfide",
+   "cas": "7783-06-4",
+   "molar_mass_research_g_mol": 34.076,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 317.0,
+   "photolysis_channel": "SH+H",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 187.7,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 23259.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 212.85,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 373.1,
+   "critical_temperature_range_k": [
+    372.8,
+    373.53
+   ],
+   "critical_temperature_n": "7",
+   "critical_pressure_pa": 9000000.0,
+   "critical_pressure_range_pa": [
+    8937000.0,
+    9000000.0
+   ],
+   "critical_pressure_n": "7",
+   "acentric_factor": 0.1,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.26,
+    "300": 34.21,
+    "1000": 45.79
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.321,
+   "latent_heat_vaporisation_kj_mol": 18.62,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    22.5,
+    25.4
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 4.52e-26,
+     "550": 1.98e-26,
+     "650": 9.99e-27
+    },
+    "ratio_to_n2_550": 4.26,
+    "king_factor_550": 1.0,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "H2S",
+    "research_note": "alpha 3.631 A^3, rho_n 0.00004; sigma(550) at B = 0.004 to 0.0075 um^2: 1.94e-26 to 2.01e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route, each value about +-8 percent; Bogaard 1978 not reached",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.1,
+    "kh_range_mol_kg_bar": [
+     0.001,
+     0.1
+    ],
+    "kh_n": 9,
+    "d_k": 2150.0,
+    "thermo_kh_298_mol_kg_bar": 0.0952,
+    "thermo_d_k": 1976.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 100"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.623,
+    "epsilon_over_k_k": 301.1,
+    "mu_300_research_upa_s": 12.89,
+    "nist_300_upa_s": 12.45,
+    "difference_percent": 3.5,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "SO2",
+   "name": "sulfur dioxide",
+   "cas": "7446-09-5",
+   "molar_mass_research_g_mol": 64.058,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 217.0,
+   "photolysis_channel": "SO+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 197.7,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 1666.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 263.14,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 430.64,
+   "critical_temperature_range_k": [
+    430.34,
+    430.8
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 7887000.0,
+   "critical_pressure_range_pa": [
+    7883000.0,
+    7887000.0
+   ],
+   "critical_pressure_n": "5",
+   "acentric_factor": 0.256,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.53,
+    "300": 39.95,
+    "1000": 54.48
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.263,
+   "latent_heat_vaporisation_kj_mol": 24.96,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 5.51e-26,
+     "550": 2.41e-26,
+     "650": 1.22e-26
+    },
+    "ratio_to_n2_550": 5.2,
+    "king_factor_550": 1.068,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "SO2",
+    "research_note": "alpha 3.882 A^3, rho_n 0.0388; sigma(550) at B = 0.004 to 0.0075 um^2: 2.37e-26 to 2.46e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route, each value about +-8 percent; Bogaard 1978 not reached",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 1.2,
+    "kh_range_mol_kg_bar": [
+     1.2,
+     1.5
+    ],
+    "kh_n": 14,
+    "d_k": 3100.0,
+    "thermo_kh_298_mol_kg_bar": 2.26,
+    "thermo_d_k": 2853.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.112,
+    "epsilon_over_k_k": 335.4,
+    "mu_300_research_upa_s": 12.97,
+    "nist_300_upa_s": 12.97,
+    "difference_percent": -0.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "SO3",
+   "name": "sulfur trioxide",
+   "cas": "7446-11-9",
+   "molar_mass_research_g_mol": 80.057,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 344.0,
+   "photolysis_channel": "SO2+O",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 317.9,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 491.0,
+   "critical_temperature_range_k": [
+    490.85,
+    491.0
+   ],
+   "critical_temperature_n": "4",
+   "critical_pressure_pa": 8207000.000000001,
+   "critical_pressure_range_pa": [
+    8207000.000000001,
+    8210000.000000001
+   ],
+   "critical_pressure_n": "4",
+   "acentric_factor": 0.424,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 34.08,
+    "300": 50.8,
+    "1000": 75.97
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.196,
+   "latent_heat_vaporisation_kj_mol": 40.69,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "H2SO4",
+   "name": "sulfuric acid",
+   "cas": "7664-93-9",
+   "molar_mass_research_g_mol": 98.072,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 610.0,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 924.0,
+   "critical_temperature_range_k": [
+    924.0,
+    924.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 6400000.0,
+   "critical_pressure_range_pa": [
+    6400000.0,
+    6400000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": 0.494,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 42.1,
+    "300": 84.05,
+    "1000": 132.69
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.11,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "OCS",
+   "name": "carbonyl sulfide",
+   "cas": "463-58-1",
+   "molar_mass_research_g_mol": 60.07,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 392.0,
+   "photolysis_channel": "CO+S",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 134.3,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 64.43,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 222.99,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 378.77,
+   "critical_temperature_range_k": [
+    375.0,
+    378.8
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 6370000.0,
+   "critical_pressure_range_pa": [
+    5877000.0,
+    6370000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.097,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.61,
+    "300": 41.59,
+    "1000": 56.99
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.25,
+   "latent_heat_vaporisation_kj_mol": 18.56,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 9.96e-26,
+     "550": 4.36e-26,
+     "650": 2.2e-26
+    },
+    "ratio_to_n2_550": 9.4,
+    "king_factor_550": 1.122,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "OCS",
+    "research_note": "alpha 5.090 A^3, rho_n 0.0675; sigma(550) at B = 0.004 to 0.0075 um^2: 4.27e-26 to 4.44e-26",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.021,
+    "kh_range_mol_kg_bar": [
+     0.015,
+     0.033
+    ],
+    "kh_n": 9,
+    "d_k": 3300.0,
+    "thermo_kh_298_mol_kg_bar": 0.00324,
+    "thermo_d_k": 2787.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the NIST median and the thermo fit differ by a factor 6.5"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.13,
+    "epsilon_over_k_k": 336.0,
+    "mu_300_research_upa_s": 12.43,
+    "nist_300_upa_s": 12.45,
+    "difference_percent": -0.2,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CS2",
+   "name": "carbon disulfide",
+   "cas": "75-15-0",
+   "molar_mass_research_g_mol": 76.131,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 272.0,
+   "photolysis_channel": "CS+S",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 161.35,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 319.2,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 552.0,
+   "critical_temperature_range_k": [
+    552.0,
+    552.49
+   ],
+   "critical_temperature_n": "5",
+   "critical_pressure_pa": 7903000.0,
+   "critical_pressure_range_pa": [
+    7329000.0,
+    7903000.0
+   ],
+   "critical_pressure_n": "4",
+   "acentric_factor": 0.111,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 31.0,
+    "300": 45.75,
+    "1000": 59.28
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.222,
+   "latent_heat_vaporisation_kj_mol": 26.74,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.055,
+    "kh_range_mol_kg_bar": [
+     0.044,
+     0.075
+    ],
+    "kh_n": 5,
+    "d_k": 3400.0,
+    "thermo_kh_298_mol_kg_bar": 0.0352,
+    "thermo_d_k": 3351.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.483,
+    "epsilon_over_k_k": 467.0,
+    "mu_300_research_upa_s": 9.98,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "S2",
+   "name": "disulfur",
+   "cas": "23550-45-0",
+   "molar_mass_research_g_mol": 64.12,
+   "ir": "cia",
+   "volatility": null,
+   "photolysis_threshold_nm": 281.0,
+   "photolysis_channel": "S+S",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 29.37,
+    "300": 32.52,
+    "1000": 37.28
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.343,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "S8",
+   "name": "octasulfur",
+   "cas": "10544-50-0",
+   "molar_mass_research_g_mol": 256.48,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 87.16,
+    "300": 156.31,
+    "1000": 180.06
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.056,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "SO",
+   "name": "sulfur monoxide",
+   "cas": "13827-32-2",
+   "molar_mass_research_g_mol": 48.059,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": 230.0,
+   "photolysis_channel": "S+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 29.11,
+    "300": 30.2,
+    "1000": 36.05
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.38,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "CH3SH",
+   "name": "methanethiol",
+   "cas": "74-93-1",
+   "molar_mass_research_g_mol": 48.103,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 150.15,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 279.1,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 469.9,
+   "critical_temperature_range_k": [
+    469.9,
+    470.0
+   ],
+   "critical_temperature_n": "7",
+   "critical_pressure_pa": 7230000.0,
+   "critical_pressure_range_pa": [
+    7230000.0,
+    7240000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.158,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 37.24,
+    "300": 50.51,
+    "1000": 93.97
+   },
+   "cp_source": {
+    "100": "Poling polynomial",
+    "300": "Poling polynomial",
+    "1000": "Poling polynomial"
+   },
+   "gamma_300": 1.197,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "(CH3)2S",
+   "name": "dimethyl sulfide",
+   "cas": "75-18-3",
+   "molar_mass_research_g_mol": 62.13,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 174.85,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 311.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 503.0,
+   "critical_temperature_range_k": [
+    503.0,
+    503.04
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 5530000.0,
+   "critical_pressure_range_pa": [
+    5400000.0,
+    5532000.0
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.194,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 74.38,
+    "1000": 146.87
+   },
+   "cp_source": {
+    "100": null,
+    "300": "Poling polynomial",
+    "1000": "Poling polynomial"
+   },
+   "gamma_300": 1.126,
+   "latent_heat_vaporisation_kj_mol": 27.0,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.55,
+    "kh_range_mol_kg_bar": [
+     0.08,
+     0.7
+    ],
+    "kh_n": 11,
+    "d_k": 3500.0,
+    "thermo_kh_298_mol_kg_bar": 0.587,
+    "thermo_d_k": 3611.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 9"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
+   "licence": "open"
+  },
+  {
+   "formula": "HCl",
+   "name": "hydrogen chloride",
+   "cas": "7647-01-0",
+   "molar_mass_research_g_mol": 36.458,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 277.0,
+   "photolysis_channel": "H+Cl",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 159.07,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 13828.0,
+   "triple_point_pa_source": "heos_constants",
+   "boiling_point_k": 188.17,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 324.68,
+   "critical_temperature_range_k": [
+    324.6,
+    324.68
+   ],
+   "critical_temperature_n": "6",
+   "critical_pressure_pa": 8313000.000000001,
+   "critical_pressure_range_pa": [
+    8256000.0,
+    8313000.000000001
+   ],
+   "critical_pressure_n": "6",
+   "acentric_factor": 0.132,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.12,
+    "300": 29.14,
+    "1000": 31.63
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.399,
+   "latent_heat_vaporisation_kj_mol": 16.15,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": [
+    19.6,
+    19.7
+   ],
+   "thermal_status": "DATA",
+   "rayleigh": {
+    "sigma_cm2": {
+     "450": 2.17e-26,
+     "550": 9.5e-27,
+     "650": 4.81e-27
+    },
+    "ratio_to_n2_550": 2.05,
+    "king_factor_550": 1.003,
+    "king_factor_assumed": false,
+    "research_status": "DATA, COMPUTED",
+    "research_row": "HCl",
+    "research_note": "alpha 2.515 A^3, rho_n 0.0016; sigma(550) at B = 0.004 to 0.0075 um^2: 9.32e-27 to 9.69e-27",
+    "reference_temperature_k": null,
+    "note": "polarizability route",
+    "state": "partly verified",
+    "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
+   },
+   "henry": {
+    "kh_298_mol_kg_bar": 19.5,
+    "kh_range_mol_kg_bar": [
+     1.1,
+     2500.0
+    ],
+    "kh_n": 6,
+    "d_k": 2000.0,
+    "thermo_kh_298_mol_kg_bar": 6.05,
+    "thermo_d_k": 1521.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 2273; the NIST median and the thermo fit differ by a factor 3.2"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.339,
+    "epsilon_over_k_k": 344.7,
+    "mu_300_research_upa_s": 14.62,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "HF",
+   "name": "hydrogen fluoride",
+   "cas": "7664-39-3",
+   "molar_mass_research_g_mol": 20.0064,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 210.0,
+   "photolysis_channel": "H+F",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 292.7,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 461.0,
+   "critical_temperature_range_k": [
+    461.0,
+    461.15
+   ],
+   "critical_temperature_n": "3",
+   "critical_pressure_pa": 6485000.0,
+   "critical_pressure_range_pa": [
+    6480000.0,
+    6485000.0
+   ],
+   "critical_pressure_n": "3",
+   "acentric_factor": 0.382,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.13,
+    "300": 29.14,
+    "1000": 30.17
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.399,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 3.148,
+    "epsilon_over_k_k": 330.0,
+    "mu_300_research_upa_s": 12.47,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "Cl2",
+   "name": "chlorine",
+   "cas": "7782-50-5",
+   "molar_mass_research_g_mol": 70.9,
+   "ir": "cia",
+   "volatility": "V",
+   "photolysis_threshold_nm": 493.0,
+   "photolysis_channel": "Cl+Cl",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 172.17,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 1381.0,
+   "triple_point_pa_source": "heos_constants",
+   "boiling_point_k": 239.2,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 416.87,
+   "critical_temperature_range_k": [
+    416.87,
+    417.15
+   ],
+   "critical_temperature_n": "7",
+   "critical_pressure_pa": 7642000.0,
+   "critical_pressure_range_pa": [
+    7642000.0,
+    7991000.0
+   ],
+   "critical_pressure_n": "7",
+   "acentric_factor": 0.069,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 28.16,
+    "300": 33.98,
+    "1000": 37.43
+   },
+   "cp_source": {
+    "100": "NASA-7 extrapolated below 200 K (unreliable)",
+    "300": "NASA-7",
+    "1000": "NASA-7"
+   },
+   "gamma_300": 1.324,
+   "latent_heat_vaporisation_kj_mol": 20.41,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA (x)",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.088,
+    "kh_range_mol_kg_bar": [
+     0.061,
+     0.095
+    ],
+    "kh_n": 6,
+    "d_k": 2550.0,
+    "thermo_kh_298_mol_kg_bar": 0.0937,
+    "thermo_d_k": 2360.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.217,
+    "epsilon_over_k_k": 316.0,
+    "mu_300_research_upa_s": 13.38,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "CH3Cl",
+   "name": "chloromethane",
+   "cas": "74-87-3",
+   "molar_mass_research_g_mol": 50.485,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 342.0,
+   "photolysis_channel": "CH3+Cl",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 175.51,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 870.0,
+   "triple_point_pa_source": "NIST WebBook median",
+   "boiling_point_k": 249.17,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 416.3,
+   "critical_temperature_range_k": [
+    416.0,
+    416.3
+   ],
+   "critical_temperature_n": "7",
+   "critical_pressure_pa": 6690000.0,
+   "critical_pressure_range_pa": [
+    6677000.0,
+    7400000.0
+   ],
+   "critical_pressure_n": "10",
+   "acentric_factor": 0.153,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.28,
+    "300": 40.86,
+    "1000": 78.84
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.255,
+   "latent_heat_vaporisation_kj_mol": 21.4,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": 31.6,
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.11,
+    "kh_range_mol_kg_bar": [
+     0.029,
+     0.13
+    ],
+    "kh_n": 11,
+    "d_k": 2900.0,
+    "thermo_kh_298_mol_kg_bar": 0.0806,
+    "thermo_d_k": 2560.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 4"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.182,
+    "epsilon_over_k_k": 350.0,
+    "mu_300_research_upa_s": 10.88,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "HBr",
+   "name": "hydrogen bromide",
+   "cas": "10035-10-6",
+   "molar_mass_research_g_mol": 80.912,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 327.0,
+   "photolysis_channel": "H+Br",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 206.45,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 363.2,
+   "critical_temperature_range_k": [
+    363.15,
+    363.2
+   ],
+   "critical_temperature_n": "4",
+   "critical_pressure_pa": 8552000.0,
+   "critical_pressure_range_pa": [
+    8552000.0,
+    8552000.0
+   ],
+   "critical_pressure_n": "4",
+   "acentric_factor": 0.069,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 29.11,
+    "300": 29.14,
+    "1000": 32.32
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.399,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 3.353,
+    "epsilon_over_k_k": 449.0,
+    "mu_300_research_upa_s": 18.77,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "HClO4",
+   "name": "perchloric acid",
+   "cas": "7601-90-3",
+   "molar_mass_research_g_mol": 100.454,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 385.0,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 631.0,
+   "critical_temperature_range_k": [
+    631.0,
+    631.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 3860000.0,
+   "critical_pressure_range_pa": [
+    3860000.0,
+    3860000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": 0.05,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "cp_source": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "gamma_300": null,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "NOT REACHED",
+   "state": "partly verified",
+   "limit": "heat capacity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "CF4",
+   "name": "tetrafluoromethane",
+   "cas": "75-73-0",
+   "molar_mass_research_g_mol": 88.0046,
+   "ir": "ir",
+   "volatility": "SV",
+   "photolysis_threshold_nm": 221.0,
+   "photolysis_channel": "CF3+F",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 120.0,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 11294.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 145.1,
+   "boiling_point_k_source": "heos_constants",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 227.51,
+   "critical_temperature_range_k": [
+    227.5,
+    227.54
+   ],
+   "critical_temperature_n": "8",
+   "critical_pressure_pa": 3750000.0,
+   "critical_pressure_range_pa": [
+    3680000.0,
+    3750000.0
+   ],
+   "critical_pressure_n": "7",
+   "acentric_factor": 0.181,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 34.74,
+    "300": 61.29,
+    "1000": 98.8
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.157,
+   "latent_heat_vaporisation_kj_mol": 11.83,
+   "latent_heat_vaporisation_source": "NIST EOS table",
+   "latent_heat_sublimation_kj_mol": [
+    14.0,
+    17.0
+   ],
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0002,
+    "kh_range_mol_kg_bar": [
+     0.00019,
+     0.00021
+    ],
+    "kh_n": 4,
+    "d_k": 1650.0,
+    "thermo_kh_298_mol_kg_bar": 0.000221,
+    "thermo_d_k": 971.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.662,
+    "epsilon_over_k_k": 134.0,
+    "mu_300_research_upa_s": 17.62,
+    "nist_300_upa_s": 17.29,
+    "difference_percent": 1.9,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "SF6",
+   "name": "sulfur hexafluoride",
+   "cas": "2551-62-4",
+   "molar_mass_research_g_mol": 146.0504,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 306.0,
+   "photolysis_channel": "SF5+F",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 223.56,
+   "triple_point_k_source": "heos_constants",
+   "triple_point_pa": 231400.0,
+   "triple_point_pa_source": "NIST EOS table",
+   "boiling_point_k": 209.3,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": true,
+   "critical_temperature_k": 318.72,
+   "critical_temperature_range_k": [
+    318.69,
+    318.76
+   ],
+   "critical_temperature_n": "8-2out",
+   "critical_pressure_pa": 3755000.0,
+   "critical_pressure_range_pa": [
+    3755000.0,
+    3760000.0
+   ],
+   "critical_pressure_n": "6-1out",
+   "acentric_factor": 0.218,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 38.72,
+    "300": 97.4,
+    "1000": 149.27
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.093,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": [
+    23.2,
+    23.3
+   ],
+   "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00024,
+    "kh_range_mol_kg_bar": [
+     0.00024,
+     0.00024
+    ],
+    "kh_n": 1,
+    "d_k": 2400.0,
+    "thermo_kh_298_mol_kg_bar": 0.00021,
+    "thermo_d_k": 2745.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "one compiled value"
+   },
+   "viscosity": {
+    "sigma_angstrom": 5.128,
+    "epsilon_over_k_k": 222.1,
+    "mu_300_research_upa_s": 15.45,
+    "nist_300_upa_s": 15.29,
+    "difference_percent": 1.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "SiH4",
+   "name": "silane",
+   "cas": "7803-62-5",
+   "molar_mass_research_g_mol": 32.117,
+   "ir": "ir",
+   "volatility": "V",
+   "photolysis_threshold_nm": 304.0,
+   "photolysis_channel": "SiH3+H",
+   "absorbs_near_uv": true,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 161.0,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 269.7,
+   "critical_temperature_range_k": [
+    269.0,
+    269.7
+   ],
+   "critical_temperature_n": "3",
+   "critical_pressure_pa": 4840000.0,
+   "critical_pressure_range_pa": [
+    4840000.0,
+    4855000.0
+   ],
+   "critical_pressure_n": "3",
+   "acentric_factor": 0.094,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 33.27,
+    "300": 42.98,
+    "1000": 84.51
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.24,
+   "latent_heat_vaporisation_kj_mol": 12.1,
+   "latent_heat_vaporisation_source": "CRC",
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 4.084,
+    "epsilon_over_k_k": 207.6,
+    "mu_300_research_upa_s": 11.77,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "licence": "open"
+  },
+  {
+   "formula": "SiO",
+   "name": "silicon monoxide",
+   "cas": "10097-28-6",
+   "molar_mass_research_g_mol": 44.084,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": 150.0,
+   "photolysis_channel": "Si+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 29.11,
+    "300": 29.92,
+    "1000": 35.72
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.385,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "Na",
+   "name": "sodium",
+   "cas": "7440-23-5",
+   "molar_mass_research_g_mol": 22.9898,
+   "ir": "none",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 370.98,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 1156.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 2573.0,
+   "critical_temperature_range_k": [
+    2573.0,
+    2573.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 35464000.0,
+   "critical_pressure_range_pa": [
+    35464000.0,
+    35464000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": -0.105,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.79,
+    "300": 20.79,
+    "1000": 20.79
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "K",
+   "name": "potassium",
+   "cas": "7440-09-7",
+   "molar_mass_research_g_mol": 39.0983,
+   "ir": "none",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 336.35,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 1037.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 2223.0,
+   "critical_temperature_range_k": [
+    2223.0,
+    2223.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 16000000.0,
+   "critical_pressure_range_pa": [
+    16000000.0,
+    16000000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": -0.203,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.79,
+    "300": 20.79,
+    "1000": 20.79
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "Ca",
+   "name": "calcium",
+   "cas": "7440-70-2",
+   "molar_mass_research_g_mol": 40.078,
+   "ir": "none",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 1112.9,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 1757.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 3267.0,
+   "critical_temperature_range_k": [
+    3267.0,
+    3267.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 15300000.0,
+   "critical_pressure_range_pa": [
+    15300000.0,
+    15300000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": 0.117,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.79,
+    "300": 20.79,
+    "1000": 20.79
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "Mg",
+   "name": "magnesium",
+   "cas": "7439-95-4",
+   "molar_mass_research_g_mol": 24.305,
+   "ir": "none",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": 922.0,
+   "triple_point_k_source": "NIST WebBook median",
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 1363.0,
+   "boiling_point_k_source": "NIST WebBook median",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 2241.04,
+   "critical_temperature_range_k": [
+    2241.04,
+    2241.04
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 280240000.0,
+   "critical_pressure_range_pa": [
+    280240000.0,
+    280240000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": null,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 20.79,
+    "300": 20.79,
+    "1000": 20.79
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.667,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "Fe",
+   "name": "iron",
+   "cas": "7439-89-6",
+   "molar_mass_research_g_mol": 55.845,
+   "ir": "none",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 3133.3,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 9340.0,
+   "critical_temperature_range_k": [
+    9340.0,
+    9340.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 1015000000.0,
+   "critical_pressure_range_pa": [
+    1015000000.0,
+    1015000000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": -0.011,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 21.39,
+    "300": 25.68,
+    "1000": 22.49
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.479,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "TiO",
+   "name": "titanium monoxide",
+   "cas": "12137-20-1",
+   "molar_mass_research_g_mol": 63.866,
+   "ir": "ir",
+   "volatility": null,
+   "photolysis_threshold_nm": 179.0,
+   "photolysis_channel": "Ti+O",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": null,
+   "boiling_point_k_source": null,
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": null,
+   "critical_temperature_range_k": null,
+   "critical_temperature_n": null,
+   "critical_pressure_pa": null,
+   "critical_pressure_range_pa": null,
+   "critical_pressure_n": null,
+   "acentric_factor": null,
+   "phase_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 33.88,
+    "300": 32.5,
+    "1000": 37.74
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.344,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "extras_note": "JANAF Cp in T3 agrees within 4% at 300 K; vapour curve in T6",
+   "state": "partly verified",
+   "limit": "phase points not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "NaCl",
+   "name": "sodium chloride vapor",
+   "cas": "7647-14-5",
+   "molar_mass_research_g_mol": 58.4398,
+   "ir": "ir",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": 292.0,
+   "photolysis_channel": "Na+Cl",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 1738.2,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 3400.0,
+   "critical_temperature_range_k": [
+    3400.0,
+    3400.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 35500000.0,
+   "critical_pressure_range_pa": [
+    35500000.0,
+    35500000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": 0.189,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 30.39,
+    "300": 35.81,
+    "1000": 37.92
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.302,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "KCl",
+   "name": "potassium chloride vapor",
+   "cas": "7447-40-7",
+   "molar_mass_research_g_mol": 74.5483,
+   "ir": "ir",
+   "volatility": "Ref",
+   "photolysis_threshold_nm": 281.0,
+   "photolysis_channel": "K+Cl",
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 1689.0,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 3470.0,
+   "critical_temperature_range_k": [
+    3470.0,
+    3470.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 18000000.0,
+   "critical_pressure_range_pa": [
+    18000000.0,
+    18000000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": -0.121,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": 31.7,
+    "300": 36.51,
+    "1000": 38.06
+   },
+   "cp_source": {
+    "100": "JANAF 1998",
+    "300": "JANAF 1998",
+    "1000": "JANAF 1998"
+   },
+   "gamma_300": 1.295,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": null,
+   "thermal_status": "DATA",
+   "state": "verified",
+   "limit": "",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "NH4Cl",
+   "name": "ammonium chloride",
+   "cas": "12125-02-9",
+   "molar_mass_research_g_mol": 53.489,
+   "ir": "ir",
+   "volatility": "SmV",
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": false,
+   "identity_status": "COMPUTED",
+   "triple_point_k": null,
+   "triple_point_k_source": null,
+   "triple_point_pa": null,
+   "triple_point_pa_source": null,
+   "boiling_point_k": 612.0,
+   "boiling_point_k_source": "Yaws",
+   "boiling_point_is_sublimation": false,
+   "critical_temperature_k": 882.0,
+   "critical_temperature_range_k": [
+    882.0,
+    882.0
+   ],
+   "critical_temperature_n": "1",
+   "critical_pressure_pa": 1640000.0,
+   "critical_pressure_range_pa": [
+    1640000.0,
+    1640000.0
+   ],
+   "critical_pressure_n": "1",
+   "acentric_factor": 3.92,
+   "phase_status": "DATA",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "cp_source": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "gamma_300": null,
+   "latent_heat_vaporisation_kj_mol": null,
+   "latent_heat_vaporisation_source": null,
+   "latent_heat_sublimation_kj_mol": [
+    168.6,
+    176.6
+   ],
+   "thermal_status": "NOT REACHED",
+   "state": "partly verified",
+   "limit": "heat capacity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "FeH",
+   "name": "iron hydride",
+   "cas": null,
+   "molar_mass_research_g_mol": 56.853,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 33.19,
+    "300": 36.33,
+    "1000": 43.9
+   },
+   "extras_note": "NOT REACHED (formation Gibbs data)",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "CrH",
+   "name": "chromium hydride",
+   "cas": null,
+   "molar_mass_research_g_mol": 53.004,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 27.0,
+    "300": 29.7,
+    "1000": 35.01
+   },
+   "extras_note": "NOT REACHED",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "AlH",
+   "name": "aluminum monohydride",
+   "cas": null,
+   "molar_mass_research_g_mol": 27.99,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 29.13,
+    "300": 29.38,
+    "1000": 35.06
+   },
+   "extras_note": "NOT REACHED",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "VO",
+   "name": "vanadium monoxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 66.941,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 29.14,
+    "300": 30.73,
+    "1000": 36.49
+   },
+   "extras_note": "NOT REACHED",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "CaOH",
+   "name": "calcium hydroxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 57.085,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": 31.93,
+    "300": 46.85,
+    "1000": 53.59
+   },
+   "extras_note": "NOT REACHED",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  },
+  {
+   "formula": "NH4SH",
+   "name": "ammonium hydrosulfide",
+   "cas": null,
+   "molar_mass_research_g_mol": 51.107,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": null,
+    "1000": null
+   },
+   "extras_note": "condensation only, section 7.4",
+   "thermal_status": "NOT REACHED (Cp)",
+   "state": "open",
+   "limit": "no block reached by the research",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "licence": "open"
+  }
+ ]
+}

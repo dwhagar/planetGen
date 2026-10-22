@@ -46,7 +46,7 @@ sources do not span.
 import math
 
 from planetgen import tuning
-from planetgen.galaxy import dials, mass_chain, seed as galaxySeed
+from planetgen.galaxy import dials, mass_chain, natal_kick, seed as galaxySeed
 from planetgen.galaxy.structure import REFERENCE_STRUCTURE, Structure
 from planetgen.physics import black_hole_formation
 from planetgen.util import draw
@@ -227,7 +227,7 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
     if not full:
         cluster = 0.0      # and with it the nuclear disc, which is a multiple of the cluster
     black_holes = draw_black_hole_shares(galaxy_seed)
-    unbound = draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar)
+    kick = _kick_inputs(galaxy_seed, stellar_mass_solar)
     return Structure(
         vc_kms=vc, thick_mass_ratio=mass_ratio, thick_length_ratio=length_ratio, thick_height_ratio=height_ratio,
         bar_present=bar[0], bar_axis_ratio_y=bar[1], bar_axis_ratio_z=bar[2], bar_angle_deg=bar[3],
@@ -237,7 +237,18 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
         nuclear_cluster_mass_solar=cluster,
         black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1],
-        neutron_star_unbound_share=unbound)
+        neutron_star_unbound_share=natal_kick.neutron_star_unbound_share(*kick),
+        neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(*kick))
+
+
+def _kick_inputs(galaxy_seed, stellar_mass_solar=None):
+    """`(mass chain, circular speed, disc scale length in kpc)` the seed's natal kick is measured against (a pinned stellar
+    mass replaces the seed's)."""
+    from planetgen.galaxy import shape_draw   # shape_draw imports this module
+    seed = galaxy_seed or mass_chain.FALLBACK_SEED
+    chain = mass_chain.draw_mass_chain(seed, stellar_mass_solar)
+    length_kpc = shape_draw.drawn_disk_scale_length_pc(seed, chain.stellar_mass_solar) / 1000.0
+    return chain, draw_circular_speed_kms(seed, chain.stellar_mass_solar), length_kpc
 
 
 def draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar=None):
@@ -245,11 +256,7 @@ def draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar=None):
     law against the escape speed of the seed's halo (none under the halo threshold), stars and disc, the disc's scale
     length the one the seed draws (a shape that fixes its own scale length keeps this share). A pinned stellar mass
     replaces the seed's."""
-    from planetgen.galaxy import natal_kick, shape_draw   # shape_draw imports this module
-    chain = mass_chain.draw_mass_chain(galaxy_seed or mass_chain.FALLBACK_SEED, stellar_mass_solar)
-    seed = galaxy_seed or mass_chain.FALLBACK_SEED
-    length_kpc = shape_draw.drawn_disk_scale_length_pc(seed, chain.stellar_mass_solar) / 1000.0
-    return natal_kick.neutron_star_unbound_share(chain, draw_circular_speed_kms(seed, chain.stellar_mass_solar), length_kpc)
+    return natal_kick.neutron_star_unbound_share(*_kick_inputs(galaxy_seed, stellar_mass_solar))
 
 
 def draw_black_hole_shares(galaxy_seed):

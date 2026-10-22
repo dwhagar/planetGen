@@ -162,6 +162,25 @@ NOT_BODIES = {
 }
 """dict: Table -> why it carries a point (or a uid) and holds no object."""
 
+BODY_PARENT_COLUMNS = ("star_system_id", "star_id", "planet_id", "moon_id", "asteroid_belt_id", "asteroid_field_id",
+                       "parent_id")
+"""tuple: The columns that tie a row to the system or the body it is in. A table with one and a point stores the point
+parent-relative (frame `system`, TEST.241), except the tables of `ABSOLUTE_WITH_A_PARENT`."""
+
+ABSOLUTE_WITH_A_PARENT = {
+    "bright_stars": "the scatter point a system is built from: it is the system's own position (its row points at the "
+                    "system it grows into), not a body inside it",
+    "black_holes": "a remnant is placed free, at its own galactic point; `star_id` only names the star it replaced. "
+                   "A remnant that joins a system takes a parent-relative state with the 8.4 revision",
+    "neutron_stars": "the same as black_holes",
+    "facilities": "a facility keeps a free galactic point until the 8.4 revision gives it a parent-relative "
+                  "state; no 8.1 item stores a position for one",
+}
+"""dict: Table -> why a table with a parent link stores an absolute position. The rule (TEST.241, section 5 point 3 of
+docs/design/unified-system-barycentre.md): nothing inside a system stores an absolute sector or galactic position; it
+stores the state parent-relative (about the parent's central object, in the galactic axes, with its epoch), and the
+barycentre is the system's row point. A new entry needs a reason and a way out."""
+
 _POINT_STEMS = (("center_{}_pc",), ("position_{}_km",), ("position_{}_mpc",), ("offset_{}_au",), ("galaxy_{}_pc",))
 _MASS_COLUMNS = ("mass_kg", "mass_solar", "black_hole_mass_solar")
 
