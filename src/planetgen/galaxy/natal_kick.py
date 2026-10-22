@@ -25,6 +25,9 @@ with `V200^2 = G M200 / r200` and `r_s = r200 / c`. A halo and disc of the Milky
 of 548 km/s at 8.2 kpc, and 26% of the neutron stars unbound; the shares of the galaxies the generator draws run from none to
 three quarters, the small ones losing most.
 
+The neutron stars it ejects leave with the speed they have left once they are out of the well, `sqrt(v^2 - v_esc^2)`: the
+kick speeds above the escape speed at the birth radius, weighted by the same law (`ejecta_speeds_kms`, GEN.554).
+
 Every function is pure.
 """
 
@@ -108,3 +111,52 @@ def neutron_star_unbound_share(chain, circular_speed_kms, disc_scale_length_kpc,
         speed = escape_speed_kms(chain, disc_scale_length_kpc, radius * disc_scale_length_kpc)
         total += survival(circular_speed_kms / sigma, speed / sigma)
     return total / len(birth_radii_over_scale_length())
+
+
+_EJECTA_SPEED_STEP = 0.025
+"""float: The step, in kick dispersions, of the speeds integrated above the escape speed."""
+_EJECTA_SPEED_SPAN = 12.0
+"""float: How far above the escape speed, in kick dispersions, the integral runs (the tail is under 1e-30 by then)."""
+
+
+def _speed_density(speed_over_sigma, progenitor_over_sigma):
+    """The density of `|a + k|` (unit dispersion) at `s`: `s / a (phi(s - a) - phi(s + a))`, and the chi density of three
+    degrees of freedom for an `a` of 0."""
+    a, s = progenitor_over_sigma, speed_over_sigma
+    root = math.sqrt(2.0 * math.pi)
+    if a < 1.0e-6:
+        return math.sqrt(2.0 / math.pi) * s * s * math.exp(-0.5 * s * s)
+    return s / a * (math.exp(-0.5 * (s - a) ** 2) - math.exp(-0.5 * (s + a) ** 2)) / root
+
+
+def ejecta_speeds_kms(chain, circular_speed_kms, disc_scale_length_kpc, sigma_kms=None):
+    """
+    The speeds, km/s, the ejected neutron stars of a galaxy have far out, as `tuning.EJECTA_SPEED_QUANTILES` equal-share
+    quantiles: each kick speed `s` above the escape speed `v` at its birth radius leaves with `sqrt(s^2 - v^2)`, weighted by
+    the speed law (`survival`'s density) and the birth radii (`birth_radii_over_scale_length`). `()` for a galaxy that
+    ejects none.
+    """
+    sigma = tuning.NEUTRON_STAR_KICK_SIGMA_KMS if sigma_kms is None else sigma_kms
+    a = circular_speed_kms / sigma
+    pairs = []
+    for radius in birth_radii_over_scale_length():
+        escape = escape_speed_kms(chain, disc_scale_length_kpc, radius * disc_scale_length_kpc) / sigma
+        steps = int(_EJECTA_SPEED_SPAN / _EJECTA_SPEED_STEP)
+        for i in range(steps):
+            s = escape + (i + 0.5) * _EJECTA_SPEED_STEP
+            weight = _speed_density(s, a) * _EJECTA_SPEED_STEP
+            if weight > 0.0:
+                pairs.append((sigma * math.sqrt(max(s * s - escape * escape, 0.0)), weight))
+    total = sum(weight for _speed, weight in pairs)
+    if total <= 1.0e-12 * len(birth_radii_over_scale_length()):
+        return ()
+    pairs.sort()
+    count = tuning.EJECTA_SPEED_QUANTILES
+    speeds, cumulative, index = [], 0.0, 0
+    for i in range(count):
+        target = (i + 0.5) / count * total
+        while index < len(pairs) - 1 and cumulative + pairs[index][1] < target:
+            cumulative += pairs[index][1]
+            index += 1
+        speeds.append(pairs[index][0])
+    return tuple(speeds)
