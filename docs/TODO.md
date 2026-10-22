@@ -21392,27 +21392,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.266 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug)**
-  Seen twice by Core 2 and filed by the TODO thread: UX.141's gate
-  (about 1:44 AM EDT 2026-10-22 as the lane reported, then recorded
-  under TEST.262 as a sighting of TEST.260's run lock collision) and
-  UX.143 part 1's gate (about 5:35 AM EDT 2026-10-22 as the lane
-  reported, after TEST.260 was retired in #2425). Kind: flaky test,
-  src/tests/test_work_queue_failures.py. Text: the run is refused as
-  Busy because another run (or a lock left by an earlier test of the
-  same worker) is still set when the interrupting test starts; it passes
-  alone. Fails on main: unknown (the second sighting is on a branch that
-  may not carry #2425). Frequency: 2 in about 4 full gates of Core 2.
-  Reproducer: none yet; run the full gate on a loaded machine. Do: find
-  which run or lock is still held (the previous test's run, a worker's
-  leftover, or the test's own interrupt not releasing the lock before
-  the next assertion) and fix the cause or make the test wait for the
-  lock to clear; no retry loop that hides a real lock leak. Done: the
-  cause is on this item and the test passes in 20 runs under load.
-  Owner: Bug Hunt (a test-flake finding; TEST.265 and TEST.258 are
-  merged, so it is next: the coordinator, 8:47 AM EDT 2026-10-22).
-  Prerequisites: none. Related: TEST.260, TEST.265.
-
 - [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
   Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
   a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
