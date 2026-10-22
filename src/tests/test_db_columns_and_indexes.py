@@ -42,6 +42,8 @@ PROSE_TEXT_COLUMNS = {
     ("constellations", "edges"), ("constellations", "members"),
     # DB.63: the route plan of a ship as a JSON document
     ("vessels", "course"),
+    # DB.58: the extra JSON document on an account token
+    ("account_tokens", "meta"),
     # Control schema: an error message and the audit log's note.
     ("work_tasks", "error"), ("admin_audit_log", "detail"),
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),

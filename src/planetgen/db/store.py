@@ -197,7 +197,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 14
+CONTROL_SCHEMA_VERSION = 15
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -232,10 +232,27 @@ _CONTROL_COLUMNS = {
         ("paused_by", "VARCHAR(64) NULL"),
         ("paused_at", "DATETIME(6) NULL"),
     ],
+    "admin_users": [
+        ("email", "VARCHAR(254) NULL"),
+        ("role", "VARCHAR(16) NOT NULL DEFAULT 'admin'"),
+        ("status", "VARCHAR(16) NOT NULL DEFAULT 'active'"),
+        ("owner_flag", "TINYINT AS (CASE WHEN role = 'owner' THEN 1 END) VIRTUAL"),
+    ],
 }
 """dict: Columns added to existing control tables after they were first
 created (v7), as `table -> [(column, definition)]`, in order. Must match
 `control_schema.sql`'s `CREATE TABLE` statements."""
+
+_CONTROL_CONSTRAINTS = (
+    ("admin_users", "uq_admin_users_email", "ADD UNIQUE KEY uq_admin_users_email (email)"),
+    ("admin_users", "uq_admin_users_owner", "ADD UNIQUE KEY uq_admin_users_owner (owner_flag)"),
+    ("admin_users", "chk_admin_users_role",
+     "ADD CONSTRAINT chk_admin_users_role CHECK (role IN ('user', 'moderator', 'admin', 'owner'))"),
+    ("admin_users", "chk_admin_users_status",
+     "ADD CONSTRAINT chk_admin_users_status CHECK (status IN ('active', 'disabled'))"),
+)
+"""tuple: `(table, name, ALTER clause)`: the keys and CHECKs added to an existing control table (v15), each only when
+missing. Must match `control_schema.sql`'s `CREATE TABLE` statements."""
 
 CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
 """str: Path to the DDL file applied by `_ensure_control_schema`."""
@@ -1729,6 +1746,8 @@ def _apply_control_schema(conn):
     row = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
     if row["v"] is not None and row["v"] < 13:
         _grandfather_api_key_scopes(conn)
+    if row["v"] is not None and row["v"] < 15:
+        _promote_control_owner(conn)
     if row["v"] is None or row["v"] < CONTROL_SCHEMA_VERSION:
         conn.execute("INSERT INTO control_schema_migrations (version) VALUES (?)", (CONTROL_SCHEMA_VERSION,))
         conn.commit()
@@ -1744,6 +1763,22 @@ def _grandfather_api_key_scopes(conn):
     """
     conn.execute("INSERT IGNORE INTO admin_api_key_scopes (key_id, scope) SELECT id, 'admin' FROM admin_api_keys")
     conn.commit()
+
+
+def _promote_control_owner(conn):
+    """
+    v15 (DB.58): the accounts that existed before roles are admins (the column's default), and the lowest id, the
+    account the install seeded, becomes the one owner. Does nothing when an owner is already there or there are no
+    accounts (the install seeds the owner).
+    """
+    if conn.execute("SELECT 1 FROM admin_users WHERE role = 'owner' LIMIT 1").fetchone() is not None:
+        return
+    first = conn.execute("SELECT id, username FROM admin_users ORDER BY id LIMIT 1").fetchone()
+    if first is None:
+        return
+    conn.execute("UPDATE admin_users SET role = 'owner' WHERE id = ?", (first["id"],))
+    conn.commit()
+    log.normal(f"Control schema v15: account '{first['username']}' (id {first['id']}), the lowest, is now the owner.")
 
 
 def _drop_old_generation_stats(conn):
@@ -1805,6 +1840,10 @@ def _add_control_columns(conn):
         missing = [f"ADD COLUMN {name} {definition}" for name, definition in columns if name not in have]
         if missing:
             conn.execute(f"ALTER TABLE {table} {', '.join(missing)}")
+    for table, name, clause in _CONTROL_CONSTRAINTS:
+        if name not in existing("SELECT CONSTRAINT_NAME AS name FROM information_schema.TABLE_CONSTRAINTS"
+                                " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", table):
+            conn.execute(f"ALTER TABLE {table} {clause}")
     if "idx_work_jobs_root" not in existing("SELECT INDEX_NAME AS name FROM information_schema.STATISTICS"
                                             " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", "work_jobs"):
         conn.execute("ALTER TABLE work_jobs ADD KEY idx_work_jobs_root (root_id)")

@@ -243,7 +243,7 @@ def bootstrap_control_schema(config=None):
             return _rotate_published_default_password(conn)
         password = secrets.token_urlsafe(INITIAL_PASSWORD_BYTES)
         conn.execute(
-            "INSERT INTO admin_users (username, password_hash, must_change_credentials) VALUES (?, ?, 1)",
+            "INSERT INTO admin_users (username, password_hash, must_change_credentials, role) VALUES (?, ?, 1, 'owner')",
             (DEFAULT_ADMIN_USERNAME, hash_password(password)),
         )
         conn.commit()

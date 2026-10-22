@@ -38,9 +38,15 @@ CREATE TABLE IF NOT EXISTS control_schema_migrations (
     applied_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- One row per admin. Deliberately no roles/permissions column -- per the
--- brief, this project only ever has a handful of admins, all with the
--- same full access, not a general user-accounts system.
+-- One row per account. Until v15 every row was an admin with the same full
+-- access; v15 (DB.58, for the accounts of USR.2 and the roles of 10.0) adds
+-- `role` (`user`, `moderator`, `admin` or `owner`), `email` (NULL, unique) and
+-- `status` (`active` or `disabled`). A moderator is accepted by the column's
+-- CHECK and has no permissions until 10.0. There is exactly one `owner`: the
+-- generated column `owner_flag` is 1 for an owner row and NULL for every
+-- other, and its UNIQUE key lets only one row hold the 1. The row the install
+-- seeds is the owner; an existing control database's lowest account id became
+-- the owner when v15 was applied (`store._promote_control_owner`).
 --
 -- `must_change_credentials` starts TRUE on the seeded `admin`/`password`
 -- bootstrap row (see `adminAuth.ensure_default_admin`) and on any admin
@@ -56,8 +62,16 @@ CREATE TABLE IF NOT EXISTS admin_users (
     must_change_credentials   TINYINT(1) NOT NULL DEFAULT 1 CHECK (must_change_credentials IN (0, 1)),
     created_at                TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at             TIMESTAMP NULL,
+    email                     VARCHAR(254) NULL,
+    role                      VARCHAR(16) NOT NULL DEFAULT 'admin',
+    status                    VARCHAR(16) NOT NULL DEFAULT 'active',
+    owner_flag                TINYINT AS (CASE WHEN role = 'owner' THEN 1 END) VIRTUAL,
 
-    UNIQUE (username)
+    UNIQUE (username),
+    UNIQUE KEY uq_admin_users_email (email),
+    UNIQUE KEY uq_admin_users_owner (owner_flag),
+    CONSTRAINT chk_admin_users_role CHECK (role IN ('user', 'moderator', 'admin', 'owner')),
+    CONSTRAINT chk_admin_users_status CHECK (status IN ('active', 'disabled'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Web-UI login sessions (the `HttpOnly`/`Secure`/`SameSite=Strict` cookie
@@ -395,4 +409,45 @@ CREATE TABLE IF NOT EXISTS generation_stage_runs (
     version_key          CHAR(22) NOT NULL DEFAULT '',
     INDEX idx_generation_stage_runs_key (stage_key, skipped, id),
     INDEX idx_generation_stage_runs_database (database_name, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v15 (DB.58): one-time tokens for the account flows (USR.28: invite, first
+-- password, reset, email change and the two links of an owner transfer). Only
+-- the SHA-256 hex digest of the token is stored. `expires_at` ends it, `used_at`
+-- is set once when it is redeemed (the redeem is one UPDATE that requires
+-- `used_at IS NULL`, so a token works once), and `meta` holds what the purpose
+-- needs (an invite's use count, note and invitee email). The tokens of an
+-- account go with the account.
+CREATE TABLE IF NOT EXISTS account_tokens (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    account_id    BIGINT UNSIGNED NOT NULL,
+    purpose       VARCHAR(24) NOT NULL,
+    token_hash    CHAR(64) NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at    TIMESTAMP NULL,
+    used_at       TIMESTAMP NULL,
+    meta          JSON NULL,
+
+    UNIQUE KEY uq_account_tokens_hash (token_hash),
+    KEY idx_account_tokens_account (account_id, purpose),
+    CONSTRAINT fk_account_tokens_account
+        FOREIGN KEY (account_id) REFERENCES admin_users(id) ON DELETE CASCADE,
+    CONSTRAINT chk_account_tokens_purpose CHECK (purpose IN
+        ('invite', 'first_password', 'reset', 'email_change', 'owner_transfer_old', 'owner_transfer_new'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v15 (DB.58): who redeemed an invite link. A link with several uses has one
+-- row per account that registered through it. Removed with the invite token
+-- or with the account.
+CREATE TABLE IF NOT EXISTS invite_uses (
+    token_id      BIGINT UNSIGNED NOT NULL,
+    account_id    BIGINT UNSIGNED NOT NULL,
+    used_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (token_id, account_id),
+    KEY idx_invite_uses_account (account_id),
+    CONSTRAINT fk_invite_uses_token
+        FOREIGN KEY (token_id) REFERENCES account_tokens(id) ON DELETE CASCADE,
+    CONSTRAINT fk_invite_uses_account
+        FOREIGN KEY (account_id) REFERENCES admin_users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

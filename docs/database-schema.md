@@ -767,20 +767,37 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Eighteen tables, versioned independently via `control_schema_migrations`
-(currently version 14, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
+Twenty tables, versioned independently via `control_schema_migrations`
+(currently version 15, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
-`version_key_history`, v12 the `version_key` column of `generation_stats` and v14
-`generation_stage_runs`; the new tables are added to an older schema by
+`version_key_history`, v12 the `version_key` column of `generation_stats`, v14
+`generation_stage_runs` and v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`; the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
-- **`admin_users`** — one row per admin (`username`, `password_hash`,
-  `must_change_credentials`). No roles/permissions column — every admin
-  has the same full access (see `docs/TODO.md`; this project deliberately
-  has no general user-accounts system, just a handful of admins).
+- **`admin_users`** — one row per account (`username`, `password_hash`,
+  `must_change_credentials`). v15 (DB.58) adds `email` (VARCHAR(254), NULL,
+  unique), `role` (`user`, `moderator`, `admin` or `owner`, default `admin`,
+  so every earlier row is an admin; a moderator is accepted and has no
+  permissions until 10.0) and `status` (`active` or `disabled`, default
+  `active`). There is exactly one owner: `owner_flag`, a virtual column that
+  is 1 for an owner row and NULL otherwise, has a UNIQUE key, so MySQL refuses
+  a second owner. The row the install seeds is the owner, and when v15 is
+  applied to a control database that has accounts the lowest id becomes the
+  owner (`store._promote_control_owner`). The account flows of USR.2 to USR.6
+  read these columns; nothing else does yet.
+- **`account_tokens`** — v15 (DB.58), the one-time tokens of the account
+  flows (USR.28): `account_id` (removed with the account), `purpose`
+  (`invite`, `first_password`, `reset`, `email_change`, `owner_transfer_old`
+  or `owner_transfer_new`), `token_hash` (the SHA-256 hex digest, unique;
+  the token itself is never stored), `created_at`, `expires_at`, `used_at`
+  (set once when the token is redeemed) and `meta` (JSON for what a purpose
+  needs, such as an invite's use count). Nothing writes it yet.
+- **`invite_uses`** — v15 (DB.58), who registered through an invite link:
+  `token_id` (the invite's `account_tokens` row) and `account_id`, one row
+  per account, and `used_at`. Nothing writes it yet.
 - **`admin_sessions`** — web-UI login sessions (`token_hash`, a SHA-256
   digest of the actual cookie value — never the raw token itself;
   `expires_at`, a fixed lifetime set at creation, no sliding renewal).
@@ -901,7 +918,7 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 
 `planetgen/admin/auth.py` is the only code that reads/writes the
 admin tables directly — `bootstrap_control_schema` creates the schema and,
-when `admin_users` is empty, seeds an `admin` row with a random first
+when `admin_users` is empty, seeds an `admin` row (the owner) with a random first
 password that `planetgen.cli.migrate` prints once (`planetgen.cli.migrate` calls this
 automatically, alongside its usual content-schema migration), and every
 other function there implements one piece of the login/session/API-key/
