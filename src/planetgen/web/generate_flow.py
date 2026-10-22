@@ -94,7 +94,7 @@ def rerun_url(job):
     task = task_for_action(action) if action else None
     if task is None or action in DESTRUCTIVE_ACTIONS:
         return None
-    return page_url(task.endpoint, **task.params) + "?" + urlencode([*draft, ("review", "1")])
+    return page_url(task.endpoint, **task.params) + "?" + urlencode([*map(tuple, draft), ("review", "1")])
 
 
 def task_for_key(key):

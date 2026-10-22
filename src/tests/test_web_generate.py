@@ -222,7 +222,7 @@ def test_less_common_settings_sit_in_a_folded_advanced_block(client, site):
     assert 'name="prevalence_comets"' in block and 'name="star_mix_single"' in block and 'name="directive_systems"' in block
     new_galaxy = _task_html(client, "new-galaxy")
     assert 'name="bright_min_luminosity"' in new_galaxy and 'name="prevalence_comets"' in new_galaxy
-    assert 'name="disk_scale_length_pc"' in new_galaxy
+    assert 'name="stellar_mass"' in new_galaxy or 'name="mass"' in new_galaxy
     assert "data-customize" not in sectors + new_galaxy
 
 
@@ -266,7 +266,7 @@ def test_page_renders_summary_and_forms(site, client):
 
 
 def test_the_richness_field_is_folded_away_under_advanced(site, client):
-    html = client.get("/admin/generate").get_data(as_text=True)
+    html = _task_html(client, "new-galaxy")
     fold = html.index('<details class="generate-advanced">')
     assert 'name="richness"' in html and html.index('name="richness"') > fold
     assert html.index('name="flatness"') < fold
@@ -487,25 +487,27 @@ def test_a_started_job_keeps_its_form_and_history_offers_run_again(site, client,
     """ADM.115: Run again opens the Review step for the same settings; nothing starts from the link."""
     monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: dict(_ESTIMATE))
     resp = _post(client, action="galaxy", what="grid", mode="shell", shell_index="40", shell_limit="200",
-                 estimate_ok="1", **{generate_page.ESTIMATE_CONFIRM_FIELD: "1"})
+                 **{generate_page.ESTIMATE_CONFIRM_FIELD: "1"})
     assert resp.status_code == 303
     (job,) = no_spawn
     assert ["shell_index", "40"] in job["draft"] and ["action", "galaxy"] in job["draft"]
     assert all(name not in ("csrf_token", "confirm") for name, _ in job["draft"])
     view = jobs.get_job(jobs.list_jobs(limit=1)[0]["id"])
-    url = generate_flow.rerun_url(view)
+    with client.application.test_request_context("/"):
+        url = generate_flow.rerun_url(view)
     assert url.startswith("/admin/generate/task/add-sectors?") and "shell_index=40" in url and "review=1" in url
     page = client.get(url)
     assert page.status_code == 200 and "galaxy --shell 40" in page.get_data(as_text=True)
     assert len(no_spawn) == 1
 
 
-def test_a_job_that_deletes_data_or_has_no_form_is_not_offered_again(site):
+def test_a_job_that_deletes_data_or_has_no_form_is_not_offered_again(site, client):
     assert generate_flow.draft_of("reset", _Form([("action", "reset"), ("confirm", "db")])) == []
     assert generate_flow.draft_of("check_db", _Form([("action", "check_db"), ("csrf_token", "t")])) == [["action", "check_db"]]
-    assert generate_flow.rerun_url({"draft": []}) is None
-    assert generate_flow.rerun_url({"draft": [["action", "reset"]]}) is None
-    assert generate_flow.rerun_url({}) is None
+    with client.application.test_request_context("/"):
+        assert generate_flow.rerun_url({"draft": []}) is None
+        assert generate_flow.rerun_url({"draft": [["action", "reset"]]}) is None
+        assert generate_flow.rerun_url({}) is None
 
 
 class _Form(list):
@@ -1719,7 +1721,7 @@ def test_the_form_refuses_a_value_outside_the_range_naming_it(site):
 
 
 def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site, client):
-    html = client.get("/admin/generate").get_data(as_text=True)
+    html = _forms_html(client)
     for row in dials.LEVERS:
         assert f'name="{row.name}"' in html, row.name
         assert f'data-lever="{row.name}"' in html, row.name
@@ -1735,7 +1737,7 @@ def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site
 
 def test_the_mass_field_carries_the_halo_thresholds_the_script_turns_the_halo_options_off_at(site, client):
     from planetgen.galaxy import mass_chain
-    html = client.get("/admin/generate").get_data(as_text=True)
+    html = _forms_html(client)
     assert f'data-no-dark-halo-below="{mass_chain.HALO_MIN_STELLAR_MASS_SOLAR}"' in html
     assert f'data-simple-below="{dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR}"' in html
     assert "data-halo-reason hidden" in html and '/static/generatelevers.js' in html
