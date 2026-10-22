@@ -14548,8 +14548,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
   one unit code that stores any kind of unit the project uses and
   answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 5 (the note offers Core 5
-  or Core 4). Do: one module with every unit, built from
+  Owner: Core 4 (accepted, the coordinator, 2:21 AM EDT 2026-10-22),
+  after GEN.596 and GEN.554 slice 4; Core 5 does not start it (the note
+  offered Core 5 or Core 4). Do: one module with every unit, built from
   `physics/constants.py` (which stays the home of the exact numbers),
   each with its kind (length, mass, duration, instant, speed,
   temperature, delta temperature, angle, power, pressure, density, flux
@@ -14561,17 +14562,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them. Keep it free of an astropy import. Done: tests of every factor
   against the exact definition, compound units agree with their parts
   (km/s is km over s), round trips, and a file header that states the
-  unit rules.
-  Registry additions (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
-  2026-10-18, as the coordinator relayed;
+  unit rules. Registry additions (Boss's cards S10 to S18, 12:30 to
+  12:32 AM EDT, 2026-10-18, as the coordinator relayed;
   docs/design/unified-system-barycentre.md, section 13.5): the kinds
   angular rate (unit rad/s, period forms shown through the time ladder)
   and angular momentum (kg m^2/s), with dimensions. The relations module
   also needs `rotation_period <-> angular_rate`, `obliquity(axis,
   orbit_normal)`, `breakup_rate(mass, radius)` and
-  `galactic_orbit(position, velocity)`; Boss's relation cards R1 to R4 are decided (12:41 to 12:43 AM EDT, 2026-10-18, as the coordinator relayed): dimensions are required in the registry (GEN.585) and the relations module is GEN.586.
+  `galactic_orbit(position, velocity)`; Boss's relation cards R1 to R4
+  are decided (12:41 to 12:43 AM EDT, 2026-10-18, as the coordinator
+  relayed): dimensions are required in the registry (GEN.585) and the
+  relations module is GEN.586.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+  Design:
+  [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **GEN.569 The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks**
   Part of the unified orbited-body plan (GEN.550; design note
