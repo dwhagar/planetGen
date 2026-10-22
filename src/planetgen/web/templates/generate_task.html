@@ -73,7 +73,6 @@
         </div>
         <div class="search-fields">
           {{ field("center_sector", "Sector ID", step="1", min=1) }}
-          {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of its center.") }}
         </div>
         <p class="hint" data-finder-chosen role="status" aria-live="polite"></p>
         {%- elif value == "address" %}
@@ -81,18 +80,19 @@
           {{ field("center_shell", "Shell", step="1", min=0, max=max_shell) }}
           {{ field("center_band", "Band", placeholder="0", step="1") }}
           {{ field("center_wedge", "Wedge", step="1", min=0) }}
-          {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of its center.") }}
         </div>
         {%- else %}
         <div class="search-fields">
           {{ field("center_x_pc", "x (pc)") }}
           {{ field("center_y_pc", "y (pc)") }}
           {{ field("center_z_pc", "z (pc)", placeholder="0") }}
-          {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of its center.") }}
         </div>
         {%- endif %}
       </div>
       {%- endfor %}
+      <div class="search-fields" data-place-shared="sector address position">
+        {{ field("center_radius_pc", "Radius around it (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of the sector or position named above. Not used for a random spot, which has its own radius.") }}
+      </div>
     </fieldset>
     <fieldset class="generate-mode" data-what-panel="grid">
       <legend>Which sectors</legend>
@@ -169,7 +169,6 @@
       <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist, then
       scatters the bright stars. Sectors already generated stay as they are, and the scatter leaves them out.</p>
       {{ plan_inputs() }}
-      {{ scatter_limits("plan-mass-limit") }}
       <div class="search-fields">
         {{ skip_scatter("plan-skip-bright") }}
       </div>
@@ -186,19 +185,22 @@
       {%- endif %}
       <fieldset class="redo-scatter">
         <label class="redo-scatter-check"><input type="checkbox" name="redo_mass" value="1" id="redo-mass"
-          {%- if form and form.get("redo_mass") %} checked{% endif %}> Massive stars (the stellar mass limit)</label>
-        <div class="search-fields">{{ mass_limit_slider("redo-mass-limit") }}</div>
+          {%- if form and form.get("redo_mass") %} checked{% endif %}> Massive stars (the stellar mass limit below)</label>
       </fieldset>
       <fieldset class="redo-scatter">
         <label class="redo-scatter-check"><input type="checkbox" name="redo_luminosity" value="1" id="redo-luminosity"
-          {%- if form and form.get("redo_luminosity") %} checked{% endif %}> Bright stars (the luminosity floor)</label>
-        <div class="search-fields">{{ bright_floor_slider("redo-floor") }}</div>
+          {%- if form and form.get("redo_luminosity") %} checked{% endif %}> Bright stars (the luminosity floor below)</label>
       </fieldset>
       <fieldset class="redo-scatter">
         <label class="redo-scatter-check"><input type="checkbox" name="redo_phenomena" value="1" id="redo-phenomena"
-          {%- if form and form.get("redo_phenomena") %} checked{% endif %}> Phenomena (neutron stars, black holes, nebulae and the rest)</label>
-        <div class="search-fields">{{ compact_limit("redo-compact") }}</div>
+          {%- if form and form.get("redo_phenomena") %} checked{% endif %}> Phenomena (neutron stars, black holes, nebulae and the rest; the limit below)</label>
       </fieldset>
+    </fieldset>
+    <fieldset class="generate-mode scatter-limits-block">
+      <legend>Scatter limits</legend>
+      <p class="hint">Used by "Plan the galaxy again and scatter" and by "Redo only some scatters" (the ones ticked above
+      use the limit that belongs to them). They are drawn once here, so the value you set is the value that is sent.</p>
+      {{ scatter_limits("plan-mass-limit") }}
     </fieldset>
     <fieldset class="generate-mode">
       <legend><label><input type="radio" name="action" value="bright_band"{% if chosen == "bright_band" %} checked{% endif %}> Add a dimmer step of bright stars</label></legend>

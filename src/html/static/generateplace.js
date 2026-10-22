@@ -20,6 +20,9 @@ export function init(root) {
     show(root, "data-what-panel", checked(root, "what"));
     show(root, "data-place-panel", checked(root, "place"));
     show(root, "data-grid-panel", checked(root, "mode"));
+    for (const shared of root.querySelectorAll("[data-place-shared]")) {
+      shared.hidden = !shared.getAttribute("data-place-shared").split(" ").includes(checked(root, "place"));
+    }
   };
   root.addEventListener("change", update);
   root.classList.add("tabs-on");

@@ -657,6 +657,16 @@ def test_a_form_shown_again_is_its_tasks_page_with_the_draft(site, client, no_sp
     assert f'id="task-{key}"' in html and 'role="alert"' in html
 
 
+def test_no_task_form_has_two_boxes_with_the_same_name(site, client):
+    """A box repeated in two panels would post twice and the first, empty one would win (the radius of the place tabs)."""
+    for key in ("add-sectors", "new-galaxy", "scatters", "check", "wipe"):
+        html = _task_html(client, key)
+        names = re.findall(r'<input type="(?:text|number|search)"[^>]*? name="([^"]+)"', html)
+        names += re.findall(r'<input[^>]*? name="([^"]+)"[^>]*? type="(?:text|number|search)"', html)
+        repeated = sorted({n for n in names if names.count(n) > 1})
+        assert not repeated, (key, repeated)
+
+
 def test_add_sectors_offers_two_choices_and_a_four_tab_place_picker(site, client):
     html = _forms_html(client)
     for what in ("place", "grid"):
@@ -814,7 +824,7 @@ def test_page_offers_the_scatter_checkbox(site, client):
 
 def test_page_offers_the_scatter_threshold(site, client):
     html = _forms_html(client)
-    assert html.count('name="bright_min_luminosity"') == 3  # New galaxy, Plan, Rebuild
+    assert html.count('name="bright_min_luminosity"') == 2  # New galaxy and the scatters task's one block of limits (TEST: a box repeated in one form posts twice)
     assert generate_page.BRIGHT_THRESHOLD_LABEL in html
     # GEN.184, UX.116: a slider over the presets with a number box at its end, which shows the default.
     assert re.search(r'<input type="number" class="range-value" id="plan-mass-limit-floor-box" name="bright_min_luminosity" '
@@ -1483,7 +1493,7 @@ def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
         assert re.search(rf'<input type="range" id="{slider}"[^>]*min="0" max="6" step="1"[^>]*value="3"', html, re.S)
         assert re.search(rf'<input type="number" class="range-value" id="{slider}-box" name="phenomenon_min_mass" '
                          r'value="14"', html)
-    assert html.count('name="phenomenon_min_mass"') == 3    # Plan, New galaxy and Redo scatters
+    assert html.count('name="phenomenon_min_mass"') == 2    # New galaxy and the scatters task's one block of limits
     assert re.search(r'<script type="module" src="/static/limitsliders.js\?v=[^"]+"></script>', html)
 
 
@@ -1604,8 +1614,8 @@ def test_the_page_has_the_star_mix_and_no_separate_binary_fields(site, client):
 
 def test_both_plan_forms_offer_the_compact_object_limit(site, client):
     html = _forms_html(client)
-    assert html.count('name="compact_use_star"') == 3    # Plan, New galaxy and Redo scatters
-    assert html.count('name="compact_min_mass"') == 3
+    assert html.count('name="compact_use_star"') == 2    # New galaxy and the scatters task's one block of limits
+    assert html.count('name="compact_min_mass"') == 2
     assert re.search(r'name="compact_use_star" value="1" id="plan-mass-limit-compact-star" checked', html)
     for preset in ("1", "2", "4", "6"):
         assert f'<option value="{preset}"' in html
