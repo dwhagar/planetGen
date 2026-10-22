@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1926] - 2026-10-22
+
+**Headline:** A browser test now holds the Ctrl+K palette and the keyboard help on the admin pages.
+
+### Changed
+- **Palette and keys tested in a browser.** Ctrl+K and a word land on that page, `?` lists the keys and Escape closes the list (ADM.117).
+
 ## [8.0.1925] - 2026-10-22
 
 **Headline:** Every admin page now sits in one shell with a rail, a search box that finds any page, task or setting (Ctrl+K), and a thin strip showing the running job.
