@@ -21835,6 +21835,26 @@ clears each one.
   Bug Hunt looks at all of them.
   Prerequisites: none. Related: TEST.252.
 
+- [ ] **TEST.264 test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug)**
+  Found by the Admin redesign lane (about 4:36 AM EDT 2026-10-22 as the
+  lane reported, main fa98ba1 plus its Settings commit), filed by the
+  TODO thread. UX.141 (#2404, #2408) added the route `web.object_list`
+  (`/lists/<kind>`) but did not add a `kind` entry to `sample_params` in
+  `src/tests/test_web_a11y.py`, so every test that uses `page_targets`
+  errors with "web.object_list (/lists/<kind>) takes kind: add a sample
+  value to sample_params" (24 errors in the non-browser phase and the
+  whole browser phase of that lane's gate). Fails on main: yes, since
+  commit 0fc4ea4 (read from the code on main: no `kind` sample exists;
+  the test skips on a machine with no database, so the TODO thread did
+  not reproduce the errors). Reproducer: `python scripts/test.py
+  changed` or `pytest src/tests/test_web_a11y.py`. Do: add `"kind":
+  "star"` (a kind the object index lists) to `sample_params`. Done:
+  `pytest src/tests/test_web_a11y.py` has no errors. Owner: the Admin
+  redesign lane, which adds the one line in its Settings page PR so its
+  gate can pass; Core 2 (UX.141's owner) does not duplicate it. Retire
+  when that PR merges.
+  Prerequisites: none. Related: UX.141.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
