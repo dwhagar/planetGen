@@ -1278,7 +1278,8 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         contents (dict): `db.query.uncharted_sector_contents`: `stars` and `scattered`.
         generate (dict, optional): `generate_target`, for the Generate buttons.
         link_url (callable, optional): Builds `href` for a scattered phenomenon (MAP.211): called as
-            `link_url("uncharted_phenomenon", scatter_id=...)`; without it they carry none.
+            `link_url("uncharted_phenomenon", scatter_id=...)`, and for the nebula a waiting star lights (GEN.530),
+            `link_url("uncharted_star", bright_star_id=...)`; without it they carry none.
     """
     half_edge_pc = edge_pc / 2.0
     href_of = (lambda row: link_url("uncharted_phenomenon", scatter_id=row["id"])) if link_url else (lambda row: None)
@@ -1317,6 +1318,21 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         light = _UNCHARTED_LIGHTS.get(row["type"])
         if light is not None:
             cloud["light"] = _mass_light(light, row["type"], row.get("mass_solar"), brightest_sol)
+        clouds.append(cloud)
+    for hosted in contents.get("hosted_nebulae", ()):
+        # GEN.530: the nebula a waiting star lights, drawn where its sector will build it.
+        x_px, y_px, z_px = _uncharted_position_px((hosted["x"], hosted["y"], hosted["z"]), center_pc, half_edge_pc)
+        distance_pc = math.sqrt(sum((hosted[axis] - center_pc[i]) ** 2 for i, axis in enumerate("xyz")))
+        phenomenon = {
+            "type": "nebula", "id": f'h{hosted["star_id"]}', "name": f'{hosted["name"]} ({UNCHARTED_LABEL.lower()})',
+            "descriptor": hosted["nebula_type"], "radius_ly": hosted["radius_ly"],
+            "distance_ly": milliparsecs_to_ly(distance_pc * 1000.0),
+        }
+        cloud = _cloud_data(lambda *args, **kwargs: None, phenomenon, x_px, y_px, z_px,
+                            _phenomenon_cloud_radius_px(hosted["radius_ly"], half_edge_pc * 1000.0), brightest_sol)
+        cloud["href"] = link_url("uncharted_star", bright_star_id=hosted["star_id"]) if link_url else None
+        cloud.pop("nebulaId", None)        # no mesh to fetch before the sector is built
+        cloud["uncharted"] = True
         clouds.append(cloud)
     return {
         "sceneHalfPx": _SCENE_HALF_PX, "defaultZoom": 1.0, "lyPerPxAtZoom1": None, "outline": None, "compass": None,
