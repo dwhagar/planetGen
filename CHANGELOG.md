@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1876] - 2026-10-22
+
+**Headline:** The Structure dial sets how flat the disc is and how big and heavy the bulge is, as ratios that keep their meaning when the galaxy's size changes.
+
+### Changed
+- **The Structure dial (GEN.604).** `--flatness` (scale length over scale height, 3 to 20), `--bulge-share` (bulge-to-total mass, 0 to 0.9) and `--bulge-size` (bulge scale radius over the scale length, 0.02 to 1) are in the lever table and on the Generate page. Each replaces only its own draw: the same seed at another size draws the same residuals, a pinned flatness keeps its ratio when the scale length moves, and a bulge share of 0 leaves a disc with no bulge density. The bulge's central density is solved from the share.
+- **The absolute structure options are retired with no shim (GEN.602, first part).** `--disk-scale-height-pc`, `--bulge-scale-radius-pc` and `--bulge-amplitude` are refused as unknown; `shape_draw.draw_galaxy` takes `flatness`, `bulge_to_total` and `bulge_size` in their place. With no option given the drawn shape is unchanged.
+
 ## [8.0.1875] - 2026-10-22
 
 **Headline:** The Scale, Halo and Edge dials set a galaxy's mass and size, its halos and how far out it is planned, the plan remembers what was pinned, and a small galaxy is one disc plus a bulge.
