@@ -763,16 +763,28 @@ def _log_shell(label, shell_index, types):
         log.normal(f"{label}, shell {shell_index}: added {total:,} stars: {describe_types(types)}.")
 
 
-def _log_shell_range(label, shells, types):
-    """`_log_shell` for a task of several shells: the stars it added, by kind, over the shells it covers."""
+def _unit_note(position, count, expected, what="stars"):
+    """` (unit 3 of 512, about 1,200 stars expected)`: which unit of its stage a log line is about and how big the cut
+    made it, so the sizes of the units can be read off the log."""
+    return f" (unit {position:,} of {count:,}, about {round(expected):,} {what} expected)"
+
+
+def _log_shell_range(label, shells, types, unit=""):
+    """`_log_shell` for a task of several shells: the stars it added, by kind, over the shells it covers. `unit` is
+    `_unit_note`'s, put after the shells."""
     total = sum(types.values())
     if total:
-        log.normal(f"{label}, shell{'s' if len(shells) > 1 else ''} {_shell_names(shells)}: added {total:,} stars: "
+        log.normal(f"{label}, shell{'s' if len(shells) > 1 else ''} {_shell_names(shells)}{unit}: added {total:,} stars: "
                    f"{describe_types(types)}.")
 
 
 COMPONENT_TASK_SHELL = -1
-"""int: The shell the components' task is listed under in a scatter's tasks (it has none of its own)."""
+"""int: The shell the components' tasks are listed under in a scatter's tasks (they have none of their own)."""
+
+
+COMPONENT_REPORT_ROWS = 200
+"""int: How many of a component task's stars are drawn between the reports of its progress (`report` itself lets a few
+through a second); a star takes a few milliseconds."""
 
 
 def _galaxy_components(mysql_config):
@@ -790,8 +802,9 @@ class _ScatterShape:
     """
     How a shell scatter is cut (`_plan_shape`): the tasks (`tasks`, unit -> its `(shell_index, high_band, weight)`
     rows), each one's expected work (`weights`, in stars), shell count (`sizes`) and name (`names`), the stars expected
-    by shell (`expected`; the components' task is listed under `COMPONENT_TASK_SHELL`) and the keys of the far shells'
-    and the components' tasks. What a process following the run needs: it travels as JSON (`to_json`).
+    by shell (`expected`; the components' tasks are listed under `COMPONENT_TASK_SHELL`, as one total), the key of the
+    far shells' task and the components' tasks (`component_parts`: task -> the `[kind, name, slice, slices]` lists of
+    `component_pass.parts`). What a process following the run needs: it travels as JSON (`to_json`).
     """
 
     tasks: dict
@@ -800,7 +813,7 @@ class _ScatterShape:
     names: dict
     expected: dict
     far_key: int = None
-    component_key: int = None
+    component_parts: dict = dataclasses.field(default_factory=dict)
     first_far: int = 0
     reach_shell: int = 0
     reach_on: bool = False
@@ -808,14 +821,19 @@ class _ScatterShape:
     band_share: float = 0.0
     component_count: int = 0
 
+    @property
+    def special_keys(self):
+        """The keys of the tasks that are not a run of shells: the far shells' and the components'."""
+        return {self.far_key, *self.component_parts}
+
     def to_json(self):
         order = range(len(self.tasks))
         return {"tasks": [[list(row) for row in self.tasks[key]] for key in order],
                 "weights": [self.weights[key] for key in order], "sizes": [self.sizes[key] for key in order],
                 "names": [self.names[key] for key in order],
                 "expected": [[shell, stars] for shell, stars in self.expected.items()],
-                "far_key": self.far_key, "component_key": self.component_key, "first_far": self.first_far,
-                "reach_shell": self.reach_shell, "reach_on": self.reach_on, "e_value": self.e_value,
+                "far_key": self.far_key, "component_parts": [[key, parts] for key, parts in self.component_parts.items()],
+                "first_far": self.first_far, "reach_shell": self.reach_shell, "reach_on": self.reach_on, "e_value": self.e_value,
                 "band_share": self.band_share, "component_count": self.component_count}
 
     @classmethod
@@ -826,7 +844,8 @@ class _ScatterShape:
             weights={key: data["weights"][key] for key in order}, sizes={key: data["sizes"][key] for key in order},
             names={key: data["names"][key] for key in order},
             expected={shell: stars for shell, stars in data["expected"]}, far_key=data["far_key"],
-            component_key=data["component_key"], first_far=data["first_far"], reach_shell=data["reach_shell"],
+            component_parts={key: parts for key, parts in data["component_parts"]}, first_far=data["first_far"],
+            reach_shell=data["reach_shell"],
             reach_on=data["reach_on"], e_value=data["e_value"], band_share=data["band_share"],
             component_count=data["component_count"])
 
@@ -853,8 +872,9 @@ def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
     """
     Cuts a shell scatter into tasks (`_ScatterShape`): the outline's shells and the shells past it (GEN.322: the
     pass covers the grid's whole reach; the shells past the outline are drawn one by one while they hold stars to
-    speak of, and the faint ones further out together, as one task), then the components' task (GEN.324). The cut is
-    the static one (`static_shell_chunks`), the same at any worker count.
+    speak of, and the faint ones further out together, as one task), then the components' tasks (GEN.324): the small
+    components bundled, a large one in slices (`component_pass.parts`). The cut is the static one
+    (`static_shell_chunks`), the same at any worker count.
     """
     e_value = skeleton.expected_system_count_at_density_1
     rows, expected = [], {}
@@ -877,7 +897,8 @@ def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
     weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}
     sizes = {key: len(chunk) for key, chunk in tasks.items()}
     names = {key: _shell_names(chunk) for key, chunk in tasks.items()}
-    far_key = component_key = None
+    far_key = None
+    component_parts = {}
     if first_far <= reach_shell:
         far_key = len(tasks)
         far_expected = brightStars.far_expected_stars(
@@ -887,16 +908,19 @@ def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
         weights[far_key] = far_expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
         sizes[far_key] = reach_shell - first_far + 1
         names[far_key] = f"{first_far}-{reach_shell}"
-    # GEN.324: the globular clusters and satellite galaxies place their own stars, as one more task.
+    # GEN.324: the globular clusters and satellite galaxies place their own stars, in tasks of their own.
     if components:
-        component_key = len(tasks)
-        component_expected = componentPass.expected_stars(components, fractions, tiered)
-        expected[COMPONENT_TASK_SHELL] = component_expected
-        tasks[component_key] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, component_expected)]
-        weights[component_key] = component_expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
-        sizes[component_key] = 0
-        names[component_key] = "components"
-    return _ScatterShape(tasks, weights, sizes, names, expected, far_key, component_key, first_far, reach_shell,
+        cut = componentPass.parts(componentPass.star_weights(components, fractions, tiered),
+                                  componentPass.STAR_SLICE_STARS)
+        expected[COMPONENT_TASK_SHELL] = sum(task_expected for task_expected, _parts in cut)
+        for number, (task_expected, task_parts) in enumerate(cut, 1):
+            key = len(tasks)
+            component_parts[key] = task_parts
+            tasks[key] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, task_expected)]
+            weights[key] = task_expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+            sizes[key] = 0
+            names[key] = f"components {number} of {len(cut)}"
+    return _ScatterShape(tasks, weights, sizes, names, expected, far_key, component_parts, first_far, reach_shell,
                          reach_on, e_value, band_share, len(components or []))
 
 
@@ -923,18 +947,18 @@ class _ScatterPass:
     def payload(self, shape, key):
         """What one task of the pass is given besides the database, the shape and the progress channel."""
         chunk = shape.tasks[key]
-        special = key in (shape.far_key, shape.component_key)
+        special = key in shape.special_keys
         return {
             "shells": [] if special else [(shell, high) for shell, high, _weight in chunk],
             "far": (shape.first_far, shape.reach_shell) if key == shape.far_key else None, "reach": shape.reach_on,
-            "components": self.components if key == shape.component_key else None,
+            "components": self.components if key in shape.component_parts else None,
+            "component_parts": shape.component_parts.get(key),
             "expected_by_shell": ({shape.first_far: shape.expected[shape.first_far]} if key == shape.far_key else
-                                  {COMPONENT_TASK_SHELL: shape.expected[COMPONENT_TASK_SHELL]}
-                                  if key == shape.component_key else
+                                  {COMPONENT_TASK_SHELL: chunk[0][2]} if key in shape.component_parts else
                                   {shell: shape.expected[shell] for shell, _high, _weight in chunk}),
             "edge_pc": self.skeleton.edge_pc, "expected": shape.e_value,
             "min_luminosity_sol": self.min_luminosity_sol, "max_luminosity_sol": self.max_luminosity_sol,
-            "seed": self.seed, "skip": (set(self.filled) if key == shape.component_key else
+            "seed": self.seed, "skip": (set(self.filled) if key in shape.component_parts else
                                         set().union(*(self.skip_by_shell.get(shell, set())
                                                       for shell, _high, _weight in chunk))),
             "mass_range": self.mass_range, "tiered": self.tiered,
@@ -949,7 +973,7 @@ class _ScatterPass:
             "database": wrapper.database_args(mysql_config), "key": key,
             "shells": [list(pair) for pair in payload["shells"]],
             "far": None if payload["far"] is None else list(payload["far"]),
-            "reach": payload["reach"], "components": payload["components"] is not None,
+            "reach": payload["reach"], "component_parts": payload["component_parts"],
             "expected_by_shell": [[shell, expected] for shell, expected in payload["expected_by_shell"].items()],
             "skip": sorted(list(address) for address in payload["skip"]),
             "edge_pc": payload["edge_pc"], "expected": payload["expected"],
@@ -1012,12 +1036,13 @@ class _ScatterTally:
         def task_done(result):
             task_counts = result["counts"]
             types = collections.Counter({(name, plural): count for name, plural, count in result["types"]})
-            if key == shape.component_key:
+            note = _unit_note(key + 1, len(shape.tasks), shape.weights[key])
+            if key in shape.component_parts:
                 if sum(types.values()):
-                    log.normal(f"{self.label}, components: added {sum(types.values()):,} stars: "
+                    log.normal(f"{self.label}, {shape.names[key]}{note}: added {sum(types.values()):,} stars: "
                                f"{describe_types(types)}.")
             else:
-                _log_shell_range(self.label, chunk, types)
+                _log_shell_range(self.label, chunk, types, note)
             for population, count in task_counts.items():
                 self.counts[population] += count
             self.systems += result.get("systems", 0)
@@ -1074,7 +1099,7 @@ def finish_scatter(params, plan, results, seconds):
         stars = sum(result["counts"].values())
         objects += stars
         drew.update(shell for shell, shell_stars in result["shells"] if shell_stars)
-        if key not in (shape.far_key, shape.component_key) and stars:   # PERF.53: no star, no time per star
+        if key not in shape.special_keys and stars:   # PERF.53: no star, no time per star
             stats.record(plan["stats_kind"], _task_density(shape, key), result["seconds"], systems=stars, stars=stars,
                          workers=params.get("workers", 1))
     stats.flush()
@@ -1392,7 +1417,8 @@ def scatter_shells_unit(unit_args, report):
         "mysql_config": mysql_config, "shape": skeleton.shape, "key": unit_args["key"],
         "shells": [tuple(pair) for pair in unit_args["shells"]],
         "far": None if far is None else tuple(far), "reach": unit_args.get("reach", False),
-        "components": _galaxy_components(mysql_config) if unit_args.get("components") else None,
+        "components": _galaxy_components(mysql_config) if unit_args.get("component_parts") else None,
+        "component_parts": unit_args.get("component_parts"),
         "expected_by_shell": {shell: expected for shell, expected in unit_args["expected_by_shell"]},
         "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1,
         "min_luminosity_sol": unit_args["min_luminosity_sol"], "max_luminosity_sol": unit_args.get("max_luminosity_sol"),
@@ -1460,9 +1486,10 @@ def _scatter_shells_task(payload):
             fractions, pass_bands = brightStars.pass_of(
                 payload.get("tiered"), payload["min_luminosity_sol"], payload.get("max_luminosity_sol"),
                 payload.get("mass_range"))
+            these, slices = componentPass.chosen(payload["components"], payload["component_parts"])
             runs.append((COMPONENT_TASK_SHELL, componentPass.scatter_stars(
-                payload["components"], payload["edge_pc"], payload["seed"], fractions, pass_bands,
-                tiered=payload.get("tiered"), skip_addresses=payload["skip"])))
+                these, payload["edge_pc"], payload["seed"], fractions, pass_bands,
+                tiered=payload.get("tiered"), skip_addresses=payload["skip"], slices=slices)))
         for shell_index, rows in runs:
             remaining[0] -= expected_by_shell[shell_index]
             drawn = 0
@@ -1471,6 +1498,8 @@ def _scatter_shells_task(payload):
                 counts[row[6]] += 1
                 types[star_label(row[7], row[8])] += 1
                 drawn += 1
+                if shell_index == COMPONENT_TASK_SHELL and drawn % COMPONENT_REPORT_ROWS == 0:
+                    report(drawn, expected_by_shell[shell_index])     # a component's stars come one at a time
                 landed[row[0]] += 1
                 batch.append(row)
                 if len(batch) >= 10000:
@@ -1531,12 +1560,12 @@ def _compact_mass_limit(args, conn):
     return _stellar_mass_limit(args, conn)
 
 
-def _log_phenomena_shells(shells, counts):
+def _log_phenomena_shells(shells, counts, unit=""):
     """One line saying how many phenomena a run of shells was given, by kind, as `_log_shell_range` does for stars;
     nothing for a run that drew none."""
     total = sum(counts.values())
     if total:
-        log.normal(f"Phenomena, shell{'s' if len(shells) > 1 else ''} {_shell_names(shells)}: placed {total:,}: "
+        log.normal(f"Phenomena, shell{'s' if len(shells) > 1 else ''} {_shell_names(shells)}{unit}: placed {total:,}: "
                    + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
 
 
@@ -1545,14 +1574,15 @@ class _PhenomenaShape:
     """
     How the phenomenon scatter is cut (`_plan_phenomena`): the tasks (`tasks`, unit -> its `(shell_index, high_band,
     weight)` rows), each one's expected work (`weights`), the `far` task that draws the faint shells far out together
-    (`(key, first shell, last shell)`, GEN.323), the key of the components' task (GEN.324), whether each shell also
-    draws its part beyond the outline (`reach`) and the totals the log and the bar count. It travels as JSON.
+    (`(key, first shell, last shell)`, GEN.323), the components' tasks (GEN.324; `component_parts`: task -> the
+    `[kind, name, slice, slices]` lists of `component_pass.parts`), whether each shell also draws its part beyond the
+    outline (`reach`) and the totals the log and the bar count. It travels as JSON.
     """
 
     tasks: dict
     weights: dict
     far: tuple = None
-    component_key: int = None
+    component_parts: dict = dataclasses.field(default_factory=dict)
     reach: bool = False
     shell_total: int = 0
     expected_rows: float = 0.0
@@ -1563,7 +1593,7 @@ class _PhenomenaShape:
 
     def shells_of(self, key):
         """A task's shells as the `(shell, high, weight)` rows `_shell_names` reads."""
-        if key == self.component_key:
+        if key in self.component_parts:
             return []
         if key == self.far_key:
             return [(shell, -1, 0.0) for shell in range(self.far[1], self.far[2] + 1)]
@@ -1573,7 +1603,7 @@ class _PhenomenaShape:
         order = range(len(self.tasks))
         return {"tasks": [[list(row) for row in self.tasks[key]] for key in order],
                 "weights": [self.weights[key] for key in order], "far": None if self.far is None else list(self.far),
-                "component_key": self.component_key, "reach": self.reach, "shell_total": self.shell_total,
+                "component_parts": [[key, parts] for key, parts in self.component_parts.items()], "reach": self.reach, "shell_total": self.shell_total,
                 "expected_rows": self.expected_rows}
 
     @classmethod
@@ -1581,7 +1611,8 @@ class _PhenomenaShape:
         order = range(len(data["tasks"]))
         return cls(tasks={key: [tuple(row) for row in data["tasks"][key]] for key in order},
                    weights={key: data["weights"][key] for key in order},
-                   far=None if data["far"] is None else tuple(data["far"]), component_key=data["component_key"],
+                   far=None if data["far"] is None else tuple(data["far"]),
+                   component_parts={key: parts for key, parts in data["component_parts"]},
                    reach=data["reach"], shell_total=data["shell_total"], expected_rows=data["expected_rows"])
 
 
@@ -1627,16 +1658,18 @@ def _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar):
         expected_rows += far_weight
         tasks[far[0]] = [(first_far, reach_shell, far_weight)]
         weights[far[0]] = far_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
-    component_key = None
+    component_parts = {}
     if galaxy_components:
-        component_key = len(tasks)
-        component_weight = sum(componentPass.expected_phenomena(component, min_mass_solar)
-                               for component in galaxy_components)
-        expected_rows += component_weight
-        tasks[component_key] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, component_weight)]
-        weights[component_key] = component_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+        cut = componentPass.parts([(component, componentPass.expected_phenomena(component, min_mass_solar))
+                                   for component in galaxy_components], componentPass.PHENOMENON_SLICE_ROWS)
+        for task_weight, task_parts in cut:
+            key = len(tasks)
+            component_parts[key] = task_parts
+            expected_rows += task_weight
+            tasks[key] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, task_weight)]
+            weights[key] = task_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
     shell_total = len(extents) + len(beyond_shells) + (0 if far is None else reach_shell - first_far + 1)
-    return _PhenomenaShape(tasks, weights, far, component_key, reach_on, shell_total, expected_rows)
+    return _PhenomenaShape(tasks, weights, far, component_parts, reach_on, shell_total, expected_rows)
 
 
 def expand_scatter_phenomena(params):
@@ -1665,15 +1698,15 @@ def expand_scatter_phenomena(params):
         filled_by_shell[address[0]].append(list(address))
     units_ = []
     for key in range(len(shape.tasks)):
-        special = key in (shape.far_key, shape.component_key)
+        special = key == shape.far_key or key in shape.component_parts
         shells = [] if special else [(shell, high) for shell, high, _weight in shape.tasks[key]]
-        if key == shape.component_key:
+        if key in shape.component_parts:
             skip = sorted(list(address) for address in filled)
         else:
             skip = sorted(address for shell, _high, _weight in shape.shells_of(key) for address in filled_by_shell[shell])
         units_.append(({"database": wrapper.database_args(mysql_config), "key": key, "shells": [list(pair) for pair in shells],
                         "far": None if key != shape.far_key else list(shape.far[1:]), "reach": shape.reach,
-                        "components": key == shape.component_key, "seed": params["seed"],
+                        "component_parts": shape.component_parts.get(key), "seed": params["seed"],
                         "min_mass_solar": params["min_mass_solar"], "skip": skip}, shape.weights[key]))
     return commands.Expansion(units_, shape.to_json())
 
@@ -1697,7 +1730,8 @@ def scatter_phenomena_unit(unit_args, report):
     result = _phenomenon_shells_task({
         "mysql_config": mysql_config, "shape": skeleton.shape,
         "shells": [tuple(pair) for pair in unit_args["shells"]], "far": None if far is None else tuple(far),
-        "reach": unit_args["reach"], "components": _galaxy_components(mysql_config) if unit_args["components"] else None,
+        "reach": unit_args["reach"], "components": _galaxy_components(mysql_config) if unit_args["component_parts"] else None,
+        "component_parts": unit_args["component_parts"],
         "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1, "seed": unit_args["seed"],
         "min_mass_solar": unit_args["min_mass_solar"], "skip": {tuple(address) for address in unit_args["skip"]}})
     result["seconds"] = time.monotonic() - started
@@ -2234,12 +2268,13 @@ def scatter_phenomena(args):
                             counts[kind] = counts.get(kind, 0) + count
                         if sum(task_counts.values()):
                             landed[0] += 1
-                        if unit == shape.component_key:
+                        note = _unit_note(unit + 1, len(shape.tasks), shape.weights[unit], "rows")
+                        if unit in shape.component_parts:
                             if sum(task_counts.values()):
-                                log.normal(f"Phenomena, components: placed {sum(task_counts.values()):,}: " + ", ".join(
+                                log.normal(f"Phenomena, components{note}: placed {sum(task_counts.values()):,}: " + ", ".join(
                                     f"{count:,} {kind}" for kind, count in sorted(task_counts.items())) + ".")
                         else:
-                            _log_phenomena_shells(shape.shells_of(unit), task_counts)
+                            _log_phenomena_shells(shape.shells_of(unit), task_counts, note)
                         shells_done[0] += len(shape.shells_of(unit))
                         bar.update(advance=shape.weights[unit],
                                    description=f"Phenomena ({shells_done[0]:,} of {shape.shell_total:,} shells)")
@@ -2348,8 +2383,9 @@ def _phenomenon_shells_task(payload):
             runs.append(phenomenon_reach.scatter_far(
                 shape, first_far, last_far, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
         if payload.get("components"):
+            these, slices = componentPass.chosen(payload["components"], payload["component_parts"])
             runs.append(componentPass.scatter_phenomena(
-                payload["components"], edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass, shape=shape))
+                these, edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass, shape=shape, slices=slices))
         for rows in runs:
             for row in rows:
                 label = phenomenon_scatter.class_label(row[3], row[4])

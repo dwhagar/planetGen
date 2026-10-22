@@ -9,6 +9,7 @@ each of its stars and links it back.
 import argparse
 import math
 import random
+import re
 
 import pytest
 
@@ -946,6 +947,8 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_shell_by_type(
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
     lines = [message for message in messages if message.startswith(("Bright stars, shell", "Massive stars, shell"))]
     assert lines and all(": added " in line and "-type" in line or "white dwarf" in line for line in lines)
+    # Each line says which unit of the stage it is and how many stars the cut expected there, so the sizes can be read.
+    assert all(re.search(r" \(unit [\d,]+ of [\d,]+, about [\d,]+ stars expected\): added ", line) for line in lines)
     added = sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines)
     assert added == summary["total"]
     # Each line's kinds add up to its own total.
