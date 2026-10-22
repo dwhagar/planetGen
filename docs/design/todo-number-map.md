@@ -486,10 +486,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
 | ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | open |
-| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | open |
+| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | done, PR #2411 |
 | ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | open |
 | ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | open |
-| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | open |
+| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | done, PR #2411 |
 | ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | open |
 | ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | none | open |
 | ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | open |
@@ -1837,7 +1837,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) | none | done, PR #2297 |
 | PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | done, PR #2316 |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | none | done, PR #2370 |
-| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | open |
+| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | done, PR #2413 |
 | PERF.142 | A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug) | none | done, PR #2345 |
 | PERF.143 | A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree | none | done, PR #2345 |
 | PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires | none | done, PR #2366 |

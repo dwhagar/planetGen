@@ -954,3 +954,6 @@ Baseline: PR #1817.
 | GEN.611 | 8.1 | Admin control suite |
 | DB.80 | 8.1 | Bugs and flaky tests |
 | UX.141 | 8.2 | Robust tile caching |
+| ADM.98 | 8.1 | Admin control suite |
+| ADM.101 | 8.1 | Admin control suite |
+| PERF.141 | 8.2 | Robust tile caching |
