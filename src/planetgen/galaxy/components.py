@@ -13,6 +13,7 @@ import bisect
 import dataclasses
 
 from planetgen import tuning
+from planetgen.generation import system_mass
 
 KINDS = ("cluster", "satellite", "stream")
 """tuple: The kinds of component a row may have (the column's CHECK)."""
@@ -84,9 +85,15 @@ class Component:
             raise ValueError("a component needs a positive tidal_radius_pc: the radius its profile is cut at")
 
     @property
+    def mean_system_mass_solar(self):
+        """The mean mass of the component's systems, solar masses: worked out from the generator's own mass function,
+        remnants and multiplicity for stars that formed `age_gy` ago (`generation.system_mass`, GEN.598)."""
+        return system_mass.mean_system_mass_at_age_solar(round(self.age_gy, 6))
+
+    @property
     def expected_systems(self):
-        """How many systems the component holds: its mass over `tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL`."""
-        return self.mass_solar / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+        """How many systems the component holds: its mass over `mean_system_mass_solar`."""
+        return self.mass_solar / self.mean_system_mass_solar
 
 
 def is_open_cluster(component):

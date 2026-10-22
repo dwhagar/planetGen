@@ -58,14 +58,14 @@ Related notes: [galaxy-disk-density.md](galaxy-disk-density.md) (the density mod
 | 9 | 2.12 | 131 | 15.4 |
 | 12 | 2.74 | 548 | 86.4 |
 
-**What clusters look like in the sector grid [C].** Four exemplars, `MEAN_M` = 0.4 Msun per system:
+**What clusters look like in the sector grid [C].** Four exemplars, `MEAN_M` = 0.47 Msun per system (derived for an 11 Gy cluster, GEN.598; the first draft recalled 0.4):
 
 | Cluster | Systems | Central density (Msun/pc^3) | King radius | `r_t` | Central sector (systems) | Sectors with at least 1 system |
 |---|---|---|---|---|---|---|
-| typical (2e5 Msun, `r_h` 5 pc, `W0` 5) | 5.0e5 | 1.1e3 | 2.5 pc | 27 pc | 3.0e4 to 8.4e4 | 965 |
-| 47 Tuc-like (8e5, 6 pc, 9) | 2.0e6 | 1.9e5 | 0.39 pc | 51 pc | 1.1e5 to 5.5e5 | 5,848 |
-| compact (5e5, 3 pc, 12) | 1.2e6 | 3.2e7 | 0.03 pc | 19 pc | 1.1e5 to 5.3e5 | 443 |
-| sparse (5e4, 8 pc, 3) | 1.2e5 | 38 | 6.4 pc | 30 pc | 3.4e3 to 5.1e3 | 1,099 |
+| typical (2e5 Msun, `r_h` 5 pc, `W0` 5) | 4.3e5 | 1.1e3 | 2.5 pc | 27 pc | 2.6e4 to 7.2e4 | 905 |
+| 47 Tuc-like (8e5, 6 pc, 9) | 1.7e6 | 1.9e5 | 0.39 pc | 51 pc | 9.3e4 to 4.7e5 | 5,500 |
+| compact (5e5, 3 pc, 12) | 1.1e6 | 3.2e7 | 0.03 pc | 19 pc | 8.8e4 to 4.1e5 | 375 |
+| sparse (5e4, 8 pc, 3) | 1.1e5 | 38 | 6.4 pc | 30 pc | 2.8e3 to 4.3e3 | 1,040 |
 
 ("to": the range between the cluster centred on a sector corner and in a sector's middle.) Central densities of 1e4 to 1e6 Msun/pc^3 [B] belong to the dense end only: a typical cluster is about 1e3. A galaxy's real density at the Sun is 0.099 systems/pc^3, so the 47 Tuc core is 4.9e6 times denser.
 
@@ -80,7 +80,7 @@ Related notes: [galaxy-disk-density.md](galaxy-disk-density.md) (the density mod
 - **Radius by inverse transform.** Draw a mass fraction `X`, look it up in the King table (one `bisect` on a monotone array: O(log n), effectively constant), scale by `r0`, add a random direction. Plummer's closed form needs no table but has the infinite tail above; use it only truncated at `r_t`.
 - **Per-sector draw.** The exact block-first draw of sampling-backfill-and-resume.md applies unchanged: the expected count in a sector is the integral of the cluster density over the cube, evaluated once per sector (a cube integral of the table, or a Monte Carlo of the table at plan time).
 - **Age and mass.** Add a population `cluster` to `STELLAR_POPULATION_AGE_RANGES_GY` with the cluster's own age (10 to 13 Gyr); the redraw loop drops stars above the turn-off. White dwarfs and the giant branch come out of the existing evolution code. The horizontal branch is not modelled by the code and is a recorded gap (section 7).
-- **Mean mass.** A Kroupa mass function between 0.1 and 0.85 Msun has a mean of 0.30 Msun [C]; the 0.4 Msun per system used above includes remnants and binaries [R]. The real present-day mass function is also depleted of low-mass stars by evaporation [R], so a count of `M / 0.4` is an estimate to within a factor of about 1.5.
+- **Mean mass.** A Kroupa mass function between 0.1 and 0.85 Msun has a mean of 0.30 Msun [C]; the mean per system used above (0.47 Msun for an 11 Gy cluster, derived from the generator's own mass function, remnants and multiplicity) includes remnants and binaries. The real present-day mass function is also depleted of low-mass stars by evaporation [R], so a count of `M` over the mean is an estimate to within a factor of about 1.5.
 - **Velocity.** Bulk cluster velocity plus a Maxwellian draw at the local dispersion `sigma(r)`. The 1 to 15 km/s range [B] is the central line-of-sight (1-D) value, which is what the Harris catalogue lists [R]; if the text meant the 3-D value, multiply by 1.7. The virial estimates [C] are 2 to 11 km/s for the four exemplars, so the range holds. Use the King model's own `sigma(r)` falling with radius, not a constant.
 - **Bright first.** At 12 Gyr the visible stars below the turn-off are the large majority, and they are dim. The bright-first level (`GEN.44`) draws the giants, horizontal branch and blue stragglers first (hundreds to thousands per cluster) and leaves the dim main sequence to the lazy fill, exactly as for the galactic bulge.
 

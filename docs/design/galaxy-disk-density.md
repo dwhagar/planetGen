@@ -95,8 +95,10 @@ held 1.25e11 at 0.4) and its density at the reference radius is 0.62 of the pinn
 that remains is real if the pinned density (Mamajek's 0.0984 stars per pc^3) counts the stars of a system singly, as it
 probably does, since a system here holds 1.42 of them. The compact companions of massive stars' trees add under 0.2% (not
 counted), and so do the companions of the remnants the scatter places (a few percent of those systems). A test draws the
-systems with the generator's own samplers and compares (`test_gen_system_mass.py`). The clusters' and satellites' own
-`CLUSTER_MEAN_SYSTEM_MASS_SOL` (also 0.4, recalled) is a separate constant and stays until it is derived the same way.
+systems with the generator's own samplers and compares (`test_gen_system_mass.py`). A cluster's or satellite's mean (once the recalled
+`CLUSTER_MEAN_SYSTEM_MASS_SOL`, also 0.4) is derived the same way from the component's own age (GEN.598,
+`Component.mean_system_mass_solar`): 0.47 for an 11 Gy globular cluster, 0.49 for the Large Cloud, 0.9 for a cluster a few
+thousand years old.
 
 **Stellar halo** (GEN.234). A spheroid with a broken power law, `A * (max(m, core) / break) ** -n`, where
 `m = sqrt(R^2 + (z / q)^2)`: inner slope 2.5, outer slope 4.5, break at 25 kpc (9.6 disk scale lengths), axis ratio
