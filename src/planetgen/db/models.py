@@ -864,6 +864,54 @@ nearest_systems = sa.Table(
 )
 
 
+nebula_block_classes = sa.Table(
+    'nebula_block_classes',
+    metadata,
+    sa.Column('m', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('nebula_class', mysql.CHAR(1), primary_key=True, nullable=False),
+    sa.Column('volume_pc3', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+nebula_block_state = sa.Table(
+    'nebula_block_state',
+    metadata,
+    sa.Column('id', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('nebulae_through_id', mysql.BIGINT(unsigned=True), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+nebula_block_stats = sa.Table(
+    'nebula_block_stats',
+    metadata,
+    sa.Column('m', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('nebula_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('volume_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('centroid_x_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('centroid_y_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('centroid_z_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('bound_radius_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('volume_diffuse_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('volume_emission_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('volume_reflection_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('volume_planetary_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('volume_dark_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('volume_remnant_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('dominant_class', mysql.CHAR(1), nullable=True),
+    sa.Column('cover_volume_pc3', mysql.DOUBLE(), nullable=False),
+    sa.Column('cover', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 nebula_field = sa.Table(
     'nebula_field',
     metadata,

@@ -25,7 +25,7 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue
-from planetgen.db import region, sector_paths, store
+from planetgen.db import nebula_blocks, query, region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
@@ -711,6 +711,30 @@ def link_after_run(args, started_at):
         return 0
     log.normal(f"Linked {linked:,} sectors to their neighbours.")
     return linked
+
+
+def nebula_blocks_after_run(args):
+    """
+    MAP.172: adds the nebulae a `galaxy` run stored (the ones the `nebula_field` table does not hold: emission and
+    reflection nebulae around a star, a class P or Q cloud) to the Galaxy Map's block totals, once at the end of the
+    run so its workers never queue on the same top-level blocks (`db.nebula_blocks.catch_up`). A failure only warns:
+    `planetgen plan --fill-nebula-blocks` makes the totals again.
+
+    Returns:
+        int: The nebulae added.
+    """
+    try:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+        try:
+            added = nebula_blocks.catch_up(conn, query.galaxy_edge_pc(conn))
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+        log.normal(f"Warning: adding the new nebulae to the block totals failed: {exc}")
+        return 0
+    if added:
+        log.normal(f"Added {added:,} nebulae to the block totals.")
+    return added or 0
 
 
 def _one_unit_stage(args, key, title, kind, total, started_at, result_key, extra=None):
@@ -2013,7 +2037,6 @@ def course_cells(config, from_ref, to_ref, border=False):
         ValueError: A system that does not exist, or a course NAV cannot plot.
     """
     from planetgen.api import ids
-    from planetgen.db import query
 
     conn = store.get_connection(config)
     try:
@@ -2130,6 +2153,7 @@ def run_galaxy(args):
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_after(args)
     settle_after_run(args, started_at)
+    nebula_blocks_after_run(args)
     stages.finish()
     run_common._finish_stats(args)    # the steps after the sectors recorded their speeds too
 

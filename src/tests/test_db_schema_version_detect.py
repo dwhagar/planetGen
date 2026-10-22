@@ -38,6 +38,8 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        for table in ("nebula_block_state", "nebula_block_classes", "nebula_block_stats"):
+            conn.execute(f"DROP TABLE {table}")  # v116
         conn.execute("ALTER TABLE sectors DROP COLUMN parity_dirty, DROP COLUMN storage_checksum, ALGORITHM=COPY")  # v115
         conn.execute("DROP TABLE galaxy_shape_pins")  # v114
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN pinned_stellar_mass_solar")  # v114
