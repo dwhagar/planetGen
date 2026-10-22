@@ -934,3 +934,4 @@ Baseline: PR #1817.
 | PERF.144 | 8.1 | Queue, caches and performance |
 | GEN.378 | 8.1 | Galaxy types groundwork |
 | PERF.140 | 8.2 | Robust tile caching |
+| MAP.251 | 8.1 | Fly-through map |
