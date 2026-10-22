@@ -18,11 +18,12 @@ from planetgen.db import store
 from planetgen.galaxy import remnant_density, density, remnant_distribution, spherical, structure_draw
 from planetgen.generation import object_first, phenomenon_reach as reach, phenomenon_scatter as scatter, run_plan
 from tests import test_gen_scatter_tiers as tiers
+from tests.wide_masses import wide_mass
 from tests.test_bright_star_scatter import EXTENTS
 from tests.test_phenomenon_scatter import _scatter_args
 
 EDGE_PC = tiers.EDGE_PC
-SHAPE = tiers.SHAPE._replace(structure=structure_draw.draw_structure(bytes([12]) * 16))
+SHAPE = tiers.SHAPE._replace(structure=structure_draw.draw_structure(bytes([12]) * 16, wide_mass(bytes([12]) * 16)))
 """The tier test's toy galaxy with a seed of its own: the tier test's seed puts the core where its tiers need it, and
 this one keeps the rows beyond the outline few enough to draw in seconds."""
 E_VALUE = 4000.0

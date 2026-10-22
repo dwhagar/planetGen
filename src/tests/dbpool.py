@@ -44,7 +44,7 @@ from planetgen.db.store import MySQLConfig
 # Module-level tables in planetgen that must survive a reset: the schema is still in place, and these hold
 # facts about the server rather than about the data.
 KEEP_CACHES = ("_pools", "_schema_ensured", "_fk_ranks", "_fk_same_rank_parents", "_max_packets",
-               "_insert_shapes", "_mariadb_servers")
+               "_insert_shapes")
 
 
 def _related(key, database, name):
@@ -249,10 +249,7 @@ class WorkerDatabase:
         return structure, {t[0]: t[3] for t in tables}
 
     def _auto_increments(self, cur, name):
-        try:
-            cur.execute("SET SESSION information_schema_stats_expiry = 0")  # MySQL 8 caches these otherwise
-        except pymysql.MySQLError:  # MariaDB has no such variable and always reads them live
-            pass
+        cur.execute("SET SESSION information_schema_stats_expiry = 0")  # MySQL 8 caches these otherwise
         cur.execute("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s "
                     "AND TABLE_TYPE = 'BASE TABLE' AND AUTO_INCREMENT > 1", (name,))
         return [row[0] for row in cur.fetchall()]

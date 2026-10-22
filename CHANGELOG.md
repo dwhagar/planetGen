@@ -2,6 +2,158 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1887] - 2026-10-22
+
+**Headline:** A sector now has room for the checksum and the parity flag that its storage protection will use.
+
+### Changed
+- `sectors` gains `storage_checksum` (BINARY(32), NULL) and `parity_dirty` (TINYINT NOT NULL, default 1, so every sector that exists counts as not yet protected), added in one table rebuild (migration 0114, DB.44; `sectors` has a FULLTEXT index, so MySQL cannot add a column to it instantly). No row is touched and nothing reads the columns yet; DB.9 does.
+
+## [8.0.1886] - 2026-10-22
+
+**Headline:** A galaxy with nothing pinned is now a small spiral, about half the size of a large one, instead of anything from small to giant.
+
+### Changed
+- **The Auto mass window (GEN.603).** With the mass left Auto, the galaxy's stars weigh 3e9 to 6e9 solar masses (the stellar mass function between them), not 3e9 to 2e11, so its thin disc's scale length is about 1.3 to 1.5 kpc, roughly half of a large spiral's (Boss, 10-21, 6:57 and 7:05 PM EDT: the sliders default to a smaller spiral and the user pushes up). A pinned mass is limited only by the Scale dial's range, 281 to 1.55e11 solar masses. `mass_chain.FIRST_FAMILY_LOG_MASS_RANGE` is now `AUTO_LOG_MASS_RANGE`.
+generation-output: changed
+
+## [8.0.1885] - 2026-10-22
+
+**Headline:** The check-constraint test and the fresh-after-CLI test no longer depend on what the seeded or unseeded draws happen to place.
+
+### Fixed
+- **`test_every_check_rejects_a_bad_row` failed on main (TEST.263).** The seeded rich galaxy no longer holds a planet with life, so `planet_reflection_spectrum` had no row to break; the test now adds one for that table the way it does for `moon_reflection_spectrum`.
+- **`test_sector_page_and_tiles_show_a_phenomenon_the_cli_added` sometimes failed on a nebula the unseeded plan drew (TEST.257).** The test now checks that the cloud the CLI adds appears and nothing else changes, instead of an empty cloud list before it.
+
+TODO items resolved / Added: TEST.257, TEST.263 / Added: none
+
+## [8.0.1884] - 2026-10-22
+
+**Headline:** The Admin menu on the sector, system and phenomenon pages now opens under its button instead of far above it, off the screen.
+
+### Fixed
+- **The Admin menu (and the Navigate menu) opened off the visible window (UX.145).** The action row is a size container (`container-type: inline-size`, UX.27), which also makes it the containing block of the menus inside it. The menus' placement (Shoelace's Floating UI reads `offsetParent`) did not know that and measured against the page, so a menu opened as far above its button as the row is from the top of the page: off the top of a short window, and detached from its button on any window. The row is now `position: relative`, so the offset parent and the containing block are the same element. A browser test opens the Admin menu on every page that has it, at a laptop, a small laptop, a tablet, a phone and a short window, in both themes, and checks that it hangs at its button, lies inside the window and that every entry can be reached.
+
+TODO items resolved: UX.145. Added: none.
+
+## [8.0.1883] - 2026-10-22
+
+**Headline:** A run's log names each stage once: the stage list and the repeated "Stage 4 of 13" line under the job's banner are gone.
+
+### Changed
+- **The run output no longer repeats the stage under the banner (PERF.145).** A command used to print `1 stage (stages 4 to 4 of 13): 4. Plan the galaxy.` and then `Stage 4 of 13: Plan the galaxy.` straight after the job's own `=== Stage 4 of 13: Plan the galaxy ===`. The list of stages is gone from every `galaxy` and `plan` run; a step of one stage in a web job prints no line of its own (the banner is the mention), a step of several stages still prints one `Stage n of N: label.` line for each as it enters it, and a command run on its own prints that line for each stage. A stage that is skipped still says why. The Generate page's stage text and the progress file are unchanged.
+
+TODO items resolved / Added: PERF.145 / Added: none
+
+## [8.0.1882] - 2026-10-22
+
+**Headline:** A zoom on the Galaxy Map no longer stalls the page walking every star for every tile that has not arrived.
+
+### Changed
+- **Carrying stars over to tiles still on the way (MAP.249).** While the tiles of a new zoom level arrive, the map keeps drawing the stars already on screen where the new tiles will be. For that it walked all the drawn stars once for each missing tile: about 250 tiles by 45,000 stars is 11 million box tests, 665 ms of main-thread time on the test machine, repeated on each fetch step of a zoom. It now places each star in its tile with arithmetic in one pass (6.5 ms for the same case) and carries the same stars.
+- **A view known from its tiles (MAP.249).** Each time tiles arrived or the camera settled with every tile in hand, the map built a list of every star in the view (up to 45,000) and sorted and joined it, about 160 ms of main-thread time on each call, only to find the stars were the ones already drawn. It now compares the tiles themselves (`static/tileview.js`): a view whose tiles are the ones already drawn costs a pass over about 250 tile keys. Nothing a visitor sees changes; the page works the same with fewer pauses on a zoom.
+- **Guards.** A test fails if a view asks for more than 220 tiles at any of eight camera distances from 30 to 100,000 parsecs, and a script test fails if signing a view of 250 tiles reads a star or takes over 5 ms.
+
+TODO items resolved / Added: none / Added: none
+
+## [8.0.1881] - 2026-10-22
+
+**Headline:** The cache warm-up also builds the Lists page and the first page of every kind's list.
+
+### Changed
+- **Warm the new list pages (PERF.141).** The `lists` warm family now visits `/lists` and `/lists/<kind>` for every kind, so the first visit to a list of stars, planets, moons, belts, comets or a phenomenon type is answered from the cache. Deeper pages are not warmed, because a page of these lists starts after the last object of the one before and costs the same at any depth.
+
+TODO items resolved / Added: none / Added: none
+
+## [8.0.1880] - 2026-10-22
+
+**Headline:** Every setting now has a plain-language name, a one-line description and a purpose-based group, ready for the redesigned Settings page.
+
+### Changed
+- **Settings are named in words.** Each of the 89 options in `config.json` carries a label, a one-sentence summary, a group, an optional control kind and an Advanced mark in the settings model (`settings.opt`), instead of a title built from its key. The Settings page shows the label as each setting's heading, `docs/config.md` lists it beside the key, and a test holds every option to the same wording rules (short label without key punctuation, one sentence, a known group).
+- **Groups follow purpose, not file layout.** The page's sections are now Site identity, Look, Search engines, Link previews, Speed and disk, Abuse protection and Housekeeping for what an admin can change, then the server-only groups (database connection, logging, reverse proxy, security, folders and addresses, wiki upload, settings file).
+
+## [8.0.1879] - 2026-10-22
+
+**Headline:** The list pages for stars, planets, moons, belts, comets and phenomena jump to a name.
+
+### Changed
+- **Start a list at a name (UX.141, third part).** Under the name sort, the "Starting at" box on each `/lists/<kind>` page begins the list at the first name from the typed text on, like the Systems list, and the page after it still starts at the last object of the one before. `GET /api/object-lists/<kind>` takes `from=<name>` for the same. A start past the last name shows the last page with a note.
+
+TODO items resolved / Added: none / Added: none
+
+## [8.0.1878] - 2026-10-22
+
+**Headline:** The code, the tests and the docs now agree that planetGen runs on MySQL 8.0.19 or later and not on MariaDB.
+
+### Removed
+- **The MariaDB branches.** A statement time limit is set with MySQL's `MAX_EXECUTION_TIME` only (the MariaDB
+  `max_statement_time` and its error 1969 are gone), the Generate estimate measures the database disk from the
+  server's data directory only (the `information_schema.DISKS` fallback was MariaDB's), and the table-size reads no
+  longer guard against a server without `information_schema_stats_expiry`.
+- **MariaDB from the tests, the CI legs and the docs.** The reserved-word list, the CHECK constraint helpers, the
+  disk tests and the pool cache no longer name MariaDB; the two MariaDB legs of the CI matrix run on MySQL 8.0; the
+  `mysql.host` help text, `docs/config.md`, `docs/cli.md`, `docs/testing.md` and `docs/ci-runners.md` say MySQL.
+
+## [8.0.1877] - 2026-10-22
+
+**Headline:** Every kind of object has its own list page: stars, planets, moons, asteroid belts, comets and each phenomenon type.
+
+### Changed
+- **List pages for every kind (UX.141, second part).** `/lists` names every list on the site with its count, and `/lists/<kind>` shows one kind as a data table: sort by name, class, mass or radius, and scroll through the pages. Each page starts after the last object of the one before, so a page far down is as quick as the first. A name opens the object, and a "Lists" link joins the header.
+
+TODO items resolved / Added: none / Added: none
+
+## [8.0.1876] - 2026-10-22
+
+**Headline:** The Structure dial sets how flat the disc is and how big and heavy the bulge is, as ratios that keep their meaning when the galaxy's size changes.
+
+### Changed
+- **The Structure dial (GEN.604).** `--flatness` (scale length over scale height, 3 to 20), `--bulge-share` (bulge-to-total mass, 0 to 0.9) and `--bulge-size` (bulge scale radius over the scale length, 0.02 to 1) are in the lever table and on the Generate page. Each replaces only its own draw: the same seed at another size draws the same residuals, a pinned flatness keeps its ratio when the scale length moves, and a bulge share of 0 leaves a disc with no bulge density. The bulge's central density is solved from the share.
+- **The absolute structure options are retired with no shim (GEN.602, first part).** `--disk-scale-height-pc`, `--bulge-scale-radius-pc` and `--bulge-amplitude` are refused as unknown; `shape_draw.draw_galaxy` takes `flatness`, `bulge_to_total` and `bulge_size` in their place. With no option given the drawn shape is unchanged.
+
+## [8.0.1875] - 2026-10-22
+
+**Headline:** The Scale, Halo and Edge dials set a galaxy's mass and size, its halos and how far out it is planned, the plan remembers what was pinned, and a small galaxy is one disc plus a bulge.
+
+### Changed
+- **The Scale dial (GEN.603).** `--mass` (stellar mass, solar masses), `--compactness` (size in standard deviations from the size-mass law), `--disk-scale-length` and `--density` (the thin disc's central surface density) are in the lever table and on the Generate page. They are three views of two numbers: pin any two and the third is shown, pin all three and the plan is refused naming the density the other two imply. A pinned value replaces only its own draw, so the same seed at twice the mass keeps its size residual and its thick disc. With nothing pinned the galaxy is the one the seed drew before.
+- **The plan stores what it was told (DB.81).** Migration 0114 adds `galaxy_shape.pinned_stellar_mass_solar` and the table `galaxy_shape_pins`. A loaded galaxy is drawn again at the stored mass (its structure, its mass chain, the tidal field every Hill sphere reads), `GET /api/galaxy/shape` carries `pins` and `pinned_stellar_mass_solar`, and the Generate page says which levers were pinned and that the rest were drawn.
+- **No halo under about 4.6 million solar masses of stars.** A galaxy whose halo would weigh under 1e10 solar masses (`dials.HALO_MIN_HALO_MASS_SOLAR`, where the concentration and stellar-to-halo laws were fitted from) draws no halo mass, virial radius or concentration and runs no law that reads them: its tidal mass is its stars', its disc's gas inflow is constant and it has no stellar halo. Drawn galaxies (3e9 solar masses and up) are unchanged.
+- **New limits.** Stellar mass 281 to 1.55e11 solar masses, scale length 28 to 8250 pc and scale height 4 to 1155 pc: half of Segue 1 (the length floor raised to 28 pc, one grid cell's reach) up to 1.5 times Andromeda (Boss, 10-21).
+- **The Halo dial (GEN.606).** `--halo-ratio` (dark halo mass over stellar mass, 10 to 3000) and `--stellar-halo-share` (0.001 to 0.3) replace only their own draw; the plan prints the halo's mass, virial radius and concentration and warns when a pinned size or halo makes a disc the halo would not hold. A pin on a galaxy that has no such halo is refused, and the Generate page turns those fields off while the stellar mass typed is under the threshold, with the reason.
+- **The Edge dial (GEN.605).** `--edge` takes a length with its unit, `12L` (3 to 20 scale lengths of the thin disc), `160pc`, `40kpc` or `0.1Mpc` (4 pc to the grid's 262 kpc reach) and stops the outline there; with none the outline ends where no sector clears the one-star density. `planetgen plan --max-shell` is retired with no shim (the benchmark's own option now passes `--edge`).
+- **One disc plus a bulge under 3e8 solar masses of stars.** No thick disc, bar, stellar halo or nuclear cluster and disc (Boss, 10-21: the laws that draw them were fitted to bigger galaxies; at 281 solar masses the thick disc was 906 times the thin one). Drawn galaxies (3e9 and up) are unchanged.
+- **Hard limits and warnings from the density report.** Scale length 28 to 8250 pc, scale height at least 4 pc, bulge radius at least 2 pc, a pitch angle at least 1 degree from flat, central surface density 0.03 to 1e5 solar masses per square parsec; a plan with pins whose outline would be empty is refused, and one whose disc crest is under 20 times the one-star density prints the share of its stars in planned sectors.
+- **One arm contrast (GEN.611).** `--arm-density` and `--interarm-density` are retired with no shim for `--arm-contrast`, 0 to 1, default 0.4: the thin disc is `1 + contrast` of its mean on an arm crest and `1 - contrast` between arms. A new plan stores `arm_level` 1; `density.arm_terms` is removed.
+- **Every dial range is in the registry (GEN.609).** `docs/design/gap-filling-plan.md` section 6.3a lists each lever's range, label (verified, derived, bracket, theory or placeholder) and source, written from the lever table, and a test fails when it goes stale. The ranges that were only recalled stay brackets or placeholders while network access is closed.
+- **The neutron star ejected share follows a pinned mass (GEN.554).** `structure_draw.draw_neutron_star_unbound_share` takes the pinned stellar mass, and a galaxy under the halo threshold has the escape speed of its stars alone. Drawn galaxies keep their share.
+
+## [8.0.1874] - 2026-10-22
+
+**Headline:** Every kind of object has a list that reads the object index, a page at a time without skipping rows.
+
+### Changed
+- **`GET /api/object-lists/<kind>` (UX.141, first part).** One page of the systems, stars, planets, moons, belts, comets, facilities or any phenomenon type from the object index, sorted by name, class, mass or radius, filtered by a name prefix, a class or a sector. The next page starts after the last row's object ID, so a deep page costs the same as the first and no query skips rows with `OFFSET`. The index is filled by the warm-up (`planetgen warm object-index`).
+
+TODO items resolved / Added: none / Added: none
+
+## [8.0.1873] - 2026-10-22
+
+**Headline:** A star's fate as a neutron star or a black hole now depends on its initial mass in windows, and the neutron stars a galaxy ejects now follow from its escape speed, instead of two overlapping ranges and a drawn 20% to 40%.
+
+### Changed
+- A neutron star's or black hole's progenitor is drawn from the windows of initial mass where massive stars explode or fail (`physics/remnant_progenitors`): the verified islands at 23 to 25 and 35 to 45 solar masses (O'Connor and Ott 2011, Sukhbold et al. 2016), shrunk or widened to hold the failed share of the 8 to 150 solar mass stars, down to about 14.5 solar masses at the widest verified share. A black hole whose progenitor failed collapsed directly; the fixed 40 solar mass rule is gone.
+- Remnant ages follow the new progenitors (`collapse_age_gy` moved to `physics/remnant_progenitors`). The perturber mass of the placement limits follows the failed share: 1.01 solar masses for the whole disk (1.44 before), so a wide pair near the Sun survives to about 1.6e4 AU (1.1e4 before). `docs/design/explosion-islands.md` records the model.
+- The share of a galaxy's neutron stars its natal kicks eject is derived (`galaxy/natal_kick.py`): a Maxwellian kick of 265 km/s against the escape speed of the galaxy's halo and stars, averaged over the thin disc's birth radii, replacing the uniform 20% to 40% draw. A galaxy of the Milky Way's published masses ejects 27% (inside the old range, now a test target), the generator's median halo 16% and escape speed 539 km/s at 8.2 kpc; the galaxies the generator draws run from none to 74%, the small ones losing most. The black hole share cap is the Milky Way-like galaxy's for every galaxy, so a galaxy that ejects most of its neutron stars is not left with no stellar black holes. At the middle draw a standalone sector rolls 4.66e-3 neutron stars per star (Boss's 4.0e-3 research density is a test target, 16% under) and 8.6e-4 black holes. `docs/design/natal-kick.md` records the model.
+
+### Fixed
+- **A rocky planet of a wide pair could have a light swing above 1 (GEN.597).** When the planet's star is the dim one of the pair (a white dwarf or a brown dwarf beside a bright star) the companion's swing over the mean total light passed 1 (1.6 to 2.6 in seeds 36 and 106 of the test's sweep). `insolation.companion_swing` is now capped at 1, as the circumbinary swing is. The insolation test sweeps 240 seeds instead of 60.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 slices 2 and 3 (mass islands, the kick step's ejected share; GEN.554 stays open for the neutron star mass function and the placement of kicked remnants) / Added: none
+
 ## [8.0.1872] - 2026-10-22
 
 **Headline:** A Generate run no longer sits for hours on one unit drawing a Magellanic Cloud: a large satellite or cluster is drawn in slices that the workers share, and every unit of components reports its progress.

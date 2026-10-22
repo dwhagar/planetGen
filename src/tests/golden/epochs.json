@@ -209,6 +209,15 @@
       "epoch": 42,
       "first_release": "8.0.1872",
       "reason": "A satellite or cluster expected to draw more than 25,000 stars (or 1,000,000 phenomena) is drawn in slices, each from a stream of its own with its share of the Poisson mean, so the Magellanic Clouds and any other large component place different stars; a component below the limit keeps its stars (Bug Hunt, the stalled components unit)."
+    },
+    {
+      "epoch": 43,
+      "reason": "A neutron star's or black hole's progenitor is drawn from the windows of initial mass where massive stars explode or fail (the verified islands, widened to the failed share), so remnants' progenitors, ages and the direct-collapse flag change, the perturber mass of the placement limits follows the failed share, and the share of neutron stars a galaxy ejects follows its escape speed (GEN.554); a wide pair's swing of light is capped at 1 where a dim host sat beside a bright companion (GEN.597)"
+    },
+    {
+      "epoch": 44,
+      "first_release": "8.0.1886",
+      "reason": "A galaxy with no pinned mass is drawn from 3e9 to 6e9 solar masses of stars (a small spiral, scale length about 1.3 to 1.5 kpc), not 3e9 to 2e11 (GEN.603; Boss, 10-21)."
     }
   ]
 }

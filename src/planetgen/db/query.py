@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, get_galaxy_shape_pins, halo_mass_pinned, sector_deletions, surrounding_cloud,
 )
 from planetgen.db import countcache, hostednebula, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
@@ -2503,9 +2503,11 @@ def _sibling_refs(conn, kind, table, where, params, object_id):
 
 def _central_mass_kg(conn):
     """The mass, kg, the galaxy's tidal field acts as if centred at its middle: the virial mass of the mass chain the
-    stored galaxy seed draws (`mass_chain.central_mass_kg`)."""
-    row = conn.execute("SELECT galaxy_seed FROM galaxy_shape WHERE id = 1").fetchone()
-    return mass_chain.central_mass_kg(bytes(row["galaxy_seed"]) if row and row["galaxy_seed"] else None)
+    stored galaxy seed draws, at the stellar mass the plan pinned when it did (`mass_chain.central_mass_kg`)."""
+    row = conn.execute("SELECT galaxy_seed, pinned_stellar_mass_solar FROM galaxy_shape WHERE id = 1").fetchone()
+    seed = bytes(row["galaxy_seed"]) if row and row["galaxy_seed"] else None
+    stellar = row["pinned_stellar_mass_solar"] if row else None
+    return mass_chain.central_mass_kg(seed, stellar, halo_mass_pinned(seed, stellar, get_galaxy_shape_pins(conn)))
 
 
 def keep_out_radius(conn, kind, object_id):
@@ -3509,7 +3511,9 @@ def galaxy_density_shape(conn):
     Returns:
         dict or None: Every `GalaxyShape` field and
             `galaxy.density.model_terms` and `halo_terms` entry, plus `edge_pc`,
-            `outer_shell_index`, `expected_system_count_at_density_1` and
+            `outer_shell_index`, `expected_system_count_at_density_1`,
+            `pinned_stellar_mass_solar` and `pins` (DB.81: the stellar mass the plan pinned, or `None`, and the
+            levers it was told, `{name: value}`) and
             `half_height_pc` (how far above and below the plane the
             layers reach; left out before the layers are stored).
             `None` if `planetgen plan` has never been run against this
@@ -3522,6 +3526,8 @@ def galaxy_density_shape(conn):
     shape["edge_pc"] = skeleton.edge_pc
     shape["outer_shell_index"] = skeleton.outer_shell_index
     shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1
+    shape["pinned_stellar_mass_solar"] = skeleton.pinned_stellar_mass_solar
+    shape["pins"] = skeleton.pins
     reach = conn.execute("SELECT shell_index, high_band_index FROM galaxy_shell").fetchall()
     if reach:
         # How far above the plane the outline goes: the northern edge of each shell's highest band, on its outer face.

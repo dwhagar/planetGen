@@ -38,7 +38,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.309 | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.309 | Research: ledger size at full galaxy. |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
-| PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner |  |  |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |
 | GEN.600 | The updater and the downloader print the URL of every file they load |  |  |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header |  |  |
@@ -58,12 +57,13 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.307, TEST.181 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py |  | Split from DB.9. Core 1 owns migrations. |
-| DB.44 | Migration only: the sector storage checksum and the parity dirty flag |  | Split from DB.9. Core 1 owns migrations. |
-| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | DB.44 | Split from DB.9. Core 1 owns migrations. |
+| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer |  | Split from DB.9. Core 1 owns migrations. |
+| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it |  |  |
+| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) |  |  |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | DB.43, DB.45 | Split from DB.9. Core 1 owns migrations. |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | DB.46 | Split from DB.9. Core 1 owns migrations. |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | DB.47 | Split from DB.9. Core 1 owns migrations. |
-| DB.9 | Repair a damaged galaxy database from a parity file | DB.43, DB.44, DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.9 | Repair a damaged galaxy database from a parity file | DB.43, DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | GEN.57, DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests |  | Split from GEN.136. |
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table |  | Split from GEN.136. Core 1 owns migrations. |
@@ -121,7 +121,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) |  | Quality run 2026-10-15, MySQL 8.0.46. Core. |
-| DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) |  |  |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
@@ -138,9 +137,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) |  |  |
 | TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
-| TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) |  | Found by Core 2, 7:25 PM EDT. |
 | TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory |  |  |
-| TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
@@ -177,33 +174,22 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields |  | Split from UX.49. |
-| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built |  | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
 | ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout |  | Audit narrowed to the pages other than Generate and Settings (key K8); UX.115 dropped. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model |  | Admin control suite key S1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | ADM.101 | Admin control suite key S2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed |  | Admin control suite key S2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | UX.125 | The Generate page and the one-off system page on the field macro | UX.124 | The Generate page conversion rides ADM.99. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | ADM.101, ADM.102, UX.124 | Admin control suite key S3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | ADM.102, UX.124 | Admin control suite key S3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | ADM.103 | Admin control suite key S4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.97 | The settings page can show a number as a slider: the cache size is the first one | ADM.104 | Folded into ADM.104; moved here from 8.2 so it closes with the slider (TODO thread, 2026-10-21). |
 | ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | ADM.103 | Admin control suite key S5. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.106 | Settings: the server-files disclosure and the overridden-option badge | ADM.102 | Admin control suite key S6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| GEN.602 | Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.603 | Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.604 | Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L) |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.605 | Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.606 | Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.609 | Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.610 | The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| GEN.611 | Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities |  | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
 | GEN.612 | Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable |  | Shape dials (Boss 7:13 PM EDT 2026-10-21); needs Boss sources. |
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them |  | Boss 7:33 PM EDT 2026-10-21; read-only report. |
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster |  | Density limits report (GEN.613). |
 | GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures |  | Density limits report (GEN.613); cut decided 3e8 (Boss, 7:58 PM EDT). |
 | GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output |  | Density limits report (GEN.613). |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
-| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | ADM.101 | Admin control suite key K1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.118, ADM.98 | Split from ADM.56. Key K2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it |  | Admin control suite key K1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.118 | Split from ADM.56. Key K2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | ADM.92 | Admin control suite key K3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | ADM.118, ADM.92 | Admin control suite key K4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.122 | Admin keyboard set and a help overlay | ADM.92 | Admin control suite key K6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
@@ -211,9 +197,8 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link |  | Admin control suite key G1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | ADM.107, UX.125, ADM.123 | Admin control suite key G2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | ADM.108 | Admin control suite key G3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | ADM.108, GEN.602 | Admin control suite key G4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | GEN.602, GEN.603, GEN.604, ADM.108 | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
-| UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) |  | Boss, 8:18 PM EDT 2026-10-21. |
+| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | ADM.108 | Admin control suite key G4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | ADM.108 | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
 | ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | ADM.108 | Admin control suite key G5. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | ADM.108 | Admin control suite key G6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 | ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | ADM.107, UX.125 | Admin control suite key G7. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
@@ -227,7 +212,7 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124 | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.92, ADM.93 | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
 | ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.124 | Parent: closes with its children G1 to G11. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
-| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106 | Parent: closes with its children S1 to S6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | ADM.102, ADM.103, ADM.104, ADM.105, ADM.106 | Parent: closes with its children S1 to S6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 
 ## Phase 2: Infinite zoom
 
@@ -460,7 +445,6 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution |  |  |
 | GEN.607 | Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default | GEN.545 | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | GEN.545 |  |
-| GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) |  |  |
 | GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) |  |  |
 | GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system |  | Research requests R1 to R15 of the GEN.406 note; does not gate GEN.301. |
 

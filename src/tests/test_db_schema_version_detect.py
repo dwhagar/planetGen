@@ -38,6 +38,9 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE sectors DROP COLUMN parity_dirty, DROP COLUMN storage_checksum, ALGORITHM=COPY")  # v115
+        conn.execute("DROP TABLE galaxy_shape_pins")  # v114
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN pinned_stellar_mass_solar")  # v114
         conn.execute("DROP TABLE object_index")  # v113
         conn.execute("ALTER TABLE planets ADD COLUMN flavor_text TEXT")  # v111
         conn.execute("ALTER TABLE planets DROP COLUMN life_stage")  # v110

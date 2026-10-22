@@ -13,13 +13,15 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import remnant_density, density, ejecta_field, profile, structure_draw
+from planetgen.galaxy import remnant_density, density, ejecta_field, profile, structure as galaxyStructure, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.generation import object_first, phenomenon_reach as reach, phenomenon_scatter as scatter
 from planetgen.physics import black_hole_formation as formation
 from planetgen.physics.units import ly_to_pc
 from tests import test_gen_scatter_tiers as tiers
+
+pytestmark = pytest.mark.usefixtures("large_spiral_fallback")
 
 SHAPE = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
@@ -71,19 +73,17 @@ def test_the_draws_keep_the_shares_in_order_and_inside_the_cap():
 
 
 def test_a_seed_draws_its_shares_in_range_and_the_same_every_time():
-    """T7: over a thousand seeds."""
+    """T7: over a thousand seeds. The cap is the Milky Way-like galaxy's, the same for every seed (GEN.554)."""
     low = tuning.BLACK_HOLE_FAILED_SHARE_METAL_FREE_RANGE
-    caps = []
+    cap = formation.share_cap(galaxyStructure.REFERENCE_STRUCTURE.neutron_star_unbound_share)
     for i in range(1000):
         seed = i.to_bytes(16, "big")
         solar, free = structure_draw.draw_black_hole_shares(seed)
-        cap = formation.share_cap(ejecta_field.unbound_fraction("neutron-star", seed))
-        caps.append(cap)
         assert 0.0 <= solar <= min(0.45, cap) + 1e-12
         assert solar <= free <= max(cap, solar) + 1e-12
         assert free <= max(low[1], solar) + 1e-12
         assert (solar, free) == structure_draw.draw_black_hole_shares(seed)
-    assert 0.121 <= min(caps) and max(caps) <= 0.247 + 1e-9
+    assert 0.121 <= cap <= 0.35
     assert len({structure_draw.draw_black_hole_shares(i.to_bytes(16, "big")) for i in range(50)}) == 50
 
 
@@ -168,9 +168,8 @@ def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_eve
         seed = (i * 7919).to_bytes(16, "big")
         structure = structure_draw.draw_structure(seed)
         shape = SHAPE._replace(structure=structure)
-        unbound = ejecta_field.unbound_fraction("neutron-star", seed)
-        neutron = tuning.phenomenon_rate_per_star("neutron-star") * (1.0 + unbound)
-        holes = remnant_density.formed_per_star(shape) * (1.0 - budget)       # per star born
+        neutron = remnant_density.formed_per_star(shape, "neutron-star") * (1.0 - budget)   # per star born
+        holes = remnant_density.formed_per_star(shape) * (1.0 - budget)
         assert neutron + holes <= budget * (1.0 + 1e-9), (i, neutron, holes, budget)
         ratios.append(remnant_density.base_rate_per_star() * remnant_density.mean_factor(shape) / old)
     assert min(ratios) > 0.3 and max(ratios) < 3.4

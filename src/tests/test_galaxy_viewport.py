@@ -361,3 +361,20 @@ def test_a_camera_far_out_needs_a_handful_of_coarse_tiles():
     keys = distance_cut_tiles((34000.0, -20000.0, 28000.0), (0.0, 0.0, 0.0), CUT_BOUNDS)
     assert 1 <= len(keys) <= 20
     assert max(parse_tile_key(key)[0] for key in keys) <= 4 + TILE_ROOT_EXTRA_LEVELS
+
+
+VIEW_TILE_BUDGET = 220
+"""int: The most tiles one Galaxy Map view may ask for (MAP.249: before the payload cut a view asked for 414 to 478 on
+the scaled probe galaxy, and each new zoom level cost a cold build of about 450 tiles; after it, 213 to 271)."""
+
+
+@pytest.mark.parametrize("distance", [100000, 30000, 10000, 3000, 1000, 300, 100, 30])
+def test_a_view_asks_for_no_more_tiles_than_the_budget_at_any_distance(distance):
+    """The guard behind MAP.249: the number of tiles a view fetches follows the cut's arithmetic (edges, cone, fade
+    band), so a change that widens any of them shows here before it shows as a slow zoom."""
+    from planetgen.galaxy.viewport import fetch_cut_tiles
+
+    cube = ((-12600.0,) * 3, (12600.0,) * 3)
+    camera = (2000.0 + distance * 0.6, distance * 0.5, distance * 0.62)
+    keys = fetch_cut_tiles(camera, (2000.0, 100.0, 50.0), cube)
+    assert 1 <= len(keys) <= VIEW_TILE_BUDGET, f"{len(keys)} tiles at {distance} pc"

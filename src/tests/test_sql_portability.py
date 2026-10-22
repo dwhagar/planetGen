@@ -2,9 +2,9 @@
 
 """
 SQL portability lint (TEST.6): the schema files and every SQL string in
-the non-test code under src/ must run unchanged on MySQL 8.0, MySQL 8.4
-and MariaDB 10.x/11.x. A query once used `AS generated` -- fine on
-MariaDB, reserved on MySQL 8 -- and broke production.
+the non-test code under src/ must run unchanged on MySQL 8.0 and MySQL 8.4.
+A query once used `AS generated` -- fine on MariaDB, reserved on
+MySQL 8 -- and broke production.
 
 Checked, without a database:
 
@@ -33,12 +33,11 @@ SRC = Path(__file__).resolve().parent.parent
 SCHEMA_FILES = ("planetgen/db/schema.sql", "planetgen/db/control_schema.sql")
 
 # MySQL 8.0's replacement for VALUES(col), `INSERT ... VALUES (...) AS new
-# ON DUPLICATE KEY UPDATE x = new.x`, is a syntax error on MariaDB (10.11
-# and 11.x), and VALUES(col) still works on MySQL 8.0 and 8.4 (a
-# deprecation warning, 1287) -- tried on both servers, 2026-10-01. So
-# VALUES() is the only portable form for now and these uses stay; a new
-# one fails the lint until it's added here, so they stay counted. Swap
-# them all when MySQL removes VALUES() or MariaDB gains the row alias.
+# ON DUPLICATE KEY UPDATE x = new.x`, is a syntax error on MariaDB
+# (10.11 and 11.x), and VALUES(col) still works on MySQL 8.0 and 8.4 (a
+# deprecation warning, 1287) -- tried on both servers, 2026-10-01. These
+# uses stay; a new one fails the lint until it's added here, so they stay
+# counted. Swap them all when MySQL removes VALUES().
 # {file: {column, ...}} -- "__expr__" is a column an f-string names.
 VALUES_FUNCTION_ALLOWED = {
     "planetgen/db/store.py": {
@@ -504,15 +503,15 @@ def test_no_new_values_function_in_on_duplicate_key_update(sources):
     ("SELECT COUNT(*) AS generated FROM sectors", "generated"),
     ("SELECT COUNT(*) AS `generated` FROM sectors, (SELECT 1 AS rank) r", "rank"),
     ("CREATE TABLE t (id INT PRIMARY KEY, rank INT NOT NULL)", "rank"),
-    ("CREATE TABLE t (id INT, KEY offset (id))", "offset"),
+    ("CREATE TABLE t (id INT, KEY ntile (id))", "ntile"),
     ("CREATE TABLE t (id INT, CONSTRAINT window FOREIGN KEY (id) REFERENCES u (id))", "window"),
     ("CREATE INDEX idx ON t (groups)", "groups"),
     ("ALTER TABLE t ADD COLUMN lead INT AFTER id", "lead"),
     ("INSERT INTO t (id, row) VALUES (?, ?)", "row"),
     ("UPDATE t SET system = ? WHERE id = ?", "system"),
     ("SELECT id, rank FROM t", "rank"),
-    ("SELECT x FROM returning WHERE id = ?", "returning"),
-    ("SELECT x FROM t WHERE offset > 3", "offset"),
+    ("SELECT x FROM lag WHERE id = ?", "lag"),
+    ("SELECT x FROM t WHERE lag > 3", "lag"),
     ("SELECT x FROM t AS order", "order"),
     ("SELECT key.x FROM t", "key"),
 ])

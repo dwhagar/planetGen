@@ -127,14 +127,14 @@ def _generate(mysql_config, monkeypatch, *argv):
 
 def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch):
     monkeypatch.setattr(secrets, "randbits", lambda bits: 0xABC)
-    _generate(mysql_config, monkeypatch, "plan", "--nuclear-amplitude", "0", "--max-shell", "40",
+    _generate(mysql_config, monkeypatch, "plan", "--nuclear-amplitude", "0", "--edge=160pc",
               "--seed", galaxySeed.format_seed(SEED))
     _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
               "--backfill-from", "none")
     runs = _runs(mysql_config)
     assert [run["command"] for run in runs] == ["plan", "galaxy"]
     plan, galaxy = runs
-    assert _arguments(mysql_config, plan["id"]) == ["plan", "--nuclear-amplitude", "0", "--max-shell", "40",
+    assert _arguments(mysql_config, plan["id"]) == ["plan", "--nuclear-amplitude", "0", "--edge=160pc",
                                                     "--seed", galaxySeed.format_seed(SEED)]
     assert "--mysql-password" not in _arguments(mysql_config, galaxy["id"])
     # The plan ran before the galaxy had a seed; the galaxy run against it.
@@ -195,7 +195,7 @@ def test_a_run_writes_its_seed_and_version_first(mysql_config, monkeypatch, caps
 
 
 def test_a_plan_names_the_seed_it_was_given_or_none_yet(mysql_config, monkeypatch, capsys):
-    plan = ["plan", "--nuclear-amplitude", "0", "--max-shell", "40"]
+    plan = ["plan", "--nuclear-amplitude", "0", "--edge=160pc"]
     _generate(mysql_config, monkeypatch, *plan)
     assert capsys.readouterr().out.splitlines()[0] == versionKey.run_line(None, " ".join(plan))
     # A new seed for a galaxy with no sectors yet: the line names the one given.

@@ -76,7 +76,8 @@
 <label class="search-field">{{ row.label }}{% if row.unit and row.kind != "length" %} ({{ row.unit }}){% endif %}
   <span class="lever-entry">
   <input type="number" name="{{ row.name }}" value="{{ shown }}" step="any" inputmode="decimal"
-    min="{{ row.minimum }}" max="{{ row.maximum }}" data-lever="{{ row.name }}" data-step="{{ row.step }}"
+    min="{{ row.minimum }}" max="{{ row.maximum }}" data-lever="{{ row.name }}" data-step="{{ row.step }}" data-dial="{{ row.dial }}"
+    {%- if row.name == "mass" %} data-no-dark-halo-below="{{ halo_min_stellar_mass }}" data-simple-below="{{ full_structure_min_mass }}"{% endif %}
     placeholder="Auto">
   {%- if row.kind == "length" %}
   <select name="{{ row.name }}_unit" aria-label="{{ row.label }} unit">
@@ -96,6 +97,7 @@
   {{ lever_input(row) }}
   {%- endfor %}
 </div>
+<p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disc plus a bulge with no stellar halo, thick disc, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
 <details class="generate-advanced">
   <summary>Advanced shape options</summary>
   <div class="search-fields">
@@ -238,6 +240,7 @@
 {% block head %}
 <script type="module" src="{{ static_url('generatejobs.js') }}"></script>
 <script type="module" src="{{ static_url('generatefolds.js') }}"></script>
+<script type="module" src="{{ static_url('generatelevers.js') }}"></script>
 <script type="module" src="{{ static_url('limitsliders.js') }}"></script>
 <script type="module" src="{{ static_url('generatecustomize.js') }}"></script>
 <script type="module" src="{{ static_url('generatestarmix.js') }}"></script>
@@ -253,6 +256,9 @@
   <span class="badge">Database unavailable</span>
   {%- else %}
   <span class="badge">{% if summary.shape %}Planned, edge at shell {{ "{:,}".format(summary.shape.outer_shell_index) }}{% else %}Not planned yet{% endif %}</span>
+  {%- if summary.pins_text %}
+  <span class="badge" id="shape-pins">{{ summary.pins_text }}</span>
+  {%- endif %}
   <span class="badge">{{ num(summary.sectors or 0) }} sector{{ "" if summary.sectors == 1 else "s" }}</span>
   {%- if summary.bright %}
   <span class="badge">{% if summary.bright.scattered %}Bright stars scattered ({{ num(summary.bright.min_luminosity_sol, ",.0f") }} L&#9737; and up, seed {{ summary.bright.seed }}){% else %}Bright stars not scattered yet{% endif %}</span>

@@ -132,13 +132,8 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     """`planetgen plan` stores exactly the outline `build_shell_extents`
     computes, and `store.get_galaxy_bounds` hands it back on the same
     4 pc grid, outermost shell and band included."""
-    _shape_, extents, outer = _plan("toy")
-    argv = []
-    for key, value in _TOY.items():
-        if key != "arm_amplitude":
-            flag = "--disk-scale-length" if key == "disk_scale_length_pc" else f"--{key.replace('_', '-')}"
-            argv += [flag, f"{value}pc" if key == "disk_scale_length_pc" else str(value)]
-    argv += ["--arm-density", "1.4", "--interarm-density", "0.6"]  # the arm amplitude 0.4 in the density terms
+    argv = ["--disk-scale-length", "40pc", "--flatness", "3.333", "--bulge-size", "0.25", "--bulge-share", "0.0245",
+            "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-contrast", "0.4"]
     run_cli("plan", argv + mysql_argv(mysql_config))
 
     conn = store.get_connection(mysql_config)

@@ -16,9 +16,9 @@ release is stamped.
 | UX | UX.146 |
 | MAP | MAP.255 |
 | NAV | NAV.63 |
-| GEN | GEN.621 |
+| GEN | GEN.622 |
 | PERF | PERF.149 |
-| DB | DB.83 |
+| DB | DB.85 |
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
@@ -486,10 +486,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
 | ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | open |
-| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | open |
+| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | done, PR #2411 |
 | ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | open |
 | ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | open |
-| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | open |
+| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | done, PR #2411 |
 | ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | open |
 | ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | none | open |
 | ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | open |
@@ -587,7 +587,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | open |
-| DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | open |
+| DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | open |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
@@ -623,9 +623,11 @@ Parents marked "new parent" had no old number of their own.
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | open |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
 | DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index | none | done, PR #2361 |
-| DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | open |
-| DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | open |
+| DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | done, PR #2406 |
+| DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | done, PR #2403 |
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
+| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
+| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1294,21 +1296,21 @@ Parents marked "new parent" had no old number of their own.
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files | none | open |
 | GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | open |
 | GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) | none | open |
-| GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | open |
+| GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | done, PR #2399 |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | open |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header | none | open |
 | GEN.600 | The updater and the downloader print the URL of every file they load | none | open |
 | GEN.601 | Shape dials: the lever table, one registry row per slider (name, flag, label, unit, minimum, maximum, step, Auto default, the law it moves, range source) and the parity test | none | done, PR #2395 |
-| GEN.602 | Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired | none | open |
-| GEN.603 | Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown | none | open |
-| GEN.604 | Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L) | none | open |
-| GEN.605 | Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan | none | open |
-| GEN.606 | Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning | none | open |
+| GEN.602 | Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired | none | done, PR #2403 |
+| GEN.603 | Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown | none | done, PR #2403 |
+| GEN.604 | Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L) | none | done, PR #2403 |
+| GEN.605 | Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan | none | done, PR #2403 |
+| GEN.606 | Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning | none | done, PR #2403 |
 | GEN.607 | Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default | none | open |
 | GEN.608 | Shape dials: the Shape selector, added to the table and the Generate form unfilled: key `spiral`, flag `--shape`, one option for now | none | done, PR #2395 |
-| GEN.609 | Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder | none | open |
-| GEN.610 | The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws | none | open |
-| GEN.611 | Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities | none | open |
+| GEN.609 | Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder | none | done, PR #2403 |
+| GEN.610 | The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws | none | done, PR #2403 |
+| GEN.611 | Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities | none | done, PR #2403 |
 | GEN.612 | Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable | none | open |
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them | none | open |
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster | none | open |
@@ -1318,6 +1320,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end | none | open |
 | GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | none | open |
 | GEN.620 | The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off) | none | open |
+| GEN.621 | The Scale dial's Auto default draws a galaxy about half the Milky Way's size, with an epoch bump | none | done, PR #2418 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1836,11 +1839,11 @@ Parents marked "new parent" had no old number of their own.
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) | none | done, PR #2297 |
 | PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | done, PR #2316 |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | none | done, PR #2370 |
-| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | open |
+| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | done, PR #2413 |
 | PERF.142 | A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug) | none | done, PR #2345 |
 | PERF.143 | A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree | none | done, PR #2345 |
 | PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires | none | done, PR #2366 |
-| PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner | none | open |
+| PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner | none | done, PR #2416 |
 | PERF.146 | A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages | none | open |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds | none | open |
 | PERF.148 | Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line | none | done, PR #2397 |
@@ -2063,11 +2066,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | none | open |
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | open |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | open |
-| UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | open |
+| UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | done, PR #2408 |
 | UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |
 | UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
 | UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | none | open |
-| UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) | none | open |
+| UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) | none | done, PR #2416 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2429,13 +2432,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) | none | open |
 | TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | done, PR #2332 |
 | TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) | none | done, PR #2327 |
-| TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | open |
+| TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | done, PR #2416 |
 | TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | open |
 | TEST.259 | test_open_map_menus_hold_no_overlap audits the menu boxes while the open animation is still moving and reports an overlap that is gone a frame later (bug) | none | done, PR #2332 |
 | TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) | none | open |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | none | open |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) | none | open |
-| TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | open |
+| TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | done, PR #2416 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -68,7 +68,7 @@ from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.db import dataversion, store
 from planetgen.util import generator_epoch, log, stagemark
-from planetgen.galaxy import dials, objectref
+from planetgen.galaxy import dials, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -1005,10 +1005,12 @@ def _admin_or_403():
 def _galaxy_summary(database):
     """Whether the galaxy is planned and how many sectors it holds.
     Fails open: the page still works when the database doesn't answer."""
-    summary = {"shape": None, "sectors": None, "bright": None, "shells": None, "version_warning": None,
-               "error": None}
+    summary = {"shape": None, "pins_text": None, "sectors": None, "bright": None, "shells": None,
+               "version_warning": None, "error": None}
     try:
         summary["shape"] = apiclient.get_galaxy_shape(database)
+        if summary["shape"]:
+            summary["pins_text"] = dials.describe_pins(summary["shape"].get("pins"))
         summary["bright"] = apiclient.get_bright_star_status(database)
         summary["shells"] = apiclient.get_shell_specs(database)
         summary["version_warning"] = apiclient.get_version_warning(database)
@@ -1239,6 +1241,8 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         recent_pager=pager("jobs_page", recent_page, recent_total, anchor="recent-jobs", label="Recent jobs pages"),
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
+        halo_min_stellar_mass=mass_chain.HALO_MIN_STELLAR_MASS_SOLAR,
+        full_structure_min_mass=dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR,
         prevalence_fields=PREVALENCE_FIELDS,
         star_mix_fields=STAR_MIX_FIELDS,
         directive_fields=DIRECTIVE_FIELDS,

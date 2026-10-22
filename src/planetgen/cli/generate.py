@@ -56,8 +56,7 @@ from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy import scatter_limits
 from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
-from planetgen.galaxy.density import arm_terms
-from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL, DEFAULT_REACH_SHELL
+from planetgen.galaxy.skeleton import DEFAULT_REACH_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation import star_population
 from planetgen.generation.star_population import bright_star_fraction
@@ -899,8 +898,6 @@ def add_plan_arguments(parser):
                         help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "
                              "on the same PlanetGen release. Default: the seed already stored, or one drawn at "
                              "random for a new galaxy. Changing it needs a galaxy with no sectors.")
-    parser.add_argument('--max-shell', type=int, default=DEFAULT_MAX_SHELL,
-                        help=f"Hard cap on how far out the shells are walked. Default: {DEFAULT_MAX_SHELL}.")
     parser.add_argument('--reach-shells', type=int, default=DEFAULT_REACH_SHELL, metavar="N",
                         help="The outermost shell the grid has addresses for (the galaxy's reach; a shell is 4 pc "
                              f"deep). Default: {DEFAULT_REACH_SHELL} (262 kpc). The object ID can name shells up to "
@@ -948,10 +945,6 @@ def validate_plan_args(args, parser):
         args (argparse.Namespace): Parsed arguments.
         parser (argparse.ArgumentParser): The parser to raise errors through.
     """
-    try:
-        arm_terms(dials.resolved(args, "arm_density"), dials.resolved(args, "interarm_density"))
-    except ValueError as exc:
-        parser.error(f"--arm-density and --interarm-density: {exc}.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
     if args.cell_star_ceiling is not None and args.cell_star_ceiling < 1:
@@ -969,11 +962,11 @@ def validate_plan_args(args, parser):
             scatter_limits.check_halo_min_luminosity(args.halo_min_luminosity)
         except ValueError as exc:
             parser.error(f"--halo-min-luminosity: {exc}")
-    if args.max_shell < 1:
-        parser.error("--max-shell must be a positive integer.")
     # Anything else that still can't be normalized.
     try:
         shape, _drawn = shapeDraw.plan_shape(args, args.seed)
+    except shapeDraw.ScaleError as exc:
+        parser.error(f"mass, size and density: {exc}.")
     except (ArithmeticError, ValueError) as exc:
         parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
     if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):

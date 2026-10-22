@@ -2,7 +2,7 @@
 
 """
 TEST.14: every CHECK constraint in the schema rejects a bad row on the
-engine the suite runs on (CI runs MySQL 8.0, 8.4 and MariaDB 11.4). The
+server the suite runs on (CI runs MySQL 8.0 and 8.4). The
 constraints are read from information_schema, so a new one is covered
 without touching this file; each is broken on a real stored row of a
 small generated galaxy (`rich_galaxy_support`).
@@ -20,7 +20,7 @@ from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 pytestmark = pytest.mark.db
 
 CHECK_VIOLATED = (3819, 4025)
-"""MySQL's "Check constraint ... is violated", MariaDB's "CONSTRAINT ... failed"."""
+"""MySQL's "Check constraint ... is violated"."""
 
 _IN_LIST = re.compile(r"^`?(\w+)`?\s+in\s*\(", re.IGNORECASE)
 _NULL_OR_IN = re.compile(r"^`?(\w+)`?\s+is\s+null\s*\)?\s+or\s+\(?`?\1`?\s+in\s*\(", re.IGNORECASE)
@@ -30,6 +30,10 @@ _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
+    # Only a planet with life gets these, and whether the seeded galaxy has one depends on its draws (TEST.263).
+    "planet_reflection_spectrum": (
+        "INSERT INTO planet_reflection_spectrum (planet_id, spectrum_type, position, value)"
+        " VALUES ((SELECT MIN(id) FROM planets), 'visible', 0, 'green')"),
     # Only a habitable moon gets these; copied from a planet's.
     "moon_reflection_spectrum": (
         "INSERT INTO moon_reflection_spectrum (moon_id, spectrum_type, position, value)"
@@ -136,8 +140,6 @@ def test_mysql_enforces_every_check(rich_galaxy):
     """MySQL can store a CHECK as NOT ENFORCED; none of ours may be."""
     conn = _db.get_connection(rich_galaxy)
     try:
-        if "mariadb" in conn.execute("SELECT VERSION() AS v").fetchone()["v"].lower():
-            pytest.skip("MariaDB always enforces CHECK constraints")
         loose = conn.execute(
             "SELECT TABLE_NAME AS t, CONSTRAINT_NAME AS n FROM information_schema.TABLE_CONSTRAINTS"
             " WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'CHECK' AND ENFORCED <> 'YES'"

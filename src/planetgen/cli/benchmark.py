@@ -59,7 +59,7 @@ STARTUP_RUNS = 3
 _STARTUP_PROBE = """
 import json, sys, time
 began = time.perf_counter()
-from planetgen.generation import run_galaxy
+from planetgen.generation import run_common, run_galaxy
 from planetgen.db import store
 imported = time.perf_counter()
 store.get_connection(store.MySQLConfig(database=sys.argv[1])).close()
@@ -120,10 +120,7 @@ def _table_sizes(connection, database):
     """Every table of `database` as `{"table", "rows", "data_bytes", "index_bytes"}`, the largest first. `rows` is
     the server's estimate. MySQL 8 caches these figures for a day unless told not to."""
     with connection.cursor() as cur:
-        try:
-            cur.execute("SET SESSION information_schema_stats_expiry = 0")
-        except pymysql.MySQLError:
-            pass  # MariaDB reads them live
+        cur.execute("SET SESSION information_schema_stats_expiry = 0")
         cur.execute("SELECT table_name, table_rows, data_length, index_length FROM information_schema.tables "
                     "WHERE table_schema = %s AND table_type = 'BASE TABLE'", (database,))
         rows = cur.fetchall()
@@ -234,8 +231,8 @@ def _profile(config, control, args, workdir):
 def _plan_commands(args):
     """The commands of the plan: the skeleton, then the scatters on it, each its own command (PERF.121)."""
     floor = ["--bright-star-min-luminosity", "100000"]
-    return [["plan", "--seed", args.seed, "--max-shell", str(args.max_shell)], ["scatter", "--mass", *floor],
-            ["scatter", "--luminosity", *floor], ["scatter", "--phenomena"]]
+    return [["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc"],
+            ["scatter", "--mass", *floor], ["scatter", "--luminosity", *floor], ["scatter", "--phenomena"]]
 
 
 def _fill_args(args):

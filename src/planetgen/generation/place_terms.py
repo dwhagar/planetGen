@@ -17,7 +17,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, ms_lifetime, remnant_mass
+from planetgen.physics import constants, ms_lifetime, remnant_mass, remnant_progenitors
 
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
@@ -59,10 +59,10 @@ def _present_day_moments(age_gy, remnants=True):
     """
     `(sum of M, sum of M squared)` over everything a cohort of one age holds now, per unit of the IMF's number: the
     stars still on the main sequence (initial mass up to the turn-off, where the main-sequence lifetime reaches the
-    age) and the remnants of the rest, by the progenitor ranges the generator draws remnants from
+    age) and the remnants of the rest, by the progenitor ranges and windows the generator draws remnants from
     (`tuning.WHITE_DWARF_PROGENITOR_SOL` and the others) and their mass rules: white dwarfs by the initial-final
-    relation, neutron stars and black holes uniform over their mass ranges. Neutron stars take the progenitors from
-    the white dwarf range's top to the black hole range's start; a black hole the rest up to the IMF's top.
+    relation, neutron stars and black holes uniform over their mass ranges. Neutron stars and black holes take the
+    progenitors of their windows above the white dwarf range's top (`remnant_progenitors`).
     """
     top = tuning.IMF_BREAKS_SOL[-1]
     turn_off = min(top, ms_lifetime.mass_for_lifetime_gy(age_gy))
@@ -82,16 +82,12 @@ def _present_day_moments(age_gy, remnants=True):
         mass += float(np.sum(weight * remnant))
         square += float(np.sum(weight * remnant * remnant))
 
-    ns_low, bh_low = max(wd_high, turn_off), tuning.BLACK_HOLE_PROGENITOR_SOL[0]
-    if ns_low < bh_low:
-        number = _imf_integral(0.0, ns_low, bh_low)
-        first, second = remnant_mass.uniform_moments("neutron-star")
+    for kind in remnant_progenitors.KINDS:
+        number = sum(_imf_integral(0.0, max(low, wd_high, turn_off), high)
+                     for low, high in remnant_progenitors.kind_windows(kind) if max(low, wd_high, turn_off) < high)
+        first, second = remnant_mass.uniform_moments(kind)
         mass += number * first
         square += number * second
-    number = _imf_integral(0.0, max(bh_low, turn_off), top)
-    first, second = remnant_mass.uniform_moments("black-hole")
-    mass += number * first
-    square += number * second
     return mass, square
 
 

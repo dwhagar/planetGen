@@ -53,7 +53,7 @@ Three independent families.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | GEN.369, GEN.380, GEN.381 | Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369. |
-| GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | GEN.605, GEN.603 | Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate. |
+| GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold |  | Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate. |
 
 ## Phase 3: Lenticular, populations, clusters and the nucleus
 

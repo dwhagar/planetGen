@@ -1053,8 +1053,18 @@ billions of candidates).
 | `galaxy_seed` | BINARY(16) | nullable | Added in v51 (GEN.39). The galaxy's 128-bit seed, shown and typed as 32 hex digits (`planetgen plan --seed`), written by the first plan and kept by every later one. Every sector, bright-star scatter, band and backfill block draws from SHA-256 of it and the unit's `kind:address` (`galaxySeed.unit_seed`). NULL only on a galaxy planned before v51. |
 | `version_key` | CHAR(22) | nullable | Added in v52 (DB.6). The version key of the code that wrote `galaxy_seed` (`version_key.version_key`): MAJOR 4, REVISION 4, BUILD 6, Python major, minor and micro 2 each, OS 1 (0 Linux, 1 Windows, 2 other Unix, 3 macOS, F unknown) and architecture 1 (0 x86-64, 1 ARM64, 2 x86, 3 ARM32, 4 RISC-V 64, F unknown) hex digits, for example `0007007F000160030C0300`. Written with a new seed; a later plan keeping the seed keeps it. |
 | `planetgen_version`, `python_version`, `platform` | VARCHAR(32) / VARCHAR(16) / VARCHAR(64) | nullable | Added in v52 (DB.6). The same code's full release (`7.127.352`), Python version (`3.12.3`) and `platform.system()` and `.machine()` (`Linux x86_64`). |
+| `pinned_stellar_mass_solar` | DOUBLE | nullable | Added in v113 (DB.81). The stellar mass, solar masses, the plan was told to build the galaxy at (a pinned mass, or the one a pinned size and density hold); NULL when the seed drew it. A loaded shape draws its mass chain and structure again at this mass. |
 | `density_ratio_avg` | DOUBLE | nullable | Added in v53 (PERF.11). Systems a fill got against systems expected (`sector_stats`), as a mean over the first 1,000 fills, then a decaying average weighing each new fill 1 in 1,000 (`_db.DENSITY_RATIO_WINDOW`). NULL before any fill. |
 | `density_ratio_samples` | BIGINT UNSIGNED | NOT NULL, default 0 | Added in v53 (PERF.11). How many fills went into `density_ratio_avg`. |
+
+### `galaxy_shape_pins`
+
+Added in v113 (DB.81). The shape levers the stored plan was told (`planetgen.galaxy.dials`), one row per lever the plan pinned; a lever with no row was left to the seed (Auto). A plan replaces every row. The galaxy page and `GET /api/galaxy/shape` (`shape.pins`) say "mass pinned at X, the rest drawn" from it.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `name` | VARCHAR(40) | PK | The lever's name in the table (`mass`, `compactness`, `disk_scale_length`, ...). |
+| `value` | DOUBLE | NOT NULL | The value given, in the table's units (lengths in parsecs). |
 
 ### `galaxy_shell`
 
@@ -2071,6 +2081,14 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v115 (DB.44): the sector storage checksum and the parity dirty flag
+
+Migration 0115 adds two columns to `sectors`, at the end of the table: `storage_checksum` (BINARY(32), NULL) and `parity_dirty` (TINYINT NOT NULL, default 1). They are the two columns the rest of DB.9 reads: the checksum is the digest of the sector's stored rows once DB.9's code writes one, and the flag says the sector's parity record is not current, so every sector that existed before the revision counts as not yet protected (default 1). Both are added in one statement with `ALGORITHM=COPY`: `sectors` has a FULLTEXT index (`ft_sectors_name`), and InnoDB refuses an instant or in-place change of such a table (error 1846), so the table is rebuilt once (it holds one row per sector). No row is touched and no code reads the columns yet. A column that is already there is skipped, so a stopped run can be started again. The version is detected from `sectors.parity_dirty`.
+
+### v114 (DB.81): the plan stores which shape levers it was told
+
+Migration 0114 adds `galaxy_shape.pinned_stellar_mass_solar` (DOUBLE, nullable, after `halo_min_luminosity_sol`) and the table `galaxy_shape_pins`. A plan writes both with the shape: the column holds the stellar mass the Scale dial fixed (a pinned mass, or the one a pinned size and density hold; NULL when the seed drew it), which `store.get_galaxy_shape` draws the mass chain and structure again at, and the table holds one row per lever the plan was told (`galaxy.dials` lever name, value in the table's units, lengths in parsecs), so the galaxy page can say "mass pinned at X, the rest drawn". A galaxy planned before this has no pins and no pinned mass: everything reads as drawn, and nothing is touched. A step already done is skipped, so a stopped run can be started again. The version is detected from the table `galaxy_shape_pins`.
+
 ### v113 (DB.79): the object index
 
 Migration 0113 adds the table `object_index`, one row per object of every kind the site lists. It is empty until the index builder (PERF.140) fills and refreshes it; no other table changes. The primary key is `(kind, uid)`: `kind` is `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility` or a phenomenon kind (`planetgen.galaxy.objectref.PHENOMENON_KINDS`), `uid` the 96-bit object ID (BINARY(12)). `source_id` is the row id in the object's own table, `name` its name, `sector_id` and `system_id` where it is (NULL for what has none), `parent_uid` the object ID of what it orbits or belongs to, `object_class` its class or type (a star type, a planet class, a phenomenon descriptor), `mass_kg` and `radius_km` (NULL where the kind has none), `placed` (1 when it has a place on the galaxy) and `indexed_at` (when the builder wrote the row). The keyset keys put the kind first, then the sort column, then the object ID: `idx_object_index_name`, `_class`, `_mass` and `_radius`, so a page after a row is one range read; `idx_object_index_source` finds a row from its own table's id, `idx_object_index_sector` and `_system` list what is in a sector or a system, and `ft_object_index_name` is the FULLTEXT name index. There is no foreign key (the builder keeps the table in step, and a key on a table this size costs every write). A table already there is left alone, so a stopped run can be started again. The version is detected from the table.
@@ -2211,7 +2229,7 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 
 ### v81 (ADM.49): `galaxy_shape.arm_level`, `galaxy_shape.core_amplitude`
 
-`galaxy_shape.arm_level` (DOUBLE, NOT NULL, default 1) is the thin disk's level between its arm crest and its inter-arm trough: the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest density is `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`. `galaxy_shape.core_amplitude` (DOUBLE, NOT NULL, default 0) was the galactic core's centre density, a Gaussian added to the bulge; v99 (GEN.280) replaced it with `nuclear_amplitude`. The defaults are the model before v81, so an upgraded galaxy keeps its density. The command line and the Generate page take the arm density, inter-arm density and (since v99) the nuclear amplitude instead (`planetgen plan --arm-density 1.4 --interarm-density 0.6 --nuclear-amplitude 1`), and `galaxy.density.arm_terms` turns the first two into `arm_amplitude` and `arm_level`.
+`galaxy_shape.arm_level` (DOUBLE, NOT NULL, default 1) is the thin disk's level between its arm crest and its inter-arm trough: the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest density is `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`. `galaxy_shape.core_amplitude` (DOUBLE, NOT NULL, default 0) was the galactic core's centre density, a Gaussian added to the bulge; v99 (GEN.280) replaced it with `nuclear_amplitude`. The defaults are the model before v81, so an upgraded galaxy keeps its density. The command line and the Generate page take one arm contrast (GEN.611; `planetgen plan --arm-contrast 0.4`), stored as `arm_amplitude`, and the nuclear amplitude (since v99); a new plan always stores `arm_level` 1.
 
 ### v80 (MAP.165): `phenomenon_scatter.mass_solar`
 

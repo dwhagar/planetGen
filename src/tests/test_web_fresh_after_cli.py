@@ -297,7 +297,10 @@ def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_confi
     before = site.html(page_url)
     warm = tile_payload(site.get(tiles_url))
     assert "Shell Cloud" not in before
-    assert warm["tiles"][WHOLE_GALAXY_TILE]["clouds"] == []
+    # The plan and the sector are drawn unseeded, so a nebula of the draw may sit in the whole-galaxy tile (TEST.257):
+    # what the test checks is that the cloud the CLI adds appears, and nothing else changes.
+    drawn = [cloud["name"] for cloud in warm["tiles"][WHOLE_GALAXY_TILE]["clouds"]]
+    assert "Shell Cloud" not in drawn
 
     _generate(mysql_config, "phenomenon", "--type", "nebula", "--sector-id", str(first["id"]),
               "--name", "Shell Cloud")
@@ -305,4 +308,4 @@ def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_confi
     assert "Shell Cloud" in site.html(page_url)
     fresh = tile_payload(site.get(tiles_url))
     assert fresh["stamp"] != warm["stamp"]
-    assert [cloud["name"] for cloud in fresh["tiles"][WHOLE_GALAXY_TILE]["clouds"]] == ["Shell Cloud"]
+    assert sorted(cloud["name"] for cloud in fresh["tiles"][WHOLE_GALAXY_TILE]["clouds"]) == sorted(drawn + ["Shell Cloud"])

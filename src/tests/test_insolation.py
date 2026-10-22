@@ -23,6 +23,13 @@ def test_a_companion_at_50_au_adds_about_4e_minus_4_of_its_light_to_a_planet_at_
     assert 1e-3 < eccentric < 2e-3
 
 
+def test_a_dim_host_beside_a_bright_eccentric_companion_swings_by_no_more_than_the_whole_light():
+    """GEN.597: the peak to peak over the mean passes 1 there; the fraction is capped at 1 as the circumbinary one is."""
+    assert insolation.companion_swing(1.0e-4, 5.8, 1.0, 420.0, 1580.0) == 1.0
+    assert insolation.companion_swing(1.0e-4, 0.1, 1.0, 1.2, 6.4) == 1.0
+    assert 0.0 < insolation.companion_swing(1.0, 1.0, 1.0, 25.0, 75.0) < 1.0
+
+
 def test_a_closer_and_brighter_companion_swings_the_light_more():
     far = insolation.companion_swing(1.0, 1.0, 1.0, 100.0, 300.0)
     near = insolation.companion_swing(1.0, 1.0, 1.0, 30.0, 90.0)
@@ -48,7 +55,7 @@ def test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_bo
 
     seen = {"close": 0, "wide": 0, None: 0}
     swung = 0
-    for seed in range(60):
+    for seed in range(240):   # GEN.597: seeds 36, 106, 225 and 245 once gave a swing above 1
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

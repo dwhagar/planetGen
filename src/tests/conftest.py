@@ -91,10 +91,9 @@ os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
 os.environ.setdefault("PLANETGEN_COUNT_CACHE", "off")
 
 # Every pooled connection runs at MySQL 8's default sql_mode (TEST.7) --
-# ONLY_FULL_GROUP_BY and STRICT_TRANS_TABLES included -- on MariaDB too,
-# whose own default leaves ONLY_FULL_GROUP_BY off. A GROUP BY or a
-# truncation only MySQL 8 refuses then fails in a local MariaDB run, not
-# first in CI. Set PLANETGEN_MYSQL_SQL_MODE yourself to try another mode.
+# ONLY_FULL_GROUP_BY and STRICT_TRANS_TABLES included, even on a server
+# whose own mode is looser. Set PLANETGEN_MYSQL_SQL_MODE yourself to try
+# another mode.
 os.environ.setdefault(_db.SQL_MODE_ENV_VAR, _db.STRICT_SQL_MODE)
 
 # The control schema (admin logins, sessions, the work queue's lease) is
@@ -647,3 +646,11 @@ def _site_open():
     except FileNotFoundError:
         pass
     shutil.rmtree(updateguard.running_dir(), ignore_errors=True)
+
+
+@pytest.fixture
+def large_spiral_fallback(monkeypatch):
+    """The galaxy a unit with no galaxy bound belongs to is a 2.6 kpc spiral, as the hand-built shapes of the tests that
+    place things at 8 kpc assume: the fallback seed's own galaxy is a small spiral since the Auto window narrowed (GEN.603)."""
+    from planetgen.galaxy import scales
+    monkeypatch.setattr(scales, "_drawn_scale_length_pc", lambda _seed: 2600.0)

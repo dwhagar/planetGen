@@ -1353,6 +1353,9 @@
 --   parent, class, mass, radius, placed), with keyset keys per kind and sort and a FULLTEXT index on the name. Empty until the
 --   index builder (PERF.140) fills it; no other table changes.
 --
+-- v115 (DB.44): `sectors.storage_checksum` (BINARY(32), NULL) and `sectors.parity_dirty` (TINYINT NOT NULL DEFAULT 1, so a sector that
+--   existed before counts as not yet protected), the two columns DB.9's storage protection reads. Nothing reads them yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1472,6 +1475,8 @@ CREATE TABLE IF NOT EXISTS sectors (
     platform              VARCHAR(64),
     max_mass_kg                 DOUBLE NULL,  -- v102 (DB.55)
     max_mass_id                 BINARY(12) NULL,  -- v102 (DB.55)
+    storage_checksum            BINARY(32) NULL,  -- v115 (DB.44)
+    parity_dirty                TINYINT NOT NULL DEFAULT 1,  -- v115 (DB.44)
 
     UNIQUE KEY uq_sectors_uid (uid),
     CHECK (
@@ -1555,6 +1560,10 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     core_min_luminosity_sol      DOUBLE,
     core_mass_limit_sol          DOUBLE,
     halo_min_luminosity_sol      DOUBLE NOT NULL DEFAULT 500,
+    -- v114 (DB.81): the stellar mass, solar masses, the plan was told to build the galaxy at (a pinned mass, or the one
+    -- two pinned Scale levers give); NULL when the seed drew it. A loaded shape draws its mass chain and structure
+    -- again at this mass; `galaxy_shape_pins` lists what the plan was told.
+    pinned_stellar_mass_solar    DOUBLE,
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
@@ -1597,6 +1606,17 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     CONSTRAINT chk_galaxy_shape_scatter_limits CHECK (  -- v101 (DB.54)
         halo_min_luminosity_sol >= 50 AND (core_min_luminosity_sol IS NULL OR core_min_luminosity_sol > 0)
         AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- galaxy_shape_pins -- the shape levers a plan was told (v114, DB.81)
+-- One row per lever the plan pinned (`planetgen.galaxy.dials`, the lever's name), with the value in the table's units
+-- (lengths in parsecs). A lever with no row was left to the seed (Auto). Rebuilt with `galaxy_shape` by every plan;
+-- the galaxy page and the API say "mass pinned at X, the rest drawn" from it.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS galaxy_shape_pins (
+    name                        VARCHAR(40) NOT NULL PRIMARY KEY,
+    value                       DOUBLE NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per shell that holds content (v91; replaces `galaxy_layer` and
