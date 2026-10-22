@@ -20,7 +20,7 @@ figure, a paper, or an exact identity). There are three groups:
   galactic orbit, Holman & Wiegert's stability limits, and the Kepler and
   Barker equations against known solutions.
 - **invariant** (TEST.65): things true for any input -- unit conversions
-  round-trip, the constants agree with each other, luminosity rises and
+  round-trip, the constants agree with each other, every declared law has the dimension of its answer, luminosity rises and
   lifetime falls with mass, a Kepler orbit conserves energy and angular
   momentum, the sector grid (shells, bands and wedges) tiles each shell exactly
   and finds every cell again from its own center, a galaxy holds the systems its stellar mass makes, and
@@ -48,6 +48,7 @@ from typing import Callable
 from planetgen.galaxy import core_gas as coreGas, galactic_orbit
 from planetgen.physics import formation
 from planetgen.physics import orbits
+from planetgen.physics import relations
 from planetgen.physics import units
 from planetgen.util import draw
 from planetgen.util import random as sampling
@@ -463,6 +464,11 @@ def _kepler_units_vs_si():
     return _rel_err(gm_au3_yr2, kepler.gravitational_parameter_au3_yr2(1.0))
 
 
+def _relation_dimension_failures():
+    """How many declared laws (`relations`) give an answer of another dimension than their declared kind's."""
+    return len(relations.check_dimensions())
+
+
 def _mass_monotonic_violations():
     """How many steps along a mass sweep break the expected direction:
     luminosity and radius up, lifetime down."""
@@ -778,6 +784,9 @@ def _invariant_checks():
               _kepler_units_vs_si, 1e-3, 0.0,
               "Kepler's third law in AU, yr and M_sun (mu = 4 pi^2) against G and M_sun in SI",
               mode="max", unit="relative error"),
+        Check("relations_have_their_dimension", "invariant", "relations.LAWS, each formula run on dimension probes",
+              _relation_dimension_failures, 0, 0.0, f"{exact}: a law's answer has the dimension of its declared kind",
+              mode="max", unit="laws"),
         Check("mass_sequence_monotonic", "invariant",
               "stellar_evolution.main_sequence_luminosity_sol/radius_sol/lifetime_gy",
               _mass_monotonic_violations, 0, 0.0,

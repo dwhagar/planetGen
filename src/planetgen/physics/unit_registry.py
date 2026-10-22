@@ -220,6 +220,8 @@ _kind("force", dimension(length=1, mass=1, time=-2), "N")
 _kind("mass_flow", dimension(mass=1, time=-1), "kg_s", NON_NEGATIVE)
 _kind("pressure", _PRESSURE, "Pa", NON_NEGATIVE)
 _kind("density", dimension(length=-3, mass=1), "kg_m3", NON_NEGATIVE)
+_kind("area", dimension(length=2), "m2", NON_NEGATIVE)
+_kind("volume", dimension(length=3), "m3", NON_NEGATIVE)
 _kind("number_density", dimension(length=-3), "m-3", NON_NEGATIVE)
 _kind("flux", dimension(mass=1, time=-3), "W_m2", NON_NEGATIVE)
 _kind("magnetic_field", dimension(mass=1, time=-2), "T", NON_NEGATIVE)
@@ -352,6 +354,13 @@ def _energetic():
 
 
 def _fields():
+    _unit("m2", "area", "m²", "square meters", 1.0, parts=(("m", 2),))
+    _unit("km2", "area", "km²", "square kilometers", 1e6, parts=(("km", 2),))
+    _unit("cm2", "area", "cm²", "square centimeters", 1e-4)
+    _unit("m3", "volume", "m³", "cubic meters", 1.0, parts=(("m", 3),))
+    _unit("km3", "volume", "km³", "cubic kilometers", 1e9, parts=(("km", 3),))
+    _unit("cm3", "volume", "cm³", "cubic centimeters", 1e-6)
+    _unit("L", "volume", "L", "liters", 1e-3, singular="liter")
     _unit("kg_m3", "density", "kg/m³", "kilograms per cubic meter", 1.0, parts=(("kg", 1), ("m", -3)))
     _unit("g_cm3", "density", "g/cm³", "grams per cubic centimeter", 1e3)
     _unit("Msun_pc3", "density", "M☉/pc³", "solar masses per cubic parsec",
