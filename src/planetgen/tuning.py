@@ -1074,9 +1074,9 @@ STELLAR_BROWN_DWARF = {
 # Globular clusters (GEN.159, docs/design/globular-clusters.md). A cluster is stored as a density component, not as
 # stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once
 # (`physics/king.py`) on `KING_TABLE_POINTS` log-spaced radii and scaled by length. A cluster's systems number its
-# mass over `CLUSTER_MEAN_SYSTEM_MASS_SOL` (a Kroupa mean of 0.30 plus remnants and binaries, recalled, good to about
-# a factor 1.5). The tidal radius a cluster may not exceed is the Jacobi radius in an isothermal halo of circular
-# speed `CLUSTER_HALO_CIRCULAR_KMS`.
+# mass over the mean mass of its systems, worked out from its age (`generation/system_mass.py`, GEN.598). The tidal
+# radius a cluster may not exceed is the Jacobi radius in an isothermal halo of circular speed
+# `CLUSTER_HALO_CIRCULAR_KMS`.
 KING_W0_RANGE = (3, 12)
 KING_TABLE_POINTS = 2000
 # Satellite galaxies (GEN.237, docs/design/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
@@ -1086,7 +1086,6 @@ KING_TABLE_POINTS = 2000
 # 7.8 scale lengths 98%; the density is normalised so the cut profile holds the whole mass). The rows are real
 # objects, but their sizes are recalled from McConnachie (2012) and not checked (the sources were out of reach).
 SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
-CLUSTER_MEAN_SYSTEM_MASS_SOL = 0.4
 CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
 # A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/globular-clusters.md section 8):

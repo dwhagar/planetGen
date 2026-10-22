@@ -144,9 +144,10 @@ def density_per_pc3(w0, mass, half_mass_radius_pc, r_pc):
     return central_density_per_pc3(w0, mass, half_mass_radius_pc) * table.density_at_x(r_pc / r0)
 
 
-def expected_systems(mass_solar):
-    """How many systems a cluster of this mass holds: its mass over `tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL`."""
-    return mass_solar / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+def expected_systems(mass_solar, mean_system_mass_solar):
+    """How many systems a cluster of this mass holds: its mass over the mean mass of its systems (the caller's, from the
+    cluster's own age: `galaxy.components.Component.mean_system_mass_solar`)."""
+    return mass_solar / mean_system_mass_solar
 
 
 def jacobi_radius_pc(mass_solar, galactocentric_pc):

@@ -2,7 +2,7 @@
 The components' own pass (GEN.324): the bright and massive stars and the phenomena of the globular clusters and the
 satellite galaxies (`galaxy.components`), placed where the shell walk and the object-first sampler cannot reach them.
 
-A component is a density, not a list of stars: its mass over `tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL` is its systems, and
+A component is a density, not a list of stars: its mass over the mean mass of its systems (`Component.mean_system_mass_solar`) is its systems, and
 its profile (`physics/component_profiles`) says where they lie. The scatters leave the clusters' and satellites' share of
 the density out of their weights (`bright_stars._densities`), so this pass draws it: one Poisson count per component from
 its systems times the share of a star of its population the pass keeps, each candidate a position by inverse transform of
@@ -58,7 +58,7 @@ open cluster's one by its age)."""
 
 def systems_of(component):
     """The systems (stars, counting a pair as one) a component holds: its mass over the mean system mass."""
-    return component.mass_solar / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+    return component.expected_systems
 
 
 def part_count(expected, size):
