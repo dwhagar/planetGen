@@ -1006,3 +1006,18 @@ Baseline: PR #1817.
 | GEN.573 | 8.4 | Bulk composition |
 | GEN.299 | 8.3 | The Quantity class |
 | TEST.274 | 8.1 | Bugs and flaky tests |
+| TEST.269 | 8.1 | Bugs and flaky tests |
+| ADM.118 | 8.1 | Admin control suite |
+| ADM.92 | 8.1 | Admin control suite |
+| ADM.119 | 8.1 | Admin control suite |
+| ADM.120 | 8.1 | Admin control suite |
+| ADM.122 | 8.1 | Admin control suite |
+| ADM.123 | 8.1 | Admin control suite |
+| ADM.107 | 8.1 | Admin control suite |
+| ADM.108 | 8.1 | Admin control suite |
+| ADM.109 | 8.1 | Admin control suite |
+| ADM.124 | 8.1 | Admin control suite |
+| ADM.113 | 8.1 | Admin control suite |
+| ADM.115 | 8.1 | Admin control suite |
+| ADM.121 | 8.1 | Admin control suite |
+| ADM.93 | 8.1 | Admin control suite |

@@ -17920,7 +17920,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   that goes through approval; ADM.71 takes the placement functions from
   here and narrows to the move operation and the drag (2026-10-16
   review).
-  Prerequisites: ADM.92, ADM.58, ADM.65, ADM.66, ADM.82.
+  Prerequisites: ADM.58, ADM.65, ADM.66, ADM.82.
 
 - [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
   Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
@@ -17954,7 +17954,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   collision validation, the recompute, the unbound report) as a plan
   operation; ADM.72 adds the element form and the moons following on the
   same operation.
-  Prerequisites: ADM.92, ADM.58, ADM.65, ADM.66.
+  Prerequisites: ADM.58, ADM.65, ADM.66.
 
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
@@ -17967,7 +17967,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   radial distance, then saves the system with random positions on the
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
-  Prerequisites: ADM.92, ADM.58, ADM.66, ADM.82, API.28. Related:
+  Prerequisites: ADM.58, ADM.66, ADM.82, API.28. Related:
   ADM.32, ADM.35, ADM.36, API.18.
   Moved to phase 2, Approval and history, between ADM.66 and ADM.67
   (2026-10-16 review): the drag edit saves through a plan
@@ -18019,7 +18019,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (ADM.13, ADM.35, ADM.32, ADM.36, ADM.52) are built inside this shell;
   the settings page (ADM.43, ADM.44) is built earlier, in 8.1, in the
   admin layout of the day, and this item moves it into the shell.
-  Prerequisites: ADM.92, ADM.93. Related: ADM.43, ADM.44, ADM.13,
+  Prerequisites: none. Related: ADM.43, ADM.44, ADM.13,
   ADM.35, UX.102, UX.49.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -18550,63 +18550,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
   DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
-- [ ] **ADM.92 Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components**
-  Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). The admin pages have no common frame,
-  so every new admin page invents its own table, form, confirmation and
-  job log. ADM.55's design note proposes one layout; this item builds
-  only the frame and the shared parts, not the page-by-page conversion.
-  Build the admin base template and the one navigation (menu order from
-  the audit), and the four shared parts as template macros or partials
-  plus their CSS: the table, the form (Shoelace fields, UX.49), the
-  confirmation page and the job log (the UX.102 logging standard).
-  Convert the admin start page as the worked example and write the usage
-  rules in the design note. Done: the shell and the four parts exist and
-  are documented, the admin start page uses them, every item of the ADM
-  chain can be built on them, and a browser test opens the converted
-  page in both themes with no console error.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Key K2 of the report; its prerequisites are
-  the admin registry (ADM.118) and the research (ADM.98).
-  Fit-the-window rule (Boss, 2026-10-21, 6:10 PM EDT, as the coordinator
-  relayed): the shell's content region stays inside the browser window
-  and a long table or panel scrolls in its own region, the same rule as
-  the viewers (UX.142); the shell's browser test runs at those window
-  sizes.
-  Prerequisites: ADM.118. Related: ADM.56.
-
-- [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
-  Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). With the shell in place, convert the
-  remaining admin pages (stats and its tables, generation and its jobs,
-  sectors and the system generator, the queue and its confirmations,
-  facility types, maintenance, the edit actions on object pages) and fix
-  each defect ADM.55 ranks above its line: failing or misleading
-  controls, wording, missing feedback, doubled or dead pages, the menu
-  order. ADM.55 files one item per page group when it reports, and this
-  item is the umbrella over those; if it finds fewer than three groups
-  it stays one item. Done: every admin page uses the shell and the
-  shared parts, no defect above the audit's line is left open, and
-  nothing is doubled or dead.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Key K7 of the report; one change per
-  destination: Overview, Jobs, Data, Account.
-  Prerequisites: ADM.92, ADM.55. Related: ADM.56.
-
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Write the library under
@@ -18667,8 +18610,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   advanced job in both themes and at phone width, and the page help
   (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
   the cards of ADM.98.
-  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112,
-  ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.124. Related: UX.125,
+  Prerequisites: ADM.110, ADM.111, ADM.112,
+  ADM.114, ADM.116, ADM.117. Related: UX.125,
   UX.134, UX.137, DOC.13, GEN.599.
   Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
   the admin redesign thread reported; report
@@ -18677,45 +18620,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the shell, job strip and palette, then Generate; every admin page goes
   onto the one shell once. Closes with its children ADM.107 to ADM.117
   (G1 to G11) and the shared suite items ADM.118 to ADM.123.
-
-- [ ] **ADM.107 Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G1).
-  The shared frame of every Generate screen; its job panel becomes the
-  shared job strip (the strip item of the suite). Done: a browser test
-  opens a running job from every Generate screen; Cancel works; the idle
-  panel shows Run again. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.99.
-
-- [ ] **ADM.108 Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G2).
-  Every task is the same five steps. The Run step shows the data check
-  and keeps the rule that a run refuses on missing downloaded files
-  unless told to disregard them (GEN.599, Boss 5:53 PM EDT). Replaces
-  UX.125 for the Generate page. Uses the queue-one-next-job slot (Boss's
-  answer 10). Done: any task reaches Review and Back keeps every value;
-  works without script; the estimate refusal and 'Generate anyway' still
-  work (ADM.33). Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: ADM.107, UX.125, ADM.123. Related: ADM.99, UX.125,
-  GEN.599.
-
-- [ ] **ADM.109 Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G3).
-  Boss's answer 12. Done: the argv for every old mode and centre choice
-  is reproduced byte for byte by a test table; the finder still lists
-  filled sectors. Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: ADM.108. Related: ADM.99.
 
 - [ ] **ADM.110 Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -18731,7 +18635,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Rewritten onto the lever table (Boss, 6:45 PM EDT 2026-10-21, 'Redesign
   around the five dials'; Boss 6:49 PM EDT: fold the existing items into
   the new chain).
-  Prerequisites: ADM.108. Related: ADM.99, UX.134,
+  Prerequisites: none. Related: ADM.99, UX.134,
   UX.137.
 
 - [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
@@ -18744,7 +18648,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   actions build the same jobs as before. Owner: the admin redesign
   thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
   answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.108. Related: ADM.99, UX.116, UX.137, GEN.301.
+  Prerequisites: none. Related: ADM.99, UX.116, UX.137, GEN.301.
 
 - [ ] **ADM.112 Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -18756,17 +18660,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
   (Boss's answer 1: Settings first, then the shell and palette, then
   Generate).
-  Prerequisites: ADM.108. Related: ADM.99, ADM.16, ADM.45.
-
-- [ ] **ADM.113 Generate: the one-off system on the frame, with tri-state rows as segmented controls**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G7).
-  Done: `test_web_generate`'s tri-state field test still matches the CLI
-  list. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
-  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
-  shell and palette, then Generate).
-  Prerequisites: ADM.107, UX.125. Related: ADM.99, UX.125.
+  Prerequisites: none. Related: ADM.99, ADM.16, ADM.45.
 
 - [ ] **ADM.114 Generate: the Check and Wipe tasks and the History tab**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -18777,25 +18671,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   same rows as Recent jobs. Owner: the admin redesign thread (Boss,
   2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
   Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.107. Related: ADM.99.
-
-- [ ] **ADM.115 Generate: Run again from History**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G9).
-  Boss's answer 11. The job record must hold the form. Done: Run again
-  re-runs a finished job with its stored settings; a failed job's Run
-  again goes back to its Review step; (named recipes were split out to
-  ADM.125 at the admin redesign thread's suggestion, 8:30 AM EDT
-  2026-10-22 as the lane reported; Run again is built). Owner: the admin
-  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
-  (Boss's answer 1: Settings first, then the shell and palette, then
-  Generate).
-  Run again is built in the lane's pending shell and Generate PR
-  (ADM.118 to ADM.123, ADM.92, ADM.93, ADM.107 to ADM.109, ADM.113 to
-  ADM.115, ADM.121, plus TEST.269), which waits on one more full gate
-  (the coordinator, 8:31 AM EDT).
-  Prerequisites: ADM.108, ADM.114. Related: ADM.99.
+  Prerequisites: none. Related: ADM.99.
 
 - [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -18807,7 +18683,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and palette, then Generate).
   Also removes the old absolute shape boxes and their handlers (retired
   by GEN.602); ADM.124 replaces them.
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
+  Prerequisites: ADM.110, ADM.111, ADM.112, ADM.114.
   Related: ADM.99.
 
 - [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
@@ -18818,123 +18694,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   step fails the test with a screenshot. Owner: the admin redesign
   thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
   answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
+  Prerequisites: ADM.110, ADM.111, ADM.112, ADM.114.
   Related: ADM.99, TEST.168, TEST.169.
-
-- [ ] **ADM.118 Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K1).
-  Done: a test fails for any admin route missing from the registry; the
-  settings entries come from the settings model with no second list.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Prerequisites: none. Related: ADM.92.
-
-- [ ] **ADM.119 Job strip on every admin page: a thin strip that shows a running job, Cancel and the log**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K3).
-  Boss's answer 5. Replaces G1's current-job panel as the shared part.
-  Done: the strip shows a running job from every page, Cancel works, the
-  log opens from it, there is one SSE stream per page and none when
-  idle. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
-  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
-  shell and palette, then Generate).
-  Prerequisites: ADM.92. Related: ADM.92, ADM.107.
-
-- [ ] **ADM.120 Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K4).
-  Boss's answer 3: the palette plus the visible rail, with the plain
-  search page for no-script use. Done: a screen-reader pattern test;
-  works with script off through the search page; a restart-only or
-  overridden setting says so in its result. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.118, ADM.92. Related: ADM.92.
-
-- [ ] **ADM.121 Typed commands that open a task's Review step pre-filled and never run by themselves**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K5).
-  Boss's answer 4. Done: a table of command strings to argv, byte for
-  byte against the old forms; ambiguous input is refused with a message.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Prerequisites: ADM.120, ADM.108. Related: ADM.92.
-
-- [ ] **ADM.122 Admin keyboard set and a help overlay**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K6).
-  Boss's answer 6: the small set. Done: shortcuts are off inside fields;
-  the overlay lists every shortcut; a test for each. Owner: the admin
-  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
-  (Boss's answer 1: Settings first, then the shell and palette, then
-  Generate).
-  Prerequisites: ADM.92. Related: ADM.92.
-
-- [ ] **ADM.123 Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K9).
-  Boss's answer 10 (his pick over the recommended lock-forms option):
-  forms stay usable while a job runs and Run queues one job behind it.
-  Today the runner allows exactly one active job (`web/jobs.py`, the
-  `active` lock file); this adds one 'next' slot beside the lock,
-  started by the runner when the active job ends, refused when full; one
-  job still runs at a time. Settle in the build: the queued job re-runs
-  its estimate check at start and refuses if the disk no longer fits; a
-  queued Wipe or New galaxy is allowed only with its typed confirmation
-  already given; a failed job cancels the queued one with a visible
-  reason unless the admin chose otherwise. Done: a second submit while a
-  job runs queues and a third is refused; finishing starts it; a failure
-  or Cancel clears it with a visible reason; a destructive job queued
-  without its confirmation is refused. Owner: the admin redesign thread
-  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.119. Related: ADM.99, PERF.99.
-
-- [ ] **ADM.124 Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Child of the
-  admin control suite and of ADM.110's Start a new galaxy task (pinned
-  and unpinned fields produce the same argv as the table's flags). The
-  panel is generated from the registry (GEN.601): slider minimum,
-  maximum and step, the Auto state, the range source in the Details,
-  Census under Advanced. The Scale group shows the third of mass, size
-  and density as a read-out, and a refusal message when all three are
-  pinned. The Shape dropdown has one entry, Spiral, and fills with
-  GEN.389/UX.134 later. The edge form follows Boss's card. Done: a
-  browser test moves each slider, pins and unpins it, and sees the argv
-  in the Review step; the form never offers a value the command line
-  refuses; works in both themes, without script and at phone width.
-  Owner: the admin redesign thread (the Generate suite); the lever table
-  items belong to the Galaxy dials lane. Unit selectors (Boss, 7:01 PM
-  EDT 2026-10-21): Edge has a unit selector (L, pc, kpc, Mpc) whose
-  slider range and step follow the unit; the absolute scale length has
-  pc and kpc; both read the lever table's unit column (GEN.601). The
-  first release shows four dials, Scale, Structure, Edge and Halo;
-  Census (GEN.607, merged as #2443) is the fifth dial. GEN.617 is merged
-  as #2469 (the Galaxy dials lane, relayed 9:38 AM EDT 2026-10-22): the
-  Generate page already shows the density line under the dials through
-  the admin JSON route /admin/generate/shape-report (shared code
-  `generation/plan_outline.py`, element `[data-shape-report]`); this
-  panel reuses both.
-  Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
 
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -18956,7 +18717,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   save, run and delete. Owner: the admin redesign thread (Boss,
   2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
   Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.115. Related: ADM.99, ADM.108.
+  Prerequisites: none. Related: ADM.99, ADM.108.
+
+- [ ] **ADM.126 Generate: a live 'how big' count while typing a command or filling the form**
+  Deferred by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
+  the lane's clock reads, when #2494 merged), filed by the TODO thread.
+  Part of the Generate rebuild of the admin control suite
+  (docs/design/admin-control-suite.md): while an admin types a command
+  or fills the Generate form, show a live count of how big the run will
+  be (the stars, systems and sectors it will make), from the same
+  estimate `planetgen generate --estimate-only` prints, so the cost
+  shows before Run. Do: an admin API that returns the estimate for the
+  form's current values (no job started, no data written, cached by the
+  form's values), and a line under the form that updates as the fields
+  change, with a debounce, and says when the values are not valid yet.
+  Done: changing a dial or the address changes the count within a
+  second, the count equals the estimate-only output for the same values
+  (a test), and nothing is written. Owner: the Admin redesign lane
+  (proposed), after ADM.116.
+  Prerequisites: none. Related: ADM.99, ADM.115, ADM.125.
 
 ## SEC: Security
 
@@ -20891,27 +20670,6 @@ clears each one.
   docs/plan/execution-notes.md carry the setting.
   Prerequisites: none. Related: DB.66, GEN.545.
 
-- [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
-  Found by the Admin redesign lane (about 6:49 AM EDT 2026-10-22 as the
-  lane reported, in a full non-browser phase), filed by the TODO thread.
-  Kind: test bug (src/tests/test_settings_writer.py, line 198). The test
-  saves eight times and asserts `names == sorted(names, reverse=True)`.
-  When two saves land in the same second, the second archive is named
-  with a `-2` suffix (src/planetgen/backup/core.py, `{base}-{n}`), and
-  `list_archives` correctly lists it first (it sorts with `_order`), but
-  as plain strings `...02Z-2.tar.bz2` sorts before `...02Z.tar.bz2` (`-`
-  is 0x2d, `.` is 0x2e), so the assertion fails. The code is right and
-  the test's ordering is wrong. Failed names seen:
-  ['20261022T104902Z-2.tar.bz2', '20261022T104902Z.tar.bz2',
-  '20261022T104901Z-4.tar.bz2']. Fails on main: yes whenever two saves
-  fall in one second (1 in this gate; it should be common on a fast
-  machine). Reproducer: run the test in a loop. Do: compare with
-  `backup.core._order` (sort the names with the same key `list_archives`
-  uses), not as strings. Done: the test passes 50 runs in a row. Owner:
-  the Admin redesign lane (the coordinator, about 7:17 AM EDT 2026-10-22
-  as the lane reported).
-  Prerequisites: none. Related: ADM.101.
-
 - [ ] **TEST.270 check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake)**
   Found by Core 1 (9:50 AM EDT 2026-10-22 as the lane reported, in the
   GEN.598 gate), filed by the TODO thread. Kind: flake. Tests:
@@ -21020,6 +20778,42 @@ clears each one.
   on this item and the test passes in 20 full-gate runs. Owner: Bug Hunt
   (proposed; a test-flake finding of the TEST.265 family).
   Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
+
+- [ ] **TEST.275 test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug)**
+  Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
+  the lane's clock reads, when #2494 merged), filed by the TODO thread.
+  Kind: test over its time limit, fails on main. Test:
+  src/tests/test_fuzz_web_routes.py::test_admin_pages_survive_hostile_query_when_logged_in[GET
+  /admin/generate/shape-report], the route GEN.617 added. It runs past
+  the 900 s pytest timeout on plain main, every run; alone it takes
+  about 25 minutes. Fails on main: yes. Reproducer: that test id alone.
+  It means the route does a very large piece of work for a hostile query
+  string (a huge or odd dial value) instead of rejecting it. Do: find
+  which hostile value makes the shape report slow, and make the route
+  validate its inputs and answer quickly (a clear 4xx for a bad value,
+  bounded work for a big one), the way the other fuzzed routes do; no
+  timeout bump and no exemption that hides a slow route. Done: the test
+  passes alone in under a minute and in a full gate. Owner: the Galaxy
+  dials lane (proposed; GEN.617 is its route), urgent because the test
+  also blocks any lane that runs test_fuzz_web_routes.
+  Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
+
+- [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
+  Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
+  the lane's clock reads), filed by the TODO thread. Kind: flake. Test:
+  src/tests/test_scatter_kinds.py::test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing.
+  Failure: it failed once under parallel load with an empty `readouterr`
+  (the message the test expects was not captured); it passes alone.
+  Fails on main: not checked. Frequency: 1 sighting. Reproducer: a full
+  `scripts/test.py changed` gate; not reproducible alone. The test is
+  part of PERF.121/122's `clear-scatter` work (#2441). Do: find why the
+  captured output is empty under load (output written through a logger
+  or a child process instead of stdout, or a read of the capture before
+  the command flushes) and make the test read the right stream; no retry
+  loop. Done: the cause is on this item and the test passes in 20
+  full-gate runs. Owner: Core 5 (proposed; it wrote the test) or Bug
+  Hunt.
+  Prerequisites: none. Related: PERF.121, PERF.122, TEST.265.
 
 ## USR: User accounts
 
@@ -22745,7 +22539,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   for the page, Generate for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
-  Prerequisites: ADM.92. Related: POP.10 (done, PRs #1517 and #1524),
+  Prerequisites: none. Related: POP.10 (done, PRs #1517 and #1524),
   POP.9, ADM.9.
   Moved to phase 2 with the shell as its prerequisite, so it is built on
   the shared table, form and confirmation and is not missed by the audit

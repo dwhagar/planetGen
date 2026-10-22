@@ -67,7 +67,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.66 | Plan approval screen: every operation with its before and after, approve, reject one, or cancel | ADM.60 |  |
-| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | ADM.92, ADM.58, ADM.66, ADM.82, API.28 |  |
+| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | ADM.58, ADM.66, ADM.82, API.28 |  |
 | ADM.67 | Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked | ADM.52, ADM.66 |  |
 | ADM.68 | Plan history: every plan with who asked, approved, applied and undid it, and an undo button | ADM.66, ADM.60 |  |
 
@@ -103,7 +103,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.13 | A species editor: create and edit species and their environment limits | ADM.92 |  |
+| POP.13 | A species editor: create and edit species and their environment limits |  |  |
 
 ## Phase 3: Editors that make plans
 
@@ -114,9 +114,9 @@ Each editor produces a plan: move a system, edit an orbit, adjust the world to a
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | ADM.92, ADM.58, ADM.65, ADM.66, ADM.82 | Merges two asks (one system added by the computer; placement chosen by admin). |
+| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | ADM.58, ADM.65, ADM.66, ADM.82 | Merges two asks (one system added by the computer; placement chosen by admin). |
 | ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | ADM.32, ADM.58, ADM.65 |  |
-| ADM.36 | Change an object's trajectory vector | GEN.109, ADM.92, ADM.58, ADM.65, ADM.66 |  |
+| ADM.36 | Change an object's trajectory vector | GEN.109, ADM.58, ADM.65, ADM.66 |  |
 | ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.58, ADM.65 |  |
 
 ### Density plans
