@@ -17418,40 +17418,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Core 1 (proposed: the identity chain), 8.4 phase 1.
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
 
-- [ ] **DB.76 Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 1 (storage, sequenced
-  after its current storage item; it touches `point_columns.py` and the
-  tables Core 1 changes in the identity and repair chains). Do:
-  generalise `db/point_columns.py` to every numeric column (926
-  declarations, 422 with a unit in the name): `column -> (table, kind,
-  stored unit)` generated from one list, `PointLayout` becomes a thin
-  client, and the stored unit is declared per column for precision (Q3;
-  galaxy pc, sector mpc, system km or au stay). No data migration:
-  values and units stay as stored, only declarations are added (a column
-  later unified is a normal migration). Done: a test like
-  `test_point_columns.py` that fails when a numeric column has no
-  declaration, and a test that each unit suffix equals the declared unit
-  (Q4). Fits the load and insert of DB.74.
-  Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
-  then DB.76, DB.73 and DB.74.
-  GEN.568 is merged as #2476 (relayed 11:07 AM EDT 2026-10-22), so this
-  item no longer waits on it.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **DB.77 Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -17474,7 +17440,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in a wider frame or a wanderer with its own galactic frame at lower
   precision. Done: a test reads the table and fails when a column with a
   10 m floor body exceeds its limit.
-  Prerequisites: DB.76. Related: GEN.550, GEN.565, DB.74.
+  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
@@ -17583,6 +17549,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the generator with no fixed content. Owner: none (the coordinator
   assigns; Core 2 asked for it).
   Prerequisites: none. Related: UX.144, MAP.254, UX.143.
+
+- [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
+  Found by Core 1 (relayed 1:03 PM EDT 2026-10-22 as the lane's clock
+  reads, when DB.76 merged as #2487), filed by the TODO thread. DB.76's
+  column registry (`db/column_units.py`, reconciled with GEN.568's unit
+  registry) declares six columns as 'unspecified' because their unit has
+  no source yet: four quantities, atm_density, atm_molar_density,
+  formed_at and parabolic_mean_anomaly, and two more columns Core 1 did
+  not name. Do: find each column's real unit from the code that writes
+  and reads it (and a source where the value is a physical constant),
+  name the two unnamed columns from `column_units.py`, declare their
+  units in the registry, and add the suffix or kind they need. No
+  guessed units, no fixed content. Done: no column in the registry is
+  'unspecified', and the DB.76 suffix test passes with the declarations.
+  Owner: Core 1 (proposed; the registry is its work), after DB.74.
+  Prerequisites: none. Related: DB.76, DB.74, GEN.568.
 
 ## API: The JSON API
 
@@ -21072,6 +21054,15 @@ clears each one.
   benchmark`. Owner: Bug Hunt (its fix is in its gate now). The Galaxy
   dials lane's note that the failures did not reproduce is superseded:
   they reproduce on a machine with a full disk.
+  Recurrence (Core 1, relayed 1:03 PM EDT 2026-10-22 as the lane's clock
+  reads, in the DB.76 work): the same cause on Core 1's machine, where
+  MySQL binary logs grew to 25 GB and made generate refuse; it hit
+  test_generation_stats::test_estimate_only_writes_nothing, three
+  test_galaxy_gen outside_the_outline tests and test_quiet_system_cost.
+  Kind: environment, fails on main while the disk is low. Fix on a lane:
+  `PURGE BINARY LOGS BEFORE NOW()` and `binlog_expire_logs_seconds=3600`
+  (`expire_logs_days=0`). Other lanes may hit it; the lane machine notes in
+  docs/plan/execution-notes.md carry the setting.
   Prerequisites: none. Related: DB.66, GEN.545.
 
 - [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
@@ -22499,7 +22490,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `docs/design/database-schema.md` for the registry, Quantity, Field and
   column registry; the unit rules in the registry file header. Done: the
   docs gate passes and no page describes a second unit table.
-  Prerequisites: GEN.569, DB.76. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.569. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 

@@ -999,3 +999,4 @@ Baseline: PR #1817.
 | PERF.121 | 8.1 | Queue, caches and performance |
 | PERF.122 | 8.1 | Queue, caches and performance |
 | TEST.267 | 8.1 | Bugs and flaky tests |
+| DB.76 | 8.4 | Bulk composition |
