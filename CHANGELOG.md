@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1960] - 2026-10-22
+
+**Headline:** The ships and stations table is in the registry of kind tables, so an object ID can find a ship.
+
+### Fixed
+- **`vessels` (DB.63) has an Object ID column but was not in the kind-table registry (DB.74).** Main failed `test_every_table_with_an_object_id_is_in_the_uid_group`. The table is now a `vessel` kind in the `uid` group and in the `ids` order, so the public ID lookup also probes it.
+
 ## [8.0.1959] - 2026-10-22
 
 **Headline:** Bookmarks now sit on a shared saved-list store, ready for saved courses and for lists kept in an account.
