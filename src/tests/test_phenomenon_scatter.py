@@ -533,9 +533,10 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
 def test_a_scatter_without_a_flag_keeps_the_stored_cut(mysql_config):
     from tests.test_bright_star_scatter import _clear_args
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomenon-min-mass", "20"))
+    run_plan.run_scatter(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "20"))   # the mass pass stores the cut
     args = _scatter_args(mysql_config, "--phenomena")
     assert args.phenomenon_min_mass is None
+    run_plan.run_scatter(args)
     with pytest.raises(RuntimeError, match="clear-scatter --phenomena"):      # a scatter draws where none is stored
         run_plan.run_scatter(args)
     run_plan.run_clear_scatter(_clear_args(mysql_config, "--phenomena"))
