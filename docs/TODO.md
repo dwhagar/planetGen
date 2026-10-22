@@ -15699,29 +15699,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   card.
   Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.604.
 
-- [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
-  Found by the galaxy size research thread's density limits report
-  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
-  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
-  the TODO thread. A galaxy can have an empty outline or most of its
-  stars outside the planned sectors; the user should see it before a
-  run. Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
-  relayed by the galaxy size research thread): refuse only when the
-  outline would be empty; warn under D = 20 and show the share of stars
-  in planned sectors. This item is required, not optional. Do: one line
-  on the Generate form under the dials (ADM.124) and in the command-line
-  plan output with D (thin-disc crest density), the share of stars in
-  planned sectors (the table of report section 2.2) and the outline
-  size, with a warning under D 20 and a refusal when the outline would
-  be empty. Done: the line appears in both places with the same numbers
-  (a test compares them); an empty outline is refused with the reason.
-  Owner: the Galaxy dials lane (assigned by the coordinator, 8:37 AM EDT
-  2026-10-22, so ADM.124 can show the line; the lane had finished and
-  retired about 7:05 AM EDT as the lane reported, and the coordinator
-  reopened its thread for this item at 8:40 AM EDT as the lane clock
-  reads).
-  Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
-
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
   Found by the galaxy size research thread's density limits report
   (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
@@ -19488,9 +19465,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   slider range and step follow the unit; the absolute scale length has
   pc and kpc; both read the lever table's unit column (GEN.601). The
   first release shows four dials, Scale, Structure, Edge and Halo;
-  Census (GEN.607, merged as #2443) is the fifth dial.
-  GEN.617 supplies the density line this panel shows; the coordinator
-  assigned it to the Galaxy dials lane at 8:37 AM EDT 2026-10-22.
+  Census (GEN.607, merged as #2443) is the fifth dial. GEN.617 is merged
+  as #2469 (the Galaxy dials lane, relayed 9:38 AM EDT 2026-10-22): the
+  Generate page already shows the density line under the dials through
+  the admin JSON route /admin/generate/shape-report (shared code
+  `generation/plan_outline.py`, element `[data-shape-report]`); this
+  panel reuses both.
   Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
 
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**

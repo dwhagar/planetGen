@@ -986,3 +986,4 @@ Baseline: PR #1817.
 | GEN.600 | 8.1 | Queue, caches and performance |
 | TEST.266 | 8.1 | Bugs and flaky tests |
 | MAP.139 | 8.1 | Fly-through map |
+| GEN.617 | 8.1 | Admin control suite |
