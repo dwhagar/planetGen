@@ -563,5 +563,6 @@ def plan_shape(args, galaxy_seed):
         nuclear_amplitude=dials.resolved(args, "nuclear_amplitude"),
         masses=(drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar),
         structure=drawn.structure,
+        systems_per_solar_mass=dials.resolved(args, "richness"),
     )
     return shape, drawn

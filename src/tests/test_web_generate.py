@@ -253,6 +253,13 @@ def test_page_renders_summary_and_forms(site, client):
     assert '<a href="/admin/generate" aria-current="page">Generate</a>' in html
 
 
+def test_the_richness_field_is_folded_away_under_advanced(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    fold = html.index('<details class="generate-advanced">')
+    assert 'name="richness"' in html and html.index('name="richness"') > fold
+    assert html.index('name="flatness"') < fold
+
+
 def test_page_shows_the_bright_star_scatter(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert "Bright stars scattered (500 L&#9737; and up, seed 42)" in html

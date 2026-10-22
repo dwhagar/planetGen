@@ -250,13 +250,13 @@ LEVERS = (
                "the draw's own cap", status="derived"),
     Lever(
         name="density", flag="--density", dial="scale", label="Central surface density (solar masses per pc^2)",
-        kind="float", unit="solar masses per pc^2", minimum=0.03, maximum=1.0e5, step=0.01, log=True,
+        kind="float", unit="solar masses per pc^2", minimum=0.04, maximum=1.0e5, step=0.01, log=True,
         law="the thin disc's central surface density, mass over 2 pi L^2: the same thing as the size at a fixed mass",
         auto_text="a read-out of the mass and size",
         help="The thin disc's central surface density, solar masses per square parsec. Pin it with the mass to set "
              "the size, or with the size to set the mass.",
         source="density-limits report (10-21): the smallest density with a planned sector at a 4 pc scale height is "
-               "0.036; the largest found in dense stellar systems is 1e5 (Hopkins et al. 2010, arXiv:0908.4088); the "
+               "0.043; the largest found in dense stellar systems is 1e5 (Hopkins et al. 2010, arXiv:0908.4088); the "
                "floor also grows with the scale height (check_outline)", status="derived"),
     Lever(
         name="disk_scale_length", flag="--disk-scale-length", dial="scale", label="Disk scale length",
@@ -340,6 +340,17 @@ LEVERS = (
         source="the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (D'Souza and "
                "Bell 2014's disc-dominated galaxies), read in structure_draw", status="bracket"),
     Lever(
+        name="richness", flag="--richness", dial="census", label="Star richness", kind="float",
+        unit="systems per solar mass", minimum=1.0, maximum=3.0, step=0.01, advanced=True,
+        law="how many systems each solar mass of the galaxy's stars makes, so the galaxy's number of systems and with it "
+            "the density in systems and the cost of a full generation; the mean system mass is its inverse",
+        auto_text="the mean system mass the generator derives for the galaxy's populations (about 2 systems per solar "
+                  "mass; galaxy.system_mass)",
+        help="Systems made per solar mass of stars (the inverse of the mean mass of a system). Auto is the value the "
+             "generator derives from its own mass function, remnants and multiplicity.",
+        source="the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 "
+               "systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4", status="bracket"),
+    Lever(
         name="arm_count", flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",
@@ -384,11 +395,12 @@ DERIVED_LIMITS = {
 scale height is the scale length over the flatness): a value outside it, pinned or solved, is refused with `check`."""
 
 
-OUTLINE_DENSITY_PER_HEIGHT = 0.00893
+OUTLINE_DENSITY_PER_HEIGHT = 0.01078
 """float: The thin disc's central surface density, solar masses per square parsec, per parsec of scale height at which
 its crest just reaches the one-star density that plans a sector (the density-limits report's D = 1, with the arm
-crest 1.4 times the mean and 0.4 solar masses per system; GEN.545's new mean system mass moves it). A disc below it
-has no planned sector but its bulge's. Derived."""
+crest 1.4 times the mean, measured with 0.4 solar masses per system and scaled to the 0.483 the generator derives for
+its populations: the density in systems falls as the mean system mass rises). A disc below it has no planned sector
+but its bulge's. Derived."""
 
 WARN_HEIGHT_PC, WARN_BULGE_PC, WARN_CREST = 8.0, 4.0, 20.0
 """float: The scale height and bulge radius (pc) and the crest density (in units of the one-star density) under which the
