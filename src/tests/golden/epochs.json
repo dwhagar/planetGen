@@ -207,8 +207,7 @@
     },
     {
       "epoch": 42,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1872",
       "reason": "A satellite or cluster expected to draw more than 25,000 stars (or 1,000,000 phenomena) is drawn in slices, each from a stream of its own with its share of the Poisson mean, so the Magellanic Clouds and any other large component place different stars; a component below the limit keeps its stars (Bug Hunt, the stalled components unit)."
     }
   ]
