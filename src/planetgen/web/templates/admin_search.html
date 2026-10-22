@@ -4,7 +4,7 @@
   <h2 id="search-heading">Find an admin page, task or setting</h2>
   <form method="get" action="{{ url_for('web.admin_search') }}" role="search" class="admin-search-form">
     <label for="admin-search-q">What do you want to do?</label>
-    <input id="admin-search-q" type="search" name="q" value="{{ query }}" autocomplete="off" autofocus placeholder="for example: cache size, cancel, sectors">
+    <input id="admin-search-q" type="search" name="q" value="{{ query }}" autocomplete="off" placeholder="for example: cache size, cancel, sectors">
     <button type="submit">Search</button>
   </form>
   {%- if command %}

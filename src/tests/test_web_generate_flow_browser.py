@@ -59,4 +59,6 @@ def test_review_shows_the_command_and_back_keeps_the_draft(browser, server, conf
         assert "task-scatters" in page.inner_html("main")
     finally:
         context.close()
+    # the empty box is refused on purpose (a 400 the browser logs as a failed resource)
+    problems = [p for p in problems if "400 (BAD REQUEST)" not in p]
     assert not problems, "\n".join(problems)
