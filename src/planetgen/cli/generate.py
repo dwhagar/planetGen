@@ -205,7 +205,7 @@ def add_logging_arguments(parser):
     parser.add_argument('--quiet', '--silent', dest='quiet', action='store_true',
                         help="Suppress all output except errors.")
     parser.add_argument('--disregard-missing-data', action='store_true',
-                        help="Generate even when a downloaded data file is missing (GEN.590 refuses by default), taking "
+                        help="Generate even when a downloaded data file is missing (refused by default), taking "
                              "each missing dataset's labelled fallback; the run says which. Setup downloads the files.")
 
 

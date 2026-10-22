@@ -119,7 +119,7 @@ RELATIONS = (
              "carbon-oxygen cores, 0.20 to 1.30 solar masses; a helium-core or oxygen-neon white dwarf takes the same sequences"),
     Relation("white dwarf radius without the downloaded sequences", "Chandrasekhar equation of state integrated by "
              "scripts/build_white_dwarf_table.py; Sirius B (Joyce et al. 2018)", STAND_IN,
-             "taken only by a run told to disregard missing data (GEN.599); no Coulomb or temperature correction: 3 to 5 percent"),
+             "taken only by a run told to disregard missing data; no Coulomb or temperature correction: 3 to 5 percent"),
     Relation("white dwarf core type by mass", "Althaus et al. 2010 (oxygen-neon above 1.05 solar masses)", PARTLY_VERIFIED,
              "the helium-core limit of 0.45 is recalled; the carbon-oxygen split and the layer masses are open"),
     Relation("white dwarf atmosphere shares and pollution", "Xu, Rogers and Blouin 2024", VERIFIED),
@@ -131,7 +131,7 @@ RELATIONS = (
              "datasets.neutron_star_matter); it replaced Chamel and Haensel 2008 Table 2", PARTLY_VERIFIED,
              "one mass model is drawn per star; the unmagnetised files only"),
     Relation("neutron star outer crust without the downloaded tables", "Chamel and Haensel 2008 Table 2", STAND_IN,
-             "taken only by a run told to disregard missing data (GEN.599); one sequence instead of 20 nuclear mass models"),
+             "taken only by a run told to disregard missing data; one sequence instead of 20 nuclear mass models"),
     Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
              OPEN, "the tables are on disk and nothing integrates them yet: a star's radius comes from the measured band (physics/neutron_star.py)"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
