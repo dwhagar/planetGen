@@ -221,3 +221,73 @@ def test_a_ratio_that_is_not_a_power_of_ten_takes_the_two_factors():
     assert units.scale(2.0, 149_597_870_700.0, 1.0) == 2.0 * 149_597_870_700.0 / 1.0
     assert units.scale(1.0, 3.0, 1.0) == 3.0
     assert units.scale(5.0, 1.0, 0.0 + 4.0) == 1.25
+
+
+# --- Dimensions and unit systems (GEN.585) --------------------------------------------------------------------------
+
+def test_every_kind_has_a_five_integer_dimension():
+    for name, kind in units.KINDS.items():
+        assert len(kind.dimension) == len(units.DIMENSION_BASES), name
+        assert all(isinstance(exponent, int) for exponent in kind.dimension), name
+
+
+def test_the_derived_kinds_the_code_uses_are_listed_with_their_dimensions():
+    d = units.dimension
+    wanted = {
+        "density": d(length=-3, mass=1), "acceleration": d(length=1, time=-2), "energy": d(length=2, mass=1, time=-2),
+        "force": d(length=1, mass=1, time=-2), "mass_flow": d(mass=1, time=-1), "flux": d(mass=1, time=-3),
+        "number_density": d(length=-3), "angular_momentum": d(length=2, mass=1, time=-1),
+        "angular_rate": d(angle=1, time=-1), "power": d(length=2, mass=1, time=-3),
+    }
+    for name, vector in wanted.items():
+        assert units.KINDS[name].dimension == vector, name
+    # A force is a mass times an acceleration, a power a force times a speed.
+    assert units.KINDS["force"].dimension == units.multiply_dimensions(units.KINDS["mass"].dimension,
+                                                                      units.KINDS["acceleration"].dimension)
+    assert units.KINDS["power"].dimension == units.multiply_dimensions(units.KINDS["force"].dimension,
+                                                                      units.KINDS["speed"].dimension)
+    assert units.convert(1.0, "dyn", "N") == 1e-5
+    assert units.convert(1.0, "Msun_yr", "kg_s") == pytest.approx(constants.SOLAR_MASS_TO_KG / _JULIAN_YEAR_S)
+
+
+def test_a_unit_system_is_four_registry_units_of_the_right_kinds():
+    si, orbits = units.UNIT_SYSTEMS["si"], units.UNIT_SYSTEMS["au-yr-msun"]
+    assert si.base_factors() == (1.0, 1.0, 1.0, 1.0)
+    assert orbits.base_factors() == (units.unit("au").factor, units.unit("Msun").factor, units.unit("yr").factor, 1.0)
+    for bad in (("kg", "kg", "s"), ("m", "m", "s"), ("m", "kg", "m"), ("m", "kg", "s", "degC")):
+        with pytest.raises(ValueError, match="not a"):
+            units._system("bad", *bad)
+    assert "bad" not in units.UNIT_SYSTEMS
+
+
+def test_a_constant_in_si_is_the_constant_itself():
+    for name, (value, _vector) in units.PHYSICAL_CONSTANTS.items():
+        assert units.constant_in(name) == value, name
+        assert units.constant_in(name, "si") == value, name
+
+
+def test_the_constants_in_au_year_and_solar_mass_follow_from_their_dimensions():
+    au, msun, year = _AU_M, constants.SOLAR_MASS_TO_KG, _JULIAN_YEAR_S
+    assert units.constant_in("G", "au-yr-msun") == pytest.approx(constants.G * msun * year ** 2 / au ** 3, rel=1e-14)
+    assert units.constant_in("c", "au-yr-msun") == pytest.approx(299_792_458.0 * year / au, rel=1e-14)
+    assert units.constant_in("sigma", "au-yr-msun") == pytest.approx(
+        constants.STEFAN_BOLTZMANN_CONSTANT * year ** 3 / msun, rel=1e-14)
+    # The typed 4 pi squared of `kepler.AU3_PER_YR2_PER_SOLAR_MASS` is G for the Sun in the Gaussian year, not in the Julian
+    # year with this solar mass: the two differ by 3.8e-5 (its 39.4784 against the computed 39.4769), the difference this
+    # note states.
+    typed = 4 * math.pi ** 2
+    difference = units.constant_in("G", "au-yr-msun") / typed - 1.0
+    assert difference == pytest.approx(-3.78e-5, abs=1e-6)
+
+
+def test_a_value_in_a_system_agrees_with_its_parts():
+    d = units.dimension
+    mu_sun_si = constants.G * constants.SOLAR_MASS_TO_KG
+    assert units.in_system(mu_sun_si, d(length=3, time=-2), "au-yr-msun") == pytest.approx(
+        units.constant_in("G", "au-yr-msun"), rel=1e-14)
+    assert units.system_factor(d(), "au-yr-msun") == 1.0
+    assert units.system_factor(d(angle=1), "au-yr-msun") == 1.0
+    assert units.system_factor(units.KINDS["speed"].dimension, "au-yr-msun") == pytest.approx(
+        units.unit("au_yr").factor, rel=1e-14)
+    with pytest.raises(ValueError, match="unknown constant"):
+        units.constant_in("alpha")
