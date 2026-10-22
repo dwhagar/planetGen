@@ -361,9 +361,24 @@ def _fly_setup(page, base_url, site_app, sample_params):
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
     star, point = _star_point(page, base_url, scene)
+    _still(page)
     spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
     assert spot, "the star is not on the map"
     return point, (spot["x"], spot["y"])
+
+
+def _still(page):
+    """Until no flight is under way and the camera is where it was a moment ago: `_ready` goes by the scale label, which
+    a camera that is still settling on a loaded machine can leave unchanged for a quarter second, and a click aimed at
+    where the star was then misses it (TEST.262)."""
+    last = None
+    for _ in range(60):
+        camera = _camera(page)
+        now = (camera["flying"], camera["target"], camera["dist"])
+        if not camera["flying"] and now == last:
+            return
+        last = now
+        page.wait_for_timeout(250)
 
 
 def _landed(page, point):
@@ -391,8 +406,13 @@ def test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_cli
     point, spot = _fly_setup(page, base_url, site_app, sample_params)
     before = _camera(page)
     page.evaluate("""() => {
+        const canvas = document.querySelector('#galaxymap3d-canvas');
+        window.__events = [];
+        for (const type of ['pointerdown', 'pointerup', 'dblclick']) {
+            canvas.addEventListener(type, (event) => window.__events.push([type, event.timeStamp, performance.now()]), true);
+        }
         let first = true;
-        document.querySelector('#galaxymap3d-canvas').addEventListener('pointerup', () => {
+        canvas.addEventListener('pointerup', () => {
             if (!first) return;
             first = false;
             const start = performance.now();
@@ -401,7 +421,10 @@ def test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_cli
     }""")
     page.mouse.dblclick(*spot)
     camera = _landed(page, point)
-    assert math.dist(camera["target"], point) < 1e-6 * max(1.0, before["dist"]), (camera["target"], point)
+    # The events' times are in the message so a failure under load shows whether the pair was told apart (TEST.262).
+    events = page.evaluate("() => window.__events")
+    assert math.dist(camera["target"], point) < 1e-6 * max(1.0, before["dist"]), (
+        camera["target"], point, spot, before, events)
 
 
 def test_the_go_to_button_of_a_selected_star_flies_there_too(page, base_url, site_app, sample_params):
