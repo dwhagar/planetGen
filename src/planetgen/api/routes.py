@@ -1240,10 +1240,12 @@ def object_list(kind):
     `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility` or a phenomenon type. Query parameters: `sort`
     (`name` -- the default --, `class`, `mass` or `radius`; the last three list the objects that have one) with
     `order` (`asc` or `desc`), `limit` (50 by default, 200 at most), `after=<object ID>` (the `next` of the previous
-    page: no `offset`), `name` (names starting with it), `class` (exactly this class) and `sector_id`. Answers `items`
+    page: no `offset`), `name` (names starting with it), `class` (exactly this class), `sector_id` and `from` (begin the list at the first
+    name from this one on, with `sort=name` only; `past_end` is true when none lies at or past it and the last page
+    is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
     `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
-    that is not an object ID, or a `sector_id` that is not a number.
+    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a number.
     """
     sort, descending = _parse_sort(request.args, objectlist.SORTS)
     try:
@@ -1255,7 +1257,8 @@ def object_list(kind):
         page = objectlist.list_objects(
             get_db(), kind, limit=limit, sort=sort, descending=descending, after=request.args.get("after") or None,
             name=(request.args.get("name") or "").strip()[:MAX_START_LENGTH] or None,
-            object_class=request.args.get("class") or None, sector_id=sector_id)
+            object_class=request.args.get("class") or None, sector_id=sector_id,
+            start=(request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None)
     except ValueError as exc:
         raise ApiError(str(exc))
     return jsonify({**page, "total_capped": is_capped(page["total"]), "limit": min(limit, objectlist.MAX_LIMIT)})

@@ -51,8 +51,11 @@ def _like_prefix(text):
     return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
-def _where(kind, sort, name, object_class, sector_id):
+def _where(kind, sort, name, object_class, sector_id, start=None, descending=False):
     where, params = ["kind = ?"], [kind]
+    if start:
+        where.append("name <= ?" if descending else "name >= ?")
+        params.append(start)
     if name:
         where.append("name LIKE ?")
         params.append(_like_prefix(name))
@@ -78,7 +81,7 @@ def count_objects(conn, kind, name=None, object_class=None, sector_id=None, sort
 
 
 def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False, after=None, name=None,
-                 object_class=None, sector_id=None):
+                 object_class=None, sector_id=None, start=None):
     """
     One keyset page of the objects of `kind`.
 
@@ -94,13 +97,17 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
         object_class (str, optional): Only objects of exactly this class (`object_class`: a star's type, a planet's
             class, a phenomenon's descriptor).
         sector_id (int, optional): Only objects in this sector.
+        start (str, optional): Begin the list at the first name from this one on in the name order (the jump box of
+            the list pages); only with `sort="name"`. When no name lies at or past it the last page is answered with
+            `past_end` true. `total` still counts the whole list.
 
     Returns:
-        dict: `items` (as `_item`), `next` (the printed ID to pass as `after`, `None` at the end) and `total` (a
-        `CappedCount` past `query.COUNT_FALLBACK_CAP`).
+        dict: `items` (as `_item`), `next` (the printed ID to pass as `after`, `None` at the end), `total` (a
+        `CappedCount` past `query.COUNT_FALLBACK_CAP`) and, with a `start`, `past_end`.
 
     Raises:
-        ValueError: An unknown kind or sort, a `limit` under 1, or an `after` that is not an object ID.
+        ValueError: An unknown kind or sort, a `limit` under 1, an `after` that is not an object ID, or a `start`
+            under another sort.
     """
     if kind not in KINDS:
         raise ValueError(f"kind must be one of: {', '.join(KINDS)}")
@@ -108,9 +115,11 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
         raise ValueError(f"sort must be one of: {', '.join(SORTS)}")
     if int(limit) < 1:
         raise ValueError("limit must be at least 1")
+    if start and sort != "name":
+        raise ValueError("a start needs sort=name")
     limit = min(int(limit), MAX_LIMIT)
     columns = list(SORTS[sort])
-    where, params = _where(kind, sort, name, object_class, sector_id)
+    where, params = _where(kind, sort, name, object_class, sector_id, start, descending)
     direction = "DESC" if descending else "ASC"
     if after:
         uid = object_uid.to_bytes(object_uid.parse_id(after))
@@ -123,7 +132,14 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
     order = ", ".join(f"{column} {direction}" for column in [*columns, "uid"])
     rows = conn.execute(f"SELECT {_COLUMNS} FROM object_index WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ?",
                         (*params, limit + 1)).fetchall()
+    total = count_objects(conn, kind, name, object_class, sector_id, sort)
+    if start and not rows and not after:
+        last = list_objects(conn, kind, limit, sort, not descending, None, name, object_class, sector_id)
+        last["items"].reverse()
+        return {**last, "next": None, "total": total, "past_end": True}
     more = len(rows) > limit
     items = [_item(row) for row in rows[:limit]]
-    return {"items": items, "next": items[-1]["id"] if more and items else None,
-            "total": count_objects(conn, kind, name, object_class, sector_id, sort)}
+    page = {"items": items, "next": items[-1]["id"] if more and items else None, "total": total}
+    if start:
+        page["past_end"] = False
+    return page
