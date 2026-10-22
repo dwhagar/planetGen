@@ -2511,6 +2511,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock reads):
   unchanged by #2485; the remainder is the navigation chart, the list
   and search results, and the browser table of kinds by views.
+  Boss picked this as Core 2's next item on its card (3:08 PM EDT
+  2026-10-22 as the lane's clock reads, option "MAP.254 remainder"). Core
+  2 checked the remainder (3:13 PM EDT, as the lane reported): the
+  navigation chart, the lists and the search results have nothing to
+  select (item names there already link to the item page), so the only
+  gap was a browser check of the System Map View button on a star and a
+  moon; that check and a change note are built and in the gate. The item
+  retires when that PR merges.
 
 - [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
   Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
@@ -16163,7 +16171,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   end; not Core 5 (it carries the closing audits).
   Owner: a new performance thread (the coordinator, relayed 3:42 PM EDT
   2026-10-22 as the lane's clock reads, after TEST.159, TEST.160, TEST.184
-  and TEST.185 merged as #2504); the thread id comes when it reports.
+  and TEST.185 merged as #2504); thread Performance, session
+  cse_01SLzAuwkQE7AccwLD1hDRZX, started 3:42 PM EDT 2026-10-22.
   Prerequisites: none. Related: PERF.31, PERF.56,
   PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
   SEC.33, TEST.261.
