@@ -10204,150 +10204,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread. Part D
-  (small bodies and moons) is the evidence: the taxon classes with their
-  meteorite analogues, grain densities, porosities and albedos, the
-  zone-weight kernel in a / a_snow, the comet refractory-to-ice ratio
-  and volatile shares, the compaction law (porosity falls to zero near
-  1e20 kg), the mixing rule rho = 1 / sum(w_i / rho_i) kept below the
-  compaction mass and handed to the structure solver above it, and the
-  moon origin types (disk, impact, captured, ring, binary) with the ice
-  fraction from the circumplanetary-disk ice line. Write
-  docs/design/small-bodies-composition.md and have Boss approve it. It
-  settles: which kinds of body draw the density first and fill in the
-  composition and which derive the density (Decided, Boss, 2026-10-17,
-  1:21 AM EDT, card "Composition first": new bodies get their
-  composition drawn from the formation distance and the star and the
-  bulk figures derived, route 2; route 1 stays as the inverse for
-  editing and for an imported density; part D had recommended route 1
-  for bodies whose density is already drawn, so this note says how those
-  are handled); the hand-off mass to the structure solver of GEN.426;
-  which values are stored and which derived (the schema is DB.69 and
-  DB.70); the parametrisations the lane lists (part D section 3.5) each
-  with a replace-when-sourced rule; and the test targets (part D section
-  4, as tolerances and never presets). Done: the note carries the
-  decisions, a worked example (a main-belt-like field, a comet, a
-  Kuiper-like object, a regular moon and a captured moon, as test
-  targets only) and the test targets, and Boss approves it. Owner: Core
-  4 (proposed, with the composition chain).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the small-body design writes its tables in the gated
-  format: the taxon table, the comet volatile table and the moon origin
-  table (disk, impact, captured, ring, binary) are possibility tables
-  with the supported classes and weights of part D (the zone-weight
-  kernel in a / a_snow) and a source each; the note lists every open
-  weight.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the taxon shares and the zone
-  kernel are `stand-in` rows until GEN.473 replaces them.
-  Finding F11 of the Body composition research lane (section 14.5 of
-  docs/design/body-composition-research.md, tables E1 to E4; 2026-10-17,
-  1:47 AM EDT as the lane reported, read from the code at the commit it
-  names), filed by the TODO thread. The existing belt draw it replaces
-  is GEN.477.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G1) the comet volatile draw of part D 3.4.2 becomes the
-  comet population table of GEN.495; 67P stays a test target.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
-  and Schmitt 2009 and Bierson and Nimmo 2019 were on Boss's own list
-  (Boss, 3:07 PM EDT 2026-10-18: he has provided all the data he can, so
-  the bracket from NIST and PubChem stays as a labelled stand-in).
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
-  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
-  thread can fetch.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC7: Bierson and Nimmo (accepted
-  manuscript) Table 1 and Eq. 1 to 2: ice density 920 and silicate 3500
-  kg/m^3, initial porosity 0.60, strength-supported porosity 0.20 (ice),
-  compaction b1 -0.1 per MPa (ice) and b2 -0.11 (silicate); ice porosity
-  phi_i = max(0.60 exp(-0.1 P), 0.20), P in MPa; silicate phi_s =
-  min(0.6 P^-0.11, 0.6) [V, re-read]. A constant 70 percent rock mass
-  fraction matches 14 of 17 Kuiper Belt objects within 2 sigma; minimum
-  formation time 4 Myr (rock fraction 0.5) or 5 Myr (0.7) from early
-  Al-26; Makemake and 2007 OR10 about 1800 kg/m^3 and MU69 about 750
-  predicted. Contradiction, the paper wins: our ice compaction guess has
-  the reference pressure P0 = 1e6 Pa, ten times lower than the paper's
-  10 MPa with the 0.2 floor; our 0.08 scatter and 0.58 to 0.82 range are
-  not in the paper. Eq. 3 (dphi/dt = phi P/eta) prints a positive sign,
-  which would make porosity grow, and the file carries the note 'error
-  in equation 2b': check against Besserer 2013 or the published version
-  before coding it. Fray and Schmitt (paid) is still missing.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC6 moons: Sasaki 2010 (ice line 20 R_J (M_p/M_J)^(2/3) (tau/5
-  Myr)^(-1/3)) and Cilibrasi 2018 (85 percent icy, Galilean-like in 20
-  percent) disagree on the ice fraction: two verified sources, the
-  newest wins (Cilibrasi 2018), the 0.5 to 0.85 bracket stays where
-  either is in doubt. T19 Kuiper Belt rock fraction: rising with size
-  against a constant 70 percent with porosity; the dates were not
-  recorded, so the draw stays.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. T15, the
-  cometary organic fraction (no probability exists; N(0.60, 0.15)
-  clipped to [0, 1] is the lane's proposal).
-  Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in
-  words; bulk-composition.md approve item 6, Decisions 25 and 26): the
-  paper's compaction law stays and the 1e20 kg hand-over is shifted
-  until the porosity jump (0.86 to 1.55 g/cm3) disappears; a Galilean-
-  class solver test comes before the 1e20 kg to 0.1 Earth mass range is
-  called validated; viscous compaction can replace the hand-over later
-  once the Eq. 3 sign check passes.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 15, "0.5 to 0.85,
-  Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
-  bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
-  a labelled stand-in replaced when a measurement exists.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 4's).
-  Design merged (Blocker 2, 8:14 PM EDT 2026-10-21 as the lane reported,
-  #2374, docs only): docs/design/small-bodies-composition.md settles the
-  kind-by-kind route, mixing rule, taxon, comet, icy-body and
-  moon-origin tables, stored versus derived (DB.69, DB.70 columns),
-  parametrisations, a worked example and test targets. Decided (Boss,
-  8:13 PM EDT 2026-10-21, card "Taper porosity, 1e19 to 1e21 kg"
-  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
-  Blocker 2 lane, decision S9 of
-  docs/design/small-bodies-composition.md): porosity tapers to zero in
-  log mass between 1e19 and 1e21 kg (the paper's law stays; the
-  endpoints are flagged stand-in until viscous compaction replaces
-  them), and the Galilean-class solver test still comes before 1e21 kg
-  to 0.1 Earth masses is called validated. This replaces the hand-over
-  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
-  close the 1e20 kg porosity jump by moving the hand-over (density stays
-  1.32 to 1.35 times low up to 3e23 kg). The other two defaults
-  (stand-in taxon rows with concentration 10, the cometary organic share
-  N(0.60, 0.15)) have no card and stand as defaults.
-  Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
-
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -11319,7 +11175,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stored thresholds; a test says so and that the same galaxy gives
   the same belts at any worker count. Owner: Core 4 (proposed, with the
   composition chain and the small bodies of GEN.442).
-  Prerequisites: GEN.442, GEN.457, GEN.458, DB.70. Related:
+  Prerequisites: GEN.442, GEN.458, DB.70. Related:
   GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -12119,7 +11975,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the comet volatile draw reads the table, each range carries its source
   and label, and a test checks the ranges and determinism. Owner: Core 4
   (proposed, with the composition chain).
-  Prerequisites: GEN.457. Related: GEN.442, GEN.455, GEN.457,
+  Prerequisites: none. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
@@ -13436,6 +13292,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1. Point (4) of this design is therefore settled.
+  Decided (Boss, 9:02 PM EDT 2026-10-21, tapped "Answer now", card
+  cmsg_01RuNTFUNB92A8cm5CbojQAiQEpSHqXuHrfwkEi57MUfJd): the plan
+  configuration cards are answered now, not at 8.5. A design thread
+  posts the cards (boundaries, scatter reach, the halo and satellite
+  switches, storage) and writes docs/design from the answers; the
+  coordinator starts it. 8.1 still builds halo and satellites always on
+  (GEN.301).
 
 
 - [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
@@ -16338,6 +16201,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   masses, the scale height floor 4 pc and the bulge floor 2 pc are
   unchanged. GEN.619 (a variable sector edge) may lower the scale length
   floor later.
+  Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Labelled placeholder
+  brackets", card cmsg_01RuNTFUNB92A8cm5CbojQAiThueq5RtgKafJmWNFrqMvQ):
+  the three unsourced gaps (the size law below log M* 5.5, the
+  stellar-to-halo formula below 5e5 solar masses, and dwarf scale
+  height) use labelled placeholder brackets; the dials accept the whole
+  range now and the item no longer waits on Boss for sources.
   Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
 
 - [ ] **GEN.613 Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them**
@@ -16505,6 +16374,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of PERF.133 (keeping a tile until the data changes cannot work with a
   per-version stamp). The condition "decide after PERF.31 shows the cold
   rebuild cost" no longer applies.
+  Decided (Boss, 9:04 PM EDT 2026-10-21, tapped "Skip it, build
+  PERF.41", card cmsg_01RuNTFUNB92A8cm5CbojQAi6fWhrKGtqtN7aYG1tmJwTs):
+  no cold-rebuild time is needed; the item is built as a required
+  prerequisite of PERF.133 (fork 11). The wait on Boss's number is gone.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
@@ -23284,11 +23157,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   prints the `markdown` version; no requirements file and no code uses
   `markdown`, so a fresh machine exits 1 at the verify step (the failure
   that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
-  install markdown`. Do: drop `markdown` from the verify imports and the
-  version line (or add it to the requirements if something needs it); no
-  shim. Done: the script exits 0 on a fresh machine. Owner: not assigned
-  (OPS queue; the environment settings copy of the script is Boss's, so
-  the lane edits the example and tells the coordinator).
+  install markdown`. Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Add
+  markdown to the requirements", card cmsg_01RuNTFUNB92A8cm5CbojQAi
+  MYJwm2dfDuwgBEf8JuSxKD): add `markdown` to the requirements, so the
+  verify step stays as it is; no shim. Do: add `markdown` to the
+  requirements file the setup script installs from. Done: the script
+  exits 0 on a fresh machine. Owner: not assigned (OPS queue; the
+  environment settings copy of the script is Boss's, so the lane edits
+  the example and tells the coordinator).
   Prerequisites: none. Related: TEST.254.
 
 ## DOC: Documentation
