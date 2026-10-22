@@ -54,12 +54,56 @@
   limits fill the database: {% for preset, cost in compact_warnings %}{{ preset|int }} solar mass{{ "es" if preset > 1 }} is {{ cost }}{{ "; " if not loop.last else "." }}{% endfor %}</span>
 </fieldset>
 {%- endmacro -%}
+{#- GEN.601: one control per row of the lever table (planetgen.galaxy.dials), every one Auto (blank) until given. A
+    number row has its range (min, max) and step from the table; a length row has the unit selector its row lists;
+    an enum row is a dropdown. The advanced rows are folded away. -#}
+{%- macro lever_input(row) -%}
+{%- set shown = form.get(row.name, "") if form else "" -%}
+{%- if row.kind == "enum" -%}
+<label class="search-field">{{ row.label }}
+  <select name="{{ row.name }}" data-lever="{{ row.name }}">
+    {#- Blank is Auto. With one entry (spiral) the blank option is that entry; with more, Auto comes first. -#}
+    <option value=""{% if not shown %} selected{% endif %}>{{ row.choices[0]|capitalize if row.choices|length == 1 else "Auto" }}</option>
+    {%- if row.choices|length > 1 %}
+    {%- for choice in row.choices %}
+    <option value="{{ choice }}"{% if shown == choice %} selected{% endif %}>{{ choice|capitalize }}</option>
+    {%- endfor %}
+    {%- endif %}
+  </select>
+  <span class="field-hint">{{ row.help }} Auto: {{ row.auto_text }}.</span>
+</label>
+{%- else -%}
+<label class="search-field">{{ row.label }}{% if row.unit and row.kind != "length" %} ({{ row.unit }}){% endif %}
+  <span class="lever-entry">
+  <input type="number" name="{{ row.name }}" value="{{ shown }}" step="any" inputmode="decimal"
+    min="{{ row.minimum }}" max="{{ row.maximum }}" data-lever="{{ row.name }}" data-step="{{ row.step }}"
+    placeholder="Auto">
+  {%- if row.kind == "length" %}
+  <select name="{{ row.name }}_unit" aria-label="{{ row.label }} unit">
+    {%- for unit in row.units %}
+    <option value="{{ unit.name }}"{% if (form.get(row.name ~ "_unit") if form else "") == unit.name %} selected{% endif %}>{{ unit.name }}</option>
+    {%- endfor %}
+  </select>
+  {%- endif %}
+  </span>
+  <span class="field-hint">{{ row.help }} Allowed {{ row.range_text() }}. Auto: {{ row.auto_text }}.</span>
+</label>
+{%- endif -%}
+{%- endmacro -%}
 {%- macro plan_inputs() -%}
 <div class="search-fields">
-  {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
-  {{ field(name, label, value="" if default is none else default, step="1" if kind is sameas int else "any", min=minimum, placeholder="drawn from the seed" if default is none else none) }}
+  {%- for row in plan_fields if not row.advanced %}
+  {{ lever_input(row) }}
   {%- endfor %}
 </div>
+<details class="generate-advanced">
+  <summary>Advanced shape options</summary>
+  <div class="search-fields">
+    {%- for row in plan_fields if row.advanced %}
+    {{ lever_input(row) }}
+    {%- endfor %}
+  </div>
+</details>
 {%- endmacro -%}
 {#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
     first, then a segment each for the core, the halo and the crowded cells. -#}
