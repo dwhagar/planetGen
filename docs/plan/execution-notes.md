@@ -9,7 +9,7 @@ paragraphs; a paragraph wholly in `*...*` is shown muted; `**bold**` and `` `cod
 
 ### Alembic revisions and epochs
 
-The Alembic head on main is 0114 (DB.81, shape pins, #2403, about 1:37 AM EDT 2026-10-22 as the lane reported; 0113 is DB.79, #2361); the next free revision is 0115, and a lane that needs one numbers it at merge. Generator epochs 14 to 43 are stamped on main (epoch 41 is GEN.544, release 8.0.1855; epoch 42 is PERF.148, #2397, about 11:10 PM EDT as the lane reported; epoch 43 is GEN.554 slices 2 and 3, #2399, about 11:43 PM EDT as the lane reported); every generator change in flight takes epoch 44 or later (the Galaxy dials lane's GEN.621 claims 44 first, as the lane reported at 1:40 AM EDT 2026-10-22; GEN.545 and GEN.370 renumber on their rebase), and a rebase takes main's entries and renumbers. A lane runs `bump_version.py --check-pr origin/main` before it merges.
+The Alembic head on main is 0114 (DB.81, shape pins, #2403, about 1:37 AM EDT 2026-10-22 as the lane reported; 0113 is DB.79, #2361); the next free revision is 0115, and a lane that needs one numbers it at merge. Generator epochs 14 to 44 are stamped on main (epoch 41 is GEN.544, release 8.0.1855; epoch 42 is PERF.148, #2397, about 11:10 PM EDT as the lane reported; epoch 43 is GEN.554 slices 2 and 3, #2399, about 11:43 PM EDT as the lane reported); epoch 44 is GEN.621, the Scale dial's Auto default, #2418, about 3:48 AM EDT 2026-10-22 as the lane reported); every generator change in flight takes epoch 45 or later (GEN.545 and GEN.370 renumber on their rebase), and a rebase takes main's entries and renumbers. A lane runs `bump_version.py --check-pr origin/main` before it merges.
 
 ### Files two lanes both touch
 

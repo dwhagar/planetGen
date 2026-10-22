@@ -961,3 +961,4 @@ Baseline: PR #1817.
 | TEST.263 | 8.1 | Bugs and flaky tests |
 | TEST.257 | 8.1 | Bugs and flaky tests |
 | UX.145 | 8.1 | Admin control suite |
+| GEN.621 | 8.1 | Admin control suite |

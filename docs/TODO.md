@@ -6911,6 +6911,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
   (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
   its rebase.
+  Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
+  2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
+  GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13613,6 +13616,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-21 as the lane reported): epoch 43 is now taken on main
   (epoch 42 is PERF.148), so this item renumbers to epoch 44 or later on
   its rebase.
+  Epoch (Galaxy dials lane, GEN.621 merged as #2418, about 3:48 AM EDT
+  2026-10-22 as the lane reported): epoch 44 is now taken on main (43 is
+  GEN.554's), so this item renumbers to epoch 45 or later on its rebase.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -15916,28 +15922,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regenerates the region.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
-
-- [ ] **GEN.621 The Scale dial's Auto default draws a galaxy about half the Milky Way's size, with an epoch bump**
-  Boss (galaxy size research thread, 2026-10-21, 7:05 PM EDT): the
-  slider defaults give a galaxy roughly half the Milky Way's size, the
-  user can push up. Split from GEN.603 (the Galaxy dials lane, 1:37 AM
-  EDT 2026-10-22 as the lane reported, when #2403 delivered the Scale
-  dial's sliders, limits and pins but not the Auto default): the Scale
-  dial's Auto draw is about 1.3 kpc scale length and 3e9 to 4e9 solar
-  masses (the window in GEN.603's history), drawn from the seed and
-  never a named galaxy (no fixed content). Do: set the Auto default
-  window from the sourced values, draw it from the seed through the one
-  wrapper, and bump the generator epoch (epoch 44, the lane's claim at
-  1:40 AM EDT 2026-10-22 as the lane reported, 43 being GEN.554's;
-  GEN.545 and GEN.370 renumber to 45 or later if this merges first); the
-  lane's window is a stellar mass of 3e9 to 6e9 solar masses, a small
-  spiral, a thin disc scale length of about 1.3 to 1.5 kpc. Done: an
-  Auto galaxy lands inside the window across many seeds, a pinned dial
-  is unchanged, the epoch is bumped and the golden entry added, and the
-  Generate page and docs/cli.md state the default. Owner: the Galaxy
-  dials lane (the coordinator, 1:37 AM EDT 2026-10-22).
-  Prerequisites: none. Related: GEN.603, GEN.607, GEN.612.
-
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
