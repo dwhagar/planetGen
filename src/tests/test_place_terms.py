@@ -7,11 +7,13 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import companion_classes, place_terms
+from planetgen.galaxy import system_mass as galaxy_system_mass
+from planetgen.generation import companion_classes, place_terms, system_mass
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import remnant_progenitors
 from planetgen.util import draw
+from tests.toy_shape import toy_shape
 
 POINTS = sorted(tuning.CLOSE_BINARY_FRACTION_BY_FE_H.items())
 
@@ -86,14 +88,14 @@ def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
-    collapse = place_terms._imf_integral(0.0, low, high)
+    collapse = system_mass.imf_integral(0.0, low, high)
     holes = remnant_progenitors.number("black-hole")
     assert holes / collapse == pytest.approx(remnant_progenitors.reference_failed_share(), rel=1e-4)
     assert 0.0 <= holes / collapse <= 0.45
     assert 9.0 <= sum(tuning.BLACK_HOLE_MASS_RANGE_SOLAR) / 2.0 <= 14.2
-    per_solar_mass_formed = holes / place_terms._imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high)
+    per_solar_mass_formed = holes / system_mass.imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high)
     widest = remnant_progenitors.number("black-hole", 0.0, tuning.BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE[1])
-    assert 1.0e8 <= 5.0e10 * widest / place_terms._imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high) <= 1.0e9
+    assert 1.0e8 <= 5.0e10 * widest / system_mass.imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high) <= 1.0e9
     assert 2.0e7 <= 5.0e10 * per_solar_mass_formed < 1.0e8, "the gap: the middle draw's count is under the published range"
 
 
@@ -113,8 +115,9 @@ def test_a_young_population_has_the_heavier_perturbers():
     assert old < mixed < young
 
 
-def test_a_cell_with_no_stars_falls_back_to_the_mean_system_mass():
-    assert place_terms.mass_weighted_perturber_mass_solar([]) == tuning.MEAN_SYSTEM_MASS_SOLAR
+def test_a_cell_with_no_stars_falls_back_to_the_mean_system_mass_of_the_disk():
+    assert place_terms.mass_weighted_perturber_mass_solar([]) == system_mass.window_mean_system_mass_solar(
+        *tuning.STAR_FORMATION_AGE_RANGE_GY)
 
 
 def test_the_limits_scale_the_way_the_formulas_do():
@@ -148,14 +151,17 @@ def test_terms_from_a_profile_read_its_density_and_the_weighted_dispersion():
     def pop(share, sigma, age_gy=(3.0, 10.0)):
         return SimpleNamespace(share=share, dispersion_kms=sigma, age_gy=age_gy)
 
-    profile = SimpleNamespace(expected_systems=50.0, volume_pc3=100.0,
-                              populations={"a": pop(0.75, 20.0), "b": pop(0.25, 60.0)})
+    shape = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+                      bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    profile = SimpleNamespace(expected_systems=50.0, volume_pc3=100.0, shape=shape,
+                              populations={"old": pop(0.75, 20.0), "bulge": pop(0.25, 60.0)})
     terms = place_terms.from_profile(profile)
-    assert terms.mass_density_solar_pc3 == pytest.approx(0.5 * tuning.MEAN_SYSTEM_MASS_SOLAR)
+    mean_mass = galaxy_system_mass.mean_over_solar({"old": 0.75, "bulge": 0.25}, shape)
+    assert terms.mass_density_solar_pc3 == pytest.approx(0.5 * mean_mass)
     assert terms.dispersion_kms == pytest.approx(math.sqrt(0.75 * 400 + 0.25 * 3600))
     assert terms.perturber_mass_solar == pytest.approx(
         place_terms.mass_weighted_perturber_mass_solar([(1.0, (3.0, 10.0))]))
-    empty = SimpleNamespace(expected_systems=0.0, volume_pc3=100.0, populations={"a": pop(0.0, 20.0)})
+    empty = SimpleNamespace(expected_systems=0.0, volume_pc3=100.0, shape=shape, populations={"old": pop(0.0, 20.0)})
     assert place_terms.from_profile(empty).dispersion_kms == tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
 
 

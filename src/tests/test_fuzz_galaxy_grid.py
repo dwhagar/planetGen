@@ -552,7 +552,7 @@ def test_shape_holds_the_systems_its_stellar_mass_makes(shape):
     # GEN.404: the normalization is the galaxy's mass, not a density at some point.
     local_per_pc3 = physical_constants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
     systems = shape.k_norm * local_per_pc3 * galaxyDensity.total_mass(shape)
-    assert systems == pytest.approx(shape.structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-9)
+    assert systems == pytest.approx(shape.structure.stellar_mass_solar / galaxyDensity.mean_system_mass_solar(shape), rel=1e-9)
 
 
 @example(

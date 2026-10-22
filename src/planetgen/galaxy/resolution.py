@@ -24,7 +24,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.galaxy import disk_history
+from planetgen.galaxy import disk_history, system_mass
 from planetgen.generation.star_population import placed_star_fraction
 
 
@@ -41,7 +41,8 @@ class CellResolution:
         resolved_systems (float): The part of it made: all of it below the ceiling, else the stars at or above the cap
             (and those born at the scatter's mass limit or more).
         unresolved_systems (float): `expected_systems` less `resolved_systems`.
-        unresolved_mass_solar (float): The mass of the unresolved systems, at `tuning.MEAN_SYSTEM_MASS_SOLAR` each.
+        unresolved_mass_solar (float): The mass of the unresolved systems, at the mean system mass of the cell's populations
+            (`galaxy.system_mass`, GEN.545) each.
     """
     capped: bool
     ceiling_systems: float
@@ -108,4 +109,4 @@ def cell_resolution(profile, ceiling_systems, luminosity_cap_sol, mass_limit_sol
         resolved = _resolved_at(profile, expected, cap, mass_limit_sol)
     unresolved = expected - resolved
     return CellResolution(True, float(ceiling_systems), cap, expected, resolved, unresolved,
-                          unresolved * tuning.MEAN_SYSTEM_MASS_SOLAR)
+                          unresolved * system_mass.mean_over_solar(profile.mix, profile.shape))

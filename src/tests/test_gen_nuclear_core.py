@@ -43,7 +43,7 @@ def test_the_masses_follow_the_bulge_and_the_amplitude():
     assert terms["nuclear_cluster_mass"] == pytest.approx(structure.nuclear_cluster_mass_solar * terms["mass_per_solar"])
     systems_per_unit = shape.k_norm * physicalConstants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
     # (the cluster and the nuclear disc add 3% to the stars the stellar mass makes, so the solar masses come out so far under)
-    assert terms["nuclear_cluster_mass"] * systems_per_unit * tuning.MEAN_SYSTEM_MASS_SOLAR == pytest.approx(
+    assert terms["nuclear_cluster_mass"] * systems_per_unit * density.mean_system_mass_solar(shape) == pytest.approx(
         structure.nuclear_cluster_mass_solar, rel=0.05)
     assert terms["nuclear_disc_mass"] == pytest.approx(tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO * terms["nuclear_cluster_mass"])
     half = density.model_terms(_shape(nuclear=0.5))
@@ -97,13 +97,13 @@ def test_the_cell_at_the_centre_resolves_about_the_clusters_systems():
                          volume_pc3=cell_volume(0, 0, 0, EDGE_PC))
     assert profile.region == "nuclear"
     systems = resolution.expected_in_cell(profile)
-    # The reference cluster (2.5e7 solar masses, at 0.4 a system 6.2e7 systems) holds the share `r^2 / (r + a)^2` of
+    # The reference cluster (2.5e7 solar masses, at the galaxy's mean system mass a system) holds the share `r^2 / (r + a)^2` of
     # them inside the resolution ball, 24% for the 2 pc ball and the 2.07 pc scale radius; the softened cusp and the
     # bulge keep the cell within 5% of it.
     terms = density.model_terms(shape)
     ball = tuning.NUCLEAR_RESOLUTION_PC
     inside = ball ** 2 / (ball + terms["nuclear_cluster_scale_pc"]) ** 2
-    assert systems == pytest.approx(shape.structure.nuclear_cluster_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR * inside,
+    assert systems == pytest.approx(shape.structure.nuclear_cluster_mass_solar / density.mean_system_mass_solar(shape) * inside,
                                     rel=0.05)
     assert profile.mix["nuclear_cluster"] > 0.95 * profile.density
 

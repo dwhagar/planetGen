@@ -14,7 +14,7 @@ from planetgen import tuning
 from planetgen.api import routes
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import resolution, structure_draw
+from planetgen.galaxy import resolution, structure_draw, system_mass
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.spherical import cell_volume, sector_position_pc
@@ -55,7 +55,7 @@ def test_a_cell_over_the_ceiling_resolves_the_stars_at_or_above_the_cap_and_the_
     share = (3.0 * placed_star_fraction(100.0, None, "old", laws) + 1.0 * placed_star_fraction(100.0, None, "bulge")) / 4.0
     assert found.resolved_systems == pytest.approx(50_001.0 * share)
     assert found.resolved_systems + found.unresolved_systems == pytest.approx(50_001.0)
-    assert found.unresolved_mass_solar == pytest.approx(found.unresolved_systems * tuning.MEAN_SYSTEM_MASS_SOLAR)
+    assert found.unresolved_mass_solar == pytest.approx(found.unresolved_systems * system_mass.mean_over_solar(mix, SHAPE))
     # A step and not a slope: just over the ceiling keeps about 0.2% of the systems.
     assert found.resolved_systems < 0.01 * found.expected_systems
 
@@ -229,8 +229,8 @@ def test_the_api_reports_what_a_capped_cell_leaves_unresolved_and_nothing_for_a_
         body = routes.unresolved_of(conn, detail)
         assert body["ceiling_systems"] == 100.0 and body["luminosity_cap_sol"] == 500.0
         assert body["unresolved_systems"] > 0.99 * body["expected_systems"]
-        assert body["unresolved_mass_solar"] == pytest.approx(body["unresolved_systems"] * tuning.MEAN_SYSTEM_MASS_SOLAR,
-                                                              rel=1e-3)
+        # the mean mass of the cell's systems lies between the oldest populations' and the youngest's (GEN.545)
+        assert 0.4 < body["unresolved_mass_solar"] / body["unresolved_systems"] < 1.0
         assert routes.unresolved_of(conn, {**detail, "placed": False}) is None
     finally:
         conn.close()

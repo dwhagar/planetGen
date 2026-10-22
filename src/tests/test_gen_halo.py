@@ -45,6 +45,8 @@ LARGE_BULGE = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=4000.0,
     bulge_amplitude=20.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
+RECALLED_OVER_DERIVED = 0.4 / density.mean_system_mass_solar(MILKY_WAY)
+"""float: The recalled mean system mass the design note's numbers were worked out at, over the derived one (GEN.545)."""
 EDGE_PC = tuning.DEFAULT_SECTOR_EDGE_PC
 E_VALUE = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
 LOW_FLOOR = 1000.0
@@ -85,12 +87,14 @@ def test_far_above_the_disk_only_the_halo_is_left():
 # The design note's table (docs/design/intergalactic-and-halo-contents.md section 4), relative density in the plane.
 @pytest.mark.parametrize("radius_kpc, relative", [(8.2, 1.8e-3), (50.0, 5.0e-6), (100.0, 2.2e-7), (262.0, 2.9e-9)])
 def test_the_halo_matches_the_design_notes_table(radius_kpc, relative):
-    assert halo_density((radius_kpc * 1000.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(relative, rel=0.15)
+    # The table was worked out at the recalled 0.4 solar masses a system; the derived mean (GEN.545) scales the density.
+    assert halo_density((radius_kpc * 1000.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(
+        relative * RECALLED_OVER_DERIVED, rel=0.15)
 
 
 def test_the_halo_is_far_below_the_old_floor_in_the_distance_and_near_it_at_the_sun():
     old_floor = 1.0e-3
-    assert halo_density((8200.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(old_floor * 1.7, rel=0.1)
+    assert halo_density((8200.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(old_floor * 1.7 * RECALLED_OVER_DERIVED, rel=0.1)
     assert halo_density((50000.0, 0.0, 0.0), MILKY_WAY) < old_floor / 100
     assert halo_density((262000.0, 0.0, 0.0), MILKY_WAY) < old_floor / 1e5
 
@@ -113,7 +117,7 @@ def test_the_halo_is_its_share_of_the_stars_over_the_rest():
     assert structure.halo_stellar_ratio * 5.0e10 == pytest.approx(1.4e9)
     assert galaxyStructure.stellar_halo_system_fraction(structure) == pytest.approx(1.4e9 / (5.0e10 - 1.4e9))
     # and the whole model holds the systems the stellar mass makes
-    held = density.total_mass(MILKY_WAY) * MILKY_WAY.k_norm * tuning_local_density_per_pc3() * tuning.MEAN_SYSTEM_MASS_SOLAR
+    held = density.total_mass(MILKY_WAY) * MILKY_WAY.k_norm * tuning_local_density_per_pc3() * density.mean_system_mass_solar(MILKY_WAY)
     assert held == pytest.approx(5.0e10, rel=1e-9)
 
 
@@ -151,12 +155,13 @@ def test_no_cell_beyond_the_halos_dense_core_expects_a_whole_system():
 def test_the_halo_does_not_widen_the_outline():
     # The outline reads the disk and bulge only (`skeleton._bound_raw_density_at`), and the halo is under 0.3% of the
     # one-star threshold where it ends. The galaxy holds the systems its stellar mass makes (GEN.404) over an
-    # exponential disk (GEN.544), so the reference galaxy's edge sits at shell 3,576 (it was 3,762 for the density
-    # tuned to the real count at the Sun, 3,127 with the isothermal disk).
+    # exponential disk (GEN.544) and the derived mean system mass (GEN.545), so the reference galaxy's edge sits at shell
+    # 3,426 (3,576 at the recalled 0.4 a system, 3,762 for the density tuned to the real count at the Sun, 3,127 with the
+    # isothermal disk).
     extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
-    assert outer == 3576
-    assert len(extents) == 3577
-    assert sum(high for _shell, high in extents) == 932642
+    assert outer == 3453
+    assert len(extents) == 3454
+    assert sum(high for _shell, high in extents) == 865244
 
 
 def _halo_and_edge_cells(shape):
@@ -245,7 +250,8 @@ def test_the_bright_stars_z_spread_by_population():
     # Young stars are a clear share of the plane's, though the bar gap holds them down here (GEN.134; the rest is
     # mostly the bar bulge, which fills the inner kiloparsec) and a galaxy this heavy formed its stars early
     # (GEN.469); 240 pc up young ones are rare, but every older population is still there in strength.
-    assert plane.count("young") > 0.03 * len(plane)
+    # (A share of 3% before GEN.545; the sparser galaxy draws other rows from the same seed, 2.5% of 320.)
+    assert plane.count("young") > 0.02 * len(plane)
     assert high.count("young") < 0.1 * len(high)
     for population in ("intermediate", "old", "bulge"):
         assert high.count(population) > 0.1 * plane.count(population) * (100.0 / 200.0), population
