@@ -581,6 +581,10 @@ TABLES = {
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
     },
+    "region_density_overrides": {
+        "id": ("id", "set_by_id"),
+        "ratio": ("multiplier",),
+    },
     "rogue_planets": {
         "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
         "kg": ("mass_kg",),

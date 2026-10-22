@@ -1661,6 +1661,25 @@ quasars = sa.Table(
 )
 
 
+region_density_overrides = sa.Table(
+    'region_density_overrides',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('shape', sa.String(16), nullable=False),
+    sa.Column('params', mysql.JSON(), nullable=False),
+    sa.Column('multiplier', mysql.DECIMAL(), nullable=False),
+    sa.Column('set_by_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('set_by_name', sa.String(255), nullable=False),
+    sa.Column('set_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Column('reason', sa.String(500), nullable=True),
+    sa.Column('undone_at', mysql.TIMESTAMP(fsp=3), nullable=True),
+    sa.Index('idx_region_density_overrides_active', 'undone_at', 'id'),
+    sa.CheckConstraint('(`multiplier` >= 0.0001)', name='chk_region_density_overrides_multiplier'),
+    sa.CheckConstraint("(`shape` in (_utf8mb4'sphere',_utf8mb4'box',_utf8mb4'shell',_utf8mb4'band',_utf8mb4'wedge',_utf8mb4'sectors'))", name='chk_region_density_overrides_shape'),
+    mysql_engine="InnoDB",
+)
+
+
 rogue_planets = sa.Table(
     'rogue_planets',
     metadata,

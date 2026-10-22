@@ -1390,6 +1390,9 @@
 -- v123 (DB.37): `object_locks`, a standing keep mark on an object (`*`) or one aspect of it, one row per object and aspect, with who locked it,
 --   when and why, for the 8.6 edit-everything plans (docs/design/edit-everything.md). Nothing reads it yet.
 --
+-- v124 (DB.38): `region_density_overrides`, the append-only list of an admin's density multipliers for a region (its shape and parameters as JSON, the
+--   multiplier, who set it and when, and when it was undone), applied when sectors there are filled (MAP.119, ADM.57). Nothing reads it yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4336,6 +4339,23 @@ CREATE TABLE IF NOT EXISTS object_index (
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v124 (DB.38): the region density overrides; see the header note.
+CREATE TABLE IF NOT EXISTS region_density_overrides (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    shape         VARCHAR(16) NOT NULL,
+    params        JSON NOT NULL,
+    multiplier    DECIMAL(10,4) NOT NULL,
+    set_by_id     BIGINT UNSIGNED NULL,
+    set_by_name   VARCHAR(255) NOT NULL,
+    set_at        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    reason        VARCHAR(500) NULL,
+    undone_at     TIMESTAMP(3) NULL,
+    KEY idx_region_density_overrides_active (undone_at, id),
+    CONSTRAINT chk_region_density_overrides_shape CHECK (shape IN ('sphere', 'box', 'shell', 'band', 'wedge', 'sectors')),
+    CONSTRAINT chk_region_density_overrides_multiplier CHECK (multiplier >= 0.0001)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- v123 (DB.37): the lock marks; see the header note.
 CREATE TABLE IF NOT EXISTS object_locks (

@@ -70,6 +70,8 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO change_plans (requester_name, requester_role, state) VALUES ('Test', 'admin', 'draft')"),
     "change_plan_ops": (
         "INSERT INTO change_plan_ops (plan_id, op_order, kind) VALUES (1, 1, 'set_class')"),
+    "region_density_overrides": (
+        "INSERT INTO region_density_overrides (shape, params, multiplier, set_by_name) VALUES ('sphere', '{}', 2, 'Test')"),
     # DB.53: the migration builds these; the generator writes them in the chain that follows.
     "orbit_nodes": (
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
