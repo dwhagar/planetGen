@@ -186,7 +186,7 @@ The limits are settings; these are the defaults. The grid reaches 262 kpc (decid
 | irregular | the Scale dial's floor | 3e9 | the spiral family's lower limit |
 | dwarf spheroid | the Scale dial's floor | 3e9 | the same |
 
-So the common top of 2e11 solar masses is not arbitrary: the elliptical family reaches the grid edge at about that mass. The dark halo is a profile with no cut-off, so its `r200` past the reach (GEN.368 section 5.13.1) is already handled. The Scale dial's mass range (`reports/galaxy-size-2026-10-21.md`) is applied on top of these defaults.
+So the common top of 2e11 solar masses is not arbitrary: the elliptical family reaches the grid edge at about that mass. The dark halo is a profile with no cut-off, so its `r200` past the reach (GEN.368 section 5.13.1) is already handled. The Scale dial's mass range (`reports/galaxy-size-2026-10-21.md`) is applied on top of these defaults: it runs from 281 to 1.55e11 solar masses (Boss: the floor is half of Segue 1, the ceiling 1.5 times Andromeda), so the dial cuts the 2e11 top of the spiral, lenticular and elliptical ranges to 1.55e11 and the dwarf floors to 281. Below 1e10 solar masses of halo mass M200 (4.55e6 solar masses of stars) no halo law runs (Boss, 7:33 PM EDT on 2026-10-21), and the dials lane's hard limits apply to every family: scale height at least 4 pc, bulge radius at least 2 pc, outline never empty (`reports/galaxy-size-2026-10-21.md`). The Shape row of the Generate form is an enum whose only key today is `spiral` (flag `--shape`); the dials lane adds the five family keys exactly as section 3 spells them when this design is built (GEN.608, UX.134), and a shape pins the family only, never a size.
 
 ## 9. Reference galaxies for the plausibility tests (TEST.204)
 
