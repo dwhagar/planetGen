@@ -509,17 +509,10 @@ def pinned_stellar_mass(args, drawn):
     return drawn.chain.stellar_mass_solar if mass_given or size_and_density else None
 
 
-DEFAULT_ARM_DENSITY = 1.4
-DEFAULT_INTERARM_DENSITY = 0.6
-DEFAULT_NUCLEAR_AMPLITUDE = 1.0
-"""float: The shape options a `plan` run takes when none is given (`--arm-density`, `--interarm-density`,
-`--nuclear-amplitude`)."""
-
-
 def default_shape(galaxy_seed):
     """
-    The `GalaxyShape` of the galaxy a seed makes with every shape option at its default: what work with no stored
-    shape (a stand-alone command, a test) takes for the galaxy.
+    The `GalaxyShape` of the galaxy a seed makes with every lever on Auto (what `plan` makes when it is given no shape
+    option): what work with no stored shape (a stand-alone command, a test) takes for the galaxy.
 
     Args:
         galaxy_seed (bytes or None): The galaxy's seed; `None` uses the mass chain's fallback seed.
@@ -532,21 +525,8 @@ def default_shape(galaxy_seed):
 
 @functools.lru_cache(maxsize=64)
 def _default_shape(galaxy_seed):
-    arm_amplitude, arm_level = density.arm_terms(DEFAULT_ARM_DENSITY, DEFAULT_INTERARM_DENSITY)
-    drawn = draw_galaxy(galaxy_seed, arm_level=arm_level)
-    return density.build_galaxy_shape(
-        disk_scale_length_pc=drawn.disk_scale_length_pc,
-        disk_scale_height_pc=drawn.disk_scale_height_pc,
-        bulge_scale_radius_pc=drawn.bulge_scale_radius_pc,
-        bulge_amplitude=drawn.bulge_amplitude,
-        arm_count=drawn.arm_count,
-        pitch_angle_rad=math.radians(drawn.pitch_angle_deg),
-        arm_amplitude=arm_amplitude,
-        arm_level=arm_level,
-        nuclear_amplitude=DEFAULT_NUCLEAR_AMPLITUDE,
-        masses=(drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar),
-        structure=drawn.structure,
-    )
+    import types
+    return plan_shape(types.SimpleNamespace(**{row.dest: None for row in dials.LEVERS}), galaxy_seed)[0]
 
 
 def plan_shape(args, galaxy_seed):

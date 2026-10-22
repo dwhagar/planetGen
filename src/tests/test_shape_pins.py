@@ -12,7 +12,7 @@ import types
 import pytest
 
 from planetgen.db import query, store
-from planetgen.galaxy import dials, mass_chain, shape_draw
+from planetgen.galaxy import dials, enclosed_mass, mass_chain, shape_draw
 from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
@@ -21,6 +21,16 @@ SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 EDGE_PC = 4.0
 
 migration = importlib.import_module("planetgen.db.migrations.versions.0114_shape_pins")
+
+
+TIDE_PC = 8000.0
+"""float: The radius the stored galaxy's enclosed mass is read at, parsecs (GEN.370)."""
+
+
+def _drawn_tide_kg():
+    """The enclosed mass at `TIDE_PC` of the galaxy the seed alone draws (nothing pinned)."""
+    shape, _drawn = shape_draw.plan_shape(_args(), SEED)
+    return enclosed_mass.enclosed_mass_kg(shape, SEED, TIDE_PC)
 
 
 def _args(**given):
@@ -40,7 +50,7 @@ def _save(mysql_config, **given):
 def _load(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        return store.get_galaxy_shape(conn), query.galaxy_density_shape(conn), query._central_mass_kg(conn)
+        return store.get_galaxy_shape(conn), query.galaxy_density_shape(conn), query._enclosed_mass_kg(conn, TIDE_PC)
     finally:
         conn.close()
 
@@ -50,7 +60,7 @@ def test_an_unpinned_plan_stores_no_pins_and_no_mass(mysql_config):
     info, shape_json, central = _load(mysql_config)
     assert info.pins == {} and info.pinned_stellar_mass_solar is None
     assert shape_json["pins"] == {} and shape_json["pinned_stellar_mass_solar"] is None
-    assert central == mass_chain.central_mass_kg(SEED)
+    assert central == _drawn_tide_kg()
     assert dials.describe_pins(info.pins) == "Shape drawn from the seed"
 
 
@@ -63,7 +73,7 @@ def test_a_pinned_mass_compactness_and_flatness_round_trip(mysql_config):
     assert info.shape.structure == drawn.structure
     assert info.shape.disk_scale_length_pc == saved.disk_scale_length_pc
     assert shape_json["pins"] == info.pins
-    assert central == mass_chain.central_mass_kg(SEED, 7.0e9) != mass_chain.central_mass_kg(SEED)
+    assert central == enclosed_mass.enclosed_mass_kg(info.shape, SEED, TIDE_PC) != _drawn_tide_kg()
     assert dials.describe_pins(info.pins).startswith("Shape pinned: Stellar mass (solar masses) 7e+09 solar masses")
     assert dials.describe_pins(info.pins).endswith("the rest drawn from the seed")
 
@@ -84,7 +94,7 @@ def test_the_halo_pins_round_trip_and_move_the_tidal_mass(mysql_config):
     assert info.shape.masses == (drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar)
     assert info.shape.masses[1] == shape_draw.halo_mass_of(drawn.chain.stellar_mass_solar, 200.0)
     assert info.shape.structure.halo_stellar_ratio == 0.05 == drawn.structure.halo_stellar_ratio
-    assert central == drawn.chain.central_mass_kg != mass_chain.central_mass_kg(SEED)
+    assert central == enclosed_mass.enclosed_mass_kg(info.shape, SEED, TIDE_PC) != _drawn_tide_kg()
 
 
 def test_a_new_plan_replaces_the_pins(mysql_config):
