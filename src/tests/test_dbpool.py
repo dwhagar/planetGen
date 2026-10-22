@@ -91,3 +91,19 @@ def test_an_added_table_is_noticed(worker):
     finally:
         admin.close()
     assert worker.release() == "the schema changed"
+
+
+def test_a_foreign_key_given_another_delete_rule_is_noticed(worker):
+    """TEST.270: the key keeps its name, so the reset took the database for unchanged and handed the next test on the
+    worker a schema that `check-db` reports as damaged."""
+    config = worker.lease()
+    admin = pymysql.connect(**_test_server_kwargs(), database=config.database)
+    try:
+        with admin.cursor() as cur:
+            cur.execute("ALTER TABLE facilities DROP FOREIGN KEY fk_facilities_type")
+            cur.execute("ALTER TABLE facilities ADD CONSTRAINT fk_facilities_type"
+                        " FOREIGN KEY (type_id) REFERENCES facility_types(id) ON DELETE CASCADE")
+        admin.commit()
+    finally:
+        admin.close()
+    assert worker.release() == "the schema changed"

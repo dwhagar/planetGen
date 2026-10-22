@@ -263,7 +263,10 @@ class WorkerDatabase:
         extras = []
         for query in ("SELECT ROUTINE_NAME FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = %s",
                       "SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = %s",
-                      "SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = %s"):
+                      "SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = %s",
+                      # A foreign key given another rule keeps its name and the table's creation time (TEST.270):
+                      "SELECT CONSTRAINT_NAME, UPDATE_RULE, DELETE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS "
+                      "WHERE CONSTRAINT_SCHEMA = %s"):
             cur.execute(query + " ORDER BY 1", (name,))
             extras.append(cur.fetchall())
         structure = ([t[:3] for t in tables], columns, indexes, extras)
