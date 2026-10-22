@@ -1353,6 +1353,9 @@
 --   parent, class, mass, radius, placed), with keyset keys per kind and sort and a FULLTEXT index on the name. Empty until the
 --   index builder (PERF.140) fills it; no other table changes.
 --
+-- v115 (DB.44): `sectors.storage_checksum` (BINARY(32), NULL) and `sectors.parity_dirty` (TINYINT NOT NULL DEFAULT 1, so a sector that
+--   existed before counts as not yet protected), the two columns DB.9's storage protection reads. Nothing reads them yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1472,6 +1475,8 @@ CREATE TABLE IF NOT EXISTS sectors (
     platform              VARCHAR(64),
     max_mass_kg                 DOUBLE NULL,  -- v102 (DB.55)
     max_mass_id                 BINARY(12) NULL,  -- v102 (DB.55)
+    storage_checksum            BINARY(32) NULL,  -- v115 (DB.44)
+    parity_dirty                TINYINT NOT NULL DEFAULT 1,  -- v115 (DB.44)
 
     UNIQUE KEY uq_sectors_uid (uid),
     CHECK (

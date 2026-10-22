@@ -42,6 +42,8 @@ NULL_IN_THIS_GALAXY = {
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
+    # DB.44: nothing writes the checksum until DB.9's storage protection does; a sector is saved with `parity_dirty` 1.
+    ("sectors", "storage_checksum"): "written by DB.9's storage protection (DB.44 adds the column only)",
     # Only something sitting inside a nebula or supernova remnant.
     **{(table, column): CHANCE for table in store.CONTAINABLE_TABLES for column in CONTAINMENT},
     # A quasar is placed only at a galaxy's own center, so whether the run
@@ -134,6 +136,8 @@ NEVER_READ = {
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
+    **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
+       for column in ("storage_checksum", "parity_dirty")},
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",

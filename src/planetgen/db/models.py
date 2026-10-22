@@ -1659,6 +1659,8 @@ sectors = sa.Table(
     sa.Column('platform', sa.String(64), nullable=True),
     sa.Column('max_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('max_mass_id', mysql.BINARY(12), nullable=True),
+    sa.Column('storage_checksum', mysql.BINARY(32), nullable=True),
+    sa.Column('parity_dirty', mysql.TINYINT(), server_default=sa.text("'1'"), nullable=False),
     sa.Index('ft_sectors_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_sectors_center', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
     sa.Index('idx_sectors_galactic_radius_pc', 'galactic_radius_pc'),
