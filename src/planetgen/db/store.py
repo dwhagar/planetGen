@@ -546,7 +546,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "asteroid_belt_composition",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -875,6 +875,8 @@ class Connection:
         self.sector_centers_pc = {}
         """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
+        self.orbit_epoch_unix = None
+        """int or None: the orbit epoch a binary's tree is stored at, read once inside a `batched()` scope (GEN.311)."""
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -1158,6 +1160,7 @@ class _BatchScope:
         if conn._batch_depth == 0:
             conn._batch = {}
             conn.sector_centers_pc = {}
+            conn.orbit_epoch_unix = None
         conn._batch_depth += 1
         return conn
 
@@ -1171,6 +1174,7 @@ class _BatchScope:
             finally:
                 conn._batch = None
                 conn.sector_centers_pc = {}
+                conn.orbit_epoch_unix = None
         return False
 
 
@@ -4156,11 +4160,17 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
 
     # GEN.311: the system's tree of orbits. A generated binary is one node, made from its pair; a tree the system was
     # given (`orbit_nodes`) is stored as it is. The phases hold at the database's orbit epoch (now, before any update).
-    orbit_epoch = get_orbit_epoch_unix(conn)
-    if orbit_epoch is None:
-        orbit_epoch = int(time.time())
-    nodes = tuple(star_system.orbit_nodes) or orbit_trees.binary_nodes(star_system, orbit_epoch)
-    orbit_trees.write_nodes(conn, star_system_id, nodes)
+    nodes = tuple(star_system.orbit_nodes)
+    if not nodes and star_system.binary_type is not None:
+        orbit_epoch = conn.orbit_epoch_unix if conn._batch is not None else None
+        if orbit_epoch is None:
+            orbit_epoch = get_orbit_epoch_unix(conn)
+            if orbit_epoch is None:
+                orbit_epoch = int(time.time())
+            if conn._batch is not None:
+                conn.orbit_epoch_unix = orbit_epoch
+        nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
+    orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
     star_system.orbit_nodes = nodes
     places = orbit_trees.star_places(star_system)
 

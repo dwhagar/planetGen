@@ -6,3 +6,5 @@
 
 ### Changed
 - `GET /api/systems/<id>/scene` carries the system's `tree`, and `positions_at` places every star from it with the same function that places the members of a scatter row. A circular pair lands where the stored phase put it; a wide pair now follows its own eccentric Kepler orbit (the browser's copy of the star orbits still draws it as a circle, until the scene's JavaScript moves to the tree).
+
+generation-output: changed

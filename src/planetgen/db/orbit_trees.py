@@ -91,14 +91,14 @@ def nodes_from_member_tree(tree, epoch_unix):
         interaction=n.interaction, flags=n.flags) for n in tree.nodes)
 
 
-def write_nodes(conn, star_system_id, nodes):
-    """Stores `nodes` as the system's tree, replacing any it had."""
-    conn.execute("DELETE FROM orbit_nodes WHERE star_system_id = ?", (star_system_id,))
-    if not nodes:
-        return
-    conn.executemany(
-        f"INSERT INTO orbit_nodes (star_system_id, {', '.join(COLUMNS)}) VALUES (?, {', '.join('?' * len(COLUMNS))})",
-        [(star_system_id, *(getattr(node, column) for column in COLUMNS)) for node in nodes])
+def write_nodes(conn, star_system_id, nodes, replace=True):
+    """Stores `nodes` as the system's tree, replacing any it had (`replace=False` for a system just inserted, which has
+    none: the rows then go through `Connection.batched` with the rest of the sector)."""
+    if replace:
+        conn.execute("DELETE FROM orbit_nodes WHERE star_system_id = ?", (star_system_id,))
+    sql = f"INSERT INTO orbit_nodes (star_system_id, {', '.join(COLUMNS)}) VALUES (?, {', '.join('?' * len(COLUMNS))})"
+    for node in nodes:
+        conn.execute(sql, (star_system_id, *(getattr(node, column) for column in COLUMNS)))
 
 
 def read_nodes(conn, star_system_id):
