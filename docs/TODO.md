@@ -20610,9 +20610,12 @@ clears each one.
   validate its inputs and answer quickly (a clear 4xx for a bad value,
   bounded work for a big one), the way the other fuzzed routes do; no
   timeout bump and no exemption that hides a slow route. Done: the test
-  passes alone in under a minute and in a full gate. Owner: the Galaxy
-  dials lane (proposed; GEN.617 is its route), urgent because the test
-  also blocks any lane that runs test_fuzz_web_routes.
+  passes alone in under a minute and in a full gate. Owner: Bug Hunt
+  (proposed by the coordinator, relayed 2:55 PM EDT 2026-10-22 as the
+  lane's clock reads, because the Galaxy dials lane that wrote GEN.617's
+  route is retired; after its current queue: TEST.268, TEST.270,
+  TEST.271, TEST.272), urgent because the test also blocks any lane that
+  runs test_fuzz_web_routes.
   Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
