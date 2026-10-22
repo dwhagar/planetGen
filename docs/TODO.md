@@ -21658,8 +21658,8 @@ clears each one.
   machine). Reproducer: run the test in a loop. Do: compare with
   `backup.core._order` (sort the names with the same key `list_archives`
   uses), not as strings. Done: the test passes 50 runs in a row. Owner:
-  not assigned (the Admin redesign lane found it and works in the
-  settings area; any lane can take it).
+  the Admin redesign lane (the coordinator, about 7:17 AM EDT 2026-10-22
+  as the lane reported).
   Prerequisites: none. Related: ADM.101.
 
 ## USR: User accounts
