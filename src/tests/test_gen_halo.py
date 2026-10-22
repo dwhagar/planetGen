@@ -22,7 +22,7 @@ import pytest
 from planetgen import tuning
 from planetgen.galaxy import density, spherical, structure as galaxyStructure
 from planetgen.galaxy.density import (
-    _halo, build_galaxy_shape, component_masses, halo_density, halo_mass, halo_terms,
+    _halo, build_galaxy_shape, integrated_masses, halo_density, halo_mass, halo_terms,
     population_densities, population_densities_array, relative_density,
 )
 from planetgen.galaxy.skeleton import build_shell_extents, expected_system_count_at_density_1
@@ -101,7 +101,7 @@ def test_the_halo_is_far_below_the_old_floor_in_the_distance_and_near_it_at_the_
 
 def test_the_halo_integrates_to_its_share_of_the_visible_systems():
     visible = density.model_terms(MILKY_WAY)["visible_mass"]
-    assert visible == pytest.approx(sum(component_masses(MILKY_WAY, steps=60).values()), rel=2e-3)
+    assert visible == pytest.approx(sum(integrated_masses(MILKY_WAY, steps=60).values()), rel=2e-3)
     assert halo_mass(MILKY_WAY) == pytest.approx(galaxyStructure.stellar_halo_system_fraction(MILKY_WAY.structure) * visible, rel=1e-12)
     # And the closed form agrees with adding the density up: shells of the spheroid, 4 pi q m^2 dm, m log-spaced.
     terms = halo_terms(MILKY_WAY)

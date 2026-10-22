@@ -332,7 +332,7 @@ def _history_of(shape):
     from planetgen.galaxy import density
     length = shape.disk_scale_length_pc
     stellar_mass, halo_mass = stellar_and_halo_masses(shape)
-    masses = density.component_masses(shape)
+    masses = density.integrated_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
     return history(stellar_mass * thin_share, length, halo_mass)
 

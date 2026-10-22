@@ -143,11 +143,6 @@ NEVER_READ = {
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",
-    **{("galaxy_shape", column): "the family and its component numbers; GEN.379 reads them (DB.66 adds the columns only)"
-       for column in ("family", "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude",
-                      "spheroid_amplitude", "spheroid_sersic_n", "spheroid_effective_radius_pc", "spheroid_axis_ratio_b",
-                      "spheroid_axis_ratio_c", "spheroid_orientation_1_rad", "spheroid_orientation_2_rad",
-                      "spheroid_orientation_3_rad", "body_clump_share")},
     **{("sectors", column): "read in a query by the version check, not by a loader (DB.16)"
        for column in ("generator_epoch", "run_id")},
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",

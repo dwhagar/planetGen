@@ -49,7 +49,7 @@ from planetgen.db import store as _db
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy import profile as galaxy_profile, resolution as galaxy_resolution, spherical, structure_draw
-from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
+from planetgen.galaxy.density import FAMILY_COLUMNS, build_galaxy_shape, predicted_star_count, relative_density
 from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.spherical import (
     SectorCell, enumerate_sectors_within_radius, sector_position_pc, wedge_count,
@@ -252,6 +252,8 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
     for field in _SKELETON_SHAPE._fields:
         if field in ("components", "masses", "structure", "system_mass_scale"):  # objects for the density model, not JSON for the map
             assert field not in shape_dict
+            continue
+        if field == "spheroid_orientation_rad" or field in FAMILY_COLUMNS:  # DB.66 columns the map does not read (a name the terms share keeps theirs)
             continue
         assert shape_dict[field] == pytest.approx(getattr(_SKELETON_SHAPE, field))
     assert shape_dict["edge_pc"] == pytest.approx(EDGE_PC)

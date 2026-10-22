@@ -39,7 +39,7 @@ _KM_PER_PC = physical_constants.PARSEC_M / physical_constants.KM_M
 @functools.lru_cache(maxsize=64)
 def galaxy_systems(shape, expected_at_density_1, edge_pc):
     """How many systems the galaxy holds: its components' and its halo's integral of the density (unnormalized units,
-    as `galaxy.density.component_masses`), times the normalization and the systems a cube of `edge_pc` holds at density
+    as `galaxy.density.integrated_masses`), times the normalization and the systems a cube of `edge_pc` holds at density
     1. The clusters' and satellites' own systems (a percent) are not added."""
     visible = galaxyDensity.model_terms(shape)["visible_mass"]
     return expected_at_density_1 * shape.k_norm * (visible + galaxyDensity.halo_mass(shape)) / edge_pc ** 3

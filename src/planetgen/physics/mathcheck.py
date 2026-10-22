@@ -355,10 +355,10 @@ def _reference_checks():
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
               "the galactic year, about 230 million years", unit="Myr"),
-        Check("galaxy_bulge_to_total", "reference", "galaxyDensity.component_masses(reference shape)",
+        Check("galaxy_bulge_to_total", "reference", "galaxyDensity.integrated_masses(reference shape)",
               lambda: _galaxy_mass_ratio("bulge", ("bulge", "thin_disk", "thick_disk")), 0.31, 0.1,
               "Milky Way bulge 1.4-1.7e10 of 5e10 M_sun of stars (Bland-Hawthorn & Gerhard 2016)"),
-        Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.component_masses(reference shape)",
+        Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.integrated_masses(reference shape)",
               lambda: _galaxy_mass_ratio("thick_disk", ("thin_disk",)), 0.17, 0.3,
               "Milky Way thick disk 6e9 against thin disk 3.5e10 M_sun (Bland-Hawthorn & Gerhard 2016)"),
         Check("galaxy_nuclear_cluster_mass", "reference", "galaxyDensity.model_terms(reference shape)",
@@ -695,7 +695,7 @@ def _nuclear_structure():
 
 def _galaxy_mass_ratio(part, of):
     """One component's integrated mass over the sum of `of`'s."""
-    masses = galaxyDensity.component_masses(_reference_galaxy_shape())
+    masses = galaxyDensity.integrated_masses(_reference_galaxy_shape())
     return masses[part] / sum(masses[name] for name in of)
 
 
@@ -704,7 +704,7 @@ def _stellar_mass_held_error():
     structures and the halo, in solar masses at the galaxy's mean system mass a system) is from its stellar mass."""
     shape = _reference_galaxy_shape()
     terms = galaxyDensity.model_terms(shape)
-    numerical = (sum(galaxyDensity.component_masses(shape, steps=60).values()) + terms["nuclear_cluster_mass"]
+    numerical = (sum(galaxyDensity.integrated_masses(shape, steps=60).values()) + terms["nuclear_cluster_mass"]
                  + terms["nuclear_disc_mass"] + galaxyDensity.halo_mass(shape))
     systems_per_unit = shape.k_norm * pc.LOCAL_STELLAR_DENSITY_LY3 / units.ly_to_pc(1.0) ** 3
     return numerical * systems_per_unit * galaxyDensity.mean_system_mass_solar(shape) / shape.structure.stellar_mass_solar
