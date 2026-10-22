@@ -4953,7 +4953,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 3's; the epoch rule in execution-notes still applies).
   Blocker 2 (relayed 9:01 AM EDT 2026-10-22): gated together with
-  GEN.311 (see there); epoch 49 once it merges.
+  GEN.311 (see there); epoch 50 once it merges (49 went to GEN.598).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -5811,7 +5811,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 3's).
   Blocker 2 (relayed 9:01 AM EDT 2026-10-22): the combined gate with
   GEN.269 is running alone now (orbit tree store and load); its
-  generator epoch was renumbered to 49 after main took 47 and 48. Fixes
+  generator epoch was renumbered to 49 after main took 47 and 48, and
+  again to 50 after GEN.598 took 49 (Core 1, relayed 11:23 AM EDT
+  2026-10-22 as the lane's clock reads). Fixes
   found by the combined gate: the scene tree.origin needed an id rule,
   orbit_nodes inserts must go through `Connection.batched`, two test
   lists, and the parallel-generation fingerprint skips
@@ -15308,27 +15310,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread, then Core 4 (the comet sampler lane); version 8.4.
   Prerequisites: none.
 
-- [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
-  Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
-  reported), filed by the TODO thread. `CLUSTER_MEAN_SYSTEM_MASS_SOL =
-  0.4` is the same recalled constant as the galaxy's
-  `MEAN_SYSTEM_MASS_SOLAR` and is read in `king.py`, `components.py`,
-  `component_field.py`, `component_pass.py` and `open_clusters.py`; it
-  divides a cluster's or satellite's stellar mass into a system count.
-  Boss's rule is no fixed content. Fails on main: no (a stand-in,
-  labelled recalled within a factor of 1.5, not yet measured). Do:
-  derive it from the cluster's own mass function and multiplicity the
-  way GEN.545 does for the galaxy (reuse `generation/system_mass.py`),
-  so the constant goes; where a cluster has a different mass function (a
-  bottom-heavy or top-heavy IMF), the derivation takes it from the
-  component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
-  test checks the derived mean against a seeded draw. Owner: Core 1
-  (proposed; GEN.545 merged as #2434, so it is free to start, Core 1's
-  current item: the coordinator's order of 8:16 AM EDT 2026-10-22 is
-  GEN.598 now, then DB.76, DB.73 and DB.74 (TEST.241 merged as #2454));
-  a generator change, so it takes the next free epoch.
-  Prerequisites: none. Related: GEN.545 (done, #2434), GEN.404.
-
 - [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
   Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
   revision of my previous choice, have the best possible fallback if the
@@ -17525,7 +17506,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DB.67 to DB.71 share. Done: every kind stores and loads through the
   generic path, the per-site lists are gone, `schema.sql`, `models.py`
   and the migration test are updated. Owner: Core 1 (Boss's card D7),
-  8.4 phase 1, with DB.73.
+  8.4 phase 1, with DB.73. Core 1's plan (the coordinator, relayed
+  11:23 AM EDT 2026-10-22 as the lane's clock reads): the slices that
+  need no migration go first (the kind registry, the generic insert, the
+  generic load), then one 8.4 revision last; DB.76 moves onto GEN.568's
+  registry.
   Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
   relayed): the column list it drives from is the column registry of
   DB.76 (Core 1); the two share one list.
