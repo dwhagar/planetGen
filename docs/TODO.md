@@ -21312,22 +21312,6 @@ clears each one.
   the item stays open.
   Prerequisites: none. Related: TEST.253.
 
-- [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
-  Suggested by Core 3 (2:02 PM EDT 2026-10-21 as the lane reported,
-  after fixing TEST.256 in #2327), filed by the TODO thread. GEN.404
-  made the toy galaxy hold a real galaxy's stellar mass, so a test that
-  scatters a low shell index of the toy shape (shell 4 held ten million
-  rows and 11 GB resident in the black-hole stream test) can get a gate
-  worker OOM-killed or time out. Do: list every test that calls
-  `scatter.scatter_shell` or a sibling with a shell index below about 8
-  on the toy shape, measure each one's peak resident memory (`ru_maxrss`
-  run alone, `-n0`), and move any above about 1 GB to a higher shell
-  index or a smaller rate, as #2327 did for shell 10; no quarantine.
-  Done: no test in a gate holds more than about 1 GB alone, and the list
-  with the figures is on this item. Owner: Bug Hunt (proposed; the
-  symptom is a loaded-gate failure).
-  Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
-
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full bug hunt audit, and it MUST be done before every single
@@ -21429,8 +21413,8 @@ clears each one.
   the next assertion) and fix the cause or make the test wait for the
   lock to clear; no retry loop that hides a real lock leak. Done: the
   cause is on this item and the test passes in 20 runs under load.
-  Owner: Bug Hunt (a test-flake finding; TEST.265 is fixed, so it
-  follows TEST.258).
+  Owner: Bug Hunt (a test-flake finding; TEST.265 and TEST.258 are
+  merged, so it is next: the coordinator, 8:47 AM EDT 2026-10-22).
   Prerequisites: none. Related: TEST.260, TEST.265.
 
 - [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
