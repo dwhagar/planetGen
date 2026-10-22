@@ -19437,7 +19437,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a long table or panel scrolls in its own region, the same rule as
   the viewers (UX.142); the shell's browser test runs at those window
   sizes.
-  Prerequisites: ADM.118, ADM.98. Related: ADM.56.
+  Prerequisites: ADM.118. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -19540,40 +19540,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   slider it is folded into.
   Prerequisites: ADM.104.
 
-- [ ] **ADM.98 Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built**
-  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
-  somewhere? generate is horribly to use, it needs a full redesign as
-  it's grown too complicated for it's simplistic format, the settings
-  page is incomprehensible and we need nice, clean, settings that don't
-  look like I'm writing a linux config file, also a lot of stuff in
-  there can't be changed, so how about just not list the things that
-  cannot be changed or have an option to hide them that is defaulted to
-  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
-  own dedicated thread, add an issue for it to group all the todo items
-  together in if one doesn't exist. Start researching ways to pack a lot
-  of options into an admin control suite that will include the generate
-  control suite. The interface needs to get out of the way. All items
-  related to this not already in progress move immediately to the new
-  thread -- however, before it's begins building, it's going to
-  research, generate a report, and give me decision / choice cards." Do:
-  research ways to pack a lot of options into one admin control suite
-  that includes the Generate suite and the settings, with the interface
-  getting out of the way (progressive disclosure, command palette and
-  search, saved presets and recent runs, sensible defaults, inline help,
-  keyboard use, dense but calm layouts, what comparable admin and
-  job-control tools do, and what works on a phone); read the current
-  admin pages, the Generate page and the settings page as they are
-  today; write the report (docs/design/admin-control-suite.md with its
-  README row, a draft first in
-  /mnt/project-files/design-drafts/admin-pages-redesign-2026-10-21.md);
-  and bring Boss decision cards (one per choice, recommended option
-  first). Nothing is built before Boss has answered the cards. Done: the
-  report is merged, Boss has answered every card, and the answers are
-  recorded on ADM.55, ADM.56, ADM.92, ADM.93, ADM.99 and ADM.100, which
-  then become buildable. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT).
-  Prerequisites: none. Related: ADM.55, ADM.99, ADM.100.
-
 - [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
   Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
   somewhere? generate is horribly to use, it needs a full redesign as
@@ -19645,7 +19611,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed shows while the toggle is on, a browser test covers the toggle
   both ways and a change that saves, and docs/config.md matches. Owner:
   the admin redesign thread, after Boss answers the cards of ADM.98.
-  Prerequisites: ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106. Related: ADM.43, ADM.44, ADM.86,
+  Prerequisites: ADM.102, ADM.103, ADM.104, ADM.105, ADM.106. Related: ADM.43, ADM.44, ADM.86,
   ADM.97, UX.137.
   Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
   the admin redesign thread reported; report
@@ -19654,21 +19620,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the shell, job strip and palette, then Generate; every admin page goes
   onto the one shell once. Closes with its children ADM.101 to ADM.106
   (S1 to S6).
-
-- [ ] **ADM.101 Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key S1).
-  Add `x-label`, `x-group`, `x-control` and `x-advanced` to every option
-  in `settings.opt`; the long help becomes a Details text; the path-made
-  titles go; the `x-category` list is replaced by groups. Done: a test
-  fails for any option without a label, group and summary; no label
-  equals its path text; docs/config.md, config.json.example and
-  config.schema.json regenerate; the wording is reviewed in a short list
-  Boss can read. Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.100, ADM.43.
 
 - [ ] **ADM.102 Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19681,7 +19632,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `iter_fields`. Owner: the admin redesign thread (Boss, 2026-10-21,
   6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
   then the shell and palette, then Generate).
-  Prerequisites: ADM.101. Related: ADM.100.
+  Prerequisites: none. Related: ADM.100.
 
 - [ ] **ADM.103 Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19698,7 +19649,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
   Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
   and palette, then Generate).
-  Prerequisites: ADM.101, ADM.102, UX.124. Related: ADM.100, ADM.86,
+  Prerequisites: ADM.102, UX.124. Related: ADM.100, ADM.86,
   UX.126.
 
 - [ ] **ADM.104 Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker**
@@ -19883,7 +19834,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
   Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
   and palette, then Generate).
-  Prerequisites: ADM.101. Related: ADM.92.
+  Prerequisites: none. Related: ADM.92.
 
 - [ ] **ADM.119 Job strip on every admin page: a thin strip that shows a running job, Cancel and the log**
   Child of the admin control suite (Boss's 13 decision cards, tapped
