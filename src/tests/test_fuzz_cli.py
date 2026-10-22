@@ -280,8 +280,7 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
         assert get("radius_pc") is None or 0 < get("radius_pc") <= limits.MAX_GENERATE_RADIUS_PC
         assert get("min_start_density") is None or get("min_start_density") > 0
     if command == "plan":
-        assert dials.resolved(args, "arm_density") >= dials.resolved(args, "interarm_density") >= 0
-        assert args.max_shell >= 1
+        assert 0 <= dials.resolved(args, "arm_contrast") <= 1
         for row in dials.LEVERS:
             assert getattr(args, row.dest) is None or row.problem(getattr(args, row.dest)) is None
 
@@ -312,7 +311,7 @@ def test_a_lone_double_dash_value_is_a_usage_error(argv):
 @example(target=("galaxy", "--radius-pc"), token="nan")                 # math.ceil(nan) ValueError
 @example(target=("galaxy", "--radius-pc"), token="inf")                 # math.ceil(-inf) OverflowError
 @example(target=("galaxy", "--min-start-density"), token="nan")         # filter silently off
-@example(target=("plan", "--arm-density"), token="nan")                 # NaN reached MySQL
+@example(target=("plan", "--arm-contrast"), token="nan")                 # NaN reached MySQL
 @example(target=("plan", "--pitch-angle-deg"), token="nan")             # NaN reached MySQL
 def test_non_finite_numbers_are_rejected_by_validation(target, token):
     command, option = target
@@ -527,7 +526,7 @@ def plan_argv(draw):
     evaluate -- positive finite scales, a non-zero arm count, a pitch
     strictly inside (0, 90] degrees, a calibration radius within a few
     dozen scale lengths (see the degenerate-shape test for what's rejected outside) --
-    at scales from toy (1 pc) to absurd (1e5 pc), with a small --max-shell
+    at scales from toy (1 pc) to absurd (1e5 pc), with a small --edge
     so a huge galaxy's scan stays fast."""
     length = draw(st.sampled_from([1.0, 12.0, 40.0, 2800.0, 1e5]))
     argv = [
@@ -535,17 +534,16 @@ def plan_argv(draw):
         # tests (test_bright_star_scatter.py) cover it on a small galaxy.
         "plan", "--quiet", "--no-bright-stars",
         "--disk-scale-length", f"{length!r}pc",
-        "--disk-scale-height-pc", repr(draw(st.sampled_from([1e-3, 1.0, 350.0, 1e5]))),
-        "--bulge-scale-radius-pc", repr(draw(st.sampled_from([1e-3, 10.0, 200.0, 1e5]))),
-        "--bulge-amplitude", repr(draw(st.sampled_from([0.0, 1.0, 1e3, -0.5]))),
+        "--flatness", repr(draw(st.sampled_from([3.0, 7.3, 20.0, 1e-3, 1e5]))),
+        "--bulge-size", repr(draw(st.sampled_from([0.02, 0.25, 1.0, 1e-3, 5.0]))),
+        "--bulge-share", repr(draw(st.sampled_from([0.0, 0.3, 0.9, 1.5, -0.5]))),
         "--arm-count", str(draw(st.sampled_from([1, 2, 4, 1000, -2]))),
         "--pitch-angle-deg", repr(draw(st.sampled_from([1e-3, 15.0, 89.999, 90.0, -15.0]))),
-        # 1.0/-0.1 and --max-shell 0 are the validator's own rejections (exit 2),
+        # 1.0/-0.1 and --edge 3pc are the validator's own rejections (exit 2),
         # drawn less often than the accepted values.
-        "--arm-density", repr(draw(st.sampled_from([1.4, 2.5, 1.4, 2.5, 0.0, -0.1]))),
-        "--interarm-density", repr(draw(st.sampled_from([0.6, 0.0, 0.6, 0.0, 9.0]))),
+        "--arm-contrast", repr(draw(st.sampled_from([0.4, 0.9, 0.4, 0.9, 0.0, -0.1, 1.5]))),
         "--nuclear-amplitude", repr(draw(st.sampled_from([0.0, 2.0, 0.0, 2.0, -1.0]))),
-        "--max-shell", str(draw(st.sampled_from([1, 5, 200, 1, 5, 200, 0]))),
+        f"--edge={draw(st.sampled_from([4, 20, 800, 4, 20, 800, 3]))}pc",
     ]
     return argv
 
@@ -568,10 +566,10 @@ _PLAN_TRACEBACKS = [
     (["--pitch-angle-deg", "0"], "ZeroDivisionError (log(...) / tan(0))"),
     (["--disk-scale-length", "0pc"], "ZeroDivisionError"),
     (["--disk-scale-length", "-1pc"], "ValueError: math domain error"),
-    (["--disk-scale-height-pc", "0"], "ZeroDivisionError (z / height)"),
-    (["--bulge-scale-radius-pc", "0"], "ZeroDivisionError"),
-    (["--bulge-scale-radius-pc", "-1"], "OverflowError: math range error"),
-    (["--disk-scale-height-pc", "inf"], "pymysql ProgrammingError: inf can not be used with MySQL"),
+    (["--flatness", "0"], "ZeroDivisionError (z / height)"),
+    (["--bulge-size", "0"], "ZeroDivisionError"),
+    (["--bulge-size", "-1"], "OverflowError: math range error"),
+    (["--flatness", "inf"], "pymysql ProgrammingError: inf can not be used with MySQL"),
 ]
 
 

@@ -237,7 +237,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     return sectors, stars
 
 
-SKELETON_OPTIONS = ("max_shell", "reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
+SKELETON_OPTIONS = ("reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
                     "core_mass_limit", "halo_min_luminosity", *(row.dest for row in dials.LEVERS))
 """tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command: the
 scan's own and every row of the lever table (`galaxy.dials`)."""
@@ -307,8 +307,8 @@ def plan_skeleton_unit(params, report):
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
         galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
-        shape, drawn = shapeDraw.plan_shape(types.SimpleNamespace(**{
-            name: params.get(name) for name in SKELETON_OPTIONS}), galaxy_seed)
+        shape_args = types.SimpleNamespace(**{name: dials.restored(params.get(name)) for name in SKELETON_OPTIONS})
+        shape, drawn = shapeDraw.plan_shape(shape_args, galaxy_seed)
         say(
             f"Building skeleton: edge_pc={edge_pc:g} stellar_mass={drawn.chain.stellar_mass_solar:.3g} ({drawn.stage}-type) "
             f"disk_scale_length_pc={shape.disk_scale_length_pc:.0f} disk_scale_height_pc={shape.disk_scale_height_pc:.0f} "
@@ -316,6 +316,14 @@ def plan_skeleton_unit(params, report):
             f"arm_count={shape.arm_count} pitch_angle_deg={drawn.pitch_angle_deg:.1f} "
             f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
         )
+        say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")
+        halo_line, halo_warning = shapeDraw.halo_report(drawn)
+        say(f"{halo_line}.")
+        if halo_warning:
+            say(f"WARNING: {halo_warning}")
+        for note in dials.shape_warnings(shapeDraw.drawn_surface_density(drawn), drawn.disk_scale_height_pc,
+                                         drawn.bulge_scale_radius_pc):
+            say(f"WARNING: {note}")
         scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
         found = clusters.generate_clusters(
             galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
@@ -334,11 +342,17 @@ def plan_skeleton_unit(params, report):
         f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
         f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
 
+    edge_limit = shapeDraw.edge_limit_pc(dials.resolved(shape_args, "edge"), shape.disk_scale_length_pc)
+    max_shell = reach_shell_index if edge_limit is None else min(math.ceil(edge_limit / edge_pc), reach_shell_index)
     t0 = time.perf_counter()
     extents, outer_shell_index, edge_confirmed = build_shell_extents(
-        shape, edge_pc, threshold_rho, max_shell=min(params["max_shell"], reach_shell_index),
+        shape, edge_pc, threshold_rho, max_shell=max_shell,
     )
     elapsed = time.perf_counter() - t0
+    if not extents and shapeDraw.pins_of(shape_args):
+        raise ValueError(
+            "no sector of this galaxy reaches the one-star-per-sector density, so there is nothing to plan: raise the "
+            "stellar mass or the central surface density, or lower the scale length or the scale height")
 
     store.replace_galaxy_shells(extents, config=mysql_config)
     galaxy_seed = store.save_galaxy_shape(
@@ -349,6 +363,8 @@ def plan_skeleton_unit(params, report):
         core_min_luminosity_sol=params.get("core_min_luminosity"),
         core_mass_limit_sol=params.get("core_mass_limit"),
         halo_min_luminosity_sol=params.get("halo_min_luminosity"),
+        pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(shape_args, drawn),
+        pins=shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc),
     )
     core_floor = params.get("core_min_luminosity")
     core_mass = params.get("core_mass_limit")
@@ -2470,8 +2486,8 @@ def run_plan(args):
     )
     if not summary["edge_confirmed"]:
         log.normal(
-            f"WARNING: the galactic plane still qualified at --max-shell ({args.max_shell}) -- the "
-            f"galaxy's true edge was not reached. Re-run with a larger --max-shell if these shape "
+            f"WARNING: the galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
+            f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
             f"parameters really do produce a galaxy this large."
         )
     if summary["shell_count"] and not getattr(args, "no_bright_stars", False):

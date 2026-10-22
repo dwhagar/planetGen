@@ -1555,6 +1555,10 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     core_min_luminosity_sol      DOUBLE,
     core_mass_limit_sol          DOUBLE,
     halo_min_luminosity_sol      DOUBLE NOT NULL DEFAULT 500,
+    -- v114 (DB.81): the stellar mass, solar masses, the plan was told to build the galaxy at (a pinned mass, or the one
+    -- two pinned Scale levers give); NULL when the seed drew it. A loaded shape draws its mass chain and structure
+    -- again at this mass; `galaxy_shape_pins` lists what the plan was told.
+    pinned_stellar_mass_solar    DOUBLE,
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
@@ -1597,6 +1601,17 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     CONSTRAINT chk_galaxy_shape_scatter_limits CHECK (  -- v101 (DB.54)
         halo_min_luminosity_sol >= 50 AND (core_min_luminosity_sol IS NULL OR core_min_luminosity_sol > 0)
         AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- galaxy_shape_pins -- the shape levers a plan was told (v114, DB.81)
+-- One row per lever the plan pinned (`planetgen.galaxy.dials`, the lever's name), with the value in the table's units
+-- (lengths in parsecs). A lever with no row was left to the seed (Auto). Rebuilt with `galaxy_shape` by every plan;
+-- the galaxy page and the API say "mass pinned at X, the rest drawn" from it.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS galaxy_shape_pins (
+    name                        VARCHAR(40) NOT NULL PRIMARY KEY,
+    value                       DOUBLE NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per shell that holds content (v91; replaces `galaxy_layer` and

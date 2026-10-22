@@ -1524,6 +1524,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (114, _table_marker("galaxy_shape_pins")),
     (113, _table_marker("object_index")),
     (112, _check_marker("chk_bright_stars_population", "open_cluster_00")),
     (111, lambda shape: ("planets", "flavor_text") not in shape["columns"]),
@@ -7325,9 +7326,9 @@ GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
     ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1", "galaxy_seed",
      "reach_shell_index", "cell_star_ceiling", "fill_luminosity_cap_sol", "core_min_luminosity_sol",
-     "core_mass_limit_sol", "halo_min_luminosity_sol"],
+     "core_mass_limit_sol", "halo_min_luminosity_sol", "pinned_stellar_mass_solar", "pins"],
     defaults=(None, 65535, tuning.CELL_STAR_CEILING, tuning.FILL_LUMINOSITY_CAP_SOL, None, None,
-              tuning.HALO_MIN_LUMINOSITY_SOL),
+              tuning.HALO_MIN_LUMINOSITY_SOL, None, None),
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
@@ -7337,13 +7338,17 @@ note). `shape` is a `galaxy.density.GalaxyShape`; the other fields are
 (v93, GEN.233) the outermost shell the grid has addresses for, `cell_star_ceiling` and `fill_luminosity_cap_sol` (v98,
 GEN.281) the systems a cell may expect before it is filled only down to the cap, and that cap in solar luminosities,
 `core_min_luminosity_sol` and `core_mass_limit_sol` (v101, DB.54) the core's scatter limits (`None`: follow the
-baseline times `tuning.CORE_TIER_FACTOR`, see `galaxy.scatter_limits`) and `halo_min_luminosity_sol` the halo's."""
+baseline times `tuning.CORE_TIER_FACTOR`, see `galaxy.scatter_limits`) and `halo_min_luminosity_sol` the halo's,
+`pinned_stellar_mass_solar` (v114, DB.81) the stellar mass the plan was pinned to (`None`: the seed drew it) and `pins`
+the shape levers the plan was told, `{lever name: value}` (`galaxy_shape_pins`; `None` for a skeleton not read from the
+database)."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                        expected_system_count_at_density_1, config=None, galaxy_seed=None,
                        reach_shell_index=65535, cell_star_ceiling=None, fill_luminosity_cap_sol=None,
-                       core_min_luminosity_sol=None, core_mass_limit_sol=None, halo_min_luminosity_sol=None):
+                       core_min_luminosity_sol=None, core_mass_limit_sol=None, halo_min_luminosity_sol=None,
+                       pinned_stellar_mass_solar=None, pins=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -7367,6 +7372,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
         core_mass_limit_sol (float, optional): The core's mass limit (DB.54); `None` follows the baseline.
         halo_min_luminosity_sol (float, optional): The halo's luminosity floor (DB.54); `None` is
             `tuning.HALO_MIN_LUMINOSITY_SOL`.
+        pinned_stellar_mass_solar (float, optional): The stellar mass the plan pinned (DB.81), solar masses, which a
+            loaded shape draws its mass chain and structure at; `None` leaves the draw to the seed.
+        pins (dict, optional): The shape levers the plan was told, `{lever name: value}` in the units of
+            `galaxy.dials` (`shape_draw.pins_of`), kept in `galaxy_shape_pins`; replaces the ones stored.
         expected_system_count_at_density_1 (float): See
             `galaxy.skeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -7401,8 +7410,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index,
                     cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
-                    halo_min_luminosity_sol
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    halo_min_luminosity_sol, pinned_stellar_mass_solar
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -7425,6 +7434,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     core_min_luminosity_sol = ?,
                     core_mass_limit_sol = ?,
                     halo_min_luminosity_sol = ?,
+                    pinned_stellar_mass_solar = ?,
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
                     galaxy_seed = ?
@@ -7437,11 +7447,15 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
                     cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
-                    halo_min_luminosity_sol,
+                    halo_min_luminosity_sol, pinned_stellar_mass_solar,
                     reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol,
-                    core_mass_limit_sol, halo_min_luminosity_sol, bytes(galaxy_seed),
+                    core_mass_limit_sol, halo_min_luminosity_sol, pinned_stellar_mass_solar, bytes(galaxy_seed),
                 ),
             )
+            conn.execute("DELETE FROM galaxy_shape_pins")
+            if pins:
+                conn.executemany("INSERT INTO galaxy_shape_pins (name, value) VALUES (?, ?)",
+                                 [(name, float(value)) for name, value in sorted(pins.items())])
             if stored_seed != bytes(galaxy_seed):
                 # DB.6: a new seed is a new galaxy -- record the code making it.
                 made_by = versionKey.current()
@@ -7616,11 +7630,14 @@ def get_galaxy_shape(conn):
         k_norm=row["k_norm"],
     )
     seed = None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"])
-    # The thick disk, bar, stellar halo and motions are not columns: the seed draws them again (GEN.532, GEN.533).
+    pinned_mass = row.get("pinned_stellar_mass_solar")
+    pins = get_galaxy_shape_pins(conn)
+    # The thick disk, bar, stellar halo and motions are not columns: the seed draws them again (GEN.532, GEN.533), at
+    # the mass and halo the plan pinned when it did (DB.81, GEN.606).
     shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
-                           structure=shape_draw.structure_for(seed))
+                           structure=shape_draw.structure_for(seed, pinned_mass, pins.get("stellar_halo_share")))
     if seed is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
-        chain = massChain.draw_mass_chain(seed)
+        chain = massChain.draw_mass_chain(seed, pinned_mass, halo_mass_pinned(seed, pinned_mass, pins))
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
@@ -7632,7 +7649,23 @@ def get_galaxy_shape(conn):
         core_min_luminosity_sol=row.get("core_min_luminosity_sol"),
         core_mass_limit_sol=row.get("core_mass_limit_sol"),
         halo_min_luminosity_sol=row.get("halo_min_luminosity_sol", tuning.HALO_MIN_LUMINOSITY_SOL),
+        pinned_stellar_mass_solar=pinned_mass, pins=pins,
     )
+
+
+def halo_mass_pinned(seed, pinned_stellar_mass_solar, pins):
+    """The dark halo mass, solar masses, the stored `pins` fix (the Halo dial's `halo_ratio` times the stellar mass the
+    galaxy has), or `None` when the seed draws it."""
+    ratio = pins.get("halo_ratio")
+    if ratio is None:
+        return None
+    return shape_draw.halo_mass_of(massChain.draw_mass_chain(seed, pinned_stellar_mass_solar).stellar_mass_solar, ratio)
+
+
+def get_galaxy_shape_pins(conn):
+    """The shape levers the stored plan was told (`galaxy_shape_pins`, DB.81): `{lever name: value}`, the values in the
+    units of `galaxy.dials`; empty when everything was drawn from the seed."""
+    return {row["name"]: row["value"] for row in conn.execute("SELECT name, value FROM galaxy_shape_pins").fetchall()}
 
 
 def replace_galaxy_shells(shell_extents, config=None, conn=None):

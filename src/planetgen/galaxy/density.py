@@ -716,24 +716,6 @@ def total_density_array(x, y, z, shape):
             + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * bulge, 0.0) + np.maximum(nuclear, 0.0))
 
 
-def arm_terms(arm_density, interarm_density):
-    """
-    `(arm_amplitude, arm_level)` for a thin disk that is `arm_density` on an
-    arm crest and `interarm_density` midway between arms (ADM.49), in the
-    disk's own units (1.4 and 0.6 are the usual `1 +/- 0.4`): the thin disk's
-    arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest is
-    `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`.
-
-    Raises:
-        ValueError: Unless `arm_density >= interarm_density >= 0` and the crest is above 0.
-    """
-    if not (arm_density > 0 and 0 <= interarm_density <= arm_density):
-        raise ValueError("the arm density must be above 0 and at least the inter-arm density, which is 0 or more")
-    # Rounded so the usual 1.4 and 0.6 give exactly the 0.4 and 1 they stand for.
-    return (round((arm_density - interarm_density) / (arm_density + interarm_density), 12),
-            round((arm_density + interarm_density) / 2.0, 12))
-
-
 def build_galaxy_shape(
     disk_scale_length_pc,
     disk_scale_height_pc,
@@ -762,10 +744,11 @@ def build_galaxy_shape(
             fixed orientation, `0.0` unless there's a reason to prefer
             another.
         arm_level (float): The thin disk's density level, the middle of the
-            arm crest and the inter-arm trough (ADM.49; see `arm_terms`).
+            arm crest and the inter-arm trough (ADM.49).
         nuclear_amplitude (float): How much of the observed nuclear star cluster and nuclear stellar disc
             the centre holds (GEN.280): 1 is the observed pair, scaled to the bulge, 0 is none.
-        masses (tuple, optional): The galaxy's `(stellar mass, halo mass)`, solar masses (`GalaxyShape.masses`).
+        masses (tuple, optional): The galaxy's `(stellar mass, halo mass)`, solar masses (`GalaxyShape.masses`); the halo mass
+            is `None` for a galaxy with no halo (`mass_chain.has_halo`).
         structure (galaxy.structure.Structure): The galaxy's thick disk, bar, stellar halo and population motions
             (GEN.532, GEN.533); the Milky Way's published one when none is given.
 
@@ -785,7 +768,7 @@ def build_galaxy_shape(
         spiral_reference_radius_pc=disk_scale_length_pc,
         spiral_reference_angle_rad=spiral_reference_angle_rad,
         k_norm=1.0,
-        masses=None if masses is None else (float(masses[0]), float(masses[1])),
+        masses=None if masses is None else (float(masses[0]), None if masses[1] is None else float(masses[1])),
         structure=structure,
     )
 

@@ -77,12 +77,15 @@ def birth_radii_over_scale_length():
 
 def escape_speed_kms(chain, disc_scale_length_kpc, radius_kpc):
     """The speed, km/s, a star needs to leave the galaxy from `radius_kpc` (the halo's and the stars' potentials above)."""
-    concentration = chain.concentration
-    halo_scale_kpc = chain.virial_radius_kpc / concentration
-    enclosed = math.log1p(concentration) - concentration / (1.0 + concentration)
-    x = radius_kpc / halo_scale_kpc
-    halo = (_KM2_PER_S2_PER_SOLAR_MASS_PER_KPC * chain.halo_mass_solar / chain.virial_radius_kpc
-            * concentration / enclosed * math.log1p(x) / x)
+    if chain.halo_mass_solar is None:
+        halo = 0.0      # a galaxy under the halo threshold holds only its stars
+    else:
+        concentration = chain.concentration
+        halo_scale_kpc = chain.virial_radius_kpc / concentration
+        enclosed = math.log1p(concentration) - concentration / (1.0 + concentration)
+        x = radius_kpc / halo_scale_kpc
+        halo = (_KM2_PER_S2_PER_SOLAR_MASS_PER_KPC * chain.halo_mass_solar / chain.virial_radius_kpc
+                * concentration / enclosed * math.log1p(x) / x)
     stars = (_KM2_PER_S2_PER_SOLAR_MASS_PER_KPC * chain.stellar_mass_solar
              / math.sqrt(radius_kpc ** 2 + disc_scale_length_kpc ** 2))
     return math.sqrt(2.0 * (halo + stars))

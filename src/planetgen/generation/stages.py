@@ -22,6 +22,7 @@ import json
 import os
 import time
 
+from planetgen.galaxy import dials
 from planetgen.queue import progress_file
 from planetgen.util import log, stagemark
 
@@ -161,10 +162,10 @@ def stage_settings(key, args):
     elif key == "backfill":
         settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
     elif key == "skeleton":
-        for name in ("max_shell", "seed"):
+        for name in ("edge", "seed"):
             value = getattr(args, name, None)
             if value is not None:
-                settings[name] = str(value) if name == "seed" else value
+                settings[name] = dials.lever(name).format(value) if name == "edge" else str(value)
     return settings
 
 

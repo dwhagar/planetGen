@@ -28,7 +28,9 @@ each other nor on the order they run in.
    Harmsen et al. 2017, arXiv:1611.05448 Table 1 and D'Souza et al. 2014, arXiv:1404.2123 Fig. 16) drawn with a
    scatter of 1.01 dex (Dragonfly: Merritt et al. 2016, arXiv:1606.08847; the widest of it and Harmsen's 0.33 dex,
    Boss's rule of 1:12 PM EDT), cut so the halo is 0.1 percent to 30 percent of the galaxy's stars (the upper end is
-   D'Souza 2014's disc-dominated galaxies; below it the Dragonfly galaxies with no detected halo).
+   D'Souza 2014's disc-dominated galaxies; below it the Dragonfly galaxies with no detected halo). A galaxy under
+   `dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR` (3e8, Boss 7:58 PM EDT 10-21) runs none of this: it has no stellar halo, no thick
+   disc, no bar and no nuclear structures.
 4. **Motions** (fills GR4, GR5): the birth-gas dispersion 6.5 +/- 1 km/s (a molecular stand-in, GEN.536; the atomic value is 10 +/- 2, Tamburro 2009), the disc's central vertical
    dispersion `0.248 V` with 15 percent (Martinsson 2013), the age exponent 0.441 +/- 0.03 (Sharma and Hayden 2020),
    and the bulge's scatter 0.097 dex about `Vc / sigma_0 = 2 (1 - B/T)` (Courteau 2007).
@@ -44,7 +46,7 @@ sources do not span.
 import math
 
 from planetgen import tuning
-from planetgen.galaxy import mass_chain, seed as galaxySeed
+from planetgen.galaxy import dials, mass_chain, seed as galaxySeed
 from planetgen.galaxy.structure import REFERENCE_STRUCTURE, Structure
 from planetgen.physics import black_hole_formation
 from planetgen.util import draw
@@ -166,17 +168,21 @@ def nuclear_cluster_mass_solar(stellar_mass_solar, slope, deviation):
                     + deviation * NUCLEAR_CLUSTER_SCATTER_DEX)
 
 
-def draw_structure(galaxy_seed):
+def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
     """
     The structure the galaxy of `galaxy_seed` has: the same seed gives the same structure.
 
     Args:
         galaxy_seed (bytes or None): The galaxy's 16-byte seed; `None` uses the mass chain's fallback seed.
+        stellar_mass_solar (float, optional): A stellar mass the plan pinned (GEN.603); the seed's own residuals are
+            kept, so the same seed at a new mass has the same draws about the laws.
+        stellar_halo_share (float, optional): A stellar halo share of the galaxy's stars the plan pinned (the Halo dial,
+            GEN.606); it replaces the halo draw only. Refused for a galaxy with no halo.
 
     Returns:
         structure.Structure
     """
-    mass = mass_chain.draw_mass_chain(galaxy_seed).stellar_mass_solar
+    mass = mass_chain.draw_mass_chain(galaxy_seed, stellar_mass_solar).stellar_mass_solar
     vc = draw_circular_speed_kms(galaxy_seed, mass)
 
     low, high = thick_mass_ratio_bounds(vc)
@@ -188,8 +194,19 @@ def draw_structure(galaxy_seed):
         math.log10(THICK_HEIGHT_RATIO_RANGE[0]), math.log10(THICK_HEIGHT_RATIO_RANGE[1]))
     height_ratio = 10.0 ** (height_centre + _scatter(_stream(galaxy_seed, "thick-height"), THICK_HEIGHT_RATIO_SCATTER_DEX))
 
-    halo = halo_ratio_median(mass) * 10.0 ** _scatter(_stream(galaxy_seed, "halo"), HALO_RATIO_SCATTER_DEX)
-    halo = min(max(halo, HALO_RATIO_RANGE[0]), HALO_RATIO_RANGE[1])
+    full = mass_chain.has_full_structure(mass)
+    if not full:      # Boss, 7:58 PM EDT 10-21: one disc plus a bulge under the mass the thick disc and halo laws were fitted to
+        mass_ratio = 0.0
+    if stellar_halo_share is not None:
+        if not full:
+            raise ValueError(f"a galaxy of {mass:.3g} solar masses of stars has no stellar halo to pin "
+                             f"(none under {dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR:.3g})")
+        halo = stellar_halo_share
+    elif full:
+        halo = halo_ratio_median(mass) * 10.0 ** _scatter(_stream(galaxy_seed, "halo"), HALO_RATIO_SCATTER_DEX)
+        halo = min(max(halo, HALO_RATIO_RANGE[0]), HALO_RATIO_RANGE[1])
+    else:
+        halo = 0.0
 
     gas = GAS_DISPERSION_KMS[0] + _scatter(_stream(galaxy_seed, "gas-dispersion"), GAS_DISPERSION_KMS[1])
     centre_over_v, relative = DISC_CENTRAL_DISPERSION_OVER_V
@@ -197,16 +214,20 @@ def draw_structure(galaxy_seed):
     exponent = DISC_AGE_EXPONENT[0] + _scatter(_stream(galaxy_seed, "disc-heating"), DISC_AGE_EXPONENT[1])
     bulge_scatter = _scatter(_stream(galaxy_seed, "bulge-dispersion"), BULGE_DISPERSION_SCATTER_DEX)
     bar = draw_bar(galaxy_seed, mass)
+    if not full:
+        bar = (False, *bar[1:])
     from planetgen.galaxy import shape_draw   # the stage is drawn there (a late import: shape_draw imports this module)
-    classical = shape_draw.stage_of(galaxy_seed) == "early"
+    classical = shape_draw.stage_of(galaxy_seed, stellar_mass_solar) == "early"
     black_hole = _scatter(_stream(galaxy_seed, "black-hole"), 1.0)
     if _stream(galaxy_seed, "nucleation").random() < nucleation_fraction(mass):
         slope = _stream(galaxy_seed, "nuclear-slope").uniform(*NUCLEAR_CLUSTER_SLOPE_RANGE)
         cluster = nuclear_cluster_mass_solar(mass, slope, _scatter(_stream(galaxy_seed, "nuclear-cluster"), 1.0))
     else:
         cluster = 0.0
+    if not full:
+        cluster = 0.0      # and with it the nuclear disc, which is a multiple of the cluster
     black_holes = draw_black_hole_shares(galaxy_seed)
-    unbound = draw_neutron_star_unbound_share(galaxy_seed)
+    unbound = draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar)
     return Structure(
         vc_kms=vc, thick_mass_ratio=mass_ratio, thick_length_ratio=length_ratio, thick_height_ratio=height_ratio,
         bar_present=bar[0], bar_axis_ratio_y=bar[1], bar_axis_ratio_z=bar[2], bar_angle_deg=bar[3],
@@ -219,12 +240,13 @@ def draw_structure(galaxy_seed):
         neutron_star_unbound_share=unbound)
 
 
-def draw_neutron_star_unbound_share(galaxy_seed):
+def draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar=None):
     """The share of the neutron stars the galaxy forms that its kicks eject (GEN.554, `galaxy.natal_kick`): the natal kick
-    law against the escape speed of the seed's halo, stars and disc, the disc's scale length the one the seed draws (a
-    shape that fixes its own scale length keeps this share)."""
+    law against the escape speed of the seed's halo (none under the halo threshold), stars and disc, the disc's scale
+    length the one the seed draws (a shape that fixes its own scale length keeps this share). A pinned stellar mass
+    replaces the seed's."""
     from planetgen.galaxy import natal_kick, shape_draw   # shape_draw imports this module
-    chain = mass_chain.draw_mass_chain(galaxy_seed or mass_chain.FALLBACK_SEED)
+    chain = mass_chain.draw_mass_chain(galaxy_seed or mass_chain.FALLBACK_SEED, stellar_mass_solar)
     seed = galaxy_seed or mass_chain.FALLBACK_SEED
     length_kpc = shape_draw.drawn_disk_scale_length_pc(seed, chain.stellar_mass_solar) / 1000.0
     return natal_kick.neutron_star_unbound_share(chain, draw_circular_speed_kms(seed, chain.stellar_mass_solar), length_kpc)

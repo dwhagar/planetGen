@@ -1107,16 +1107,16 @@ def _fake_args_for_direct_generation(mysql_config):
 # ---------------------------------------------------------------------------
 
 REFERENCE_SHAPE_ARGV = [
-    "--disk-scale-length", "2600pc", "--disk-scale-height-pc", "300",
-    "--bulge-scale-radius-pc", "1580", "--bulge-amplitude", "3.11", "--arm-count", "2", "--pitch-angle-deg", "15",
+    "--disk-scale-length", "2600pc", "--flatness", "8.667",
+    "--bulge-size", "0.6077", "--bulge-share", "0.595", "--arm-count", "2", "--pitch-angle-deg", "15",
 ]
 """list: The Milky Way's published shape as `planetgen plan` options. A plan draws its shape from the seed (GEN.401);
 a test whose counts were written for one galaxy's density pins this one."""
 
 _PLAN_SHAPE_ARGV = [
-    "--disk-scale-length", "40pc", "--disk-scale-height-pc", "12",
-    "--bulge-scale-radius-pc", "10", "--bulge-amplitude", "2.0",
-    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-density", "1.4", "--interarm-density", "0.6",
+    "--disk-scale-length", "40pc", "--flatness", "3.333",
+    "--bulge-size", "0.25", "--bulge-share", "0.0245",
+    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-contrast", "0.4",
 ]
 """list: The same shape `_SKELETON_SHAPE` above is built from, expressed as
 `planetgen plan` CLI args instead -- a small, fast-to-scan toy galaxy
