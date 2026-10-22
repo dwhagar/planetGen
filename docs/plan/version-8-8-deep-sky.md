@@ -37,10 +37,9 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) |  | Split from GEN.209. Core 1 owns migrations. |
-| GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill | DB.61 | Split from GEN.209. |
+| GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill |  | Split from GEN.209. |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | GEN.359 | Split from GEN.209. |
-| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | DB.61, GEN.359, MAP.224 |  |
+| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | GEN.359, MAP.224 |  |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) |  | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.248 | Tidal streams as placed components of the halo (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |

@@ -68,14 +68,12 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | GEN.57, DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests |  | Split from GEN.136. |
-| DB.49 | Migration only: the leaf digest column and the shell-band tree table |  | Split from GEN.136. Core 1 owns migrations. |
-| GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | GEN.304, DB.49 | Split from GEN.136. |
-| GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | GEN.304, DB.49, GEN.305 | Research follow-up to GEN.58 (built). |
+| GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | GEN.304 | Split from GEN.136. |
+| GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | GEN.304, GEN.305 | Research follow-up to GEN.58 (built). |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | GEN.304 | Split from OPS.28. |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.57 | Split from OPS.28. |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
 | OPS.15 | Each update says whether it changes generated output |  | Needs the fingerprint, so phase 2. |
-| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns |  | Research follow-up to DB.7 (built). |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API |  | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
 | TEST.77 | A golden-seed regression test | GEN.304, OPS.57, GEN.57 |  |
@@ -84,8 +82,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.30 | One migration for the per-species environment limits |  |  |
-| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | DB.30 |  |
+| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data |  |  |
 
 ### Description layer
 

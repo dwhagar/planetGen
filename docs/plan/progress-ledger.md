@@ -1039,3 +1039,15 @@ Baseline: PR #1817.
 | GEN.410 | 8.1 | Composition tables |
 | TEST.278 | 8.1 | Bugs and flaky tests |
 | MAP.254 | 8.2 | Viewers and object pages |
+| DB.30 | 8.1 | Tech levels and species |
+| DB.49 | 8.1 | Reproducible galaxies |
+| DB.16 | 8.1 | Reproducible galaxies |
+| DB.36 | 8.6 | Change plans |
+| DB.37 | 8.6 | Aspects |
+| DB.38 | 8.6 | Regions |
+| DB.60 | 8.6 | Regions |
+| DB.39 | 10.0 | Request tables |
+| DB.61 | 8.8 | Clusters and satellites on the map |
+| DB.64 | 8.9 | Sky data |
+| DB.63 | 9.3 | Ships and stations |
+| GEN.379 | 8.3 | Galactic gravity |

@@ -24,9 +24,9 @@ The view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT): the photometry
 | VIEW.14 | Orientation and horizon: the planet's own sky, time of day and twilight | VIEW.12, VIEW.13, VIEW.6, GEN.417, GEN.418 | Split from VIEW.2. |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.11, VIEW.12, VIEW.13, VIEW.14 |  |
 | VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | VIEW.11, VIEW.12, VIEW.13 | Split from VIEW.3. |
-| VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | DB.64, VIEW.4, VIEW.12 | Split from VIEW.3. |
+| VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | VIEW.4, VIEW.12 | Split from VIEW.3. |
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | VIEW.15, VIEW.16 | Split from VIEW.3. |
-| VIEW.3 | Render the view as a PNG, with constellations | VIEW.15, DB.64, VIEW.16, VIEW.17 |  |
+| VIEW.3 | Render the view as a PNG, with constellations | VIEW.15, VIEW.16, VIEW.17 |  |
 | VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | VIEW.2, VIEW.3 | Headline of 9.1 (Boss, 11:42 PM EDT). |
 
 ## Phase 2: The gravity grid
