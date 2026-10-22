@@ -243,8 +243,7 @@
     },
     {
       "epoch": 50,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1915",
       "reason": "A saved binary system stores its tree of orbits: one orbit_nodes row for the pair, its Roche interaction, and the parent node and offset of each star, so a seed's stored rows differ from before (GEN.311, GEN.269)"
     }
   ]
