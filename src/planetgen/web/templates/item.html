@@ -13,6 +13,7 @@
   {% if facts %}{{ facts }}{% else %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
   <p><a href="{{ row_url }}">Show it in the system's list</a> or <a href="{{ system_url }}">open the {{ system_name }} system</a>.</p>
 </section>
+{% include "partials/location.html" %}
 {% if children %}
 <section class="panel" id="item-members" aria-labelledby="item-members-heading">
   <div class="panel-header"><h2 id="item-members-heading">Belonging to it</h2></div>

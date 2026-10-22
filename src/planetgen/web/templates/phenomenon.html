@@ -64,4 +64,8 @@
 {%- if view_kind in ("render", "nebula") %}
 </div></div>
 {%- endif %}
+{% include "partials/location.html" %}
+{%- if contents %}
+{% include "partials/contents.html" %}
+{%- endif %}
 {% endblock %}

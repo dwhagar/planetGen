@@ -1,0 +1,15 @@
+{#- Where an item is (UX.144, web/item_pages.py `location`): the places above it, each a link, and the nebula or supernova
+    remnant it sits inside, or a line saying it sits in none. `location` is `{chain: [{label, url}], inside: {name, url}|None}`. -#}
+<section class="panel" id="location" aria-labelledby="location-heading">
+  <h2 id="location-heading">Location</h2>
+  <ol class="location-chain">
+    {%- for place in location.chain %}
+    <li>{% if place.url %}<a href="{{ place.url }}">{{ place.label }}</a>{% else %}{{ place.label }}{% endif %}</li>
+    {%- endfor %}
+  </ol>
+  {%- if location.inside %}
+  <p>Inside: <a href="{{ location.inside.url }}">{{ location.inside.name }}</a></p>
+  {%- else %}
+  <p>Not inside any nebula or supernova remnant.</p>
+  {%- endif %}
+</section>
