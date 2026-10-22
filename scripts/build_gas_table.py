@@ -7,7 +7,7 @@ Builds the gas and compound constants file (GEN.410) from the atmosphere researc
 
 The file is `src/planetgen/physics/data/gases.json`. The numbers are read from the markdown tables of the research parts
 (`docs/design/atmosphere-composition-parts/`): T1 identity, T2 phase points and T3 heat capacity of part 01, and the
-Rayleigh tables 2.1a and 2.1b of part 02. The names, the choice of which Rayleigh row is adopted for a gas, and the
+Rayleigh tables 2.1a and 2.1b of part 02; part 01 sections 8 (Henry constants) and 9 (viscosity) add two more blocks. The names, the choice of which Rayleigh row is adopted for a gas, and the
 reference temperature of each refractivity fit are typed in below, each with the reason. Nothing is fitted or invented
 here: a number that the tables do not give is `null` and its block says so in its state.
 """
@@ -276,6 +276,65 @@ def build_rayleigh(rows_a, rows_b):
     return out
 
 
+# Species whose solubility the research says grows with pH or dissociation (part 01 section 8); the Henry constant is the physical one only.
+HENRY_DISSOCIATES = ("CO2", "SO2", "NH3", "H2S", "HCl", "HCN")
+
+HENRY_SPREAD_FACTOR = 3.0
+"""float: A compiled range wider than this factor (high over low) makes a Henry entry partly verified."""
+HENRY_DISAGREEMENT_FACTOR = 2.0
+"""float: A NIST median and an independent thermo fit more than this factor apart make a Henry entry partly verified."""
+VISCOSITY_CHECK_PERCENT = 5.0
+"""float: A Chapman-Enskog viscosity within this of the NIST fluid value at 300 K counts as checked (the research: within 2 percent for non-polar gases)."""
+
+
+def build_henry(rows):
+    out = {}
+    for species, nist, d_k, thermo_kh, thermo_d, status in rows:
+        match = re.fullmatch(rf"({NUMBER}) \[({NUMBER})-({NUMBER}), n=(\d+)\]", nist)
+        if not match:
+            raise SystemExit(f"cannot read the Henry cell {nist!r}")
+        kh, low, high, count = float(match.group(1)), float(match.group(2)), float(match.group(3)), int(match.group(4))
+        reasons = []
+        if count == 1:
+            reasons.append("one compiled value")
+        if high / low > HENRY_SPREAD_FACTOR:
+            reasons.append(f"the compiled values span a factor {high / low:.0f}")
+        ratio = max(kh, float(thermo_kh)) / min(kh, float(thermo_kh))
+        if ratio > HENRY_DISAGREEMENT_FACTOR:
+            reasons.append(f"the NIST median and the thermo fit differ by a factor {ratio:.1f}")
+        out[species] = {
+            "kh_298_mol_kg_bar": kh, "kh_range_mol_kg_bar": [low, high], "kh_n": count, "d_k": float(d_k),
+            "thermo_kh_298_mol_kg_bar": float(thermo_kh), "thermo_d_k": float(thermo_d),
+            "dissociates": species in HENRY_DISSOCIATES,
+            "research_status": status,
+            "state": "partly verified" if reasons else "verified",
+            "limit": "; ".join(reasons),
+        }
+    return out
+
+
+def build_viscosity(rows):
+    out = {}
+    for species, sigma, epsilon, mu_300, nist_300, diff, status in rows:
+        nist = None if nist_300 == "-" else float(nist_300)
+        difference = None if diff == "-" else float(diff)
+        if species == "H2O":
+            state, limit = "partly verified", ("polar: Chapman-Enskog is 10 percent high and the research gives the NIST value at 300 K "
+                                              "only, no temperature law")
+        elif nist is None:
+            state, limit = "partly verified", "Chapman-Enskog only, not compared with a NIST fluid value"
+        elif abs(difference) > VISCOSITY_CHECK_PERCENT:
+            state, limit = "partly verified", f"Chapman-Enskog is {difference:+.1f} percent from the NIST fluid value at 300 K"
+        else:
+            state, limit = "verified", ""
+        out[species] = {
+            "sigma_angstrom": float(sigma), "epsilon_over_k_k": float(epsilon), "mu_300_research_upa_s": float(mu_300),
+            "nist_300_upa_s": nist, "difference_percent": difference, "polar": species == "H2O",
+            "research_status": status, "state": state, "limit": limit,
+        }
+    return out
+
+
 def state_of(blocks):
     """
     The source state of a row from the status words of its blocks (`{block name: status text}`), in the vocabulary of GEN.472:
@@ -310,6 +369,12 @@ def build():
     phase = build_phase(read_table(PART_01, "| Species | Tt K |"))
     thermal = build_thermal(read_table(PART_01, "| Species | Cp 100 | Cp 300 | Cp 1000 | gamma 300"))
     extras = build_extras(read_table(PART_01, "| Species | M g/mol |"))
+    henry = build_henry(read_table(PART_01, "| Species | kH NIST median"))
+    viscosity = build_viscosity(read_table(PART_01, "| Species | sigma A |"))
+    for name, table in (("Henry", henry), ("viscosity", viscosity)):
+        unknown = [f for f in table if f not in identity and f not in extras]
+        if unknown:
+            raise SystemExit(f"the {name} table names species that are not rows: {unknown}")
     rayleigh = build_rayleigh(read_table(PART_02, "| Gas | sigma 450 nm |"), read_table(PART_02, "| Gas | alpha (A^3) | rho_n | F_K"))
 
     gases = []
@@ -334,20 +399,26 @@ def build():
         if formula in rayleigh:
             row["rayleigh"] = rayleigh[formula]
             row["rayleigh"]["state"], row["rayleigh"]["limit"] = rayleigh_state(rayleigh[formula])
+        if formula in henry:
+            row["henry"] = henry[formula]
+        if formula in viscosity:
+            row["viscosity"] = viscosity[formula]
         blocks = {name: row[key] for name, key in (("identity", "identity_status"), ("phase points", "phase_status"),
                                                    ("heat capacity", "thermal_status")) if row.get(key)}
         state, limit = state_of(blocks)
         row["state"] = state
         row["limit"] = limit
         row["source"] = (f"docs/design/atmosphere-composition-parts/{PART_01} T1, T2, T3 (section 5 for the species it adds)"
-                         + (f" and {PART_02} table 2.1" if formula in rayleigh else ""))
+                         + (f" and {PART_02} table 2.1" if formula in rayleigh else "")
+                         + (f"; {PART_01} section 8" if formula in henry else "")
+                         + (f"; {PART_01} section 9" if formula in viscosity else ""))
         row["licence"] = "open"
         gases.append(row)
 
     return {
         "retrieved": RETRIEVED,
         "licence": "open",
-        "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering (GEN.410)",
+        "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity (GEN.410)",
         "sources": [
             "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, "
             "cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
@@ -361,7 +432,8 @@ def build():
                   "NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass "
                   "in the file is the research part's, kept for the audit; the loader computes the working value from "
                   "`physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the "
-                  "temperature the refractivity fit was made at (GEN.408)."),
+                  "temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K "
+                  "with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K)."),
         "gases": gases,
     }
 

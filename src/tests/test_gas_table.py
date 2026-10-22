@@ -132,6 +132,86 @@ def test_the_gases_whose_numbers_are_not_found_stay_marked():
     assert gases.gas("N2").rayleigh.state == "verified"
 
 
+def test_the_henry_law_returns_the_tabulated_value_at_298_and_follows_d():
+    for row in gases.GASES:
+        if row.henry is None:
+            continue
+        assert row.henry.kh(298.15) == pytest.approx(row.henry.kh_298, rel=1e-12)
+        assert row.henry.kh_range[0] <= row.henry.kh_298 <= row.henry.kh_range[1] or row.formula == "O3"
+    co2 = gases.gas("CO2").henry
+    # kH(T) = kH(298.15) exp(d (1/T - 1/298.15)): CO2 is about 2.4 times more soluble at 273.15 K (d = 2400 K).
+    assert co2.kh(273.15) == pytest.approx(0.034 * 2.718281828 ** (2400 * (1 / 273.15 - 1 / 298.15)), rel=1e-6)
+    assert co2.kh(273.15) > co2.kh(298.15) > co2.kh(323.15)
+    assert co2.dissociates and not gases.gas("N2").henry.dissociates
+
+
+def test_the_henry_law_is_refused_outside_the_range_the_research_gives():
+    with pytest.raises(gases.NoData, match="273.15"):
+        gases.gas("CO2").henry.kh(400.0)
+    with pytest.raises(gases.NoData):
+        gases.gas("CO2").henry.kh(200.0)
+
+
+def test_the_henry_entries_name_where_the_sources_disagree():
+    assert gases.gas("N2").henry.state == "verified"
+    assert gases.gas("H2S").henry.state == "partly verified" and "factor" in gases.gas("H2S").henry.limit
+    assert gases.gas("PH3").henry.state == "partly verified" and "one compiled value" in gases.gas("PH3").henry.limit
+    assert gases.gas("HCl").henry.state == "partly verified"
+
+
+def test_every_henry_species_is_a_row_with_the_research_count():
+    assert sum(1 for row in gases.GASES if row.henry) == 35
+    assert sum(1 for row in gases.GASES if row.viscosity) == 38
+
+
+def test_chapman_enskog_reproduces_the_research_viscosities_at_300_k():
+    checked = 0
+    for row in gases.GASES:
+        if row.viscosity is None or row.viscosity.polar:
+            continue
+        assert row.viscosity_upa_s(300.0) == pytest.approx(row.viscosity.research_mu_300_upa_s, abs=0.011), row.formula
+        checked += 1
+    assert checked == 37
+
+
+def test_the_viscosity_agrees_with_nist_where_the_research_compared_it():
+    for formula, nist in (("N2", 17.88), ("Ar", 22.72), ("CO2", 14.99), ("CH4", 11.12)):
+        assert gases.gas(formula).viscosity_upa_s(300.0) == pytest.approx(nist, rel=0.02)
+    assert gases.gas("N2").viscosity.state == "verified"
+    assert gases.gas("NO").viscosity.state == "partly verified" and "NIST" in gases.gas("NO").viscosity.limit
+
+
+def test_the_viscosity_rises_with_temperature_for_a_gas_and_refuses_water_vapor():
+    assert gases.gas("N2").viscosity_upa_s(600.0) > gases.gas("N2").viscosity_upa_s(300.0)
+    with pytest.raises(gases.NoData, match="polar"):
+        gases.gas("H2O").viscosity_upa_s(300.0)
+    assert gases.gas("H2O").viscosity.nist_300_upa_s == 9.77
+    assert gases.gas("H2O").viscosity.state == "partly verified"
+
+
+def test_the_viscosity_is_refused_outside_the_neufeld_range_and_for_a_gas_without_constants():
+    with pytest.raises(gases.NoData, match="Neufeld"):
+        gases.gas("N2").viscosity_upa_s(1.0)
+    with pytest.raises(gases.NoData, match="no viscosity constants"):
+        gases.gas("Na").viscosity_upa_s(1000.0)
+
+
+def test_the_loader_refuses_a_henry_or_viscosity_entry_that_is_not_physical(broken):
+    def zero_henry(data):
+        next(row for row in data["gases"] if row["formula"] == "CO2")["henry"]["kh_298_mol_kg_bar"] = 0.0
+
+    def zero_sigma(data):
+        next(row for row in data["gases"] if row["formula"] == "N2")["viscosity"]["sigma_angstrom"] = 0.0
+
+    def partly_without_limit(data):
+        entry = next(row for row in data["gases"] if row["formula"] == "N2")["viscosity"]
+        entry["state"], entry["limit"] = "partly verified", ""
+
+    for edit in (zero_henry, zero_sigma, partly_without_limit):
+        with pytest.raises(DataError):
+            broken(edit)()
+
+
 # --- The loader refuses a file or a row that does not say where it comes from -------------------------------------
 
 @pytest.fixture

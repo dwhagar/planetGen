@@ -1,13 +1,13 @@
 {
  "retrieved": "2026-10-17",
  "licence": "open",
- "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering (GEN.410)",
+ "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity (GEN.410)",
  "sources": [
   "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
   "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02"
  ],
  "licence_note": "Boss, 2026-10-17, 2:35 PM EDT: every paper and dataset acquired is usable; the raw tables are not redistributed and the licence column is a record. NIST SRD is copyrighted (permission noted in body-composition part G4); PubChem and USGS are public domain; 'open' means none was found.",
- "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408).",
+ "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K).",
  "gases": [
   {
    "formula": "H2",
@@ -73,9 +73,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00078,
+    "kh_range_mol_kg_bar": [
+     0.00078,
+     0.00078
+    ],
+    "kh_n": 4,
+    "d_k": 500.0,
+    "thermo_kh_298_mol_kg_bar": 0.000782,
+    "thermo_d_k": 560.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.827,
+    "epsilon_over_k_k": 59.7,
+    "mu_300_research_upa_s": 8.89,
+    "nist_300_upa_s": 8.94,
+    "difference_percent": -0.6,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -198,9 +224,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.000375,
+    "kh_range_mol_kg_bar": [
+     0.00037,
+     0.00038
+    ],
+    "kh_n": 2,
+    "d_k": 226.0,
+    "thermo_kh_298_mol_kg_bar": 0.00039,
+    "thermo_d_k": 135.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.551,
+    "epsilon_over_k_k": 10.22,
+    "mu_300_research_upa_s": 20.23,
+    "nist_300_upa_s": 19.93,
+    "difference_percent": 1.5,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -322,9 +374,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00045,
+    "kh_range_mol_kg_bar": [
+     0.00045,
+     0.00045
+    ],
+    "kh_n": 2,
+    "d_k": 490.0,
+    "thermo_kh_298_mol_kg_bar": 0.000457,
+    "thermo_d_k": 488.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.82,
+    "epsilon_over_k_k": 32.8,
+    "mu_300_research_upa_s": 31.24,
+    "nist_300_upa_s": 31.84,
+    "difference_percent": -1.9,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -391,9 +469,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0014,
+    "kh_range_mol_kg_bar": [
+     0.0014,
+     0.0014
+    ],
+    "kh_n": 2,
+    "d_k": 1300.0,
+    "thermo_kh_298_mol_kg_bar": 0.0014,
+    "thermo_d_k": 1621.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.542,
+    "epsilon_over_k_k": 93.3,
+    "mu_300_research_upa_s": 22.82,
+    "nist_300_upa_s": 22.72,
+    "difference_percent": 0.4,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -460,9 +564,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00245,
+    "kh_range_mol_kg_bar": [
+     0.0024,
+     0.0025
+    ],
+    "kh_n": 2,
+    "d_k": 1700.0,
+    "thermo_kh_298_mol_kg_bar": 0.00199,
+    "thermo_d_k": 1840.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.655,
+    "epsilon_over_k_k": 178.9,
+    "mu_300_research_upa_s": 25.24,
+    "nist_300_upa_s": 25.45,
+    "difference_percent": -0.8,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -529,9 +659,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0043,
+    "kh_range_mol_kg_bar": [
+     0.0043,
+     0.0043
+    ],
+    "kh_n": 2,
+    "d_k": 2050.0,
+    "thermo_kh_298_mol_kg_bar": 0.0045,
+    "thermo_d_k": 2386.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.047,
+    "epsilon_over_k_k": 231.0,
+    "mu_300_research_upa_s": 23.09,
+    "nist_300_upa_s": 23.15,
+    "difference_percent": -0.2,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -584,9 +740,24 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "COMPUTED",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0093,
+    "kh_range_mol_kg_bar": [
+     0.0093,
+     0.0093
+    ],
+    "kh_n": 1,
+    "d_k": 2600.0,
+    "thermo_kh_298_mol_kg_bar": 0.00893,
+    "thermo_d_k": 2983.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "one compiled value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
    "licence": "open"
   },
   {
@@ -653,9 +824,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.000625,
+    "kh_range_mol_kg_bar": [
+     0.0006,
+     0.00065
+    ],
+    "kh_n": 2,
+    "d_k": 1300.0,
+    "thermo_kh_298_mol_kg_bar": 0.000628,
+    "thermo_d_k": 1427.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.798,
+    "epsilon_over_k_k": 71.4,
+    "mu_300_research_upa_s": 17.7,
+    "nist_300_upa_s": 17.88,
+    "difference_percent": -1.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -722,9 +919,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0013,
+    "kh_range_mol_kg_bar": [
+     0.0012,
+     0.0013
+    ],
+    "kh_n": 6,
+    "d_k": 1700.0,
+    "thermo_kh_298_mol_kg_bar": 0.00128,
+    "thermo_d_k": 1602.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.467,
+    "epsilon_over_k_k": 106.7,
+    "mu_300_research_upa_s": 20.57,
+    "nist_300_upa_s": 20.63,
+    "difference_percent": -0.3,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -791,9 +1014,24 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0115,
+    "kh_range_mol_kg_bar": [
+     0.0088,
+     0.013
+    ],
+    "kh_n": 10,
+    "d_k": 2400.0,
+    "thermo_kh_298_mol_kg_bar": 0.00155,
+    "thermo_d_k": 2413.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the NIST median and the thermo fit differ by a factor 7.4"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8",
    "licence": "open"
   },
   {
@@ -864,9 +1102,20 @@
     "state": "partly verified",
     "limit": "reference temperature of the refractivity unknown: the generic value is 9 to 21 percent above the n-based 3.11e-27 or 2.80e-27 at 550 nm"
    },
+   "viscosity": {
+    "sigma_angstrom": 2.641,
+    "epsilon_over_k_k": 809.1,
+    "mu_300_research_upa_s": 10.76,
+    "nist_300_upa_s": 9.77,
+    "difference_percent": 10.1,
+    "polar": true,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "polar: Chapman-Enskog is 10 percent high and the research gives the NIST value at 300 K only, no temperature law"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -967,9 +1216,35 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 89500.0,
+    "kh_range_mol_kg_bar": [
+     69000.0,
+     140000.0
+    ],
+    "kh_n": 8,
+    "d_k": 7300.0,
+    "thermo_kh_298_mol_kg_bar": 90200.0,
+    "thermo_d_k": 6973.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.196,
+    "epsilon_over_k_k": 289.3,
+    "mu_300_research_upa_s": 9.8,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1039,9 +1314,35 @@
     "state": "partly verified",
     "limit": "second-hand form, no measurement reached"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00095,
+    "kh_range_mol_kg_bar": [
+     0.00086,
+     0.0074
+    ],
+    "kh_n": 5,
+    "d_k": 1300.0,
+    "thermo_kh_298_mol_kg_bar": 0.00101,
+    "thermo_d_k": 1503.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 9"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.69,
+    "epsilon_over_k_k": 91.7,
+    "mu_300_research_upa_s": 17.68,
+    "nist_300_upa_s": 17.84,
+    "difference_percent": -0.9,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1111,9 +1412,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.034,
+    "kh_range_mol_kg_bar": [
+     0.031,
+     0.045
+    ],
+    "kh_n": 15,
+    "d_k": 2400.0,
+    "thermo_kh_298_mol_kg_bar": 0.0375,
+    "thermo_d_k": 2357.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.941,
+    "epsilon_over_k_k": 195.2,
+    "mu_300_research_upa_s": 15.18,
+    "nist_300_upa_s": 14.99,
+    "difference_percent": 1.3,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1183,9 +1510,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0014,
+    "kh_range_mol_kg_bar": [
+     0.00097,
+     0.0092
+    ],
+    "kh_n": 10,
+    "d_k": 1750.0,
+    "thermo_kh_298_mol_kg_bar": 0.00159,
+    "thermo_d_k": 1731.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 9"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.758,
+    "epsilon_over_k_k": 148.6,
+    "mu_300_research_upa_s": 11.19,
+    "nist_300_upa_s": 11.12,
+    "difference_percent": 0.6,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1255,9 +1608,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.041,
+    "kh_range_mol_kg_bar": [
+     0.039,
+     0.042
+    ],
+    "kh_n": 3,
+    "d_k": 1800.0,
+    "thermo_kh_298_mol_kg_bar": 0.0584,
+    "thermo_d_k": 1713.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.033,
+    "epsilon_over_k_k": 231.8,
+    "mu_300_research_upa_s": 10.34,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1327,9 +1706,20 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "viscosity": {
+    "sigma_angstrom": 4.163,
+    "epsilon_over_k_k": 224.7,
+    "mu_300_research_upa_s": 10.22,
+    "nist_300_upa_s": 10.36,
+    "difference_percent": -1.4,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1399,9 +1789,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.002,
+    "kh_range_mol_kg_bar": [
+     0.0018,
+     0.011
+    ],
+    "kh_n": 6,
+    "d_k": 2350.0,
+    "thermo_kh_298_mol_kg_bar": 0.00171,
+    "thermo_d_k": 2438.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 6"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.443,
+    "epsilon_over_k_k": 215.7,
+    "mu_300_research_upa_s": 9.46,
+    "nist_300_upa_s": 9.28,
+    "difference_percent": 2.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1451,9 +1867,20 @@
    "latent_heat_vaporisation_source": "NIST EOS table",
    "latent_heat_sublimation_kj_mol": 28.5,
    "thermal_status": "DATA (x)",
+   "viscosity": {
+    "sigma_angstrom": 5.118,
+    "epsilon_over_k_k": 237.1,
+    "mu_300_research_upa_s": 8.27,
+    "nist_300_upa_s": 8.18,
+    "difference_percent": 1.1,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1503,9 +1930,20 @@
    "latent_heat_vaporisation_source": "NIST EOS table",
    "latent_heat_sublimation_kj_mol": 35.9,
    "thermal_status": "DATA (x)",
+   "viscosity": {
+    "sigma_angstrom": 4.687,
+    "epsilon_over_k_k": 531.4,
+    "mu_300_research_upa_s": 7.46,
+    "nist_300_upa_s": 7.45,
+    "difference_percent": 0.1,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1558,9 +1996,35 @@
     53.9
    ],
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.18,
+    "kh_range_mol_kg_bar": [
+     0.12,
+     0.22
+    ],
+    "kh_n": 23,
+    "d_k": 4050.0,
+    "thermo_kh_298_mol_kg_bar": 0.18,
+    "thermo_d_k": 3303.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 5.349,
+    "epsilon_over_k_k": 412.3,
+    "mu_300_research_upa_s": 7.58,
+    "nist_300_upa_s": 7.62,
+    "difference_percent": -0.6,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1630,9 +2094,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 9.3,
+    "kh_range_mol_kg_bar": [
+     7.5,
+     12.0
+    ],
+    "kh_n": 3,
+    "d_k": 5000.0,
+    "thermo_kh_298_mol_kg_bar": 6.56,
+    "thermo_d_k": 4623.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.63,
+    "epsilon_over_k_k": 569.1,
+    "mu_300_research_upa_s": 8.2,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1751,9 +2241,35 @@
    "latent_heat_vaporisation_source": "NIST EOS table",
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA (x)",
+   "henry": {
+    "kh_298_mol_kg_bar": 220.0,
+    "kh_range_mol_kg_bar": [
+     140.0,
+     230.0
+    ],
+    "kh_n": 7,
+    "d_k": 5400.0,
+    "thermo_kh_298_mol_kg_bar": 47.3,
+    "thermo_d_k": 5275.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the NIST median and the thermo fit differ by a factor 4.7"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.626,
+    "epsilon_over_k_k": 481.8,
+    "mu_300_research_upa_s": 9.74,
+    "nist_300_upa_s": 9.72,
+    "difference_percent": 0.2,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1820,9 +2336,35 @@
     "state": "partly verified",
     "limit": "King factor assumed 1.00 (not found)"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 58.0,
+    "kh_range_mol_kg_bar": [
+     10.0,
+     78.0
+    ],
+    "kh_n": 15,
+    "d_k": 4100.0,
+    "thermo_kh_298_mol_kg_bar": 52.5,
+    "thermo_d_k": 3256.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 8"
+   },
+   "viscosity": {
+    "sigma_angstrom": 2.9,
+    "epsilon_over_k_k": 558.3,
+    "mu_300_research_upa_s": 10.3,
+    "nist_300_upa_s": 10.18,
+    "difference_percent": 1.1,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1944,9 +2486,35 @@
     "state": "verified",
     "limit": ""
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.025,
+    "kh_range_mol_kg_bar": [
+     0.024,
+     0.026
+    ],
+    "kh_n": 7,
+    "d_k": 2650.0,
+    "thermo_kh_298_mol_kg_bar": 0.0219,
+    "thermo_d_k": 2683.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.828,
+    "epsilon_over_k_k": 232.4,
+    "mu_300_research_upa_s": 14.9,
+    "nist_300_upa_s": 14.9,
+    "difference_percent": 0.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -1996,9 +2564,35 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0019,
+    "kh_range_mol_kg_bar": [
+     0.0014,
+     0.0019
+    ],
+    "kh_n": 5,
+    "d_k": 1500.0,
+    "thermo_kh_298_mol_kg_bar": 0.00166,
+    "thermo_d_k": 1446.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.492,
+    "epsilon_over_k_k": 116.7,
+    "mu_300_research_upa_s": 19.14,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -2048,9 +2642,24 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.024,
+    "kh_range_mol_kg_bar": [
+     0.007,
+     0.041
+    ],
+    "kh_n": 7,
+    "d_k": 2150.0,
+    "thermo_kh_298_mol_kg_bar": 0.0123,
+    "thermo_d_k": 2377.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 6"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
    "licence": "open"
   },
   {
@@ -2152,9 +2761,24 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 210000.0,
+    "kh_range_mol_kg_bar": [
+     89000.0,
+     210000.0
+    ],
+    "kh_n": 3,
+    "d_k": 8700.0,
+    "thermo_kh_298_mol_kg_bar": 222000.0,
+    "thermo_d_k": 8750.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
    "licence": "open"
   },
   {
@@ -2351,9 +2975,20 @@
     34.4
    ],
    "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 4.361,
+    "epsilon_over_k_k": 348.6,
+    "mu_300_research_upa_s": 10.18,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -2556,9 +3191,35 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": 17.2,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0081,
+    "kh_range_mol_kg_bar": [
+     0.0081,
+     0.0081
+    ],
+    "kh_n": 1,
+    "d_k": 2000.0,
+    "thermo_kh_298_mol_kg_bar": 0.00616,
+    "thermo_d_k": 2871.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "one compiled value"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.981,
+    "epsilon_over_k_k": 251.5,
+    "mu_300_research_upa_s": 11.67,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -2628,9 +3289,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.1,
+    "kh_range_mol_kg_bar": [
+     0.001,
+     0.1
+    ],
+    "kh_n": 9,
+    "d_k": 2150.0,
+    "thermo_kh_298_mol_kg_bar": 0.0952,
+    "thermo_d_k": 1976.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 100"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.623,
+    "epsilon_over_k_k": 301.1,
+    "mu_300_research_upa_s": 12.89,
+    "nist_300_upa_s": 12.45,
+    "difference_percent": 3.5,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -2697,9 +3384,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 1.2,
+    "kh_range_mol_kg_bar": [
+     1.2,
+     1.5
+    ],
+    "kh_n": 14,
+    "d_k": 3100.0,
+    "thermo_kh_298_mol_kg_bar": 2.26,
+    "thermo_d_k": 2853.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.112,
+    "epsilon_over_k_k": 335.4,
+    "mu_300_research_upa_s": 12.97,
+    "nist_300_upa_s": 12.97,
+    "difference_percent": -0.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -2870,9 +3583,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 0.021,
+    "kh_range_mol_kg_bar": [
+     0.015,
+     0.033
+    ],
+    "kh_n": 9,
+    "d_k": 3300.0,
+    "thermo_kh_298_mol_kg_bar": 0.00324,
+    "thermo_d_k": 2787.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the NIST median and the thermo fit differ by a factor 6.5"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.13,
+    "epsilon_over_k_k": 336.0,
+    "mu_300_research_upa_s": 12.43,
+    "nist_300_upa_s": 12.45,
+    "difference_percent": -0.2,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -2922,9 +3661,35 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.055,
+    "kh_range_mol_kg_bar": [
+     0.044,
+     0.075
+    ],
+    "kh_n": 5,
+    "d_k": 3400.0,
+    "thermo_kh_298_mol_kg_bar": 0.0352,
+    "thermo_d_k": 3351.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.483,
+    "epsilon_over_k_k": 467.0,
+    "mu_300_research_upa_s": 9.98,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3164,9 +3929,24 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.55,
+    "kh_range_mol_kg_bar": [
+     0.08,
+     0.7
+    ],
+    "kh_n": 11,
+    "d_k": 3500.0,
+    "thermo_kh_298_mol_kg_bar": 0.587,
+    "thermo_d_k": 3611.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 9"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
    "licence": "open"
   },
   {
@@ -3236,9 +4016,35 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "henry": {
+    "kh_298_mol_kg_bar": 19.5,
+    "kh_range_mol_kg_bar": [
+     1.1,
+     2500.0
+    ],
+    "kh_n": 6,
+    "d_k": 2000.0,
+    "thermo_kh_298_mol_kg_bar": 6.05,
+    "thermo_d_k": 1521.0,
+    "dissociates": true,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 2273; the NIST median and the thermo fit differ by a factor 3.2"
+   },
+   "viscosity": {
+    "sigma_angstrom": 3.339,
+    "epsilon_over_k_k": 344.7,
+    "mu_300_research_upa_s": 14.62,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3288,9 +4094,20 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 3.148,
+    "epsilon_over_k_k": 330.0,
+    "mu_300_research_upa_s": 12.47,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3340,9 +4157,35 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA (x)",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.088,
+    "kh_range_mol_kg_bar": [
+     0.061,
+     0.095
+    ],
+    "kh_n": 6,
+    "d_k": 2550.0,
+    "thermo_kh_298_mol_kg_bar": 0.0937,
+    "thermo_d_k": 2360.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.217,
+    "epsilon_over_k_k": 316.0,
+    "mu_300_research_upa_s": 13.38,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3392,9 +4235,35 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": 31.6,
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.11,
+    "kh_range_mol_kg_bar": [
+     0.029,
+     0.13
+    ],
+    "kh_n": 11,
+    "d_k": 2900.0,
+    "thermo_kh_298_mol_kg_bar": 0.0806,
+    "thermo_d_k": 2560.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "the compiled values span a factor 4"
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.182,
+    "epsilon_over_k_k": 350.0,
+    "mu_300_research_upa_s": 10.88,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3444,9 +4313,20 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 3.353,
+    "epsilon_over_k_k": 449.0,
+    "mu_300_research_upa_s": 18.77,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3551,9 +4431,35 @@
     17.0
    ],
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.0002,
+    "kh_range_mol_kg_bar": [
+     0.00019,
+     0.00021
+    ],
+    "kh_n": 4,
+    "d_k": 1650.0,
+    "thermo_kh_298_mol_kg_bar": 0.000221,
+    "thermo_d_k": 971.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "viscosity": {
+    "sigma_angstrom": 4.662,
+    "epsilon_over_k_k": 134.0,
+    "mu_300_research_upa_s": 17.62,
+    "nist_300_upa_s": 17.29,
+    "difference_percent": 1.9,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3606,9 +4512,35 @@
     23.3
    ],
    "thermal_status": "DATA",
+   "henry": {
+    "kh_298_mol_kg_bar": 0.00024,
+    "kh_range_mol_kg_bar": [
+     0.00024,
+     0.00024
+    ],
+    "kh_n": 1,
+    "d_k": 2400.0,
+    "thermo_kh_298_mol_kg_bar": 0.00021,
+    "thermo_d_k": 2745.0,
+    "dissociates": false,
+    "research_status": "DATA",
+    "state": "partly verified",
+    "limit": "one compiled value"
+   },
+   "viscosity": {
+    "sigma_angstrom": 5.128,
+    "epsilon_over_k_k": 222.1,
+    "mu_300_research_upa_s": 15.45,
+    "nist_300_upa_s": 15.29,
+    "difference_percent": 1.0,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {
@@ -3658,9 +4590,20 @@
    "latent_heat_vaporisation_source": "CRC",
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "viscosity": {
+    "sigma_angstrom": 4.084,
+    "epsilon_over_k_k": 207.6,
+    "mu_300_research_upa_s": 11.77,
+    "nist_300_upa_s": null,
+    "difference_percent": null,
+    "polar": false,
+    "research_status": "COMPUTED",
+    "state": "partly verified",
+    "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
    "licence": "open"
   },
   {

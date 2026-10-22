@@ -7,7 +7,8 @@ The gases and compounds that can be in an atmosphere (GEN.410, docs/design/atmos
 The one constants table of the gases and volatile compounds the atmosphere chain reads: formula, name, CAS number, molar
 mass, the flags that decide what a gas does (infrared absorber, near-ultraviolet absorber, volatility class), the lowest
 photolysis threshold, triple, boiling and critical points, ideal-gas heat capacity at 100, 300 and 1000 K, latent heats,
-and the Rayleigh cross section with the reference temperature its refractivity fit was made at. Every row says where it
+the Rayleigh cross section with the reference temperature its refractivity fit was made at, the Henry constant of the
+gases that dissolve in water and the Lennard-Jones constants that give the viscosity. Every row says where it
 comes from (`source`), under what licence (`licence`, `"open"` where none is found) and how far it is checked (`state`:
 `verified`, `partly verified` with its `limit`, `open`). It is a constants table and not a possibility table
 (`generation/possibility_table.py`): it has no weights and no class gate; the recipes that weight these gases (GEN.411,
@@ -20,12 +21,14 @@ mass of the research part that is more than 0.01 g/mol from the sum of the eleme
 
 Units: molar mass in kg/mol (computed here from `physics.elements`; the research part's own figure is `research_molar_mass`),
 temperatures in K, pressures in Pa, heat capacity in J/(mol K), latent heat in kJ/mol, Rayleigh cross section in cm2 per
-molecule (the unit the optics tables are published in). A number the research does not give is `None`.
+molecule (the unit the optics tables are published in), Henry constants in mol/(kg bar), viscosity in uPa s. A number the research does not give is `None`.
 
 Use:
 
     gas("CO2").molar_mass            # kg/mol
     gas("CO2").rayleigh.sigma_cm2[550]
+    gas("CO2").henry.kh(288.15)      # mol/(kg bar), 273.15 to 323.15 K only
+    gas("N2").viscosity_upa_s(300)   # Chapman-Enskog, the non-polar gases
     stored("h2o")                    # the row of a stored partial (O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2)
     GASES                            # every row, in the research table's order
 """
@@ -51,6 +54,13 @@ STORED_PARTIALS = ("o2", "co2", "co", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so
 _IR = (None, "none", "cia", "weak", "ir")
 _VOLATILITY = (None, "UV", "SV", "V", "SmV", "Ref")
 _WAVELENGTHS = (450, 550, 650)
+
+HENRY_REFERENCE_K = 298.15
+"""float: The temperature the Henry constants are tabulated at."""
+HENRY_RANGE_K = (273.15, 323.15)
+"""tuple: The temperatures the research gives the Henry temperature law for (dilute physical solubility)."""
+NEUFELD_RANGE = (0.3, 100.0)
+"""tuple: The reduced temperatures kT/epsilon the Neufeld collision integral fit is written for."""
 
 
 @dataclass(frozen=True)
@@ -81,6 +91,80 @@ class Rayleigh:
     research_row: str
 
 
+class NoData(ValueError):
+    """A property the table has no law for at the temperature asked, or for the gas."""
+
+
+@dataclass(frozen=True)
+class Henry:
+    """
+    The Henry constant of one gas in water (part 01 section 8): `kH(T) = kH(298.15 K) exp(d (1/T - 1/298.15))`.
+
+    Attributes:
+        kh_298 (float): mol/(kg bar) at 298.15 K, the median of the NIST WebBook compilation (Sander 2015).
+        kh_range (tuple): The lowest and highest compiled values, and `kh_n` how many there are.
+        d_k (float): -dln kH/d(1/T), K, the compilation's median.
+        thermo_kh_298, thermo_d_k (float): The independent fit of the `thermo` package, for the audit.
+        dissociates (bool): The gas dissolves more with pH or dissociation (CO2, SO2, NH3, H2S, HCl, HCN); the constant is the
+            physical solubility only.
+        state (str): One of `STATES`.
+        limit (str): For a partly verified entry, the limit.
+    """
+
+    kh_298: float
+    kh_range: tuple
+    kh_n: int
+    d_k: float
+    thermo_kh_298: float
+    thermo_d_k: float
+    dissociates: bool
+    state: str
+    limit: str
+
+    def kh(self, temperature_k):
+        """
+        The Henry constant at `temperature_k`, mol/(kg bar).
+
+        Raises:
+            NoData: The temperature is outside 273.15 to 323.15 K, where the research gives the law.
+        """
+        if not HENRY_RANGE_K[0] <= temperature_k <= HENRY_RANGE_K[1]:
+            raise NoData(f"the Henry law is given for {HENRY_RANGE_K[0]} to {HENRY_RANGE_K[1]} K, not {temperature_k} K")
+        return self.kh_298 * math.exp(self.d_k * (1.0 / temperature_k - 1.0 / HENRY_REFERENCE_K))
+
+
+@dataclass(frozen=True)
+class Viscosity:
+    """
+    The constants that give the dilute-gas viscosity of one gas (part 01 section 9).
+
+    Attributes:
+        sigma_angstrom (float): Lennard-Jones collision diameter.
+        epsilon_over_k (float): Lennard-Jones well depth over Boltzmann's constant, K.
+        research_mu_300_upa_s (float): The research part's own Chapman-Enskog value at 300 K (the test checks the formula against it).
+        nist_300_upa_s (float or None): The NIST fluid value at 300 K, where one was read.
+        difference_percent (float or None): The research part's Chapman-Enskog against NIST at 300 K.
+        polar (bool): The gas is polar and Chapman-Enskog is 10 percent off (water vapour): `Gas.viscosity_upa_s` refuses it.
+        state (str): One of `STATES`.
+        limit (str): For a partly verified entry, the limit.
+    """
+
+    sigma_angstrom: float
+    epsilon_over_k: float
+    research_mu_300_upa_s: float
+    nist_300_upa_s: float | None
+    difference_percent: float | None
+    polar: bool
+    state: str
+    limit: str
+
+
+def _omega22(reduced_temperature):
+    """The Neufeld collision integral of a reduced temperature kT/epsilon (part 01 section 9)."""
+    return (1.16145 * reduced_temperature ** -0.14874 + 0.52487 * math.exp(-0.7732 * reduced_temperature)
+            + 2.16178 * math.exp(-2.43787 * reduced_temperature))
+
+
 @dataclass(frozen=True)
 class Gas:
     """
@@ -106,6 +190,8 @@ class Gas:
         gamma_300 (float or None): Cp/(Cp - R) at 300 K.
         latent_heat_vaporisation_kj_mol, latent_heat_sublimation_kj_mol: A number, a `[low, high]` span, or `None`.
         rayleigh (Rayleigh or None): The Rayleigh entry, for the gases that have one.
+        henry (Henry or None): The Henry constant, for the gases that dissolve in water and were compiled.
+        viscosity (Viscosity or None): The Lennard-Jones constants, for the gases the research tabulates.
         source (str), licence (str), state (str), limit (str): Where the row comes from and how far it is checked.
         statuses (dict): The research part's status word of each block (`identity`, `phase points`, `heat capacity`).
         data (dict): The row as the file holds it, for the columns above that are not named fields.
@@ -134,6 +220,8 @@ class Gas:
     latent_heat_vaporisation_kj_mol: object
     latent_heat_sublimation_kj_mol: object
     rayleigh: Rayleigh | None
+    henry: Henry | None
+    viscosity: Viscosity | None
     source: str
     licence: str
     state: str
@@ -145,6 +233,27 @@ class Gas:
     def is_infrared_active(self):
         """Whether the gas can be a greenhouse gas by its own bands (`ir == "ir"` or `"weak"`)."""
         return self.ir in ("ir", "weak")
+
+    def viscosity_upa_s(self, temperature_k):
+        """
+        The dilute-gas viscosity in uPa s by Chapman-Enskog with the Neufeld collision integral:
+        `mu = 2.6693 sqrt(M T)/(sigma^2 Omega22)`, M in g/mol, T in K, sigma in Angstrom.
+
+        Raises:
+            NoData: The gas has no Lennard-Jones constants, is polar (water vapour: the research gives only the NIST value at
+                300 K), or the reduced temperature kT/epsilon is outside 0.3 to 100.
+        """
+        entry = self.viscosity
+        if entry is None:
+            raise NoData(f"the table has no viscosity constants for {self.formula}")
+        if entry.polar:
+            raise NoData(f"{self.formula} is polar: Chapman-Enskog is 10 percent off and the research has the NIST value at 300 K only "
+                         f"({entry.nist_300_upa_s} uPa s)")
+        reduced = temperature_k / entry.epsilon_over_k
+        if not NEUFELD_RANGE[0] <= reduced <= NEUFELD_RANGE[1]:
+            raise NoData(f"{self.formula} at {temperature_k} K has kT/epsilon {reduced:.3g}, outside the Neufeld fit's "
+                         f"{NEUFELD_RANGE[0]} to {NEUFELD_RANGE[1]}")
+        return 2.6693 * math.sqrt(self.molar_mass * 1000.0 * temperature_k) / (entry.sigma_angstrom ** 2 * _omega22(reduced))
 
 
 def _molar_mass(formula, isotopes):
@@ -169,6 +278,39 @@ def _rayleigh(formula, item):
     except KeyError as exc:
         raise DataError(f"gases.json: {formula} Rayleigh entry lacks {exc}") from None
     _check_state(f"{formula} Rayleigh", entry.state, entry.limit)
+    return entry
+
+
+def _henry(formula, item):
+    if item is None:
+        return None
+    try:
+        low, high = item["kh_range_mol_kg_bar"]
+        entry = Henry(
+            kh_298=float(item["kh_298_mol_kg_bar"]), kh_range=(float(low), float(high)), kh_n=int(item["kh_n"]), d_k=float(item["d_k"]),
+            thermo_kh_298=float(item["thermo_kh_298_mol_kg_bar"]), thermo_d_k=float(item["thermo_d_k"]),
+            dissociates=bool(item["dissociates"]), state=item["state"], limit=item["limit"])
+    except KeyError as exc:
+        raise DataError(f"gases.json: {formula} Henry entry lacks {exc}") from None
+    if not (math.isfinite(entry.kh_298) and entry.kh_298 > 0 and 0 < entry.kh_range[0] <= entry.kh_range[1]):
+        raise DataError(f"gases.json: {formula} Henry constant or its range is not above zero")
+    _check_state(f"{formula} Henry", entry.state, entry.limit)
+    return entry
+
+
+def _viscosity(formula, item):
+    if item is None:
+        return None
+    try:
+        entry = Viscosity(
+            sigma_angstrom=float(item["sigma_angstrom"]), epsilon_over_k=float(item["epsilon_over_k_k"]),
+            research_mu_300_upa_s=float(item["mu_300_research_upa_s"]), nist_300_upa_s=item["nist_300_upa_s"],
+            difference_percent=item["difference_percent"], polar=bool(item["polar"]), state=item["state"], limit=item["limit"])
+    except KeyError as exc:
+        raise DataError(f"gases.json: {formula} viscosity entry lacks {exc}") from None
+    if not (entry.sigma_angstrom > 0 and entry.epsilon_over_k > 0):
+        raise DataError(f"gases.json: {formula} Lennard-Jones constants are not above zero")
+    _check_state(f"{formula} viscosity", entry.state, entry.limit)
     return entry
 
 
@@ -218,6 +360,7 @@ def _load():
             acentric_factor=item.get("acentric_factor"), cp_j_mol_k={k: cp.get(k) for k in (100, 300, 1000)},
             gamma_300=item.get("gamma_300"), latent_heat_vaporisation_kj_mol=item.get("latent_heat_vaporisation_kj_mol"),
             latent_heat_sublimation_kj_mol=item.get("latent_heat_sublimation_kj_mol"), rayleigh=_rayleigh(formula, item.get("rayleigh")),
+            henry=_henry(formula, item.get("henry")), viscosity=_viscosity(formula, item.get("viscosity")),
             source=item["source"], licence=item["licence"], state=item["state"], limit=item.get("limit", ""),
             statuses={name: item[key] for name, key in (("identity", "identity_status"), ("phase points", "phase_status"),
                                                         ("heat capacity", "thermal_status")) if item.get(key)},
