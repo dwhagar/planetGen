@@ -21021,30 +21021,6 @@ clears each one.
   (proposed; a test-flake finding of the TEST.265 family).
   Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
 
-- [ ] **TEST.274 test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it fails on main: _relative_circular_km was removed by #2481 (bug)**
-  Found by Core 5 (relayed 2:25 PM EDT 2026-10-22 as the lane's clock
-  reads, in a gate on main d4d8e68 plus a test-only commit), filed by
-  the TODO thread. Kind: bug, a test import. Test:
-  src/tests/test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it.
-  Failure text: `ImportError: cannot import name '_relative_circular_km'
-  from 'planetgen.physics.body_positions'`. Fails on main: yes, every
-  run, 1 of 20,565 tests (checked: `_relative_circular_km` is no longer
-  in src, the test still imports it at line 207). Cause: #2473 (Core 3's
-  orbital library batch: GEN.341, GEN.334, GEN.345 and others) added the
-  test that imports `_relative_circular_km`, and #2481 (GEN.311 with
-  GEN.269, Blocker 2) removed that function from body_positions.py
-  without updating the test; each PR was green on its own. It fails
-  every lane's gate until fixed. Reproducer: `python3 -m pytest
-  src/tests/test_orbital_limits.py -k far_from_its_epoch`. Do: rewrite
-  the test to call the function that replaced `_relative_circular_km`
-  (the stored-orbit-tree path of `positions_at`) so it still checks that
-  a circular body far from its epoch is where the remainder puts it,
-  with the same expected values; no skip. Done: the test passes on main
-  and a full gate shows it green. Owner: Blocker 2 (proposed; its PR
-  removed the function, and it has no open PR), urgent because every
-  lane's gate fails on it.
-  Prerequisites: none. Related: GEN.311, GEN.341, TEST.273.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
