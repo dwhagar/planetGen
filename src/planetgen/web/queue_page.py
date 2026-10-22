@@ -38,6 +38,11 @@ KIND_LABELS = {
     "phenomena": "Phenomena",
     "population": "Population",
     "plan": "Plan",
+    "scatter": "Scatter",
+    "clear-scatter": "Scatter clear",
+    "fill-map-luminosity": "Map luminosity fill",
+    "rescore-habitability": "Habitability re-score",
+    "clean-nebula-field": "Nebula field clean-up",
     "galaxy": "Galaxy",
     "sector": "Sector",
     "system": "System",
@@ -240,7 +245,9 @@ def _retry_plan(root, node=None):
         return {"kind": job.get("kind") or "galaxy", "title": f"Retry: {job.get('title') or root['title']}",
                 "steps": steps, "database": job.get("database"),
                 "describe": ", then ".join(step["label"] for step in steps)}
-    if root["argv"] and root["kind"] in ("plan", "galaxy", "sector", "population"):
+    if root["argv"] and root["kind"] in ("plan", "scatter", "clear-scatter", "fill-map-luminosity",
+                                                   "rescore-habitability", "clean-nebula-field", "galaxy", "sector",
+                                                   "population"):
         argv = [str(arg) for arg in root["argv"]]
         label = " ".join(["planetgen", *argv])
         return {"kind": root["kind"], "title": f"Retry: {label}"[:200],

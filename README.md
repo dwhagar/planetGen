@@ -174,6 +174,7 @@ unless told otherwise:
 
 ```bash
 planetgen plan         # plan the galaxy's shape (once, before galaxy)
+planetgen scatter      # draw one scatter on the plan: --mass, --luminosity, --phenomena (before galaxy)
 planetgen galaxy       # generate sectors in the galaxy
 planetgen sector       # one or more standalone sectors
 planetgen system       # one star system
@@ -196,8 +197,9 @@ planetgen galaxy --shell 12 --band 0 --wedge 5
 # A span of shells and bands (negative bands lie south of the plane)
 planetgen galaxy --shells 10:12 --bands=-2:2 --limit 500
 
-# A quick test galaxy: plan with fewer pre-placed bright stars
-planetgen plan --bright-star-min-luminosity 5000
+# A quick test galaxy: scatter fewer pre-placed bright stars
+planetgen scatter --mass --bright-star-min-luminosity 5000
+planetgen scatter --luminosity
 
 # A single system with a habitable world, printed as Markdown on request, not saved
 planetgen system +habitable_world --format markdown --output -

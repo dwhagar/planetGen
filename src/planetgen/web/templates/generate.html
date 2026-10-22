@@ -516,10 +516,10 @@
 {% endcall %}
 
 {% call fold("redo-scatters", "Redo scatters") %}
-  <p class="hint">Tick the scatters to redo on the current plan, each with its own new setting. They run as one job,
-  every stage listed, the ones left unticked shown as skipped. A scatter clears and rewrites only its own rows;
-  the others are left as they are. Sectors already generated are always left out. The central black hole or quasar
-  is always created. Needs a plan.</p>
+  <p class="hint">Tick the scatters to redo on the current plan, each with its own new setting. They run as one job:
+  each ticked scatter is cleared, then drawn again; the ones left unticked are left as they are. The bright stars are
+  split from the massive stars at the mass limit, so redoing the massive stars redoes the bright stars with them.
+  Sectors already generated are always left out. The central black hole or quasar is always created. Needs a plan.</p>
   {%- if summary.bright %}
   <p class="hint">{% if summary.bright.scattered %}Now: every star of {{ num(summary.bright.min_luminosity_sol, ",.0f") }}
   solar luminosities or more is placed (seed {{ summary.bright.seed }}).{% else %}No scatter has run on this plan yet.{% endif %}

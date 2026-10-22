@@ -39,7 +39,7 @@ def test_the_old_option_is_gone():
 
 @pytest.mark.db
 def test_a_plan_stops_at_the_edge_and_stores_it_as_a_pin(mysql_config, capsys):
-    run_cli("plan", ["--no-bright-stars", "--edge=40pc", "--nuclear-amplitude", "0", "--seed",
+    run_cli("plan", ["--edge=40pc", "--nuclear-amplitude", "0", "--seed",
                      "00112233445566778899AABBCCDDEEFF"] + mysql_argv(mysql_config))
     out = capsys.readouterr().out
     assert "WARNING: the galactic plane still qualified at the --edge (40pc)" in out
@@ -53,7 +53,7 @@ def test_a_plan_stops_at_the_edge_and_stores_it_as_a_pin(mysql_config, capsys):
 
 @pytest.mark.db
 def test_an_edge_in_scale_lengths_follows_the_disc(mysql_config, capsys):
-    run_cli("plan", ["--no-bright-stars", "--edge=3L", "--disk-scale-length=100pc", "--nuclear-amplitude", "0",
+    run_cli("plan", ["--edge=3L", "--disk-scale-length=100pc", "--nuclear-amplitude", "0",
                      "--seed", "00112233445566778899AABBCCDDEEFF"] + mysql_argv(mysql_config))
     conn = store.get_connection(mysql_config)
     try:

@@ -22,7 +22,7 @@ from tests import test_gen_scatter_tiers as tiers
 from tests.row_digest import count, digest
 from tests.wide_masses import wide_mass
 from tests.test_bright_star_scatter import EXTENTS
-from tests.test_phenomenon_scatter import _plan_args
+from tests.test_phenomenon_scatter import _scatter_args
 
 EDGE_PC = tiers.EDGE_PC
 SHAPE = tiers.SHAPE._replace(structure=structure_draw.draw_structure(bytes([12]) * 16, wide_mass(bytes([12]) * 16)))
@@ -177,7 +177,7 @@ def test_a_plan_scatter_covers_the_reach_and_leaves_the_outline_as_it_was(mysql_
                                 config=mysql_config, cell_star_ceiling=1e12, reach_shell_index=12,
                                 galaxy_seed=PLAN_SEED)
         store.replace_galaxy_shells(EXTENTS, config=mysql_config)
-        summary = run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", "1"))
+        summary = run_plan.scatter_phenomena(_scatter_args(mysql_config, "--workers", "1"))
         conn = store.get_connection(mysql_config)
         try:
             return summary, conn.execute(

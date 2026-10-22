@@ -33,7 +33,7 @@ from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 from tests import worker_patches
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
-from tests.test_bright_star_scatter import EDGE_PC, _plan_args, _seed_galaxy
+from tests.test_bright_star_scatter import EDGE_PC, _scatter_args, _seed_galaxy
 from tests.test_galaxy_gen import _seed_skeleton
 
 
@@ -259,7 +259,7 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
         run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     before = _sector_rows(mysql_config)
 
-    forced = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--force"))
+    forced = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert forced["total"] > 0
     assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
@@ -279,7 +279,7 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
 
     conn = store.get_connection(mysql_config)
     try:
-        assert store.bright_star_scatter_settings(conn)[0] == float(_plan_args(mysql_config).bright_star_min_luminosity)
+        assert store.bright_star_scatter_settings(conn)[0] == float(_scatter_args(mysql_config).bright_star_min_luminosity)
         for address in new:
             sector_id = after[address][0]
             linked = conn.execute(

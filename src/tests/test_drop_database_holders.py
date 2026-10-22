@@ -135,6 +135,10 @@ def test_a_connection_that_reads_a_table_for_a_moment_is_not_ended(server):
 
 def test_a_connection_that_keeps_reading_a_table_is_ended_after_the_gentle_wait(server):
     kwargs, name, opened, admin = server
+    with admin.cursor() as cur:
+        cur.execute("SHOW VARIABLES LIKE 'performance_schema'")
+        if cur.fetchone()[1] != "ON":
+            pytest.skip("a holder from another database is found through performance_schema, which is off here")
     reader = pymysql.connect(**kwargs)
     opened.append(reader)
     with reader.cursor() as cur:

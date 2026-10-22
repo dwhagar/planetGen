@@ -8,6 +8,7 @@ job instead of its processes.
 
 import argparse
 import json
+import types
 
 import time
 
@@ -28,6 +29,17 @@ def _galaxy(*flags):
 def _plan(*flags):
     _parser, parsers = generate_cli.build_parser()
     return parsers["plan"].parse_args(list(flags))
+
+
+def _scatter(*flags):
+    _parser, parsers = generate_cli.build_parser()
+    return parsers["scatter"].parse_args(list(flags))
+
+
+def _four_stages():
+    """The skeleton and the three scatters, the list a `plan` run once had (the stage code is the same for any list)."""
+    return [stages.plan_stages(_plan())[0], stages.SCATTER_STAGE["phenomena"], stages.SCATTER_STAGE["mass"],
+            stages.SCATTER_STAGE["luminosity"]]
 
 
 def _labels(found):
@@ -54,11 +66,21 @@ def test_a_galaxy_run_with_an_address_has_one_sector_stage():
     assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 8
 
 
-def test_plan_stages_follow_the_flags():
-    assert [s.key for s in stages.plan_stages(_plan("--no-bright-stars"))] == ["skeleton"]
-    assert [s.key for s in stages.plan_stages(_plan())] == ["skeleton", "phenomena", "mass", "luminosity"]
-    assert [s.key for s in stages.plan_stages(_plan("--bright-stars-only"))] == ["mass", "luminosity"]
-    assert [s.key for s in stages.plan_stages(_plan("--phenomena-only"))] == ["phenomena"]
+def test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own():
+    assert [s.key for s in stages.plan_stages(_plan())] == ["skeleton"]
+    for flag, key in (("--mass", "mass"), ("--luminosity", "luminosity"), ("--phenomena", "phenomena"),
+                      ("--nebula-field", "nebula-draw"), ("--band", "band")):
+        assert [s.key for s in stages.scatter_stages(_scatter(flag))] == [key], flag
+        assert [s.key for s in stages.for_command("scatter", _scatter(flag))] == [key]
+    assert stages.scatter_stages(_scatter("--mass")) != stages.scatter_stages(_scatter("--luminosity"))
+    for command, key in (("fill-map-luminosity", "map-luminosity"), ("rescore-habitability", "habitability"),
+                         ("clean-nebula-field", "nebula-field")):
+        assert [s.key for s in stages.for_command(command, None)] == [key]
+    for kind in stages.CLEAR_KINDS:
+        found = stages.clear_stages(types.SimpleNamespace(**{k.replace("-", "_"): k == kind for k in stages.CLEAR_KINDS}))
+        assert [s.key for s in found] == [f"clear-{kind}"]
+        assert stages.stage_settings(f"clear-{kind}", None) == {"part": kind}
+    assert stages.for_command("benchmark", None) == []
 
 
 def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_the_end(monkeypatch, tmp_path):
@@ -82,7 +104,7 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
 
 
 def test_a_stage_key_the_run_does_not_have_is_ignored():
-    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.enter("mass")
     stages.finish()
 
@@ -177,13 +199,13 @@ def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_confi
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
-    args = _plan("--bright-stars-only", "--workers", "2", "--mysql-host", mysql_config.host,
+    args = _scatter("--mass", "--workers", "2", "--mysql-host", mysql_config.host,
                  "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
                  "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
-    stages.begin(stages.for_command("plan", args), args, "plan")
+    stages.begin([stages.SCATTER_STAGE["mass"], stages.SCATTER_STAGE["luminosity"]], args, "scatter")
     stages.enter("mass")
     row = stages.hand_over_open_stage()
-    assert row["command"] == "plan" and row["settings"]["workers"] == 2 and (row["n"], row["total"]) == (1, 2)
+    assert row["command"] == "scatter" and row["settings"]["workers"] == 2 and (row["n"], row["total"]) == (1, 2)
     stages.note(shells=10, shells_modified=1, objects=3)
     stages.enter("luminosity")
     stages.finish()
@@ -200,8 +222,8 @@ def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_confi
 def test_a_stage_with_nothing_recorded_hands_over_no_row(monkeypatch):
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "0")
-    args = _plan("--bright-stars-only")
-    stages.begin(stages.for_command("plan", args), args, "plan")
+    args = _scatter("--mass")
+    stages.begin(stages.for_command("scatter", args), args, "scatter")
     stages.enter("mass")
     assert stages.hand_over_open_stage() is None
     stages.finish()
@@ -238,10 +260,14 @@ def test_the_backfill_stage_is_the_mass_scatter_from_the_neighborhood():
 def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(control_config):
     """Boss: an ETA looks up the stored stats by the settings the stage runs with (PERF.56, PERF.33)."""
     from planetgen.generation import stats as generation_stats
-    args = _plan("--phenomenon-min-mass", "8", "--workers", "1")
+    runs = (("plan", _plan("--workers", "1")),
+            ("scatter", _scatter("--phenomena", "--workers", "1")),
+            ("scatter", _scatter("--mass", "--phenomenon-min-mass", "8", "--workers", "1")),
+            ("scatter", _scatter("--luminosity", "--workers", "1")))
     conn = _control(control_config)
     try:
-        assert stages.estimate_seconds(conn, "plan", args) is None   # nothing recorded yet
+        for command, args in runs:
+            assert stages.estimate_seconds(conn, command, args) is None   # nothing recorded yet
         for key, seconds, settings in (("skeleton", 5.0, {"max_ring": 60}), ("phenomena", 7.0, {"mass_limit_sol": 8.0}),
                                        ("mass", 11.0, {"mass_limit_sol": 8.0}),
                                        ("luminosity", 13.0, {"mass_limit_sol": 8.0})):
@@ -251,9 +277,9 @@ def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(contr
                 " VALUES ('d', 'plan', ?, 1, 4, 'x', 0, NOW(6), NOW(6), ?, 1, ?, '{}', ?)",
                 (key, seconds, json.dumps(settings), generation_stats.current_version_key()))
         conn.commit()
-        assert stages.estimate_seconds(conn, "plan", args) == 36.0
+        assert [stages.estimate_seconds(conn, command, args) for command, args in runs] == [5.0, 7.0, 11.0, 13.0]
         # A stage that is skipped counts nothing.
-        assert stages.estimate_seconds(conn, "plan", _plan("--no-bright-stars")) == 5.0
+        assert stages.estimate_seconds(conn, "scatter", _scatter("--nebula-field")) is None
     finally:
         conn.close()
 
@@ -340,7 +366,7 @@ def test_the_scatters_are_stored_on_their_own_and_added_up_for_a_scatter_with_no
 
 def test_the_overall_bar_is_the_time_so_far_against_the_stored_time_of_every_stage(monkeypatch):
     monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
-    found = stages.plan_stages(_plan())
+    found = _four_stages()
     stages.begin(found)
     try:
         assert stages._state["overall"] is not None
@@ -362,11 +388,11 @@ def test_the_overall_bar_is_the_time_so_far_against_the_stored_time_of_every_sta
 
 def test_a_single_stage_run_and_a_web_run_have_no_command_line_overall_bar(monkeypatch):
     monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
-    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     assert stages.overall_progress() is None
     stages.finish()
     monkeypatch.setenv(progress_file.ENV_VAR, "/tmp/progress-from-the-web.json")
-    stages.begin(stages.plan_stages(_plan()))
+    stages.begin(_four_stages())
     assert stages.overall_progress() is None
     stages.finish()
 
@@ -374,7 +400,7 @@ def test_a_single_stage_run_and_a_web_run_have_no_command_line_overall_bar(monke
 def test_the_generation_display_carries_the_overall_bar_and_stops_updating_it(monkeypatch):
     from planetgen.generation import run_common
     monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
-    stages.begin(stages.plan_stages(_plan()))
+    stages.begin(_four_stages())
     try:
         progress = run_common._generation_progress()
         with progress:
@@ -412,7 +438,7 @@ def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
     monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
-    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.enter("phenomena")
     stages.finish()
     assert lines == ["Stage 1 of 1: Scatter the phenomena."]       # no banner here, so this line is the one mention
@@ -424,11 +450,11 @@ def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "13")
-    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.enter("phenomena")
     stages.finish()
     assert lines == []
-    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.skip("phenomena", "nothing to scatter")
     stages.finish()
     assert lines == ["Stage 4 of 13: Scatter the phenomena -- skipped: nothing to scatter."]
@@ -452,7 +478,8 @@ def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
             stages.finish()
             numbers = [line.split(":")[0] for line in lines]
             assert len(numbers) == len(set(numbers)) and all(line.startswith("Stage ") for line in lines)
-            assert len(lines) == len(listed)
+            # a one-stage command under the runner's numbering is named by the runner's banner alone
+            assert len(lines) == (0 if len(listed) == 1 and env else len(listed))
 
 
 def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
@@ -495,7 +522,7 @@ def test_the_new_galaxy_log_counts_thirteen_tasks_not_five(tmp_path):
 
 def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_jobs_until_the_last(monkeypatch):
     monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
-    stages.begin(stages.plan_stages(_plan()))
+    stages.begin(_four_stages())
     try:
         clock = stages._state["overall"]["t0"]
         assert stages.overall_progress(clock + 30.0)[2] is None          # nothing finished, nothing to average

@@ -18,7 +18,7 @@ from planetgen.galaxy.scatter_limits import ScatterLimits
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import object_first, run_plan
 from tests import test_gen_scatter_tiers as tiers
-from tests.test_bright_star_scatter import EXTENTS, _plan_args
+from tests.test_bright_star_scatter import EXTENTS, _scatter_args
 
 SHAPE, EDGE_PC, E_VALUE, FLOOR, MASS = tiers.SHAPE, tiers.EDGE_PC, tiers.E_VALUE, tiers.FLOOR, tiers.MASS
 LIMITS = ScatterLimits.of(tiers._skeleton(), FLOOR, MASS)
@@ -187,7 +187,7 @@ def test_a_plan_scatter_covers_the_reach_and_a_pre_placed_star_is_never_drawn_tw
                             config=mysql_config, cell_star_ceiling=1e12, reach_shell_index=12,
                             galaxy_seed=PLAN_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only",
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass",
                                                        "--bright-star-min-luminosity", "2500"))
     conn = store.get_connection(mysql_config)
     try:

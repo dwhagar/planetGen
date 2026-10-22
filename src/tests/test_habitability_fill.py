@@ -1,7 +1,7 @@
 # tests/test_habitability_fill.py
 
 """
-`planetgen plan --fill-habitability` (GEN.217): the stored habitability numbers of an existing galaxy are
+`planetgen rescore-habitability` (GEN.217): the stored habitability numbers of an existing galaxy are
 re-derived from the stored conditions, and come out the same as the ones a new generation stored.
 """
 
@@ -17,7 +17,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability_world
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
-from tests.test_phenomenon_scatter import _plan_args
+from tests.test_phenomenon_scatter import _scatter_args
 
 COLUMNS = habitability_world.SCORE_FIELDS + ("flux_variation",)
 """tuple: The columns the fill writes."""
@@ -124,7 +124,19 @@ def test_a_stale_air_rating_is_corrected_without_touching_anything_else(mysql_co
         conn.close()
 
 
-def test_the_plan_command_re_scores_every_system_and_a_second_run_changes_nothing(mysql_config):
+def _fill_args(mysql_config):
+    import argparse
+
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    generate_cli.add_fill_arguments(parser)
+    args = parser.parse_args(["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
+                              "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
+                              "--mysql-database", mysql_config.database, "--workers", "1"])
+    generate_cli.validate_fill_args(args, parser)
+    return args
+
+
+def test_the_command_re_scores_every_system_and_a_second_run_changes_nothing(mysql_config):
     saved = _save_systems(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -133,8 +145,7 @@ def test_the_plan_command_re_scores_every_system_and_a_second_run_changes_nothin
             _wipe(conn, system_id)
     finally:
         conn.close()
-    args = _plan_args(mysql_config, "--fill-habitability")
-    assert args.fill_habitability
+    args = _fill_args(mysql_config)
     original = run_plan.HABITABILITY_BATCH_SYSTEMS
     run_plan.HABITABILITY_BATCH_SYSTEMS = 1
     try:
@@ -156,14 +167,16 @@ def test_the_plan_command_re_scores_every_system_and_a_second_run_changes_nothin
         conn.close()
 
 
-def test_the_fill_can_not_be_combined_with_another_plan_job():
+def test_the_fill_takes_no_setting_of_a_scatter():
     import argparse
 
     parser = argparse.ArgumentParser(prefix_chars="-+")
-    generate_cli.add_plan_arguments(parser)
-    args = parser.parse_args(["--fill-habitability", "--fill-map-luminosity"])
+    generate_cli.add_fill_arguments(parser)
+    assert parser.parse_args(["--workers", "2"]).workers == 2
     with pytest.raises(SystemExit):
-        generate_cli.validate_plan_args(args, parser)
+        parser.parse_args(["--phenomenon-min-mass", "12"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--fill-map-luminosity"])
 
 
 def test_a_generated_body_stores_the_score_of_its_final_conditions():

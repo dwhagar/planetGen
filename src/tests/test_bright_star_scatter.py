@@ -136,16 +136,33 @@ def test_fill_context_caps_dim_stars_and_sets_their_population():
     assert no_scatter.apply(SystemConfig()).MAX_STAR_LUMINOSITY_SOL is None
 
 
-def _plan_args(mysql_config, *extra):
+SCATTER_KINDS = ("--mass", "--luminosity", "--phenomena", "--nebula-field", "--band")
+
+
+def _scatter_args(mysql_config, *extra):
+    """The arguments of a `planetgen scatter` run against `mysql_config` at the tests' threshold; the scatter functions
+    take their kind from the function called, so `--mass` stands in when `extra` names none."""
+    extra = list(extra)
+    if not any(kind in extra for kind in SCATTER_KINDS):
+        extra.insert(0, "--mass")
     parser = argparse.ArgumentParser(prefix_chars='-+')
-    generate_cli.add_plan_arguments(parser)
+    generate_cli.add_scatter_arguments(parser)
     args = parser.parse_args([
         "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
         "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
         "--mysql-database", mysql_config.database, "--bright-star-min-luminosity", str(THRESHOLD), *extra,
     ])
-    generate_cli.validate_plan_args(args, parser)
+    generate_cli.validate_scatter_args(args, parser)
     return args
+
+
+def _clear_args(mysql_config, *flags):
+    """The arguments of a `planetgen clear-scatter` run against `mysql_config`."""
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    generate_cli.add_clear_scatter_arguments(parser)
+    return parser.parse_args(["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
+                              "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
+                              "--mysql-database", mysql_config.database, *flags])
 
 
 def _seed_galaxy(mysql_config):
@@ -157,7 +174,7 @@ def _seed_galaxy(mysql_config):
 
 def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     _seed_galaxy(mysql_config)
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert summary["total"] > 20
 
     conn = store.get_connection(mysql_config)
@@ -209,7 +226,7 @@ def test_the_scatter_reports_only_the_shells_that_drew_stars(mysql_config, monke
                         iter(()) if shell_index == 8 else real(shape, shell_index, *args, **kwargs))
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", "1"))
     (line,) = [message for message in messages
                if message.startswith("Bright stars: stars landed in ")]
     landed = int(line.split("stars landed in ")[1].split(" of ")[0])
@@ -225,7 +242,7 @@ def test_scatter_always_leaves_filled_sectors_out(mysql_config):
     address = (0, 0, 0)
     run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
 
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert summary["total"] > 0
     conn = store.get_connection(mysql_config)
     try:
@@ -236,7 +253,7 @@ def test_scatter_always_leaves_filled_sectors_out(mysql_config):
 
 def test_going_down_a_band_keeps_the_old_stars_and_adds_only_the_band(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
-    first = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
+    first = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "20"))
     # No GEN.23 backfill here: in this small galaxy it would reach every
     # block (the next test covers a band after a backfill).
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *_args, **_kwargs: {"sectors": 0, "stars": 0})
@@ -252,7 +269,7 @@ def test_going_down_a_band_keeps_the_old_stars_and_adds_only_the_band(mysql_conf
         conn.close()
     assert len(before) == first["total"]
 
-    band = run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100"))
+    band = run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "100"))
     assert band["total"] > first["total"]
     assert (band["from_luminosity_sol"], band["to_luminosity_sol"]) == (THRESHOLD, 100.0)
 
@@ -273,13 +290,13 @@ def test_going_down_a_band_keeps_the_old_stars_and_adds_only_the_band(mysql_conf
         assert (row["shell_index"], row["band_index"], row["wedge_index"]) != address
 
     # At or above the stored level there is nothing to add.
-    assert run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
-    assert run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "300")) is None
+    assert run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "100")) is None
+    assert run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "300")) is None
 
 
 def test_going_down_a_band_needs_a_scatter_first(mysql_config):
     _seed_galaxy(mysql_config)
-    assert run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
+    assert run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "100")) is None
     conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
@@ -287,22 +304,23 @@ def test_going_down_a_band_needs_a_scatter_first(mysql_config):
         conn.close()
 
 
-def test_plan_options_conflict():
+def test_scatter_options_conflict():
     parser = argparse.ArgumentParser(prefix_chars='-+')
-    generate_cli.add_plan_arguments(parser)
-    args = parser.parse_args(["--no-bright-stars", "--bright-stars-only"])
+    generate_cli.add_scatter_arguments(parser)
+    with pytest.raises(SystemExit):      # exactly one kind
+        parser.parse_args([])
     with pytest.raises(SystemExit):
-        generate_cli.validate_plan_args(args, parser)
-    args = parser.parse_args(["--bright-star-min-luminosity", "49"])
+        parser.parse_args(["--mass", "--luminosity"])
     with pytest.raises(SystemExit):
-        generate_cli.validate_plan_args(args, parser)
-    for extra in (["--bright-stars-only"], ["--no-bright-stars"]):
-        args = parser.parse_args(["--bright-stars-down-to", "100", *extra])
+        parser.parse_args(["--band", "--mass", "--down-to", "100"])
+    args = parser.parse_args(["--luminosity", "--bright-star-min-luminosity", "49"])
+    with pytest.raises(SystemExit):
+        generate_cli.validate_scatter_args(args, parser)
+    for argv in (["--band"], ["--band", "--down-to", "49"], ["--mass", "--down-to", "100"],
+                 ["--luminosity", "--phenomenon-min-mass", "12"], ["--mass", "--compact-min-mass", "2"]):
         with pytest.raises(SystemExit):
-            generate_cli.validate_plan_args(args, parser)
-    args = parser.parse_args(["--bright-stars-down-to", "49"])
-    with pytest.raises(SystemExit):
-        generate_cli.validate_plan_args(args, parser)
+            generate_cli.validate_scatter_args(parser.parse_args(argv), parser)
+    generate_cli.validate_scatter_args(parser.parse_args(["--band", "--down-to", "100"]), parser)
 
 
 # --- GEN.23: the backfill around a generated sector --------------------
@@ -368,7 +386,7 @@ def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config, monkey
     visits, and the bar's ETA changes as they finish, down to 0."""
     monkeypatch.setattr(tuning, "PROGRESS_BAR_SECONDS", 0.0)   # the bar draws at once, whatever stats are recorded
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     progress = run_common._generation_progress()
     etas = []
     update = progress.update
@@ -407,7 +425,7 @@ def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_con
 
 def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "20"))
     center = sector_position_pc(4, 0, 5, EDGE_PC)
 
     conn = store.get_connection(mysql_config)
@@ -471,7 +489,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
         conn.close()
 
     # A new plan scatter forgets every sector's level and mass.
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20", "--force"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "20"))
     conn = store.get_connection(mysql_config)
     try:
         assert _level_rows(conn) == {} and _mass_rows(conn) == {}
@@ -485,7 +503,7 @@ def test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack(mysql_co
     # mass up, so a band below the scatter's floor adds there only the stars
     # born lighter than that.
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "20"))
     assert run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC))["sectors"]
     conn = store.get_connection(mysql_config)
     try:
@@ -504,7 +522,7 @@ def test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack(mysql_co
             conn.close()
 
     _rows, last, _levels, _masses = stars_since(0)
-    run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "400"))
+    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "400"))
     added, last, levels, after = stars_since(last)
     assert added and after == masses
     assert {levels[address] for address in masses} == {400.0}
@@ -515,7 +533,7 @@ def test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack(mysql_co
         assert row["initial_mass_sol"] < mass
         assert 400.0 * constants.SOLAR_LUMINOSITY * 0.99 <= row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
 
-    band = run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(FLOOR)))
+    band = run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", str(FLOOR)))
     added, last, levels, after = stars_since(last)
     assert len(added) == band["total"] and after == masses
     assert {levels[address] for address in masses} == {FLOOR}
@@ -872,7 +890,7 @@ def test_the_backfill_publishes_progress_to_the_web_from_the_start(mysql_config,
     (unmeasured while it finds its sectors, then counting them) and ends
     at the full count."""
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     del web_progress[:]
     with run_common._generation_progress() as progress:
         summary = run_galaxy.backfill_bright_stars_around(
@@ -899,10 +917,10 @@ def test_topping_up_backfilled_sectors_shows_a_bar_on_the_web(mysql_config, web_
     """ADM.26: the band run's second phase (backfilled sectors getting what
     they lack) reports its own progress."""
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC))["sectors"]
     del web_progress[:]
-    run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(FLOOR)))
+    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", str(FLOOR)))
     topping = [report for report in web_progress if report[0] == "Topping up backfilled sectors"]
     assert topping and topping[0][1:] == (0, topping[0][2]) and topping[0][2] > 0
     assert topping[-1][1] == topping[-1][2]
@@ -912,7 +930,7 @@ def test_a_sector_built_around_a_bright_star_gives_it_planets_and_moons(mysql_co
     # GEN.127 (GitHub #513): generating a sector that holds a backfilled bright star builds that star's whole
     # system (planets, belts, moons), as GEN.72 made it, not just the star.
     _seed_galaxy(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute(
@@ -944,7 +962,7 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_shell_by_type(
     _seed_galaxy(mysql_config)
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", "1"))
     lines = [message for message in messages if message.startswith(("Bright stars, shell", "Massive stars, shell"))]
     assert lines and all(": added " in line and "-type" in line or "white dwarf" in line for line in lines)
     # Each line says which unit of the stage it is and how many stars the cut expected there, so the sizes can be read.

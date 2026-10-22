@@ -12,6 +12,12 @@ or as the installed `planetgen` command):
     planetgen sector [options]      -- one or more independent sectors
     planetgen galaxy [options]      -- many sectors placed as one galaxy
     planetgen plan [options]        -- the galaxy's density skeleton
+    planetgen scatter --KIND        -- one scatter (mass, luminosity, phenomena, nebula-field, band)
+    planetgen fill-map-luminosity   -- fill the map luminosity of the scattered phenomena
+    planetgen rescore-habitability  -- re-derive the stored habitability numbers
+    planetgen fill-nebula-blocks    -- make the Galaxy Map's nebula block totals again
+    planetgen clear-scatter         -- empty one kind of scatter, so a scatter can draw it again
+    planetgen clean-nebula-field    -- count (or with --apply delete) the stored field clouds the keep rate rejects
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
     planetgen population [options]  -- species, civilizations and territories
     planetgen check-math            -- the math check bulk runs start with
@@ -691,8 +697,8 @@ def add_galaxy_arguments(parser):
                                      "backfill never adds stars to a sector already generated.")
     backfill_group.add_argument('--then-scatter', action='store_true',
                                 help="After the sectors and before the backfill, scatter the bright stars "
-                                     "galaxy-wide (as 'planetgen plan --bright-stars-only'), then the "
-                                     "phenomena (as 'planetgen plan --phenomena-only'), leaving out "
+                                     "galaxy-wide (as 'planetgen scatter --mass' and '--luminosity'), then the "
+                                     "phenomena (as 'planetgen scatter --phenomena'), leaving out "
                                      "every sector already generated. A new galaxy uses this, so the "
                                      "scatter never draws stars for sectors it would fill anyway.")
     backfill_group.add_argument('--bright-star-min-luminosity', type=finite_float,
@@ -898,32 +904,9 @@ def add_plan_arguments(parser):
                              f"deep). Default: {DEFAULT_REACH_SHELL} (262 kpc). The object ID can name shells up to "
                              f"{spherical.MAX_ADDRESSABLE_SHELL}; the galaxy's disk outline must fit inside it.")
 
-    bright_group = parser.add_argument_group("bright-star pre-placement (planetgen.generation.bright_stars)")
-    bright_group.add_argument('--bright-star-min-luminosity', type=finite_float,
-                              default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
-                              help="Every star at least this bright (solar luminosities) is generated "
-                                   "and placed galaxy-wide after the plan: from "
-                                   f"{program_constants.BRIGHT_STAR_FLOOR_MIN_SOL:g} to "
-                                   f"{program_constants.BRIGHT_STAR_FLOOR_MAX_SOL:g} (the Generate page offers "
-                                   "presets). Default: "
-                                   f"{program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
-    bright_group.add_argument('--no-bright-stars', action='store_true',
-                              help="Build the plan without scattering bright stars.")
-    bright_group.add_argument('--bright-stars-only', action='store_true',
-                              help="Re-scatter the bright stars on the stored plan without rebuilding it. "
-                                   "The phenomena (black holes, neutron stars, nebulae, ...) are a separate "
-                                   "scatter: --phenomena-only.")
-    bright_group.add_argument('--force', action='store_true',
-                              help="No longer needed: the scatter always leaves filled sectors out.")
-    bright_group.add_argument('--workers', type=int, default=None,
-                              help="How many shells of bright stars to draw at once, each in its own "
-                                   "low-priority worker process. Default: 80%% of this machine's cores "
-                                   "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
-    bright_group.add_argument('--bright-stars-down-to', type=finite_float, default=None, metavar='L_SUN',
-                              help="Go one level dimmer on the stored plan: keep the bright stars already "
-                                   "placed and add only those from L_SUN up to the level already scattered. "
-                                   "Sectors already filled are left out (their own systems already reach "
-                                   "that bright). Does nothing when L_SUN is not below the current level.")
+    parser.add_argument('--workers', type=int, default=None,
+                        help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
+                             "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
     resolution_group = parser.add_argument_group("how deep a dense cell is filled (planetgen.galaxy.resolution)")
     resolution_group.add_argument('--cell-star-ceiling', type=finite_float, default=None, metavar='SYSTEMS',
                                   help="A cell that expects more systems than this is filled only with the stars at "
@@ -950,51 +933,6 @@ def add_plan_arguments(parser):
                                    f"{program_constants.HALO_MIN_LUMINOSITY_RANGE_SOL[1]:g}; the halo has no mass "
                                    "limit of its own. Stored with the galaxy by a full plan. Default: "
                                    f"{program_constants.HALO_MIN_LUMINOSITY_SOL:g}.")
-    phenomena_group = parser.add_argument_group("phenomenon scatter (planetgen.generation.phenomenon_scatter)")
-    presets = ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS)
-    phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
-                                 help="The stellar mass limit (solar masses) from which every star is placed "
-                                      "galaxy-wide after the plan; a sector draws the lighter ones "
-                                      f"when it is filled. One of {presets}. Default: the galaxy's stored limit, "
-                                      f"else {program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
-    phenomena_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
-                                 help=COMPACT_MIN_MASS_HELP)
-    phenomena_group.add_argument('--phenomena-only', action='store_true',
-                                 help="Re-scatter the phenomena on the stored plan without rebuilding it or the "
-                                      "bright stars (to change --phenomenon-min-mass). Filled sectors are left out.")
-    phenomena_group.add_argument('--redo-scatters', nargs='+', choices=program_constants.REDO_SCATTERS, default=None,
-                                 metavar='SCATTER',
-                                 help="Redo only the scatters named, on the stored plan, each with this run's settings: "
-                                      "'mass' (the massive stars, --phenomenon-min-mass), 'luminosity' "
-                                      "(the bright stars, --bright-star-min-luminosity) and 'phenomena' (the "
-                                      "neutron stars, black holes and other phenomena, --compact-min-mass). Each "
-                                      "clears and rewrites only its own rows; the central black hole or quasar is "
-                                      "always rebuilt with the phenomena. Changing the mass limit redoes the "
-                                      "luminosity pass too, since the passes split the stars at that mass.")
-    phenomena_group.add_argument('--redo-nebula-field', nargs='?', const='dry-run',
-                                 choices=program_constants.REDO_NEBULA_FIELD_MODES, default=None, metavar='MODE',
-                                 help="Bring an existing galaxy's stored molecular clouds in line with the current "
-                                      "nebula keep rates. 'dry-run' (the default) only counts the stored "
-                                      "field clouds the rule now rejects; 'apply' counts, then deletes them "
-                                      "(clearing what pointed at them, refreshing containment in the sectors they "
-                                      "reached) and draws the nebula_field table again. Nothing else is touched.")
-    phenomena_group.add_argument('--fill-map-luminosity', action='store_true',
-                                 help="Fill the map luminosity of the scattered phenomena of a galaxy "
-                                      "scattered before schema v84, from their stored masses, in id-range batches "
-                                      "that readers never wait for. Resumable: it only fills rows still empty. A "
-                                      "new scatter writes the value with each row.")
-    phenomena_group.add_argument('--fill-habitability', action='store_true',
-                                 help="Re-derive the stored habitability numbers (the flux swing of a planet in a "
-                                      "double-star system, the PHI-6 index, the six domains, the equipment tier and "
-                                      "the note) of every planet and moon from its stored conditions, so a galaxy "
-                                      "generated before a change to the rules agrees with a new one. Only those "
-                                      "columns change; it can be stopped and run again.")
-    phenomena_group.add_argument('--fill-nebula-blocks', action='store_true',
-                                 help="Make the nebula totals of the Galaxy Map's blocks again: for every "
-                                      "block of the ladder, the nebulae in it, their volume, centroid, families, "
-                                      "dominant class and cover, from the nebula_field table and the stored "
-                                      "nebulae. A plan draws them with the field; this makes them for a galaxy "
-                                      "whose field was drawn before. Nothing else changes; it can be run again.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1034,53 +972,134 @@ def validate_plan_args(args, parser):
         parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
     if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
-    if args.no_bright_stars and args.bright_stars_only:
-        parser.error("--no-bright-stars and --bright-stars-only can't be combined.")
+
+
+SCATTER_KIND_HELP = {
+    "mass": "Scatter the massive stars: every star born at or above --phenomenon-min-mass, galaxy-wide. Refused "
+            "while the massive stars are stored: run 'planetgen clear-scatter --luminosity' and "
+            "'--mass' first.",
+    "luminosity": "Scatter the bright stars: every star born lighter than the stored mass limit and at least "
+                  "--bright-star-min-luminosity bright (needs --mass run first). Refused while the bright stars are "
+                  "stored: run 'planetgen clear-scatter --luminosity' first.",
+    "phenomena": "Scatter the phenomena (black holes, neutron stars, planetary nebulae, supernova remnants, "
+                 "hypervelocity stars, the nucleus); neutron stars and black holes from --compact-min-mass up. "
+                 "Refused while they are stored: run 'planetgen clear-scatter --phenomena' first.",
+    "nebula-field": "Draw the nebula field table (the galaxy's molecular cloud field of classes M and N) from the "
+                    "galaxy seed. Refused while it is stored: run 'planetgen clear-scatter --nebula-field' first.",
+    "band": "Go one level dimmer on the stored bright stars: keep the stars already placed and add only those from "
+            "--down-to up to the level already scattered.",
+}
+"""dict: The help of each kind of `planetgen scatter`."""
+
+
+def add_scatter_arguments(parser):
+    """
+    Adds the options of the `scatter` subcommand (PERF.121): exactly one kind of scatter and only that kind's
+    parameters, then the run options and the MySQL connection.
+    """
+    kind = parser.add_argument_group("the scatter to draw (exactly one)")
+    chosen = kind.add_mutually_exclusive_group(required=True)
+    for name, text in SCATTER_KIND_HELP.items():
+        chosen.add_argument(f"--{name}", dest=name.replace("-", "_"), action="store_true", help=text)
+    parser.add_argument('--bright-star-min-luminosity', type=finite_float,
+                        default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+                        help="For --luminosity (and --mass, which records it): every star at least this bright "
+                             "(solar luminosities) is generated and placed galaxy-wide: from "
+                             f"{program_constants.BRIGHT_STAR_FLOOR_MIN_SOL:g} to "
+                             f"{program_constants.BRIGHT_STAR_FLOOR_MAX_SOL:g} (the Generate page offers presets). "
+                             f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
+    presets = ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS)
+    parser.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
+                        help="For --mass: the stellar mass limit (solar masses) from which every star is placed "
+                             "galaxy-wide; a sector draws the lighter ones when it is filled. One of "
+                             f"{presets}. Default: the galaxy's stored limit, else "
+                             f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
+    parser.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
+                        help="For --phenomena: " + COMPACT_MIN_MASS_HELP)
+    parser.add_argument('--down-to', type=finite_float, default=None, metavar='L_SUN',
+                        help="For --band: the luminosity (solar luminosities) to go down to. Sectors already filled "
+                             "are left out. Does nothing when L_SUN is not below the current level.")
+    parser.add_argument('--workers', type=int, default=None,
+                        help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
+                             "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def validate_scatter_args(args, parser):
+    """Validates `add_scatter_arguments`'s options, calling `parser.error` on the first problem found."""
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
+    kind = "nebula_field" if args.nebula_field else next(name for name in ("mass", "luminosity", "phenomena", "band")
+                                                         if getattr(args, name))
+    others = {"phenomenon_min_mass": "mass", "compact_min_mass": "phenomena", "down_to": "band"}
+    for option, belongs in others.items():
+        if getattr(args, option) is not None and kind != belongs:
+            parser.error(f"--{option.replace('_', '-')} belongs to --{belongs}, not --{kind.replace('_', '-')}.")
+    if kind == "band":
+        if args.down_to is None:
+            parser.error("--band needs --down-to L_SUN.")
+        try:
+            bright_star_fraction(args.down_to)
+        except ValueError as exc:
+            parser.error(f"--down-to: {exc}")
     if args.phenomenon_min_mass is not None and not any(
             math.isclose(args.phenomenon_min_mass, preset) for preset in program_constants.PHENOMENON_MIN_MASS_PRESETS):
         parser.error("--phenomenon-min-mass must be one of "
                      + ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS) + ".")
     check_compact_mass_limit(args, parser)
-    if args.redo_scatters and (args.phenomena_only or args.bright_stars_only or args.bright_stars_down_to is not None
-                               or args.no_bright_stars):
-        parser.error("--redo-scatters can't be combined with --phenomena-only, --bright-stars-only, "
-                     "--bright-stars-down-to or --no-bright-stars.")
-    if args.redo_nebula_field and (args.redo_scatters or args.phenomena_only or args.bright_stars_only
-                                   or args.bright_stars_down_to is not None or args.no_bright_stars):
-        parser.error("--redo-nebula-field can't be combined with --redo-scatters, --phenomena-only, "
-                     "--bright-stars-only, --bright-stars-down-to or --no-bright-stars.")
-    if args.fill_map_luminosity and (args.redo_scatters or args.redo_nebula_field or args.phenomena_only
-                                     or args.bright_stars_only or args.bright_stars_down_to is not None
-                                     or args.no_bright_stars):
-        parser.error("--fill-map-luminosity can't be combined with --redo-scatters, --redo-nebula-field, "
-                     "--phenomena-only, --bright-stars-only, --bright-stars-down-to or --no-bright-stars.")
-    if args.fill_habitability and (args.redo_scatters or args.redo_nebula_field or args.fill_map_luminosity
-                                   or args.phenomena_only or args.bright_stars_only
-                                   or args.bright_stars_down_to is not None or args.no_bright_stars):
-        parser.error("--fill-habitability can't be combined with --redo-scatters, --redo-nebula-field, "
-                     "--fill-map-luminosity, --phenomena-only, --bright-stars-only, "
-                     "--bright-stars-down-to or --no-bright-stars.")
-    if args.fill_nebula_blocks and (args.redo_scatters or args.redo_nebula_field or args.fill_map_luminosity
-                                    or args.fill_habitability or args.phenomena_only or args.bright_stars_only
-                                    or args.bright_stars_down_to is not None or args.no_bright_stars):
-        parser.error("--fill-nebula-blocks can't be combined with --redo-scatters, --redo-nebula-field, "
-                     "--fill-map-luminosity, --fill-habitability, --phenomena-only, --bright-stars-only, "
-                     "--bright-stars-down-to or --no-bright-stars.")
-    if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
-        parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
-    if args.bright_stars_down_to is not None:
-        if args.no_bright_stars or args.bright_stars_only:
-            parser.error("--bright-stars-down-to can't be combined with --no-bright-stars or --bright-stars-only.")
-        try:
-            bright_star_fraction(args.bright_stars_down_to)
-        except ValueError as exc:
-            parser.error(f"--bright-stars-down-to: {exc}")
-    if not args.no_bright_stars:
+    if kind in ("mass", "luminosity"):
         try:
             args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
             bright_star_fraction(args.bright_star_min_luminosity)
         except ValueError as exc:
             parser.error(f"--bright-star-min-luminosity: {exc}")
+
+
+CLEAR_KIND_HELP = {
+    "mass": "Empty the massive stars (refused while the bright stars are stored, which are split from these at the "
+            "mass limit: clear them first).",
+    "luminosity": "Empty the bright stars, the band with them.",
+    "phenomena": "Empty the phenomena scatter.",
+    "nebula-field": "Empty the nebula field table.",
+}
+"""dict: The help of each kind of `planetgen clear-scatter`."""
+
+
+def add_clear_scatter_arguments(parser):
+    """Adds the options of `clear-scatter` (Boss's F7): exactly one kind to clear, then the MySQL connection."""
+    kind = parser.add_argument_group("the scatter to clear (exactly one)")
+    chosen = kind.add_mutually_exclusive_group(required=True)
+    for name, text in CLEAR_KIND_HELP.items():
+        chosen.add_argument(f"--{name}", dest=name.replace("-", "_"), action="store_true", help=text)
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def add_fill_arguments(parser):
+    """Adds the options of a command that only runs units on the queue and takes no setting of its own
+    (`fill-map-luminosity`, `rescore-habitability`): the worker count, the MySQL connection and the logging."""
+    parser.add_argument('--workers', type=int, default=None,
+                        help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
+                             "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def validate_fill_args(args, parser):
+    """Validates `add_fill_arguments`'s options."""
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
+
+
+def add_clean_nebula_field_arguments(parser):
+    """Adds the options of `clean-nebula-field` (PERF.122): `--apply`, then the common ones."""
+    parser.add_argument('--apply', action='store_true',
+                        help="Delete the stored field clouds the current keep rate rejects (clearing what pointed at "
+                             "them and refreshing containment in the sectors they reached). Without it only counts "
+                             "them (a dry run). The nebula field table is drawn again by "
+                             "'planetgen scatter --nebula-field'.")
+    add_fill_arguments(parser)
 
 
 def add_phenomenon_arguments(parser):
@@ -1243,6 +1262,53 @@ def build_parser():
         help="Build/replace the galaxy's density skeleton.")
     add_plan_arguments(plan_parser)
 
+    scatter_parser = subparsers.add_parser(
+        'scatter',
+        description="Scatter Pre-placement: one kind of scatter on the stored plan",
+        help="Draw one scatter (mass, luminosity, phenomena, nebula-field or band) on the stored plan.")
+    add_scatter_arguments(scatter_parser)
+
+    clear_scatter_parser = subparsers.add_parser(
+        'clear-scatter',
+        description="Empty one kind of scatter's stored rows, so 'planetgen scatter' can draw it again: the "
+                    "massive stars, the bright stars (the band with them), the phenomena or the nebula field.",
+        help="Empty one kind of scatter (mass, luminosity, phenomena or nebula-field).")
+    add_clear_scatter_arguments(clear_scatter_parser)
+
+    fill_map_luminosity_parser = subparsers.add_parser(
+        'fill-map-luminosity',
+        description="Fill the map luminosity of the scattered phenomena of a galaxy scattered before schema v84, "
+                    "from their stored masses, in id-range batches that readers never wait for. Resumable: it only "
+                    "fills rows still empty. A new scatter writes the value with each row.",
+        help="Fill the map luminosity of the scattered phenomena.")
+    add_fill_arguments(fill_map_luminosity_parser)
+
+    rescore_habitability_parser = subparsers.add_parser(
+        'rescore-habitability',
+        description="Re-derive the stored habitability numbers (the flux swing of a planet in a double-star "
+                    "system, the PHI-6 index, the six domains, the equipment tier and the note) of every planet and "
+                    "moon from its stored conditions, so a galaxy generated before a change to the rules agrees with "
+                    "a new one. Only those columns change; it can be stopped and run again.",
+        help="Re-score the stored habitability of every planet and moon.")
+    add_fill_arguments(rescore_habitability_parser)
+
+    fill_nebula_blocks_parser = subparsers.add_parser(
+        'fill-nebula-blocks',
+        description="Make the nebula totals of the Galaxy Map's blocks again: for every block of the ladder, the "
+                    "nebulae in it, their volume, centroid, families, dominant class and cover, from the nebula_field "
+                    "table and the stored nebulae. A plan draws them with the field; this makes them for a galaxy "
+                    "whose field was drawn before. Nothing else changes; it can be run again.",
+        help="Make the nebula block totals of the Galaxy Map again.")
+    add_fill_arguments(fill_nebula_blocks_parser)
+
+    clean_nebula_field_parser = subparsers.add_parser(
+        'clean-nebula-field',
+        description="Bring an existing galaxy's stored molecular clouds in line with the current nebula keep "
+                    "rates: counts the stored field clouds the rule now rejects and, with --apply, deletes them "
+                    "(clearing what pointed at them and refreshing containment in the sectors they reached).",
+        help="Count (and with --apply delete) the stored field clouds the nebula keep rate rejects.")
+    add_clean_nebula_field_arguments(clean_nebula_field_parser)
+
     phenomenon_parser = subparsers.add_parser(
         'phenomenon',
         description="Exotic Stellar Phenomenon Generation Options",
@@ -1337,6 +1403,12 @@ def build_parser():
         'sector': sector_parser,
         'galaxy': galaxy_parser,
         'plan': plan_parser,
+        'scatter': scatter_parser,
+        'clear-scatter': clear_scatter_parser,
+        'fill-map-luminosity': fill_map_luminosity_parser,
+        'rescore-habitability': rescore_habitability_parser,
+        'fill-nebula-blocks': fill_nebula_blocks_parser,
+        'clean-nebula-field': clean_nebula_field_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
         'check-math': check_math_parser,
@@ -1375,6 +1447,10 @@ def process_args():
         validate_galaxy_args(args, command_parser)
     elif args.command == 'plan':
         validate_plan_args(args, command_parser)
+    elif args.command == 'scatter':
+        validate_scatter_args(args, command_parser)
+    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'clean-nebula-field'):
+        validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
     elif args.command == 'population':
@@ -1446,7 +1522,7 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 (no activity log lines, job tree node or run history)."""
 
 
-BULK_COMMANDS = ("galaxy", "plan", "population")
+BULK_COMMANDS = ("galaxy", "plan", "scatter", "population")
 """tuple: Subcommands that always generate in bulk, so the math check runs
 first (TEST.68); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
@@ -1472,12 +1548,22 @@ _COMMAND_HANDLERS = {
     'sector': run_sector.run_sector,
     'galaxy': run_galaxy.run_galaxy,
     'plan': run_plan.run_plan,
+    'scatter': run_plan.run_scatter,
+    'clear-scatter': run_plan.run_clear_scatter,
+    'fill-map-luminosity': run_plan.run_fill_map_luminosity,
+    'rescore-habitability': run_plan.run_rescore_habitability,
+    'fill-nebula-blocks': run_plan.run_fill_nebula_blocks,
+    'clean-nebula-field': run_plan.run_clean_nebula_field,
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
 }
 
 
-DATA_CHANGES = {"plan": ("everything",), "population": ("population",)}
+DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scatter": ("everything",),
+                "fill-map-luminosity": ("everything",),
+                "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",),
+                "clean-nebula-field": ("everything",),
+                "population": ("population",)}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 

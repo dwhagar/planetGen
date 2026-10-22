@@ -134,7 +134,7 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     4 pc grid, outermost shell and band included."""
     argv = ["--disk-scale-length", "40pc", "--flatness", "3.333", "--bulge-size", "0.25", "--bulge-share", "0.0245",
             "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-contrast", "0.4"]
-    run_cli("plan", argv + ["--no-bright-stars"] + mysql_argv(mysql_config))
+    run_cli("plan", argv + mysql_argv(mysql_config))
 
     conn = store.get_connection(mysql_config)
     try:

@@ -11,8 +11,7 @@ nebulae are the rows of `nebula_field` (the molecular clouds the seed places, cl
 nebulae, remnants, a class P or Q cloud). No sector has to exist, so a block no sector was generated in has its cover
 too. The table is:
 
-* `rebuild`: made again from every nebula in one pass (`planetgen plan`'s nebula field step, the migration, `plan
-  --fill-nebula-blocks`);
+* `rebuild`: made again from every nebula in one pass (`planetgen scatter --nebula-field`'s step, the migration, `fill-nebula-blocks`);
 * `catch_up`: the nebulae stored since (not one at a time as they are stored, which would make every worker of a run
   wait on the same top-level blocks) are added to the blocks they are in and reach, once at the end of a `galaxy` or
   `sector` run.

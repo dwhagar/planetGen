@@ -229,21 +229,24 @@ later, and so do the Generate buttons on the Galaxy Map and Sector Map.
 **On the command line**, from the checkout:
 
 ```bash
-planetgen plan      # the galaxy's shape and its bright stars; once, before anything else
-planetgen galaxy    # a random start and every sector within 100 ly of it
+planetgen plan                  # the galaxy's shape; once, before anything else
+planetgen scatter --mass        # every star of the mass limit or more, placed across the whole galaxy
+planetgen scatter --luminosity  # the lighter stars bright enough to see from afar
+planetgen scatter --phenomena   # the neutron stars, black holes and the rest
+planetgen galaxy                # a random start and every sector within 100 ly of it
 ```
 
 The installer adds the `planetgen` command.
 
-**Planning takes a while and needs space.** The plan places every star
-of 500 solar luminosities or more across the whole galaxy, about 60
+**The scatters take a while and need space.** The two star scatters place
+every star of 500 solar luminosities or more across the whole galaxy, about 60
 million stars and 10 GB in the database, before any sector is filled,
 so the Galaxy Map shows the spiral arms from the start: roughly 20
 minutes of drawing plus the database load. For a quick test galaxy, raise the
-threshold (`--bright-star-min-luminosity 5000`) or skip the stars
-(`--no-bright-stars`); `--bright-stars-only` places them later on the
-stored plan. Going the other way, `--bright-star-min-luminosity 100`
-places about 220 million (about 35 GB).
+threshold (`planetgen scatter --mass --bright-star-min-luminosity 5000`) or
+leave the scatters out and run them later on the stored plan. Going the
+other way, `--bright-star-min-luminosity 100` places about 220 million
+(about 35 GB).
 
 Then browse the **Galaxy Map**, the sectors and the systems on the site.
 See [Usage](README.md#usage) for the other commands.

@@ -311,7 +311,7 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     assert resp.headers["Location"].endswith("/admin/generate#current-job")
     (job,) = no_spawn
     assert job["kind"] == "plan"
-    assert _argv(_work_steps(job)[0]) == ["plan", "--arm-count", "3", "--no-bright-stars"]
+    assert _argv(_work_steps(job)[0]) == ["plan", "--arm-count", "3"]
     assert _work_steps(job)[0]["argv"][1:3] == jobs.GENERATE_COMMAND
     assert job["admin"] == "boss" and job["database"] == DB
     assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
@@ -610,7 +610,7 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     (job,) = no_spawn
     reset, plan, galaxy = _work_steps(job)    # the phenomena follow the stars inside the galaxy step
     assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
-    assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
+    assert _argv(plan) == ["plan", "--arm-count", "4"]
     # GEN.30: the scatter comes after the sectors, inside the galaxy step.
     assert galaxy["label"] == generate_page.NEW_GALAXY_SCATTER_LABEL
     assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0", "--then-scatter"]
@@ -621,13 +621,12 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
 def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
     assert _post(client, action="plan").status_code == 303
     (job,) = no_spawn
-    plan, scatter, phenomena = _work_steps(job)
-    assert _argv(plan) == ["plan", "--no-bright-stars"]
-    assert scatter["label"] == generate_page.SCATTER_LABEL
-    assert _argv(scatter) == ["plan", "--bright-stars-only"]
-    # --bright-stars-only leaves the phenomena out, so they are a step of their own (GEN.185).
-    assert phenomena["label"] == generate_page.PHENOMENA_LABEL
-    assert _argv(phenomena) == ["plan", "--phenomena-only"]
+    plan, mass, scatter, phenomena = _work_steps(job)
+    assert _argv(plan) == ["plan"]
+    # PERF.121: each scatter is a command of its own, so each is a step of its own (GEN.185).
+    assert mass["label"] == generate_page.MASS_SCATTER_LABEL and _argv(mass) == ["scatter", "--mass"]
+    assert scatter["label"] == generate_page.SCATTER_LABEL and _argv(scatter) == ["scatter", "--luminosity"]
+    assert phenomena["label"] == generate_page.PHENOMENA_LABEL and _argv(phenomena) == ["scatter", "--phenomena"]
 
 
 @pytest.mark.parametrize("action", ["plan", "new_galaxy"])
@@ -638,7 +637,9 @@ def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     assert generate_page.SCATTER_LABEL not in labels and generate_page.PHENOMENA_LABEL not in labels
     assert all("--then-scatter" not in step["argv"] for step in job["steps"])
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
-    assert _argv(plan)[-1] == "--no-bright-stars"
+    assert _argv(plan)[0] == "plan" and "--no-bright-stars" not in _argv(plan)
+    if action == "plan":
+        assert [_argv(step) for step in _work_steps(job)] == [["plan"]]
 
 
 def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
@@ -647,7 +648,7 @@ def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
     assert job["kind"] == "bright_band"
     (step,) = _work_steps(job)
     assert step["label"] == generate_page.BAND_LABEL
-    assert _argv(step) == ["plan", "--bright-stars-down-to", "100"]
+    assert _argv(step) == ["scatter", "--band", "--down-to", "100"]
 
 
 def test_check_the_database_job_runs_check_db_alone(site, client, no_spawn):
@@ -679,22 +680,22 @@ def test_dimmer_layer_needs_a_level(site, client, no_spawn):
 
 
 def test_scatter_flags_exist_in_generate_py():
-    """Every flag the page passes is one `planetgen plan` accepts."""
+    """Every flag the page passes is one `planetgen scatter` (or `galaxy --then-scatter`) accepts."""
     from planetgen.cli import generate as generate_cli
 
     _parser, parsers = generate_cli.build_parser()
-    plan = parsers["plan"]
-    assert plan.parse_args(["--no-bright-stars"]).no_bright_stars is True
-    args = plan.parse_args(["--bright-stars-only", "--force"])
-    assert args.bright_stars_only is True and args.force is True
-    assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
-    assert plan.parse_args(["--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
+    scatter = parsers["scatter"]
+    assert scatter.parse_args(["--mass"]).mass is True
+    assert scatter.parse_args(["--luminosity"]).luminosity is True
+    assert scatter.parse_args(["--band", "--down-to", "100"]).down_to == 100.0
+    assert scatter.parse_args(["--mass", "--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
     galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "20000",
                                            "--backfill-from", "none"])
     assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 20000.0
     assert galaxy.backfill_from == "none"
     assert parsers["galaxy"].parse_args(["--then-scatter", "--phenomenon-min-mass", "8"]).phenomenon_min_mass == 8.0
-    assert plan.parse_args(["--phenomena-only", "--phenomenon-min-mass", "12"]).phenomena_only is True
+    assert scatter.parse_args(["--mass", "--phenomenon-min-mass", "12"]).phenomenon_min_mass == 12.0
+    assert scatter.parse_args(["--phenomena", "--compact-min-mass", "star"]).compact_min_mass == "star"
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
@@ -727,7 +728,7 @@ def test_scatter_uses_the_threshold_field(site, client, no_spawn):
     assert _post(client, action="plan", bright_min_luminosity="20000").status_code == 303
     (job,) = no_spawn
     scatter = next(step for step in job["steps"] if step["label"] == generate_page.SCATTER_LABEL)
-    assert _argv(scatter) == ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "20000"]
+    assert _argv(scatter) == ["scatter", "--luminosity", "--bright-star-min-luminosity", "20000"]
 
 
 def test_new_galaxy_scatters_after_its_sectors_at_the_threshold(site, client, no_spawn):
@@ -1414,19 +1415,19 @@ def test_the_limit_options_reach_the_plan(site, client, no_spawn):
     (job,) = no_spawn
     plan = _work_steps(job)[0]
     assert _argv(plan) == ["plan", "--halo-min-luminosity", "80", "--cell-star-ceiling", "20000",
-                           "--fill-luminosity-cap", "300", "--no-bright-stars"]
+                           "--fill-luminosity-cap", "300"]
 
 
 def test_the_core_limits_follow_the_galaxy_wide_ones_while_that_box_is_ticked(site, client, no_spawn):
     assert _post(client, action="plan", core_follow="1", core_min_luminosity="20000",
                  core_mass_limit="20").status_code == 303
-    assert _argv(_work_steps(no_spawn[0])[0]) == ["plan", "--no-bright-stars"]
+    assert _argv(_work_steps(no_spawn[0])[0]) == ["plan"]
 
 
 def test_the_core_limits_reach_the_plan_once_they_are_set(site, client, no_spawn):
     assert _post(client, action="plan", core_min_luminosity="20000", core_mass_limit="20.2").status_code == 303
     assert _argv(_work_steps(no_spawn[0])[0]) == [
-        "plan", "--core-min-luminosity", "20000", "--core-mass-limit", "20.2", "--no-bright-stars"]
+        "plan", "--core-min-luminosity", "20000", "--core-mass-limit", "20.2"]
 
 
 @pytest.mark.parametrize("field, value", [
@@ -1440,13 +1441,14 @@ def test_the_limits_must_be_numbers_inside_their_sliders(site, client, no_spawn,
     assert limit_sliders.SLIDERS[field].label in resp.get_data(as_text=True)
 
 
-def test_the_mass_limit_reaches_the_plan_and_the_scatter(site, client, no_spawn):
+def test_the_mass_limit_reaches_the_mass_scatter_and_the_phenomena_follow_it(site, client, no_spawn):
     assert _post(client, action="plan", phenomenon_min_mass="12").status_code == 303
     (job,) = no_spawn
-    plan, scatter, phenomena = _work_steps(job)
-    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "12", "--no-bright-stars"]
-    assert _argv(scatter) == ["plan", "--bright-stars-only", "--phenomenon-min-mass", "12"]
-    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "12"]
+    plan, mass, scatter, phenomena = _work_steps(job)
+    assert _argv(plan) == ["plan"]
+    assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "12"]
+    assert _argv(scatter) == ["scatter", "--luminosity"]      # at the mass limit the mass step stored
+    assert _argv(phenomena) == ["scatter", "--phenomena", "--compact-min-mass", "star"]
 
 
 def test_a_new_galaxy_scatters_at_the_form_s_mass_limit(site, client, no_spawn):
@@ -1454,7 +1456,7 @@ def test_a_new_galaxy_scatters_at_the_form_s_mass_limit(site, client, no_spawn):
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
     (job,) = no_spawn
     _reset, plan, galaxy = _work_steps(job)
-    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "8", "--no-bright-stars"]
+    assert _argv(plan) == ["plan"]
     assert _argv(galaxy)[:4] == ["galaxy", "--then-scatter", "--phenomenon-min-mass", "8"]
 
 
@@ -1506,17 +1508,16 @@ def test_both_plan_forms_offer_the_compact_object_limit(site, client):
 def test_the_compact_limit_follows_the_star_setting_by_default(site, client, no_spawn):
     assert _post(client, action="plan", phenomenon_min_mass="12", compact_use_star="1").status_code == 303
     (job,) = no_spawn
-    plan, scatter, phenomena = _work_steps(job)
-    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "12", "--compact-min-mass", "star", "--no-bright-stars"]
-    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "12",
-                                "--compact-min-mass", "star"]
+    plan, mass, scatter, phenomena = _work_steps(job)
+    assert _argv(plan) == ["plan"]
+    assert _argv(phenomena) == ["scatter", "--phenomena", "--compact-min-mass", "star"]
 
 
 def test_an_unticked_compact_limit_reaches_every_scatter_step(site, client, no_spawn):
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="14", compact_min_mass="2").status_code == 303
     (job,) = no_spawn
     _reset, plan, galaxy = _work_steps(job)
-    assert _argv(plan)[:5] == ["plan", "--phenomenon-min-mass", "14", "--compact-min-mass", "2"]
+    assert _argv(plan) == ["plan"]
     assert _argv(galaxy)[:6] == ["galaxy", "--then-scatter", "--phenomenon-min-mass", "14",
                                  "--compact-min-mass", "2"]
 
@@ -1543,27 +1544,38 @@ def test_redo_scatters_is_one_box_with_a_setting_for_each_scatter(site, client):
     assert "Rebuild the bright stars" not in html
 
 
-def test_redo_scatters_runs_one_job_with_the_ticked_scatters_and_their_settings(site, client, no_spawn):
+def test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting(site, client, no_spawn):
     assert _post(client, action="redo_scatters", redo_mass="1", redo_luminosity="1", redo_phenomena="1",
                  phenomenon_min_mass="12", bright_min_luminosity="2500", compact_min_mass="2").status_code == 303
     (job,) = no_spawn
-    (step,) = _work_steps(job)
     assert job["kind"] == "redo_scatters"
-    assert _argv(step) == ["plan", "--redo-scatters", "mass", "luminosity", "phenomena", "--phenomenon-min-mass", "12",
-                           "--bright-star-min-luminosity", "2500", "--compact-min-mass", "2"]
-    stages = [(entry["label"], entry["skipped"]) for entry in step["stages"]]
-    assert stages == [("Scatter the phenomena", None), ("Scatter the massive stars", None),
-                      ("Scatter the bright stars", None)]
+    steps = _work_steps(job)
+    # The bright stars are cleared before the massive stars they are split from; then each scatter in the order it runs.
+    assert [_argv(step) for step in steps] == [
+        ["clear-scatter", "--luminosity"], ["clear-scatter", "--mass"], ["clear-scatter", "--phenomena"],
+        ["scatter", "--mass", "--phenomenon-min-mass", "12", "--bright-star-min-luminosity", "2500"],
+        ["scatter", "--luminosity", "--bright-star-min-luminosity", "2500"],
+        ["scatter", "--phenomena", "--compact-min-mass", "2"]]
+    for step in steps:
+        assert [entry["label"] for entry in step["stages"]] == [step["label"]]
+        assert [entry["skipped"] for entry in step["stages"]] == [None]
 
 
-def test_redo_scatters_lists_the_unticked_ones_as_skipped_with_the_reason(site, client, no_spawn):
+def test_redo_scatters_leaves_the_unticked_ones_out_and_their_settings_unsent(site, client, no_spawn):
     assert _post(client, action="redo_scatters", redo_luminosity="1", bright_min_luminosity="5000",
                  phenomenon_min_mass="12", compact_use_star="1").status_code == 303
     (job,) = no_spawn
-    (step,) = _work_steps(job)
-    assert _argv(step) == ["plan", "--redo-scatters", "luminosity", "--bright-star-min-luminosity", "5000"]
-    assert [entry["skipped"] is not None for entry in step["stages"]] == [True, True, False]
-    assert "not chosen to be redone" in step["stages"][0]["skipped"]
+    assert [_argv(step) for step in _work_steps(job)] == [
+        ["clear-scatter", "--luminosity"], ["scatter", "--luminosity", "--bright-star-min-luminosity", "5000"]]
+
+
+def test_redoing_the_massive_stars_redoes_the_bright_stars_with_them(site, client, no_spawn):
+    """The bright stars are split from the massive stars at the mass limit, and the mass clear refuses while they stay."""
+    assert _post(client, action="redo_scatters", redo_mass="1", phenomenon_min_mass="16").status_code == 303
+    (job,) = no_spawn
+    assert [_argv(step) for step in _work_steps(job)] == [
+        ["clear-scatter", "--luminosity"], ["clear-scatter", "--mass"],
+        ["scatter", "--mass", "--phenomenon-min-mass", "16"], ["scatter", "--luminosity"]]
 
 
 def test_redo_scatters_needs_at_least_one_scatter_ticked(site, client, no_spawn):

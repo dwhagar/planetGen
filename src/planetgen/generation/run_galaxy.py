@@ -718,7 +718,7 @@ def nebula_blocks_after_run(args):
     MAP.172: adds the nebulae a `galaxy` run stored (the ones the `nebula_field` table does not hold: emission and
     reflection nebulae around a star, a class P or Q cloud) to the Galaxy Map's block totals, once at the end of the
     run so its workers never queue on the same top-level blocks (`db.nebula_blocks.catch_up`). A failure only warns:
-    `planetgen plan --fill-nebula-blocks` makes the totals again.
+    `planetgen fill-nebula-blocks` makes the totals again.
 
     Returns:
         int: The nebulae added.

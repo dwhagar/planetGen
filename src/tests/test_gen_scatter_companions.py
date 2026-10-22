@@ -487,10 +487,10 @@ def _members_by_row_seed(conn, table):
 
 
 def test_a_phenomenon_plan_stores_the_companions_and_a_rerun_stores_the_same_ones(mysql_config):
-    from tests.test_phenomenon_scatter import _plan_args, _seed_galaxy
+    from tests.test_phenomenon_scatter import _scatter_args, _seed_galaxy
     from planetgen.generation import run_plan
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
         first = _members_by_row_seed(conn, "phenomenon_scatter")
@@ -504,7 +504,7 @@ def test_a_phenomenon_plan_stores_the_companions_and_a_rerun_stores_the_same_one
         assert _count(conn, "scatter_nodes") == _count(conn, "scatter_members") - len(first)
     finally:
         conn.close()
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
         assert _members_by_row_seed(conn, "phenomenon_scatter") == first
@@ -515,11 +515,11 @@ def test_a_phenomenon_plan_stores_the_companions_and_a_rerun_stores_the_same_one
 
 
 def test_a_star_plan_stores_the_companions_and_the_phenomena_plan_leaves_them_alone(mysql_config):
-    from tests.test_bright_star_scatter import THRESHOLD, _plan_args, _seed_galaxy
-    from tests.test_phenomenon_scatter import _plan_args as phenomenon_args
+    from tests.test_bright_star_scatter import THRESHOLD, _scatter_args, _seed_galaxy
+    from tests.test_phenomenon_scatter import _scatter_args as phenomenon_args
     from planetgen.generation import run_plan
     _seed_galaxy(mysql_config)
-    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", "1"))
     conn = store.get_connection(mysql_config)
     try:
         systems = _members_by_row_seed(conn, "bright_stars")

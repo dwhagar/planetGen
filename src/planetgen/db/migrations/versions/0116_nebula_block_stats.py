@@ -5,7 +5,7 @@ volume, centroid, bounding radius, the volume of each family, the dominant class
 (the volume of each class in a block, so one stored nebula can be added to a block) and `nebula_block_state` (the
 highest nebula id folded in). They are filled from `nebula_field` and the stored nebulae the galaxy already holds
 (`db.nebula_blocks.rebuild`), so the cover of a block no sector was generated in is known at once. A galaxy planned
-before `nebula_field` (v83) has nothing to fill from; `planetgen plan --fill-nebula-blocks` makes the tables once its
+before `nebula_field` (v83) has nothing to fill from; `planetgen fill-nebula-blocks` makes the tables once its
 field is drawn. The fill is skipped once `nebula_block_state` holds its row (the mark that it was done), so a stopped run can
 be started again.
 """

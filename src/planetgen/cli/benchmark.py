@@ -5,7 +5,7 @@
 the plan to a finished fill.
 
 It makes a scratch database and control database, runs the real commands in
-child processes with a fixed galaxy seed (`plan`, then `galaxy` over a small
+child processes with a fixed galaxy seed (`plan`, its scatters, then `galaxy` over a small
 shell with the scatter on), and prints for each worker count asked:
 
 - every stage's wall time and share of the run (the numbered stages every
@@ -209,7 +209,8 @@ def _profile(config, control, args, workdir):
         base = [sys.executable, "-m", "planetgen.cli.generate"]
         conn_args = ["--mysql-host", config.host, "--mysql-port", str(config.port), "--mysql-user", config.user,
                      "--mysql-database", database]
-        _run(base + _plan_args(args) + conn_args, env, "the plan")
+        for command in _plan_commands(args):
+            _run(base + command + conn_args, env, "the plan")
         out = os.path.join(workdir, "fill.prof")
         seconds = _run([sys.executable, "-m", "cProfile", "-o", out, "-m", "planetgen.cli.generate",
                         *_fill_args(args), *conn_args], env, "the profiled fill")
@@ -227,9 +228,12 @@ def _profile(config, control, args, workdir):
     return seconds, rows[:PROFILE_TOP]
 
 
-def _plan_args(args):
-    return ["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc",
-            "--bright-star-min-luminosity", "100000"]
+def _plan_commands(args):
+    """The commands of the plan: the skeleton, then the scatters on it, each its own command (PERF.121)."""
+    from planetgen.generation import run_common
+    floor = ["--bright-star-min-luminosity", "100000"]
+    return [["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc"],
+            ["scatter", "--mass", *floor], ["scatter", "--luminosity", *floor], ["scatter", "--phenomena"]]
 
 
 def _fill_args(args):
@@ -259,7 +263,7 @@ def run_benchmark(args):
                          "--mysql-database", database]
             base = [sys.executable, "-m", "planetgen.cli.generate"]
             before = _status(admin)
-            plan_seconds = _run(base + _plan_args(args) + conn_args, env, "the plan")
+            plan_seconds = sum(_run(base + command + conn_args, env, "the plan") for command in _plan_commands(args))
             fill_seconds = _run(base + _fill_args(args) + conn_args, env, "the fill")
             after = _status(admin)
             total = plan_seconds + fill_seconds

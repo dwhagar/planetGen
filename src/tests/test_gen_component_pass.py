@@ -23,7 +23,7 @@ from planetgen.generation import component_pass, phenomenon_scatter, run_plan
 from planetgen.physics import component_profiles, king
 from tests import test_gen_scatter_tiers as tiers
 from tests.test_bright_star_scatter import EXTENTS
-from tests.test_phenomenon_scatter import _plan_args as _phenomenon_args
+from tests.test_phenomenon_scatter import _scatter_args as _phenomenon_args
 
 EDGE = tiers.EDGE_PC
 E_VALUE = 6.3
@@ -193,7 +193,7 @@ def test_a_plan_scatter_places_the_components_stars_and_phenomena(mysql_config):
         conn.commit()
     finally:
         conn.close()
-    stars = run_plan.scatter_bright_stars(_phenomenon_args(mysql_config, "--bright-stars-only", "--workers", "1",
+    stars = run_plan.scatter_bright_stars(_phenomenon_args(mysql_config, "--mass", "--workers", "1",
                                                            "--bright-star-min-luminosity", "2500"))
     phenomena = run_plan.scatter_phenomena(_phenomenon_args(mysql_config, "--workers", "1"))
     conn = store.get_connection(mysql_config)

@@ -5823,6 +5823,10 @@ def _delete_bright_stars_by_id(conn, ids, batch_size=500):
         conn.execute(f"DELETE FROM bright_stars WHERE id IN ({marks})", tuple(chunk))
 
 
+NO_MASS_LIMIT_SOL = 1.0e300
+"""float: A mass limit above any star, for a clear that finds none recorded."""
+
+
 def clear_bright_star_pass(conn, part, limits):
     """
     Deletes one pass of the star scatter and leaves the other (GEN.196):
@@ -5838,7 +5842,13 @@ def clear_bright_star_pass(conn, part, limits):
     """
     if part not in ("mass", "luminosity"):
         raise ValueError(f"part must be 'mass' or 'luminosity', not {part!r}")
-    masses = [found.mass_limit_sol for found in limits.tiers]
+    if limits.tiers is None:
+        # Only the mass pass ran, or only stars with no recorded split: the one limit stored (none puts every star
+        # under it, so the luminosity pass clears them all and the mass pass nothing).
+        stored = bright_star_mass_limit(conn)
+        masses = [NO_MASS_LIMIT_SOL if stored is None else stored]
+    else:
+        masses = [found.mass_limit_sol for found in limits.tiers]
     low, high = min(masses), max(masses)
     if part == "mass":
         scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
@@ -5862,6 +5872,29 @@ def clear_bright_star_pass(conn, part, limits):
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute(f"UPDATE galaxy_shape SET {forget}")
     conn.commit()
+
+
+def scatter_stored(conn, part):
+    """
+    Whether the scatter of `part` has rows stored: "mass" (the massive-star pass, which records the mass limit it placed
+    from), "luminosity" (stars lighter than that limit; with no mass pass recorded, any star at all, since nothing then
+    says where to split them), "phenomena" or "nebula-field". `planetgen scatter` draws only where none is stored and
+    `planetgen clear-scatter` empties it.
+    """
+    if part == "mass":
+        return bright_star_mass_limit(conn) is not None
+    if part == "luminosity":
+        limit = bright_star_mass_limit(conn)
+        if limit is None:
+            return conn.execute("SELECT 1 FROM bright_stars LIMIT 1").fetchone() is not None
+        low = min([found.mass_limit_sol for found in scatter_limits_of(conn).tiers or ()
+                   if found.mass_limit_sol is not None] or [limit])
+        return conn.execute("SELECT 1 FROM bright_stars WHERE initial_mass_sol < ? LIMIT 1", (low,)).fetchone() is not None
+    if part == "phenomena":
+        return conn.execute("SELECT 1 FROM phenomenon_scatter LIMIT 1").fetchone() is not None
+    if part == "nebula-field":
+        return conn.execute("SELECT 1 FROM nebula_field LIMIT 1").fetchone() is not None
+    raise ValueError(f"part must be 'mass', 'luminosity', 'phenomena' or 'nebula-field', not {part!r}")
 
 
 def record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit_sol=None):
@@ -6308,7 +6341,7 @@ def sector_bright_level_keys(conn):
     """
     Every sector a backfill took to its own level (`bright_level_sol` above
     0, GEN.44), as `(shell, band, wedge) -> level`: what a staged scatter
-    (`planetgen plan --bright-stars-down-to`) leaves out of its layers
+    (`planetgen scatter --band --down-to`) leaves out of its layers
     and tops up sector by sector instead.
     """
     rows = conn.execute("SELECT shell_index, band_index, wedge_index, bright_level_sol FROM sector_stats"
@@ -6545,7 +6578,7 @@ def galaxy_density_ratio(conn):
 def delete_unfinished_band(conn, limits, keep_addresses=(), batch_size=500):
     """
     Deletes the unbuilt bright stars below the galaxy's star-fill level outside `keep_addresses`: what a band run
-    (`planetgen plan --bright-stars-down-to`) that stopped part way left
+    (`planetgen scatter --band --down-to`) that stopped part way left
     in the bands it got through, since the level only moves once a band
     is whole (GEN.32). `limits` (`galaxy.scatter_limits.ScatterLimits`, GEN.333) is the level before the run, and
     each band's level is its tier's. Every finished scatter or band is at or above the

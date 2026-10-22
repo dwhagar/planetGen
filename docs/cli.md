@@ -13,6 +13,11 @@ planetgen system [options]      # one star system
 planetgen sector [options]      # one or more independent sectors
 planetgen galaxy [options]      # many sectors placed as one galaxy
 planetgen plan [options]        # the galaxy's density skeleton
+planetgen scatter --KIND        # one scatter on the plan: --mass, --luminosity, --phenomena, --nebula-field, --band
+planetgen clear-scatter --KIND  # empty one scatter, so scatter can draw it again: --mass, --luminosity, --phenomena, --nebula-field
+planetgen fill-map-luminosity   # fill the map luminosity of the scattered phenomena
+planetgen rescore-habitability  # re-derive every stored habitability score
+planetgen clean-nebula-field    # count, or with --apply drop, the field clouds the keep rates now reject
 planetgen phenomenon [options]  # one exotic stellar phenomenon
 planetgen population [options]  # species, civilizations and territories
 planetgen check-math [-v]       # the math check bulk runs start with
@@ -260,12 +265,12 @@ apart, no diagonals) get every star born from 1 solar mass up in the nearest
 step, 2 in the next, then 5, then 8, and a sector already generated never
 gets any. `--backfill-from none` skips it (`edge` is the default).
 `--then-scatter` first scatters the bright stars galaxy-wide, as
-`planetgen plan --bright-stars-only` does, and then the phenomena, as `plan
---phenomena-only` does, leaving out every sector already generated; a new
+`planetgen scatter --mass` and `scatter --luminosity` do, and then the phenomena,
+as `scatter --phenomena` does, leaving out every sector already generated; a new
 galaxy uses it so the scatter never draws stars for sectors the run fills
 anyway. With it, `--bright-star-min-luminosity` (9000 solar luminosities by
 default), `--phenomenon-min-mass` and `--compact-min-mass` set the
-scatter, as on `plan`. `--phenomena-only` is listed with `plan` below.
+scatter, as on `scatter`, which is described below.
 
 ### Parallel generation
 
@@ -422,7 +427,7 @@ neighborhood near the edge simply leaves out the sectors past it.
 random)`). `--seed <32 hex digits>` sets it instead; a later plan keeps
 the stored seed, and a different `--seed` is refused once any sector
 exists. Each sector, the bright-star scatter, each band added with
-`--bright-stars-down-to` and each backfill block draws from its own seed,
+`scatter --band` and each backfill block draws from its own seed,
 the SHA-256 of the galaxy seed and its address (`sector:12/3/0` is shell 12, band 3, wedge 0), so one
 seed fills a sector the same way at any `--workers` count and in any run
 that reaches it, on the same PlanetGen release. Two systems that draw the
@@ -489,33 +494,55 @@ shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the
 galaxy seed. `--workers` is how many shells of bright stars are drawn at
 once.
 
-After the outline, `planetgen plan` also places every star of 9000 solar
-luminosities or more across the whole galaxy, before any sector is
-filled (the default and the range are in `tuning.py`). `--bright-star-min-luminosity`
-takes a level from 2500 to 4,000,000 solar luminosities instead (the
-Generate page offers presets); a lower level places far more stars and takes
-longer, and the run prints an estimate first. Each one is a finished star at a fixed point in
-its sector, stored in `bright_stars`, so the Galaxy Map can show the
+`planetgen scatter` places the galaxy's stars and phenomena on the stored outline, before any sector is
+filled (PERF.121). It draws exactly one kind of scatter per run, so each kind is a command of its own that a job
+can queue, retry or leave out:
+
+- `--mass` places every star born at the stellar mass limit or more, whatever its luminosity.
+  `--phenomenon-min-mass` is one of 8, 10, 12, 14, 16, 18 or 20 solar masses (14 by default).
+- `--luminosity` places the stars born lighter than the mass limit that are at least
+  `--bright-star-min-luminosity` bright: from 2500 to 4,000,000 solar luminosities, 9000 by default (the Generate
+  page offers presets). A lower level places far more stars and takes longer, and the run prints an estimate first.
+  It works at the mass limit the mass pass stored, and stops with "run 'planetgen scatter --mass' first" when
+  there is none.
+- `--phenomena` places the neutron stars, black holes and the rest. `--compact-min-mass` is the lowest mass of a
+  neutron star or black hole placed galaxy-wide: one of 1, 2, 4, 6, or `star` for the stellar limit, which is the
+  default. A lower limit stores far more rows, and `scatter --help` lists the sizes. The stars are left alone and the
+  central black hole or quasar is always rebuilt.
+- `--nebula-field` draws the `nebula_field` table of molecular clouds again from the galaxy seed.
+- `--band --down-to N` adds a band of dimmer stars (described below).
+
+Each star is a finished star at a fixed point in its sector, stored in `bright_stars`, so the Galaxy Map can show the
 bright stars tracing the spiral arms right away. Filling a sector later
 builds a full system around each of its bright stars first, then draws
 the rest of its systems from dimmer stars only, so its expected total is
 unchanged. Every system's age comes from the stellar population mix where
 its sector sits (young stars crowd the arms near the plane; the bulge is
-old). `--no-bright-stars` skips the step, and `--bright-stars-only` re-scatters
-on the stored outline. The stars born at the phenomenon mass limit or more
-are drawn in a pass of their own, with the black holes, neutron stars and the other
-phenomena (`--phenomenon-min-mass`: one of 8, 10, 12, 14, 16, 18 or 20 solar
-masses, 14 by default, or the limit already stored; `--compact-min-mass`: the lowest mass of a neutron star or black
-hole placed galaxy-wide, one of 1, 2, 4, 6 or `star` for the stellar limit, which is the default; a lower limit stores far more rows, and
-`plan --help` lists the sizes). `--phenomena-only` re-scatters only those on the stored outline.
+old). Every option belongs to one kind and is refused with another. `planetgen plan` takes none of them, and
+a plan alone places no stars (and empties what an earlier plan's scatters left); `galaxy --then-scatter` runs the
+kinds as steps of one run.
 
-`--cell-star-ceiling` and `--fill-luminosity-cap` (GEN.281, `plan`) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 5,000) is filled only with the stars at or above the cap (default 100 solar luminosities, raised for a cell those stars would still fill past the ceiling, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (`unresolved`). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. `--core-min-luminosity`, `--core-mass-limit` and `--halo-min-luminosity` (DB.54, `plan`) store the scatter limits by place: the core's luminosity floor and mass limit (unset, they are the baseline's times 1.1, 9,900 and 15.4 at the defaults) and the halo's luminosity floor (default 500, from 50 to 4,000,000; the halo has no mass limit of its own). The tiers that read them are GEN.333's. `--redo-scatters mass luminosity phenomena` (GEN.196) redoes only the scatters named, each with this run's settings: `mass` clears and rewrites the stars born at the mass limit or more (`--phenomenon-min-mass`), `luminosity` the lighter stars at `--bright-star-min-luminosity`, and `phenomena` the neutron stars, black holes and the rest (`--compact-min-mass`). A new mass limit redoes both star passes. A redo rewrites rows only: the satellites and clusters (`galaxy_components`) are drawn only by a full `plan`, so a galaxy planned before GEN.159 and GEN.237 has an empty component table until a full plan runs. The measured cost of a full scatter is in [generation-performance-study.md](design/generation-performance-study.md). `--redo-nebula-field [dry-run|apply]` (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (`tuning.NEBULA_FIELD_KEEP`): the dry run (the default, and always done first) counts, per class, the stored field clouds the rule now rejects and changes nothing; `apply` then deletes them (everything inside them loses its `inside_nebula_id`, and containment is refreshed in the sectors they reached) and draws the `nebula_field` table again. A nebula that was not made by the field is left alone. `--fill-map-luminosity` (DB.23, GEN.201) fills `phenomenon_scatter.map_luminosity_sol`, the luminosity a star of a row's mass would have on the Galaxy Map, for a galaxy scattered before schema v84: id-range batches of 200,000 rows, each its own short statement and commit, resumable (it only fills rows still empty). A new scatter writes the value with each row. `--fill-habitability` (GEN.217) re-derives the stored habitability numbers of every planet and moon from its stored conditions: the flux swing of a body in a double-star system (loading that system, as generation does), the PHI-6 index, the six domains and their tiers, the equipment tier and the note. It is for a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is worked out from the same conditions whenever a page is drawn. Nothing else is touched; each batch of 500 systems is its own transaction and the result is the same however often it is run, so a stopped run is started again. A gas giant and a body saved before schema v76 (no score) are left alone. `--fill-nebula-blocks` (MAP.172) makes the nebula totals of the Galaxy Map's blocks again (`nebula_block_stats`: for every block of the ladder, the nebulae in it, their volume, centroid, families, dominant class and cover) from the `nebula_field` table and the stored nebulae, in one transaction. A plan makes them with the field, and a `galaxy` run adds the nebulae it stored at its end; this is for a galaxy whose field was drawn before the totals existed, or after anything else changed the nebulae. It can be run again.
+A scatter draws only where none of its kind is stored (Boss's F7): it stops and names the clear to run first, so
+nothing is replaced by accident. `planetgen clear-scatter` empties one kind and nothing else: `--mass` (refused while
+the bright stars are stored, which are split from the massive stars at the mass limit, so clear `--luminosity`
+first), `--luminosity` (the band goes with it), `--phenomena` or `--nebula-field`. To redo a scatter at a new
+setting, clear it and draw it again; to change the mass limit, clear `--luminosity` and `--mass`, then draw
+`--mass` and `--luminosity`. Clearing a kind with nothing stored says so and changes nothing.
+
+
+`--cell-star-ceiling` and `--fill-luminosity-cap` (GEN.281, `plan`) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 5,000) is filled only with the stars at or above the cap (default 100 solar luminosities, raised for a cell those stars would still fill past the ceiling, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (`unresolved`). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. `--core-min-luminosity`, `--core-mass-limit` and `--halo-min-luminosity` (DB.54, `plan`) store the scatter limits by place: the core's luminosity floor and mass limit (unset, they are the baseline's times 1.1, 9,900 and 15.4 at the defaults) and the halo's luminosity floor (default 500, from 50 to 4,000,000; the halo has no mass limit of its own). The tiers that read them are GEN.333's. The satellites and clusters (`galaxy_components`) are drawn only by a full `plan`, so a galaxy planned before GEN.159 and GEN.237 has an empty component table until a full plan runs. The measured cost of a full scatter is in [generation-performance-study.md](design/generation-performance-study.md).
+
+`planetgen clean-nebula-field` (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (`tuning.NEBULA_FIELD_KEEP`): without `--apply` it counts, per class, the stored field clouds the rule now rejects and changes nothing; `--apply` deletes them (everything inside them loses its `inside_nebula_id`, and containment is refreshed in the sectors they reached). A nebula that was not made by the field is left alone. `planetgen scatter --nebula-field` then draws the `nebula_field` table again.
+
+`planetgen fill-map-luminosity` (DB.23, GEN.201) fills `phenomenon_scatter.map_luminosity_sol`, the luminosity a star of a row's mass would have on the Galaxy Map, for a galaxy scattered before schema v84: id-range batches of 200,000 rows, each its own short statement and commit, resumable (it only fills rows still empty). A new scatter writes the value with each row. `planetgen rescore-habitability` (GEN.217) re-derives the stored habitability numbers of every planet and moon from its stored conditions: the flux swing of a body in a double-star system (loading that system, as generation does), the PHI-6 index, the six domains and their tiers, the equipment tier and the note. It is for a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is worked out from the same conditions whenever a page is drawn. Nothing else is touched; each batch of 500 systems is its own transaction and the result is the same however often it is run, so a stopped run is started again. A gas giant and a body saved before schema v76 (no score) are left alone. Both take only `--workers` and the connection options.
+
+`planetgen fill-nebula-blocks` (MAP.172) makes the nebula totals of the Galaxy Map's blocks again (`nebula_block_stats`: for every block of the ladder, the nebulae in it, their volume, centroid, families, dominant class and cover) from the `nebula_field` table and the stored nebulae, in one transaction. `planetgen scatter --nebula-field` makes them with the field, and a `galaxy` run adds the nebulae it stored at its end; this is for a galaxy whose field was drawn before the totals existed, or after anything else changed the nebulae. It can be run again, and takes only `--workers` and the connection options.
+
 
 The scatter always leaves the sectors that are already filled out (they
-would never get their bright stars), so `--force` is no longer needed; the
-option is still accepted and does nothing.
+would never get their bright stars).
 
-The scatter can go down in stages. `--bright-stars-down-to N` keeps every
+The scatter can go down in stages. `scatter --band --down-to N` keeps every
 bright star already placed and adds only those from `N` up to (not
 including) the galaxy's star-fill level, the threshold already scattered
 (9000 by default), then lowers that level to `N`. So a quick test galaxy
@@ -523,7 +550,7 @@ scattered at 9000 can later go down to 5000 without redrawing anything
 brighter:
 
 ```bash
-planetgen plan --bright-stars-down-to 5000
+planetgen scatter --band --down-to 5000
 ```
 
 Sectors already filled get none of the new stars: their own systems were

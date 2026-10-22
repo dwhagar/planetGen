@@ -32,6 +32,15 @@ def _run(workers=1):
             "worker_startup": {"import_seconds": 1.25, "connect_seconds": 0.05, "process_seconds": 1.5}}
 
 
+def test_every_command_of_the_benchmarks_plan_is_one_the_cli_accepts():
+    """PERF.121: the plan is the skeleton and then each scatter, so each is a command of its own."""
+    parser, _parsers = generate.build_parser()
+    commands = benchmark._plan_commands(_args())
+    assert [command[0] for command in commands] == ["plan", "scatter", "scatter", "scatter"]
+    for command in commands:
+        assert parser.parse_args(command).command == command[0]
+
+
 def test_workers_parse_to_whole_numbers():
     assert benchmark._workers("1,2, 4") == [1, 2, 4]
 

@@ -2,7 +2,7 @@
 MAP.172: the stored nebula aggregates (`nebula_block_stats`, `nebula_block_classes`, `nebula_block_state`;
 `db/nebula_blocks.py`). A rebuild holds the `nebula_field` clouds and the stored nebulae the field does not hold, the
 nebulae stored since are added by `catch_up` to exactly what a rebuild would give, a plan makes the totals with the
-field, and `plan --fill-nebula-blocks` makes them again.
+field, and `fill-nebula-blocks` makes them again.
 """
 
 import numpy as np
@@ -16,7 +16,8 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.physics.units import ly_to_pc
 
-from tests.test_nebula_field_table import _plan_args, _seed_galaxy
+from tests.test_habitability_fill import _fill_args
+from tests.test_nebula_field_table import _scatter_args, _seed_galaxy
 
 pytestmark = pytest.mark.db
 
@@ -196,7 +197,7 @@ def test_a_plan_makes_the_totals_with_the_field_and_fill_nebula_blocks_makes_the
     scales["molecular-cloud"] = 40.0  # the default galaxy is a small spiral (GEN.603): enough clouds for a field of more than 20
     monkeypatch.setattr(tuning, "PHENOMENON_RATE_SCALE", scales)
     _seed_galaxy(mysql_config)
-    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
         field = conn.execute("SELECT COUNT(*) AS n FROM nebula_field").fetchone()["n"]
@@ -210,9 +211,7 @@ def test_a_plan_makes_the_totals_with_the_field_and_fill_nebula_blocks_makes_the
         conn.commit()
     finally:
         conn.close()
-    args = _plan_args(mysql_config, "--fill-nebula-blocks")
-    assert args.fill_nebula_blocks
-    assert run_plan.fill_nebula_blocks(args) == len(made)
+    assert run_plan.fill_nebula_blocks(_fill_args(mysql_config)) == len(made)
     conn = store.get_connection(mysql_config)
     try:
         _same_totals(_table(conn), made)
@@ -229,10 +228,10 @@ def test_a_galaxy_run_adds_the_nebulae_it_stored_once_at_its_end(mysql_config):
         _store_nebula(conn, "C", 3.0, (805.0, 195.0, 52.0))
     finally:
         conn.close()
-    assert run_galaxy.nebula_blocks_after_run(_plan_args(mysql_config)) == 1
+    assert run_galaxy.nebula_blocks_after_run(_scatter_args(mysql_config)) == 1
     conn = store.get_connection(mysql_config)
     try:
         assert sum(r["nebula_count"] for k, r in _table(conn).items() if k[0] == 3) == 1
     finally:
         conn.close()
-    assert run_galaxy.nebula_blocks_after_run(_plan_args(mysql_config)) == 0
+    assert run_galaxy.nebula_blocks_after_run(_scatter_args(mysql_config)) == 0

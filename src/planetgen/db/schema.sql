@@ -1183,7 +1183,7 @@
 --   the Galaxy Map can show a faint but massive neutron star or black hole where a
 --   star of its mass would be visible. FLOAT, NULL for a row without a mass
 --   (planetary nebulae, supernova remnants, hypervelocity stars, the quasar).
---   Written when the scatter inserts a row; `plan --fill-map-luminosity` fills it
+--   Written when the scatter inserts a row; `planetgen fill-map-luminosity` fills it
 --   in a galaxy scattered before v84.
 --
 -- v85: `object_timing_stats` and `object_timing_samples` (PERF.92): how long each

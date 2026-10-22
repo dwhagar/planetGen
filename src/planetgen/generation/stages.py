@@ -4,7 +4,7 @@
 The stages of a generation command, numbered and announced as the run reaches
 them (UX.89).
 
-A command that does several things in turn (`galaxy`, `plan`) declares its
+A command that does several things in turn (`galaxy`) declares its
 stages up front with `begin`; each is entered with `enter(key)` as the run
 reaches it. A stage the run will not do (the scatter without `--then-scatter`,
 the backfill with `--backfill-from none`, no shells to scatter) is still
@@ -91,44 +91,82 @@ def galaxy_stages(args):
 
 
 def plan_stages(args):
-    """The stages of one `planetgen plan` run, in order."""
-    if getattr(args, "bright_stars_down_to", None) is not None:
-        return [Stage("band", "Add the dimmer band of bright stars")]
-    if getattr(args, "fill_map_luminosity", False):
-        return [Stage("map-luminosity", "Fill the map luminosity")]
-    if getattr(args, "fill_habitability", False):
-        return [Stage("habitability", "Re-score the habitability")]
-    if getattr(args, "fill_nebula_blocks", False):
-        return [Stage("nebula-blocks", "Make the nebula block totals")]
-    if getattr(args, "redo_nebula_field", None):
-        return [Stage("nebula-field", "Clean up the nebula field")]
-    redo = getattr(args, "redo_scatters", None)
-    if redo:
-        not_chosen = "not chosen to be redone"
-        new_limit = getattr(args, "phenomenon_min_mass", None) is not None
-        luminosity = None if "luminosity" in redo else (
-            None if "mass" in redo and new_limit else not_chosen + (
-                " (it is redone if the mass limit changes)" if "mass" in redo else ""))
-        return [Stage("phenomena", "Scatter the phenomena", None if "phenomena" in redo else not_chosen),
-                Stage("mass", "Scatter the massive stars", None if "mass" in redo else not_chosen),
-                Stage("luminosity", "Scatter the bright stars", luminosity)]
-    if getattr(args, "phenomena_only", False):
-        return [Stage("phenomena", "Scatter the phenomena")]
-    if getattr(args, "bright_stars_only", False):
-        return [Stage("mass", "Scatter the massive stars"), Stage("luminosity", "Scatter the bright stars")]
-    stages = [Stage("skeleton", "Plan the galaxy")]
-    if not getattr(args, "no_bright_stars", False):
-        stages += [Stage("phenomena", "Scatter the phenomena"), Stage("mass", "Scatter the massive stars"),
-                   Stage("luminosity", "Scatter the bright stars")]
-    return stages
+    """The stages of one `planetgen plan` run: the skeleton, and nothing else (PERF.121)."""
+    return [Stage("skeleton", "Plan the galaxy")]
+
+
+SCATTER_KINDS = ("mass", "luminosity", "phenomena", "nebula-field", "band")
+"""tuple[str]: The kinds of `planetgen scatter`, one per run (PERF.121): the options `--mass`, `--luminosity`,
+`--phenomena`, `--nebula-field` and `--band`."""
+
+SCATTER_STAGE = {"mass": Stage("mass", "Scatter the massive stars"),
+                 "luminosity": Stage("luminosity", "Scatter the bright stars"),
+                 "phenomena": Stage("phenomena", "Scatter the phenomena"),
+                 "nebula-field": Stage("nebula-draw", "Draw the nebula field"),
+                 "band": Stage("band", "Add the dimmer band of bright stars")}
+"""dict: The stage of each kind of scatter."""
+
+
+def scatter_kind(args):
+    """The one kind a `planetgen scatter` run draws (`args.mass`, `args.luminosity`, ...), `None` when none is set."""
+    chosen = [kind for kind in SCATTER_KINDS if getattr(args, kind.replace("-", "_"), False)]
+    return chosen[0] if len(chosen) == 1 else None
+
+
+def scatter_stages(args):
+    """The stages of one `planetgen scatter` run: its kind's stage alone (PERF.121)."""
+    kind = scatter_kind(args)
+    return [] if kind is None else [SCATTER_STAGE[kind]]
+
+
+CLEAR_KINDS = ("mass", "luminosity", "phenomena", "nebula-field")
+"""tuple[str]: The kinds of `planetgen clear-scatter` (PERF.121, Boss's F7): the scatters that can be cleared, one per
+run. The band is part of the bright stars and goes with them."""
+
+CLEAR_STAGE = {"mass": Stage("clear-mass", "Clear the massive stars"),
+               "luminosity": Stage("clear-luminosity", "Clear the bright stars"),
+               "phenomena": Stage("clear-phenomena", "Clear the phenomena"),
+               "nebula-field": Stage("clear-nebula-field", "Clear the nebula field")}
+"""dict: The stage of each kind of clear."""
+
+
+CLEAR_KEYS = tuple(stage.key for stage in CLEAR_STAGE.values())
+"""tuple[str]: The keys of the clear stages."""
+
+
+def clear_kind(args):
+    """The one kind a `planetgen clear-scatter` run clears, `None` when none is set."""
+    chosen = [kind for kind in CLEAR_KINDS if getattr(args, kind.replace("-", "_"), False)]
+    return chosen[0] if len(chosen) == 1 else None
+
+
+def clear_stages(args):
+    """The stages of one `planetgen clear-scatter` run: its kind's stage alone."""
+    kind = clear_kind(args)
+    return [] if kind is None else [CLEAR_STAGE[kind]]
+
+
+SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill the map luminosity"),
+                         "rescore-habitability": Stage("habitability", "Re-score the habitability"),
+                         "fill-nebula-blocks": Stage("nebula-blocks", "Make the nebula block totals"),
+                         "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field")}
+"""dict: The commands that do one stage and nothing else (PERF.122), by command name."""
 
 
 def for_command(command, args):
-    """The stages of `command` (`"galaxy"` or `"plan"`) for parsed `args`, `[]` for any other."""
+    """The stages of `command` (`galaxy`, `plan`, `scatter`, `clear-scatter`, or a one-stage command of
+    `SINGLE_STAGE_COMMANDS`) for
+    parsed `args`, `[]` for any other."""
     if command == "galaxy":
         return galaxy_stages(args)
     if command == "plan":
         return plan_stages(args)
+    if command == "scatter":
+        return scatter_stages(args)
+    if command == "clear-scatter":
+        return clear_stages(args)
+    if command in SINGLE_STAGE_COMMANDS:
+        return [SINGLE_STAGE_COMMANDS[command]]
     return []
 
 
@@ -161,6 +199,8 @@ def stage_settings(key, args):
     elif key == "phenomena":
         compact = getattr(args, "compact_min_mass", None)
         settings["compact_limit_sol"] = mass if compact in (None, tuning.COMPACT_MIN_MASS_STAR) else float(compact)
+    elif key in CLEAR_KEYS:
+        settings = {"part": key[len("clear-"):]}
     elif key == "backfill":
         settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
     elif key == "skeleton":

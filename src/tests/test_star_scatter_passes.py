@@ -21,7 +21,7 @@ from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import sample_living_star
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 from tests.test_bright_star_scatter import (
-    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _profile, _row_dict, _seed_galaxy,
+    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _scatter_args, _profile, _row_dict, _seed_galaxy,
 )
 
 MASS_LIMIT = 3.0
@@ -89,7 +89,7 @@ def test_the_backfill_draws_only_stars_lighter_than_the_mass_limit():
 
 def _scattered(mysql_config, mass_limit=MASS_LIMIT):
     _seed_galaxy(mysql_config)
-    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", "1")
+    args = _scatter_args(mysql_config, "--mass", "--workers", "1")
     args.phenomenon_min_mass = mass_limit
     args.bright_star_min_luminosity = LIGHT_FLOOR
     summary = run_plan.scatter_bright_stars(args)
@@ -119,7 +119,7 @@ def test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked
 
 def test_a_band_below_the_floor_draws_only_lighter_stars(mysql_config, monkeypatch):
     _scattered(mysql_config)
-    args = _plan_args(mysql_config, "--bright-stars-down-to", "200", "--workers", "1")
+    args = _scatter_args(mysql_config, "--band", "--down-to", "200", "--workers", "1")
     run_plan.add_bright_star_band(args)
     conn = store.get_connection(mysql_config)
     try:

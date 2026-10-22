@@ -1,4 +1,4 @@
-"""PERF.118: every stage of a `galaxy` or `plan` run is a registered command, and the wrapper (`planetgen/queue/wrapper.py`)
+"""PERF.118, PERF.121, PERF.122: every stage of a `galaxy`, `plan`, `scatter` or fill run is a registered command, and the wrapper (`planetgen/queue/wrapper.py`)
 turns the arguments into the ordered steps that will run, writes the run record, queues the first stage and lets the done set
 queue the next (`planetgen/queue/commands.py`)."""
 
@@ -14,9 +14,11 @@ GALAXY_RUNS = (
     ["galaxy"], ["galaxy", "--then-scatter"], ["galaxy", "--then-scatter", "--population", "--backfill-from", "none"],
     ["galaxy", "--no-settle"], ["galaxy", "--then-scatter", "--population"])
 PLAN_RUNS = (
-    ["plan"], ["plan", "--no-bright-stars"], ["plan", "--bright-stars-only"], ["plan", "--phenomena-only"],
-    ["plan", "--redo-scatters", "mass"], ["plan", "--redo-scatters", "phenomena", "luminosity"],
-    ["plan", "--bright-stars-down-to", "10"], ["plan", "--fill-map-luminosity"], ["plan", "--fill-habitability"])
+    ["plan"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"],
+    ["scatter", "--nebula-field"], ["scatter", "--band", "--down-to", "10"], ["fill-map-luminosity"],
+    ["rescore-habitability"], ["clean-nebula-field"], ["clean-nebula-field", "--apply"],
+    ["clear-scatter", "--mass"], ["clear-scatter", "--luminosity"], ["clear-scatter", "--phenomena"],
+    ["clear-scatter", "--nebula-field"])
 
 
 def _args(argv):
@@ -46,19 +48,25 @@ def test_the_same_arguments_give_the_same_list(argv):
 def test_a_step_the_request_does_not_select_is_not_in_the_list():
     kinds = lambda argv: [step.kind for step in wrapper.steps_for(*(lambda a: (a.command, a))(_args(argv)))]  # noqa: E731
     assert "scatter-mass" not in kinds(["galaxy"]) and "scatter-mass" in kinds(["galaxy", "--then-scatter"])
-    assert kinds(["plan", "--redo-scatters", "mass"]) == ["scatter-mass"]
+    assert kinds(["plan"]) == ["plan-skeleton"]
+    assert kinds(["scatter", "--mass"]) == ["scatter-mass"]
     assert "scatter-backfill" not in kinds(["galaxy", "--backfill-from", "none"])
-    assert kinds(["plan", "--phenomena-only"]) == ["scatter-phenomena"]
+    assert kinds(["scatter", "--phenomena"]) == ["scatter-phenomena"]
+    assert kinds(["fill-map-luminosity"]) == ["fill-map-luminosity"]
+    assert kinds(["rescore-habitability"]) == ["rescore-habitability"]
+    assert kinds(["clean-nebula-field"]) == ["clean-nebula-field"]
+    assert kinds(["clear-scatter", "--luminosity"]) == ["clear-scatter"]
 
 
 def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_of_their_passes():
-    for argv in (["plan", "--bright-stars-only"], ["galaxy", "--then-scatter"]):
+    args = _args(["galaxy", "--then-scatter"])
+    assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))
+            if step.kind in ("scatter-mass", "scatter-luminosity")] == ["scatter-mass", "scatter-luminosity"]
+    for argv, kind in ((["scatter", "--mass"], "scatter-mass"), (["scatter", "--luminosity"], "scatter-luminosity"),
+                       (["scatter", "--phenomena"], "scatter-phenomena")):
         args = _args(argv)
-        assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))
-                if step.kind in ("scatter-mass", "scatter-luminosity")] == ["scatter-mass", "scatter-luminosity"]
-    args = _args(["plan", "--phenomena-only"])
-    assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-phenomena"]
-    args = _args(["plan", "--bright-stars-down-to", "10"])
+        assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == [kind]
+    args = _args(["scatter", "--band", "--down-to", "10"])
     assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-band"]
 
 
@@ -73,7 +81,7 @@ def test_only_a_registered_command_with_units_can_be_queued_and_every_command_ha
 
 
 def test_the_step_the_wrapper_adds_when_the_stored_scatter_is_incomplete_comes_before_the_luminosity_pass():
-    args = _args(["plan", "--redo-scatters", "luminosity"])
+    args = _args(["scatter", "--luminosity"])
     step, listing = wrapper.step_for(args, "mass", "Massive stars", {"seed": 5})
     assert step.params["seed"] == 5 and step.kind == "scatter-mass"
     keys = [item.key for item in listing]
