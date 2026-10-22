@@ -933,3 +933,4 @@ Baseline: PR #1817.
 | DB.79 | 8.2 | Robust tile caching |
 | PERF.144 | 8.1 | Queue, caches and performance |
 | GEN.378 | 8.1 | Galaxy types groundwork |
+| PERF.140 | 8.2 | Robust tile caching |
