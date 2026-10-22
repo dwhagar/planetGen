@@ -1393,6 +1393,10 @@
 -- v124 (DB.38): `region_density_overrides`, the append-only list of an admin's density multipliers for a region (its shape and parameters as JSON, the
 --   multiplier, who set it and when, and when it was undone), applied when sectors there are filled (MAP.119, ADM.57). Nothing reads it yet.
 --
+-- v125 (DB.60): `sectors.density_multiplier_used` (DECIMAL(10,4), NULL) and `sectors.override_id` (BIGINT UNSIGNED, NULL, the `id` of the
+--   `region_density_overrides` row it came from), so a rebuilt galaxy can tell which density override a sector was filled under; both NULL for a
+--   sector filled with none. Nothing writes or reads them yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1511,6 +1515,8 @@ CREATE TABLE IF NOT EXISTS sectors (
     leaf_digest                 BINARY(32) NULL,  -- v120 (DB.49)
     generator_epoch             SMALLINT UNSIGNED NULL,  -- v121 (DB.16)
     run_id                      BIGINT UNSIGNED NULL,  -- v121 (DB.16)
+    density_multiplier_used     DECIMAL(10,4) NULL,  -- v125 (DB.60)
+    override_id                 BIGINT UNSIGNED NULL,  -- v125 (DB.60)
 
     UNIQUE KEY uq_sectors_uid (uid),
     CHECK (
