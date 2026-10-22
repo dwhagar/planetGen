@@ -5,7 +5,7 @@
   <h2 id="history-heading">Recent jobs</h2>
   {%- if recent %}
   <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">Status</th><th scope="col" class="num">Time</th></tr></thead>
+    <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">Status</th><th scope="col" class="num">Time</th><th scope="col">Again</th></tr></thead>
     <tbody>
       {%- for job in recent %}
       <tr>
@@ -13,6 +13,7 @@
         <td><a href="{{ job.url }}">{{ job.title }}</a></td>
         <td><span class="badge job-{{ job.status }}">{{ job.status }}</span></td>
         <td class="num">{{ job.elapsed_text }}</td>
+        <td>{% if job.rerun_url and job.finished %}<a href="{{ job.rerun_url }}">Run again</a>{% endif %}</td>
       </tr>
       {%- endfor %}
     </tbody>

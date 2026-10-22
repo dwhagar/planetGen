@@ -1053,6 +1053,7 @@ def _job_view(job):
         if job.get("created_at") else ""
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
     view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
+    view["rerun_url"] = generate_flow.rerun_url(job)
     # ADM.31: a finished run that makes sectors offers them on the Galaxy Map.
     view["made_url"] = None
     if job.get("finished") and job.get("kind") in MAKES_SECTORS_KINDS and job.get("started_at"):
@@ -1383,7 +1384,8 @@ def generate():
             }), 409))
         return generate_flow.review_page(admin, action, kind, title, steps, request.form, estimate=_estimate_view(estimate))
     try:
-        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database,
+                                draft=generate_flow.draft_of(action, request.form))
         activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                           title=title)
         if kind == "galaxy" and request.form.get(GENERATE_ANYWAY_FIELD):
@@ -1393,7 +1395,8 @@ def generate():
         running = exc.job["title"] if exc.job else "Another job"
         if not wants_json:
             try:
-                jobs.queue_next(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+                jobs.queue_next(kind, title, steps, env=env, admin=admin.get("username"), database=database,
+                                draft=generate_flow.draft_of(action, request.form))
                 jobs.promote_queued()       # the running job may have ended since the lock was refused
                 activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
                 return _no_store(redirect(url_for("web.generate"), code=303))

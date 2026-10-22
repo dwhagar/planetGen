@@ -58,7 +58,8 @@
 <p class="generate-last hint" id="last-job">Last job: <a href="{{ last_job.url }}">{{ last_job.title }}</a>
   <span class="badge job-{{ last_job.status }}">{{ last_job.status }}</span> {{ last_job.created_html }}
   {%- if last_job.made_url %} &middot; <a href="{{ last_job.made_url }}">Show on Galaxy Map</a>{% endif %}
-  &middot; <a href="{{ last_job.url }}">Full output</a></p>
+  &middot; <a href="{{ last_job.url }}">Full output</a>
+  {%- if last_job.rerun_url %} &middot; <a href="{{ last_job.rerun_url }}">Run again with the same settings</a>{% endif %}</p>
 {%- endif %}
 {% block generate_body %}{% endblock %}
 {% endblock %}

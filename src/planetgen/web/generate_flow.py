@@ -74,6 +74,29 @@ DRAFT_SKIP = frozenset({"csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FI
 """frozenset: Form fields that are not part of the draft carried between the task page and its Review step."""
 
 
+NEVER_KEPT = frozenset({"confirm"})
+"""frozenset: Fields a job does not keep for Run again: the typed database name that confirms a deletion."""
+
+
+def draft_of(action, form):
+    """The fields of a started job's form that Run again fills a task's page with (`[name, value]` pairs), or `[]`
+    for one that cannot be run again (it destroys data and asks for a typed confirmation each time)."""
+    if action in DESTRUCTIVE_ACTIONS:
+        return []
+    return [[name, value] for name, value in form.items(multi=True) if name not in DRAFT_SKIP | NEVER_KEPT]
+
+
+def rerun_url(job):
+    """Where "Run again with the same settings" goes for a `jobs.get_job` dict: the task's Review step filled with the
+    job's draft (nothing starts until Run is pressed there), or `None` for a job with no kept draft."""
+    draft = job.get("draft") or []
+    action = next((value for name, value in draft if name == "action"), None)
+    task = task_for_action(action) if action else None
+    if task is None or action in DESTRUCTIVE_ACTIONS:
+        return None
+    return page_url(task.endpoint, **task.params) + "?" + urlencode([*draft, ("review", "1")])
+
+
 def task_for_key(key):
     for task in TASKS:
         if task.key == key and task.actions:

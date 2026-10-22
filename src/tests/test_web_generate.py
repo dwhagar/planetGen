@@ -29,7 +29,7 @@ from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.queue import progress_file, redisqueue  # noqa: E402
-from planetgen.web import csrf, generate_page, jobs, limit_sliders  # noqa: E402
+from planetgen.web import csrf, generate_flow, generate_page, jobs, limit_sliders  # noqa: E402
 
 DB = "planetgen_generate_test"
 PY = sys.executable
@@ -481,6 +481,38 @@ def test_a_task_page_opened_with_fields_is_filled_in(site, client):
     html = client.get("/admin/generate/task/add-sectors", query_string={"what": "grid", "mode": "span",
                                                                       "span_shells": "3:5"}).get_data(as_text=True)
     assert 'name="span_shells"' in html and 'value="3:5"' in html
+
+
+def test_a_started_job_keeps_its_form_and_history_offers_run_again(site, client, no_spawn, monkeypatch, jobs_root):
+    """ADM.115: Run again opens the Review step for the same settings; nothing starts from the link."""
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: dict(_ESTIMATE))
+    resp = _post(client, action="galaxy", what="grid", mode="shell", shell_index="40", shell_limit="200",
+                 estimate_ok="1", **{generate_page.ESTIMATE_CONFIRM_FIELD: "1"})
+    assert resp.status_code == 303
+    (job,) = no_spawn
+    assert ["shell_index", "40"] in job["draft"] and ["action", "galaxy"] in job["draft"]
+    assert all(name not in ("csrf_token", "confirm") for name, _ in job["draft"])
+    view = jobs.get_job(jobs.list_jobs(limit=1)[0]["id"])
+    url = generate_flow.rerun_url(view)
+    assert url.startswith("/admin/generate/task/add-sectors?") and "shell_index=40" in url and "review=1" in url
+    page = client.get(url)
+    assert page.status_code == 200 and "galaxy --shell 40" in page.get_data(as_text=True)
+    assert len(no_spawn) == 1
+
+
+def test_a_job_that_deletes_data_or_has_no_form_is_not_offered_again(site):
+    assert generate_flow.draft_of("reset", _Form([("action", "reset"), ("confirm", "db")])) == []
+    assert generate_flow.draft_of("check_db", _Form([("action", "check_db"), ("csrf_token", "t")])) == [["action", "check_db"]]
+    assert generate_flow.rerun_url({"draft": []}) is None
+    assert generate_flow.rerun_url({"draft": [["action", "reset"]]}) is None
+    assert generate_flow.rerun_url({}) is None
+
+
+class _Form(list):
+    """A list of pairs with the `items(multi=True)` of a Werkzeug form."""
+
+    def items(self, multi=False):
+        return iter(self)
 
 
 def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn, monkeypatch):

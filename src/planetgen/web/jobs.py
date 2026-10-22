@@ -295,6 +295,7 @@ def get_job(job_id, root=None):
         "title": job.get("title"),
         "admin": job.get("admin"),
         "database": job.get("database"),
+        "draft": job.get("draft") or [],
         "created_at": job.get("created_at"),
         "steps": labels,
         "status": status,
@@ -626,7 +627,7 @@ def new_job_id():
     return time.strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(2)
 
 
-def start_job(kind, title, steps, env=None, admin=None, database=None, root=None, spawn=True):
+def start_job(kind, title, steps, env=None, admin=None, database=None, root=None, spawn=True, draft=None):
     """
     Starts a job in the background and returns its id straight away.
 
@@ -639,6 +640,8 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
         admin (str, optional): Who started it, for the page.
         database (str, optional): Which database it writes, for the page.
         spawn (bool): Tests pass `False` to only write the files.
+        draft (list, optional): The form fields (`[name, value]` pairs) the job was made from, kept so History can offer
+            Run again with the same settings (ADM.115).
 
     Raises:
         JobBusy: Another job is still running.
@@ -667,7 +670,7 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     try:
         job = {
             "id": job_id, "kind": kind, "title": title, "admin": admin, "database": database,
-            "created_at": time.time(), "cwd": REPO_DIR, "steps": steps, "env": env or {},
+            "created_at": time.time(), "cwd": REPO_DIR, "steps": steps, "env": env or {}, "draft": draft or [],
         }
         fd = os.open(os.path.join(path, "job.json"), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -775,7 +778,7 @@ def _queued_path(root):
     return os.path.join(root, QUEUED_NAME)
 
 
-def queue_next(kind, title, steps, env=None, admin=None, database=None, root=None):
+def queue_next(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
     """
     Puts a job in the one place after the running job: it starts by itself when that job succeeds or is cancelled,
     and is held for the admin to start or discard when it failed.
@@ -789,6 +792,7 @@ def queue_next(kind, title, steps, env=None, admin=None, database=None, root=Non
     spec = {
         "kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "env": env or {},
         "queued_at": time.time(), "after_job": running["id"] if running else None, "held": None,
+        "draft": draft or [],
     }
     try:
         fd = os.open(_queued_path(root), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -846,7 +850,8 @@ def promote_queued(root=None, force=False):
         return None
     try:
         job_id = start_job(spec["kind"], spec["title"], spec["steps"], env=spec.get("env"),
-                           admin=spec.get("admin"), database=spec.get("database"), root=root)
+                           admin=spec.get("admin"), database=spec.get("database"), root=root,
+                           draft=spec.get("draft"))
     except JobBusy:
         os.rename(claimed, path)
         return None
