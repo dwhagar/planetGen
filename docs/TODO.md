@@ -21727,9 +21727,9 @@ clears each one.
   seed that always holds enough planets, or generate until the minimum
   is met under a fixed seed) so the page walk always has the planets it
   needs; no skip when the galaxy is short. Done: the test passes in 20
-  runs on fresh databases. Owner: not assigned (Core 2 wrote UX.141 and
-  is the natural pick when its queue allows; or Bug Hunt after
-  TEST.266).
+  runs on fresh databases. Owner: Core 2 (the coordinator, about 6:01 AM
+  EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
+  test).
   Prerequisites: none. Related: UX.141, TEST.266.
 
 ## USR: User accounts
