@@ -940,6 +940,15 @@ with `clamp()`.
   PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
   lane reported): the index builder is in, so the list pages can read
   it. Prerequisites: none. Related: PERF.137, PERF.140.
+  First part merged as #2401 (Core 2, about 12:08 AM EDT 2026-10-22 as
+  the lane reported; gate 11,271 passed), release 8.0.1874: `GET
+  /api/object-lists/<kind>` returns one keyset page of the objects of a
+  kind from the object index, sorted by name, class, mass or radius,
+  with name, class and sector filters (docs/api.md). The route was first
+  `/api/objects/<kind>` and was renamed after a clash with
+  `/api/objects/<ref>`. Still open, with Core 2: the list pages and the
+  search panels that read these lists (they still page by OFFSET), and
+  the deeper PERF.141 pages.
 
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
