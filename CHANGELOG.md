@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1912] - 2026-10-22
+
+**Headline:** What a collision does is one tested function: the outcome table for rocky bodies, giants, brown dwarfs and stars.
+
+### Added
+- **`physics/collision_outcome.py`** (GEN.345): `resolve(a, b, impact_parameter_m, window_start_unix)` turns two bodies that have come within `R1 + R2` into an `Outcome`, the rows of the section 5.1 table of `docs/design/collisions-and-mergers.md`: merger, graze-and-merge, hit-and-run, partial erosion and disruption for two rocky bodies (from the catastrophic energy of Leinhardt and Stewart and the lens a grazing pass overlaps), absorption by a giant or star, tidal disruption near a compact remnant, giant mergers that lose a little gas and then pass the deuterium and hydrogen fusion lines (`hydrogen_burning_limit_sol(z)`, a new star flagged "merger remnant" with no planets), and stellar mergers. Pure: no database, no draw, the same outcome in either order of the pair; mass and momentum are conserved to 1e-12. Settings: `ALWAYS_DESTROY_TERRESTRIAL` (Boss's literal rule) and the speed, energy and share cut-offs in `tuning.py`.
+- `tests/test_collision_outcome.py`: a case for every row, the numbers of the document's tables, the fusion lines and the borderline flag, a sweep for conservation, and the refusals.
+
 ## [8.0.1911] - 2026-10-22
 
 **Headline:** The orbital update can find every mass within the galaxy's largest Hill radius of an object, the first step of changing a path by gravity.
