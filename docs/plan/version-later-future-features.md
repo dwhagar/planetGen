@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: later
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 Features that belong to no version yet, noted as possible future work: more than one galaxy in the database and the intergalactic frame (Boss, 2026-10-16: a possible future feature, not a headline).

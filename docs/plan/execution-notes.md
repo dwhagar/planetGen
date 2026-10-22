@@ -5,6 +5,10 @@ The hand-kept sections of the execution plan page (`docs/plan/execution-plan.htm
 true; the page shows it as written. Headings `##` and `###` become headings, `- ` lines bullets, other lines
 paragraphs; a paragraph wholly in `*...*` is shown muted; `**bold**` and `` `code` `` work inside a line.
 
+## 8.1 only
+
+Boss, 7:44 PM EDT 2026-10-22: Cores 1 to 5 work 8.1 items only until 8.1 is complete. Every item outside 8.1 that a core held went back to the pool (its owner line says so), except the three with a gate already running: UX.140, UX.128 and NAV.17. Versions 8.2 and later are paused. The five queues, in order, with each core's waits on another lane, are in /mnt/project-files/reports/8-1-core-queues-2026-10-22.md; a core takes its next item from the top of its own queue, and an item that is not in any queue waits for the TODO thread to place it. Epochs and Alembic revisions are numbered at merge, so two queues never claim one number. SEC.33 and TEST.261 get their own threads when PERF.146 closes, and GEN.301 closes last. Whether the Blocker 2, Blocker 3 and DB lanes pause is Boss's to say (asked at 7:48 PM EDT).
+
 ## Conflicts to watch
 
 ### Alembic revisions and epochs
