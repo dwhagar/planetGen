@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
-| TEST | TEST.266 |
+| TEST | TEST.267 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.73 |
@@ -1492,7 +1492,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | none | open |
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | none | open |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | none | open |
-| MAP.172 | Nebula cell aggregates in the region pyramid | none | open |
+| MAP.172 | Nebula cell aggregates in the region pyramid | none | done, PR #2431 |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | open |
 | MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
@@ -2441,6 +2441,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | done, PR #2416 |
 | TEST.264 | test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug) | none | done, PR #2425 |
 | TEST.265 | A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug) | none | open |
+| TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
