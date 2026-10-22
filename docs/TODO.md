@@ -14239,7 +14239,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1's DB.73 and DB.74 table shape agreed first; (4) GEN.554 after
   GEN.553, with the explosion-map sources verified before use. GEN.555
   is Core 3's; GEN.568 and GEN.569 are Core 4's too (GEN.569 assigned by
-  the coordinator, 8:16 AM EDT 2026-10-22).
+  the coordinator, 8:16 AM EDT 2026-10-22). Core 4 also holds GEN.585,
+  GEN.586 and the family-class slices GEN.565d (StellarObject) and
+  GEN.565e (SmallBody) (the coordinator, relayed 11:21 AM EDT 2026-10-22
+  as the lane's clock reads); GEN.565d and GEN.565e still wait on Core
+  1's DB.74 shape.
   Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
   4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
   field name or draw changes): `generation/mass_object.py`
@@ -15083,8 +15087,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   file group by file group, and only where the golden set is
   bit-identical. Boss's question (12:09 AM EDT): do we need converters
   from one type of unit to another by putting two or more units together
-  in the right order. Proposed owner, not assigned by a card: Core 5
-  (the owner proposed for GEN.568). Do: extend the registry of GEN.568
+  in the right order. Owner: Core 4 (the coordinator, relayed 11:21 AM EDT
+  2026-10-22 as the lane's clock reads; it was proposed for Core 5). Do: extend the registry of GEN.568
   so the dimension (exponent vector over mass, length, time and
   temperature; angle and counts stay dimensionless kinds) is required on
   every unit and kind, and list the derived kinds the code uses with
@@ -15119,8 +15123,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them, so 4 pi squared comes from G's dimension and is no longer typed;
   R4 the relations replace the hand-written laws with the UN5 sweep,
   file group by file group, and only where the golden set is
-  bit-identical. Proposed owner, not assigned by a card: Core 4 (the
-  note offers Core 4). Do: one module where each relation is declared
+  bit-identical. Owner: Core 4 (the coordinator, relayed 11:21 AM EDT
+  2026-10-22 as the lane's clock reads; the note offered Core 4). Do: one module where each relation is declared
   once: its name, its input kinds, its output kind and a formula written
   with `+ - * / **` (a `relations.sqrt` accepts the probe objects). Two
   entry points come from each declaration: a float kernel in SI for
