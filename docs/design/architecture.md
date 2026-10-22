@@ -570,7 +570,8 @@ The map panels and their data.
 | `copycode.js` | The system page's Copy button. |
 | `style.css`, `favicon.svg` | Site styles (CSS tokens for both themes) and icon. |
 | `bodyanchor.js` | A link to `/system/<id>#planet-12` (or `#star-`, `#moon-`, `#belt-`, `#comet-`) opens that body's row and selects it on the System Map (NAV.8). |
-| `bookmarks.js` | Bookmarks on the Galaxy Map (MAP.23): saved views kept in the browser. |
+| `bookmarks.js` | Bookmarks on the Galaxy Map (MAP.23): saved views kept in the browser, their button, menu and NAV select over `savedlist.js`. |
+| `savedlist.js` | The saved-list store (UX.129): one list of one kind of saved entry (bookmarks; saved courses next) behind a backend that may answer later, with the browser's `localStorage` as the local backend and a hook for the galaxy instance stamp. |
 | `breadcrumb.js` | The one breadcrumb every page and map uses (NAV.14). |
 | `components.js` | The shared Shoelace component set (UX.40): buttons, menus and, as pages adopt them, dialogs and form fields. |
 | `connectionnote.js` | When to tell the admin a live job-log stream was lost (ADM.40): the stream ends on purpose every few seconds to stay under the server's request timeout. |
