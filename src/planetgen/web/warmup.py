@@ -24,6 +24,7 @@ import time
 from planetgen.admin import activity_log
 from planetgen.api.config import Config
 from planetgen.api.limiter import PAGE_LIMITS_OFF
+from planetgen.db import objectindex, store
 from planetgen.galaxy import viewport
 from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
@@ -39,7 +40,8 @@ PAGE_SIZE = 100
 """int: Rows asked for at a time when the warm-up lists the objects to visit."""
 
 PHASES = (
-    ("opening", "the opening views and the first page of each list", ("galaxy-map", "lists")),
+    ("opening", "the object index, the opening views and the first page of each list",
+     ("object-index", "galaxy-map", "lists")),
     ("built-levels", "the Galaxy Map's tiles to the built levels", ("galaxy-tiles",)),
     ("deep-tiles", "the deep tiles along the zoom run in to the centre", ("galaxy-deep-tiles",)),
     ("objects", "the sector, system and phenomenon pages", ("sectors", "systems", "phenomena")),
@@ -49,6 +51,7 @@ PHASES = (
 is the unit the run reports and the admin page shows; each family is a command of its own."""
 
 _FAMILY_TEXT = {
+    "object-index": "the object index: one row per object of every kind the site lists",
     "galaxy-map": "the Galaxy Map's opening view, its shape, sectors and phenomena",
     "lists": "the first page of every list, and its counts",
     "galaxy-tiles": "the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels in full",
@@ -512,8 +515,11 @@ def _warm_unit(family, args):
 
 
 def _expand_family(params):
-    """The one unit of a family's stage: the site's database and the cap, as the step gave them."""
-    return commands.Expansion([({"database": params["database"], "cap": params.get("cap")}, 1.0)], {})
+    """The one unit of a family's stage: the site's database, the cap and the index mode, as the step gave them."""
+    unit = {"database": params["database"], "cap": params.get("cap")}
+    if params.get("index_mode"):
+        unit["index_mode"] = params["index_mode"]
+    return commands.Expansion([(unit, 1.0)], {})
 
 
 def warm_galaxy_map_unit(args, report):
@@ -546,6 +552,36 @@ def warm_search_unit(args, report):
     return _warm_unit("search", args)
 
 
+def warm_object_index_unit(args, report):
+    """
+    The unit of the `warm-object-index` command (PERF.140): refreshes the object index (builds the kinds that have no
+    record of a run), or with `index_mode` `build` writes every object again. Reports like a page family: the rows
+    are what was warmed, the rows it wrote are what it built.
+    """
+    started = time.monotonic()
+    database = args["database"]
+    try:
+        conn = store.get_connection(store.MySQLConfig(database=database), ensure_schema=False)
+        try:
+            build = args.get("index_mode") == "build"
+            found = (objectindex.build if build else objectindex.refresh)(conn, database=database)
+        finally:
+            conn.close()
+    except Exception as exc:
+        activity_log.event("GEN", "warm.failed", db=database, family="object-index", error=str(exc)[:300])
+        raise
+    rows = sum(kind["rows"] for kind in found.values())
+    written = sum(kind["changed"] + kind["removed"] for kind in found.values())
+    seconds = time.monotonic() - started
+    activity_log.event("GEN", "warm.family", db=database, family="object-index", warmed=rows, left_out=0,
+                       seconds=round(seconds, 1))
+    return {"family": "object-index", "warmed": rows, "noun": "objects", "cached": max(rows - written, 0),
+            "built": written, "left_out": 0, "seconds": seconds,
+            "line": (f"object-index: {rows:,} objects indexed ({written:,} rows written, {max(rows - written, 0):,} "
+                     f"already current, 0 left out by the cap) in {seconds:.1f} s")}
+
+
+expand_warm_object_index = _expand_family
 expand_warm_galaxy_map = expand_warm_lists = expand_warm_sectors = _expand_family
 expand_warm_systems = expand_warm_phenomena = expand_warm_search = _expand_family
 

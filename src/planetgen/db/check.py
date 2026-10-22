@@ -420,6 +420,25 @@ def check_counts(ctx):
                      for row in rows], warning=True)]
 
 
+def check_object_index(ctx):
+    """The object index (DB.79, PERF.140) holds a row for every object, no row for a gone object and what each object
+    holds. An index nothing has built yet is a warning, not damage."""
+    from planetgen.db import objectindex
+    if not _table_exists(ctx, "object_index"):
+        return [Problem("The object index table is not there: run the update.", warning=True)]
+    problems = []
+    for kind, found in objectindex.check(ctx.conn).items():
+        if not found["indexed"] and found["live"]:
+            problems.append(Problem(f"The object index holds no {kind} yet ({found['live']} exist): run `planetgen warm "
+                                    "object-index`.", warning=True))
+        elif found["missing"] or found["extra"] or found["different"]:
+            problems.append(Problem(
+                f"The object index differs from the {kind} table: {found['missing']} missing, {found['extra']} "
+                f"extra, {found['different']} different (of {found['live']}). `planetgen warm object-index` rebuilds it.",
+                warning=False))
+    return problems
+
+
 def check_version_keys(ctx):
     """Every sector carries a 22 hex digit version key."""
     scope_sql, params = ctx.scope.where("s.id")
@@ -537,6 +556,7 @@ CHECKS = (
     Check("counts", "counts", check_counts, scoped=True),
     Check("version-keys", "version keys", check_version_keys, scoped=True),
     Check("systems", "systems", check_systems, scoped=True, wide_binaries=True),
+    Check("object-index", "object index", check_object_index),
 )
 """tuple: Every check, in the order a list of them runs and reports."""
 
@@ -624,6 +644,11 @@ def check_systems_unit(args, report):
     """The unit of `check-systems`: every star system in scope (the wide binaries only with `wide_binaries`)
     validates; reports `(done, systems)` as it goes."""
     return _unit("systems", args, report)
+
+
+def check_object_index_unit(args, report):
+    """The unit of `check-object-index`: the object index matches the tables (PERF.140)."""
+    return _unit("object-index", args, report)
 
 
 def expand_check(params):

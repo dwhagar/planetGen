@@ -136,6 +136,9 @@ REGISTRY = _commands(
     CommandSpec("settle-sector-paths", "Save the sector paths: one unit",
                 unit=("planetgen.generation.run_galaxy", "save_sector_paths_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_save_sector_paths")),
+    CommandSpec("warm-object-index", "Build or refresh the object index: one row per object of every kind the site lists",
+                unit=("planetgen.web.warmup", "warm_object_index_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_object_index")),
     CommandSpec("warm-galaxy-map", "Warm the Galaxy Map's opening view, its shape, sectors and phenomena",
                 unit=("planetgen.web.warmup", "warm_galaxy_map_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_map")),
@@ -181,6 +184,8 @@ REGISTRY = _commands(
     CommandSpec("check-systems", "Check every star system against the validation rules (slow)",
                 unit=("planetgen.db.check", "check_systems_unit"),
                 expand=("planetgen.db.check", "expand_check_systems")),
+    CommandSpec("check-object-index", "Check that the object index holds every object as the tables do",
+                unit=("planetgen.db.check", "check_object_index_unit"), expand=("planetgen.db.check", "expand_check")),
     CommandSpec("end-map-rebuild-maintenance", "Open the site again after the sector-grid switch closed it",
                 unit=("planetgen.web.warmup", "end_map_rebuild_unit"),
                 expand=("planetgen.web.warmup", "expand_end_map_rebuild")),
@@ -201,12 +206,13 @@ KIND_OF_STAGE = {
 
 
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
-                       ("galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "sectors", "systems", "phenomena",
-                        "search")}
+                       ("object-index", "galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "sectors", "systems",
+                        "phenomena", "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 
 KIND_OF_CHECK = {name: f"check-{name}" for name in (
-    "revision", "tables", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "systems")}
+    "revision", "tables", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "systems",
+    "object-index")}
 """dict: The command that does each database check (`db/check.CHECKS`), the steps of `planetgen check-db`, in order."""
 
 DEFAULT_CHECKS = ("revision", "tables", "orphans", "ids", "values", "counts", "version-keys")
@@ -338,6 +344,8 @@ def _warm_steps(args):
     asked = list(getattr(args, "families", None) or ())
     families = warmup.expand_phases(asked) if asked else list(warmup.FAMILIES)
     settings = {"database": args.database, "cap": getattr(args, "cap", None)}
+    if getattr(args, "index_mode", None):
+        settings["index_mode"] = args.index_mode
     steps = [Step(family, KIND_OF_WARM_FAMILY[family], f"Warm {family}: {warmup.FAMILIES[family]}", dict(settings))
              for family in families]
     if len(families) == len(warmup.FAMILIES):

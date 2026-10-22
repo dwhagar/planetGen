@@ -273,16 +273,30 @@ def emission_members(galaxy_seed, nebula, host_name, host_position_pc):
     return members
 
 
+def row_star(row):
+    """A `bright_stars` row as the star-like object `hosted_nebula_of` reads (`type`, `age` in Gy, `mass`,
+    `temperature`): the same four numbers the sector's built star carries, so it rolls on the same stream."""
+    return types.SimpleNamespace(type=row["star_type"], age=row["age_gy"], mass=row["mass_kg"],
+                                 temperature=row["temperature_k"])
+
+
+def row_nebula(row, chance_factor=1.0):
+    """
+    The nebula a pre-placed star lights, from its `bright_stars` row alone (GEN.530): the one its sector builds
+    (`hosted_nebula_of` on the same four numbers), or None. `chance_factor` is the sector profile's `"nebula"` factor
+    (1.0 where none is read).
+    """
+    return hosted_nebula_of(row_star(row), chance_factor)
+
+
 def row_host(row, chance_factor=1.0):
     """
     The emission region a pre-placed hot star would light, from its `bright_stars` row alone: `(nebula, host_name,
     host_position_pc)`, or None when it lights none or one of another class. The star's roll is on its own stream
     (`hosted_nebula_of`), so this is the nebula its sector builds, and the row's point is its place.
     """
-    star = types.SimpleNamespace(type=row["star_type"], age=row["age_gy"], mass=row["mass_kg"],
-                                 temperature=row["temperature_k"])
-    nebula = hosted_nebula_of(star, chance_factor)
+    nebula = row_nebula(row, chance_factor)
     if nebula is None or nebula.nebula_class not in EMISSION_CLASSES:
         return None
     point = tuple(row[f"position_{axis}_mpc"] / 1000.0 for axis in "xyz")
-    return nebula, host_name_of(star), point
+    return nebula, host_name_of(row_star(row)), point

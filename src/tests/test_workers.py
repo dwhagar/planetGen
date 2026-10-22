@@ -88,7 +88,7 @@ def test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice(redis_
     queue = redisqueue.queue(name, connection)
     connection.delete(workers.WANTED_KEY)
     for n in range(5):
-        queue.enqueue(math.pow, 2, n)
+        queue.enqueue(math.pow, 2, n, job_timeout=600)
     assert workers.ensure_workers(name, connection) == 2 and len(started) == 2
     assert workers.ensure_workers(name, connection) == 0 and len(started) == 2     # those two are still starting
     assert all(name in argv and "--burst" not in argv for argv in started)          # idle-timeout workers
@@ -132,18 +132,18 @@ def test_cancel_now_cancels_a_waiting_job_and_stops_a_running_one(redis_server, 
     connection = redisqueue.connect()
     name = _queue_name()
     queue = redisqueue.queue(name, connection)
-    waiting = queue.enqueue(math.pow, 2, 2)
+    waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
     assert workers.cancel_now(waiting.id, connection, redisqueue.serializer_for(name)) == "cancelled"
     assert waiting.get_status(refresh=True) == "canceled"
 
-    running = queue.enqueue(math.pow, 2, 3)
+    running = queue.enqueue(math.pow, 2, 3, job_timeout=600)
     running.set_status(rq.job.JobStatus.STARTED)
     stopped = []
     monkeypatch.setattr(workers.command, "send_stop_job_command", lambda conn, job_id: stopped.append(job_id))
     assert workers.cancel_now(running.id, connection, redisqueue.serializer_for(name)) == "stopped"
     assert stopped == [running.id]
 
-    finished = queue.enqueue(math.pow, 2, 4)
+    finished = queue.enqueue(math.pow, 2, 4, job_timeout=600)
     finished.set_status(rq.job.JobStatus.FINISHED)
     assert workers.cancel_now(finished.id, connection, redisqueue.serializer_for(name)) is None
     assert workers.cancel_now("no-such-job", connection, redisqueue.serializer_for(name)) is None

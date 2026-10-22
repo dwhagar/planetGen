@@ -930,3 +930,12 @@ Baseline: PR #1817.
 | TEST.259 | 8.1 | Bugs and flaky tests |
 | PERF.143 | 8.1 | Queue, caches and performance |
 | PERF.142 | 8.1 | Queue, caches and performance |
+| DB.79 | 8.2 | Robust tile caching |
+| PERF.144 | 8.1 | Queue, caches and performance |
+| GEN.378 | 8.1 | Galaxy types groundwork |
+| PERF.140 | 8.2 | Robust tile caching |
+| MAP.251 | 8.1 | Fly-through map |
+| GEN.457 | 8.1 | Composition research and design |
+| GEN.530 | 8.1 | Components and wanderers |
+| DB.82 | 8.2 | Robust tile caching |
+| DB.31 | 8.1 | Description layer |

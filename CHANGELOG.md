@@ -2,6 +2,69 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1870] - 2026-10-22
+
+**Headline:** The object index writes its rows without the deprecated `VALUES()` function.
+
+### Changed
+- **Object index upsert (DB.82).** The index builder takes its rows from a derived table and updates from that table's columns instead of calling `VALUES()`, which MySQL deprecated in 8.0.20. The rows it writes are the same.
+
+TODO items resolved / Added: DB.82 / Added: none
+
+## [8.0.1869] - 2026-10-22
+
+**Headline:** A pre-placed star's nebula shows before its sector is built: the star's page names it and the uncharted sector's map draws it.
+
+### Changed
+- **Hosted nebula from the star's row (GEN.530).** An O, B, A or Wolf-Rayet star that the scatter placed but nothing has built now shows the nebula it lights, the same one its sector builds. The uncharted star's page has a "Lights a nebula" line with its name, kind, class and radius; the map of an uncharted sector draws the nebula at the star, and clicking it opens the star's page. A star already built into a system shows none there, since the system holds it. `GET /api/uncharted-systems/<id>` gains `hosted_nebula` and `GET /api/galaxy/uncharted` gains `hosted_nebulae`.
+- The Galaxy Map's tiles are unchanged: they list scattered phenomena by their own rows, and a hosted nebula has none until it is built.
+
+TODO items resolved / Added: GEN.530 / Added: none
+
+## [8.0.1868] - 2026-10-22
+
+**Headline:** When the Galaxy Map has more stars on screen than it can show, it dims the satellite-galaxy stars first, then the halo's, then the farthest and faintest.
+
+### Changed
+- **The on-screen star limit follows the cut order (MAP.251).** The limit that holds about 20,000 stars on screen (8,000 on a phone) used to judge every star by its light alone. A star of a satellite galaxy now counts as 6 magnitudes dimmer and a halo star as 3, both when the page counts the stars on screen and in the shader, so a crowded view dims those first, then the rest by apparent magnitude: the nearest and brightest go last, and the farther away an object is the sooner it goes. A view with room for every star shows them all.
+- The stage views and the Sector Map spend no star budget (a stage draws stored block counts, the Sector Map every system of one sector), so the rule is written down for them and nothing changes there.
+
+TODO items resolved / Added: MAP.251 / Added: none
+
+## [8.0.1867] - 2026-10-22
+
+**Headline:** The object index fills itself: the warm-up builds it, keeps it current and counts it against the cache budget.
+
+### Changed
+- **Object index builder (PERF.140).** `planetgen warm` has a new first family, `object-index` (the command `warm-object-index`), in the `opening` phase. It writes one `object_index` row for every system, star, planet, moon, belt, comet, facility and phenomenon, and a row changes only when what it holds changed. The first run builds each kind; later runs write only the objects edited since (a planet or moon edit reaches its row through its system), and remove the rows of objects that are gone. After `planetgen orbits` or a new generator epoch the index is built whole, since those move objects between sectors without touching the rows.
+- **The index is kept first in the cache budget.** What the index takes on disk comes off `cache.max_mb` before the tile cache gets any of it.
+- **`planetgen check-db object-index`.** Compares the index with the tables and says how many rows are missing, extra or different; it warns when nothing has built the index yet. It is not in the default list of checks.
+- **The admin queue page** shows each kind's rows, when it last ran and the size of the index under the warm-up phases (`GET /api/admin/work/warm` gains `index`).
+
+TODO items resolved / Added: PERF.140 / Added: none
+
+## [8.0.1866] - 2026-10-21
+
+**Headline:** Every job queued to RQ now has a time limit taken from how long the system expects it to take, so a job whose worker was killed expires instead of staying on the queue for ever.
+
+### Fixed
+- **The Generate page's jobs, the API's jobs and the work queue's tasks were queued with no time limit (PERF.144).** Each one had `job_timeout=-1`, so RQ never expired the entry of a job whose worker died. Now every site gives a finite limit, ten times the best estimate, never under 15 minutes and never over its ceiling: a Generate page job from the recorded time of its steps (a floor of one hour, a ceiling of 30 days, which is also the limit of a job with a step that was never recorded), an API job from its route's estimate (the neighbourhood's `estimate.seconds`, a regeneration's recorded sector time, a slow page's expected seconds; seven days at most, and one hour for an edit nothing can estimate), a work queue task from its submitter's estimate or the recorded seconds of its kind (6 hours at most and when nothing is recorded), and the tile prefetch and rebuild from the size of the chunk. A units' limit is as before.
+- **A Generate page job that RQ ends for its limit now stops its step.** The runner stops the step it was waiting on and reports the job failed with the reason, where the step used to run on.
+
+### Changed
+- **`redisqueue.queue` returns a `TimedQueue`.** It refuses a job queued with no limit, a limit of -1, zero or `None`, so a new kind of job cannot skip `redisqueue.job_timeout`; a test also fails on any `enqueue` call that does not name its limit and on any module that makes an RQ queue or job of its own. `units.UNIT_TIMEOUT_SECONDS`, `units.TIMEOUT_MULTIPLE` and `units.MIN_UNIT_TIMEOUT_SECONDS` are now `redisqueue.MAX_TIMEOUT_SECONDS`, `TIMEOUT_MULTIPLE` and `MIN_TIMEOUT_SECONDS`.
+
+TODO items resolved / Added: PERF.144 / Added: none
+
+## [8.0.1865] - 2026-10-21
+
+**Headline:** The database gets the object index table, where every list and the name search will read from.
+
+### Changed
+- **`object_index` (DB.79, schema v113).** One row per object of every kind the site lists (systems, stars, planets, moons, belts, comets, facilities and each phenomenon kind): kind and 96-bit object ID, name, sector, system, parent, class, mass and radius, with a keyset key per sort and a FULLTEXT index on the name. The migration only makes the table; it is empty until the index builder (PERF.140) fills it, and no other table is touched.
+
+TODO items resolved / Added: DB.79 / Added: none
+
 ## [8.0.1864] - 2026-10-21
 
 **Headline:** The admin queue page shows the cache warm-up phase by phase: which are waiting, running, built, unchanged or stopped, with each one's result.

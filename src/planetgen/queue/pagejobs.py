@@ -246,7 +246,7 @@ def ensure(db, target, rows=None, expected=None, config=None, retry=False):
             if time.monotonic() >= deadline:
                 raise NoQueue("another request is queuing this one and did not finish")
         try:
-            queue_job = api_jobs.submit(build_answer, db, target, token, config)
+            queue_job = api_jobs.submit(build_answer, db, target, token, config, expected_seconds=expected)
         except Exception:
             connection.delete(key, meta_key(token))
             raise

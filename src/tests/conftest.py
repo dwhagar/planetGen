@@ -458,10 +458,10 @@ def _settle_jobs_run_inline(monkeypatch):
     from planetgen.queue import api_jobs
     real_submit = api_jobs.submit
 
-    def submit(function, *args):
+    def submit(function, *args, **options):
         if function is api_jobs.settle_sectors:
             raise api_jobs.NoQueue("settle jobs run inline in tests")
-        return real_submit(function, *args)
+        return real_submit(function, *args, **options)
 
     monkeypatch.setattr(api_jobs, "submit", submit)
     yield

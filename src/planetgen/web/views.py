@@ -279,6 +279,11 @@ def uncharted_star(bright_star_id):
                         f"wedge {detail['wedge_index']})"),
         ("Position x, y, z", ", ".join(f"{detail[axis]:.2f}" for axis in ("x", "y", "z")) + " pc"),
     ]
+    nebula = detail.get("hosted_nebula")
+    if nebula:
+        fields.append(("Lights a nebula", f"{nebula['name']}, a {nebula['nebula_type']} nebula of class "
+                                          f"{nebula['nebula_class']} ({nebula['class_name']}), "
+                                          f"radius {format_distance_ly(nebula['radius_ly'])}"))
     if detail.get("member_count"):
         fields.insert(4, ("Members", f"{detail['member_count']} (see below)"))
         fields.insert(5, ("System mass", format_mass_solar(detail["system_mass_solar"])))

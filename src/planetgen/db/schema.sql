@@ -1349,6 +1349,10 @@
 -- v112 (GEN.244): `bright_stars.population` also takes `open_cluster_00` to `open_cluster_11`, the age bins (a quarter dex wide,
 --   1 Myr to 1 Gyr) of a generated galaxy's young open clusters.
 --
+-- v113 (DB.79): `object_index`, one row per object of every kind the site lists (kind and 96-bit object ID, name, sector, system,
+--   parent, class, mass, radius, placed), with keyset keys per kind and sort and a FULLTEXT index on the name. Empty until the
+--   index builder (PERF.140) fills it; no other table changes.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4061,6 +4065,32 @@ CREATE TABLE IF NOT EXISTS galaxy_components (
     CONSTRAINT chk_galaxy_components_core_collapsed CHECK (core_collapsed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- v113 (DB.79): the object index. One row per object of every kind the site lists; see the header note.
+CREATE TABLE IF NOT EXISTS object_index (
+    kind            VARCHAR(24) NOT NULL,
+    uid             BINARY(12) NOT NULL,
+    source_id       BIGINT UNSIGNED NOT NULL,
+    name            VARCHAR(255) NOT NULL,
+    sector_id       BIGINT UNSIGNED NULL,
+    system_id       BIGINT UNSIGNED NULL,
+    parent_uid      BINARY(12) NULL,
+    object_class    VARCHAR(64) NULL,
+    mass_kg         DOUBLE NULL,
+    radius_km       DOUBLE NULL,
+    placed          TINYINT(1) NOT NULL DEFAULT 1,
+    indexed_at      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (kind, uid),
+    KEY idx_object_index_source (kind, source_id),
+    KEY idx_object_index_name (kind, name, uid),
+    KEY idx_object_index_class (kind, object_class, name, uid),
+    KEY idx_object_index_mass (kind, mass_kg, uid),
+    KEY idx_object_index_radius (kind, radius_km, uid),
+    KEY idx_object_index_sector (sector_id, kind, name, uid),
+    KEY idx_object_index_system (system_id, kind, uid),
+    FULLTEXT KEY ft_object_index_name (name),
+    CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- sector_objects -- unified "every stellar object in a sector" search.

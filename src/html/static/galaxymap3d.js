@@ -76,7 +76,7 @@ const {
 const { fetchCutTiles, tileBoxOf } = await import(`./galaxytilecut.js${VERSION_QUERY}`);
 const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
-  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude,
+  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
@@ -1590,6 +1590,8 @@ function initGalaxyMap3d(canvasEl, data) {
       "uniform float zoomFadeOn;",
       // MAP.148: the apparent-magnitude law (static/starmagnitude.js's twin).
       "attribute float starAbsMag;",
+      // MAP.251: how many magnitudes dimmer a halo or satellite-galaxy star is judged (starmagnitude.js).
+      "attribute float starTierMag;",
       "uniform float magLimit;",
       "uniform float magOn;",
       STAR_MAGNITUDE_GLSL,
@@ -1627,7 +1629,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // the farther from the focus, the more.
       "  float keep = starKeep < 0.999 ? starKeep * mix(1.0, unchartedFarKeep, unchartedFar(dist, focusPc)) : 1.0;",
       "  vShown *= mix(1.0, keep, chartedOnly);",
-      "  float appMag = apparentMagnitude(starAbsMag, dist);",
+      "  float appMag = apparentMagnitude(starAbsMag, dist) + starTierMag;",
       "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
       "  gl_Position = projectionMatrix * mvPosition;",
       // MAP.208: a point of light POINT_PX across until the camera is about
@@ -1741,6 +1743,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
     var absMags = new Float32Array(n);
+    var tierMags = new Float32Array(n);
     var keeps = new Float32Array(n);
     var tileShares = new Float32Array(n);
     var pointBrights = new Float32Array(n);
@@ -1760,6 +1763,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // Without a stored radius, guess one from the luminosity.
       var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(luminosity, 0.35), STAR_LOG_RADIUS);
       absMags[i] = absoluteMagnitude(luminosity);
+      tierMags[i] = tierMagnitudePenalty(star.tier);
       positions.set([star.x - frame[0], star.y - frame[1], star.z - frame[2]], 3 * i);
       colors.set(star.phenomenon ? new THREE.Color(POINT_COLORS[star.type] || DEFAULT_POINT_COLOR).toArray()
         : starColor(star.temperature_k), 3 * i);
@@ -1783,6 +1787,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
     geometry.setAttribute("starPointBright", new THREE.BufferAttribute(pointBrights, 1));
     geometry.setAttribute("starAbsMag", new THREE.BufferAttribute(absMags, 1));
+    geometry.setAttribute("starTierMag", new THREE.BufferAttribute(tierMags, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
     geometry.setAttribute("starKeep", new THREE.BufferAttribute(keeps, 1));
@@ -1861,6 +1866,7 @@ function initGalaxyMap3d(canvasEl, data) {
       var tanX = tanY * camera.aspect;
       var clipped = starPoints.geometry.getAttribute("starClipped");
       var absolute = starPoints.geometry.getAttribute("starAbsMag");
+      var tierMag = starPoints.geometry.getAttribute("starTierMag");
       var magnitudes = new Float64Array(n);
       var onScreen = new Float64Array(n);
       var zoomed = new Float64Array(n);
@@ -1875,7 +1881,7 @@ function initGalaxyMap3d(canvasEl, data) {
         var vz = e[2] * star.x + e[6] * star.y + e[10] * star.z + e[14];
         var depth = -vz;
         if (depth <= 0 || Math.abs(vx) > depth * tanX || Math.abs(vy) > depth * tanY) continue;
-        magnitudes[i] = apparentMagnitude(absolute.array[i], Math.sqrt(vx * vx + vy * vy + vz * vz));
+        magnitudes[i] = apparentMagnitude(absolute.array[i], Math.sqrt(vx * vx + vy * vy + vz * vz)) + tierMag.array[i];
         onScreen[i] = w;
         count += 1;
       }
@@ -1895,12 +1901,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // apparent magnitude and opacity of every drawn star that is on screen.
   canvasEl.galaxyStarMagnitude = function () {
     var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
     var limit = starMaterial.uniforms.magLimit.value;
     var e = camera.matrixWorldInverse.elements;
     var shares = [];
     starList.forEach(function (star, i) {
       var d = Math.sqrt(Math.pow(star.x - camera.position.x, 2) + Math.pow(star.y - camera.position.y, 2) + Math.pow(star.z - camera.position.z, 2));
-      var m = apparentMagnitude(absolute.array[i], d);
+      var m = apparentMagnitude(absolute.array[i], d) + tierMag.array[i];
       shares.push([m, Math.min(1, Math.max(0, (limit - m) / RAMP))]);
     });
     return { limit: limit, goal: magGoal, target: magTarget, onScreen: magOnScreen, count: starList.length, stars: shares, ramp: RAMP, focus: nearUniforms.nearD.value, e: e[0] };

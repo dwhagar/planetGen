@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: a ladder of releases up top, the headline changes, then one card per release with its items and suggestions. */
+/* Layout: a ladder of releases up top, the headline changes, then one card per release with its items. */
 :root{
   --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF3; --ink:#152030; --muted:#566275; --line:#D8DEE7;
   --accent:#B05E0C; --accent-soft:#F6E7D6; --ground:#0E7682; --ground-soft:#D8EEF0;
@@ -128,7 +128,7 @@ footer{margin-top:50px;color:var(--muted);font-size:.86rem;max-width:95ch}
   </section>
 
   <footer>
-    Built from <code>docs/plan/release-roadmap.md</code> and <code>docs/TODO.md</code> by <code>python scripts/build_todo_docs.py</code>. The open, ready and bug counts come from TODO.md on every build; the order of releases, headlines and suggestions are edited in the markdown file; each version's phases, threads and items come from <code>docs/plan/version-*.md</code>. A release's share is finished over finished plus open (see "How to read this"). A version whose Status line says proposed waits on Boss's answers below.
+    Built from <code>docs/plan/release-roadmap.md</code> and <code>docs/TODO.md</code> by <code>python scripts/build_todo_docs.py</code>. The open, ready and bug counts come from TODO.md on every build; the order of releases, and headlines are edited in the markdown file; each version's phases, threads and items come from <code>docs/plan/version-*.md</code>. A release's share is finished over finished plus open (see "How to read this"). A version whose Status line says proposed waits on Boss's answers below.
   </footer>
 </div>
 
@@ -196,9 +196,6 @@ D.releases.forEach(r=>{
     }).join('')+'</ol>').join('')+'</details>';
   });
   if(!r.phases.length) h+='<div class="card"><header>No items yet<span class="n">idea only</span></header></div>';
-  if(r.suggested.length){
-    h+='<div class="card"><header>Suggested, not filed<span class="n">'+r.suggested.length+' ideas</span></header><ul class="sug">'+r.suggested.map(s=>'<li><span class="code">'+esc(s.code)+'</span><span>'+inline(s.text)+'</span></li>').join('')+'</ul></div>';
-  }
   if(r.alternatives.length){
     h+='<div class="card alt"><header>Other candidates for this headline<span class="n">'+r.alternatives.length+'</span></header><ul class="sug">'+r.alternatives.map(a=>'<li><span class="code" style="color:var(--accent)">'+esc(a.label)+'</span><span>'+inline(a.text)+'</span></li>').join('')+'</ul></div>';
   }

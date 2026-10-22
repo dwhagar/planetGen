@@ -18,7 +18,7 @@ The type draw and the Sérsic spheroid component, which every family reads.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | GEN.378, GEN.379 | Step 4 of the galaxy types chain. |
+| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | GEN.379 | Step 4 of the galaxy types chain. |
 
 ### Spheroid component
 
@@ -30,7 +30,7 @@ The type draw and the Sérsic spheroid component, which every family reads.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid | GEN.378 | Boss 9:00 PM EDT: an outline image per galaxy type. |
+| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid |  | Boss 9:00 PM EDT: an outline image per galaxy type. |
 
 ## Phase 2: The families
 
@@ -53,6 +53,7 @@ Three independent families.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | GEN.369, GEN.380, GEN.381 | Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369. |
+| GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | GEN.601, GEN.605, GEN.603 | Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate. |
 
 ## Phase 3: Lenticular, populations, clusters and the nucleus
 
@@ -85,7 +86,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66 | Step 7 of the galaxy types chain. |
+| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66, GEN.608 | Step 7 of the galaxy types chain. |
 
 ## Phase 5: Pages, tests and docs
 
@@ -93,7 +94,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135, ADM.110 | Step 8 of the galaxy types chain. |
+| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135, ADM.110, GEN.608 | Step 8 of the galaxy types chain. |
 
 ### Galaxy Map
 

@@ -737,7 +737,14 @@ with `clamp()`.
   creating the galaxy.
   Lands in the Start a new galaxy task of the admin control suite: needs
   ADM.110.
-  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13, ADM.110.
+  Update (TODO thread, 2026-10-21): Boss (6:46 PM EDT) asked for a Shape
+  selector now, unfilled: GEN.608 adds the lever-table row (key `shape`,
+  flag `--shape`) and the dropdown with one entry, Spiral, in 8.1. This
+  item then fills that same dropdown with the families and their
+  outlines; it does not build a second control, and the pin flag is
+  `--shape`.
+  Prerequisites: GEN.389, UX.135, GEN.608. Related: UX.116, UX.125,
+  DOC.13, ADM.110.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
@@ -745,23 +752,24 @@ with `clamp()`.
   an image of that model as a simple vector outline, so the user knows
   approximately what it should look like. Default (stands as Decided
   unless Boss says otherwise): one hand-drawn static SVG per family key
-  GEN.378 lists (today: spiral, barred spiral, lenticular, elliptical,
-  irregular, dwarf spheroid), kept in the repo with the other
-  icon-library shapes, so it works on the offline page and needs no
-  generation step. Each is a plain outline, one stroke weight, no fill
-  or a light fill, drawn in the view that tells the family apart: the
-  arms and bar face-on for the spirals, the smooth lens for the
-  lenticular, the ellipse for the elliptical, the ragged body for the
-  irregular, the faint round blob for the dwarf spheroid; the stroke
-  uses the current text colour so both themes work. Done: the outlines
-  are in the icon library, one per family key; a test fails when a
-  family has no outline or an outline has a script, an external
+  docs/design/galaxy-types.md lists (today: spiral, barred spiral,
+  lenticular, elliptical, irregular, dwarf spheroid), kept in the repo
+  with the other icon-library shapes, so it works on the offline page
+  and needs no generation step. Each is a plain outline, one stroke
+  weight, no fill or a light fill, drawn in the view that tells the
+  family apart: the arms and bar face-on for the spirals, the smooth
+  lens for the lenticular, the ellipse for the elliptical, the ragged
+  body for the irregular, the faint round blob for the dwarf spheroid;
+  the stroke uses the current text colour so both themes work. Done: the
+  outlines are in the icon library, one per family key; a test fails
+  when a family has no outline or an outline has a script, an external
   reference, no viewBox or more than 4 KB; a screenshot test shows each
   on both themes; the Generate page (UX.134) and the Galaxy Map key
   (MAP.242) use them. Boss sees the drawings in the PR. The art can be
-  drawn any time after GEN.378 fixes the family list; the outlines are
-  not a copy of any named galaxy.
-  Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378.
+  drawn any time now that the galaxy types design (GEN.378, merged
+  #2368) fixes the family list; the outlines are not a copy of any named
+  galaxy.
+  Prerequisites: none. Related: UX.134, MAP.242, UX.101, GEN.608.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.136 The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do**
@@ -791,16 +799,43 @@ with `clamp()`.
   off), each with a one-line plain explanation that halo and satellite
   galaxies are separate, each running its own command (GEN.539, GEN.540)
   as a step; turning one on offers the commands that will run (the step
-  list, with its estimate); turning one off says that nothing is
-  deleted; the command line and the API set them through the same
-  commands. Owner: Core 2 (proposed).
+  list, with its estimate); turning one off says that nothing is deleted
+  and nothing stored is hidden; the command line and the API set them
+  through the same commands. Owner: Core 2 (proposed).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported; the row stays in 8.5).
-  Needs the Generate tasks it lands in: ADM.110 (Start a new galaxy) and
-  ADM.111 (Scatter), per the admin control suite report.
-  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116, ADM.110, ADM.111.
+  PM EDT as the lane reported; the row stays in 8.5). Needs the Generate
+  tasks it lands in: ADM.110 (Start a new galaxy) and ADM.111 (Scatter),
+  per the admin control suite report.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the halo control also offers the halo reach (a value with L, pc, kpc
+  or Mpc, default the 262 kpc ceiling) and shows the expected rows and
+  time before it runs; the satellite control is on or off only; turning
+  one off says that generation stops and nothing stored is deleted or
+  hidden (card 7); a switch is disabled with the reason for a galaxy
+  below the halo threshold or with no satellites in its draw.
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116,
+  ADM.110, ADM.111.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  halo control offers the destructive removal as a separate, confirmed
+  admin action, distinct from the non-destructive switch-off, showing
+  what will be deleted; the specifics wait for the design thread's
+  report.
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the admin page offers "switch off and remove" as one chained action
+  for the halo and for the satellites (a separate removal command
+  underneath, GEN.620): a Review step lists the counts of generated
+  rows, facilities and hand edits that will go, a typed database name
+  confirms, a backup is offered first, and it runs as a queued job; this
+  replaces the pending detail above.
 
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -902,7 +937,9 @@ with `clamp()`.
   Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
   coordinator reported them): the list pages are filed in 8.2 with the
   tile cache; their index is kept first when the shared budget is short.
-  Prerequisites: PERF.140. Related: PERF.137.
+  PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
+  lane reported): the index builder is in, so the list pages can read
+  it. Prerequisites: none. Related: PERF.137, PERF.140.
 
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
@@ -972,6 +1009,27 @@ with `clamp()`.
   so Core 2 is the natural pick once its queue allows, the coordinator
   decides).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
+
+- [ ] **UX.145 The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug)**
+  Boss (2026-10-21, 8:18 PM EDT, as the coordinator relayed): "Bug,
+  admin menu on sector map (and possibly others) deploys and goes off
+  the visible screen." Kind: layout bug. Reproduce: open the Sector Map
+  signed in as an admin, open the Admin menu; the opened menu extends
+  beyond the window and part of it cannot be reached. Do: find which
+  pages and window sizes do it (check every viewer and admin page at
+  1280x720, 1366x768, a 768x1024 tablet and a 390x844 phone), root-cause
+  it (a menu positioned without a viewport bound, a fixed height, or a
+  container that clips it) and fix the cause in the shared menu, not one
+  page. The menu keeps inside the visible window and scrolls inside
+  itself when it is taller than the space left. Done: a browser test
+  opens the admin menu on each viewer page and each admin page at those
+  window sizes and asserts the opened menu lies inside the window
+  (bounding box within the viewport) and every entry can be reached;
+  both themes. Related to UX.142 (windows fit the browser, 8.2), which
+  covers the viewers' own controls. Owner: Bug Hunt (the coordinator,
+  8:18 PM EDT 2026-10-21); if the admin shell (ADM.92) replaces the menu
+  first, the test moves to the new menu.
+  Prerequisites: none. Related: UX.142, ADM.92, ADM.98.
 
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -2322,19 +2380,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sector plan and control how far scatters can go around the galaxy
   and what sector addresses are valid." Done: the Galaxy Map and the
   pages read the boundaries and the two switches from the plan
-  configuration (GEN.538); with the halo off they draw no halo scatter
-  beyond the outline and offer no halo layer toggle, with the satellite
-  galaxies off no satellites are drawn or listed (each switch
-  independent of the other), "Show on Galaxy Map" and the uncharted
-  address pages for an address outside the configured boundaries say it
-  is outside the generated galaxy and which switch is off (not just
-  "outside the galaxy"), the tiles carry nothing beyond them, and the
-  pick and the zoom hand-off of MAP.243 are not offered where nothing
-  exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
-  works as built in 8.1; a browser test per combination of the switches.
+  configuration (GEN.538); with a switch off nothing new is generated
+  beyond its boundary and the stored halo or satellite content stays
+  drawn, searchable and routable, and the layer toggles stay (each
+  switch independent of the other), "Show on Galaxy Map" and the
+  uncharted address pages for an address outside the configured
+  boundaries say it is outside the generated galaxy and which switch is
+  off (not just "outside the galaxy") when nothing is stored there, the
+  tiles carry the stored content and nothing is generated for them, and
+  the pick and the zoom hand-off of MAP.243 are not offered where
+  nothing exists; with a switch on everything of MAP.207, MAP.243 and
+  MAP.239 works as built in 8.1; a browser test per combination of the
+  switches.
   Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538,
-  GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
+  GEN.540, MAP.207, MAP.243, MAP.239.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  card 7: switching a switch off only stops generation; the maps and
+  pages do NOT hide stored content. They show, search and route whatever
+  is stored and generate nothing new beyond the boundaries; an address
+  that is refused is one with nothing stored (decision 2). The browser
+  test per combination of the switches checks both a galaxy generated
+  with a switch on and then switched off (content still drawn,
+  searchable and routable) and one that never had it on (nothing there).
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  after a removal the region's cells answer "outside the generated
+  galaxy: the halo was removed" (or satellites), saved references
+  (bookmarks, saved courses) show as removed, and the tiles and the
+  query caches stop serving the region once the deletion epoch is bumped
+  (GEN.620).
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
   Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
@@ -2419,116 +2497,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   minutes and 40 MB. The browser frame time was not measured. This item
   stays open for PERF.131 and PERF.132 (separate PRs) and the settled-view
   before and after its Done asks for.
-
-- [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
-  Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
-  the coordinator): "BUG: The system needs to choose what stars or
-  objects to drop evenly across the viewing space rather than just
-  truncating off the data, always most massive / brightest within the
-  galaxy go last, halo and satellite galaxies go first." Today a budget
-  that is exceeded truncates its ranked list, so the dropped stars come
-  from one region (the tail of the ordering) and leave holes. The rule:
-  when a budget cuts, the removed stars are spread evenly over the
-  visible volume (for example a thinning by a fixed per-star random
-  number inside each rank tier, the hash thinning of
-  docs/design/zoom-star-visibility.md, so a cut thins every region by
-  the same fraction and the nested lists stay subsets); the order of
-  what goes last is the most massive and brightest stars of the galaxy;
-  what goes first is, per MAP.250 (Decided, Boss 6:57 PM EDT),
-  satellite-galaxy stars, then halo stars, then everything else. This is
-  the thinning rule inside each tier that MAP.250 puts in front of the
-  luminosity key, so it edits the same star-budget code as MAP.250 (Core
-  2, coded on branch map250) and as MAP.249 (the galaxy map lag): Bug
-  Hunt builds on MAP.250 once it merges and does not edit the budget
-  code before. Applies to every place that spends a star or object
-  budget (the tile lists, the nested lists, the 70,000-star view cap,
-  the stage views, the Sector Map, the phenomena lists). Done: one
-  function holds the order and the even thinning, every budget reads it
-  and none keeps its own; a test fills a budget-limited view with stars
-  over a wide area and checks the dropped stars are spread over every
-  region by about the same fraction, that no more massive or brighter
-  star is dropped while a less massive one of the same tier is shown,
-  and that satellite and halo stars go first; the rule is written in
-  docs/design/zoom-star-visibility.md. Owner: Bug Hunt (Boss, 7:38 PM
-  EDT).
-  Checked with Core 2 (2026-10-17, 7:43 PM EDT as the lane reported):
-  MAP.250 is only the tier order. Inside each tier a full list keeps the
-  top N by the brightness key and drops the rest wherever they lie, so
-  the uneven truncation this item describes is still there after MAP.250
-  and MAP.251 stays as filed, not narrowed. Bug Hunt is designing it
-  while it waits for the MAP.250 merge (7:45 PM EDT as the lane
-  reported).
-  Amendment, Decided (Boss, 2026-10-17, 7:45 PM EDT and 7:46 PM EDT,
-  typed in the project chat, relayed by the coordinator): "amendment so
-  MAP.251 and MAP.252, dim order: Satellite Galaxies, Halo. The
-  following 2 should happen at the same [time]: Small phenomena (by mass
-  excluding nebulae) <-> Large phenomena (by mass excluding nebulae);
-  Small dim stars to Large bright stars." And: "Then also incorporated
-  is distance, the farther away it is the faster it should be removed."
-  So the dim and drop order, first to last, is (1) satellite-galaxy
-  stars, (2) halo stars, then (3) two ramps that run at the same time:
-  phenomena from small to large by mass (nebulae are left out of the
-  mass ranking), and stars from small dim ones to large bright ones; the
-  most massive and the brightest go last. Distance from the viewer is
-  part of it: the farther an object is, the sooner it is removed.
-  Default for Bug Hunt's design (stands unless Boss overrules): distance
-  moves each object's place on its ramp earlier the farther it is (the
-  ramp position is the object's rank by mass or brightness shifted
-  toward the front by its distance), within the satellite and halo tiers
-  first; nebulae are not ranked by mass, so they are cut with the
-  phenomena ramp by their visible size until Boss says otherwise.
-  MAP.251 thins evenly in space inside this order (a cut removes the
-  same fraction in every region), and the order above decides who goes
-  first within each region.
-  The distance default above is now Decided (Boss, 2026-10-17, 7:46 PM
-  EDT, replying to the coordinator's post of that default: "That is
-  exactly what I mean, thank you"): distance moves each object earlier
-  on its ramp the farther it is, and the brightest and most massive near
-  objects still go last. Design constraint (Core 2, 7:48 PM EDT as the
-  lane reported): the server tile build knows no viewer (tiles are a
-  pure function of key and database, cached by key and stamp), so the
-  distance rule lives in the per-level tile budgets
-  (GALAXY_TILE_BRIGHT_BUDGET, GALAXY_TILE_STAR_BUDGET and
-  GALAXY_TILE_POINT_BUDGET falling with distance, nested), in the cut's
-  reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
-  client's per-frame limit (starfade.js, starmagnitude.js), never in the
-  tile query.
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item: nebulae are cut with the phenomena
-  ramp by their visible size.
-  MAP.250 merged as #2155 (Core 2, reported as 10:49 PM EDT on the
-  lane's clock; release 8.0.1767): bright-star lists rank by tier
-  (satellite galaxies cut first, then halo, then everything else) before
-  brightness. Bug Hunt was told (10:49 PM EDT as the coordinator
-  relayed) it can build this item and MAP.252's grading on top of it.
-  Where the tier lives (Core 2, 2026-10-17, 10:48 PM EDT as the lane
-  reported): in `_top_by_key` in `db/query.py` (halo 1, satellite* 2,
-  ahead of `_map_key`); the even-thinning and distance ramps of this
-  item go on top of it.
-  Coded (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported; no PR
-  yet): tile lists thin by band with the best tenth kept exact
-  (docs/design/zoom-star-visibility.md section 11). Not covered: stage
-  views, the Sector Map and the client limits, so the lane does not
-  claim to resolve the item; those parts stay open.
-  Merged in part (Bug Hunt, #2252, reported 10:59 AM EDT 2026-10-18 as
-  the lane reported; release 8.0.1814): the tile lists (the pre-placed
-  bright stars, the placed point phenomena and the scattered points)
-  thin evenly by band through one function (`_even_pick`;
-  docs/design/zoom-star-visibility.md section 11). Still open here: the
-  stage views, the Sector Map and the client limits. The graded dim of
-  MAP.252 merged in the same PR (release 8.0.1815) and MAP.252 is
-  retired.
-  Owner of the rest (coordinator, relaying Core 2, 11:05 AM EDT
-  2026-10-18 as the lane reported): Core 2 takes the stage views, the
-  Sector Map and the client limits, to start after MAP.249 and its cache
-  warming (PERF.130 to PERF.132) merge.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the star
-  cap is 45,000, not 70,000: MAP.249 (merged #2263, reported 2026-10-18,
-  about 12:55 PM EDT) set `GALAXY_VIEW_MAX_STARS` to 45,000 (was
-  70,000).
-  Prerequisites: none. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -5689,7 +5657,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
-  GEN.530, SEC.33, TEST.261.
+  SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -6964,6 +6932,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
   galaxies are unchanged; the old fill never passed 0.03. The text above
   that the default distance is already gone (GEN.404) is true.
+  Density limits (report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613, from
+  the galaxy size research thread): a galaxy with no halo needs a
+  central mass for the Hill sphere, and a dense small core must be
+  checked: the Segue floor core has a mean spacing of about 0.66 pc and
+  a keep-out of order 0.9 pc if the enclosed mass is used, so placement
+  could fail (back-of-envelope, label B).
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -7076,48 +7051,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   caps may go as low as 50. Owner: Core 3.
   Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
-- [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. This is the design step. Done:
-  docs/design/galaxy-types.md, which starts as the plan filed with this
-  item, becomes the checked design: the family list (spiral unbarred and
-  barred, lenticular, elliptical, irregular, dwarf spheroidal); the draw
-  order (stellar mass from a Schechter function, then the family from
-  the mass-dependent morphology fractions, then the halo mass from the
-  stellar-to-halo relation, then each family's parameters); one table
-  row per parameter with its law, its source checked against the paper,
-  its range and scatter, and the component of the model it feeds; the
-  mass limits that keep the galaxy's extent inside the 262 kpc reach;
-  the reference galaxies the plausibility tests (TEST.204) compare
-  against and nothing else; the columns DB.66 adds; and which of
-  GEN.368's shape rows are the spiral family's, so that the shape-draw
-  build that follows GEN.368's approval is written once for every
-  family. Relations that cannot be looked up go to Boss as research
-  requests (the TODO thread puts them to him). Boss reads and approves
-  the table before DB.66 and GEN.379 are built. No fixed content (Boss,
-  4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
-  reference galaxies only check the result. Owner: Core 1 proposed (it
-  writes GEN.368's table), after GEN.368.
-  Prerequisites: none. Related: GEN.369, GEN.297, GEN.234, GEN.134,
-  GEN.338, GEN.390.
-  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
-  "Confirmed drop 'home', we will choose viewing based on where sectors
-  are generated."): the family design stores no home or Sun position;
-  GEN.388 is dropped and the design lists no home row. Per-position
-  calculations replace every Sun-radius use.
-  The first family's stellar mass range is 3e9 to 2e11 solar and every
-  derived law draws its natural scatter from the seed (Boss, 2026-10-16,
-  9:40 to 9:43 PM EDT, reported by Core 1); GEN.368's draft table
-  (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
-  chain, rows 1 to 10) is the spiral family's start, and the family
-  table here extends it.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 1's, proposed).
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
-
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -7137,13 +7070,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spiral family written as components. No fixed content (Boss, 4:11 and
   4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: GEN.378, DB.66. Related: GEN.338, GEN.381, GEN.234,
-  GEN.280.
+  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234, GEN.280.
   Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
   one call site in `galaxy/density_modulation.py` (GEN.393) that
   multiplies each population's density after the component sum; this
   rewrite keeps that one call and does not move the factor into the
-  components.
+  components. Design merged (GEN.378, #2368):
+  docs/design/galaxy-types.md is the checked design; Boss reads and
+  approves its table before this item and DB.66 are built (Needs Boss
+  list).
+  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
+  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
+  the table in docs/design/galaxy-types.md is approved as written. The
+  approval that held this item is given.
+  Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
+  gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
+  Core 1's queue.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7155,22 +7097,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the double Schechter function) and the halo mass (the stellar-to-halo
   relation with its scatter), with no second draw of either, and adds
   the family from the mass-dependent morphology fractions (with the
-  survey fits GEN.378 names) and the other families' mass ranges;
-  GEN.400's first-family range is the default the family limits widen.
-  The mass limits are settings whose
-  defaults GEN.378 states, so that the galaxy's visible extent fits the
-  262 kpc reach. It draws through `unit_seed(galaxy_seed, ...)` and the
-  one random wrapper (planetgen/util/draw.py). Done: the same seed gives
-  the same draw; a histogram over 10,000 seeds matches the stated
-  fractions within sampling error; every draw is inside the mass limits;
-  no family or mass appears as a default. No fixed content (Boss, 4:11
-  and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
-  galaxies only check the result.
-  Mass limits: the first family's range is 3e9 to 2e11 solar stellar
-  mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
-  states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379. Related: GEN.368,
-  GEN.369, GEN.381.
+  survey fits docs/design/galaxy-types.md names) and the other families'
+  mass ranges; GEN.400's first-family range is the default the family
+  limits widen. The mass limits are settings whose defaults
+  docs/design/galaxy-types.md states, so that the galaxy's visible
+  extent fits the 262 kpc reach. It draws through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper
+  (planetgen/util/draw.py). Done: the same seed gives the same draw; a
+  histogram over 10,000 seeds matches the stated fractions within
+  sampling error; every draw is inside the mass limits; no family or
+  mass appears as a default. No fixed content (Boss, 4:11 and 4:14 PM
+  EDT): no named galaxy, preset or hand-set value; reference galaxies
+  only check the result. Mass limits: the first family's range is 3e9 to
+  2e11 solar stellar mass (Boss, 2026-10-16, 9:40 PM EDT, reported by
+  Core 1); docs/design/galaxy-types.md states the other families'
+  ranges.
+  Prerequisites: GEN.379. Related: GEN.368, GEN.369, GEN.381, GEN.608,
+  GEN.606. The Scale dial's Auto window (GEN.603) and this Schechter
+  draw both set the stellar mass, and the galaxy types design (GEN.378,
+  #2368) does not say how they combine per family: this item decides it
+  with the dials lane, so that the visible extent fits the reach.
+  Decided (Boss, 8:11 PM EDT 2026-10-21 as the Blocker 2 lane reported,
+  galaxy types design questions Q2 and Q3 in docs/design/galaxy-types.md
+  section 12): the top mass limit is 2e11 solar masses for every family
+  (the Scale dial still cuts it to 1.55e11).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.381 A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass**
@@ -7199,24 +7149,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   counted back from 9.4. The spiral family's laws, the general form of
   GEN.401's shape draw (GEN.401 is the same law for the first family;
   this item adds the Hubble stage and the family argument on top of it,
-  with no second set of laws): disk scale length from the
-  mass-size relation, scale height from thickness against length, the
-  thick-disk share, bulge-to-total and Sérsic index from the Hubble
-  stage (early to late, drawn with the mass), a bar by the fraction at
-  this mass and gas content (barred or unbarred is a draw inside the
-  family) with its length from the disk scale length, arm count and
-  pitch angle from the shear and the mass, and the arm amplitude by
-  stage; the halo comes from GEN.380's halo mass. Done:
-  `draw_spiral(rng, mass, halo)` returns the shape parameters, each law
-  named in the code with its source; bulge-to-total falls from early to
-  late stages over many seeds; the barred fraction matches the stated
-  fraction within sampling error; pitch angle moves with shear in the
-  stated direction; every parameter stays inside its stated range; the
-  real Milky Way's measured numbers are tested only as values the draw
-  can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
-  PM EDT): no named galaxy, preset or hand-set value; reference galaxies
-  only check the result.
-  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369.
+  with no second set of laws): disk scale length from the mass-size
+  relation, scale height from thickness against length, the thick-disk
+  share, bulge-to-total and Sérsic index from the Hubble stage (early to
+  late, drawn with the mass), a bar by the fraction at this mass and gas
+  content (barred or unbarred is a draw inside the family) with its
+  length from the disk scale length, arm count and pitch angle from the
+  shear and the mass, and the arm amplitude by stage; the halo comes
+  from GEN.380's halo mass. Done: `draw_spiral(rng, mass, halo)` returns
+  the shape parameters, each law named in the code with its source;
+  bulge-to-total falls from early to late stages over many seeds; the
+  barred fraction matches the stated fraction within sampling error;
+  pitch angle moves with shear in the stated direction; every parameter
+  stays inside its stated range; the real Milky Way's measured numbers
+  are tested only as values the draw can produce, never as defaults. No
+  fixed content (Boss, 4:11 and 4:14 PM EDT): no named galaxy, preset or
+  hand-set value; reference galaxies only check the result.
+  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369, GEN.603,
+  GEN.604, GEN.611. Design merged (GEN.378, #2368): this item replaces
+  the Kelvin Table 1 stage stand-in in shape_draw.py with the
+  single-Schechter fractions of docs/design/galaxy-types.md section 5.
+  Section 6.3 records a probable misprint in Shen 2003 Table 1 (the
+  early-type b is printed 3.47e-5 and should be about 3.47e-6); it is
+  not used. How the Auto window of the shape dials (GEN.603) combines
+  with the family's mass range is decided in GEN.380.
+  Decided (Boss, 8:19 PM EDT 2026-10-21 as the Blocker 2 lane reported,
+  galaxy types design Q1 in docs/design/galaxy-types.md, merged #2377):
+  the S0 versus Sa split is 0.55 lenticular, constant in mass. The
+  family draw uses 0.55 for the lenticular share of the S0 to Sa class;
+  requests R3 and R7 of the S0 to Sa report stay open.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7251,7 +7212,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seeds sits above the spiral draw's and inside the stated range; no
   young population; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
-  galaxies only check the result.
+  galaxies only check the result. Decided (Boss, 8:19 PM EDT 2026-10-21
+  as the Blocker 2 lane reported, galaxy types design Q1 in
+  docs/design/galaxy-types.md, merged #2377): the S0 versus Sa split is
+  0.55 lenticular, constant in mass. Requests R3 and R7 of the S0 to Sa
+  research report stay open.
   Prerequisites: GEN.382, GEN.383. Related: GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7272,6 +7237,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thick-disk term; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
+  Related: GEN.619 (a variable sector edge for galaxies under 28 pc
+  scale length); not a blocker.
+  Decided (Boss, 8:11 PM EDT 2026-10-21 as the Blocker 2 lane reported,
+  galaxy types design questions Q2 and Q3 in docs/design/galaxy-types.md
+  section 12): the dwarf spheroid share steps, 30 percent under 1e7
+  solar masses and none from 1e7 to 1e9.
+  Q2 is recorded as merged in docs/design/galaxy-types.md (#2377).
   Prerequisites: GEN.369, GEN.380, GEN.381. Related: GEN.382, GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7388,7 +7360,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.380) from the galaxy seed and then the family's draw (GEN.382 to
   GEN.384), write the family key and the component values into the shape
   row (DB.66), and log the draw (stellar mass, halo mass, family and the
-  main shape numbers). A pinned family (`--family` and UX.134) fixes
+  main shape numbers). A pinned family (`--shape`, GEN.608, and UX.134) fixes
   only the family; every size and count is still drawn. The galaxy
   version check and the fingerprint include the family; `GET
   /api/galaxy/shape` carries `family` and the component list; the
@@ -7400,8 +7372,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382,
-  GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383,
+  GEN.608, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.390 Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules**
@@ -7634,18 +7606,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the approximation with the researched function; if not, the note says
   the approximation stands. A comparison test keeps the two within the
   stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
-  galaxy sets any number.
-  Method (Core 1's suggestion, 2026-10-16, 10:12 PM EDT): read a halo
-  mass function source in the paper (for example Tinker et al. 2008 or
-  Sheth and Tormen 1999), build the exact conditional P(Mh | M*) as the
-  halo mass function times the log-normal in M* about the Moster median
-  with 0.15 dex scatter, and compare it with GEN.368's approximation
-  (the median inverse with an effective Mh scatter of 0.15 dex divided
-  by the slope). Done adds: a test and a note showing the typical halo
-  mass and the scatter difference per stellar mass, and a switch to the
-  exact conditional if the difference matters. Needs GEN.368's build
-  (GEN.400).
-  Prerequisites: none. Related: GEN.368, GEN.378, GEN.380.
+  galaxy sets any number. Method (Core 1's suggestion, 2026-10-16, 10:12
+  PM EDT): read a halo mass function source in the paper (for example
+  Tinker et al. 2008 or Sheth and Tormen 1999), build the exact
+  conditional P(Mh | M*) as the halo mass function times the log-normal
+  in M* about the Moster median with 0.15 dex scatter, and compare it
+  with GEN.368's approximation (the median inverse with an effective Mh
+  scatter of 0.15 dex divided by the slope). Done adds: a test and a
+  note showing the typical halo mass and the scatter difference per
+  stellar mass, and a switch to the exact conditional if the difference
+  matters. Needs GEN.368's build (GEN.400).
+  Prerequisites: none. Related: GEN.368, GEN.380.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -9469,6 +9440,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided for the compaction hand-over (Boss, 8:13 PM EDT 2026-10-21,
+  card "Taper porosity, 1e19 to 1e21 kg"
+  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
+  Blocker 2 lane, decision S9 of
+  docs/design/small-bodies-composition.md): porosity tapers to zero in
+  log mass between 1e19 and 1e21 kg (the paper's law stays; the
+  endpoints are flagged stand-in until viscous compaction replaces
+  them), and the Galilean-class solver test still comes before 1e21 kg
+  to 0.1 Earth masses is called validated. This replaces the hand-over
+  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
+  close the 1e20 kg porosity jump by moving the hand-over (density stays
+  1.32 to 1.35 times low up to 3e23 kg).
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10270,132 +10253,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread. Part D
-  (small bodies and moons) is the evidence: the taxon classes with their
-  meteorite analogues, grain densities, porosities and albedos, the
-  zone-weight kernel in a / a_snow, the comet refractory-to-ice ratio
-  and volatile shares, the compaction law (porosity falls to zero near
-  1e20 kg), the mixing rule rho = 1 / sum(w_i / rho_i) kept below the
-  compaction mass and handed to the structure solver above it, and the
-  moon origin types (disk, impact, captured, ring, binary) with the ice
-  fraction from the circumplanetary-disk ice line. Write
-  docs/design/small-bodies-composition.md and have Boss approve it. It
-  settles: which kinds of body draw the density first and fill in the
-  composition and which derive the density (Decided, Boss, 2026-10-17,
-  1:21 AM EDT, card "Composition first": new bodies get their
-  composition drawn from the formation distance and the star and the
-  bulk figures derived, route 2; route 1 stays as the inverse for
-  editing and for an imported density; part D had recommended route 1
-  for bodies whose density is already drawn, so this note says how those
-  are handled); the hand-off mass to the structure solver of GEN.426;
-  which values are stored and which derived (the schema is DB.69 and
-  DB.70); the parametrisations the lane lists (part D section 3.5) each
-  with a replace-when-sourced rule; and the test targets (part D section
-  4, as tolerances and never presets). Done: the note carries the
-  decisions, a worked example (a main-belt-like field, a comet, a
-  Kuiper-like object, a regular moon and a captured moon, as test
-  targets only) and the test targets, and Boss approves it. Owner: Core
-  4 (proposed, with the composition chain).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the small-body design writes its tables in the gated
-  format: the taxon table, the comet volatile table and the moon origin
-  table (disk, impact, captured, ring, binary) are possibility tables
-  with the supported classes and weights of part D (the zone-weight
-  kernel in a / a_snow) and a source each; the note lists every open
-  weight.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the taxon shares and the zone
-  kernel are `stand-in` rows until GEN.473 replaces them.
-  Finding F11 of the Body composition research lane (section 14.5 of
-  docs/design/body-composition-research.md, tables E1 to E4; 2026-10-17,
-  1:47 AM EDT as the lane reported, read from the code at the commit it
-  names), filed by the TODO thread. The existing belt draw it replaces
-  is GEN.477.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G1) the comet volatile draw of part D 3.4.2 becomes the
-  comet population table of GEN.495; 67P stays a test target.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
-  and Schmitt 2009 and Bierson and Nimmo 2019 were on Boss's own list
-  (Boss, 3:07 PM EDT 2026-10-18: he has provided all the data he can, so
-  the bracket from NIST and PubChem stays as a labelled stand-in).
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
-  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
-  thread can fetch.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC7: Bierson and Nimmo (accepted
-  manuscript) Table 1 and Eq. 1 to 2: ice density 920 and silicate 3500
-  kg/m^3, initial porosity 0.60, strength-supported porosity 0.20 (ice),
-  compaction b1 -0.1 per MPa (ice) and b2 -0.11 (silicate); ice porosity
-  phi_i = max(0.60 exp(-0.1 P), 0.20), P in MPa; silicate phi_s =
-  min(0.6 P^-0.11, 0.6) [V, re-read]. A constant 70 percent rock mass
-  fraction matches 14 of 17 Kuiper Belt objects within 2 sigma; minimum
-  formation time 4 Myr (rock fraction 0.5) or 5 Myr (0.7) from early
-  Al-26; Makemake and 2007 OR10 about 1800 kg/m^3 and MU69 about 750
-  predicted. Contradiction, the paper wins: our ice compaction guess has
-  the reference pressure P0 = 1e6 Pa, ten times lower than the paper's
-  10 MPa with the 0.2 floor; our 0.08 scatter and 0.58 to 0.82 range are
-  not in the paper. Eq. 3 (dphi/dt = phi P/eta) prints a positive sign,
-  which would make porosity grow, and the file carries the note 'error
-  in equation 2b': check against Besserer 2013 or the published version
-  before coding it. Fray and Schmitt (paid) is still missing.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC6 moons: Sasaki 2010 (ice line 20 R_J (M_p/M_J)^(2/3) (tau/5
-  Myr)^(-1/3)) and Cilibrasi 2018 (85 percent icy, Galilean-like in 20
-  percent) disagree on the ice fraction: two verified sources, the
-  newest wins (Cilibrasi 2018), the 0.5 to 0.85 bracket stays where
-  either is in doubt. T19 Kuiper Belt rock fraction: rising with size
-  against a constant 70 percent with porosity; the dates were not
-  recorded, so the draw stays.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. T15, the
-  cometary organic fraction (no probability exists; N(0.60, 0.15)
-  clipped to [0, 1] is the lane's proposal).
-  Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in
-  words; bulk-composition.md approve item 6, Decisions 25 and 26): the
-  paper's compaction law stays and the 1e20 kg hand-over is shifted
-  until the porosity jump (0.86 to 1.55 g/cm3) disappears; a Galilean-
-  class solver test comes before the 1e20 kg to 0.1 Earth mass range is
-  called validated; viscous compaction can replace the hand-over later
-  once the Eq. 3 sign check passes.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 15, "0.5 to 0.85,
-  Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
-  bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
-  a labelled stand-in replaced when a measurement exists.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 4's).
-  Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
-
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -10904,6 +10761,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
   bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
   a labelled stand-in replaced when a measurement exists.
+  Decided for the compaction hand-over (Boss, 8:13 PM EDT 2026-10-21,
+  card "Taper porosity, 1e19 to 1e21 kg"
+  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
+  Blocker 2 lane, decision S9 of
+  docs/design/small-bodies-composition.md): porosity tapers to zero in
+  log mass between 1e19 and 1e21 kg (the paper's law stays; the
+  endpoints are flagged stand-in until viscous compaction replaces
+  them), and the Galilean-class solver test still comes before 1e21 kg
+  to 0.1 Earth masses is called validated. This replaces the hand-over
+  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
+  close the 1e20 kg porosity jump by moving the hand-over (density stays
+  1.32 to 1.35 times low up to 3e23 kg).
 
 - [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11355,7 +11224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stored thresholds; a test says so and that the same galaxy gives
   the same belts at any worker count. Owner: Core 4 (proposed, with the
   composition chain and the small bodies of GEN.442).
-  Prerequisites: GEN.442, GEN.457, GEN.458, DB.70. Related:
+  Prerequisites: GEN.442, GEN.458, DB.70. Related:
   GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -12155,7 +12024,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the comet volatile draw reads the table, each range carries its source
   and label, and a test checks the ranges and determinism. Owner: Core 4
   (proposed, with the composition chain).
-  Prerequisites: GEN.457. Related: GEN.442, GEN.455, GEN.457,
+  Prerequisites: none. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
@@ -12995,35 +12864,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
-- [ ] **GEN.530 A pre-placed star's hosted nebula shows from its scatter row on the maps and pages**
-  Residual of GEN.320 (merged #2014, 10:07 AM EDT as Core 3 reported;
-  found by Core 3 and filed by the TODO thread). GEN.320 rolls a star's
-  hosted nebula from the star's own seed and added the helper
-  `hosted_nebula_of`, so a scatter row can say it before any sector is
-  filled (folds MAP.182's intent), but nothing reads that helper from a
-  row: the maps and pages do not show the hosted nebula of a pre-placed
-  star until its sector has been built. Do: the Galaxy Map, the sector
-  view and the star pages read `hosted_nebula_of` for a scatter row, so
-  a pre-placed O or B star shows the same nebula before and after its
-  sector is built. Done: a test shows the nebula of a pre-placed star
-  from its row equals the one the built sector holds, and a map tile or
-  page lists it without a fill. It belongs before GEN.301 (Core 3, 10:07
-  AM EDT). Owner: Core 3 (proposed, GEN.320's author; the map and page
-  reads may go to Core 2 if Core 3 prefers).
-  Owner: Core 3 for the generator side (done) and Core 2 for the map
-  and page reads, after PERF.105 and UX.118 in its order (Core 3
-  agreed 2026-10-17, 10:22 AM EDT and Core 2 at 10:27 AM EDT, both as
-  the lanes reported). Pointers for Core 2:
-  generation/nebula_contents.py `hosted_nebula_of(star,
-  chance_factor=1.0, markdown=False)` takes anything with `type` (a
-  main-sequence class such as B2V), `age` in Gy, `mass` and
-  `temperature`, and returns the Nebula or None; the star's seed is
-  `hosted_seed(star)` (mass, age and temperature); `chance_factor` is
-  the sector profile's "nebula" factor (GEN.236), 1.0 where no profile
-  is read. Core 3 knows the generator side. This replaces the proposed
-  owner above.
-  Prerequisites: none. Related: GEN.320, GEN.241, MAP.182.
-
 - [ ] **GEN.531 Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system**
   Filed by the TODO thread from the GEN.406 research thread (2026-10-17,
   finished 10:38 AM EDT as it reported;
@@ -13472,6 +13312,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1. Point (4) of this design is therefore settled.
+  Decided (Boss, 9:02 PM EDT 2026-10-21, tapped "Answer now", card
+  cmsg_01RuNTFUNB92A8cm5CbojQAiQEpSHqXuHrfwkEi57MUfJd): the plan
+  configuration cards are answered now, not at 8.5. A design thread
+  posts the cards (boundaries, scatter reach, the halo and satellite
+  switches, storage) and writes docs/design from the answers; the
+  coordinator starts it. 8.1 still builds halo and satellites always on
+  (GEN.301).
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  (1) Boundaries: the 262 kpc addressing ceiling (`reach_shell_index`,
+  96-bit IDs) stays stored, with a halo reach and a satellite reach
+  added below it; the outline stays derived by `plan` (the Edge dial,
+  GEN.605); valid addresses are the outline, plus the halo region out to
+  the halo reach when halo is on, plus the satellite volumes when
+  satellite galaxies are on. (2) An address beyond the switches is
+  refused with the reason ("outside the generated galaxy", naming the
+  switch that is off); this supersedes the GEN.235 rule that any address
+  inside the reach is generated on demand and the `outside_ok` path
+  (GEN.81); 8.9 "generate anywhere" may reopen it. (3) The halo reach
+  defaults to the 262 kpc ceiling; the halo command takes a smaller
+  reach in L, pc, kpc or Mpc like the Edge dial and shows the expected
+  rows and time first; no virial-radius default (its ratio has no
+  source). (4) By place: beyond the outline everything that is not a
+  satellite galaxy follows the halo switch (stellar halo, halo globular
+  clusters, hypervelocity and ejected stars, high-velocity clouds, hot
+  halo gas); satellite galaxies and their own stars, clusters and
+  phenomena follow the satellite switch; anything inside the outline is
+  always generated. (5) `scatter` keeps one kind per run and gains one
+  region parameter (interior, halo or satellites); the wrapper's step
+  list holds one run per kind per region the configuration enables;
+  completion is stored per kind and region, so turning a switch on later
+  runs only the missing regions; this replaces the 4:49 PM EDT
+  2026-10-17 wording that each scatter kind reads only its switch. (6)
+  The satellite switch is on or off only; count, places and sizes always
+  come from the seed's draw (GEN.369); same seed, same satellites; no
+  distance cap and no count dial for now. (7) Switching off keeps stored
+  content visible (not the recommended option): only generation stops;
+  stored rows stay drawn, searchable and routable. (8) Storage: a new
+  one-row `plan_configuration` table holding the two switches, the halo
+  reach, the satellite reach and the ceiling (moved out of
+  `galaxy_shape`); only the halo and satellite commands write it; `plan`
+  reads it and never rewrites it; it joins the plan fingerprint tables
+  (`PLAN_TABLES` in `db/fingerprint.py`); the 8.5 migration fills it
+  from what an existing galaxy holds. Applied defaults, not carded: if a
+  new `plan` outline would grow past a stored halo reach, `plan` refuses
+  and names the halo command; a request to generate beyond the
+  boundaries is refused but a sector with stored content stays readable
+  for display, search and routing after its switch is turned off; the
+  halo and satellite commands refuse a galaxy that has nothing to switch
+  on (below the halo threshold `dials.HALO_MIN_HALO_MASS_SOLAR`,
+  GEN.606; a satellite draw of none, GEN.369), saying why; turning a
+  switch on later makes only the missing region. The design note in
+  docs/design is written from the report; confirm with the design
+  thread.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): besides
+  the non-destructive switch-off (card 7, stored content stays), an
+  admin can switch the halo off on an already-made galaxy destructively:
+  the halo content is removed from the database and every halo cell
+  becomes an invalid address (refused with the reason, decision 2). The
+  Plan configuration design thread is working out the specifics
+  (confirmation, what exactly is deleted, the fingerprint and the
+  completion records, whether satellites get the same) and reports;
+  until then it is a pending detail, not a decision.
 
 
 - [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
@@ -13510,23 +13417,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seed whatever the configuration. Owner: Core 1 or Core 3 (proposed,
   whichever holds the plan and scatter code after 8.1).
   Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.537, GEN.301,
-  GEN.235, PERF.121.
-  Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy setting will also
-  tell the scatter functions if they can scatter the halo and / or the
-  satellite galaxies, either / or"): the stored galaxy setting (halo on
-  or off, satellite galaxies on or off) is read by every scatter
-  command, and each scatter kind checks only the switch that concerns
-  it: the halo scatter kinds read the halo switch, the satellite and
-  satellite-component scatter kinds read the satellite switch, the kinds
-  that concern neither (the disc, bulge and core scatters) read neither;
-  either switch can be on without the other. Done also: a test per
-  scatter kind that it reads only its own switch.
+  GEN.235, PERF.121. Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy
+  setting will also tell the scatter functions if they can scatter the
+  halo and / or the satellite galaxies, either / or"): the stored galaxy
+  setting (halo on or off, satellite galaxies on or off) is read by
+  every scatter command, and each scatter kind checks only the switch
+  that concerns it: the halo scatter kinds read the halo switch, the
+  satellite and satellite-component scatter kinds read the satellite
+  switch, the kinds that concern neither (the disc, bulge and core
+  scatters) read neither; either switch can be on without the other.
+  Done also: a test per scatter kind that it reads only its own switch.
   Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
   relayed by the coordinator): a galaxy created in 8.1 keeps its halo
   and satellite content, and the 8.5 migration sets that galaxy's halo
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
+  Overlap (TODO thread, 2026-10-21): the Edge dial GEN.605 (8.1) sets
+  where the galaxy ends in the user's terms (L, pc, kpc or Mpc) and
+  reads the reach the plan stores today; this item (8.5) moves the reach
+  into the plan configuration and repoints the Edge dial, so the Edge
+  dial never duplicates it and never waits on it. `plan --max-shell` is
+  retired by GEN.602; `--reach-shells` stays the addressing detail here.
+  The Halo dial GEN.606 sets how big the halo is; GEN.539's switch
+  decides whether it is generated at all.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the configuration is a new one-row `plan_configuration` table
+  (decision 8), not an extension of `galaxy_shape`: it holds the two
+  switches, the halo reach, the satellite reach and the ceiling, and
+  joins `PLAN_TABLES`; `SCATTER_COVERS_REACH` and the `min(high, reach)`
+  clamps go; an address beyond the switches is refused with the reason,
+  which supersedes GEN.235's generate-anywhere-in-reach rule and
+  `outside_ok` (decision 2); the scatter gets one region parameter
+  (interior, halo, satellites) with completion stored per kind and
+  region, which replaces the "each kind reads only its switch" wording
+  above (decision 5) and is this item's work after PERF.121 merges, not
+  a change to the PERF.121 gate in flight (the PERF.121 follow-up);
+  beyond the outline, everything that is not a satellite galaxy follows
+  the halo switch (decision 4). Done also: a test per kind and region
+  that a switch turned on later makes only its missing regions; `plan`
+  refuses, naming the halo command, when its outline would pass a stored
+  halo reach.
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  destructive halo removal on a made galaxy deletes the halo rows and
+  the per-kind-per-region completion records for the halo region and
+  updates `plan_configuration` (halo off, halo reach cleared); the
+  specifics wait for the design thread's report.
 
 - [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13553,6 +13494,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.120.
   Boss, 2026-10-17, 4:49 PM EDT: the halo scatter kinds read this switch
   from the stored galaxy setting, and no other scatter kind does.
+  Distinct from the Halo dial GEN.606 (Boss, 6:45 PM EDT 2026-10-21):
+  this is the on/off switch of the halo scatter; the dial sets the dark
+  halo mass and the stellar halo share.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the halo reach defaults to the 262 kpc ceiling and the command takes a
+  smaller reach in L, pc, kpc or Mpc like the Edge dial, showing the
+  expected rows and time first (decision 3); no virial-radius default;
+  everything beyond the outline that is not a satellite galaxy follows
+  this switch (decision 4); it refuses to switch halo on for a galaxy
+  below the halo threshold (`dials.HALO_MIN_HALO_MASS_SOLAR`, GEN.606)
+  and says why; the commands that run are one scatter per kind for the
+  halo region (decision 5).
+  Pending detail (Boss, 2026-10-21, 9:26 PM EDT, a sub-option to the
+  switch decision, "admin should have the ability to switch off halo's
+  to a made galaxy but it would be destructive and actually remove them
+  from the database and make all halo cells invalid addresses"): the
+  halo command (or a flag on it) gains the destructive switch-off for a
+  made galaxy, with a confirmation and a count of what it will remove;
+  the specifics wait for the design thread's report.
 
 - [ ] **GEN.540 The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13581,6 +13543,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.120, GEN.371.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  the switch is on or off only: count, places and sizes always come from
+  the seed's draw (GEN.369), the same seed gives the same satellites
+  when turned on later, and there is no distance cap or count dial for
+  now (decision 6); this replaces "sets their parameters (how many and
+  how far)" above; satellite galaxies and their own stars, clusters and
+  phenomena follow this switch (decision 4); the command refuses a
+  galaxy whose draw gives no satellites, saying why.
 
 - [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
   Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
@@ -13656,7 +13628,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default (derive it) stands. The old Core 1 draft branch
   claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
   gen545-core1-draft.patch are superseded.
-  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
+  Epoch 42 is also claimed by GEN.370 (Core 3) and PERF.148 (Bug Hunt);
+  whichever merges later renumbers to the next free epoch on its rebase
+  (the TODO thread, 8:52 PM EDT 2026-10-21).
+  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
@@ -15579,7 +15554,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   minimum to maximum flux (or the variation fraction) past 1 for a
   planet in the pair's own orbit around the primary, fix the formula or
   the clamp's cause, and widen the test's seeds to 240. Done: the
-  reproducer gives no value above 1 in 240 systems. Owner: Bug Hunt (routed by the coordinator, 3:46 PM EDT 2026-10-21).
+  reproducer gives no value above 1 in 240 systems. Owner: Core 4 (the coordinator, 7:15 PM EDT 2026-10-21: Bug Hunt had not started it and Core 4's gate is blocked by it; before that Bug Hunt, routed 3:46 PM EDT).
   Prerequisites: none. Related: GEN.545.
 
 - [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
@@ -15658,6 +15633,891 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Blocker 2 proposed (small; it can go first).
   Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
 
+- [ ] **GEN.601 Shape dials: the lever table, one registry row per slider (name, flag, label, unit, minimum, maximum, step, Auto default, the law it moves, range source) and the parity test**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. This is the only
+  definition of the generator's shape inputs. The command-line parser,
+  the Generate form's fields (slider minimum, maximum, step), the
+  out-of-range message, the help text and the docs table are all
+  generated from it. Rows: Scale (mass `--galaxy-mass`, compactness
+  `--compactness`, density `--surface-density`, advanced absolute scale
+  length `--disk-scale-length-pc`), Structure (flatness `--flatness`,
+  bulge share `--bulge-share`, bulge size `--bulge-size`), Edge
+  (`--edge`), Halo (dark halo `--halo-mass`, stellar halo share
+  `--stellar-halo`), Census (richness `--richness`, advanced, hidden by
+  default) and the Shape selector (GEN.608). A unit column (value type,
+  allowed units, conversion to a base unit) lets the parser and the form
+  share unit handling: Edge takes L, pc, kpc or Mpc (GEN.605; the unit
+  travels with the command-line value, a bare number is refused, a web
+  selector sits beside the slider), and the advanced absolute scale
+  length takes pc or kpc (GEN.603), with L not applicable (Boss, 7:01 PM
+  EDT 2026-10-21). The first release has four dials, Scale, Structure,
+  Edge and Halo; the Census row is added by GEN.607 after GEN.545 (Boss,
+  7:01 PM EDT). Every slider has an Auto state (the seed's draw), which
+  is the default. Do: the registry module; a row type that also carries
+  an enum kind (for Shape) and a pinned-or-Auto state; the parity test,
+  modelled on `PLAN_FIELDS`. Done: a test fails when a flag, a form
+  field, a help line or a docs row is missing for any registry row, or
+  exists without one; an out-of-range value on the command line is
+  refused with the allowed range and its source; no row has a default
+  other than Auto.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
+  make the default size level to be on the smaller size, still a spiral,
+  just a smaller one no more than half the size of the milky way. That
+  is still more than enough space for a role play." The Auto default of
+  the Scale rows follows this rule (GEN.603 holds the number and its
+  tests); the registry records the Auto cap beside the range, so the
+  Generate form can show 'Auto: up to X' and the pinned range
+  separately.
+  Decided (Boss, 2026-10-21, via the coordinator): 6:57 PM EDT the
+  default galaxy is a smaller spiral, no more than half the size of the
+  Milky Way, 'still more than enough space for a role play'; 7:05 PM EDT
+  (Galaxy dials thread) refined: the slider DEFAULTS give a galaxy
+  roughly half the Milky Way's size, the user can push up, and the CAP
+  (slider maximum) is about 50 percent bigger than Andromeda; 7:09 PM
+  EDT: the slider MINIMUMS are half the size of Ursa Major III / UNIONS
+  1 (the smallest known galaxy); 7:13 PM EDT ('yes, scale height and
+  mass, same for andromeda upper limit, scale height and mass'): the
+  lower limit (half of that dwarf) and the upper limit (about 1.5 times
+  Andromeda) apply to scale length, scale height and mass. The registry
+  rows for scale length, scale height and mass carry the minimum,
+  default window and maximum from this rule; the parity test checks that
+  no slider range falls outside them. Placeholder limits reported by the
+  Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane reported, all
+  placeholders until Boss gives sources): scale length 0.9 to 8000 pc,
+  scale height 0.3 to 750 pc, mass 8 to 2e11 solar masses (floor half of
+  Ursa Major III / UNIONS 1, ceiling 1.5 times Andromeda); Auto default
+  about 1.3 kpc and 3e9 to 4e9 solar masses. The registry rows carry
+  these as the minimum, default window and maximum, each labelled
+  placeholder. Flag names (TODO thread contradiction check, 2026-10-21):
+  `--density` already exists on `sector` and `galaxy` (a star-density
+  bias) and PERF.121's `scatter --mass` is a scatter kind, so the dials
+  are `--galaxy-mass` and `--surface-density`; the parity test also
+  fails when a lever flag has the same name as an existing flag of
+  another command with a different meaning. Limits update: see GEN.603
+  and GEN.609 (sourced caps; the floor example is a card with Boss).
+  Constants stay labelled placeholder until the lane applies them.
+  Decided (Boss, 2026-10-21, 7:31 PM EDT, card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
+  floor example, replacing the Ursa Major III / UNIONS 1 placeholder
+  (argued to be a star cluster). The floors are half the example:
+  stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
+  pc, scale height 4.8 pc (report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
+  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
+  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
+  half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
+  half-light radius, 12 pc, sits in the extended star cluster range
+  (report section 4); the lane decides whether that needs a warning.
+  Registry minimums: mass 281 solar masses, scale length 28 pc (Boss,
+  8:08 PM EDT; the Segue half was 7.1 pc), scale height 4.8 pc (the
+  lever table floor is 4 pc), labelled derived with the Segue 1 source.
+  Density limits (report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 3): the lever table's hard limits come from this report, not
+  from guesses. Recommended (the low-mass cut and the density floor are
+  decided below; all three cards are answered): every length above 0;
+  scale height at least 4 pc (warn under 8); scale length at least 28 pc
+  (Boss, 8:08 PM EDT: no warn band below it); bulge scale radius at
+  least 2 pc (warn under 4); stellar mass 281 to 1.55e11 solar masses;
+  thin-disc crest density D at least about 1 (warn under 20 with the
+  share of stars in planned sectors); surface density at most 1e5 solar
+  masses per pc^2 and at most the value that puts a sector over 1e8
+  systems; pitch angle from 1 degree and arm count from 1. The Sigma0
+  row 1e-8 to 1e9 is wrong at both ends (six decades too low at the
+  bottom, four too high at the top): gate the pair (Sigma0, h) or show D
+  under the dial.
+  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
+  relayed by the galaxy size research thread): the thick disc, the bar,
+  the stellar halo and the nuclear cluster and disc switch off below 3e8
+  solar masses of stars; below it a galaxy is one disc plus a bulge. The
+  lever table records it as the structure threshold (GEN.615): the
+  Structure dial's thick-disc, bar and halo levers and the nuclear
+  structures are inactive below 3e8 solar masses and the form says so.
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
+  relayed by the galaxy size research thread): refuse only when the
+  outline would be empty; warn under D = 20 and show the share of stars
+  in planned sectors. GEN.617 shows the line.
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
+  relayed by the galaxy size research thread): the scale length floor is
+  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
+  fixed 4 pc edge span the scale length. The mass floor 281 solar
+  masses, the scale height floor 4 pc and the bulge floor 2 pc are
+  unchanged. GEN.619 (a variable sector edge) may lower the scale length
+  floor later.
+  Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
+
+- [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Do: generate the
+  `plan` and `generate` flags from the table (GEN.601); Each old option
+  retires with no shim in the item that replaces it, never before:
+  `--disk-scale-height-pc`, `--bulge-scale-radius-pc` and
+  `--bulge-amplitude` in GEN.604, `--max-shell` in GEN.605,
+  `--arm-density` and `--interarm-density` in GEN.611 (arm contrast);
+  the absolute scale length stays only as the advanced pin of the Scale
+  dial (GEN.603); `--reach-shells` and `--nuclear-amplitude` become
+  internal or advanced (GEN.610). This item builds the flag generator,
+  the docs table, `docs/command-inventory.md` and the help text, and
+  lists the places the retiring options touch so each dial item can
+  update them: generate.py, run_plan.py, run_galaxy.py, stages.py,
+  limits.py, skeleton.py, density.py, shape_draw.py, store.py,
+  web/generate_page.py, web/maps/galaxymap3d.py, cli/benchmark.py, and
+  the tests test_gen_cli_errors, test_parallel_generation,
+  test_galaxy_seed, test_db_scatter_limits, test_shape_draw,
+  test_web_a11y, test_galaxy_core_ball and the visualizer CLI in tests.
+  `--max-shell` is also an option of the `galaxy` command (random-start
+  mode): the Edge item decides whether that one stays. Done: the
+  registry generates every flag of the finished dials and the docs
+  table; with no dial touched the plan's stored shape is identical to
+  today's for the same seed (a golden test; if any default draw changes,
+  the change takes the next free generator epoch and says so); each new
+  flag has a test that pins it alone.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Prerequisites: GEN.601. Related: GEN.611, ADM.110.
+
+- [ ] **GEN.603 Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown**
+  Boss's rulings (galaxy size research thread, 2026-10-21): 6:41 PM EDT
+  chose mass, size and density as one 'any two of three' group with the
+  third shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH). Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8. Resolution order: the seed draws mass and the
+  compactness z; a pinned lever replaces its draw; then mass, then size
+  (from compactness, an absolute scale length or a pinned density, L =
+  sqrt(M_disc / (2 pi Sigma0))), then every ratio of L (thick disc,
+  stellar halo break, bulge, bar, reference radii), then the density
+  normalisation. Mass stays the master: the galaxy still holds mass over
+  the mean system mass in systems. Pinning all three of mass, size and
+  density is refused: the third is shown with the value the other two
+  imply and the message names which was dropped. A dial replaces only
+  its draw's median; the draw's random number is untouched, so the same
+  seed at a new mass gives the same residuals in sigma (turning the dial
+  moves the galaxy smoothly). Default size and limits (Boss, via the
+  coordinator): 6:57 PM EDT "we will make the default size level to be
+  on the smaller size, still a spiral, just a smaller one no more than
+  half the size of the milky way. That is still more than enough space
+  for a role play."; 7:05 PM EDT (Galaxy dials thread): the slider
+  defaults give a galaxy roughly half the Milky Way's size, the user can
+  push up, and the cap (slider maximum) is about 50 percent bigger than
+  Andromeda; 7:09 PM EDT: the slider minimums are half the size of Ursa
+  Major III / UNIONS 1 (the smallest known galaxy); 7:13 PM EDT: the
+  lower and upper limits apply to scale length, scale height and mass.
+  Placeholder numbers reported by the Galaxy dials lane (7:16 PM EDT as
+  the lane reported; placeholders until Boss gives sources, listed in
+  the gap plan and GEN.609): scale length 0.9 to 8000 pc, scale height
+  0.3 to 750 pc, mass 8 to 2e11 solar masses; Auto default about 1.3 kpc
+  scale length and 3e9 to 4e9 solar masses. They are plain numbers with
+  a label, never a preset of a named galaxy (no fixed content). The
+  advanced absolute scale length is a length with units, pc or kpc,
+  through the lever table's unit column (GEN.601; Boss, 7:01 PM EDT); on
+  the command line the unit is part of the value, as for Edge. The first
+  family's mass range 3e9 to 2e11 (Boss, 2026-10-16) stays the family
+  draw's range for 9.4 (docs/design/galaxy-types.md); the pin range of
+  this dial is wider at the low end, and masses below the lowest size
+  where the halo functions work are accepted and run no halo function
+  (GEN.606, Boss 7:33 PM EDT). This is the only dial item that changes
+  the default galaxy: the new default window takes the next free
+  generator epoch and the golden files are regenerated, and system
+  counts and the cost of a full generation drop (check against GEN.545's
+  mean system mass and measure with PERF.146). Every other dial item
+  keeps the default output identical (a golden test); if this item lands
+  first, their baseline is main at that point. Done: tests for each pair
+  of pins reproducing the third within tolerance; the refusal and its
+  message; same seed, mass doubled, gives the same size sigma and thick
+  disc sigma; the lever table's scale length, scale height and mass rows
+  carry exactly the limits above as named constants labelled
+  placeholder; the Auto draw stays inside the default window over many
+  seeds and a pin reaches the minimum and the maximum, and a value
+  outside either is refused with the limit and its label; with the new
+  default, golden files are regenerated under the new epoch.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609,
+  GEN.612. Sources arrived (report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md): the
+  upper limit is now sourced (scale length 8.25 kpc, scale height 1.16
+  kpc, mass 1.5e11 to 2.3e11 solar masses, 1.5 times Andromeda; see
+  GEN.609) and the lower limit's example, Ursa Major III / UNIONS 1, is
+  argued to be a star cluster; the floor example is an open card with
+  Boss (Segue 1, Reticulum II or Willman 1: floors 281, 1,476 or 889
+  solar masses). The placeholder limits above stand until the lane
+  applies the sourced ones and Boss answers the floor card.
+  Decided (Boss, 2026-10-21, 7:31 PM EDT, card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
+  floor example, replacing the Ursa Major III / UNIONS 1 placeholder
+  (argued to be a star cluster). The floors are half the example:
+  stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
+  pc, scale height 4.8 pc (report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
+  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
+  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
+  half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
+  half-light radius, 12 pc, sits in the extended star cluster range
+  (report section 4); the lane decides whether that needs a warning. The
+  slider minimums are therefore mass 281 solar masses, scale length 7.1
+  pc and scale height 4.8 pc (replacing the placeholder minimums above);
+  the maximums are the sourced ones; the Auto default window is
+  unchanged. The halo and size laws below 1e8 solar masses are sourced
+  down to log M* 5.5 and not below (GEN.612), so the floor of 281 solar
+  masses (log M* 2.45) is accepted: it runs no halo function (GEN.606,
+  Boss 7:33 PM EDT) and takes its size from the best available law until
+  GEN.612 sources one. Superseded wording (Boss, 7:33 PM EDT, via the
+  coordinator): masses below the lowest size where the halo functions
+  work are no longer refused; they skip all halo functions (GEN.606).
+  The earlier 'refused with the reason until GEN.612 lands' no longer
+  applies; GEN.612 now only extends the size law and the non-halo laws.
+  Density limits (report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613):
+  hard and warn limits are listed in GEN.601; Sigma0's definition must
+  include the nuclear cluster and disc (12 to 80 percent of the stars of
+  the Auto-sized galaxies from 1e9 down to 281 solar masses at the
+  default amplitude, one seed) (the low-mass cut is decided: 3e8 solar
+  masses, GEN.615). Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue
+  floor length card, relayed by the galaxy size research thread): the
+  scale length floor is 28 pc, replacing the Segue-half 7.1 pc, so that
+  about 7 cells of the fixed 4 pc edge span the scale length. The mass
+  floor 281 solar masses, the scale height floor 4 pc and the bulge
+  floor 2 pc are unchanged. GEN.619 (a variable sector edge) may lower
+  the scale length floor later. Nothing under 28 pc is accepted until
+  GEN.619 lands.
+
+- [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Flatness
+  replaces the absolute `--disk-scale-height-pc` (default the 7.3 median
+  with the 0.13 dex draw, range 3 to 20); bulge share is the
+  bulge-to-total mass fraction (default drawn by stage; range 0 to 0.9)
+  and replaces `--bulge-amplitude`, which the code already solves from
+  the share; bulge size is a ratio of L (default one third of a bar of
+  0.2 to 3 L, range 0.02 to 1 L) and replaces `--bulge-scale-radius-pc`.
+  Ratios keep their meaning when the Scale dial moves L. Do: wire the
+  three through `draw_galaxy` replacing only their own draws; recompute
+  everything downstream. Done: each dial alone is tested; with all three
+  on Auto the shape is unchanged; raising mass with a pinned flatness
+  keeps the ratio; a bulge share of 0 gives a disc with no bulge
+  density.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Also retires, with no shim and in this item: `--disk-scale-height-pc`,
+  `--bulge-scale-radius-pc` and `--bulge-amplitude` (refused as unknown
+  flags), with the tests and web fields that used them updated (list in
+  GEN.602).
+  Prerequisites: GEN.601. Related: GEN.382, GEN.603, GEN.610.
+
+- [ ] **GEN.605 Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces
+  `--max-shell`; `--reach-shells` stays an addressing detail (object IDs
+  name shells up to 262 kpc). Decided (Boss, 2026-10-21, 7:01 PM EDT, on
+  the Edge card): "B and C give the option for both so the user will
+  have a selector of some kind so that the interface knows, the options
+  in the command line are determined by the units used (xxx L for
+  lengths and pc, kpc, Mpc for radius)". Edge takes both forms with a
+  unit selector. Web: a selector with L, pc, kpc and Mpc beside the
+  slider; the range and step follow the unit. Command line: the unit is
+  part of the value (`--edge 12L`, `--edge 30kpc`, `--edge 18000pc`,
+  `--edge 0.03Mpc`); a bare number is refused with the list of units.
+  Auto (the default) keeps today's one-system-per-sector outline and
+  shows the resulting radius in the chosen unit; the star-count
+  threshold is not a user unit. Range 3 to 20 L, and as a radius up to
+  the grid's reach (262 kpc), so Mpc above 0.262 is refused with the
+  reach quoted. A radius in L resolves against the planned galaxy's thin
+  disc scale length, so the same 12L is a different radius in pc for a
+  different L (documented). Detail:
+  design-drafts/galaxy-size-levers-2026-10-21.md, section 9.1. Systems
+  scale with mass and sectors with volume, so a large thin low-density
+  galaxy has many sectors with few stars; the plan already computes both
+  counts and this dial shows them before anything runs, and warns when
+  the job is impossible. Done: each unit parses, converts and
+  range-gates from the lever table's unit column (GEN.601); a bare
+  number and Mpc above the reach are refused with the allowed units and
+  the reach; the web selector changes the slider's range and step;  the
+  radius and the counts are shown; Auto gives today's
+  one-system-per-sector threshold; `--max-shell` is gone.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21); the edge form is decided, so it is no longer blocked.
+  Also retires `plan --max-shell` with no shim in this item (refused as
+  an unknown flag; PERF.121's finding that it does not shrink the
+  scatter is moot); whether `galaxy --max-shell` stays is decided here
+  and its tests updated (list in GEN.602). Reach: the Edge dial reads
+  the reach the plan stores today (`reach_shell_index`, set by `plan
+  --reach-shells`); GEN.538 (8.5) later moves the reach into the plan
+  configuration and repoints it, so this item never depends on GEN.538.
+  The one-star outline rule becomes a density threshold in GEN.619
+  (Boss, 8:08 PM EDT 2026-10-21, later item); until then Edge keeps
+  today's rule.
+  Prerequisites: GEN.601. Related: GEN.603, ADM.109, GEN.538, PERF.121.
+
+- [ ] **GEN.606 Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Dark halo mass
+  (halo over stellar 10 to 300) sets the total mass and r200, which the
+  code computes and nothing reads today; stellar halo share (0.1 to 30
+  percent) sets the faint outer light. Both Auto by default, drawn from
+  the stellar-halo law and the stellar-to-halo relation. With the dial
+  live, the stellar half-light radius should sit near 1.5 to 1.8 percent
+  of R200c with 0.2 dex scatter (Kravtsov 2013 and Somerville 2018,
+  secondhand in the report, so a labelled bracket until GEN.609 checks
+  them): offer it as a warning, never a clamp. It is the only dial that
+  changes total mass. Done: tests that the dark halo changes r200 and
+  the total mass and nothing in the disc; the stellar halo share changes
+  only the halo's light; the warning fires on a deliberately odd galaxy
+  and does not block it.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Decided (Boss, 2026-10-21, 7:33 PM EDT, via the coordinator):
+  "anything under a reasonable galaxy to have a halo (the lowest size
+  our functions work for reliably) does not run any halo functions." A
+  galaxy below the lowest size where the halo functions work reliably
+  (today the lowest mass the halo laws cover, 1e8 solar masses; the
+  Galaxy dials lane confirms the number) skips ALL halo functions: no
+  dark halo, no stellar halo, no r200, no halo scatter, no satellites
+  that need a halo; the mass is accepted, not refused. Done (added):
+  below the threshold the dial's two sliders are disabled with the
+  reason, no halo function runs (a test patches each halo function to
+  fail and plans a galaxy below the threshold), and at and above the
+  threshold nothing changes. The threshold is one named constant with
+  its source.
+  Prerequisites: GEN.601. Related: GEN.297, GEN.380, GEN.603, GEN.539.
+
+- [ ] **GEN.607 Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces the
+  constant `tuning.MEAN_SYSTEM_MASS_SOLAR` as a user lever: how many
+  systems the mass holds, so the density in systems and the cost of a
+  full generation. Default the value GEN.545 derives (about 0.51 solar
+  mass per system, 2.0 per solar mass); the range is a narrow band about
+  the IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped
+  "No, wait for GEN.545", card
+  cmsg_01RuNTFUNB92A8cm5CbojQAiEVg9cpevtSbXZPtt2uETHf): the Census dial
+  is added after GEN.545 settles the mean system mass; the first release
+  of the dials has four: Scale, Structure, Edge and Halo. Done: the
+  slider is tested alone; Auto gives GEN.545's derived value; the system
+  count scales as stated; hidden unless Advanced is shown.
+  Owner: the Galaxy dials lane, after GEN.545 merges (the coordinator,
+  6:55 PM EDT 2026-10-21; the richness choice is decided).
+  Prerequisites: GEN.601, GEN.545. Related: GEN.603.
+
+- [ ] **GEN.608 Shape dials: the Shape selector, added to the table and the Generate form unfilled: key `spiral`, flag `--shape`, one option for now**
+  Boss (galaxy size research thread, 6:46 PM EDT 2026-10-21): 'Add a
+  'shape' option but don't fill it, just add it to the UI it will be a
+  dropdown when it's filled. Right now it's only option is Spiral. Find
+  the other TODO item and link it.' The other item is UX.134 (the galaxy
+  type pinned or drawn on the Generate page, 9.4), with GEN.389 (the
+  family drawn from the seed and stored), GEN.380 (the type draw),
+  GEN.382 to GEN.385 (the families), GEN.378 (the design) and UX.135
+  (the outlines). Do: a registry row (GEN.601) of kind enum with the
+  single value `spiral`, key `shape`, flag `--shape`, shown as a
+  dropdown with Spiral as the only entry; `--shape spiral` is accepted,
+  any other value is refused and the message lists the allowed values;
+  the plan runs exactly as today (no stored column until DB.66 in 9.4).
+  The 9.4 items later fill the list from the same row without a new
+  control; GEN.389's `--family` and UX.134's pin list are this flag and
+  this dropdown, so they are not built a second time. Done: the Generate
+  form shows the dropdown with Spiral; the parity test covers it;
+  nothing about the generated galaxy changes.
+  Prerequisites: GEN.601. Related: UX.134, GEN.389, GEN.380, GEN.382,
+  GEN.378, UX.135.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Naming (galaxy size research thread): the user label is 'Shape' and
+  the flag `--shape`, while the code key for the drawn family stays
+  `family` (the code already has a `GalaxyShape` for the density model's
+  numbers); the 9.4 items use the same row.
+
+- [ ] **GEN.609 Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Every slider
+  needs a range with a source (proposal section 8.5), and several are
+  only recalled in the note: the Shen 2003 size-mass law's valid mass
+  span (about 1e8 to 1e12, unchecked because arXiv was blocked), the
+  flatness span 3 to 20, the bulge-share span 0 to 0.9, the bulge size
+  0.02 to 1 L, the edge span, the halo-to-stellar ratio 10 to 300 and
+  the stellar halo share 0.1 to 30 percent. Do: for each, read the
+  source already in the repo or the files Boss provided, apply the
+  source rules (verified wins; two verified in doubt, newest wins; two
+  in question, widest range), and write the range, its source and its
+  label (verified, derived, bracket, theory or placeholder) into
+  docs/design/gap-filling-plan.md's registry and the lever table
+  (GEN.601). Network access is closed, so a value with no included
+  source stays a labelled placeholder and the slider still ships. Done:
+  every registry row has a source and a label; a test fails on a row
+  with neither.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Decided (Boss, 2026-10-21, via the coordinator): 6:57 PM EDT the
+  default galaxy is a smaller spiral, no more than half the size of the
+  Milky Way, 'still more than enough space for a role play'; 7:05 PM EDT
+  (Galaxy dials thread) refined: the slider DEFAULTS give a galaxy
+  roughly half the Milky Way's size, the user can push up, and the CAP
+  (slider maximum) is about 50 percent bigger than Andromeda; 7:09 PM
+  EDT: the slider MINIMUMS are half the size of Ursa Major III / UNIONS
+  1 (the smallest known galaxy); 7:13 PM EDT ('yes, scale height and
+  mass, same for andromeda upper limit, scale height and mass'): the
+  lower limit (half of that dwarf) and the upper limit (about 1.5 times
+  Andromeda) apply to scale length, scale height and mass. Sources for
+  the two reference galaxies' scale length, scale height and mass (Ursa
+  Major III / UNIONS 1 for the minimum, Andromeda for the maximum, the
+  Milky Way for the default window) are looked up or taken from files in
+  the repo and recorded as plain numbers with their labels (verified,
+  derived, bracket or placeholder); the galaxies themselves are never
+  presets in the generator, only the source of the stated limits (Boss's
+  no-fixed-content rule, 4:11 PM EDT 2026-10-16).
+  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
+  2026-10-21 as the lane reported, all placeholders until Boss gives
+  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
+  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
+  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
+  4e9 solar masses. Done (added): each of these limits is recorded in
+  the gap-plan registry's note on the shape dial limits
+  (docs/design/gap-filling-plan.md, section 2.1) and replaced when Boss
+  gives a source; the reference galaxies are never presets, only the
+  stated origin of the limits.
+  Checked sources (the Galaxy size research thread, report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, written
+  after 7:30 PM EDT 2026-10-21 at Boss's 7:20, 7:22 and 7:24 PM EDT
+  requests; labels V = full text read, C = calculated, D = Local Volume
+  Database v1.1.1, Pace 2025, arXiv:2411.07424): Upper limit, 1.5 times
+  Andromeda (C from V values): scale length 8.25 kpc (Andromeda 5.5 kpc,
+  range 5.3 to 5.8: Courteau 2011 arXiv:1106.3564, Dorman 2013
+  arXiv:1310.4179; widest 4.8 to 5.9 kpc); scale height 1.16 kpc
+  (Andromeda 770 pc, Dalcanton 2023 arXiv:2304.08613; up to 4.2 kpc if
+  the 2.8 kpc thick disc of Collins 2011, summary only, is used);
+  stellar mass 1.5e11 solar masses (Andromeda 10.3e10, Sick 2014
+  arXiv:1410.0017; 10 to 15e10, Tamm 2012 arXiv:1208.5712, which gives
+  2.3e11); Andromeda halo 0.6 to 2.8e12 solar masses (widest of three
+  disagreeing sources). The placeholder 8000 pc, 750 pc and 2e11 are
+  replaced by these when the Galaxy dials lane applies them; the
+  scale-height placeholder 750 pc was below the sourced 1.16 kpc. Lower
+  limit: Ursa Major III / UNIONS 1 (16 solar masses, half-light radius 3
+  pc, Smith 2024 arXiv:2311.10147) is argued to be a star cluster (Cerny
+  2025 arXiv:2510.02431; the Local Volume Database flags it a star
+  cluster), so it is not a floor. A card is open with Boss on the floor
+  example: Segue 1, Reticulum II or Willman 1, whose floors (half of the
+  example) are stellar mass 281, 1,476 or 889 solar masses, scale length
+  7.1, 17.2 or 8.2 pc and scale height 4.8, 6.9 or 4.3 pc (report
+  section 4). Until Boss answers, the 0.9 pc, 0.3 pc and 8 solar masses
+  placeholders stay labelled placeholder and known to be below any
+  accepted galaxy. Milky Way check values only (Bland-Hawthorn and
+  Gerhard 2016 arXiv:1602.07702): stellar mass 5e10, thin disc scale
+  length 2.6 kpc, scale height 300 pc, M200 1.1e12. Done (added): each
+  constant in the lever table carries one of these sources and its
+  label, and the gap-plan note on the shape dial limits is updated.
+  Decided (Boss, 2026-10-21, 7:31 PM EDT, card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
+  floor example, replacing the Ursa Major III / UNIONS 1 placeholder
+  (argued to be a star cluster). The floors are half the example:
+  stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
+  pc, scale height 4.8 pc (report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
+  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
+  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
+  half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
+  half-light radius, 12 pc, sits in the extended star cluster range
+  (report section 4); the lane decides whether that needs a warning.
+  These replace the 0.9 pc, 0.3 pc and 8 solar masses placeholders; the
+  upper limits and the dwarf laws are sourced as listed above, and the
+  lower limits are now verified-derived (half of a sourced example), not
+  placeholders.
+  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
+  relayed by the galaxy size research thread): the thick disc, the bar,
+  the stellar halo and the nuclear cluster and disc switch off below 3e8
+  solar masses of stars; below it a galaxy is one disc plus a bulge. The
+  sources check covers the thresholds' sources (GEN.615).
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
+  relayed by the galaxy size research thread): the scale length floor is
+  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
+  fixed 4 pc edge span the scale length. The mass floor 281 solar
+  masses, the scale height floor 4 pc and the bulge floor 2 pc are
+  unchanged. GEN.619 (a variable sector edge) may lower the scale length
+  floor later.
+  Prerequisites: none.
+
+- [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
+  Found by the galaxy size research thread (2026-10-21, from reading
+  `cli/generate.py` at main commit 3bc3ecc), filed by the TODO thread.
+  The option's unit is a fixed copy of the Milky Way's nuclear cluster
+  and disc, which conflicts with Boss's no-fixed-content rule (4:11 PM
+  EDT 2026-10-16). Fails on main: yes, the help text and the unit. Do:
+  make the nuclear amplitude a ratio of the galaxy's own mass or bulge,
+  drawn from a law with a source, advanced and hidden by default in the
+  table; update the help text. Done: no nuclear value in the code or the
+  help is a Milky Way number; a test scans for the two constants.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Prerequisites: GEN.601. Related: GEN.602, GEN.604.
+
+- [ ] **GEN.611 Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. The proposal
+  (section 2) folds `--arm-density` and `--interarm-density` into one
+  number, arm contrast; their mean is absorbed by the mass normalisation
+  once bulge share is a share. Arm count and pitch angle are already
+  drawn (GEN.382's laws) and stay drawn, with an optional pin through
+  the table. All lengths are ratios of L, so the pattern follows the
+  galaxy's size. Filed by the TODO thread as the replacement the
+  retiring arm flags need; the proposal calls it the later pattern set,
+  so whether it ships with the other dials or stays as the old arm flags
+  until then is for the coordinator to confirm. Done: the contrast
+  slider alone is tested; Auto gives today's arm look; the retired pair
+  is refused.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Also retires `--arm-density` and `--interarm-density` with no shim in
+  this item, so the arm look is never without a control (list of places
+  in GEN.602).
+  Prerequisites: GEN.601. Related: GEN.602, GEN.382.
+
+- [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
+  Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
+  reported), filed by the TODO thread. Boss's size limits (7:05 to 7:13
+  PM EDT: the minimum is half of Ursa Major III / UNIONS 1, the maximum
+  about 1.5 times Andromeda, for scale length, scale height and mass)
+  put the Scale dial's mass floor at 8 solar masses, but the mass
+  chain's halo law and the size-mass law are valid only from 1e8 solar
+  masses, so the dial refuses masses below what the laws cover.
+  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
+  2026-10-21 as the lane reported, all placeholders until Boss gives
+  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
+  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
+  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
+  4e9 solar masses. Do: extend the stellar-to-halo relation, the halo
+  law and the size-mass law to dwarf and ultra-faint masses, or state
+  which relation holds there; the gaps GR11 (dwarf stellar-to-halo
+  relation and scatter, 1e8.5 to 1e10.5) and GR13 (ultra-faint size
+  relation, below log M* 5.5) in docs/design/gap-filling-plan.md are the
+  same missing laws. Sources found since (report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md): dwarf
+  size-mass law log(r_e/pc) = 1.071 + 0.247 log(M*/Msun), scatter 0.181
+  dex, fitted 5.5 < log M* < 8.5 (Carlsten 2021 arXiv:2105.03435, V);
+  dwarf size by halo size (Nadler 2020 arXiv:1912.03303); the halo
+  occupation (50 percent of halos host galaxies at log M50 7.5 to 7.93;
+  Nadler 2020); the stellar-to-halo relation for 5e5 to 1e8 solar masses
+  is monotonic with little scatter (Read 2017 arXiv:1607.03127); halo
+  concentration down to 1e6 solar masses (Wang 2020 arXiv:1911.09720, a
+  fit with six coefficients). Do not use the Behroozi 2019 fit below
+  1e10.5 or extend the Dutton and Macciò concentration below its fitted
+  range. Still unsourced: a size law below log M* 5.5 (ultra-faint
+  dwarfs fall below the power law: Segue 1 is 0.37 dex under it), a
+  stellar-to-halo formula below 5e5 solar masses, and any dwarf scale
+  height as a disc (these are spheroids; the observed flattening is the
+  only height). Needs Boss: only those three gaps (or his word that a
+  labelled placeholder bracket stands there). Until it lands, the lowest
+  mass the Scale dial accepts is the lowest the laws cover and the lower
+  limit of Boss's rule is recorded in the lever table but refused with
+  the reason (to be confirmed by the Galaxy dials lane). Done: the laws
+  are defined down to the lever table's minimum with a source or a
+  placeholder label for each range; a test sweeps mass from the minimum
+  to the maximum and every law returns a finite, ordered value; the dial
+  accepts the whole range. Default (Boss's open-question rule, decided
+  10-17 9:54 PM EDT): a labelled placeholder bracket stands until Boss
+  gives sources, so this item does not hold the 8.1 stamp for sources;
+  it still has to land with a placeholder bracket and the sweep test.
+  Decided (Boss, 2026-10-21, 7:31 PM EDT, card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
+  floor example, replacing the Ursa Major III / UNIONS 1 placeholder
+  (argued to be a star cluster). The floors are half the example:
+  stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
+  pc, scale height 4.8 pc (report
+  /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
+  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
+  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
+  half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
+  half-light radius, 12 pc, sits in the extended star cluster range
+  (report section 4); the lane decides whether that needs a warning.
+  This item's lower end is therefore 281 solar masses (log M* 2.45),
+  well below the Carlsten 2021 law's fitted range (log M* 5.5 to 8.5):
+  Segue 1 sits 0.37 dex under that power law, and a size law for
+  ultra-faint dwarfs below log M* 5.5 is still unsourced.
+  Decided (Boss, 2026-10-21, 7:33 PM EDT, via the coordinator):
+  "anything under a reasonable galaxy to have a halo (the lowest size
+  our functions work for reliably) does not run any halo functions." A
+  galaxy below the lowest size where the halo functions work reliably
+  (today the lowest mass the halo laws cover, 1e8 solar masses; the
+  Galaxy dials lane confirms the number) skips ALL halo functions: no
+  dark halo, no stellar halo, no r200, no halo scatter, no satellites
+  that need a halo; the mass is accepted, not refused. This replaces the
+  earlier plan to refuse masses below the laws' coverage: the halo and
+  stellar-to-halo extensions listed here are no longer needed for the
+  dial to accept the floor; what remains is the size law below log M*
+  5.5 and dwarf scale heights, plus the halo laws only for masses above
+  the skip threshold that are still thinly covered. Done (changed): the
+  dial accepts the whole range down to 281 solar masses, below the
+  threshold with no halo function run.
+  Dwarf-mass laws already worked out in docs/design/galaxy-types.md
+  sections 6.4 and 6.5 (the Carlsten 2021 fits, GEN.378, #2368): reuse
+  them.
+  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
+  relayed by the galaxy size research thread): the thick disc, the bar,
+  the stellar halo and the nuclear cluster and disc switch off below 3e8
+  solar masses of stars; below it a galaxy is one disc plus a bulge. The
+  structure laws of this item stop at the cut (GEN.615); below it a
+  galaxy is one disc plus a bulge.
+  Decided (Boss, 8:08 PM EDT 2026-10-21, on the Segue floor length card,
+  relayed by the galaxy size research thread): the scale length floor is
+  28 pc, replacing the Segue-half 7.1 pc, so that about 7 cells of the
+  fixed 4 pc edge span the scale length. The mass floor 281 solar
+  masses, the scale height floor 4 pc and the bulge floor 2 pc are
+  unchanged. GEN.619 (a variable sector edge) may lower the scale length
+  floor later.
+  Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Labelled placeholder
+  brackets", card cmsg_01RuNTFUNB92A8cm5CbojQAiThueq5RtgKafJmWNFrqMvQ):
+  the three unsourced gaps (the size law below log M* 5.5, the
+  stellar-to-halo formula below 5e5 solar masses, and dwarf scale
+  height) use labelled placeholder brackets; the dials accept the whole
+  range now and the item no longer waits on Boss for sources.
+  Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
+
+- [ ] **GEN.613 Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them**
+  Boss (2026-10-21, 7:33 PM EDT, via the coordinator): "we want to
+  investigate limits for our density algorithm." The shape dials let a
+  user pick masses from 281 to 1.5e11 solar masses and scale lengths
+  from 7.1 pc to about 8 kpc, far wider than the one Milky Way-sized
+  galaxy the density model was built and tested for. Do (read-only, no
+  code): the Galaxy size research thread reads `galaxy/density.py`, the
+  shape draw, `mass_chain.py` and the mass normalisation (`k_norm`,
+  GEN.404) and writes
+  /mnt/project-files/reports/density-limits-2026-10-21.md: the range of
+  mass, scale length, scale height, bulge share, bulge size and arm
+  contrast over which the model stays finite, positive and normalised;
+  where it breaks (a galaxy of a few systems, a very thin disc, a bulge
+  larger than the disc, a sector grid coarser than the galaxy,
+  floating-point limits of the density integral); the numbers at which
+  each lever range of GEN.601 should be gated; and proposals. Done
+  (report delivered 7:56 PM EDT 2026-10-21 as the thread reported,
+  /mnt/project-files/reports/density-limits-2026-10-21.md; its items are
+  filed as GEN.614, GEN.615, GEN.616, GEN.617, GEN.618 and notes on
+  GEN.601, GEN.603 and GEN.370): the report exists, states each limit as
+  a plain number with the code line it comes from, checks the lever
+  table's placeholder and sourced limits (GEN.609) against it, and lists
+  any limit change as a new item for the TODO thread to file. Owner: the
+  Galaxy size research thread (Boss's request, 7:33 PM EDT, relayed by
+  the coordinator). Cards answered: the low-mass cut 3e8 solar masses
+  (7:58 PM EDT) and the density floor (8:08 PM EDT); the Segue floor
+  length card (8:08 PM EDT): the scale length floor is 28 pc. All three
+  cards are answered.
+  Prerequisites: none. Related: GEN.601, GEN.603, GEN.404, GEN.609.
+
+- [ ] **GEN.614 The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. The nuclear disc keeps its true length while the
+  cluster is softened to the grid, so at small bulge radii it puts five
+  times too many systems into one cell (report section 2.3). Do: soften
+  the disc to the grid like the cluster, or switch it off when its
+  length is under 2 pc (the report prefers neither; the owner chooses
+  and states why). Done: a test builds galaxies with a bulge radius from
+  0.7 pc to 100 pc and the nuclear disc's systems per cell stay within
+  the cluster's; no ZeroDivisionError. Owner: none yet (GEN.280
+  follow-up; the coordinator assigns).
+  Prerequisites: none. Related: GEN.280, GEN.610, GEN.613.
+
+- [ ] **GEN.615 Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. Below the cut the structure laws are not defined for
+  the small galaxies (report section 2.3: 120 seeds each) and the halo
+  functions already skip (Boss, 7:33 PM EDT: the halo rule). Decided
+  (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card, relayed by
+  the galaxy size research thread): the thick disc, the bar, the stellar
+  halo and the nuclear cluster and disc switch off below 3e8 solar
+  masses of stars; below it a galaxy is one disc plus a bulge. The cut
+  is separate from the halo-skip threshold of GEN.606 (today 1e8). Do:
+  one named threshold constant, 3e8 solar masses, with its source
+  (Boss's ruling); below it only a thin disc and a bulge are drawn.
+  Done: planning galaxies below and above the threshold draws exactly
+  those components (a test patches each component's draw to fail below
+  it); at and above it nothing changes. Owner: the Galaxy dials lane
+  (proposed; the coordinator confirms). No longer blocked on a card.
+  Prerequisites: GEN.601. Related: GEN.606, GEN.609, GEN.612, GEN.604.
+
+- [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. A galaxy can have an empty outline or most of its
+  stars outside the planned sectors; the user should see it before a
+  run. Decided (Boss, 8:08 PM EDT 2026-10-21, on the density floor card,
+  relayed by the galaxy size research thread): refuse only when the
+  outline would be empty; warn under D = 20 and show the share of stars
+  in planned sectors. This item is required, not optional. Do: one line
+  on the Generate form under the dials (ADM.124) and in the command-line
+  plan output with D (thin-disc crest density), the share of stars in
+  planned sectors (the table of report section 2.2) and the outline
+  size, with a warning under D 20 and a refusal when the outline would
+  be empty. Done: the line appears in both places with the same numbers
+  (a test compares them); an empty outline is refused with the reason.
+  Owner: the Galaxy dials lane (proposed).
+  Prerequisites: GEN.601. Related: ADM.124, GEN.605, GEN.603.
+
+- [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. At the dials' ceiling of 2e11 solar masses of stars
+  the inversion returns a halo of about 6e13 solar masses (report
+  section 2.4), far above any galaxy halo (Andromeda's is 0.6 to 2.8e12,
+  GEN.609). Do: find whether the inversion is outside its fitted range,
+  and cap or replace it above the range with a sourced law, labelled.
+  Done: the halo mass for 1.5e11 to 2e11 solar masses of stars lies
+  inside the sourced halo range of the largest spirals, with a test.
+  Owner: none yet (whoever owns the Moster inversion; the coordinator
+  assigns).
+  Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.380.
+
+- [ ] **GEN.619 A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold**
+  Boss (2026-10-21, 8:08 PM EDT, on the card "Yes, file it as a later
+  item", relayed by the galaxy size research thread; report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, section 7).
+  Today every sector edge is 4 pc (a decision of 2026-10-08), so a
+  galaxy under about 28 pc scale length has fewer than 7 cells across
+  its scale length and the centre-point density is wrong there (plus 50
+  to 184 percent systems at 7.1 pc, report section 2.1). Do: a galaxy
+  gets an edge of 4, 2 or 1 pc chosen by its scale length, whole
+  parsecs, so that about 7 cells span the scale length; the one-star
+  outline rule becomes a density threshold so the planned region keeps
+  its size when the edge shrinks; the chosen edge is stored in
+  galaxy_shape (edge_pc is already a column). The 4 pc constant is named
+  in about 15 non-test files (the map, the tiles, the API and the sector
+  page), and the object-ID reach in parsecs scales with the edge, so
+  each use reads the galaxy's edge. This reopens the 2026-10-08 decision
+  to keep 4 pc, for small galaxies only. This replaces the
+  cell-averaging item (GEN.616, dropped) as the fix for tiny galaxies,
+  and is not built before the shape dials ship: until then the lever
+  table's scale length floor is 28 pc (Boss, 8:08 PM EDT). Done: the
+  lever table's scale length floor drops from 28 pc to the Segue half
+  7.1 pc (or the value this item's report sets), and a galaxy under 28
+  pc scale length is planned with the 2 or 1 pc edge and the overcount
+  of report section 2.1 falls to within the sampling error; galaxies of
+  28 pc and above are byte-identical to today's; the map, tiles, API and
+  sector page read the stored edge (a test lists the constant's
+  remaining uses and fails on a new one); the Object ID reach in parsecs
+  is checked at each edge; a new generator epoch for the small galaxies
+  only. Owner: none yet; the version is an estimate (9.4, next to the
+  dwarf families, which are the galaxies it serves).
+  Prerequisites: GEN.601, GEN.605, GEN.603. Related: GEN.385, GEN.616,
+  GEN.617, GEN.613, GEN.280.
+
+- [ ] **GEN.620 The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off)**
+  Boss, 2026-10-21, 9:26 PM EDT: "admin should have the ability to
+  switch off halo's to a made galaxy but it would be destructive and
+  actually remove them from the database and make all halo cells invalid
+  addresses." Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to
+  11, section "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  (9) A separate admin removal command that needs the switch already
+  off; only the halo and satellite commands (GEN.539, GEN.540) write the
+  plan configuration and only removal deletes; the admin page chains
+  "switch off and remove" as one action. (10) It deletes all hand-made
+  content in the region: the Review step lists the counts of generated
+  rows, facilities and hand edits that will go and a typed database name
+  confirms; saved references (bookmarks, saved courses) show as removed:
+  outside the generated galaxy. (11) Satellites get the same: one
+  command takes a region argument, halo or satellites, with the same
+  Review, counts and typed confirmation; satellite removal also deletes
+  the satellite component rows, and switching on later places them again
+  from the seed. Done: the command deletes, in the region, the sectors
+  with their star systems, bodies and facilities, standalone phenomena,
+  nearest-system lists (refreshed around the edge), sector stats, bright
+  stars, phenomenon scatter rows with their member trees, nebula field
+  cells and the halo components (for satellites also the satellite
+  component rows), in batches like the existing clear functions in
+  `db/edits.py` and `db/store.py`; it leaves `plan_configuration`
+  unchanged (the end state is the switch off with an empty region); it
+  bumps the deletion epoch (`note_sector_deleted`, read by
+  `sector_deletions`, part of the map cache keys) and clears the
+  region's tile cache without rerunning `planetgen warm`; it clears the
+  per-kind-per-region completion marks of the region (GEN.538) so
+  switching on again regenerates it from the seed, with the same stars
+  and object IDs and no hand-made content restored; it keeps the admin
+  suite's safety (Review step with counts, typed database name, an offer
+  of a backup first, an audit row, a queued job that waits while a
+  generate or scatter job runs); a request for a removed address answers
+  "outside the generated galaxy: the halo was removed" (the card 2
+  refusal); a test that after removal no row remains in the region, the
+  cells are refused, the interior is unchanged and switching on again
+  regenerates the region.
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
+  GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15691,6 +16551,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of PERF.133 (keeping a tile until the data changes cannot work with a
   per-version stamp). The condition "decide after PERF.31 shows the cold
   rebuild cost" no longer applies.
+  Decided (Boss, 9:04 PM EDT 2026-10-21, tapped "Skip it, build
+  PERF.41", card cmsg_01RuNTFUNB92A8cm5CbojQAi6fWhrKGtqtN7aYG1tmJwTs):
+  no cold-rebuild time is needed; the item is built as a required
+  prerequisite of PERF.133 (fork 11). The wait on Boss's number is gone.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
@@ -16129,33 +16993,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shim; a test runs each command alone and the wrapper builds the old
   `plan` run as a step list that gives the same galaxy for the same
   seed. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.106, PERF.118,
-  PERF.120.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
+  Prerequisites: PERF.120. Related: PERF.106, PERF.118, PERF.120. Order
+  on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): after PERF.135, in the order its prerequisites
+  give; the UX.102 chain (UX.121, UX.122, UX.123, TEST.183) comes after
+  the command follow-ups, not before them, with PERF.118 merged (#2159).
   Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, cards F5 and F7,
   relayed by the coordinator): F5: one `planetgen scatter` root with
   exactly one kind flag (`--mass`, `--luminosity`, `--phenomena`,
   `--nebula-field`, `--band`). F7: redoing a scatter is a SEPARATE
-  `planetgen clear-scatter` command, not a `--redo` flag (this is against
-  Core 5's recommendation, and Boss's answer stands); `--redo-scatters`
-  is removed with no shim.
-  Lane report (Core 5, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): coded in a side worktree and uncommitted,
-  per the F5 to F7 answers: `scatter` takes exactly one kind flag and
-  refuses while that kind is stored; `fill-map-luminosity`,
-  `rescore-habitability` and `clean-nebula-field` (dry run, `--apply`)
-  are one root each; F7 is a separate `clear-scatter` command with
-  `--redo-scatters` removed and no shim. Pure-Python tests pass (398);
-  the DB tests, the same-galaxy equivalence check and the gate come
-  after the PERF.107 and PERF.108 merge.
-  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
-  built together with PERF.122 on branch claude/core5-perf121 (main
-  merged in, f74b4f7). Wording above that is stale: `plan` now places no
-  stars (it is the skeleton only) and the five commands exist (scatter,
-  clear-scatter, fill-map-luminosity, rescore-habitability,
+  `planetgen clear-scatter` command, not a `--redo` flag (this is
+  against Core 5's recommendation, and Boss's answer stands);
+  `--redo-scatters` is removed with no shim. Lane report (Core 5, 7:34
+  AM EDT 2026-10-21 as the lane reported, filed by the TODO thread):
+  coded in a side worktree and uncommitted, per the F5 to F7 answers:
+  `scatter` takes exactly one kind flag and refuses while that kind is
+  stored; `fill-map-luminosity`, `rescore-habitability` and
+  `clean-nebula-field` (dry run, `--apply`) are one root each; F7 is a
+  separate `clear-scatter` command with `--redo-scatters` removed and no
+  shim. Pure-Python tests pass (398); the DB tests, the same-galaxy
+  equivalence check and the gate come after the PERF.107 and PERF.108
+  merge. Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane
+  reported): built together with PERF.122 on branch claude/core5-perf121
+  (main merged in, f74b4f7). Wording above that is stale: `plan` now
+  places no stars (it is the skeleton only) and the five commands exist
+  (scatter, clear-scatter, fill-map-luminosity, rescore-habitability,
   clean-nebula-field). The old-against-new equivalence check (galaxy
   fingerprint on a 200-shell grid, old plan on main against plan plus
   scatter --mass, --luminosity and --phenomena on the branch) has the
@@ -16166,7 +17028,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `--reach-shells` does), so a default-size plan run takes hours; this
   item's rework should make the shell limit apply or remove the option,
   no shim.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+  Overlap (TODO thread, 2026-10-21, Boss 6:49 PM EDT: fold the existing
+  items into the shape-dials chain): `plan --max-shell` is retired by
+  GEN.602 and replaced by the Edge dial GEN.605, which reads the plan
+  configuration (GEN.538), so this rework need not fix `--max-shell`
+  (GEN.605 retires it); if the rework removes it first, GEN.605 only has
+  to drop its remaining references.
+  Design:
+  [docs/design/command-inventory.md](design/command-inventory.md)
+  Follow-up from the plan configuration decisions (Boss, 9:21 to 9:24 PM
+  EDT 2026-10-21, decision 5): `scatter` gains one region parameter
+  (interior, halo or satellites) with completion stored per kind and
+  region; it is GEN.538's work after this item merges and does not
+  change this item's gate in flight.
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -16450,50 +17324,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
 
-- [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Do: build
-  `object_index` per kind after generation and after `planetgen orbits`,
-  and refresh a kind when its data version tag moves (the page cache
-  already has per-kind tags in `web/lib/pagetags.py` and counters in
-  `db/dataversion.py`, but nothing consumes a tag bump to rebuild): only
-  the changed rows are rewritten, with a full rebuild as the fallback
-  and a check that the index matches the live tables. The index counts
-  against `cache.max_mb`. Done: after a generation run, an orbital
-  update and an API edit each leave the index matching the live tables,
-  a test changes one object and sees only its row rewritten, and the
-  admin page shows the index size and age per kind. Suggested owner:
-  Core 2; filed in 8.2.
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the index and lists are filed in 8.2 with
-  the tile cache, after PERF.131 to 133; their space is taken first when
-  the shared budget is short, tiles take the rest.
-  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
-  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
-  `cache.max_mb` (default 1024, 0 turns the disk caches off, environment
-  variable PLANETGEN_CACHE_MAX_MB) is the one budget; the stored lists
-  and the index built here must share it and still need the "kept first"
-  rule (when the budget is short the index and lists are kept and the
-  tiles take the rest), which Core 2 states cannot be built until the
-  lists and index exist.
-  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
-  coordinator relayed it): Core 2 owns DB.79 first and then this item.
-  Core 2's PERF.141 parts that do not need the index go first.
-  Prerequisites: DB.79.
-
 - [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
   warm-up that occurs after an update, generation, or change. That is
@@ -16530,24 +17360,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
   coordinator reported them): the warm-up stops at the budget and keeps
   built-ahead tiles; indexes and lists are warmed and kept first, tiles
-  take the remaining space; the phases are filed in 8.2.
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Done also needs a test: a warm-up run over a
+  take the remaining space; the phases are filed in 8.2. Boss,
+  2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile if
+  nothing has changed". Done also needs a test: a warm-up run over a
   galaxy that has not changed builds zero tiles (and zero list or index
   rebuilds), every phase reports "unchanged", and a change in one sector
-  rebuilds only its tiles and their coarser parents.
-  Core 2 (9:35 AM EDT 2026-10-21 as the lane reported): the zero-list
-  and index rebuild half of Boss's no-recompile test (a no-change warm
-  rebuilds no stored list or index) waits for PERF.140 and lands with
-  this item; the tile half is in PERF.133's part 1 (#2311).
+  rebuilds only its tiles and their coarser parents. Core 2 (9:35 AM EDT
+  2026-10-21 as the lane reported): the zero-list and index rebuild half
+  of Boss's no-recompile test (a no-change warm rebuilds no stored list
+  or index) waits for PERF.140 and lands with this item; the tile half
+  is in PERF.133's part 1 (#2311).
   Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
   reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
   tiles built ahead (warm, background build, rebuild after a change) are
   marked (`tilecache.AHEAD_MODE`, the group-read bit) and never pruned,
   and each galaxy-tiles warm unit checks `tilecache.cache_is_full()` and
   reports "N tiles left out, the tile cache is full"; the phases and
-  their skipped and rebuilt totals are this item (Core 2's next).
-  Slice 1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
+  their skipped and rebuilt totals are this item (Core 2's next). Slice
+  1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
   reported; release 8.0.1856): the warm-up runs in five named phases
   with a report line per phase (built, unchanged, left out), `planetgen
   warm` accepts phase names, a `warm-galaxy-deep-tiles` command exists,
@@ -16555,61 +17385,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   skipped in 88 minutes. Still open: slice 2 (the automatic start after
   generation, `planetgen orbits` and data-version changes) and slice 3
   (the admin page shows each phase); the list and index half of Boss's
-  no-recompile test waits on DB.79 and PERF.140.
-  Slice 2 merged as #2337 (Core 2, 4:45 PM EDT 2026-10-21 as the lane
-  reported): the warm-up starts by itself after a generation run, the
-  orbital update, an edit or any change; new settings
-  `cache.warm_on_change` and `cache.warm_settle_seconds`; gate 19,668
-  passed, 3 environment or flake failures that pass alone. Slice 3 (the
-  admin queue page's 'Cache warm-up' panel with each phase's state, `GET
-  /api/admin/work/warm`) is written and tested and its gate starts next.
-  Slices 1 to 3 do not need PERF.140, so after slice 3 this item stays
-  open only for the deeper list pages and the index in phase 1, which
-  wait on PERF.140 (the 'Suggested owner' and prerequisite wording above
-  predates the split). The old Core 2's branch claude/perf141-slice2-wip
-  is superseded by #2337.
-  Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21 as the
-  lane reported): /admin/queue has a 'Cache warm-up' panel with the last
-  run and each of the five phases' state and result line. Slices 1 to 3
-  are done; this item stays open only for the deeper list pages and the
-  index in phase 1, which wait on DB.79 (migration 0113, in its gate
-  since 5:36 PM EDT as the lane reported) and PERF.140.
-  Prerequisites: PERF.140.
-
-- [ ] **PERF.144 Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires**
-  Boss (2026-10-21, 12:44 PM EDT, in the Bug Hunt thread, as Bug Hunt
-  reported it): "Can we build a time limit to assign to RQ based on
-  stats?". Today the Generate page's job (`web/jobs.py:696`), the API's
-  jobs (`queue/api_jobs.py:150`) and the queue executor
-  (`queue/redisqueue.py:305`) are queued with `job_timeout=-1`, so RQ
-  never expires their entries when a worker dies (PERF.142). Units
-  already get a limit (`units.unit_timeout`: a multiple of the stage's
-  expected seconds, with a floor and a ceiling, never -1).
-  Do: audit every site that enqueues to RQ (the Generate page's job in
-  `web/jobs.py`, the API's jobs in `queue/api_jobs.py`, the queue
-  executor in `queue/redisqueue.py`, the units, and any other `enqueue`
-  call, found by grep and listed on this item) and give each a finite
-  `job_timeout` taken from the best estimate available, in this order:
-  the recorded timings of that kind (`generation_stats`), the stage ETAs
-  the run plan already computes, then the size of the work (sectors,
-  systems, cells, span); the limit is a multiple of the estimate with a
-  floor and a ceiling (as `units.unit_timeout` does), a fixed ceiling
-  only for a route with no estimate at all, and never -1 or None. Boss,
-  2026-10-21, 5:32 PM EDT (as the coordinator relayed): "I also want to
-  make sure we've ensured that all jobs that go to RQ get a time limit
-  based on how much time the system thinks it will take based on the
-  best estimates avilable, so that RQ can help make sure we don't have
-  dead jobs." Done: the audit list of enqueue sites is on this item;
-  each site passes a finite limit; a test fails if any job is enqueued
-  without a timeout (a guard on the one enqueue wrapper, or a grep-style
-  test that fails on a bare `enqueue` call); a kind with recorded
-  timings gets the multiple, one with only a size estimate gets the
-  size-based limit, and one with neither gets the ceiling; and a job
-  over its limit is ended and reported failed. Owner: Bug Hunt, first in
-  its queue (priority raised by Boss, 5:32 PM EDT 2026-10-21; PERF.142
-  and PERF.143 merged as #2345). Related: PERF.142, PERF.106 (the unit
-  limits).
-  Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
+  no-recompile test waits on DB.79 and PERF.140. Slice 2 merged as #2337
+  (Core 2, 4:45 PM EDT 2026-10-21 as the lane reported): the warm-up
+  starts by itself after a generation run, the orbital update, an edit
+  or any change; new settings `cache.warm_on_change` and
+  `cache.warm_settle_seconds`; gate 19,668 passed, 3 environment or
+  flake failures that pass alone. Slice 3 (the admin queue page's 'Cache
+  warm-up' panel with each phase's state, `GET /api/admin/work/warm`) is
+  written and tested and its gate starts next. Slices 1 to 3 do not need
+  PERF.140, so after slice 3 this item stays open only for the deeper
+  list pages and the index in phase 1, which wait on PERF.140 (the
+  'Suggested owner' and prerequisite wording above predates the split).
+  The old Core 2's branch claude/perf141-slice2-wip is superseded by
+  #2337. Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21
+  as the lane reported): /admin/queue has a 'Cache warm-up' panel with
+  the last run and each of the five phases' state and result line.
+  Slices 1 to 3 are done; this item stays open only for the deeper list
+  pages and the index in phase 1, which wait on PERF.140 (DB.79 merged
+  as #2361, about 7:25 PM EDT as the lane reported).
+  PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
+  lane reported): the deeper list pages and the index in phase 1 are now
+  unblocked (the index is the new first warm family, object-index).
+  Prerequisites: none. Related: PERF.140.
 
 - [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
   Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of
@@ -16633,7 +17430,127 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   banner does not stays, and a test covers it.
   Owner: Bug Hunt, after PERF.142 and PERF.143 (Boss's item relayed by
   the coordinator, 5:23 PM EDT).
+  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported): done
+  in a side worktree; its gate runs after Boss's stalled-job
+  investigation.
   Prerequisites: none. Related: PERF.120.
+
+- [ ] **PERF.146 A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages**
+  Boss, 2026-10-21, 6:34 PM EDT, as the coordinator relayed: "have we
+  done a performance test on the bright star scatter? Or any of the
+  generation options so we can try to optimize? That should be a TODO
+  item before we stamp 8.1 as one of the final 3 stages." What exists:
+  `planetgen benchmark` (PERF.31, done) times a small galaxy from the
+  plan to the fill (2 sectors in one shell) and prints each stage's time
+  and database work, with an optional profile of the fill; every run
+  records its stage timings in `generation_stage_runs` and
+  `generation_stats` (PERF.56); PERF.113 to PERF.117 measure single
+  stages (neighbour link, population pass, settle, habitability
+  re-score, map-luminosity fill) and are open; PERF.128 makes the
+  benchmark a wrapper step list. Not covered: the scatters of GEN.301
+  (mass, luminosity, phenomena, nebula field, band, the bright stars and
+  the halo), their cost by size, and a ranked list of what to optimize.
+  Do: extend the benchmark (or add `planetgen benchmark --suite`, the
+  owner picks the name) so one repeatable command, with a fixed seed and
+  the sizes small, medium and large, times every generation option and
+  every scatter kind separately, per stage (bright-star scatter,
+  massive-star pass, halo, satellites, nebula field, band, cluster pass,
+  system fill, population, settle, the neighbour link, the habitability
+  re-score, the map-luminosity fill and the warm-up), reporting wall
+  time, CPU time, database queries and rows, peak memory and the time
+  per star or per cell, with the run-to-run spread; write the JSON and a
+  short report (docs/design/generation-performance.md with its README
+  row, or /mnt/project-files/reports/); rank the costs, estimate the
+  share of a full galaxy run each takes, and list the optimizations in
+  order of saving over effort. Optimizations that change no generated
+  value are built here when small; any that changes a drawn value needs
+  its own item with a generator epoch and Boss's word, and goes to a
+  later version unless he says otherwise. Done: the command exists and
+  is documented in docs/cli.md, a test runs it on a tiny size and checks
+  the JSON shape, the report is merged with the ranked list, items are
+  filed for the top optimizations, and the closing audits are re-run if
+  an optimization touched generation code. Order of the last three 8.1
+  stages (TODO thread, 6:40 PM EDT): (1) the whole-sphere audits
+  TEST.185, TEST.184, TEST.159 and TEST.160 on the final generator; (2)
+  this profile and its cheap optimizations; (3) the security audit
+  SEC.33 and the bug hunt audit TEST.261 on the final code, then the
+  headline GEN.301. Owner proposed: Core 1 after GEN.545 merges, or a
+  fresh performance thread started when TEST.159 and TEST.160 near the
+  end; not Core 5 (it carries the closing audits).
+  Prerequisites: TEST.159, TEST.160. Related: PERF.31, PERF.56,
+  PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
+  SEC.33, TEST.261.
+  Note (TODO thread, 2026-10-21): the default galaxy becomes smaller
+  (Boss, 6:57 PM EDT; GEN.603), so measure the generation options on
+  both a default-size galaxy and a pinned large one; cost per option and
+  the sector and system counts will differ.
+
+- [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
+  Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
+  task gets its own progress bar once it is expected to take, or does
+  take, longer than 15 seconds, with an ETA blended from the running
+  tasks and subtasks and the stored generation statistics, the current
+  run weighted more heavily than the stored statistics. It extends the
+  existing second bar (the shell scatter bar, shown over 30 seconds,
+  with the stored statistics as its starting rate) to every task and
+  lowers the threshold to 15 seconds. Do: find where the second bar and
+  the stored statistics live, define one task and subtask progress
+  record (done, total, started at), compute the ETA as a weighted blend
+  whose weight moves from the stored rate to the current run's rate as
+  the run proceeds (the weights are named constants), show the bar in
+  the command-line output and on the Generate and admin queue pages from
+  the same record, and show it only when the expected or actual time
+  passes 15 seconds. Done: a task under 15 seconds shows no bar; one
+  expected over 15 seconds shows its bar from the start with the
+  stored-rate ETA; one that overruns 15 seconds gains the bar when it
+  passes the threshold; the ETA moves toward the current run's rate as
+  it proceeds (a test with fake clocks and a changed rate); the shell
+  scatter bar keeps working through the same record; the Generate page
+  and the log show the same numbers. Owner: Bug Hunt (proposed; it has
+  PERF.145 queued and the log work, the coordinator decides), after
+  PERF.145.
+  Boss's even-sized chunk rule is recorded on PERF.148 (the stalled-job
+  fix), not here (the coordinator, 8:48 PM EDT 2026-10-21).
+  Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
+
+- [ ] **PERF.148 Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line**
+  Found by Bug Hunt (8:51 PM EDT 2026-10-21 as the lane reported), filed
+  by the TODO thread. Boss's stalled Generate job. Cause: GEN.324 added
+  the clusters' and satellites' stars (scatter-mass, luminosity, band)
+  and their phenomena as ONE task each (run_plan._plan_shape and
+  _plan_phenomena). At the 500 solar-luminosity halo floor that single
+  unit held about 1.5M of the stage's 1.6M expected stars (the LMC 937k,
+  the SMC 151k); one worker draws about 4 to 5 ms per star (over an
+  hour), the other workers idled at the stage barrier, and the unit
+  reported no progress, so the bar stuck near 2 percent with a 30 hour
+  ETA. The phenomena stage has the same single unit (about 20M expected
+  candidates, the LMC 15.6M). Fix: components are cut by expected rows
+  alone into units of about 25,000 stars (1,000,000 phenomena
+  candidates); bigger components go in slices with their own random
+  streams (component_pass.parts, STAR_SLICE_STARS,
+  PHENOMENON_SLICE_ROWS) and small ones are bundled; units report
+  progress every 200 stars; log lines say "(unit k of N, about X stars
+  expected)". Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt
+  thread, approved as part of this fix, as the coordinator relayed 8:48
+  PM EDT): "So here is what I'd like, instead of unit chunks being based
+  on expected work, just break up the task space evenly so each chunk is
+  as close to the same size as possible to get. That will make my
+  readings of the logs significantly easier." Decided (Boss, cards, 8:47
+  PM EDT 2026-10-21, as the lane reported): the shell cut stays equal
+  expected work. Output change: the LMC, the SMC, Sagittarius and any
+  component past the limit draw different stars, so this takes a
+  generator epoch bump; epoch 42 is already claimed by GEN.545 (Core 1)
+  and GEN.370 (Core 3, which renumbers on rebase), so there is no free
+  number to reserve: whichever of the three merges later renumbers to
+  the next free epoch on its rebase (the rule: take main's epochs and
+  renumber). Done: the cause above is on this item; a Generate run at
+  the 500 solar-luminosity floor finishes with all workers busy and a
+  bar that moves; the units of one task differ in expected work by no
+  more than the grain of the task space allows (a test on the unit
+  planner); the log line shows the unit and its expected work. Owner:
+  Bug Hunt (top priority).
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144, PERF.145,
+  PERF.147.
 
 ## DB: Database and schema
 
@@ -16717,6 +17634,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -16818,31 +17743,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Database adds migrations" becomes "any lane writes its own migration,
   and Core 1 settles the revision number", which matches Core 4 owning
   this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
-
-- [ ] **DB.31 Store structure, not prose, for life and flavour**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Replace planet_evolutionary_paragraphs and
-  moon_evolutionary_paragraphs text with the stage, the pace and the
-  ages; flavor_text with a flavour key; drop hab_note (computed) and the
-  run-config markdown column. Then life_stage_from_paragraphs and the
-  string searches in decide_flavor_text go. Changes what generation
-  stores, not the galaxy (draws are unchanged). Database
-  owns the migration and agrees its timing; Foundations Wording writes
-  the code against it. The phi4* column names stay (decided default); a
-  rename to phi6* is not planned.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DB.50, DB.51, DB.52. It mixes two migrations
-  (adding the structure columns, then dropping three kinds of prose
-  columns and two tables) with a cross-cutting code change that another
-  lane writes ('Database owns the migration and agrees its timing;
-  Foundations Wording writes the code against it').
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
@@ -16919,6 +17828,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration, the regenerated models, an old-schema fixture, an
   idempotent upgrade and a round-trip test; no code reads the tables
   yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: ADM.57, ADM.58, ADM.59.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -16930,6 +17847,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   reason): a lock is a standing keep mark. Core 1 owns the migration
   number. Done: the migration, models and an idempotent upgrade with a
   round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -16942,6 +17867,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
   a region too. Core 1 owns the migration number. Done: the migration,
   models and an idempotent upgrade with a round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: MAP.119, ADM.57, GEN.391.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -16957,6 +17890,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   created) and `request_notifications` (request, recipient, kind, sent).
   Core 1 owns the migration number. Done: the migration, models and an
   idempotent upgrade with a round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). It follows DB.36.
+  This replaces any earlier owner line on this item.
   Prerequisites: none. Related: USR.25, DB.36.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
@@ -17046,6 +17987,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.44 Migration only: the sector storage checksum and the parity dirty flag**
@@ -17061,12 +18010,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   code reads the columns yet.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This
+  replaces any earlier owner line on this item.
   Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 1's; the migration still takes the next free revision at merge,
-  0113 belongs to DB.79).
+  0113 is taken by DB.79, #2361, so the next free is 0114).
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
@@ -17163,6 +18113,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
@@ -17215,6 +18173,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   one Owner), a second Owner insert fails in MySQL, a moderator row
   inserts and reads back, and the schema
   header comments are updated.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: USR.2, USR.26.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
@@ -17229,6 +18195,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   The stored density multiplier is also added to the stored directive of
   GEN.179 (or to the DB.38 migration); say so in both items (2026-10-16
   review).
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). It cannot start
+  before DB.38 merges. This replaces any earlier owner line on this
+  item.
   Prerequisites: DB.38. Related: MAP.119.
 
 - [ ] **DB.61 Migration: unnamed clusters and a star-to-cluster parent link (migration only)**
@@ -17242,12 +18217,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   models, an old-schema fixture, an idempotent upgrade and a round-trip
   test; existing clusters keep their names and no code writes the link
   yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.209.
 
 - [ ] **DB.62 Upload bookkeeping tables in the control database (migration only)**
   Split from API.11 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). One Alembic migration on the control
-  database (control v12 in api-design-standards.md section 7.3) adds
+  database (the control database is at version 14, so a later one) adds
   `upload_runs` (id, owner, key id, galaxy database, state, created,
   last contact), `upload_batches` (run, seq, sha256, bytes, received
   at), `upload_units` (run, unit key, state open, sealed, verified,
@@ -17256,6 +18239,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   last id). Core 1 owns the migration number. Done: the migration,
   models, an old-schema fixture, an idempotent upgrade and a round-trip
   test; no code reads the tables yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: API.11.
 
 - [ ] **DB.63 Table for ships and stations, user-owned or generated (migration only)**
@@ -17269,6 +18260,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration number and settles the columns. Done: the
   migration, models, an old-schema fixture, an idempotent upgrade and a
   round-trip test; no code reads the table yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: USR.10.
 
 - [ ] **DB.64 Table for stored constellations (migration only)**
@@ -17280,6 +18279,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the migration number. Done: the migration, models, an old-schema
   fixture, an idempotent upgrade and a round-trip test; no code writes
   it yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: VIEW.3.
 
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
@@ -17294,13 +18301,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   table lists them. The migration gives every existing galaxy the spiral
   family and the values the model derives for it today, so no stored
   density changes. No reader changes in this item. The early-alpha
-  schema is not a constraint.
-  Boss (12:56 PM EDT, card "Draw it in 8.1", relayed in words): the bar
-  is drawn in 8.1 by GEN.533 without a stored column, so nothing in 8.1
-  needs this item; it stays in 8.3 and later stores the drawn values
-  (bar presence, axis ratios and angle) with the other component
-  columns.
-  Prerequisites: GEN.378. Related: GEN.379, GEN.389.
+  schema is not a constraint. Boss (12:56 PM EDT, card "Draw it in 8.1",
+  relayed in words): the bar is drawn in 8.1 by GEN.533 without a stored
+  column, so nothing in 8.1 needs this item; it stays in 8.3 and later
+  stores the drawn values (bar presence, axis ratios and angle) with the
+  other component columns. Design merged (Blocker 2, 7:58 PM EDT
+  2026-10-21 as the lane reported, GEN.378, #2368, docs only):
+  docs/design/galaxy-types.md section 10 lists this item's columns. Boss
+  must read and approve the design's table before this item and GEN.379
+  are built (see the Needs Boss list); the three questions with defaults
+  are in section 12 and the ten research requests R1 to R10 in section
+  11.
+  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
+  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
+  the table in docs/design/galaxy-types.md is approved as written. The
+  approval that held this item is given.
+  Owner: the Blocker 2 lane (the author of the approved design; the
+  coordinator, 9:15 PM EDT 2026-10-21). The next Alembic revision is
+  0114 unless another lane takes it first.
+  Prerequisites: none. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
@@ -17835,44 +18854,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **DB.79 The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Today the
-  lists are queries over the live tables: the phenomena list is a `UNION
-  ALL` over about eight tables with a `COUNT(*)` and `ORDER BY` over the
-  union, stars, planets and moons have no list page at all, and no
-  phenomenon table has a FULLTEXT name index. Do (schema and migration
-  only, Core 1 numbers it): `object_index`, one row per object: kind
-  (system, star, planet, moon, belt, comet, and each phenomenon type),
-  object ID (96 bit), name, sector, parent, class or type, mass, and the
-  columns the list pages sort and filter on; a unique key on kind and
-  ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
-  Done: the migration, the model and schema.sql agree, and the index is
-  empty until PERF.140 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
-  (Boss, card tap 5:56 to 5:57 PM EDT).
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the index table is filed in 8.2 with the
-  tile cache; the index is kept first when the shared budget is short.
-  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
-  coordinator relayed it): Core 2 owns this item and does it first, then
-  PERF.140, because Core 1 has GEN.544, GEN.545 and DB.33 queued. Core 2
-  numbers the migration (next free 0113). This replaces the suggested
-  owner Core 1 above. Not started.
-  Prerequisites: none.
-
 - [ ] **DB.80 `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug)**
   Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
   Core 4's note: its fresh machine ran MariaDB 10.11.14 and 259 tests
@@ -17910,7 +18891,38 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
   fails by design, so a lane's machine must run MySQL 8 (the recipe is
   in project memory). Owner: not assigned.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.276.
+
+- [ ] **DB.81 Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn'**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. The plan stores
+  the resolved shape; it should also store which dials were pinned and
+  their values (proposal section 8.5). Needs a stored column or a
+  settings record. Done: a pinned mass, compactness and flatness
+  round-trip through the plan and the API; an unpinned slider reads as
+  Auto; the galaxy page shows the pinned and drawn split; the migration
+  takes the next free Alembic revision at merge. The Shape selector is
+  stored with the family column in DB.66, not here.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21).
+  Prerequisites: GEN.601. Related: GEN.603, DB.66.
 
 ## API: The JSON API
 
@@ -19198,6 +20210,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Folded into ADM.104 (S4, the settings controls): the slider is built
   there; this item closes with it (admin redesign thread, 6:12 PM EDT as
   the thread reported).
+  Phase (TODO thread, 2026-10-21): this item moves from 8.2 to the 8.1
+  admin control suite section, after ADM.104, so it closes with the
+  slider it is folded into.
   Prerequisites: ADM.104.
 
 - [ ] **ADM.98 Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built**
@@ -19263,8 +20278,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   advanced job in both themes and at phone width, and the page help
   (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
   the cards of ADM.98.
-  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117. Related: UX.125, UX.134, UX.137,
-  DOC.13, GEN.599.
+  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112,
+  ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.124. Related: UX.125,
+  UX.134, UX.137, DOC.13, GEN.599.
   Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
   the admin redesign thread reported; report
   docs/design/admin-control-suite.md): the whole suite is built in 8.1
@@ -19439,12 +20455,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Child of the admin control suite (Boss's 13 decision cards, tapped
   6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
   design note docs/design/admin-control-suite.md, section 5, key G4).
-  UX.134 and UX.137 add their controls here. Done: pinned and unpinned
-  fields produce the same argv as today's blank and filled boxes; the
-  confirmation refuses a wrong name. Owner: the admin redesign thread
-  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  UX.134 and UX.137 add their controls here. Done: the shape fields are
+  the dials panel ADM.124 (built from the lever table GEN.601; the old
+  absolute boxes are gone); pinned and unpinned dials produce the
+  table's flags (GEN.602) and an Auto dial adds none; the confirmation
+  refuses a wrong name. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
   Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.108. Related: ADM.99, UX.134, UX.137.
+  Rewritten onto the lever table (Boss, 6:45 PM EDT 2026-10-21, 'Redesign
+  around the five dials'; Boss 6:49 PM EDT: fold the existing items into
+  the new chain).
+  Prerequisites: ADM.108, GEN.601, GEN.602. Related: ADM.99, UX.134,
+  UX.137.
 
 - [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19511,7 +20533,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
   Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
   and palette, then Generate).
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Also removes the old absolute shape boxes and their handlers (retired
+  by GEN.602); ADM.124 replaces them.
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
   Related: ADM.99.
 
 - [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
@@ -19522,7 +20546,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   step fails the test with a screenshot. Owner: the admin redesign
   thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
   answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
   Related: ADM.99, TEST.168, TEST.169.
 
 - [ ] **ADM.118 Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it**
@@ -19603,6 +20627,38 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Settings first, then the shell and palette, then Generate).
   Prerequisites: ADM.119. Related: ADM.99, PERF.99.
 
+- [ ] **ADM.124 Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Child of the
+  admin control suite and of ADM.110's Start a new galaxy task (pinned
+  and unpinned fields produce the same argv as the table's flags). The
+  panel is generated from the registry (GEN.601): slider minimum,
+  maximum and step, the Auto state, the range source in the Details,
+  Census under Advanced. The Scale group shows the third of mass, size
+  and density as a read-out, and a refusal message when all three are
+  pinned. The Shape dropdown has one entry, Spiral, and fills with
+  GEN.389/UX.134 later. The edge form follows Boss's card. Done: a
+  browser test moves each slider, pins and unpins it, and sees the argv
+  in the Review step; the form never offers a value the command line
+  refuses; works in both themes, without script and at phone width.
+  Owner: the admin redesign thread (the Generate suite); the lever table items belong to the Galaxy dials lane.
+  Unit selectors (Boss, 7:01 PM EDT 2026-10-21): Edge has a unit
+  selector (L, pc, kpc, Mpc) whose slider range and step follow the
+  unit; the absolute scale length has pc and kpc; both read the lever
+  table's unit column (GEN.601). The first release shows four dials,
+  Scale, Structure, Edge and Halo; Census follows GEN.607 after GEN.545.
+  Prerequisites: GEN.601, GEN.602, GEN.603, GEN.604, GEN.608, ADM.108.
+  Related: ADM.99, ADM.112, DB.81.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -19658,7 +20714,9 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   audits TEST.185, TEST.184, TEST.159 and TEST.160 merge, so the audit
   sees the final code); it must not be the lane that wrote the code
   under audit.
-  Prerequisites: TEST.159, TEST.160. Related: TEST.261.
+  Ordering (TODO thread, 6:40 PM EDT 2026-10-21): this audit runs after
+  the performance profile PERF.146 so it sees the final code.
+  Prerequisites: TEST.159, TEST.160, PERF.146. Related: TEST.261.
 
 ## TEST: The test suite
 
@@ -20705,7 +21763,12 @@ clears each one.
   stellar-to-halo, M-bulge); the real galaxies' numbers are reference
   points the draw must be able to produce, never presets; a failure
   lists the parameter and the mass bin, like TEST.196.
-  Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
+  Addition (TODO thread, 2026-10-21): the lever ranges of the shape
+  dials (GEN.601, ranges sourced by GEN.609) are plausibility bounds
+  too: a test sweeps every slider across its range at several seeds and
+  asserts the family stays inside the published bands, and that the
+  warning of GEN.606 fires only outside them.
+  Prerequisites: GEN.389. Related: TEST.196, GEN.366.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **TEST.206 Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism**
@@ -21028,15 +22091,18 @@ clears each one.
   same seed with every combination of the halo and the satellite
   galaxies (both off, either, both on) and compares the interior
   sectors, bright stars and phenomena inside the outline row for row; a
-  test that with a switch off no row exists beyond the boundary it
-  controls and none of its commands was selected; a test that sector
-  generation refuses an address outside the configured boundaries with
-  the reason, and that scatter and sector generation take their
-  boundaries only from the configuration; the whole-sphere audits
-  (TEST.159, TEST.160, TEST.185) run with both switches on and say so; a
-  migration test that an existing galaxy with halo or satellite content
-  reads those switches as on and one without as off. Owner: Quality
-  (proposed).
+  test that with a switch off no new row is made beyond the boundary it
+  controls and none of its commands was selected, and that content
+  already stored stays readable for display, search and routing after
+  the switch is turned off (Boss, card 7); a test that sector generation
+  refuses an address outside the configured boundaries with the reason,
+  naming the switch that is off (the refusal supersedes GEN.235's
+  generate-anywhere-in-reach rule and `outside_ok`), and that scatter
+  and sector generation take their boundaries only from the
+  configuration; the whole-sphere audits (TEST.159, TEST.160, TEST.185)
+  run with both switches on and say so; a migration test that an
+  existing galaxy with halo or satellite content reads those switches as
+  on and one without as off. Owner: Quality (proposed).
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
   GEN.540, TEST.159, TEST.160, TEST.185.
   Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
@@ -21045,6 +22111,22 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
+  Decided (Boss, 2026-10-21, 9:21 to 9:24 PM EDT, eight cards in the
+  Plan configuration design thread; report
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  card 7 keeps stored content visible when a switch is turned off, so
+  "nothing drawn, picked or offered beyond the boundaries" no longer
+  holds; the tests above are worded to that. Add a test that turning a
+  switch on later makes only the missing kind-and-region runs (decision
+  5), and that `plan` refuses, naming the halo command, when its outline
+  would pass a stored halo reach.
+  Decided (Boss, 2026-10-21, 9:26 to 9:29 PM EDT, cards 9 to 11, section
+  "Sub-option to card 7" of
+  /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md):
+  a test (GEN.620) that after a removal no row remains in the region,
+  its cells are refused with the reason, the interior is identical, and
+  switching on again regenerates the region from the seed with the same
+  object IDs.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
   Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
@@ -21443,6 +22525,8 @@ clears each one.
   the test adds (its cloud) rather than an empty cloud list; no
   quarantine. Done: the test passes 30 of 30 loop runs on an idle
   machine and the cause is on this item. Owner: Bug Hunt (proposed).
+  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported):
+  fixed in a side worktree, not yet gated or merged.
   Prerequisites: none. Related: TEST.254, TEST.256.
 
 - [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
@@ -21520,7 +22604,9 @@ clears each one.
   while a bug it marks blocking is open. Proposed owner: Bug Hunt (it
   runs the audit; the fixes go to the owning lanes); the 8.1 pass starts
   when the whole-sphere audits merge and the security audit has begun.
-  Prerequisites: TEST.159, TEST.160. Related: SEC.33.
+  Ordering (TODO thread, 6:40 PM EDT 2026-10-21): this audit runs after
+  the performance profile PERF.146 so it sees the final code.
+  Prerequisites: TEST.159, TEST.160, PERF.146. Related: SEC.33.
 
 - [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
   Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
@@ -21536,7 +22622,40 @@ clears each one.
   cause, not the load. Done: the cause is on this item and the test
   passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
   TEST.252 test).
+  Related sighting (Core 2, about 7:25 PM EDT 2026-10-21 as the lane
+  reported, filed by the TODO thread): once under load, the facilities
+  route in test_fuzz_web_routes failed with "Lost connection to MySQL
+  server"; it passes alone. Same class (load flake), no solo reproducer;
+  Bug Hunt looks at it with this item.
+  Second sighting (Core 2, about 8:15 PM EDT 2026-10-21 as the lane
+  reported, PERF.140's gate, filed by the TODO thread): once under load,
+  the /sectors route in test_fuzz_web_routes failed with "Lost
+  connection to MySQL server"; it passes alone. Same class as the
+  facilities sighting above; Bug Hunt looks at both.
   Prerequisites: none. Related: TEST.252.
+
+- [ ] **TEST.263 test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug)**
+  Found by Core 2 (about 7:25 PM EDT 2026-10-21 as the lane reported,
+  while gating DB.79), filed by the TODO thread. Kind: test. Test:
+  src/tests/test_db_check_constraints.py::test_every_check_rejects_a_bad_row.
+  Failure text: "AssertionError: the seeded galaxy has no
+  planet_reflection_spectrum row to break
+  planet_reflection_spectrum_chk_1 on". Fails on main: yes (reproduced
+  on a clean worktree at 649aa51 on Core 2's machine, datasets fetched).
+  Frequency: 4 of 4 runs there. Reproducer: run that one test. Cause
+  (Core 2's reading): the rich galaxy (tests/rich_galaxy_support.py,
+  seed 20261001) builds 129 planets and 208 moons but 0
+  planet_reflection_spectrum and 0 moon_reflection_spectrum rows, so the
+  test probably needs an _EMPTY_TABLE_ROWS entry for those two tables or
+  a forced habitable planet in the rich galaxy. Do: find why the rows
+  are not written (a change to the generator or to the rich galaxy) and
+  fix the cause, or add the table to the test's empty-table list with
+  the reason. Done: the test passes alone and in the full gate. Owner:
+  Bug Hunt, in its queue after PERF.144 and PERF.145 (the coordinator,
+  7:25 PM EDT 2026-10-21).
+  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported):
+  fixed in a side worktree, not yet gated or merged.
+  Prerequisites: none.
 
 ## USR: User accounts
 
@@ -22338,11 +23457,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   prints the `markdown` version; no requirements file and no code uses
   `markdown`, so a fresh machine exits 1 at the verify step (the failure
   that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
-  install markdown`. Do: drop `markdown` from the verify imports and the
-  version line (or add it to the requirements if something needs it); no
-  shim. Done: the script exits 0 on a fresh machine. Owner: not assigned
-  (OPS queue; the environment settings copy of the script is Boss's, so
-  the lane edits the example and tells the coordinator).
+  install markdown`. Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Add
+  markdown to the requirements", card cmsg_01RuNTFUNB92A8cm5CbojQAi
+  MYJwm2dfDuwgBEf8JuSxKD): add `markdown` to the requirements, so the
+  verify step stays as it is; no shim. Do: add `markdown` to the
+  requirements file the setup script installs from. Done: the script
+  exits 0 on a fresh machine. Owner: not assigned (OPS queue; the
+  environment settings copy of the script is Boss's, so the lane edits
+  the example and tells the coordinator).
   Prerequisites: none. Related: TEST.254.
 
 ## DOC: Documentation

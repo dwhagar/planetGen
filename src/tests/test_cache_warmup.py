@@ -410,7 +410,8 @@ def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
     assert warmup.expand_phases(["search", "lists", "deep-tiles", "lists"]) == [
         "lists", "galaxy-deep-tiles", "search"]
     steps = wrapper.steps_for("warm", _args("deep-tiles", "opening"))
-    assert [step.kind for step in steps] == ["warm-galaxy-map", "warm-lists", "warm-galaxy-deep-tiles"]
+    assert [step.kind for step in steps] == ["warm-object-index", "warm-galaxy-map", "warm-lists",
+                                                  "warm-galaxy-deep-tiles"]
     with pytest.raises(ValueError, match="no such cache family or phase"):
         warmup.expand_phases(["phase-seven"])
 
@@ -730,6 +731,8 @@ def script(monkeypatch, redis_server):
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_deep_tiles_unit",
                         lambda args, report: warmup._warm_unit("galaxy-deep-tiles", args))
+    # The object index is built on the database itself, not through the site; here it is one more faked family.
+    monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
@@ -750,9 +753,9 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 5 failed: WarmupFailed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap, _db in script.ran] == ["galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "sectors",
-                                                            "systems"], \
+    assert "the cache warm-up stopped: unit 0 of stage 6 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists", "galaxy-tiles",
+                                                            "galaxy-deep-tiles", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
 
 

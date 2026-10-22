@@ -53,6 +53,9 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO scatter_nodes (source, source_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
         " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
         " VALUES (1, 1, 1, 2, 1e8, 0, 0, 0, 0, 0, 0, 1, 'close')"),
+    # DB.79: the index builder (PERF.140) fills it; the migration only makes the table.
+    "object_index": (
+        "INSERT INTO object_index (kind, uid, source_id, name) VALUES ('system', UNHEX('000000000000000000000001'), 1, 'Test')"),
     # DB.53: the migration builds these; the generator writes them in the chain that follows.
     "orbit_nodes": (
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"

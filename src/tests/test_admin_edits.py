@@ -267,7 +267,7 @@ def test_regenerate_sector_is_queued(admin, mysql_config, monkeypatch):
     monkeypatch.setattr(editStore, "sector_address", lambda conn, sector: (1, 2, 3))
     monkeypatch.setattr(store, "get_galaxy_shape", lambda conn: object())
     queued = []
-    monkeypatch.setattr(api_jobs, "submit", lambda function, *args: queued.append((function, args)) or "cd" * 8)
+    monkeypatch.setattr(api_jobs, "submit", lambda function, *args, **options: queued.append((function, args)) or "cd" * 8)
     response = admin.post(f"/api/sectors/{pid('sector', sector_id)}/regenerate")
     assert response.status_code == 202, response.get_json()
     assert response.get_json()["job_id"] == "cd" * 8

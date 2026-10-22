@@ -113,3 +113,38 @@ test("the shader's twin carries the same constants", () => {
     assert.ok(glsl.includes(value.toFixed(4)), `constant ${value} in the GLSL`);
   });
 });
+
+test("a halo or satellite-galaxy star is judged dimmer, so the limit takes it before any other star (MAP.251)", () => {
+  assert.deepEqual(M.TIER_MAGNITUDE_PENALTY, [0, 3, 6]);
+  assert.equal(M.tierMagnitudePenalty(0), 0);
+  assert.equal(M.tierMagnitudePenalty(1), 3);
+  assert.equal(M.tierMagnitudePenalty(2), 6);
+  assert.equal(M.tierMagnitudePenalty(undefined), 0);
+  assert.equal(M.tierMagnitudePenalty(7), 0);
+  // 200 stars of every tier, as bright as each other, a target of 400: the limit falls where the halo and the
+  // satellite stars are the ones that are not whole.
+  const magnitudes = [];
+  const tiers = [];
+  for (let tier = 0; tier < 3; tier++) {
+    for (let i = 0; i < 200; i++) {
+      magnitudes.push(10 + i * 0.001 + M.tierMagnitudePenalty(tier));
+      tiers.push(tier);
+    }
+  }
+  const limit = M.histogramLimit(magnitudes, null, 400);
+  const whole = tiers.map((tier, i) => M.magnitudeShare(magnitudes[i], limit));
+  const share = (tier) => whole.filter((_s, i) => tiers[i] === tier).reduce((a, b) => a + b, 0) / 200;
+  assert.ok(share(0) > 0.99, String(share(0)));
+  assert.ok(share(1) > share(2) && share(1) < 1, `${share(1)} ${share(2)}`);
+  assert.ok(share(2) < 0.01, String(share(2)));
+});
+
+test("the farther a star is the sooner it goes, and a tier star sooner than a field star at the same distance (MAP.251)", () => {
+  // The farther a star is, the sooner it goes; a halo star goes 3 magnitudes sooner than a field star at the same distance.
+  const limit = 14;
+  const field = M.magnitudeShare(M.apparentMagnitude(4.83, 500), limit);
+  const halo = M.magnitudeShare(M.apparentMagnitude(4.83, 500) + M.tierMagnitudePenalty(1), limit);
+  const farField = M.magnitudeShare(M.apparentMagnitude(4.83, 700), limit);
+  assert.ok(field > 0.3 && halo === 0, `${field} ${halo}`);
+  assert.ok(farField < field);
+});

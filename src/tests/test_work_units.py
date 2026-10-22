@@ -163,15 +163,15 @@ def test_a_stage_of_no_units_ends_at_once(monkeypatch, conn):
 
 
 def test_a_units_time_limit_is_a_multiple_of_its_stages_expected_time_and_never_none(monkeypatch, conn):
-    assert units.unit_timeout(None) == units.unit_timeout(0) == units.UNIT_TIMEOUT_SECONDS
-    assert units.unit_timeout(1000) == 10_000 and units.unit_timeout(1) == units.MIN_UNIT_TIMEOUT_SECONDS
-    assert units.unit_timeout(10 ** 9) == units.UNIT_TIMEOUT_SECONDS
+    assert units.unit_timeout(None) == units.unit_timeout(0) == redisqueue.MAX_TIMEOUT_SECONDS
+    assert units.unit_timeout(1000) == 10_000 and units.unit_timeout(1) == redisqueue.MIN_TIMEOUT_SECONDS
+    assert units.unit_timeout(10 ** 9) == redisqueue.MAX_TIMEOUT_SECONDS
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
     units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)], expected_seconds=2000)
     units.enqueue_units(conn, run_id, 1, "test", [({"n": 2}, 1.0)])
     jobs = {job.id: job for job in redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs}
-    assert {job.timeout for job in jobs.values()} == {20_000, units.UNIT_TIMEOUT_SECONDS}
+    assert {job.timeout for job in jobs.values()} == {20_000, redisqueue.MAX_TIMEOUT_SECONDS}
 
 
 def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds_and_its_units_a_limit_from_it(monkeypatch, conn):

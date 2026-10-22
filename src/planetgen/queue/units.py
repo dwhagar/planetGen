@@ -46,17 +46,6 @@ STATIC_UNITS = 512
 from the number of workers, so the same work is the same units at any worker count; 512 keeps the largest
 sensible pool (the 2 million-object ceiling's 95% of 64 cores) busy to the end."""
 
-UNIT_TIMEOUT_SECONDS = 6 * 3600
-"""int: The longest a unit may run before RQ ends it, so a hung one shows as failed; the limit of a stage with no
-recorded time."""
-
-TIMEOUT_MULTIPLE = 10
-"""int: How many times its stage's expected seconds a unit may run before RQ ends it (PERF.106): a stage is expected
-to take that long on all its workers, so a unit that takes ten times as long is hung or starved, not slow."""
-
-MIN_UNIT_TIMEOUT_SECONDS = 15 * 60
-"""int: The shortest limit a unit gets, so a stage that is usually quick is not ended by one slow start-up."""
-
 FAILED_KEEP_SECONDS = 86400
 """int: How long RQ keeps a failed unit's job."""
 
@@ -83,13 +72,11 @@ def job_id(run_id, stage, unit):
 
 def unit_timeout(expected_seconds=None):
     """
-    How long a unit of a stage may run before RQ ends it (PERF.106): `TIMEOUT_MULTIPLE` times the stage's expected
-    seconds (`runrecord.Stage.expected_seconds`), but at least `MIN_UNIT_TIMEOUT_SECONDS` and at most
-    `UNIT_TIMEOUT_SECONDS`; the most when the stage has no recorded time. Never -1 (no limit).
+    How long a unit of a stage may run before RQ ends it (PERF.106): `redisqueue.job_timeout` of the stage's
+    expected seconds (`runrecord.Stage.expected_seconds`); the ceiling (6 hours) when the stage has no recorded
+    time. Never -1 (no limit).
     """
-    if not expected_seconds or expected_seconds <= 0:
-        return UNIT_TIMEOUT_SECONDS
-    return int(min(max(TIMEOUT_MULTIPLE * expected_seconds, MIN_UNIT_TIMEOUT_SECONDS), UNIT_TIMEOUT_SECONDS))
+    return redisqueue.job_timeout(expected_seconds)
 
 
 def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
