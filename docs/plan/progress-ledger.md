@@ -941,3 +941,4 @@ Baseline: PR #1817.
 | DB.31 | 8.1 | Description layer |
 | GEN.601 | 8.1 | Admin control suite |
 | GEN.608 | 8.1 | Admin control suite |
+| PERF.148 | 8.1 | Queue, caches and performance |

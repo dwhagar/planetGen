@@ -9,7 +9,7 @@ paragraphs; a paragraph wholly in `*...*` is shown muted; `**bold**` and `` `cod
 
 ### Alembic revisions and epochs
 
-The Alembic head on main is 0113 (DB.79, #2361); the next free revision is 0114, and a lane that needs one numbers it at merge. Generator epochs 14 to 41 are stamped on main (epoch 41 is GEN.544, release 8.0.1855); every generator change in flight takes epoch 42 or later, GEN.545 claims 42 first, and a rebase takes main's entries and renumbers. A lane runs `bump_version.py --check-pr origin/main` before it merges.
+The Alembic head on main is 0113 (DB.79, #2361); the next free revision is 0114, and a lane that needs one numbers it at merge. Generator epochs 14 to 42 are stamped on main (epoch 41 is GEN.544, release 8.0.1855; epoch 42 is PERF.148, #2397, about 11:10 PM EDT as the lane reported); every generator change in flight takes epoch 43 or later (GEN.545 and GEN.370 renumber on their rebase), and a rebase takes main's entries and renumbers. A lane runs `bump_version.py --check-pr origin/main` before it merges.
 
 ### Files two lanes both touch
 
