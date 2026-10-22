@@ -983,3 +983,4 @@ Baseline: PR #1817.
 | ADM.100 | 8.1 | Admin control suite |
 | GEN.370 | 8.3 | Galactic gravity |
 | TEST.258 | 8.1 | Bugs and flaky tests |
+| GEN.600 | 8.1 | Queue, caches and performance |

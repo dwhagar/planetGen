@@ -1301,7 +1301,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | done, PR #2399 |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | open |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header | none | open |
-| GEN.600 | The updater and the downloader print the URL of every file they load | none | open |
+| GEN.600 | The updater and the downloader print the URL of every file they load | none | done, PR #2464 |
 | GEN.601 | Shape dials: the lever table, one registry row per slider (name, flag, label, unit, minimum, maximum, step, Auto default, the law it moves, range source) and the parity test | none | done, PR #2395 |
 | GEN.602 | Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired | none | done, PR #2403 |
 | GEN.603 | Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown | none | done, PR #2403 |
