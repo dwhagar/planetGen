@@ -2465,6 +2465,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   minutes and 40 MB. The browser frame time was not measured. This item
   stays open for PERF.131 and PERF.132 (separate PRs) and the settled-view
   before and after its Done asks for.
+  Cause found code-side (Core 2, about 2:50 AM EDT 2026-10-22 as the
+  lane reported; the fix is in its gate): a zoom walked every drawn star
+  once per missing tile (measured 665 ms in node for 250 tiles by 45,000
+  stars, now 6.5 ms) and rebuilt a 45,000-star signature on every
+  unchanged call (about 160 ms), plus guards. The item stays open for
+  Boss's browser trace, which settles whether the page is fast in the
+  browser.
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -16750,90 +16757,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy. Owner: Core 5 (proposed, it found the list and wrote the
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
-
-- [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Today
-  `planetgen warm` (`cli/warm.py`, `web/warmup.py`) runs seven families
-  in a flat order (galaxy-map, galaxy-tiles, lists, sectors, systems,
-  phenomena, search), warms only the first page of each list and the
-  empty search page, stops at level caps (`warm_levels` 8,
-  `warm_zoom_levels` 14, 150,000 tiles) rather than a budget, and only
-  `update.sh` starts it. Do: name the phases and run them in order, each
-  with its own cap and each stopping at the budget: (1) the opening
-  views and the first page of each list, (2) the tiles to the built
-  levels, (3) the deep tiles and the deeper list pages, (4) the object
-  pages, (5) the name-search and facet answers. It starts by itself
-  after generation, `planetgen orbits` and any change that moves a data
-  version tag (and still from `update.sh`), rebuilds only what the
-  change touched (PERF.133), and the admin page shows each phase's
-  state. Done: a test runs a small galaxy through every phase, a change
-  in one sector re-runs only the affected phases for it, and a run stops
-  cleanly at a small budget. Suggested owner: Core 2 (owner of PERF.130
-  to 132); filed in 8.2.
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the warm-up stops at the budget and keeps
-  built-ahead tiles; indexes and lists are warmed and kept first, tiles
-  take the remaining space; the phases are filed in 8.2. Boss,
-  2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile if
-  nothing has changed". Done also needs a test: a warm-up run over a
-  galaxy that has not changed builds zero tiles (and zero list or index
-  rebuilds), every phase reports "unchanged", and a change in one sector
-  rebuilds only its tiles and their coarser parents. Core 2 (9:35 AM EDT
-  2026-10-21 as the lane reported): the zero-list and index rebuild half
-  of Boss's no-recompile test (a no-change warm rebuilds no stored list
-  or index) waits for PERF.140 and lands with this item; the tile half
-  is in PERF.133's part 1 (#2311).
-  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
-  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
-  tiles built ahead (warm, background build, rebuild after a change) are
-  marked (`tilecache.AHEAD_MODE`, the group-read bit) and never pruned,
-  and each galaxy-tiles warm unit checks `tilecache.cache_is_full()` and
-  reports "N tiles left out, the tile cache is full"; the phases and
-  their skipped and rebuilt totals are this item (Core 2's next). Slice
-  1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
-  reported; release 8.0.1856): the warm-up runs in five named phases
-  with a report line per phase (built, unchanged, left out), `planetgen
-  warm` accepts phase names, a `warm-galaxy-deep-tiles` command exists,
-  and the tile phases stop at `cache.max_mb`. Gate: 3,831 passed, 157
-  skipped in 88 minutes. Still open: slice 2 (the automatic start after
-  generation, `planetgen orbits` and data-version changes) and slice 3
-  (the admin page shows each phase); the list and index half of Boss's
-  no-recompile test waits on DB.79 and PERF.140. Slice 2 merged as #2337
-  (Core 2, 4:45 PM EDT 2026-10-21 as the lane reported): the warm-up
-  starts by itself after a generation run, the orbital update, an edit
-  or any change; new settings `cache.warm_on_change` and
-  `cache.warm_settle_seconds`; gate 19,668 passed, 3 environment or
-  flake failures that pass alone. Slice 3 (the admin queue page's 'Cache
-  warm-up' panel with each phase's state, `GET /api/admin/work/warm`) is
-  written and tested and its gate starts next. Slices 1 to 3 do not need
-  PERF.140, so after slice 3 this item stays open only for the deeper
-  list pages and the index in phase 1, which wait on PERF.140 (the
-  'Suggested owner' and prerequisite wording above predates the split).
-  The old Core 2's branch claude/perf141-slice2-wip is superseded by
-  #2337. Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21
-  as the lane reported): /admin/queue has a 'Cache warm-up' panel with
-  the last run and each of the five phases' state and result line.
-  Slices 1 to 3 are done; this item stays open only for the deeper list
-  pages and the index in phase 1, which wait on PERF.140 (DB.79 merged
-  as #2361, about 7:25 PM EDT as the lane reported).
-  PERF.140 merged as #2370 (Core 2, about 8:15 PM EDT 2026-10-21 as the
-  lane reported): the deeper list pages and the index in phase 1 are now
-  unblocked (the index is the new first warm family, object-index).
-  Prerequisites: none. Related: PERF.140.
 
 - [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
   Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of

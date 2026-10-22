@@ -43,7 +43,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows |  | Boss, 2026-10-18, 5:43 PM EDT (multiple warm-up phases). |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 
 ## Phase 2: What a signed-in user gets

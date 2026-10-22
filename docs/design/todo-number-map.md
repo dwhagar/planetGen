@@ -1837,7 +1837,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) | none | done, PR #2297 |
 | PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | done, PR #2316 |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | none | done, PR #2370 |
-| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | open |
+| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | done, PR #2413 |
 | PERF.142 | A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug) | none | done, PR #2345 |
 | PERF.143 | A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree | none | done, PR #2345 |
 | PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires | none | done, PR #2366 |
