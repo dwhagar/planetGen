@@ -41,7 +41,7 @@ import pymysql
 from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
-from planetgen.db import countcache, point_columns
+from planetgen.db import countcache, hostednebula, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -4267,7 +4267,8 @@ def _uncharted_item(row, edge_pc):
 def uncharted_system_detail(conn, bright_star_id):
     """
     One scattered star as its page needs it (UX.114): `list_uncharted_systems`'s item, plus `system_id` (the system
-    built around it, or `None` while it is uncharted) and, for a star with company, its `members` and `nodes`
+    built around it, or `None` while it is uncharted), `hosted_nebula` (the nebula it lights, as
+    `hostednebula.summary`, or `None`: the one its sector builds, GEN.530) and, for a star with company, its `members` and `nodes`
     (`scatter_member_tree`). A star already built into a system lists no members: its members are the system's stars.
 
     Raises:
@@ -4283,6 +4284,8 @@ def uncharted_system_detail(conn, bright_star_id):
     skeleton = get_galaxy_shape(conn)
     detail = _uncharted_item(row, skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC))
     detail["system_id"] = row["star_system_id"]
+    detail["hosted_nebula"] = None if row["star_system_id"] is not None else hostednebula.hosted_by_rows(
+        conn, [row]).get(row["id"])
     if detail["member_count"] and row["star_system_id"] is None:
         detail.update(scatter_member_tree(conn, "bright_stars", row["id"]))
     return detail
@@ -4300,10 +4303,11 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
     generated contents can still be opened and its objects looked at.
 
     Returns:
-        dict: `stars` (as `bright_stars_in_sector`) and `scattered`, one
+        dict: `stars` (as `bright_stars_in_sector`), `scattered`, one
             `{"id", "kind", "subtype", "type", "x", "y", "z"}` per unbuilt
             scatter row (`type` as `_SCATTER_TYPES`; positions in
-            galaxy-frame parsecs), at most `UNCHARTED_SCATTER_LIMIT`.
+            galaxy-frame parsecs), at most `UNCHARTED_SCATTER_LIMIT`, and `hosted_nebulae`, the nebulae the
+            waiting stars light (`hostednebula.hosted_in_cell`, GEN.530).
     """
     address = (int(shell_index), int(band_index), int(wedge_index))
     try:
@@ -4331,7 +4335,11 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
          **_member_fields(row)}
         for row in rows
     ]
-    return {"stars": stars, "scattered": scattered}
+    try:
+        hosted = hostednebula.hosted_in_cell(conn, address)
+    except pymysql.err.ProgrammingError:
+        hosted = []
+    return {"stars": stars, "scattered": scattered, "hosted_nebulae": hosted}
 
 
 BRIGHT_STAR_POPULATION_WEIGHT = {"young": 1.0, "intermediate": 10.0, "old": 400.0, "bulge": 400.0,
