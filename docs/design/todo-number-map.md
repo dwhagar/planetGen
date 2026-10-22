@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.256 |
 | NAV | NAV.63 |
 | GEN | GEN.624 |
-| PERF | PERF.150 |
+| PERF | PERF.156 |
 | DB | DB.87 |
 | API | API.32 |
 | ADM | ADM.127 |
@@ -1856,6 +1856,12 @@ Parents marked "new parent" had no old number of their own.
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds | none | open |
 | PERF.148 | Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line | none | done, PR #2397 |
 | PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs | none | open |
+| PERF.150 | Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1) | none | open |
+| PERF.151 | A reserved interactive worker outside `wanted` at nice 5, and a long-job lane (cap 1) for API jobs expected to run over 60 seconds (F2) | none | open |
+| PERF.152 | Pause and resume reach the worker queues: a Redis flag the workers honour, written by the Queue page (F3) | none | open |
+| PERF.153 | An API job that finds a live generation run waits (a bounded retry, shown as waiting for run X) instead of failing Busy, and a Generate stage waits for an API job holding the key (F4) | none | open |
+| PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | none | open |
+| PERF.155 | A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |

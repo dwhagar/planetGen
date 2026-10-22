@@ -37,6 +37,11 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.309 | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.309 | Research: ledger size at full galaxy. |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
+| PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | PERF.119, PERF.123, PERF.99 |  |
+| PERF.153 | An API job that finds a live generation run waits (a bounded retry, shown as waiting for run X) instead of failing Busy, and a Generate stage waits for an API job holding the key (F4) |  |  |
+| PERF.152 | Pause and resume reach the worker queues: a Redis flag the workers honour, written by the Queue page (F3) |  |  |
+| PERF.151 | A reserved interactive worker outside `wanted` at nice 5, and a long-job lane (cap 1) for API jobs expected to run over 60 seconds (F2) |  |  |
+| PERF.150 | Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1) |  |  |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |
 | GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header |  |  |
 | GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | PERF.99 | Split from GEN.231. |
@@ -425,6 +430,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged |  | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
 | PERF.146 | A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages |  |  |
+| PERF.155 | A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6) | PERF.146 |  |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | PERF.146 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every point release (8.1 first) | PERF.146 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.284, TEST.196, GEN.450, SEC.33, TEST.261 |  |
