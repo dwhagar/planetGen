@@ -1031,3 +1031,8 @@ Baseline: PR #1817.
 | ADM.56 | 8.1 | Admin control suite |
 | ADM.99 | 8.1 | Admin control suite |
 | TEST.268 | 8.1 | Bugs and flaky tests |
+| DB.56 | 8.3 | Orbital update core |
+| TEST.184 | 8.1 | Whole-sphere audits |
+| TEST.185 | 8.1 | The headline closes |
+| TEST.159 | 8.1 | The headline closes |
+| TEST.160 | 8.1 | The headline closes |

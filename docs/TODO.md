@@ -4154,7 +4154,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (collisions-and-mergers.md section 7), the last-collisions admin view
   and the end-to-end test through the field, giant-merger and star
   branches; the table is DB.56.
-  Prerequisites: DB.56, GEN.347.
+  Prerequisites: GEN.347.
   Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
 
 - [ ] **GEN.145 Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30**
@@ -4407,7 +4407,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): the 80-bit figure is
   the birth-location part of the 96-bit object ID, not a separate ID; the
   object ID is 96 bits.
-  Prerequisites: DB.56. Related: GEN.105, GEN.143, GEN.170.
+  Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
   Boss (2026-10-10 20:57Z): the orbits come from point-mass vectors, so
@@ -4776,6 +4776,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): the owner stays Core
   4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
   owner lines are deleted.
+  Measurement (Core 5, relayed 3:41 PM EDT 2026-10-22 as the lane's clock
+  reads, with #2504): the TEST.160 representation audit does not measure
+  the protostar yield against 1.4e6; that needs the cloud counts of a
+  whole fill, so this item still tracks it.
   Prerequisites: none. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -5481,7 +5485,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
+  Prerequisites: GEN.284, GEN.450, TEST.196,
   SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -6118,7 +6122,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator 2026-10-17, 11:29 PM EDT as relayed): gets simpler in the
   same way as GEN.291: an unbinding changes the parent link only
   (storage item DB.73).
-  Prerequisites: DB.56, GEN.197.
+  Prerequisites: GEN.197.
   Related: GEN.110.
 
 - [ ] **GEN.347 The last-collisions admin view and the test that runs the whole collision path**
@@ -6130,7 +6134,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seeds two rogues on a collision course and runs the whole update
   through the field, giant-merger and star branches. Done: the view
   lists the three outcomes of the test and the test passes.
-  Prerequisites: DB.56, GEN.346. Related: GEN.143.
+  Prerequisites: GEN.346. Related: GEN.143.
 
 - [ ] **GEN.348 Describer, CLI query lines and class page ranges take Quantity**
   Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -15391,6 +15395,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
 
+- [ ] **GEN.622 pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug)**
+  Found by Core 5 (relayed 3:41 PM EDT 2026-10-22 as the lane's clock
+  reads, while building the TEST.160 audit), filed by the TODO thread.
+  Kind: bug, low priority, no test yet. `pulsar_radial_factor` in
+  src/planetgen/galaxy/remnant_distribution.py divides by zero beyond
+  about 580 kpc galactic radius. That is past the 262 kpc reach of a
+  generated galaxy, so no real run can hit it; it matters only if the
+  reach grows or the function is called with an arbitrary radius. Fails
+  on main: only for a radius beyond about 580 kpc. Do: make the function
+  return the physical limit there (the factor falls to its asymptote or
+  zero) instead of dividing by zero, with a test at 579 kpc, 581 kpc and
+  10,000 kpc. Done: no radius raises, and the values on both sides of
+  the old pole are continuous. Owner: none (the coordinator assigns;
+  Core 4 owns the remnant distribution work of GEN.554).
+  Prerequisites: none. Related: GEN.554, TEST.160.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16141,7 +16161,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   headline GEN.301. Owner proposed: Core 1 after GEN.545 merges, or a
   fresh performance thread started when TEST.159 and TEST.160 near the
   end; not Core 5 (it carries the closing audits).
-  Prerequisites: TEST.159, TEST.160. Related: PERF.31, PERF.56,
+  Owner: a new performance thread (the coordinator, relayed 3:42 PM EDT
+  2026-10-22 as the lane's clock reads, after TEST.159, TEST.160, TEST.184
+  and TEST.185 merged as #2504); the thread id comes when it reports.
+  Prerequisites: none. Related: PERF.31, PERF.56,
   PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
   SEC.33, TEST.261.
   Note (TODO thread, 2026-10-21): the default galaxy becomes smaller
@@ -16640,28 +16663,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
   earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
-
-- [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
-  Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One row per event in
-  `orbital_events` with the columns of collisions-and-mergers.md
-  section 7 (event id, run id, impact and detection time, outcome code,
-  regime, seed string; each participant; the numbers; the conservation
-  check; the products; context and flags including `numeric_warning`),
-  The writer is GEN.197's `record_event`. Core 1 places the revision.
-  Done: the revision applies and a hand-built row inserts and reads back
-  whole, no view yet.
-  Placed before child b of GEN.110, which writes its events here
-  (2026-10-16 review).
-  Scope after the review (2026-10-16 review): one table for every
-  orbital event kind (collision outcome, merger, split, ejection,
-  capture, unbind, warning) with id, run id, event time, detected time,
-  kind, outcome code, participant ids, product ids, seed string and
-  queried numbers as columns, plus `destroyed_by_event_id` and
-  `origin_event_id` on the objects. Core 1 names the revision (in the
-  window of the migration child of GEN.294 and GEN.289). The writer is
-  GEN.197.
-  Prerequisites: none. Related: GEN.143.
 
 - [ ] **DB.57 The update records what it moved: a replace-each-run table of previous and new positions**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -18528,7 +18529,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   saved form, kept per admin. Do: a control-database table of recipes
   (admin, name, the form as the job record stores it, created and
   updated times) with its Alembic migration (the next free revision on
-  main at merge time; head is 0117, 0118 is held by DB.56), a Save as recipe
+  main at merge time; head is 0118, 0119 is free), a Save as recipe
   action on the Review step, a recipe list on the Start screen that
   fills the form, and rename and delete. Done: a recipe saves, lists,
   runs and deletes per admin, one admin cannot see or run another's, the
@@ -18613,7 +18614,7 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   under audit.
   Ordering (TODO thread, 6:40 PM EDT 2026-10-21): this audit runs after
   the performance profile PERF.146 so it sees the final code.
-  Prerequisites: TEST.159, TEST.160, PERF.146. Related: TEST.261.
+  Prerequisites: PERF.146. Related: TEST.261.
 
 ## TEST: The test suite
 
@@ -19074,89 +19075,6 @@ clears each one.
   has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
-- [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
-  Step 15 of the whole-sphere train. Tests: no emission, reflection or
-  core-collapse remnant in a halo or old cluster cell; a planetary
-  nebula always has its white dwarf; a core-collapse remnant has a
-  compact core at the stated share; every hosted nebula holds its host
-  star and every D or E region its members inside its radius; a
-  Wolf-Rayet nebula holds a W star and the Milky Way count is 1,200 +-
-  300 with none in old populations; tiling and the object ID round trip
-  at the widest shell of the reach; the profile and an empty sector are
-  deterministic; the pre-placed share of every population; no double
-  count of a cluster star; the King solver against the textbook
-  concentrations. Done: each test above exists and runs in the normal
-  suite. Owner: Quality (all TEST items are Quality's), written beside
-  each build step.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: TEST.184, TEST.185. The item lists tests of two
-  kinds of code.
-  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
-  estimate"
-  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
-  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
-  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
-  with its queue handed back to TODO, so no lane runs this closing test;
-  it gates GEN.301 (directly or through the census harness TEST.186). A
-  test lane must be started or the item given to a running lane before
-  the headline can close.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: TEST.184, TEST.185. Related: TEST.156.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
-- [ ] **TEST.160 Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked**
-  Step 4 of the phenomena train (catalogue section 7). The registry
-  gives the expected count of each kind per sector for each region class
-  (core, bar, thin disk arm and interarm, thick disk, halo,
-  Magellanic-type satellite, globular cluster core, intergalactic
-  floor); fill a fixed set of seeded sectors in each, count by stage,
-  and compare: each kind within four sigma of its expectation, any kind
-  expected 20 or more times appears at least once, none appears where
-  its gate forbids it, the fraction with a system matches the system
-  table, and every hosted nebula, planetary nebula, core-collapse
-  remnant, D or E region and Wolf-Rayet nebula holds its required
-  contents. Also an admin report. Audited, not forced: Boss's reading of
-  "all types represented" is pending; default is audited frequency.
-  Done: the audit runs in the suite in a few minutes and as a report.
-  Owner: Quality (all TEST items are Quality's). Boss's rules
-  (2026-10-15 5:39 PM EDT): scatters and backscatters carry no planets, moons or belts (stellar companions are allowed at scatter time, Boss 2026-10-15, 5:51 PM EDT); nebulae need stars and phenomena, not planets;
-  planets and moons only when a sector is filled with everything; a fill
-  represents every kind and builds the systems phenomena can have at
-  real-world odds.
-  Decided (Boss, 2026-10-15 5:51 PM EDT): "all types represented" means
-  audited frequency, not forced: accurate probabilities and no forced
-  representation in a sector, except a kind that landed there in a
-  scatter before generation. The open question is closed; the audit
-  compares counts to expectation and never forces a kind in.
-  Scope after the review (2026-10-16 review): the representation audit
-  on the census harness (the new first item of the Whole-sphere audits
-  thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
-  counters of their own.
-  Prerequisites: none.
-  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
-  estimate"
-  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
-  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
-  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
-  with its queue handed back to TODO, so no lane runs this closing test;
-  it gates GEN.301 (directly or through the census harness TEST.186). A
-  test lane must be started or the item given to a running lane before
-  the headline can close.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the rule of 2026-10-15, 5:39 PM EDT,
-  is amended to "no planets, moons or belts": stellar companions of
-  stars and star-like objects, including neutron star and black hole
-  pairs, are generated at scatter time (Boss, 2026-10-15, 5:51 PM EDT),
-  so the audit expects them there.
-  Related: TEST.159.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **TEST.161 Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table**
   Tests beside the fill-stages item (catalogue sections 3 and 5): adding
   a kind to a stage moves no draw of another stage; the same object
@@ -19450,57 +19368,6 @@ clears each one.
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: UX.122, UX.123. Related: UX.102.
-
-- [ ] **TEST.184 Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver**
-  Split from TEST.159 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A planetary nebula always has its
-  white dwarf; a core-collapse remnant has a compact core at the stated
-  share; every hosted nebula holds its host star; a Wolf-Rayet nebula
-  holds a W star and the Milky Way count is 1,200 +- 300 with none in
-  old populations; tiling and the object ID round trip at the widest
-  shell of the reach; the profile and an empty sector are deterministic;
-  the King solver against the textbook concentrations. Done: each test
-  exists and runs in the normal suite.
-  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
-  estimate"
-  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
-  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
-  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
-  with its queue handed back to TODO, so no lane runs this closing test;
-  it gates GEN.301 (directly or through the census harness TEST.186). A
-  test lane must be started or the item given to a running lane before
-  the headline can close.
-  Finding (Core 3, 2026-10-17, 10:07 AM EDT, GEN.320): the protostar
-  yield is 30% per Bok globule and about 2.4 per star-forming core
-  before the cap; the galaxy-wide total against the 1.4e6 expected (open
-  question 8 of docs/design/phenomena-catalogue-and-fill.md) is not
-  measured, because it needs the cloud counts from a fill. This test (or
-  TEST.186's census) measures it.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: TEST.159.
-
-- [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
-  Split from TEST.159 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). No emission, reflection or
-  core-collapse remnant in a halo or old cluster cell; every D or E
-  region holds its members inside its radius; the pre-placed share of
-  every population; no double count of a cluster star between the passes
-  and the fill. Done: each test exists and runs in the normal suite.
-  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
-  estimate"
-  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
-  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
-  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
-  with its queue handed back to TODO, so no lane runs this closing test;
-  it gates GEN.301 (directly or through the census harness TEST.186). A
-  test lane must be started or the item given to a running lane before
-  the headline can close.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: TEST.159.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. When a
@@ -20388,7 +20255,7 @@ clears each one.
   when the whole-sphere audits merge and the security audit has begun.
   Ordering (TODO thread, 6:40 PM EDT 2026-10-21): this audit runs after
   the performance profile PERF.146 so it sees the final code.
-  Prerequisites: TEST.159, TEST.160, PERF.146. Related: SEC.33.
+  Prerequisites: PERF.146. Related: SEC.33.
 
 - [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
   Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the

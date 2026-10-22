@@ -61,9 +61,8 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342 | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.342 | Split from GEN.109. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.342, GEN.343, GEN.344 |  |
-| DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings |  | Split from GEN.143. Core 1 owns migrations. |
-| GEN.197 | Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split | DB.56 |  |
-| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | DB.56, GEN.197 | Split from GEN.110. |
+| GEN.197 | Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split |  |  |
+| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.197 | Split from GEN.110. |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.346 |  |
 | GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.343 |  |
 | GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.290, GEN.343, GEN.346, GEN.197 |  |
@@ -85,8 +84,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | USR.3, GEN.344 | Needs USR.3's SMTP settings. |
-| GEN.347 | The last-collisions admin view and the test that runs the whole collision path | DB.56, GEN.346 | Split from GEN.143. |
-| GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | DB.56, GEN.347 | Research: makes the collision code testable. |
+| GEN.347 | The last-collisions admin view and the test that runs the whole collision path | GEN.346 | Split from GEN.143. |
+| GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | GEN.347 | Research: makes the collision code testable. |
 
 ### Long steps
 
