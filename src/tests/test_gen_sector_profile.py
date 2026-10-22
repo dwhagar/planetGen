@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import profile, spherical
-from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.density import build_galaxy_shape, mean_system_mass_solar, relative_density
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.physics.units import ly_to_pc
 
@@ -64,10 +64,12 @@ def test_the_region_is_the_term_that_dominates(position, region):
 
 
 def test_the_halo_cells_expect_the_systems_the_design_note_gives():
-    # section 5.7: 3.2e-5 at 50 kpc and 1.8e-8 at the 262 kpc edge, for E = 6.3 systems at density 1 [C]
+    # section 5.7: 3.2e-5 at 50 kpc and 1.8e-8 at the 262 kpc edge, for E = 6.3 systems at density 1 [C], worked out at the
+    # recalled 0.4 solar masses a system; the derived mean (GEN.545) scales the galaxy's systems and so these.
     assert E_VALUE == pytest.approx(6.3, rel=0.01)
-    assert _at((50000.0, 0.0, 0.0)).expected_systems == pytest.approx(3.2e-5, rel=0.15)
-    assert _at((262000.0, 0.0, 0.0)).expected_systems == pytest.approx(1.8e-8, rel=0.15)
+    scale = 0.4 / mean_system_mass_solar(SHAPE)
+    assert _at((50000.0, 0.0, 0.0)).expected_systems == pytest.approx(3.2e-5 * scale, rel=0.15)
+    assert _at((262000.0, 0.0, 0.0)).expected_systems == pytest.approx(1.8e-8 * scale, rel=0.15)
     far = [_at((r, 0.0, 0.0)).expected_systems for r in (30000.0, 50000.0, 100000.0, 262000.0)]
     assert far == sorted(far, reverse=True) and all(value > 0.0 for value in far)
 

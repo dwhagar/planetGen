@@ -46,13 +46,14 @@ def _qualifying_bands(shape, shell, threshold):
     return [b for b in range(0, spherical.band_range(shell)[1] + 1) if _band_qualifies(shape, EDGE_PC, shell, b, threshold)]
 
 
-def test_the_default_galaxy_reaches_shell_3596_with_the_core_first(milky_way):
+def test_the_default_galaxy_reaches_shell_3473_with_the_core_first(milky_way):
     """GEN.404: the galaxy holds the systems its stellar mass makes (it reached shell 3147 against 3762 for the density
     tuned to the real count at the Sun); GEN.544 gave the disk its exponential height, whose midplane is twice as dense
-    for the same mass, so the edge sits at shell 3596."""
+    for the same mass, so the edge sat at shell 3596; GEN.545 derived the mean system mass (0.483 solar masses a system
+    where 0.4 had been recalled), so the galaxy holds a sixth fewer systems and the edge sits at shell 3473."""
     extents, outer, confirmed = milky_way
-    assert outer == 3596 and confirmed
-    assert [shell for shell, _high in extents] == list(range(3597))
+    assert outer == 3473 and confirmed
+    assert [shell for shell, _high in extents] == list(range(3474))
     assert extents[0] == (0, 0)
     assert extents[1:4] == [(1, 1), (2, 3), (3, 4)]      # shells 1 to 3 are the table: whole shells in the bulge
 
@@ -60,10 +61,10 @@ def test_the_default_galaxy_reaches_shell_3596_with_the_core_first(milky_way):
 def test_the_outline_reaches_the_axis_in_the_bulge_and_only_there(milky_way):
     extents, _outer, _confirmed = milky_way
     polar = [shell for shell, high in extents if shell and high == spherical.band_range(shell)[1]]
-    assert polar[:3] == [1, 2, 3] and max(polar) == 662
-    assert len(polar) == 662          # every shell out to 662 has its caps
+    assert polar[:3] == [1, 2, 3] and max(polar) == 623
+    assert len(polar) == 623          # every shell out to 623 has its caps
     for shell, high in extents:
-        if shell > 662:
+        if shell > 623:
             assert high < spherical.band_range(shell)[1]
 
 
@@ -71,20 +72,21 @@ def test_the_outline_narrows_with_distance_and_is_a_run_about_the_plane(milky_wa
     extents, _outer, _confirmed = milky_way
     highs = dict(extents)
     assert highs[3000] < highs[2000] < highs[1500]
-    assert highs[3596] <= 5
+    assert highs[3473] <= 5
 
 
 def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
     """The study counted about 23.93 billion qualifying cells for the density tuned to the Sun; the galaxy that holds
-    its stellar mass's systems (GEN.404, with the exponential disk of GEN.544) is 1.9 times sparser at the same shape,
+    its stellar mass's systems (GEN.404, with the exponential disk of GEN.544 and the derived mean system mass of GEN.545)
+    is 2.1 times sparser at the same shape,
     so fewer cells clear the threshold."""
     extents, _outer, _confirmed = milky_way
     shells = shell_candidate_sector_count(extents)
     assert shells < 23_930_000_000
-    assert shells == 12_817_180_979
+    assert shells == 11_579_121_503
 
 
-@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3596])
+@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3473])
 def test_the_outline_is_tight_and_no_qualifying_band_lies_outside(milky_way, shell):
     extents, _outer, _confirmed = milky_way
     high = dict(extents)[shell]
@@ -193,7 +195,7 @@ def test_random_address_can_be_limited_to_inner_shells():
 def test_the_default_galaxy_fits_the_object_id_and_its_reach(milky_way):
     extents, _outer, _confirmed = milky_way
     bounds = GalaxyBounds(extents, EDGE_PC)
-    assert max(high for _shell, high in extents) == 1039
+    assert max(high for _shell, high in extents) == 978
     assert bounds.reach_shell_index == 65535
     assert spherical.wedge_count(3764, 0) < 1 << 19
 

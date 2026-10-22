@@ -222,6 +222,12 @@
     {
       "epoch": 45,
       "reason": "A star of a multi-star tree drawn beside a primary under 0.124 solar masses takes a mass ratio no lower than leaves it over the deuterium limit, so the other members of such a tree (once a crash below the cooling tracks' 0.01 solar masses) get different masses (GEN.596)"
+    },
+    {
+      "epoch": 46,
+      "first_release": null,
+      "pending": true,
+      "reason": "A galaxy's number of systems is its stellar mass over a mean system mass worked out from the generator's own mass function, remnants and multiplicity (about 0.48 solar masses for the reference galaxy, not the recalled 0.4), so every seed's galaxy holds about a sixth fewer systems and places its stars at that density (GEN.545)."
     }
   ]
 }

@@ -1345,9 +1345,6 @@ HALO_MIN_LUMINOSITY_SOL = 500.0
 """float: The default halo luminosity floor, solar luminosities (GEN.283, Boss 1:09 AM EDT 2026-10-16)."""
 HALO_MIN_LUMINOSITY_RANGE_SOL = (50.0, 4.0e6)
 """tuple: The lowest and highest halo luminosity floor `plan` accepts (Boss, 10:06 PM EDT 2026-10-15: lowest 50)."""
-MEAN_SYSTEM_MASS_SOLAR = 0.4
-"""float: The mass of an average system, remnants and companions included (docs/design/globular-clusters.md; recalled,
-within a factor of 1.5): what the mass of the unresolved part of a cell is worked out from."""
 
 # Gas and dark matter in a cell (docs/design/intergalactic-and-halo-contents.md 2.4 and 2.6). The ambient medium
 # is whichever of three is densest: the disc's interstellar medium (about 1 H per cm3 at the plane near the Sun

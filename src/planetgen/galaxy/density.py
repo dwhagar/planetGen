@@ -13,7 +13,7 @@ halo, each fitted to published Milky Way structure (GEN.118, GEN.119, GEN.234; s
 The model gives a `relative_density` at any galaxy-frame position, in units of the real local stellar
 density (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`, the "1.0 = realistic local density" convention
 `generation/run_sector.py --density` uses elsewhere in this codebase), normalized so the whole galaxy holds the
-systems its stellar mass makes (`structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, GEN.404): no
+systems its stellar mass makes (`structure.stellar_mass_solar` over `mean_system_mass_solar`, GEN.404, GEN.545): no
 position of the Sun is read. A sector's own
 predicted star count is then `SpaceSector.expected_system_count() *
 relative_density(sector_center)`; a sector with a predicted count `< 1` is
@@ -42,6 +42,7 @@ from planetgen import tuning
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import core_gas as coreGas
 from planetgen.galaxy import star_formation as starFormation
+from planetgen.galaxy import system_mass as systemMass
 from planetgen.galaxy import structure as galaxyStructure
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import ly_to_pc
@@ -638,6 +639,37 @@ def component_masses(shape, steps=40):
     }
 
 
+def population_units(shape):
+    """
+    How many systems each population holds, in the model's unnormalized units (only the ratios mean anything): the thin
+    disk shared among `young`, `intermediate` and `old` by its star formation history (`disk_history`), the thick disk
+    in `old`, and the bulge, the nuclear cluster and disc and the stellar halo each their own integral. The globular
+    clusters and satellite galaxies are not here: their systems come on top of the model (`shape.components`).
+    """
+    terms = model_terms(shape)
+    thin = _disk_mass(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc)
+    thick = _disk_mass(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"],
+                       terms["thick_disk_scale_height_pc"])
+    return {
+        "young": thin * starFormation.disk_population_share("young", shape),
+        "intermediate": thin * starFormation.disk_population_share("intermediate", shape),
+        "old": thin * starFormation.disk_population_share("old", shape) + thick,
+        "bulge": terms["bulge_mass"],
+        "nuclear_cluster": terms["nuclear_cluster_mass"],
+        "nuclear_disc": terms["nuclear_disc_mass"],
+        "halo": halo_mass(shape),
+    }
+
+
+def mean_system_mass_solar(shape):
+    """
+    The mean mass of the galaxy's systems, solar masses (GEN.545): each population's, worked out from the generator's
+    own mass function, remnants and multiplicity over the population's ages (`galaxy.system_mass`), averaged by the
+    systems the population holds (`population_units`). The galaxy's stellar mass over this is its number of systems.
+    """
+    return systemMass.mean_over_solar(population_units(shape), shape)
+
+
 def total_mass(shape):
     """Everything the model holds, in its unnormalized units: the visible components, the nuclear cluster and disc, and
     the stellar halo (the arm factor averages to 1 around any circle, so the arms add nothing)."""
@@ -733,7 +765,7 @@ def build_galaxy_shape(
     """
     Builds a `GalaxyShape` with `k_norm` computed automatically, rather than left for the caller to guess: the
     constant that makes the density, in units of the real local stellar density, hold the galaxy's systems (its
-    stellar mass `structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, GEN.404). No point of the galaxy
+    stellar mass `structure.stellar_mass_solar` over `mean_system_mass_solar`, GEN.404 and GEN.545). No point of the galaxy
     is the calibration point and no Sun position is read.
 
     Args:
@@ -772,7 +804,7 @@ def build_galaxy_shape(
         structure=structure,
     )
 
-    systems = structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR
+    systems = structure.stellar_mass_solar / mean_system_mass_solar(unnormalized)
     local_per_pc3 = physical_constants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
     k_norm = systems / (local_per_pc3 * total_mass(unnormalized))
 
