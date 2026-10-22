@@ -24,7 +24,7 @@ The numbers marked COMPUTED were made for this note with the two small programs 
 | S6 | Icy bodies draw a rock mass fraction from a truncated normal with centre 0.70 and a collisional tail | Verified for the centre (Bierson and Nimmo: 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma); the 0.08 width and the 0.45 to 0.95 limits are not in the paper | Decision 26 of the bulk note: 0.30 to 0.82 range, most permissive; section 5.3 |
 | S7 | A moon takes an origin type from a gated table (disk, impact, captured, ring, binary) and its composition from the origin | Weights all open; the rules of each origin are part D 2.8, 2.9 and 3.4.3 to 3.4.5 | Section 5.4 |
 | S8 | A disk moon's ice fraction rises with its formation distance past the disk's ice line: `f_ice = f_inf clamp(ln(r / (0.4 r_ice)) / ln 2.5, 0, 1)`, `f_inf` N(0.35, 0.10) on [0.1, 0.6]; the bracket over all moon systems is 0.5 to 0.85 with Cilibrasi 2018 at the centre | Decided (Boss, contradiction sweep, taps 6:10 to 6:12 PM on 2026-10-18, fork 15) for the bracket; the ramp is a parametrisation | Section 5.5. Sasaki 2010 and Cilibrasi 2018 disagree on the ice fraction: the newest wins |
-| S9 | The hand-over mass to the structure solver is a continuity condition per composition, not the constant 1e20 kg | Boss ruled the shift at 2:10 PM; the means is proposed here | Section 4.2 |
+| S9 | The hand-over mass to the structure solver is a continuity condition per composition, not the constant 1e20 kg | Decided (Boss, card tapped 8:13 PM EDT on 2026-10-21): taper porosity to zero between 1e19 and 1e21 kg | Section 4.2 |
 | S10 | One storage for every body's composition (DB.69 and DB.70), one thresholded text writer (GEN.430, GEN.446); belts keep their four-line text from the stored shares | Decided (composition-model.md section 4b) | Section 6 |
 | S11 | Everything here rides the one generator epoch bump of the 8.4 chain (GEN.428 to GEN.430 and DB.69) | Decided (Boss, taps 6:08 to 6:10 PM on 2026-10-18, fork 1) | The table versions pin in `Registry.versions` |
 
@@ -68,7 +68,7 @@ The ratio 1.81 at 1e20 kg is the jump Boss named (0.86 to 1.55 is 1.8). A real b
 
 **Proposed means (parametrisation, flagged):** keep the paper's law and taper its porosity to zero in log mass, `phi_eff = w(M) phi_law`, `w = clamp((log10 1e21 - log10 M) / 2, 0, 1)`, between `M_a` = 1e19 kg (Carry's lower edge of the transition) and `M_b` = 1e21 kg (above it dwarf planets are near zero). Above `M_b` the body has no macroporosity and the solver of GEN.429 takes over with the same grains, so the density is continuous there by construction (the solver adds only its own compression). The computed densities (rock fraction 0.70, COMPUTED, `taper.py`): 815 at 1e19 kg, 1526 at 1e20, 1739 at 3e20, 1847 at 6.3e20 (Orcus: radius 433 km, density 1.85 against 1.6 to 1.75 measured), 1907 at 1e21, with no step. The endpoints are the one place the design leans on a measured Solar System shape, so they are `stand-in` until viscous compaction (Eq. 3 with its sign checked against Besserer 2013 or the published paper) replaces the taper; the Galilean-class solver test of decision 25 still comes before the 1e21 kg to 0.1 Earth mass range is called validated.
 
-Boss decides which of three ways closes the jump (section 12, card 1).
+Decided (Boss, card tapped 8:13 PM EDT on 2026-10-21): the taper, with the endpoints flagged `stand-in`.
 
 ### 4.3 The fast path
 
@@ -194,6 +194,6 @@ GEN.442 (belts, comets, rings, dwarf planets) reads sections 3, 4 and 5.1 to 5.3
 
 ## 12. Decisions for Boss
 
-1. **Close the porosity jump at the solver.** Boss ruled at 2:10 PM EDT on 2026-10-17 to shift the 1e20 kg hand-over until the jump disappears. It does not disappear: the paper's law leaves the density 1.32 to 1.35 times low up to 3e23 kg (section 4.2). Recommended: keep the paper's law and taper its porosity to zero between 1e19 and 1e21 kg (continuous, matches Orcus and Triton, endpoints flagged `stand-in`). Alternatives: keep the step and move it to about 1e23 kg with a 1.35 times jump left; or leave the step at 1e20 kg until viscous compaction is coded.
+1. **Decided (taper, 8:13 PM EDT on 2026-10-21). Close the porosity jump at the solver.** Boss ruled at 2:10 PM EDT on 2026-10-17 to shift the 1e20 kg hand-over until the jump disappears. It does not disappear: the paper's law leaves the density 1.32 to 1.35 times low up to 3e23 kg (section 4.2). Recommended: keep the paper's law and taper its porosity to zero between 1e19 and 1e21 kg (continuous, matches Orcus and Triton, endpoints flagged `stand-in`). Alternatives: keep the step and move it to about 1e23 kg with a 1.35 times jump left; or leave the step at 1e20 kg until viscous compaction is coded.
 2. **The taxon and field-family rows stay `stand-in` with an open Dirichlet concentration of 10.** Recommended yes (nothing sourced exists; GEN.473 replaces it).
 3. **The organic share of comet refractories N(0.60, 0.15).** Recommended yes (the widest bracket around COSIMA's 0.45, as ruled at 1:23 PM EDT).
