@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1898] - 2026-10-22
+
+**Headline:** The generator now has one table of the gases and compounds that can be in an atmosphere, with the source of every number.
+
+### Added
+- `physics/gases.py` and `physics/data/gases.json` (built by `scripts/build_gas_table.py` from the atmosphere research tables): 78 gases and compounds with formula, name, CAS number, molar mass from the element table, infrared and near-ultraviolet flags, volatility class, photolysis threshold, triple, boiling and critical points, heat capacity, latent heats and, for 24 gases, the Rayleigh cross section with the reference temperature of its refractivity fit. Every row states its source, licence and how far it is checked, and the loader refuses a row that does not. Nothing reads the table yet (GEN.411 and the 8.4 atmosphere recipes do); a test fails when a gas named in a planet class text, in the atmosphere code or in the toxicity note is not a row.
+- The gas table also carries the Henry constants of 35 gases (`Henry.kh(T)`, 273.15 to 323.15 K) and the Lennard-Jones constants of 38 (`Gas.viscosity_upa_s(T)`, Chapman-Enskog with the Neufeld integral). Water vapor has no viscosity law in the research and is refused. The research part printed the viscosity coefficient in micropoise; it is corrected there.
+
 ## [8.0.1897] - 2026-10-22
 
 **Headline:** The Census dial sets how many systems each solar mass of stars makes, from 1 to 3, with the generator's own derived value as Auto.
