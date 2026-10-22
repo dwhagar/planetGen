@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
-| TEST | TEST.264 |
+| TEST | TEST.265 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.73 |
@@ -2439,6 +2439,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | none | open |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) | none | open |
 | TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | done, PR #2416 |
+| TEST.264 | test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
