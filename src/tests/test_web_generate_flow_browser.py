@@ -130,3 +130,22 @@ def test_a_typed_command_in_the_palette_opens_the_review_and_runs_nothing(browse
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+def test_the_palette_finds_a_page_and_the_keys_open_help_and_close_it(browser, server, config):
+    """ADM.120, ADM.122: Ctrl+K and a word lands on that page; `?` lists the keys and Esc closes them."""
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        page.goto(base_url + "/admin/generate", wait_until="load")
+        page.keyboard.press("Control+k")
+        page.fill("dialog.admin-palette input[type=search]", "settings")
+        page.wait_for_selector("dialog.admin-palette li[role=option]")
+        page.keyboard.press("Enter")
+        page.wait_for_url("**/admin/settings*")
+        page.keyboard.press("?")
+        page.wait_for_selector("dialog.admin-keys[open]")
+        page.keyboard.press("Escape")
+        page.wait_for_selector("dialog.admin-keys[open]", state="detached")
+    finally:
+        context.close()
+    assert not problems, "\n".join(problems)
