@@ -418,7 +418,9 @@ def _warm_galaxy_tiles(visitor, cap, deep=False):
 
 
 def _warm_lists(visitor, cap):
-    paths = ["/", "/sectors", "/systems", "/systems?uncharted=1", "/phenomena", "/classes"]
+    from planetgen.web.object_lists import KIND_LABELS
+    paths = ["/", "/sectors", "/systems", "/systems?uncharted=1", "/phenomena", "/classes", "/lists"]
+    paths += [f"/lists/{kind}" for kind in KIND_LABELS]   # UX.141: a keyset page costs the same at any depth
     status = apiclient.get_population_status(visitor.db)   # the pages are not there before the population pass
     paths += [path for kind, path in (("polities", "/polities"), ("species", "/species")) if status.get(kind)]
     for path in paths:

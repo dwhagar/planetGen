@@ -118,10 +118,11 @@ def test_the_first_visit_to_a_sector_and_a_system_is_answered_from_the_cache(gal
 def test_the_first_visit_to_a_list_and_the_search_is_answered_from_the_cache(galaxy, spy):
     lists = _warm(galaxy, "lists")
     search = _warm(galaxy, "search")
-    assert lists["warmed"] == 6 and search["warmed"] == 1
+    from planetgen.web.object_lists import KIND_LABELS
+    assert lists["warmed"] == 7 + len(KIND_LABELS) and search["warmed"] == 1
     web = _web_worker(galaxy.config)
     del spy[:]
-    for path in ("/sectors", "/systems", "/phenomena", "/", "/search"):
+    for path in ("/sectors", "/systems", "/phenomena", "/", "/search", "/lists", "/lists/planet", "/lists/black_hole"):
         assert web.get(path).status_code == 200, path
     rebuilt = [call for call in spy if call != "/galaxy/changes"]   # the stamp check is never cached
     assert rebuilt == [], f"the first visit rebuilt {rebuilt}"
