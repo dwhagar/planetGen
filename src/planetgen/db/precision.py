@@ -140,7 +140,7 @@ _FRAME_REACH = {"galaxy": "galaxy-edge", "sector": "sector"}
 
 _SEPARATION_WORDS = ("distance", "separation", "periapsis", "apoapsis", "perihelion", "orbit_distance", "reflex_offset",
                      "wobble", "min_orbit", "habitable_zone", "lower_limit", "upper_limit", "a_crit",
-                     "binary_primary_position", "binary_secondary_position", "binary_mutual_position")
+                     "binary_primary_position", "binary_secondary_position", "binary_mutual_position", "impact_parameter")
 _DERIVED = {("nearest_systems", "distance_pc"), ("system_owners", "distance_ly")}
 _RELATIVE_UNITS = ("nebula-radius",)
 _OTHER_POSITIONS = {
@@ -148,6 +148,8 @@ _OTHER_POSITIONS = {
     ("sector_path_knots", "z_pc"): "galaxy",
     ("nebula_block_stats", "centroid_x_pc"): "galaxy", ("nebula_block_stats", "centroid_y_pc"): "galaxy",
     ("nebula_block_stats", "centroid_z_pc"): "galaxy",
+    ("orbital_event_bodies", "x_pc"): "galaxy", ("orbital_event_bodies", "y_pc"): "galaxy",
+    ("orbital_event_bodies", "z_pc"): "galaxy",
 }
 """dict: (table, column) -> frame, the positions that are not a table's point (`point_columns.LAYOUTS`)."""
 

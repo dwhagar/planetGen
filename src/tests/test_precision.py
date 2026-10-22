@@ -61,7 +61,7 @@ EXPECTED_FLOOR_M = {
     "bright_stars": 9.2e6, "phenomenon_scatter": 9.2e6, "star_systems": 9.0e6, "rogue_planets": 9.0e6,
     "interstellar_comets": 9.0e6, "asteroid_fields": 9.0e6, "black_holes": 9.0e6, "neutron_stars": 9.0e6,
     "nebulae": 9.0e6, "supernova_remnants": 9.0e6, "quasars": 9.0e6, "facilities": 9.0e6,
-    "nebula_block_stats": 9.0e6, "sector_path_knots": 9.0e6,
+    "nebula_block_stats": 9.0e6, "sector_path_knots": 9.0e6, "orbital_event_bodies": 9.0e6, "orbital_events": 2.4,
 }
 """dict: The smallest body each table places well, metres, to two figures: a change of a column's unit or a reach moves
 one of these, and the table in docs/design/unified-unit-quantity.md (section 6.1) is updated with it."""
