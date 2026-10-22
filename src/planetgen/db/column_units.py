@@ -52,7 +52,7 @@ LOCAL_UNITS = {
     "pc3": LocalUnit("volume", constants.PARSEC_M ** 3),
     "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
     "J/kg": LocalUnit("specific energy", 1.0),
-    "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
+    "A*m2": LocalUnit("magnetic moment", 1.0),
     "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"), "nebula-radius": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic"),
     # no unit
@@ -349,12 +349,11 @@ TABLES = {
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
             "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
-            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index",
+            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "l_rad",
         ),
         "pH": ("ocean_ph",),
         "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"),
         "flag": ("ozone_loss_flag",),
-        "rad": ("l_rad",),
         "W_m2": ("energy_flux_w_m2",),
     },
     "nearest_systems": {
@@ -552,12 +551,11 @@ TABLES = {
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
             "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
-            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index",
+            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "l_rad",
         ),
         "pH": ("ocean_ph",),
         "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"),
         "flag": ("ozone_loss_flag",),
-        "rad": ("l_rad",),
         "W_m2": ("energy_flux_w_m2",),
     },
     "polities": {
@@ -831,6 +829,8 @@ def to_si(table, column):
 
 
 SUFFIX_EXCEPTIONS = {
+    ("planets", "l_rad"): "the radiation lethality score of the habitability model, a ratio, not an angle",
+    ("moons", "l_rad"): "the radiation lethality score of the habitability model, a ratio, not an angle",
     ("nebula_field", "cell_k"): "the third axis of a cell's index, not kelvin",
     ("orbital_events", "hydrogen_limit_sol"): "a mass (the hydrogen-burning limit in solar masses), though the name has no 'mass'",
 }

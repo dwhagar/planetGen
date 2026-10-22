@@ -25,7 +25,7 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
+from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -188,27 +188,28 @@ class Planet(MassObject):
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
-    SERIALIZABLE_FIELDS = [
-        "is_moon", "zone", "description", "atm_molar_density", "gravity",
-        "atm_density", "surface_temperature", "density", "atmospheric_pressure",
-        "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
-        "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
-        "life_chemical", "evolutionary_speed", "reflection_spectrum_visible",
-        "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
-        "life_milestone_age_gyr", "life_system_age_gyr", "flavor_key",
-        "flavor_text_count", "habitable_zone", "volume", "period",
-        "orbital_inclination_deg", "orbital_ascending_node_deg",
-        "position_x", "position_y", "position_z", "orbital_speed_kms",
-        "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
-        "min_update_interval_years",
-        "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
-        *atmosphere.ATMOSPHERE_FIELDS,
-        *magnetism.BODY_FIELDS,
-        *hydrosphere.HYDROSPHERE_FIELDS,
-        *radiation.BODY_FIELDS,
-        *habitability_world.BODY_FIELDS,
-        "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-    ]
+    FIELD_UNITS = {
+        "is_moon": "flag", "zone": "text", "description": "text", "atm_molar_density": "kg/mol", "gravity": "g0",
+        "atm_density": "kg_m3", "surface_temperature": "K", "density": "g_cm3", "atmospheric_pressure": "Pa",
+        "mass": "kg", "atmosphere": "text", "composition": "text", "radius": "km", "planet_class": "text",
+        "distance": "au", "body_type": "text", "scale_height": "km", "hill_radius": "km", "min_orbit_distance": "au",
+        "name": "text", "life_chemical": "text", "evolutionary_speed": "text", "reflection_spectrum_visible": "text",
+        "reflection_spectrum_non_visible": "text", "life_stage": "text", "evolutionary_pace": "text",
+        "life_milestone_age_gyr": "Gyr", "life_system_age_gyr": "Gyr", "flavor_key": "text",
+        "flavor_text_count": "count", "habitable_zone": "au", "volume": "km3", "period": "yr",
+        "orbital_inclination_deg": "deg", "orbital_ascending_node_deg": "deg",
+        "position_x": "au", "position_y": "au", "position_z": "au", "orbital_speed_kms": "km_s",
+        "velocity_x_kms": "km_s", "velocity_y_kms": "km_s", "velocity_z_kms": "km_s",
+        "min_update_interval_years": "yr",
+        "rotation_period_hours": "h", **spin.SPIN_UNITS,
+        **atmosphere.ATMOSPHERE_UNITS,
+        **magnetism.BODY_UNITS,
+        **hydrosphere.HYDROSPHERE_UNITS,
+        **radiation.BODY_UNITS,
+        **habitability_world.BODY_UNITS,
+        "reflex_offset_x": "au", "reflex_offset_y": "au", "reflex_offset_z": "au",
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
     helpers it calls), excluding `star`/`system_config` (shared

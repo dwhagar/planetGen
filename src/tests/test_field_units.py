@@ -14,8 +14,9 @@ from planetgen.db import column_units, store
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.mass_object import PLAIN, MassObject
+from planetgen.generation.mass_object import OUTSIDE_REGISTRY, PLAIN, MassObject
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.star import Star
@@ -24,7 +25,7 @@ from planetgen.physics import unit_registry as units
 from planetgen.physics.quantity import Quantity
 
 STELLAR = (Star, BlackHole, NeutronStar, BinaryStarProxy)
-DECLARED = STELLAR + (Comet, InterstellarComet, AsteroidField, RoguePlanet)
+DECLARED = STELLAR + (Comet, InterstellarComet, AsteroidField, RoguePlanet, Planet)
 
 # The kind table each class is stored in, with the `Field` list that writes and loads it and how many unit-valued
 # attributes the comparison must reach (a remnant's own row holds only its own columns).
@@ -32,7 +33,8 @@ STORED = ((Star, "stars", store.STAR_FIELDS, 25), (NeutronStar, "neutron_stars",
           (BlackHole, "black_holes", store.BLACK_HOLE_FIELDS, 4), (Comet, "comets", store.COMET_FIELDS, 15),
           (InterstellarComet, "interstellar_comets", store.INTERSTELLAR_COMET_FIELDS, 6),
           (AsteroidField, "asteroid_fields", store.ASTEROID_FIELD_FIELDS, 4),
-          (RoguePlanet, "rogue_planets", store.ROGUE_PLANET_FIELDS, 6))
+          (RoguePlanet, "rogue_planets", store.ROGUE_PLANET_FIELDS, 6), (Planet, "planets", store.PLANET_FIELDS, 60),
+          (Planet, "moons", store.MOON_FIELDS, 60))
 
 
 class _Row(dict):
@@ -51,14 +53,14 @@ def test_the_persisted_list_is_the_declared_table(cls):
 @pytest.mark.parametrize("cls", DECLARED)
 def test_every_declaration_is_a_registry_unit_or_a_plain_word(cls):
     for name, unit in cls.FIELD_UNITS.items():
-        assert unit in units.UNITS or unit in PLAIN, f"{cls.__name__}.{name}: {unit!r}"
-    assert not set(PLAIN) & set(units.UNITS)
+        assert unit in units.UNITS or unit in PLAIN or unit in OUTSIDE_REGISTRY, f"{cls.__name__}.{name}: {unit!r}"
+    assert not (set(PLAIN) | set(OUTSIDE_REGISTRY)) & set(units.UNITS)
 
 
 @pytest.mark.parametrize("cls", DECLARED)
 def test_a_unit_in_a_name_is_the_unit_declared(cls):
     for name, unit in cls.FIELD_UNITS.items():
-        stated = column_units.unit_matching_suffix(name)
+        stated = column_units.unit_matching_suffix(name, "planets")
         if stated is not None:
             assert unit == stated, f"{cls.__name__}.{name} is declared {unit!r}, its name says {stated!r}"
 
@@ -71,7 +73,7 @@ def test_a_declared_unit_measures_what_its_column_measures(cls, table, fields, m
             continue
         for key in field.load(_Row()):
             unit = cls.FIELD_UNITS.get(key)
-            if unit is None or unit in PLAIN:
+            if unit is None or unit in PLAIN or unit in OUTSIDE_REGISTRY:
                 continue
             columns = [key] if key in field.columns else list(field.columns)
             kinds = {column_units.kind_of(table, column) for column in columns if (table, column) in column_units.COLUMNS}
@@ -126,6 +128,25 @@ def test_a_quantity_refuses_what_is_not_one():
     assert Star.field_unit("mass") == "kg"
 
 
+def test_a_planet_answers_in_the_units_it_is_held_in():
+    planet = Planet.__new__(Planet)
+    planet.gravity = 1.0
+    planet.distance = 1.0
+    planet.density = 5.514
+    planet.hill_radius = 1.5e6
+    planet.atm_molar_density = 0.02897
+    planet.surface_dose_msv_yr = 2.4
+    assert planet.quantity("gravity").m_s2 == pytest.approx(9.80665)
+    assert planet.quantity("distance").km == pytest.approx(149_597_870.7)
+    assert planet.quantity("density").kg_m3 == pytest.approx(5514.0)
+    assert planet.quantity("hill_radius").Rearth == pytest.approx(1.5e9 / 6.371e6)
+    assert planet.quantity("surface_dose_msv_yr").kind == "dose_rate"
+    assert planet.quantity("surface_dose_msv_yr").Sv_s == pytest.approx(2.4e-3 / units.convert(1.0, "yr", "s"))
+    with pytest.raises(ValueError, match="no quantity the registry can build"):
+        planet.quantity("atm_molar_density")
+    assert Planet.field_unit("atm_molar_density") == "kg/mol"
+
+
 def test_a_comet_answers_in_the_units_its_orbit_is_held_in():
     comet = Comet(SystemConfig(), 1.0)
     comet.perihelion_distance_au = 0.6
@@ -164,23 +185,14 @@ def _mass_object_classes(base=MassObject):
         yield from _mass_object_classes(subclass)
 
 
-# Classes whose fields wait for their own declaration slice of GEN.570 (the planet and moon); a class
-# leaves this list when it declares, and the test below fails if one declares and stays on it.
-WAITING = {"Planet"}
-
-
-def test_a_class_with_persisted_fields_declares_them_or_waits_in_the_list():
+def test_a_class_with_persisted_fields_declares_every_one():
     import planetgen.generation.comet  # noqa: F401
     import planetgen.generation.phenomena.asteroid_field  # noqa: F401
     import planetgen.generation.phenomena.rogue  # noqa: F401
     import planetgen.generation.planet  # noqa: F401
     seen = set()
     for cls in _mass_object_classes():
-        if not cls.SERIALIZABLE_FIELDS:
-            continue
-        seen.add(cls.__name__)
-        if cls.__name__ in WAITING:
-            assert not cls.FIELD_UNITS, f"{cls.__name__} declares its fields: take it off WAITING"
-        else:
+        if cls.SERIALIZABLE_FIELDS:
+            seen.add(cls)
             assert cls.SERIALIZABLE_FIELDS == list(cls.FIELD_UNITS), f"{cls.__name__} persists fields it does not declare"
-    assert WAITING <= seen
+    assert set(DECLARED) <= seen

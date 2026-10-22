@@ -55,12 +55,16 @@ from planetgen import tuning
 from planetgen.physics import activity, constants
 from planetgen.util import draw
 
-BODY_FIELDS = (
-    "magnetic_moment_a_m2", "dipole_class", "induced_moment_a_m2", "magnetopause_rp",
-    "xuv_flux_earth", "xuv_exposure_index", "flare_irradiation_index",
-)
-"""tuple: What this module sets on a planet or moon, as stored in `planets`
-and `moons`."""
+BODY_UNITS = {
+    "magnetic_moment_a_m2": "A*m2", "dipole_class": "text", "induced_moment_a_m2": "A*m2",
+    "magnetopause_rp": "ratio", "xuv_flux_earth": "ratio", "xuv_exposure_index": "ratio",
+    "flare_irradiation_index": "ratio",
+}
+"""dict: What this module sets on a planet or moon, as stored in `planets` and `moons`, with each attribute's native
+unit: the magnetopause in planet radii and the XUV flux in multiples of Earth's are plain ratios."""
+
+BODY_FIELDS = tuple(BODY_UNITS)
+"""tuple: The names of `BODY_UNITS`."""
 
 DIPOLE_CLASSES = ("none", "weak", "earth-like", "strong", "multipolar")
 

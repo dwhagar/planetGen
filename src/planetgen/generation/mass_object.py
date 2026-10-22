@@ -36,10 +36,15 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 _KM_S = unit_registry.unit("km_s").factor
 """float: Metres a second in a kilometre a second."""
 
-PLAIN = ("text", "ratio", "count", "index", "flag", "dex", "unit-vector", "id")
+PLAIN = ("text", "ratio", "count", "index", "flag", "dex", "pH", "unit-vector", "id")
 """tuple: What a field declares in place of a unit when it holds no quantity: a name or a label (`text`), a plain
-number (`ratio`), a whole number (`count`, `index`, `id`), a yes or no (`flag`), a logarithmic scale (`dex`) or one
-component of a unit vector. The same words the column registry (`db.column_units`) uses for a column with no unit."""
+number (`ratio`, which includes a multiple of Earth's value or of the body's own radius), a whole number (`count`,
+`index`, `id`), a yes or no (`flag`), a logarithmic scale (`dex`, `pH`) or one component of a unit vector. The same
+words the column registry (`db.column_units`) uses for a column with no unit."""
+
+OUTSIDE_REGISTRY = ("kg/mol", "A*m2")
+"""tuple: The units of a quantity the registry cannot hold yet, because its dimensions have no amount of substance
+(`kg/mol`, a mean molar mass) or electric current (`A*m2`, a magnetic moment): declared by name, no `Quantity` built."""
 
 GALACTIC_MOTION_UNITS = {
     "galactic_orbital_speed_kms": "km_s", "galactic_orbital_period_gy": "Gyr",
@@ -114,8 +119,8 @@ class MassObject:
             ValueError: For one that holds no quantity (`PLAIN`), or that has no value yet.
         """
         unit = self.FIELD_UNITS[name]
-        if unit in PLAIN:
-            raise ValueError(f"{name} holds no quantity (it is {unit})")
+        if unit in PLAIN or unit in OUTSIDE_REGISTRY:
+            raise ValueError(f"{name} holds no quantity the registry can build (it is {unit})")
         value = getattr(self, name)
         if value is None:
             raise ValueError(f"{name} has no value yet")

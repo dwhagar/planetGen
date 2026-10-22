@@ -76,14 +76,18 @@ radiation, suitability."""
 CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 """tuple: The five that say whether a person survives the surface (Suitability is the long-term sixth)."""
 
-BODY_FIELDS = (
-    "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
-    "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
-    "equipment_tier", "energy_flux_w_m2", "flux_variation",
-)
-"""tuple: What `generate` sets on a planet or moon, as stored in `planets` and
-`moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
-dose refresh re-scores a body from its columns alone)."""
+BODY_UNITS = {
+    "phi4": "ratio", **{f"phi4_{domain}": "ratio" for domain in DOMAINS}, **{f"tier_{domain}": "index" for domain in DOMAINS},
+    "phi_bio": "ratio", "phi_cpx": "ratio", "phi_tech": "ratio", "l_solv": "ratio", "l_chem": "ratio",
+    "l_ener": "ratio", "l_rad": "ratio", "equipment_tier": "index", "energy_flux_w_m2": "W_m2",
+    "flux_variation": "ratio",
+}
+"""dict: What `generate` sets on a planet or moon, as stored in `planets` and `moons` (`energy_flux_w_m2` and
+`flux_variation` are the inputs the score keeps: the dose refresh re-scores a body from its columns alone), with each
+attribute's native unit."""
+
+BODY_FIELDS = tuple(BODY_UNITS)
+"""tuple: The names of `BODY_UNITS`."""
 
 SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation"))
 """tuple: The fields `compute` returns (all but the stored energy flux and flux variation)."""

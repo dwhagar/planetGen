@@ -48,13 +48,16 @@ from planetgen.physics import constants
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
-HYDROSPHERE_FIELDS = (
-    "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
-    "ocean_depth_km", "ice_shell_km", "hp_ice_km",
-    "ocean_class", "ocean_ph", "water_activity", "phosphorus",
-)
-"""tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
-`planets` and `moons`."""
+HYDROSPHERE_UNITS = {
+    "water_mass_fraction": "ratio", "hydrosphere": "text", "ocean_fraction": "ratio", "land_fraction": "ratio",
+    "ocean_depth_km": "km", "ice_shell_km": "km", "hp_ice_km": "km",
+    "ocean_class": "text", "ocean_ph": "pH", "water_activity": "ratio", "phosphorus": "text",
+}
+"""dict: What `generate_hydrosphere` sets on a planet or moon, as stored in `planets` and `moons`, with each
+attribute's native unit."""
+
+HYDROSPHERE_FIELDS = tuple(HYDROSPHERE_UNITS)
+"""tuple: The names of `HYDROSPHERE_UNITS`."""
 
 HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")

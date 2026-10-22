@@ -54,12 +54,15 @@ from planetgen.util.random import log_uniform
 
 PLANCK_J_S = 2 * math.pi * constants.REDUCED_PLANCK
 
-BODY_FIELDS = (
-    "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_helio_mult",
-    "uv_surface_index", "ozone_loss_flag",
-)
-"""tuple: What `generate_dose` sets on a planet or moon, as stored in
-`planets` and `moons`."""
+BODY_UNITS = {
+    "surface_dose_msv_yr": "mSv/yr", "dose_gcr_msv_yr": "mSv/yr", "dose_sep_msv_yr": "mSv/yr",
+    "dose_ground_msv_yr": "mSv/yr", "dose_helio_mult": "ratio", "uv_surface_index": "ratio", "ozone_loss_flag": "flag",
+}
+"""dict: What `generate_dose` sets on a planet or moon, as stored in `planets` and `moons`, with each attribute's native
+unit."""
+
+BODY_FIELDS = tuple(BODY_UNITS)
+"""tuple: The names of `BODY_UNITS`."""
 
 GCR_POINTS = ((0.0, 500.0), (16.4, 237.0), (100.0, 110.0))
 """tuple: `(X g/cm2, mSv/yr)`: the Moon, Mars and a high-altitude point

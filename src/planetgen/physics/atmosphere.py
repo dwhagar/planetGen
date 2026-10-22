@@ -47,8 +47,11 @@ SPECIES_NAMES = {
 PARTIAL_PRESSURE_FIELDS = tuple(f"p_{gas}_kpa" for gas in SPECIES)
 """tuple: The attributes (and columns) holding each species' partial pressure."""
 
-ATMOSPHERE_FIELDS = ("mantle_redox", "mantle_delta_iw") + PARTIAL_PRESSURE_FIELDS
-"""tuple: Every attribute (and column) this module sets."""
+ATMOSPHERE_UNITS = {"mantle_redox": "text", "mantle_delta_iw": "dex", **{field: "kPa" for field in PARTIAL_PRESSURE_FIELDS}}
+"""dict: Every attribute (and column) this module sets, with its native unit."""
+
+ATMOSPHERE_FIELDS = tuple(ATMOSPHERE_UNITS)
+"""tuple: The names of `ATMOSPHERE_UNITS`."""
 
 REDOX_EARTH_DELTA_IW = 3.5
 REDOX_SLOPE = 2.0
