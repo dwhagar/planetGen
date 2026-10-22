@@ -20,6 +20,7 @@ from planetgen.generation import object_first, phenomenon_reach as reach, phenom
 from planetgen.physics import black_hole_formation as formation
 from planetgen.physics.units import ly_to_pc
 from tests import test_gen_scatter_tiers as tiers
+from tests.row_digest import digest
 
 pytestmark = pytest.mark.usefixtures("large_spiral_fallback")
 
@@ -180,19 +181,21 @@ def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_eve
 
 def test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row(monkeypatch):
     """T2: more black holes change none of the neutron stars', planetary nebulae's or remnants' rows."""
-    def rows(shell=10):   # a shell of a few hundred thousand rows: shell 4 holds ten million and 11 GB
-        return list(scatter.scatter_shell(tiers.SHAPE, shell, 3, tiers.EDGE_PC, 4000.0, 11, min_mass_solar=1.0))
-    before = rows()
+    def summary(shell=10):   # a shell of a million rows, streamed (TEST.258: held in a list it was 1.4 GB)
+        rows = scatter.scatter_shell(tiers.SHAPE, shell, 3, tiers.EDGE_PC, 4000.0, 11, min_mass_solar=1.0)
+        holes = [0]
+
+        def count_holes(row):
+            holes[0] += int(row[3] == "black-hole" and row[4] == "stellar")
+        others = digest(rows, keep=lambda row: row[3] != "black-hole", check=count_holes)
+        return others, holes[0]
+    others_before, holes_before = summary()
     bases = {kind: remnant_density.base_rate_per_star(kind) for kind in remnant_density.KINDS}
     monkeypatch.setattr(remnant_density, "base_rate_per_star",
                         lambda kind="black-hole": bases[kind] * (3.0 if kind == "black-hole" else 1.0))
-    after = rows()
+    others_after, holes_after = summary()
 
-    def others(found):
-        return [row for row in found if row[3] != "black-hole"]
-    assert others(before) == others(after) and others(before)
-    holes_before = sum(1 for row in before if row[3] == "black-hole" and row[4] == "stellar")
-    holes_after = sum(1 for row in after if row[3] == "black-hole" and row[4] == "stellar")
+    assert others_before == others_after and others_before[0]
     assert holes_after > 1.5 * holes_before > 0
 
 
