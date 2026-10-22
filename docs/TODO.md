@@ -16930,63 +16930,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   earlier owner line on this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
-- [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
-  Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
-  coordinator). On MySQL 8.0.46 the foreign keys `fk_facilities_type`
-  and `fk_facility_field_values_field` reflect with `ondelete` RESTRICT
-  while the models declare none, so `check-db` reports a healthy
-  database as damaged and six tests fail (test_db_check, test_db_models,
-  test_db_check_deep). Quality confirmed (2026-10-15, combined run) that
-  it fails alone on a clean main, so no lane's change causes it; the six
-  tests are test_a_healthy_database_passes,
-  test_a_stale_system_count_is_a_warning_not_damage,
-  test_the_command_exits_one_on_damage_and_zero_when_clean,
-  test_models_match_a_database_built_from_schema_sql,
-  test_a_changed_column_is_noticed and
-  test_a_deep_check_off_a_terminal_needs_yes. Declaring
-  ondelete='RESTRICT' alone would fix 8.0.46 but break MySQL 8.4 and
-  MariaDB, which reflect none, so the compare must treat all three as
-  equal. Fix: compare RESTRICT, NO ACTION and none as equal in
-  `db/check.py` `_model_drift` and in `db/models.py`. Done: check-db
-  passes on a healthy MySQL 8.0.46 database, the six tests pass, and a
-  real drift in a foreign key's delete rule is still reported. Owner:
-  Core (2026-10-15).
-  Update (Core 1 and Core 2, 2026-10-15): the owner is now Core 2 (Core
-  1 handed it over). Eight tests fail on MySQL 8.0.46, also
-  test_the_check_writes_nothing (KeyError 'table_name':
-  information_schema column names come back upper case, the test reads
-  row["table_name"]) and test_a_deep_check_off_a_terminal_needs_yes;
-  they fail on main alone, always. Regenerating models.py with
-  scripts/generate_db_models.py on that server makes the drift failures
-  vanish, so the fix may also be a regenerate plus the case-insensitive
-  read.
-  Quality (2026-10-15, #1697): the test_db_check column-name case fix
-  (upper-case information_schema names) is merged; the RESTRICT drift
-  itself is still open.
-  Seen again (Quality, 2026-10-15): the six DB.33 tests failed again in
-  the `changed` run, same cause (fails on main).
-  Confirmed again by Core 3 (2026-10-16, 9:05 PM EDT, GEN.149 test run):
-  the same six tests fail on clean origin/main (5b48f34) on every run (2
-  of 2), with the same remove_fk and add_fk items for fk_facilities_type
-  and fk_facility_field_values_field. Owner: Core 2 (in its queue
-  after the plan items; Core 2 confirmed 9:17 PM EDT it is its to fix).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the owner is Core 1
-  (the lane named in Boss's order of 2026-10-16, 2:43 PM and 3:00 PM
-  EDT), unless Core 2 takes it; Core 2's own confirmation of 9:17 PM EDT
-  on 2026-10-16 that it is its to fix stays on record, so the two lines
-  are not reconciled further here (the recommendation was to ask Boss,
-  with Core 1 as the fallback).
-  Decided (Boss, tapped "Core 1" on the DB.33 owner card at 11:29 AM EDT
-  2026-10-21, as the coordinator reported it): Core 1 owns DB.33, after
-  its current queue.
-  Prerequisites: none.
-
 - [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -21772,6 +21715,22 @@ clears each one.
   cause is on this item and the test passes in 20 runs under load.
   Owner: Bug Hunt (a test-flake finding; after TEST.262 and TEST.265).
   Prerequisites: none. Related: TEST.260, TEST.265.
+
+- [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
+  Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
+  a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
+  test on random data (src/tests/test_object_list.py, UX.141's page-walk
+  test). It failed once with "the galaxy has too few planets for a page
+  walk" (3 planets, 6 needed) and passed alone 3 of 3 times. Fails on
+  main: not checked. Frequency: 1 in 4 runs seen. Reproducer: loop the
+  test on a fresh database. Do: make the test's galaxy deterministic (a
+  seed that always holds enough planets, or generate until the minimum
+  is met under a fixed seed) so the page walk always has the planets it
+  needs; no skip when the galaxy is short. Done: the test passes in 20
+  runs on fresh databases. Owner: not assigned (Core 2 wrote UX.141 and
+  is the natural pick when its queue allows; or Bug Hunt after
+  TEST.266).
+  Prerequisites: none. Related: UX.141, TEST.266.
 
 ## USR: User accounts
 

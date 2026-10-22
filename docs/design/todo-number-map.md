@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
-| TEST | TEST.267 |
+| TEST | TEST.268 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.73 |
@@ -576,7 +576,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.30 | One migration for the per-species environment limits | none | open |
 | DB.31 | Store structure, not prose, for life and flavour | none | done, PR #2206 |
 | DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | done, PR #1607 |
-| DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) | none | open |
+| DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) | none | done, PR #2436 |
 | DB.34 | Cell key and covering index on every table that holds a position, in the shared 0093 migration | none | done, PR #1757 |
 | DB.35 | Scatter rows keep their address columns and gain the point columns and the cell key | none | done, PR #1757 |
 | DB.36 | Tables for change plans, their operations and the edit journal (migration only) | none | open |
@@ -2442,6 +2442,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.264 | test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug) | none | done, PR #2425 |
 | TEST.265 | A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug) | none | open |
 | TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | open |
+| TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
