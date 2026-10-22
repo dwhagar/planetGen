@@ -1270,7 +1270,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes | none | open |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | open |
 | GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | none | done, PR #2190 |
-| GEN.568 | One registry of every unit the project uses | none | open |
+| GEN.568 | One registry of every unit the project uses | none | done, PR #2476 |
 | GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | none | open |
 | GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | none | open |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | none | open |

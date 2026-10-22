@@ -992,3 +992,4 @@ Baseline: PR #1817.
 | GEN.334 | 8.3 | Orbital update core |
 | GEN.341 | 8.3 | Orbital update core |
 | GEN.345 | 8.3 | Orbital update core |
+| GEN.568 | 8.4 | Bulk composition |

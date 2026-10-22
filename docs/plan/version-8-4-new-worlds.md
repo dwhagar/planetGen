@@ -23,7 +23,7 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID |  |  |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 |  |  |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | DB.73, GEN.565 |  |
-| GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | GEN.568, GEN.569, GEN.565 |  |
+| GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | GEN.569, GEN.565 |  |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | GEN.565, GEN.570 |  |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
 | GEN.584 | The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped | GEN.578, GEN.565, DB.73 |  |
@@ -40,19 +40,18 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | GEN.577 | Stored planet and moon states become the state of the barycentre of the body and its own members | GEN.576 |  |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | GEN.576, DB.73 |  |
 | GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | GEN.565, GEN.315 |  |
-| GEN.568 | One registry of every unit the project uses |  |  |
-| GEN.585 | Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension | GEN.568 |  |
+| GEN.585 | Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension |  |  |
 | GEN.586 | physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate | GEN.585, GEN.569 |  |
 | GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | GEN.586 |  |
-| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | GEN.568 |  |
-| DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | GEN.568 |  |
-| GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | GEN.568 |  |
+| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks |  |  |
+| DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list |  |  |
+| GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set |  |  |
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | GEN.569 |  |
-| UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | GEN.568 |  |
-| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | GEN.568, GEN.569 |  |
+| UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed |  |  |
+| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | GEN.569 |  |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | GEN.569 |  |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | DB.76 |  |
-| DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header | GEN.568, GEN.569, DB.76 |  |
+| DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header | GEN.569, DB.76 |  |
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | DB.75 |  |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, DB.73, GEN.565 |  |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue |  |  |
