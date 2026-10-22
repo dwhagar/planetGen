@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1874] - 2026-10-22
+
+**Headline:** Every kind of object has a list that reads the object index, a page at a time without skipping rows.
+
+### Changed
+- **`GET /api/object-lists/<kind>` (UX.141, first part).** One page of the systems, stars, planets, moons, belts, comets, facilities or any phenomenon type from the object index, sorted by name, class, mass or radius, filtered by a name prefix, a class or a sector. The next page starts after the last row's object ID, so a deep page costs the same as the first and no query skips rows with `OFFSET`. The index is filled by the warm-up (`planetgen warm object-index`).
+
+TODO items resolved / Added: none / Added: none
+
 ## [8.0.1873] - 2026-10-22
 
 **Headline:** A star's fate as a neutron star or a black hole now depends on its initial mass in windows, and the neutron stars a galaxy ejects now follow from its escape speed, instead of two overlapping ranges and a drawn 20% to 40%.
