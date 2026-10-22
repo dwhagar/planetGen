@@ -14,7 +14,10 @@ already keeps, so one command refreshes them:
 
 - `docs/plan/version-plan.html`: every open item in build order, version by
   version, phase by phase and thread by thread (from
-  `docs/plan/version-*.md`), with a progress bar per version.
+  `docs/plan/version-*.md`), with a progress bar per version; each thread lists
+  its finished items checked off and crossed out above its open ones, and the
+  finished threads that left the plan are listed per version (Boss, 2026-10-21,
+  9:15 PM EDT; the finished items come from `docs/plan/progress-ledger.md`).
 - `docs/plan/todo-reference.html`: every ID ever issued, open or closed,
   with its full text, status, version phase, prerequisites and what it
   unblocks, plus search and filters.
@@ -265,6 +268,35 @@ def parse_ledger(text: str) -> tuple[dict[str, str], int]:
     return rows, int(base.group(1)) if base else 0
 
 
+def parse_ledger_rows(text: str) -> list[tuple[str, str, str]]:
+    """Every ledger row as (item, version, thread), in file order."""
+    return [(m.group(1), m.group(2), m.group(3).strip()) for m in map(LEDGER_ROW_RE.match, text.splitlines()) if m]
+
+
+def build_finished(items: dict, rows: list[tuple[str, str, str]], phases: list[dict]) -> tuple[list[dict], dict]:
+    """The finished subtasks of every thread (Boss, 2026-10-21, 9:15 PM EDT): each thread of a version file gets the
+    finished items whose ledger row names it, to be shown checked off and crossed out above its open items; finished
+    items whose thread no longer exists in the version file are listed per version under their old thread name.
+    Dropped items (superseded, folded or not reproduced) are listed too, marked dropped, so a thread reads whole."""
+    live = {(p["version"], g["name"]) for p in phases for g in p["groups"]}
+    by_thread: dict[tuple[str, str], list[dict]] = {}
+    for item_id, version, thread in rows:
+        it = items.get(item_id)
+        if not it or it["status"] not in ("done", "dropped"):
+            continue
+        by_thread.setdefault((version, thread), []).append(
+            {"id": item_id, "title": it["title"], "dropped": it["status"] == "dropped"})
+    plan_phases = [{**p, "groups": [{**g, "done": by_thread.get((p["version"], g["name"]), [])} for g in p["groups"]]}
+                   for p in phases]
+    retired: dict[str, list[dict]] = {}
+    for (version, thread), done in by_thread.items():
+        if (version, thread) not in live:
+            retired.setdefault(version, []).append({"thread": thread, "items": done})
+    for v in retired.values():
+        v.sort(key=lambda r: r["thread"].lower())
+    return plan_phases, retired
+
+
 def build_progress(items: dict, ledger: dict[str, str], baseline: int, versions: list[dict], phases: list[dict]) -> dict:
     """Finished, open and dropped items per version, with the percentage finished and each phase's open count."""
     missing = []
@@ -512,11 +544,12 @@ def build_data(root: Path) -> dict:
     ledger_file = root / "docs" / "plan" / "progress-ledger.md"
     ledger, baseline = parse_ledger(ledger_file.read_text(encoding="utf-8") if ledger_file.exists() else "")
     progress = build_progress(items, ledger, baseline, versions, phases)
+    plan_phases, retired = build_finished(items, parse_ledger_rows(ledger_file.read_text(encoding="utf-8") if ledger_file.exists() else ""), phases)
     roadmap = build_roadmap(root, items, progress, phases, versions)
     summary = (f"{len(open_ids)} open items, {sum(items[i]['bug'] for i in open_ids)} bugs; "
                f"{len(items)} IDs issued in all")
     return {
-        "plan": {"items": plan_items, "phases": phases, "versions": versions, "decisions": decisions, "generated": summary,
+        "plan": {"items": plan_items, "phases": plan_phases, "retired": retired, "versions": versions, "decisions": decisions, "generated": summary,
                  "headlines": headlines, "issues": {str(k): v for k, v in issues.items()},
                  "progress": progress, "blockers": build_blockers(items, phases)},
         "roadmap": roadmap,
@@ -660,12 +693,22 @@ def build_execution_plan(root: Path, data: dict) -> str:
     goal_rows = ""
     for number in sorted(issues, key=int, reverse=True):
         issue = issues[number]
-        members = [i for i, item in items.items() if int(number) in item["issues"] and item["status"] == "open"]
+        everyone = [i for i, item in items.items() if int(number) in item["issues"]]
+        members = [i for i in everyone if items[i]["status"] == "open"]
         if issue["state"] != "open" or not members:
             continue
+        # Boss (2026-10-21, 9:15 PM EDT): the goal's subtask list shows the finished ones checked off and crossed out.
+        finished = [i for i in everyone if items[i]["status"] == "done"]
+        dropped = [i for i in everyone if items[i]["status"] == "dropped"]
+        pct = round(100 * len(finished) / (len(finished) + len(members)), 1)
         chips = " ".join(f'<span class="id" title="{esc(items[i]["title"])}">{esc(i)}</span>' for i in members)
+        chips += " " + " ".join(f'<span class="id dn" title="finished: {esc(items[i]["title"])}">&#10003; {esc(i)}</span>' for i in finished)
+        chips += " " + " ".join(f'<span class="id dn dropped" title="dropped: {esc(items[i]["title"])}">&#10007; {esc(i)}</span>' for i in dropped)
+        meter = (f'<span class="meter" role="progressbar" aria-label="#{number} progress" aria-valuemin="0" aria-valuemax="100" '
+                 f'aria-valuenow="{pct}"><i style="width:{pct}%"></i></span>')
         goal_rows += (f'<tr><td><a href="{ISSUES_URL}{number}">#{number}</a></td><td>{esc(issue["title"])}</td>'
-                      f'<td class="k">{len(members)}</td><td><div class="chips">{chips}</div></td></tr>')
+                      f'<td class="k">{len(members)}<div class="gp">{meter}<span>{len(finished)} of {len(finished) + len(members)} finished</span></div></td>'
+                      f'<td><div class="chips">{chips}</div></td></tr>')
     goals = goal_rows.count("<tr>")
     bug_count = sum(1 for i in opened if items[i]["bug"])
     notes = render_notes((root / "docs" / "plan" / "execution-notes.md").read_text(encoding="utf-8"))
