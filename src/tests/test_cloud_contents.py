@@ -110,19 +110,19 @@ def test_a_phenomenon_page_has_a_location_block(client, galaxy):
 def test_a_body_inside_a_nebula_says_where_it_is(client, galaxy):
     _ids, printed = galaxy
     system = client.get(f"/api/systems/{printed['inside']}").get_json()
-    planet = system["planets"][0]
-    page = client.get(f"/object/planet:{planet['id']}").get_data(as_text=True)
-    assert 'id="location"' in page
-    assert 'href="/galaxy"' in page and "Cloud Sector" in page and f'href="/system/{printed["inside"]}"' in page
-    assert f'Inside: <a href="/phenomenon/nebula/{printed["veil"]}">Test Veil</a>' in page
-    star = system["stars"][0]
-    assert "Test Veil" in client.get(f"/object/star:{star['id']}").get_data(as_text=True)
+    # A system's planets are drawn, so the star is the body that is always there; any planet is checked too.
+    bodies = [("star", system["stars"][0])] + [("planet", planet) for planet in system["planets"][:1]]
+    for kind, body in bodies:
+        page = client.get(f"/object/{kind}:{body['id']}").get_data(as_text=True)
+        assert 'id="location"' in page
+        assert 'href="/galaxy"' in page and "Cloud Sector" in page and f'href="/system/{printed["inside"]}"' in page
+        assert f'Inside: <a href="/phenomenon/nebula/{printed["veil"]}">Test Veil</a>' in page
 
 
 def test_a_body_in_open_space_says_it_is_in_none(client, galaxy):
     _ids, printed = galaxy
-    planet = client.get(f"/api/systems/{printed['outside']}").get_json()["planets"][0]
-    page = client.get(f"/object/planet:{planet['id']}").get_data(as_text=True)
+    star = client.get(f"/api/systems/{printed['outside']}").get_json()["stars"][0]
+    page = client.get(f"/object/star:{star['id']}").get_data(as_text=True)
     assert "Not inside any nebula or supernova remnant." in page and "Test Veil" not in page
     system_page = client.get(f"/system/{printed['outside']}").get_data(as_text=True)
     assert 'id="location"' in system_page and "Not inside any nebula or supernova remnant." in system_page

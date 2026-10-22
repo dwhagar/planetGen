@@ -204,7 +204,10 @@ def _phenomenon_contents(phenomenon_type, phenomenon_id):
     """The "What is inside it" block of a nebula or supernova remnant (UX.144), or `None` for any other type."""
     if phenomenon_type not in ("nebula", "supernova_remnant"):
         return None
-    return item_pages.contents(apiclient.get_phenomenon_contents(db_name(), phenomenon_type, phenomenon_id))
+    try:
+        return item_pages.contents(apiclient.get_phenomenon_contents(db_name(), phenomenon_type, phenomenon_id))
+    except apiclient.ApiError:
+        return None   # the list is extra: the page opens without it
 
 
 def _badges(system):
