@@ -53,7 +53,7 @@ Three independent families.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | GEN.369, GEN.380, GEN.381 | Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369. |
-| GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | GEN.601, GEN.605, GEN.603 | Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate. |
+| GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | GEN.605, GEN.603 | Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate. |
 
 ## Phase 3: Lenticular, populations, clusters and the nucleus
 
@@ -86,7 +86,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66, GEN.608 | Step 7 of the galaxy types chain. |
+| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66 | Step 7 of the galaxy types chain. |
 
 ## Phase 5: Pages, tests and docs
 
@@ -94,7 +94,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135, ADM.110, GEN.608 | Step 8 of the galaxy types chain. |
+| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135, ADM.110 | Step 8 of the galaxy types chain. |
 
 ### Galaxy Map
 
