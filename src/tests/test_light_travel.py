@@ -61,7 +61,7 @@ def test_faster_than_light_toward_the_observer_never_settles():
 
 def test_a_spatial_position_in_light_years_is_seen_a_year_ago():
     star = SpatialPosition3D((1.0, 0.0, 0.0), (0.0, 0.0, 0.0), velocity_vector_cartesian=(0.1 * C, 0.0, 0.0),
-                             length_unit_m=LY, epoch_unix=1000.0)
+                             length_unit="ly", epoch_unix=1000.0)
     position, light_time = apparent_position_of(star, (0.0, 0.0, 0.0))
     assert light_time == pytest.approx(YEAR / 1.1)
     assert position[0] == pytest.approx(LY / 1.1)

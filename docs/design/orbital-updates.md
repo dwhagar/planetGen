@@ -101,7 +101,7 @@ as given in its own frame and the others are derived from it, so a moon
 set by its system offset keeps its metres exactly. The prototype's
 placeholder minimum-observable constants are replaced by the thresholds
 below (`THRESHOLDS_M`: galactic, system, planetary), with the next-due time
-capped at a billion years. Lengths are in a unit the object chooses (`length_unit_m`: light-years for sector entries, AU inside a system), so no round trip through metres touches stored values. Values the maths cannot hold (non-finite
+capped at a billion years. Lengths are in a unit the object chooses (`length_unit`, a key of the unit registry: "ly" for sector entries, "au" inside a system), so no round trip through metres touches stored values. Values the maths cannot hold (non-finite
 numbers, a negative radius, a polar angle outside [0, pi], a speed at or
 above the speed of light, a negative mass) raise `ValueError`.
 

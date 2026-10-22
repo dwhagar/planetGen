@@ -8,6 +8,7 @@ import pytest
 
 from planetgen.physics import constants
 from planetgen.physics import position as pos
+from planetgen.physics import unit_registry
 from planetgen.physics.position import SpatialPosition3D
 
 SECTOR = (1.0e17, -2.0e17, 3.0e16)
@@ -106,7 +107,7 @@ def test_the_angles_at_the_origin_and_on_the_axis():
     lambda p: p.set_galactic_spherical(-1.0, 0.0, 1.0),
     lambda p: p.set_galactic_spherical(1.0, 0.0, 4.0),
     lambda p: p.set_galactic_cylindrical(-1.0, 0.0, 0.0),
-    lambda p: p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS, 0, 0),
+    lambda p: p.set_velocity_cartesian(constants.SPEED_OF_LIGHT_M_S, 0, 0),
     lambda p: p.set_mass(-1.0),
     lambda p: p.set_mass(float("nan")),
 ])
@@ -163,18 +164,23 @@ def test_mass_and_mu_follow_each_other():
     assert p.mu == pytest.approx(3.986e14, rel=1e-3)
     p.set_mu(1.32712440018e20)
     assert p.mass_kg == pytest.approx(1.98841e30, rel=1e-4)
-    assert pos.mass_of(pos.mu_of(7.0)) == pytest.approx(7.0)
+    relation = unit_registry.RELATIONS["mass-mu"]
+    assert relation.inverse(relation.forward(7.0)) == pytest.approx(7.0)
+    assert p.mu == pytest.approx(relation.forward(p.mass_kg), rel=1e-12)
+    q = SpatialPosition3D((0.0, 0.0, 0.0), (0.0, 0.0, 0.0), mass_kg=7.0)
+    assert q.mu == relation.forward(7.0) == constants.G * 7.0
 
 
 def test_coordinates_are_kept_in_the_unit_given_with_no_round_trip():
-    ly = constants.LY_TO_M
-    p = SpatialPosition3D((10.0, 20.0, 30.0), (9.0, 18.0, 27.0), length_unit_m=ly)
+    p = SpatialPosition3D((10.0, 20.0, 30.0), (9.0, 18.0, 27.0), length_unit="ly")
+    assert p.length_unit == "ly"
     assert p.get_coordinates("sector", "cartesian") == (1.0, 2.0, 3.0)
     p.set_sector_cartesian(0.1, 0.2, 0.3)
     assert p.get_coordinates("sector", "cartesian") == (0.1, 0.2, 0.3)
     assert p.get_coordinates("galactic", "cartesian") == pytest.approx((9.1, 18.2, 27.3))
-    with pytest.raises(ValueError):
-        SpatialPosition3D((0, 0, 0), (0, 0, 0), length_unit_m=0.0)
+    for bad in ("furlong", "kg", "km_s", None, 1.0):
+        with pytest.raises(ValueError, match="length unit"):
+            SpatialPosition3D((0, 0, 0), (0, 0, 0), length_unit=bad)
 
 
 def test_carrying_an_anchor_moves_the_body_with_it():
@@ -269,7 +275,8 @@ def test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star():
     planet = next(p for p in system.planets if getattr(p, "spatial", None))
     system_frame = planet.spatial.get_coordinates("system", "cartesian")
     assert (planet.position_x, planet.position_y, planet.position_z) == pytest.approx(system_frame, rel=1e-9, abs=1e-9)
-    assert planet.spatial.length_unit_m == constants.AU_M
+    assert planet.spatial.length_unit == "au"
+    assert unit_registry.unit(planet.spatial.length_unit).factor == constants.AU_M
     assert planet.spatial.mass_kg == planet.mass and planet.spatial.mu == pytest.approx(constants.G * planet.mass)
     # TEST.108: a random close binary used to fail this on the primary star.
     center_galactic = _system_origin_au(entry, system)
@@ -410,9 +417,9 @@ def test_dropping_the_star_keeps_the_galactic_velocity():
 def test_the_speed_of_light_limit_covers_both_frames():
     p = _planet_moving()
     with pytest.raises(ValueError):
-        p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS, 0.0, 0.0, frame="system")
+        p.set_velocity_cartesian(constants.SPEED_OF_LIGHT_M_S, 0.0, 0.0, frame="system")
     with pytest.raises(ValueError):
-        p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS - 1.0e5, 0.0, 0.0, frame="system")
+        p.set_velocity_cartesian(constants.SPEED_OF_LIGHT_M_S - 1.0e5, 0.0, 0.0, frame="system")
 
 
 def test_the_time_to_observable_movement_uses_the_relative_speed_inside_a_system():
@@ -441,7 +448,7 @@ EDGE_PC = 4.0
 
 
 def _in_pc(point_pc, edge=EDGE_PC):
-    return SpatialPosition3D(point_pc, (0.0, 0.0, 0.0), length_unit_m=constants.PARSEC_M, sector_edge_pc=edge)
+    return SpatialPosition3D(point_pc, (0.0, 0.0, 0.0), length_unit="pc", sector_edge_pc=edge)
 
 
 def test_the_sector_address_is_the_cell_holding_the_position():
@@ -542,3 +549,12 @@ def test_a_body_moved_several_times_reads_only_its_last_place():
         for form in ("cartesian", "cylindrical", "spherical"):
             assert moved.get_coordinates(frame, form) == fresh.get_coordinates(frame, form)
     assert moved.sector_address == fresh.sector_address
+
+
+def test_the_position_module_states_no_unit_factor_of_its_own():
+    """The registry owns the length unit, the speed of light and the mass and mu relation (GEN.573)."""
+    for name in ("SPEED_OF_LIGHT_MS", "mu_of", "mass_of", "length_unit_m"):
+        assert not hasattr(pos, name), name
+    assert not hasattr(SpatialPosition3D((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)), "length_unit_m")
+    assert pos._KM_S == unit_registry.unit("km_s").factor
+    assert pos._MASS_MU is unit_registry.RELATIONS["mass-mu"]

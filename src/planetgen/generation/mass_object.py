@@ -27,10 +27,13 @@ import math
 
 from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.physics import constants as physical_constants
-from planetgen.physics import spin, state_vectors
+from planetgen.physics import spin, state_vectors, unit_registry
 from planetgen.physics.kepler import universal_step
 from planetgen.physics.position import SpatialPosition3D, update_interval_s
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
+
+_KM_S = unit_registry.unit("km_s").factor
+"""float: Metres a second in a kilometre a second."""
 
 GALACTIC_MOTION_FIELDS = [
     "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
@@ -85,7 +88,7 @@ class MassObject:
         on first use, with the mass and mu it has by then."""
         if self.spatial is None:
             self.spatial = SpatialPosition3D((x, y, z), (0.0, 0.0, 0.0), star_center_galactic=(0.0, 0.0, 0.0),
-                                             length_unit_m=physical_constants.AU_M)
+                                             length_unit="au")
         else:
             self.spatial.set_system_cartesian(x, y, z)
         self._staged_au = None
@@ -101,7 +104,7 @@ class MassObject:
         if self.spatial is None:
             self._staged_velocity_kms = (vx, vy, vz)
             return
-        self.spatial.set_velocity_cartesian(vx * 1000.0, vy * 1000.0, vz * 1000.0, frame="system")
+        self.spatial.set_velocity_cartesian(vx * _KM_S, vy * _KM_S, vz * _KM_S, frame="system")
         self._staged_velocity_kms = None
 
     def orbit_mu_au3_per_year2(self):
@@ -166,7 +169,7 @@ class MassObject:
             velocity = tuple(v * to_au_per_year for v in self.spatial.get_velocity_vector("system"))
             position, velocity = universal_step(position, velocity, self.orbit_mu_au3_per_year2(), years)
             self.set_position_au(*position)
-            self.set_velocity_kms(*(v / to_au_per_year / 1000.0 for v in velocity))
+            self.set_velocity_kms(*(v / to_au_per_year / _KM_S for v in velocity))
             return
         period_gy = getattr(self, "galactic_orbital_period_gy", None)
         if period_gy:
@@ -194,7 +197,7 @@ class MassObject:
         """The body's speed, km/s: the length of its velocity relative to its primary, or, for a body that goes round the
         galaxy with no such vector, its circular galactic speed; `None` with neither."""
         if self.spatial is not None and self.spatial.get_velocity_vector("system") is not None:
-            return self.spatial.get_speed("system") / 1000.0
+            return self.spatial.get_speed("system") / _KM_S
         return getattr(self, "galactic_orbital_speed_kms", None)
 
     def axial_tilt_from_state(self):
@@ -222,11 +225,11 @@ class MassObject:
         if point is not None:
             position = point.get_coordinates("system", "cartesian")
             if point.get_velocity_vector("system") is not None:
-                velocity = tuple(v / 1000.0 for v in point.get_velocity_vector("system"))
+                velocity = tuple(v / _KM_S for v in point.get_velocity_vector("system"))
             mass, mu, epoch = point.mass_kg, point.mu, point.epoch_unix
         speed = self.speed_kms()
         if epoch is not None and speed is not None:
-            next_due = epoch + update_interval_s(speed * 1000.0, scale)
+            next_due = epoch + update_interval_s(speed * _KM_S, scale)
         return KinematicRecord(position, velocity, self.spin_axis, self.spin_rate_rad_s, mass, mu, epoch, next_due)
 
     def set_galactic_motion(self, galactic_center_dist_ly=None, galactic_orbital_phase_deg=None):
