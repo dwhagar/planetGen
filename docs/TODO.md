@@ -15780,8 +15780,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (a test compares them); an empty outline is refused with the reason.
   Owner: the Galaxy dials lane (assigned by the coordinator, 8:37 AM EDT
   2026-10-22, so ADM.124 can show the line; the lane had finished and
-  retired about 7:05 AM EDT as the lane reported, so a thread must be
-  started or reopened for it).
+  retired about 7:05 AM EDT as the lane reported, and the coordinator
+  reopened its thread for this item at 8:40 AM EDT as the lane clock
+  reads).
   Prerequisites: none. Related: ADM.124, GEN.605, GEN.603.
 
 - [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
