@@ -17737,30 +17737,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
-- [ ] **DB.31 Store structure, not prose, for life and flavour**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Replace planet_evolutionary_paragraphs and
-  moon_evolutionary_paragraphs text with the stage, the pace and the
-  ages; flavor_text with a flavour key; drop hab_note (computed) and the
-  run-config markdown column. Then life_stage_from_paragraphs and the
-  string searches in decide_flavor_text go. Changes what generation
-  stores, not the galaxy (draws are unchanged). Database
-  owns the migration and agrees its timing; Foundations Wording writes
-  the code against it. The phi4* column names stay (decided default); a
-  rename to phi6* is not planned.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DB.50, DB.51, DB.52. It mixes two migrations
-  (adding the structure columns, then dropping three kinds of prose
-  columns and two tables) with a cross-cutting code change that another
-  lane writes ('Database owns the migration and agrees its timing;
-  Foundations Wording writes the code against it').
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
   coordinator). On MySQL 8.0.46 the foreign keys `fk_facilities_type`
@@ -18165,7 +18141,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 - [ ] **DB.62 Upload bookkeeping tables in the control database (migration only)**
   Split from API.11 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). One Alembic migration on the control
-  database (control v12 in api-design-standards.md section 7.3) adds
+  database (the control database is at version 14, so a later one) adds
   `upload_runs` (id, owner, key id, galaxy database, state, created,
   last contact), `upload_batches` (run, seq, sha256, bytes, received
   at), `upload_units` (run, unit key, state open, sealed, verified,
