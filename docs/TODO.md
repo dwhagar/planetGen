@@ -21619,36 +21619,6 @@ clears each one.
   test).
   Prerequisites: none. Related: UX.141, TEST.266.
 
-- [ ] **TEST.268 Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug)**
-  Found by the Galaxy dials lane (about 7:05 AM EDT 2026-10-22 as the
-  lane reported, while merging GEN.607), filed by the TODO thread. Kind:
-  regression, fails on main at 2365499 without GEN.607's change, every
-  run:
-  src/tests/test_galaxy_gen.py::test_an_address_named_outside_the_outline_is_generated_from_its_profile
-  (3 params) and
-  ::test_neighborhood_around_a_sector_outside_the_outline_takes_the_reach_and_says_how_big_it_is
-  (generate exits with status 1). Reproducer: run those tests alone. The
-  lane named DB.66 (#2439) and "GEN.379 (#2440)" as the commits before
-  the break; #2440 was a docs-only PR, so the cause is among the
-  generator and schema merges since the last green run: DB.66 (the new
-  `galaxy_shape` columns, migration 0117), GEN.545 (#2434, the derived
-  mean system mass), GEN.596 (#2428) or GEN.621 (#2418). Do: read the
-  status-1 message, bisect over those merges, and fix the cause (or the
-  tests if one of them changed a documented behavior on purpose). Done:
-  the four tests pass and a full gate shows them green. Owner: Bug Hunt
-  (the coordinator, about 7:08 AM EDT 2026-10-22 as the lane reported):
-  bisect first, ahead of TEST.258; it hands to Core 1 or Blocker 2
-  through the coordinator if the culprit is theirs.
-  Unreproduced (Bug Hunt, relayed by the coordinator about 7:20 AM EDT
-  2026-10-22 as the lane reported): Bug Hunt cannot reproduce the four
-  failures on main or in a fresh clone, so the cause is likely
-  machine-specific (the Galaxy dials lane's MySQL grant). The
-  coordinator asked that lane for the exact output and its SHOW GRANTS.
-  Keep this item open as unreproduced until it answers; if the output is
-  a grant error (1044) it is the known machine setup gap and the item is
-  dropped.
-  Prerequisites: none. Related: DB.66, GEN.545.
-
 - [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
   Found by the Admin redesign lane (about 6:49 AM EDT 2026-10-22 as the
   lane reported, in a full non-browser phase), filed by the TODO thread.
