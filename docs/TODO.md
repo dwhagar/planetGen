@@ -21641,6 +21641,27 @@ clears each one.
   through the coordinator if the culprit is theirs.
   Prerequisites: none. Related: DB.66, GEN.545.
 
+- [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
+  Found by the Admin redesign lane (about 6:49 AM EDT 2026-10-22 as the
+  lane reported, in a full non-browser phase), filed by the TODO thread.
+  Kind: test bug (src/tests/test_settings_writer.py, line 198). The test
+  saves eight times and asserts `names == sorted(names, reverse=True)`.
+  When two saves land in the same second, the second archive is named
+  with a `-2` suffix (src/planetgen/backup/core.py, `{base}-{n}`), and
+  `list_archives` correctly lists it first (it sorts with `_order`), but
+  as plain strings `...02Z-2.tar.bz2` sorts before `...02Z.tar.bz2` (`-`
+  is 0x2d, `.` is 0x2e), so the assertion fails. The code is right and
+  the test's ordering is wrong. Failed names seen:
+  ['20261022T104902Z-2.tar.bz2', '20261022T104902Z.tar.bz2',
+  '20261022T104901Z-4.tar.bz2']. Fails on main: yes whenever two saves
+  fall in one second (1 in this gate; it should be common on a fast
+  machine). Reproducer: run the test in a loop. Do: compare with
+  `backup.core._order` (sort the names with the same key `list_archives`
+  uses), not as strings. Done: the test passes 50 runs in a row. Owner:
+  not assigned (the Admin redesign lane found it and works in the
+  settings area; any lane can take it).
+  Prerequisites: none. Related: ADM.101.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
