@@ -230,6 +230,7 @@ def _profile(config, control, args, workdir):
 
 def _plan_commands(args):
     """The commands of the plan: the skeleton, then the scatters on it, each its own command (PERF.121)."""
+    from planetgen.generation import run_common
     floor = ["--bright-star-min-luminosity", "100000"]
     return [["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc"],
             ["scatter", "--mass", *floor], ["scatter", "--luminosity", *floor], ["scatter", "--phenomena"]]

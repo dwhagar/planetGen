@@ -478,7 +478,8 @@ def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
             stages.finish()
             numbers = [line.split(":")[0] for line in lines]
             assert len(numbers) == len(set(numbers)) and all(line.startswith("Stage ") for line in lines)
-            assert len(lines) == len(listed)
+            # a one-stage command under the runner's numbering is named by the runner's banner alone
+            assert len(lines) == (0 if len(listed) == 1 and env else len(listed))
 
 
 def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
