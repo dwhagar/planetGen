@@ -31,7 +31,7 @@ Small clean-ups that wait for an upstream release; none is part of a version's b
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | GEN.586 | Optional; Boss chose R1 option 1, so nothing waits on it. |
+| GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled |  | Optional; Boss chose R1 option 1, so nothing waits on it. |
 
 ### Paging audit
 

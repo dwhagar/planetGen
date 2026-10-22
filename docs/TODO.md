@@ -5436,7 +5436,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.569's Quantity instead of GEN.299's. GEN.299, GEN.569, GEN.573 and
   UX.139 merged as #2490 (Core 4, 2:20 PM EDT 2026-10-22 as the lane
   reported), so the sweep items are unblocked.
-  Prerequisites: GEN.348, UX.128, GEN.349. Related: GEN.294, UX.108.
+  Prerequisites: UX.128, GEN.349. Related: GEN.294, UX.108.
 
 - [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
   Boss (2026-10-16, 1:07 PM EDT): "I also want the new generate scatters
@@ -6106,20 +6106,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lists the three outcomes of the test and the test passes.
   Prerequisites: GEN.346. Related: GEN.143.
 
-- [ ] **GEN.348 Describer, CLI query lines and class page ranges take Quantity**
-  Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The Python text output: the
-  describer, the CLI query lines, the class page ranges and the
-  wide-binary, comet, nebula and quasar numbers that UX.107 sends
-  through the ladders take a Quantity instead of multiplying by a unit
-  factor or calling format_quantity beside a unit. Done: none of those
-  call sites converts by hand, output is unchanged, the old helpers they
-  used have no caller.
-  Rescoped (relayed 10:45 AM EDT 2026-10-22): takes GEN.569's Quantity
-  (the class GEN.299 would have been); the prerequisite moved from
-  GEN.299 to GEN.569.
-  Prerequisites: none. Related: GEN.300, GEN.299, GEN.571, GEN.574.
-
 - [ ] **GEN.349 API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed**
   Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). The last call sites (the API
@@ -6129,7 +6115,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the grep test passes and no compatibility layer is left.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): the sweep builds on
   GEN.569's Quantity, through GEN.348 and UX.128.
-  Prerequisites: GEN.348, UX.128. Related: GEN.300.
+  Prerequisites: UX.128. Related: GEN.300.
 
 - [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -13858,8 +13844,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the coordinator, 8:16 AM EDT 2026-10-22). Core 4 also holds GEN.585,
   GEN.586 and the family-class slices GEN.565d (StellarObject) and
   GEN.565e (SmallBody) (the coordinator, relayed 11:21 AM EDT 2026-10-22
-  as the lane's clock reads); GEN.565d and GEN.565e still wait on Core
+  as the lane's clock reads); GEN.565d and GEN.565e waited on Core
   1's DB.74 shape.
+  Merged in part (Core 4, GEN.565d StellarObject and GEN.565e SmallBody,
+  #2542 with GEN.585 and GEN.586, reported 7:17 PM EDT 2026-10-22 on the
+  lane's clock; no epoch, bit-identical): the stellar and small-body
+  families are on the core. This item stays open.
   Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
   4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
   field name or draw changes): `generation/mass_object.py`
@@ -14620,93 +14610,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moving it onto the point is this item, after GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
-  Part of the unified orbited-body plan (GEN.550;
-  docs/design/unified-unit-quantity.md section 11, UN13). Decided:
-  Boss's cards R1 to R4 on the unit relations
-  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
-  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
-  times converted), every one the recommended option: R1 dimensions in
-  the registry plus named relations with a dimension test, plain floats
-  in the kernels, no operator arithmetic on Quantity in the kernels; R2
-  relations declared as data (name, input kinds, output kind, formula)
-  with the fast float kernel and the Quantity wrapper generated from the
-  one declaration; R3 SI inside the kernels, the other unit systems (AU,
-  year, solar mass) generated from the registry where a kernel wants
-  them, so 4 pi squared comes from G's dimension and is no longer typed;
-  R4 the relations replace the hand-written laws with the UN5 sweep,
-  file group by file group, and only where the golden set is
-  bit-identical. Boss's question (12:09 AM EDT): do we need converters
-  from one type of unit to another by putting two or more units together
-  in the right order. Owner: Core 4 (the coordinator, relayed 11:21 AM EDT
-  2026-10-22 as the lane's clock reads; it was proposed for Core 5). Do: extend the registry of GEN.568
-  so the dimension (exponent vector over mass, length, time and
-  temperature; angle and counts stay dimensionless kinds) is required on
-  every unit and kind, and list the derived kinds the code uses with
-  their dimensions and display units: density, acceleration, energy,
-  force, mass flow, flux, number density, angular momentum and angular
-  rate. Add named unit systems, each a list of base units (SI; AU, year
-  and solar mass): the number of any constant (G, c, sigma) in a system
-  is computed from its dimension and the base units, so the 4 pi squared
-  of `kepler.AU3_PER_YR2_PER_SOLAR_MASS` and the other typed shortcuts
-  are generated and tested. About 100 to 150 lines, no run-time cost.
-  Done: every unit and kind has a dimension and a test fails without
-  one; compound units agree with their parts; G, c and sigma in
-  AU-year-solar-mass equal the typed values (4 pi squared for G) to the
-  last digit or the difference is stated; a constant in a system is
-  computed, never typed.
-  Prerequisites: none. Related: GEN.550, GEN.565, GEN.568, GEN.569.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
-- [ ] **GEN.586 physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate**
-  Part of the unified orbited-body plan (GEN.550;
-  docs/design/unified-unit-quantity.md section 11, UN14). Decided:
-  Boss's cards R1 to R4 on the unit relations
-  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
-  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
-  times converted), every one the recommended option: R1 dimensions in
-  the registry plus named relations with a dimension test, plain floats
-  in the kernels, no operator arithmetic on Quantity in the kernels; R2
-  relations declared as data (name, input kinds, output kind, formula)
-  with the fast float kernel and the Quantity wrapper generated from the
-  one declaration; R3 SI inside the kernels, the other unit systems (AU,
-  year, solar mass) generated from the registry where a kernel wants
-  them, so 4 pi squared comes from G's dimension and is no longer typed;
-  R4 the relations replace the hand-written laws with the UN5 sweep,
-  file group by file group, and only where the golden set is
-  bit-identical. Owner: Core 4 (the coordinator, relayed 11:21 AM EDT
-  2026-10-22 as the lane's clock reads; the note offered Core 4). Do: one module where each relation is declared
-  once: its name, its input kinds, its output kind and a formula written
-  with `+ - * / **` (a `relations.sqrt` accepts the probe objects). Two
-  entry points come from each declaration: a float kernel in SI for
-  generation (`surface_gravity(mass_kg, radius_m)`) and a Quantity
-  wrapper for the edges (`surface_gravity(Quantity, Quantity)` returns a
-  Quantity of kind acceleration, every unit and the Earth multiple
-  answered). About 15 relations cover the hand-written laws
-  (Schwarzschild radius, surface gravity, density and sphere volume,
-  luminosity from radius and temperature and equilibrium temperature,
-  Kepler's third law and mean motion, escape speed, break-up speed and
-  vis-viva) plus Hill radius, Roche limit, inverse-square flux and mass
-  flow; the System plan adds `rotation_period <-> angular_rate`,
-  `obliquity(axis, orbit_normal)`, `breakup_rate(mass, radius)` and
-  `galactic_orbit(position, velocity)` (GEN.584 reads them for the
-  derived columns). The dimension test runs each formula once on probe
-  objects that carry a dimension and checks the result has the declared
-  output dimension, in the `physics/mathcheck.py` invariant group
-  (TEST.65); a km where m was meant or a missing square fails the gate,
-  nothing is checked at run time. About 250 to 350 lines with tests.
-  Done: each relation has a kernel, a wrapper and a dimension test; a
-  deliberately wrong formula fails the gate; kernel and wrapper agree
-  bit for bit on the golden inputs; the module header states the unit
-  rules and that kernels take plain SI floats.
-  Progress (Core 4, relayed 2:20 PM EDT 2026-10-22 as the lane's clock
-  reads): built on a branch with 21 laws, gated separately from GEN.585,
-  not merged; the vector laws `obliquity` and `galactic_orbit` are left
-  for GEN.584 to declare because the formulas here take scalars only.
-  Prerequisites: GEN.585. Related: GEN.550, GEN.565, GEN.568,
-  GEN.569.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **GEN.587 Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set**
   Part of the unified orbited-body plan (GEN.550;
   docs/design/unified-unit-quantity.md section 11, UN15). Decided:
@@ -14742,7 +14645,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the bare 1000 beside a radius, the three Kepler unit systems are one
   law, and every sweep is bit-identical on the golden set or carries its
   epoch.
-  Prerequisites: GEN.586. Related: GEN.550, GEN.565, GEN.568, GEN.569.
+  Prerequisites: none. Related: GEN.550, GEN.565, GEN.568, GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **GEN.588 Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled**
@@ -14761,7 +14664,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.4). Proposed owner: Core 5. Done: the operators exist on Quantity,
   the kernels do not use them (a test greps the physics kernels), and a
   mismatch raises.
-  Prerequisites: GEN.586. Related: GEN.550, GEN.568, GEN.569.
+  Prerequisites: none. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
@@ -17076,6 +16979,26 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   'unspecified', and the DB.76 suffix test passes with the declarations.
   Owner: Core 1 (proposed; the registry is its work), after DB.74.
   Prerequisites: none. Related: DB.76, DB.74, GEN.568.
+
+- [ ] **DB.88 The vessels table has an Object ID but is not in db/kind_tables.py: test_kind_tables fails on main (bug)**
+  URGENT: red on main. Found by Core 4 (relayed 7:17 PM EDT 2026-10-22
+  on the lane's clock, after its GEN.565d, GEN.565e, GEN.585 and GEN.586
+  merge #2542; the coordinator relayed it at 7:18 PM EDT; confirmed on
+  origin/main at 06e41d9 by the TODO thread, 1 failed, 22 passed), filed
+  by the TODO thread. Kind: bug (DB.63's vessels table, #2530, has an
+  Object ID column but no entry in db/kind_tables.py). Test:
+  src/tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group.
+  Failure: 'a table with a uid is not in the registry'; the extra table
+  is vessels. Fails on main: yes, always. Reproducer: python -m pytest
+  src/tests/test_kind_tables.py. Do: add vessels to db/kind_tables.py
+  with the groups its columns put it in (uid, and any of id_block,
+  timestamped, sector_filed, system_filed, star_filed, containable or
+  path that fit; see docs/design/mass-object-class.md), so the readers
+  in store.py, fingerprint.py, edits.py, api/ids.py and
+  galaxy/objectref.py agree; no test change. Done: test_kind_tables.py
+  passes on main. Owner: the DB items chain lane (the coordinator,
+  relayed 7:18 PM EDT), with DB.87's fix still fresh.
+  Prerequisites: none. Related: DB.63, DB.87.
 
 ## API: The JSON API
 
@@ -20181,42 +20104,6 @@ clears each one.
   the test passes in 20 full-gate runs. Owner: Bug Hunt (proposed, after
   TEST.275).
   Prerequisites: none. Related: PERF.144, TEST.265.
-
-- [ ] **TEST.279 Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug)**
-  Found by Core 3 (relayed 4:54 PM EDT 2026-10-22 as the lane's clock
-  reads), filed by the TODO thread. Kind: eight tests fail on main with
-  an assertion: a phenomenon page answers 404 where the test expects
-  200. Tests: src/tests/test_web_system_phen.py (test_phenomenon_detail,
-  test_phenomenon_page_shows_it_on_the_galaxy_map,
-  test_phenomenon_page_has_a_bookmark_button,
-  test_remnant_page_keeps_the_au_diagram,
-  test_phenomenon_page_pick_mode_offers_only_the_pick_button) and
-  src/tests/test_class_pages.py (test_phenomenon_page_links_its_class
-  for nebula and supernova_remnant,
-  test_phenomenon_unknown_class_stays_text). Fails on main: yes, in a
-  clean worktree of origin/main at the Release 8.0.1930 commit on Core
-  3's machine; other machines not checked. Frequency: every run.
-  Reproducer: python3 -m pytest -q src/tests/test_web_system_phen.py
-  src/tests/test_class_pages.py (about 40 s). Core 3's reading: the
-  phenomenon fixture finds no phenomenon row in that machine's seeded
-  galaxy, so it may be the fixture or the seed and not a page bug. Do:
-  find out whether the fixture creates its own phenomenon or relies on a
-  seeded galaxy; if it relies on one, make the fixture create the row it
-  needs; if it creates one and the page 404s, fix the page (UX.144's
-  phenomenon contents route #2485 and UX.143's object pages #2432 touch
-  these pages). No skip and no retry. Done: the eight tests pass on a
-  clean checkout of main and in a full gate. Owner: Core 3 (the
-  coordinator, relayed 5:26 PM EDT 2026-10-22 as the lane's clock reads;
-  urgent: it blocks any lane that runs these two files).
-  Prerequisites: none. Related: UX.143, UX.144, TEST.267.
-  Cause found (the coordinator, relayed 5:26 PM EDT 2026-10-22 as the
-  lane's clock reads): environment dependent, from UX.144 (#2485).
-  `test_web_system_phen.py`'s `_FAKED` lacks
-  `apiclient.get_phenomenon_contents`, so on a machine with Apache up on
-  port 80 the call gets an HTML 404, raises `NotFoundError` (not an
-  `ApiError` subclass) and the phenomenon route answers 404. Fix: add
-  the function to `_FAKED` (one line) and catch `NotFoundError` in
-  `_phenomenon_contents`. Not a seed or fixture problem as first guessed.
 
 - [ ] **TEST.280 Five tests are refused as Busy in a full gate because workers share the default Redis database (race)**
   Found by Bug Hunt (relayed 7:03 PM EDT 2026-10-22 as the lane's clock
