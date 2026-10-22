@@ -6104,6 +6104,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the grep test passes and no compatibility layer is left.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): the sweep builds on
   GEN.569's Quantity, through GEN.348 and UX.128.
+  Boundary (Core 3, relayed 7:41 PM EDT 2026-10-22 as the lane's clock
+  reads): this item covers the API output and the stored-column readers
+  (db/query.py, web/maps/*, api/*, cli/*, about 40 sites). The generation
+  side (galaxy/*, admin/edits.py, db/edits.py, db/sector_paths.py, the
+  db/store.py loaders, population/model.py) belongs to GEN.571's sweep
+  and Core 4's serializer; the grep test ships with an explicit allowlist
+  of exactly those files, and GEN.571 shrinks it to empty.
   Prerequisites: UX.128. Related: GEN.300.
 
 - [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
@@ -14003,7 +14010,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the copy of c in `position.py`) and `physics/units.py`, with no shim
   left. The two rounded factors are not changed here: GEN.572 does that
   as its own epoch-changing change. Done: no unit factor is declared
-  outside the registry (a test greps for it).
+  outside the registry (a test greps for it), and the grep test's
+  allowlist, which GEN.349 ships with exactly the generation-side files
+  (galaxy/*, admin/edits.py, db/edits.py, db/sector_paths.py, the
+  db/store.py loaders, population/model.py), is shrunk to empty (Core 3,
+  relayed 7:41 PM EDT 2026-10-22 as the lane's clock reads).
   Boss (12:04 AM EDT, 2026-10-18, as the coordinator relayed): the exact
   AU per light-year and light-year per parsec moved to GEN.572 in 8.1;
   this sweep keeps every other factor bit-identical and runs after
