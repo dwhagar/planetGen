@@ -22,14 +22,12 @@ from planetgen.queue import commands, progress_rate, units, work as workQueue, w
 from planetgen.db import nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
-from planetgen.generation import clusters, satellites
-from planetgen.generation import open_clusters as openClusters
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation import stats as generationStats
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed
+from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed
 from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.names import naming_key
@@ -38,12 +36,13 @@ from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.galaxy.density import model_terms, relative_density
+from planetgen.galaxy.density import relative_density
 from planetgen.galaxy import scatter_limits, spherical
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import (
-    DEFAULT_REACH_SHELL, build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
+    DEFAULT_REACH_SHELL, expected_system_count_at_density_1, shell_candidate_sector_count,
 )
+from planetgen.generation import plan_outline as planOutline
 from planetgen.generation import run_common
 from planetgen.generation import stages, steps
 
@@ -308,7 +307,8 @@ def plan_skeleton_unit(params, report):
         # outline is walked.
         galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
         shape_args = types.SimpleNamespace(**{name: dials.restored(params.get(name)) for name in SKELETON_OPTIONS})
-        shape, drawn = shapeDraw.plan_shape(shape_args, galaxy_seed)
+        built = planOutline.build(shape_args, galaxy_seed, edge_pc, reach_shell_index)
+        shape, drawn, found, young, dwarfs = built.shape, built.drawn, built.clusters, built.young, built.satellites
         say(
             f"Building skeleton: edge_pc={edge_pc:g} stellar_mass={drawn.chain.stellar_mass_solar:.3g} ({drawn.stage}-type) "
             f"disk_scale_length_pc={shape.disk_scale_length_pc:.0f} disk_scale_height_pc={shape.disk_scale_height_pc:.0f} "
@@ -321,38 +321,23 @@ def plan_skeleton_unit(params, report):
         say(f"{halo_line}.")
         if halo_warning:
             say(f"WARNING: {halo_warning}")
-        for note in dials.shape_warnings(shapeDraw.drawn_surface_density(drawn), drawn.disk_scale_height_pc,
-                                         drawn.bulge_scale_radius_pc):
+        made = planOutline.report(built)
+        say(f"{made.line()}.")
+        for note in made.warnings:
             say(f"WARNING: {note}")
-        scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
-        found = clusters.generate_clusters(
-            galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
-        dwarfs = satellites.place_satellites(
-            galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
-            model_terms(shape)["reference_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
-        young = openClusters.generate_open_clusters(
-            galaxy_seed, shape, edge_pc, e_value, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX)
+        if made.empty:
+            raise ValueError(planOutline.EMPTY_OUTLINE_REASON)
         store.replace_galaxy_components(conn, found + young, kind="cluster")
         store.replace_galaxy_components(conn, dwarfs, kind="satellite")
         conn.commit()
-        shape = shape._replace(components=componentField.ComponentField(found + young + dwarfs, edge_pc, e_value))
     finally:
         conn.close()
     say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
         f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
         f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
 
-    edge_limit = shapeDraw.edge_limit_pc(dials.resolved(shape_args, "edge"), shape.disk_scale_length_pc)
-    max_shell = reach_shell_index if edge_limit is None else min(math.ceil(edge_limit / edge_pc), reach_shell_index)
-    t0 = time.perf_counter()
-    extents, outer_shell_index, edge_confirmed = build_shell_extents(
-        shape, edge_pc, threshold_rho, max_shell=max_shell,
-    )
-    elapsed = time.perf_counter() - t0
-    if not extents and shapeDraw.pins_of(shape_args):
-        raise ValueError(
-            "no sector of this galaxy reaches the one-star-per-sector density, so there is nothing to plan: raise the "
-            "stellar mass or the central surface density, or lower the scale length or the scale height")
+    extents, outer_shell_index, edge_confirmed = built.extents, built.outer_shell_index, built.edge_confirmed
+    elapsed = built.elapsed_s
 
     store.replace_galaxy_shells(extents, config=mysql_config)
     galaxy_seed = store.save_galaxy_shape(
