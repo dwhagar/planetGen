@@ -1900,10 +1900,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.311 (Core 3, after DB.53)). Core 4 asks Core 3
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.311 merged as #2481). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.311. Related: GEN.129.
+  Prerequisites: none. Related: GEN.129.
 
 - [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
   Split from MAP.191 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2531,6 +2531,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own. MAP.139 is retired. Still open here: the navigation chart and the
   list and search results keep their own links, and the browser table of
   every kind by every view is not written.
+
+- [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
+  Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
+  clock reads, when GEN.311 and GEN.269 merged as #2481), filed by the
+  TODO thread. Python now places a star from the stored orbit tree
+  (`positions_at` reads the orbit nodes, a wide pair on its eccentric
+  orbit), but the browser twin `html/static/orbitpositions.js` still
+  draws a wide pair as a circle, so the browser and Python disagree.
+  Fails on main: yes, in the browser only. Do: move `orbitpositions.js`
+  onto the tree the scene now carries (`tree` in the scene payload),
+  with the eccentric orbit, so it places every star the way
+  `positions_at` does; MAP.213 builds the full JavaScript twin for
+  trees, so this item is the narrow fix that item's owner can take first
+  or fold in. Done: the Python and JavaScript positions of a wide pair
+  agree in `tests/test_js_unit.py` at several phases, and the system map
+  shows the pair on its ellipse. Owner: none (the coordinator assigns;
+  MAP.213's owner is the natural one).
+  Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
 
 
 ## NAV: Navigation and courses
@@ -4071,7 +4089,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313.
+  Prerequisites: GEN.312, MAP.213, GEN.313.
 
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
@@ -4886,76 +4904,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **GEN.269 Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds**
-  Step 13 (design note sections 13 and 14, items 1 to 5). In
-  `physics/stellar_evolution.py`, `Star` and `star_labels.py`: the
-  Eggleton Roche-lobe radius and filling factor at the system's age; a
-  classifier that gives each pair an `interaction` of detached,
-  semi-detached, contact, accreting, post-common-envelope or
-  merger-product (stored as `interaction` on `scatter_nodes` and
-  `orbit_nodes`); the member flags `mass_reversed`, `mass_gainer`,
-  `merger_product`, `be`, `fragile` and `theoretical` (`runaway_origin`
-  is filled in by GEN.274); a rejuvenated effective age for a merger
-  product, with the real system age kept; and the new kinds
-  `stripped-helium`, `thorne-zytkow` and `wolf-rayet` (GEN.243 supplies
-  the W evolution; this item adds the kind). The states come from
-  geometry and evolution, and the tuning knobs of GEN.268 align their
-  rates with the observed ones. Done: every pair the tree generator
-  draws carries an `interaction` consistent with its radii (audit test
-  13 of section 15), the new kinds exist in the star model and the
-  labels, and a merger product has a rejuvenated age. Owner: Core
-  (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the multi-star
-  plan to "every observed and theoretical type of
-  multi-star/star-like-object system", built "into our generator
-  throughout to match as close as possible to observed and theoretical
-  probabilities (observed are best, theoretical are good too)".
-  Findings (Core 2, 2026-10-15, #1705): (1) outer companions with P over
-  1e5 d should draw their mass from the IMF independently (design note
-  3.3); the member tree uses m1*U(0.1,1) for all, so this item or a
-  follow-up changes it. (2) Defaults taken in GEN.261, one constant each
-  and reversible: massive-primary period law mean 3.5, sigma 1.5;
-  neutron-star progenitors 8 to 30 solar masses; direct collapse when
-  the progenitor is 40 or more (unknown progenitor: hole at 20 or more);
-  black-hole tertiary 30%, compact in 10% of those; the N=8 to 12 tail
-  comes out of the 7-star column. (3) test_system_type_rates requires a
-  generator only once its owner is in _LANDED_OWNERS (261 now); each
-  later owner adds its number.
-  Progress (Core 2, PR #1745): the generator side merged on 2026-10-15:
-  physics/roche.py, the interaction classifier on every pair, the member
-  flags, a rejuvenated merger-product age and the new kinds
-  stripped-helium, thorne-zytkow and wolf-rayet with labels. Still open:
-  storing interaction on scatter_nodes and orbit_nodes, which comes from DB.53, the first child of GEN.129 (no revision of its own); exotic-star draws and rate alignment stay
-  with GEN.270.
-  Prerequisites: none. Related: GEN.268, GEN.243, GEN.242,
-  GEN.270, GEN.271, GEN.272. Finding from Core 2 (2026-10-16, 4:58 AM
-  EDT, GEN.158 merged as #1789): a binary's secondary shares its
-  primary's [Fe/H] (stored column Star.metallicity_fe_h, migration
-  0095), but the members of a multi-star group built by the member-tree
-  generator do not: they must share it too, so the storage part of this
-  item gives every member of a group the group's [Fe/H].
-  Scope after the review (2026-10-16 review): Its storage half writes
-  the interaction and flag columns that the first child of GEN.129
-  provides; no revision of its own.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the interaction
-  storage names DB.53, the first child of GEN.129 and its provider of
-  the interaction and flag columns; the older "waits on GEN.260
-  (migration 0093)" line is replaced (GEN.260 is done).
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 3's; the epoch rule in execution-notes still applies).
-  Blocker 2 (relayed 9:01 AM EDT 2026-10-22): gated together with
-  GEN.311 (see there); epoch 50 once it merges (49 went to GEN.598).
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
   Step 14 (design note sections 13.1 and 13.2). On GEN.269's classifier:
   contact binaries (0.2% of FGK dwarfs, a 60% tertiary share, 1% of O
@@ -4988,10 +4936,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
+  Prerequisites: none. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.271 White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars**
@@ -5023,15 +4971,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3);
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481;
   GEN.253 is related, not a prerequisite). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): the stale prerequisite on GEN.253 is dropped: the
   2026-10-16 review line (self-contained table, GEN.253 independent) was
-  the newer decision. Core 4 can build it as soon as GEN.269 lands.
-  Prerequisites: GEN.269. Related: GEN.253, GEN.130, GEN.268.
+  the newer decision. Core 4 can build it now (GEN.269 merged as #2481).
+  Prerequisites: none. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.272 Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples**
@@ -5054,14 +5002,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisite: GEN.269. Related: GEN.130, GEN.255, GEN.263,
+  Prerequisites: none. Related: GEN.130, GEN.255, GEN.263,
   GEN.268.
   Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
@@ -5789,39 +5737,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: PERF.99. Related: GEN.231.
 
-- [ ] **GEN.311 Built systems store and load their orbit tree: insert_star_system, load_star_system and serialization read and write orbit_nodes**
-  Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Once orbit_nodes exists, a
-  StarSystem has to put its tree there and read it back. Write the nodes
-  in store.insert_star_system, read them in load_star_system and the
-  serialization, N=2 first (a plain binary is one node) with the old
-  binary columns kept filled until every reader moves, and make
-  positions_at read the nodes the way physics/system_tree.py already
-  does for a scatter row. Done: a generated binary, a triple and a
-  seven-star tree round-trip through the database with equal nodes,
-  positions_at gives the same positions before and after, and the old
-  columns still equal the node for N=2.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 3's).
-  Blocker 2 (relayed 9:01 AM EDT 2026-10-22): the combined gate with
-  GEN.269 is running alone now (orbit tree store and load); its
-  generator epoch was renumbered to 49 after main took 47 and 48, and
-  again to 50 after GEN.598 took 49 (Core 1, relayed 11:23 AM EDT
-  2026-10-22 as the lane's clock reads). Fixes
-  found by the combined gate: the scene tree.origin needed an id rule,
-  orbit_nodes inserts must go through `Connection.batched`, two test
-  lists, and the parallel-generation fingerprint skips
-  `orbit_nodes.epoch_unix` (a save-time clock). Caveat: the stored node
-  is a circular or eccentric pair at the save epoch, and the JavaScript
-  twin of `positions_at` is a follow-up.
-  Prerequisites: none. Related: GEN.129.
-
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). GEN.62 names a primary and one
@@ -5850,7 +5765,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.311. Related: GEN.129.
+  Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.315 A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks**
   Split from GEN.264 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5894,7 +5809,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first at every node (slot 0 = the heavier branch, as the tree builder
   writes it) and adds no fifth copy of the swap. No behaviour change, no
   epoch. Owner Core 3.
-  Prerequisites: GEN.311. Related: GEN.264.
+  Prerequisites: none. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
   Split from GEN.264 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -19992,7 +19907,7 @@ clears each one.
   our generator throughout to match as close as possible to observed and
   theoretical probabilities (observed are best, theoretical are good
   too)".
-  Prerequisites: GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -21303,6 +21218,13 @@ clears each one.
   Second sighting (Core 3, relayed 10:43 AM EDT 2026-10-22): two
   test_db_check tests failed in 1 of 2 full gates, only in the 4-worker
   phase, and pass alone; the lane did not name which two or the text.
+  Third sighting (Blocker 2, relayed 12:12 PM EDT 2026-10-22 as the
+  lane's clock reads, in the GEN.311 and GEN.269 gate): the same two
+  tests, test_the_command_exits_one_on_damage_and_zero_when_clean and
+  test_a_check_run_does_not_take_the_generation_slot, failed twice in
+  the full gate and failed again on the `--resume` rerun, so it is not
+  only a first-pass failure; both pass alone and in a targeted run with
+  the same code.
   Prerequisites: none. Related: TEST.265, TEST.262.
 
 - [ ] **TEST.271 test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug)**
