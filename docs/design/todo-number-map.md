@@ -20,7 +20,7 @@ release is stamped.
 | PERF | PERF.149 |
 | DB | DB.85 |
 | API | API.32 |
-| ADM | ADM.125 |
+| ADM | ADM.126 |
 | SEC | SEC.34 |
 | TEST | TEST.270 |
 | USR | USR.32 |
@@ -485,16 +485,16 @@ Parents marked "new parent" had no old number of their own.
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | none | open |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
-| ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | open |
+| ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | done, PR #2456 |
 | ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | done, PR #2411 |
 | ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | open |
-| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | open |
+| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | done, PR #2456 |
 | ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | done, PR #2411 |
-| ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | open |
-| ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | none | open |
-| ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | open |
-| ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | none | open |
-| ADM.106 | Settings: the server-files disclosure and the overridden-option badge | none | open |
+| ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | done, PR #2456 |
+| ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | none | done, PR #2456 |
+| ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | done, PR #2456 |
+| ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | none | done, PR #2456 |
+| ADM.106 | Settings: the server-files disclosure and the overridden-option badge | none | done, PR #2456 |
 | ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | open |
 | ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | open |
 | ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | open |
@@ -503,7 +503,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | open |
 | ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | open |
 | ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | open |
-| ADM.115 | Generate: Run again from History, and named recipes saved per admin in the control database | none | open |
+| ADM.115 | Generate: Run again from History | none | open |
 | ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | open |
 | ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | open |
 | ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | open |
@@ -513,6 +513,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.122 | Admin keyboard set and a help overlay | none | open |
 | ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | none | open |
 | ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | open |
+| ADM.125 | Generate: named recipes saved per admin in the control database | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
