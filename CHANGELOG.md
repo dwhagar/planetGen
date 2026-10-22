@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1895] - 2026-10-22
+
+**Headline:** The galaxy shape row can now hold a galaxy's family and the numbers of its bar, thick disk and spheroid.
+
+### Added
+- `galaxy_shape` gains `family` and fourteen component columns (the bar's axes and angle, the thick disk's amplitude, the Sersic spheroid, the irregular family's clump share) in migration 0117. Every existing galaxy becomes a `spiral` with no spheroid and no clump share, so no stored density changes. Nothing reads the columns yet (GEN.379 does).
+
 ## [8.0.1894] - 2026-10-22
 
 **Headline:** The database check holds the rule that a foreign key's default delete rule is not drift on any supported server.
