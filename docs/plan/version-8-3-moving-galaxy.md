@@ -21,8 +21,6 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test |  | GEN.372 audit. |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |  | GEN.372 audit; Boss card. |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
-| GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree |  | GEN.372 audit. |
-| GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
 
 ### Nightly maintenance
 
@@ -42,9 +40,8 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component |  | Step 3 of the galaxy types chain (9.4); GEN.338 reads its component masses. |
-| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144, GEN.369, GEN.379 | Split from GEN.115. |
+| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.369, GEN.379 | Split from GEN.115. |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.338 | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
 
 ## Phase 2: The update itself
@@ -60,18 +57,15 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.338, GEN.139 | Split from GEN.115. |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.338, GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
-| GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking |  | Foundation found in the review. |
-| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check |  | Split from GEN.109. |
-| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340 | Split from GEN.109. |
-| GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342, GEN.140 | Split from GEN.109. |
-| GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.341, GEN.342 | Split from GEN.109. |
-| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.341, GEN.342, GEN.343, GEN.344 |  |
+| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.338, GEN.340 | Split from GEN.109. |
+| GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342 | Split from GEN.109. |
+| GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.342 | Split from GEN.109. |
+| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.342, GEN.343, GEN.344 |  |
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings |  | Split from GEN.143. Core 1 owns migrations. |
 | GEN.197 | Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split | DB.56 |  |
-| GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation |  | Split from GEN.110. |
-| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.345, GEN.334, GEN.341, DB.56, GEN.197 | Split from GEN.110. |
-| GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.345, GEN.346 |  |
-| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.341, GEN.343, GEN.334 |  |
+| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | DB.56, GEN.197 | Split from GEN.110. |
+| GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.346 |  |
+| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.343 |  |
 | GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.290, GEN.343, GEN.346, GEN.197 |  |
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110, GEN.290, GEN.291 | Parent of the orbital update work. |
 

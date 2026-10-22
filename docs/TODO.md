@@ -665,7 +665,10 @@ with `clamp()`.
   from the same ladder table. Done: no browser call site multiplies by a
   unit factor; the Python and JavaScript outputs for the same value
   agree in the existing parity test.
-  Prerequisites: GEN.299. Related: GEN.300.
+  Rescoped (relayed 10:45 AM EDT 2026-10-22): takes the JavaScript
+  Quantity built from GEN.569's class and the registry table of UX.140
+  (the browser copy), instead of GEN.299's.
+  Prerequisites: GEN.569, UX.140. Related: GEN.300, GEN.299.
 
 - [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -3840,7 +3843,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one core function, sectors are shells, bands and wedges (not
   rings, layers and slots), and the visit order is tier, then mass, in
   chunks that each read the state at their start.
-    Prerequisites: GEN.341, GEN.342, GEN.343, GEN.344.
+    Prerequisites: GEN.342, GEN.343, GEN.344.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
@@ -3923,7 +3926,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   update of this item follows that and replaces `cli.orbits`, which
   advanced planets, moons, stars and binaries in one command. OPS.16's
   nightly run is a step list of that wrapper.
-    Prerequisites: GEN.345, GEN.346.
+    Prerequisites: GEN.346.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.111 Email the admin when two objects are inside each other's Hill radius**
@@ -4131,26 +4134,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design:
   [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
-- [ ] **GEN.140 Orbital math guards the edge-case table adds (GEN.108 built)**
-  Follow-up to GEN.108: adopt the edge-case table of
-  orbital-solvers-and-integrators.md section 7 as the checklist. Add the
-  guards not in the built item: Stumpff functions by series for abs(z) <
-  1, the `fmod(t, P) / P` phase form, DOUBLE-only period and phase
-  columns, radial orbits (h = 0), retrograde equinoctial singularities
-  (use state vectors), the r = 0 and b = 0 guards and a sub-step cap for
-  the galactic centre (the finite-acceleration test at (0, 0, 0) belongs
-  to the first child of GEN.115). The corrected universal
-  equation is in orbital-updates.md
-  10.6.
-  Moved to the Positions thread of phase 1, before GEN.289, and a
-  prerequisite of the perturbed pass (child c of GEN.109), which runs
-  into its guards (2026-10-16 review).
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed together
-  with GEN.374 and part of GEN.144 as the orbit math guards, queued for
-  a gate and PR.
-  Prerequisites: none.
-  Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
-
 - [ ] **GEN.143 The orbital-event admin report, the last-collisions view and a test that runs the whole collision path**
   The admin report in design section 7 and a "last collisions" admin
   view over `orbital_events` (DB.56, written by GEN.197), plus a test
@@ -4169,41 +4152,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branches; the table is DB.56.
   Prerequisites: DB.56, GEN.347.
   Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
-
-- [ ] **GEN.144 One distance for the Sun from the galactic centre across the constants, the density model and the design docs**
-  `physics/constants.py` has 7.91 kpc (`GALACTIC_CENTER_DISTANCE_LY =
-  25800`), the GEN.115 text and design docs 8.128 kpc, and
-  `tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH` 8.2 kpc. Done: one named
-  value for the test radius (8.128 kpc, the Gaia curve), used by the
-  plausibility test and the docs; the value that placed the Sun in the
-  density model (8.2 kpc) is not kept, because GEN.404 removes it (Boss,
-  9:43 PM EDT). Also
-  correct the comment in `physics/constants.py` (lines 95 to 103)
-  claiming 206 km/s and 236 Myr: the Sun's angular speed from Sgr A*
-  gives about 203 Myr, and the new model's circular period at 8.128 kpc
-  is 218 Myr. `MILKY_WAY_MASS = 1.15e12 Msun` against the potential's
-  6.8e11 inside 100 kpc is a follow-up for
-  `keepout.galactic_hill_radius_km`.
-  Moved to the first place of the new Galactic gravity thread, ahead of
-  GEN.115 child a, which edits the same constants and tests at the same
-  radius (2026-10-16 review).
-  NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): 8.128 kpc and 8.2 kpc are
-  the Milky Way's values. The one named value for the test radius stays
-  as the reference for the Milky Way plausibility test only.
-  Decided (Boss, 2026-10-16, 9:43 PM EDT, "Confirmed drop 'home'"): the
-  galaxy stores no home or Sun position, so there is no derived home
-  position either; the value that places the Sun in the density model is
-  not a galaxy constant, and each use of a Sun radius becomes a
-  per-position calculation from the galaxy's own model (GEN.368's build
-  finds the uses).
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): part is built with GEN.140
-  and GEN.374; the remaining part switches the 8.2 kpc test radii in
-  test_sector_gen and test_star_matrix to
-  `mathcheck.SUN_REFERENCE_RADIUS_PC`, which Core 3 does after the
-  GEN.370 merge.
-  Prerequisites: none.
-  Related: GEN.404, GEN.370.
-  Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
 
 - [ ] **GEN.145 Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30**
   Class S landed with `atmosphere = None` in the ecosphere and cold
@@ -5305,7 +5253,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets can be captured or ejected; the orbital path comes out right
   and agrees with the pass-through-the-sphere logic (the sector-crossing
   guard of GEN.223 and GEN.265).
-  Prerequisites: GEN.341, GEN.343, GEN.334. Related: GEN.105,
+  Prerequisites: GEN.343. Related: GEN.105,
   GEN.109,
   GEN.110,
   GEN.115,
@@ -5557,16 +5505,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class, so that whatever kind of unit it is (length, mass, luminosity,
   etc...) the class itself makes sure that every version of that data is
   available all the time, and it does all the conversions, uses the
-  shared ladders, etc"
-  Design and build. A `Quantity` class (the unit class), the way
-  SpatialPosition3D (physics/position.py, GEN.74, GEN.294) is the
-  point-in-space class: one object per measured value, built from a
-  value in any unit of its kind, with every other version of that value
-  (the SI base value and each rung of the kind's ladder) available at
-  every moment as an attribute, kept in step when the value changes, so
-  no caller converts by hand and no copy of a unit version can go stale.
-  The kinds are the ladder families the repository already shows
-  (length, mass, luminosity, time, temperature, pressure, speed,
+  shared ladders, etc" Design and build. A `Quantity` class (the unit
+  class), the way SpatialPosition3D (physics/position.py, GEN.74,
+  GEN.294) is the point-in-space class: one object per measured value,
+  built from a value in any unit of its kind, with every other version
+  of that value (the SI base value and each rung of the kind's ladder)
+  available at every moment as an attribute, kept in step when the value
+  changes, so no caller converts by hand and no copy of a unit version
+  can go stale. The kinds are the ladder families the repository already
+  shows (length, mass, luminosity, time, temperature, pressure, speed,
   density, gravity, energy and the rest of
   docs/design/units-and-number-formatting.md); the class reads the
   shared ladders (util/ladders.py, the one data table that
@@ -5583,15 +5530,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   second column or JSON for a unit version; every other version is
   computed from the class on read and is never stored. Kinds are added
   to the ladder table, not declared on the class, so a new kind is one
-  table row.
-  Done: the class and its kinds, all conversions and the formatting
-  algorithm in Python and in the browser from the one ladder table,
-  SpatialPosition3D reading its mass and length through it, a property
-  test that every kind round-trips through every rung and that the
-  Python and JavaScript copies agree, and the design note updated.
-  Prerequisites: none. Related: GEN.74, GEN.109, UX.107,
-  UX.108.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
+  table row. Done: the class and its kinds, all conversions and the
+  formatting algorithm in Python and in the browser from the one ladder
+  table, SpatialPosition3D reading its mass and length through it, a
+  property test that every kind round-trips through every rung and that
+  the Python and JavaScript copies agree, and the design note updated.
+  Prerequisites: none. Related: GEN.74, GEN.109, UX.107, UX.108.
+  Overlap to settle (the TODO thread, 10:50 AM EDT 2026-10-22, asked by
+  the coordinator whether anyone holds this item): no lane row holds it
+  and nothing is reported in progress (it is only in Core 3's queue).
+  But GEN.569 (The Quantity value class, owner Core 4, assigned by the
+  coordinator at 8:16 AM EDT 2026-10-22) defines the same class in the
+  unified unit plan (docs/design/unified-unit-quantity.md, Boss's six
+  cards of 11:56 to 11:57 PM EDT 2026-10-17), and that design doc does
+  not name GEN.299 or GEN.300. Core 4 answered (relayed 10:45 AM EDT
+  2026-10-22): see below.
+  Design:
+  [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
+  Replaced (Core 4's answer, relayed 10:45 AM EDT 2026-10-22): GEN.299
+  is replaced by GEN.568 (the unit registry), GEN.569 (the Quantity
+  class), GEN.573 and UX.139; its browser copy is UX.140, and the
+  every-rung round-trip test goes into Core 4's PR. Retire this item
+  once GEN.569 merges. Core 3 does not start it (it does DB.56 first).
 
 - [ ] **GEN.300 Every quantity in the code moves onto the Quantity class, and hand conversions are removed**
   Boss (2026-10-16, 11:35 AM EDT): the Quantity class (GEN.299) makes
@@ -5614,6 +5574,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pages, the API and the stored-column readers, plus a grep test; that
   is several PRs, in two languages, and the grep test can only be turned
   on at the end.
+  Rescoped (Core 4's answer, relayed 10:45 AM EDT 2026-10-22): GEN.299
+  is replaced by GEN.568, GEN.569, GEN.573 and UX.139, so this umbrella
+  is only partly covered by the unified unit plan (the factor sweep is
+  GEN.571 and the describe and API shape is GEN.574). Its subitems
+  GEN.348, UX.128 and GEN.349 are not retired: they now build on
+  GEN.569's Quantity instead of GEN.299's.
   Prerequisites: GEN.348, UX.128, GEN.349. Related: GEN.294, UX.108.
 
 - [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
@@ -6094,33 +6060,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a builder of the unified chain.
   Prerequisites: GEN.315. Related: GEN.275.
 
-- [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). `physics/closest_approach.py`: the closest-approach
-  `sweep(dp, dv, R, dt)` of collisions-and-mergers.md section 5.2 (miss
-  distance as a vector first, then the entry time), the pair-window rule
-  of 5.3 (test X against Y's stored segment over [max(e_X_prev, e_Y),
-  e_X_now]), the window cap tau_max and the one-sector reach cap,
-  differences taken from sector-relative values, and chunking of a long
-  step with a chunk length for galactic curvature (0.1 Myr). One
-  function answers 'do these two paths come within R in this window',
-  for R = R1 + R2 (collision) or a system radius (encounter). Done:
-  tests for head-on hit and time, arrival after the window, hit at the
-  window end, separating, already overlapping, tangent graze, miss by
-  1e-7, zero relative speed, zero dt, and 20,000 random cases against
-  dense time sampling with no mismatch.
-  GEN.110 and GEN.290 each narrowed to what is theirs: GEN.110 to the
-  outcome rules and applying them, GEN.290 to choosing per system when
-  to switch to the perturbed pass, the cost estimate and the seeded
-  black-hole test (2026-10-16 review).
-  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
-  built on side branch gen334-closest-approach off main
-  (`physics/closest_approach.py`, 17 tests green, no gate yet).
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed, queued
-  for its own gate and PR.
-  Prerequisites: none. Related: GEN.110, GEN.290.
-
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). One function of position returns
@@ -6182,7 +6121,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
   9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
   kpc are reference radii for tests only.
-  Prerequisites: GEN.144, GEN.369, GEN.379. Related: GEN.115.
+  Prerequisites: GEN.369, GEN.379. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6237,45 +6176,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stepper work).
   Prerequisites: GEN.338, GEN.139. Related: GEN.115.
 
-- [ ] **GEN.341 Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check**
-  Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Pure search, no motion. For a due
-  object, find the objects whose point masses count: by distance from
-  the sector's bounds (`geometry.enumerate_sectors_within_radius`, not
-  the ring and slot stencil), the radius widened by the cell reach
-  (about 4 pc; 21.6 percent of neighbours are missed otherwise),
-  per-sector `max_mass_kg` and `max_mass_id` (columns from GEN.294:m)
-  kept up to date, cover lists for objects whose Hill radius exceeds 1.5
-  sector edges, `max_exact_members` (default 64) with one monopole per
-  sector for the rest, a hierarchy as one point mass at its barycentre,
-  a star cluster as its members, a lone rogue with an empty set. Done:
-  tests compare the set against a brute force and `cKDTree` for sectors
-  at the core, mid radius, the rim, the top and bottom layers and across
-  the slot-0 seam, the exact pairwise Hill criterion, a negative control
-  without the margin, the cap, and a seed-reproducibility test.
-  Decided (Boss, 2026-10-18, F1, approved to build; card tap as the
-  coordinator reported it, 5:30 PM EDT): the search radius is the
-  largest Hill radius of any object in the galaxy (one stored number,
-  Sgr A* left out of the maximum), which replaces the largest-nearby-
-  object scan and its cover lists; the cap of 64 exact members with one
-  point mass per sector for the rest stays. GEN.370 comes first. Full
-  wording on GEN.105. Reworded to match GEN.105 (contradiction sweep,
-  2026-10-21, 7:45 AM EDT; GEN.105's Decided notes win where this item's
-  older text differs): the global largest-Hill-radius search (Sgr A*
-  excluded, 64 exact then one point mass per sector) is built here after
-  GEN.370, and the order of work is GEN.370, GEN.341, GEN.342 on Core 3
-  after its 8.1 queue. Status from Core 3 (4:40 PM EDT 2026-10-21 as the
-  lane reported): built on side branch gen341-influence-set, stacked on
-  GEN.370 (`galaxy/influence.py`, 10 tests green, no gate yet). It uses
-  the global radius, so the cover lists named in this title are not
-  built. The wording above that the per-sector `max_mass_kg` and
-  `max_mass_id` columns come from GEN.294:m is stale: they already exist
-  (DB.55).
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): GEN.370 merged as #2460, so
-  this item no longer waits on it; it is built and committed on its side
-  branch, queued for its own gate and PR.
-  Prerequisites: none. Related: GEN.109, GEN.370 (done, #2460).
-
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). One function returns the
@@ -6316,7 +6216,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stable sort on tier, mass heaviest first, ties by id) with each chunk
   reading the state at its start; new records are always visited and
   advance only from their own epoch (F5).
-  Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
+  Prerequisites: GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6331,7 +6231,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the tidal approximation, and one 100-year step against a
   hundred one-year steps; a system with no perturber still takes the
   cheap clockwork.
-  Prerequisites: GEN.342, GEN.140. Related: GEN.109.
+  Prerequisites: GEN.342. Related: GEN.109.
 
 - [ ] **GEN.344 Hill-radius warnings by the gravitational criterion, to the debug and activity logs**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6345,35 +6245,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   warning reaches the debug and activity logs with both ids and
   positions, a seeded pair inside each other's Hill sphere warns once
   and a hierarchy pair never does.
-  Prerequisites: GEN.341, GEN.342. Related: GEN.109.
-
-- [ ] **GEN.345 Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation**
-  Split from GEN.110 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The section 5.1 outcome table of
-  collisions-and-mergers.md as one function from two bodies (mass,
-  radius, composition, impact speed, impact parameter) to an outcome and
-  its products, seeded from the pair's ids and the window's start. A
-  terrestrial body hitting a giant, brown dwarf or star is absorbed;
-  hit-and-run and partial erosion leave both alive, eroded; two
-  terrestrial bodies become an asteroid field of class U; two giants
-  merge keeping momentum, with the new radius from
-  `giant_radius_km(M_new)`; the fusion check (0.075 Msun, 78.6 Mjup, a
-  setting) covers any substellar pair and yields a star flagged 'merger
-  remnant' with no planets (the star generator takes 0.075 to 0.08 Msun
-  or clamps to 0.08); `ALWAYS_DESTROY_TERRESTRIAL` is the setting for
-  Boss's literal rule; the Roche factor 2.44 is for fluid bodies only
-  (rocky 1.26). Done: a table-driven test for every row, mass and
-  momentum conserved to a stated tolerance, the same input gives the
-  same outcome, a borderline-within-3-percent flag; no database.
-  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
-  and "One function of metallicity", as the coordinator reported it):
-  the fusion check reads the one metallicity function for the
-  hydrogen-burning limit (0.074 solar masses at solar Z); the 0.075 to
-  0.08 figures above are the old settings and the sampling range, not
-  the limit.
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): the collision outcome
-  function is built and committed, queued for its own gate and PR.
-  Prerequisites: none. Related: GEN.110.
+  Prerequisites: GEN.342. Related: GEN.109.
 
 - [ ] **GEN.346 Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events**
   Split from GEN.110 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6395,7 +6267,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator 2026-10-17, 11:29 PM EDT as relayed): gets simpler in the
   same way as GEN.291: an unbinding changes the parent link only
   (storage item DB.73).
-  Prerequisites: GEN.345, GEN.334, GEN.341, DB.56, GEN.197.
+  Prerequisites: DB.56, GEN.197.
   Related: GEN.110.
 
 - [ ] **GEN.347 The last-collisions admin view and the test that runs the whole collision path**
@@ -6418,7 +6290,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   factor or calling format_quantity beside a unit. Done: none of those
   call sites converts by hand, output is unchanged, the old helpers they
   used have no caller.
-  Prerequisites: GEN.299. Related: GEN.300.
+  Rescoped (relayed 10:45 AM EDT 2026-10-22): takes GEN.569's Quantity
+  (the class GEN.299 would have been); the prerequisite moved from
+  GEN.299 to GEN.569.
+  Prerequisites: GEN.569. Related: GEN.300, GEN.299, GEN.571, GEN.574.
 
 - [ ] **GEN.349 API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed**
   Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6427,6 +6302,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sweep made unused, and a test that greps src for a hand conversion
   factor outside the ladder table so a new one fails the suite. Done:
   the grep test passes and no compatibility layer is left.
+  Rescoped (relayed 10:45 AM EDT 2026-10-22): the sweep builds on
+  GEN.569's Quantity, through GEN.348 and UX.128.
   Prerequisites: GEN.348, UX.128. Related: GEN.300.
 
 - [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
@@ -6948,21 +6825,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   longer waits on this study.
   Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.374 Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: the phase formula reduces the angle modulo one
-  turn before multiplying (`body_positions` and `system_tree` in Python,
-  `src/html/static/orbitpositions.js` in JavaScript); the JavaScript
-  Kepler solver's tolerance is 1e-12; tests show that the Python, SQL
-  and JavaScript phase functions agree within a stated bound at long
-  times (millions of days from the epoch). Owner: Core 2, or whoever
-  owns `orbitpositions.js`.
-  Core 3 (relayed 8:44 AM EDT 2026-10-22): built and committed together
-  with GEN.140 and part of GEN.144, queued for a gate and PR.
-  Prerequisites: none. Related: GEN.372, GEN.109, GEN.313.
 
 - [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
   From the GEN.372 precision audit (Core 1,
@@ -21476,7 +21338,44 @@ clears each one.
   hides the cause. Done: the cause is on this item and the two tests
   pass in 20 full-gate runs. Owner: Bug Hunt (proposed; a test-flake
   finding of the TEST.265 family).
+  Second sighting (Core 3, relayed 10:43 AM EDT 2026-10-22): two
+  test_db_check tests failed in 1 of 2 full gates, only in the 4-worker
+  phase, and pass alone; the lane did not name which two or the text.
   Prerequisites: none. Related: TEST.265, TEST.262.
+
+- [ ] **TEST.271 test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug)**
+  Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, on a clean main
+  checkout), filed by the TODO thread. Kind: test fails on main. Test:
+  src/tests/test_drop_database_holders.py, the gentle_wait case. Failure
+  text: MySQL "Lock wait timeout exceeded". Fails on main: yes, run
+  alone on a clean main checkout in that environment. Frequency: every
+  run tried (3 of 3). Reproducer: `python3 -m pytest
+  src/tests/test_drop_database_holders.py -k gentle_wait` after
+  `planetgen-env-up`. It may be the same family as TEST.265 (a test
+  database drop meeting another connection's lock), or a
+  lane-environment difference (the lane's MySQL lock wait setting); that
+  is not checked. Do: read the failure with the lock holder named (`SHOW
+  ENGINE INNODB STATUS`), fix the cause or the test, no retry loop that
+  hides a real lock. Done: the test passes 20 runs in a row on a clean
+  checkout. Owner: Bug Hunt, after its current work (the coordinator,
+  relayed 10:45 AM EDT 2026-10-22).
+  Prerequisites: none. Related: TEST.265, TEST.270.
+
+- [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**
+  Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, in a full gate),
+  filed by the TODO thread. Kind: test fails on main, browser. Test: the
+  browser test test_a_star_in_an_opened_sector_is_selectable. It fails
+  on main with a different failure than on Core 3's branch (the failure
+  text was not relayed); it passes alone on Core 3's branch. Frequency:
+  1 of 2 gates. Reproducer: a full `scripts/test.py changed` gate; the
+  exact text is needed from the next failure. Do: capture the failure
+  text and the page state when it fails, find whether it is load-related
+  (browser tests under load are a known flake class) or a real selection
+  bug, and fix the cause. Done: the cause is on this item and the test
+  passes 20 runs in a row under load. Owner: Bug Hunt, after its current
+  work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
+  text from Core 3 was not in the relay and is still needed.
+  Prerequisites: none. Related: TEST.262, TEST.270.
 
 ## USR: User accounts
 
