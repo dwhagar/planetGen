@@ -281,6 +281,24 @@ export function createInfoPanel(panelEl) {
     boxEls.forEach(function (boxEl) { boxEl.hidden = !(boxShown && !boxClosed && roomForBox(boxEl)); });
   }
 
+  // The corner of the map farthest from where the reader last pressed on it, so the box does not cover what was just
+  // picked (top right until the pointer has been used).
+  let pressed = null;
+  boxEls.forEach(function (boxEl) {
+    const viewport = boxEl.parentElement;
+    if (!viewport) return;
+    viewport.addEventListener("pointerdown", function (event) {
+      const rect = viewport.getBoundingClientRect();
+      pressed = { x: (event.clientX - rect.left) / (rect.width || 1), y: (event.clientY - rect.top) / (rect.height || 1) };
+    }, true);
+  });
+
+  function placeBox(boxEl) {
+    const left = pressed && pressed.x > 0.5 ? "left" : "right";
+    const top = pressed && pressed.y > 0.5 ? "top" : (pressed ? "bottom" : "top");
+    boxEl.dataset.corner = top + "-" + left;
+  }
+
   if (typeof ResizeObserver === "function") {
     boxEls.forEach(function (boxEl) {
       if (boxEl.parentElement) new ResizeObserver(refreshBox).observe(boxEl.parentElement);
@@ -372,7 +390,7 @@ export function createInfoPanel(panelEl) {
     if (spec.generate) panelEl.appendChild(spec.generate);
     if (spec.hint) hint(spec.hint, true);
     if (boxEls.length) {
-      boxEls.forEach(function (boxEl) { boxContent(boxEl, spec); });
+      boxEls.forEach(function (boxEl) { placeBox(boxEl); boxContent(boxEl, spec); });
       boxShown = true;
       boxClosed = false;
       refreshBox();

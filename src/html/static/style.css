@@ -2810,7 +2810,7 @@ code {
 
 /* The maps' hover tooltip (static/mappick.js, MAP.65). */
 /* MAP.139: the one info box over a map (mappick.js), shown when the map has room: the selection's basics and its
-   View, Details and Close buttons, in the map's upper right. */
+   View, Details and Close buttons, in the corner of the map farthest from where it was last pressed (the upper right to start with). */
 .map-infobox {
   position: absolute;
   top: 0.75rem;
@@ -2824,6 +2824,26 @@ code {
   border-radius: 8px;
   background: var(--bg-subtle);
   font-size: 0.85rem;
+  /* The map under it stays pickable: only its buttons and links take the pointer. */
+  pointer-events: none;
+}
+.map-infobox a,
+.map-infobox button {
+  pointer-events: auto;
+}
+.map-infobox[data-corner="top-left"] {
+  right: auto;
+  left: 0.75rem;
+}
+.map-infobox[data-corner="bottom-left"] {
+  top: auto;
+  right: auto;
+  bottom: 0.75rem;
+  left: 0.75rem;
+}
+.map-infobox[data-corner="bottom-right"] {
+  top: auto;
+  bottom: 0.75rem;
 }
 .map-infobox[hidden] {
   display: none;
