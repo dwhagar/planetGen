@@ -17423,6 +17423,60 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   both a default-size galaxy and a pinned large one; cost per option and
   the sector and system counts will differ.
 
+- [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
+  Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
+  task gets its own progress bar once it is expected to take, or does
+  take, longer than 15 seconds, with an ETA blended from the running
+  tasks and subtasks and the stored generation statistics, the current
+  run weighted more heavily than the stored statistics. It extends the
+  existing second bar (the shell scatter bar, shown over 30 seconds,
+  with the stored statistics as its starting rate) to every task and
+  lowers the threshold to 15 seconds. Do: find where the second bar and
+  the stored statistics live, define one task and subtask progress
+  record (done, total, started at), compute the ETA as a weighted blend
+  whose weight moves from the stored rate to the current run's rate as
+  the run proceeds (the weights are named constants), show the bar in
+  the command-line output and on the Generate and admin queue pages from
+  the same record, and show it only when the expected or actual time
+  passes 15 seconds. Done: a task under 15 seconds shows no bar; one
+  expected over 15 seconds shows its bar from the start with the
+  stored-rate ETA; one that overruns 15 seconds gains the bar when it
+  passes the threshold; the ETA moves toward the current run's rate as
+  it proceeds (a test with fake clocks and a changed rate); the shell
+  scatter bar keeps working through the same record; the Generate page
+  and the log show the same numbers. Owner: Bug Hunt (proposed; it has
+  PERF.145 queued and the log work, the coordinator decides), after
+  PERF.145.
+  Boss's even-sized chunk rule is recorded on PERF.148 (the stalled-job
+  fix), not here (the coordinator, 8:48 PM EDT 2026-10-21).
+  Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
+
+- [ ] **PERF.148 Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line**
+  Boss's stalled-job investigation is Bug Hunt's top priority (the
+  coordinator, 2026-10-21; the lane's findings arrive with its reports,
+  and this item records them as they come). Related fixes already
+  merged: a killed run no longer blocks new runs (PERF.142, PERF.143,
+  #2345) and every RQ enqueue has a finite limit (PERF.144, #2366).
+  Decided (Boss, 8:43 PM EDT 2026-10-21, in the Bug Hunt thread,
+  approved by Boss as part of this fix, as the coordinator relayed 8:48
+  PM EDT): "So here is what I'd like, instead of unit chunks being based
+  on expected work, just break up the task space evenly so each chunk is
+  as close to the same size as possible to get. That will make my
+  readings of the logs significantly easier." So the units are cut so
+  that each has the same expected work, as close to equal as the task
+  space allows, and the log line shows the unit and its expected work.
+  Do: root-cause the stall and fix the cause, never raise a limit to
+  hide it; cut the task space into equal units; show the unit's expected
+  work in the log line. Done: the cause is written on this item with the
+  evidence; a run that stalled before now finishes or fails with a clear
+  line; the units of one task differ in expected work by no more than
+  the grain of the task space allows (a test on the unit planner); the
+  log line shows the unit and its expected work. Owner: Bug Hunt (top
+  priority). Filed by the TODO thread because the item did not exist;
+  Bug Hunt corrects the wording with its findings.
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144, PERF.145,
+  PERF.147.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
