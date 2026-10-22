@@ -52,7 +52,7 @@ from planetgen.generation.star import Star
 from planetgen.galaxy import shape_draw as shapeDraw, structure as galaxyStructure
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.physics.orbits import calculate_habitable_zone
-from planetgen.physics.stellar_evolution import collapse_age_gy
+from planetgen.physics.remnant_progenitors import collapse_age_gy
 from planetgen.util.random import log_uniform
 
 
@@ -135,7 +135,7 @@ class CompactRemnant(Star):
         remnant, in billions of years. A neutron star or stellar black hole
         (`kind`, GEN.553) takes the age of a remnant in its population: the
         progenitor's birth from the population's star formation history less
-        the time it took to collapse (`stellar_evolution.collapse_age_gy`); a
+        the time it took to collapse (`remnant_progenitors.collapse_age_gy`); a
         black hole of another class, which no star collapsed to, draws one
         uniform over `tuning.COMPACT_REMNANT_AGE_RANGE_GY`. Lifespan is
         `float('inf')` -- the same convention `Star` uses for white dwarfs

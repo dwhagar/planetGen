@@ -27,7 +27,7 @@ Stand-ins, all tunable in `tuning`: the uniform shape across each verified range
 | 6 mass law | Leave it for GEN.553 and GEN.554 in 8.4 (recommended) | 12:34 AM EDT |
 | 7 mass islands | Record them for GEN.554 (recommended) | 12:35 AM EDT |
 
-**The cap (card 5).** Per galaxy, `f_cap = 1 - NS_formed / IMF_SHARE`, where `NS_formed` = the neutron star rate per star (5.6e-4 / 0.14 = 4.0e-3) times (1 + the galaxy's neutron star unbound share, `ejecta_field.unbound_fraction("neutron-star", seed)`, drawn from the seed in 0.2 to 0.4). So `f_cap` is 12.1% to 24.7% depending on that share. The draws of section 2 become:
+**The cap (card 5).** Per galaxy, `f_cap = 1 - NS_formed / IMF_SHARE`, where `NS_formed` = the neutron star rate per star (5.6e-4 / 0.14 = 4.0e-3) times (1 + the galaxy's neutron star unbound share, `ejecta_field.unbound_fraction("neutron-star", seed)`, drawn from the seed in 0.2 to 0.4). So `f_cap` is 12.1% to 24.7% depending on that share. The draws of section 2 become: **GEN.554 (slice 3):** the unbound share is now each galaxy's own (`natal-kick.md`, 0 to 74%), so the cap is the Milky Way-like galaxy's, the same for every galaxy (`structure_draw.draw_black_hole_shares`): a per-galaxy cap would be 0 where more than 59% of the neutron stars are ejected. The change of the cap's reading is on Boss's card.
 
 ```
 f_sun ~ U(0, min(0.45, f_cap))

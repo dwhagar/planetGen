@@ -45,7 +45,7 @@ import math
 
 from planetgen import tuning
 from planetgen.galaxy import mass_chain, seed as galaxySeed
-from planetgen.galaxy.structure import Structure
+from planetgen.galaxy.structure import REFERENCE_STRUCTURE, Structure
 from planetgen.physics import black_hole_formation
 from planetgen.util import draw
 
@@ -122,6 +122,11 @@ def circular_speed_kms(stellar_mass_solar):
     return (stellar_mass_solar / BTFR_MASS_OVER_V4) ** 0.25
 
 
+def draw_circular_speed_kms(galaxy_seed, stellar_mass_solar):
+    """The galaxy's circular speed, km/s: the baryonic Tully-Fisher relation's median with its scatter."""
+    return circular_speed_kms(stellar_mass_solar) * 10.0 ** _scatter(_stream(galaxy_seed, "speed"), BTFR_V_SCATTER_DEX)
+
+
 def thick_mass_ratio_bounds(vc_kms):
     """`(Yoachim and Dalcanton, Comeron)`: the two fits' thick-over-thin mass ratio at `vc_kms`."""
     yoachim = YOACHIM_MASS_RATIO_AT_100 * (vc_kms / 100.0) ** YOACHIM_MASS_RATIO_SLOPE
@@ -172,7 +177,7 @@ def draw_structure(galaxy_seed):
         structure.Structure
     """
     mass = mass_chain.draw_mass_chain(galaxy_seed).stellar_mass_solar
-    vc = circular_speed_kms(mass) * 10.0 ** _scatter(_stream(galaxy_seed, "speed"), BTFR_V_SCATTER_DEX)
+    vc = draw_circular_speed_kms(galaxy_seed, mass)
 
     low, high = thick_mass_ratio_bounds(vc)
     centre = _stream(galaxy_seed, "thick-mass-centre").uniform(math.log10(min(low, high)), math.log10(max(low, high)))
@@ -215,20 +220,25 @@ def draw_structure(galaxy_seed):
 
 
 def draw_neutron_star_unbound_share(galaxy_seed):
-    """The share of the neutron stars the galaxy forms that it ejects (GEN.554): drawn once from the galaxy's seed over
-    `tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE` (`galaxy.ejecta_field.unbound_fraction`)."""
-    from planetgen.galaxy import ejecta_field
-    return ejecta_field.unbound_fraction("neutron-star", galaxy_seed or mass_chain.FALLBACK_SEED)
+    """The share of the neutron stars the galaxy forms that its kicks eject (GEN.554, `galaxy.natal_kick`): the natal kick
+    law against the escape speed of the seed's halo, stars and disc, the disc's scale length the one the seed draws (a
+    shape that fixes its own scale length keeps this share)."""
+    from planetgen.galaxy import natal_kick, shape_draw   # shape_draw imports this module
+    chain = mass_chain.draw_mass_chain(galaxy_seed or mass_chain.FALLBACK_SEED)
+    seed = galaxy_seed or mass_chain.FALLBACK_SEED
+    length_kpc = shape_draw.drawn_disk_scale_length_pc(seed, chain.stellar_mass_solar) / 1000.0
+    return natal_kick.neutron_star_unbound_share(chain, draw_circular_speed_kms(seed, chain.stellar_mass_solar), length_kpc)
 
 
 def draw_black_hole_shares(galaxy_seed):
     """
     The galaxy's `(solar share, metal-free share)` of the massive stars that fail to explode and leave a black hole
     (GEN.563, `physics.black_hole_formation.draw_failed_shares`): two ordered uniform draws, the solar one first, each over
-    its widest verified range and cut at the neutron star budget, which reads the neutron stars' unbound share of the
-    same seed (`galaxy.ejecta_field.unbound_fraction`), so that draw comes first.
+    its widest verified range and cut at the neutron star budget of a galaxy of the Milky Way's masses
+    (`black_hole_formation.share_cap` at the reference structure's unbound share, the same for every galaxy: a galaxy
+    that ejects most of its neutron stars would otherwise have no room for black holes).
     """
-    cap = black_hole_formation.share_cap(draw_neutron_star_unbound_share(galaxy_seed))
+    cap = black_hole_formation.share_cap(REFERENCE_STRUCTURE.neutron_star_unbound_share)
     return black_hole_formation.draw_failed_shares(
         _stream(galaxy_seed, "black-hole-solar").random(), _stream(galaxy_seed, "black-hole-metal-free").random(), cap)
 

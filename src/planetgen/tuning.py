@@ -2563,12 +2563,19 @@ PULSAR_RADIAL_B = 5.0
 # Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
-# The initial mass of the stars that collapse to each remnant (a design default, GEN.553; the explosion maps of
-# O'Connor and Ott 2011, Sukhbold et al. 2016 and Fryer et al. 2012 are verified, and GEN.554 derives the ranges from
-# them). The ranges overlap: a star of 20 to 30 solar masses ends as either.
-NEUTRON_STAR_PROGENITOR_SOL = (8.0, 30.0)
-BLACK_HOLE_PROGENITOR_SOL = (20.0, 100.0)
+# The initial mass of the stars that end as a white dwarf. A star of 8 solar masses or more ends as a neutron star or a
+# black hole, by the windows of `EXPLOSION_FAILURE_ISLANDS_SOL` (GEN.554, `physics.remnant_progenitors`).
 WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
+
+EXPLOSION_FAILURE_ISLANDS_SOL = ((23.0, 25.0), (35.0, 45.0))
+"""tuple: The windows of initial mass, solar masses, in which a star of solar metallicity fails to explode and leaves a black
+hole, when little of the massive stars fail: O'Connor and Ott 2011 (ApJ 730, 70) for the Woosley and Heger 2007 progenitors,
+"~23-25 Msun and ~35-45 Msun" (their 0 to 7% of the massive stars), the islands of Sukhbold et al. 2016 (ApJ 821, 38),
+"islands of 'explodability' in a sea of black hole formation" (GEN.560, docs/design/black-hole-formation-sources.md).
+Only these two windows are sourced. A galaxy that fails a smaller share shrinks them about their centres; one that fails a
+larger share keeps them and adds the top of the mass range down to the mass that makes up the share (the widest verified
+share, 45%, reaches down to about 14.5 solar masses, where Ertl et al. 2016, quoting Ugliano et al. 2012, put the lowest
+island) [S, stand-in: the nesting of the windows is not sourced]."""
 
 # Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
 # spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
@@ -3765,10 +3772,20 @@ log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4 galaxy-wi
 central black hole and moves outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`; their density falls as r^-2, so the
 count out to a reach is this number times the reach over that radius (GEN.238)."""
 
-NEUTRON_STAR_UNBOUND_FRACTION_RANGE = (0.2, 0.4)
-"""tuple: The share of a galaxy's neutron stars a birth kick sends out of it, drawn once per galaxy from its seed
-(GEN.238; 20% to 40% of the isolated ones: Hobbs et al. 2005's kick distribution against the escape speed)
-[S, recalled; to verify]."""
+NEUTRON_STAR_KICK_SIGMA_KMS = 265.0
+"""float: The one-dimensional dispersion of a neutron star's natal kick, km/s, a Maxwellian in three dimensions (Hobbs et
+al. 2005's pulsar birth velocities, 265 km/s, as `docs/design/multistar-and-compact-systems.md` records it) [R, recalled in
+the repository's notes and not re-read: Boss, 2026-10-21, 1:17 PM EDT, "assume already included information is valid"]. With
+the galaxy's escape speed (`galaxy.natal_kick`) it sets the share of the neutron stars a galaxy ejects (GEN.554)."""
+
+NEUTRON_STAR_KICK_BIRTH_RADII = 32
+"""int: How many equal shares of the thin disc's massive stars the neutron stars' birth radius is averaged over
+(`galaxy.natal_kick`); the integral over a smooth tail, so more changes the share in the third digit."""
+
+NEUTRON_STAR_UNBOUND_FRACTION_TARGET_RANGE = (0.2, 0.4)
+"""tuple: The share of the Milky Way's neutron stars the kicks send out of it, a test target and no input (GEN.554): 20% to
+40% (the old per-galaxy draw: Hobbs et al. 2005's kick distribution against the escape speed [S, recalled]; "about 40%" in
+one population synthesis, `docs/design/compact-remnant-regions.md`). A galaxy of the Milky Way's masses lands inside it."""
 
 BLACK_HOLE_UNBOUND_FRACTION = 0.02
 """float: The share of a galaxy's black holes that are ejected (GEN.238; about 2%) [S, recalled; to verify]."""
