@@ -7059,12 +7059,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spiral family written as components. No fixed content (Boss, 4:11 and
   4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234, GEN.280.
-  Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
-  one call site in `galaxy/density_modulation.py` (GEN.393) that
-  multiplies each population's density after the component sum; this
-  rewrite keeps that one call and does not move the factor into the
-  components. Design merged (GEN.378, #2368):
+  Prerequisites: none. Related: DB.66 (done, #2439), GEN.338, GEN.381,
+  GEN.234, GEN.280. Superbubble density (2026-10-16, 9:27 PM EDT): the
+  bubble factor is one call site in `galaxy/density_modulation.py`
+  (GEN.393) that multiplies each population's density after the
+  component sum; this rewrite keeps that one call and does not move the
+  factor into the components. Design merged (GEN.378, #2368):
   docs/design/galaxy-types.md is the checked design; Boss reads and
   approves its table before this item and DB.66 are built (Needs Boss
   list).
@@ -7075,6 +7075,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
   gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
   Core 1's queue.
+  Reading of the stored columns (Blocker 2, DB.66 merged as #2439,
+  Alembic 0117, about 6:07 AM EDT 2026-10-22 as the lane reported):
+  `galaxy_shape` has `family` (default spiral) and fourteen component
+  columns (bar, thick disk, Sersic spheroid, clump share) with a CHECK
+  per number. The design table says the bar and thick-disk defaults are
+  "the drawn value", but those were never stored, so those five columns
+  are NULL, meaning "as the structure draw gives them from the seed";
+  the other columns default to 0 or 1. This item reads them: a NULL
+  means ask the structure draw, never a fixed number.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7361,7 +7370,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.390 Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules**
@@ -17386,39 +17395,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
   earlier owner line on this item.
   Prerequisites: none. Related: VIEW.3.
-
-- [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. Migration only; Core 1 owns the numbering. The
-  `galaxy_shape` row gains the family key (one of the families GEN.378
-  lists) and the parameters of each component the density model sums
-  beyond today's: thick-disk amplitude, bar amplitude and axis ratios,
-  the spheroid's Sérsic index, effective radius, axis ratios and
-  orientation, and an irregular body's clump share, exactly as GEN.378's
-  table lists them. The migration gives every existing galaxy the spiral
-  family and the values the model derives for it today, so no stored
-  density changes. No reader changes in this item. The early-alpha
-  schema is not a constraint. Boss (12:56 PM EDT, card "Draw it in 8.1",
-  relayed in words): the bar is drawn in 8.1 by GEN.533 without a stored
-  column, so nothing in 8.1 needs this item; it stays in 8.3 and later
-  stores the drawn values (bar presence, axis ratios and angle) with the
-  other component columns. Design merged (Blocker 2, 7:58 PM EDT
-  2026-10-21 as the lane reported, GEN.378, #2368, docs only):
-  docs/design/galaxy-types.md section 10 lists this item's columns. Boss
-  must read and approve the design's table before this item and GEN.379
-  are built (see the Needs Boss list); the three questions with defaults
-  are in section 12 and the ten research requests R1 to R10 in section
-  11.
-  Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
-  written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
-  the table in docs/design/galaxy-types.md is approved as written. The
-  approval that held this item is given.
-  Owner: the Blocker 2 lane (the author of the approved design; the
-  coordinator, 9:15 PM EDT 2026-10-21). The next Alembic revision is
-  0114 unless another lane takes it first.
-  Prerequisites: none. Related: GEN.379, GEN.389.
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
