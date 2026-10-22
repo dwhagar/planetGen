@@ -752,24 +752,24 @@ with `clamp()`.
   an image of that model as a simple vector outline, so the user knows
   approximately what it should look like. Default (stands as Decided
   unless Boss says otherwise): one hand-drawn static SVG per family key
-  GEN.378 lists (today: spiral, barred spiral, lenticular, elliptical,
-  irregular, dwarf spheroid), kept in the repo with the other
-  icon-library shapes, so it works on the offline page and needs no
-  generation step. Each is a plain outline, one stroke weight, no fill
-  or a light fill, drawn in the view that tells the family apart: the
-  arms and bar face-on for the spirals, the smooth lens for the
-  lenticular, the ellipse for the elliptical, the ragged body for the
-  irregular, the faint round blob for the dwarf spheroid; the stroke
-  uses the current text colour so both themes work. Done: the outlines
-  are in the icon library, one per family key; a test fails when a
-  family has no outline or an outline has a script, an external
+  docs/design/galaxy-types.md lists (today: spiral, barred spiral,
+  lenticular, elliptical, irregular, dwarf spheroid), kept in the repo
+  with the other icon-library shapes, so it works on the offline page
+  and needs no generation step. Each is a plain outline, one stroke
+  weight, no fill or a light fill, drawn in the view that tells the
+  family apart: the arms and bar face-on for the spirals, the smooth
+  lens for the lenticular, the ellipse for the elliptical, the ragged
+  body for the irregular, the faint round blob for the dwarf spheroid;
+  the stroke uses the current text colour so both themes work. Done: the
+  outlines are in the icon library, one per family key; a test fails
+  when a family has no outline or an outline has a script, an external
   reference, no viewBox or more than 4 KB; a screenshot test shows each
   on both themes; the Generate page (UX.134) and the Galaxy Map key
   (MAP.242) use them. Boss sees the drawings in the PR. The art can be
-  drawn any time after GEN.378 fixes the family list; the outlines are
-  not a copy of any named galaxy.
-  Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378,
-  GEN.608.
+  drawn any time now that the galaxy types design (GEN.378, merged
+  #2368) fixes the family list; the outlines are not a copy of any named
+  galaxy.
+  Prerequisites: none. Related: UX.134, MAP.242, UX.101, GEN.608.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.136 The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do**
@@ -6972,6 +6972,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
   galaxies are unchanged; the old fill never passed 0.03. The text above
   that the default distance is already gone (GEN.404) is true.
+  Density limits (report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613, from
+  the galaxy size research thread): a galaxy with no halo needs a
+  central mass for the Hill sphere, and a dense small core must be
+  checked: the Segue floor core has a mean spacing of about 0.66 pc and
+  a keep-out of order 0.9 pc if the enclosed mass is used, so placement
+  could fail (back-of-envelope, label B).
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -7084,61 +7091,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   caps may go as low as 50. Owner: Core 3.
   Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
-- [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. This is the design step. Done:
-  docs/design/galaxy-types.md, which starts as the plan filed with this
-  item, becomes the checked design: the family list (spiral unbarred and
-  barred, lenticular, elliptical, irregular, dwarf spheroidal); the draw
-  order (stellar mass from a Schechter function, then the family from
-  the mass-dependent morphology fractions, then the halo mass from the
-  stellar-to-halo relation, then each family's parameters); one table
-  row per parameter with its law, its source checked against the paper,
-  its range and scatter, and the component of the model it feeds; the
-  mass limits that keep the galaxy's extent inside the 262 kpc reach;
-  the reference galaxies the plausibility tests (TEST.204) compare
-  against and nothing else; the columns DB.66 adds; and which of
-  GEN.368's shape rows are the spiral family's, so that the shape-draw
-  build that follows GEN.368's approval is written once for every
-  family. Relations that cannot be looked up go to Boss as research
-  requests (the TODO thread puts them to him). Boss reads and approves
-  the table before DB.66 and GEN.379 are built. No fixed content (Boss,
-  4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
-  reference galaxies only check the result. Owner: Core 1 proposed (it
-  writes GEN.368's table), after GEN.368.
-  Prerequisites: none. Related: GEN.369, GEN.297, GEN.234, GEN.134,
-  GEN.338, GEN.390, GEN.608.
-  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
-  "Confirmed drop 'home', we will choose viewing based on where sectors
-  are generated."): the family design stores no home or Sun position;
-  GEN.388 is dropped and the design lists no home row. Per-position
-  calculations replace every Sun-radius use.
-  The first family's stellar mass range is 3e9 to 2e11 solar and every
-  derived law draws its natural scatter from the seed (Boss, 2026-10-16,
-  9:40 to 9:43 PM EDT, reported by Core 1); GEN.368's draft table
-  (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
-  chain, rows 1 to 10) is the spiral family's start, and the family
-  table here extends it.
-  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
-  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
-  GEN.378"). This replaces any earlier owner line on this item (it was
-  Core 1's, proposed).
-  Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
-  make the default size level to be on the smaller size, still a spiral,
-  just a smaller one no more than half the size of the milky way. That
-  is still more than enough space for a role play." The design's draw
-  order gives the default (Auto) spiral draw a size cap (GEN.603); the
-  family's full mass range remains reachable by pinning.
-  Default window (TODO thread contradiction check, 2026-10-21): the
-  shape dials' Auto draw for the spiral family is a small window
-  (GEN.603: about 1.3 kpc scale length, 3e9 to 4e9 solar masses, Boss's
-  default-size ruling), narrower than this design's family mass range
-  3e9 to 2e11 and than the Schechter draw of GEN.380. The design states,
-  per family, which window Auto draws from and which range a pin may
-  reach; until it does, GEN.603's window rules for the spiral family.
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
-
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -7158,13 +7110,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spiral family written as components. No fixed content (Boss, 4:11 and
   4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: GEN.378, DB.66. Related: GEN.338, GEN.381, GEN.234,
+  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234,
   GEN.280.
   Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
   one call site in `galaxy/density_modulation.py` (GEN.393) that
   multiplies each population's density after the component sum; this
   rewrite keeps that one call and does not move the factor into the
   components.
+  Design merged (GEN.378, #2368): docs/design/galaxy-types.md is the
+  checked design; Boss reads and approves its table before this item and
+  DB.66 are built (Needs Boss list).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7176,25 +7131,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the double Schechter function) and the halo mass (the stellar-to-halo
   relation with its scatter), with no second draw of either, and adds
   the family from the mass-dependent morphology fractions (with the
-  survey fits GEN.378 names) and the other families' mass ranges;
-  GEN.400's first-family range is the default the family limits widen.
-  The mass limits are settings whose
-  defaults GEN.378 states, so that the galaxy's visible extent fits the
-  262 kpc reach. It draws through `unit_seed(galaxy_seed, ...)` and the
-  one random wrapper (planetgen/util/draw.py). Done: the same seed gives
-  the same draw; a histogram over 10,000 seeds matches the stated
-  fractions within sampling error; every draw is inside the mass limits;
-  no family or mass appears as a default. No fixed content (Boss, 4:11
-  and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
-  galaxies only check the result.
-  Mass limits: the first family's range is 3e9 to 2e11 solar stellar
-  mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
-  states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381,
-  GEN.608, GEN.606.
-  See the default window in GEN.378: the Scale dial's Auto window
-  (GEN.603) and this Schechter draw both set the stellar mass; GEN.378
-  decides how they combine per family.
+  survey fits docs/design/galaxy-types.md names) and the other families'
+  mass ranges; GEN.400's first-family range is the default the family
+  limits widen. The mass limits are settings whose defaults
+  docs/design/galaxy-types.md states, so that the galaxy's visible
+  extent fits the 262 kpc reach. It draws through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper
+  (planetgen/util/draw.py). Done: the same seed gives the same draw; a
+  histogram over 10,000 seeds matches the stated fractions within
+  sampling error; every draw is inside the mass limits; no family or
+  mass appears as a default. No fixed content (Boss, 4:11 and 4:14 PM
+  EDT): no named galaxy, preset or hand-set value; reference galaxies
+  only check the result. Mass limits: the first family's range is 3e9 to
+  2e11 solar stellar mass (Boss, 2026-10-16, 9:40 PM EDT, reported by
+  Core 1); docs/design/galaxy-types.md states the other families'
+  ranges.
+  Prerequisites: GEN.379. Related: GEN.368, GEN.369, GEN.381, GEN.608,
+  GEN.606. The Scale dial's Auto window (GEN.603) and this Schechter
+  draw both set the stellar mass, and the galaxy types design (GEN.378,
+  #2368) does not say how they combine per family: this item decides it
+  with the dials lane, so that the visible extent fits the reach.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.381 A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass**
@@ -7223,25 +7179,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   counted back from 9.4. The spiral family's laws, the general form of
   GEN.401's shape draw (GEN.401 is the same law for the first family;
   this item adds the Hubble stage and the family argument on top of it,
-  with no second set of laws): disk scale length from the
-  mass-size relation, scale height from thickness against length, the
-  thick-disk share, bulge-to-total and Sérsic index from the Hubble
-  stage (early to late, drawn with the mass), a bar by the fraction at
-  this mass and gas content (barred or unbarred is a draw inside the
-  family) with its length from the disk scale length, arm count and
-  pitch angle from the shear and the mass, and the arm amplitude by
-  stage; the halo comes from GEN.380's halo mass. Done:
-  `draw_spiral(rng, mass, halo)` returns the shape parameters, each law
-  named in the code with its source; bulge-to-total falls from early to
-  late stages over many seeds; the barred fraction matches the stated
-  fraction within sampling error; pitch angle moves with shear in the
-  stated direction; every parameter stays inside its stated range; the
-  real Milky Way's measured numbers are tested only as values the draw
-  can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
-  PM EDT): no named galaxy, preset or hand-set value; reference galaxies
-  only check the result.
+  with no second set of laws): disk scale length from the mass-size
+  relation, scale height from thickness against length, the thick-disk
+  share, bulge-to-total and Sérsic index from the Hubble stage (early to
+  late, drawn with the mass), a bar by the fraction at this mass and gas
+  content (barred or unbarred is a draw inside the family) with its
+  length from the disk scale length, arm count and pitch angle from the
+  shear and the mass, and the arm amplitude by stage; the halo comes
+  from GEN.380's halo mass. Done: `draw_spiral(rng, mass, halo)` returns
+  the shape parameters, each law named in the code with its source;
+  bulge-to-total falls from early to late stages over many seeds; the
+  barred fraction matches the stated fraction within sampling error;
+  pitch angle moves with shear in the stated direction; every parameter
+  stays inside its stated range; the real Milky Way's measured numbers
+  are tested only as values the draw can produce, never as defaults. No
+  fixed content (Boss, 4:11 and 4:14 PM EDT): no named galaxy, preset or
+  hand-set value; reference galaxies only check the result.
   Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369, GEN.603,
-  GEN.604, GEN.611.
+  GEN.604, GEN.611. Design merged (GEN.378, #2368): this item replaces
+  the Kelvin Table 1 stage stand-in in shape_draw.py with the
+  single-Schechter fractions of docs/design/galaxy-types.md section 5.
+  Section 6.3 records a probable misprint in Shen 2003 Table 1 (the
+  early-type b is printed 3.47e-5 and should be about 3.47e-6); it is
+  not used. How the Auto window of the shape dials (GEN.603) combines
+  with the family's mass range is decided in GEN.380.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7659,18 +7620,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the approximation with the researched function; if not, the note says
   the approximation stands. A comparison test keeps the two within the
   stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
-  galaxy sets any number.
-  Method (Core 1's suggestion, 2026-10-16, 10:12 PM EDT): read a halo
-  mass function source in the paper (for example Tinker et al. 2008 or
-  Sheth and Tormen 1999), build the exact conditional P(Mh | M*) as the
-  halo mass function times the log-normal in M* about the Moster median
-  with 0.15 dex scatter, and compare it with GEN.368's approximation
-  (the median inverse with an effective Mh scatter of 0.15 dex divided
-  by the slope). Done adds: a test and a note showing the typical halo
-  mass and the scatter difference per stellar mass, and a switch to the
-  exact conditional if the difference matters. Needs GEN.368's build
-  (GEN.400).
-  Prerequisites: none. Related: GEN.368, GEN.378, GEN.380.
+  galaxy sets any number. Method (Core 1's suggestion, 2026-10-16, 10:12
+  PM EDT): read a halo mass function source in the paper (for example
+  Tinker et al. 2008 or Sheth and Tormen 1999), build the exact
+  conditional P(Mh | M*) as the halo mass function times the log-normal
+  in M* about the Moster median with 0.15 dex scatter, and compare it
+  with GEN.368's approximation (the median inverse with an effective Mh
+  scatter of 0.15 dex divided by the slope). Done adds: a test and a
+  note showing the typical halo mass and the scatter difference per
+  stellar mass, and a switch to the exact conditional if the difference
+  matters. Needs GEN.368's build (GEN.400).
+  Prerequisites: none. Related: GEN.368, GEN.380.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -15760,16 +15720,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ursa Major III / UNIONS 1, ceiling 1.5 times Andromeda); Auto default
   about 1.3 kpc and 3e9 to 4e9 solar masses. The registry rows carry
   these as the minimum, default window and maximum, each labelled
-  placeholder.
-  Flag names (TODO thread contradiction check, 2026-10-21): `--density`
-  already exists on `sector` and `galaxy` (a star-density bias) and
-  PERF.121's `scatter --mass` is a scatter kind, so the dials are
-  `--galaxy-mass` and `--surface-density`; the parity test also fails
-  when a lever flag has the same name as an existing flag of another
-  command with a different meaning.
-  Limits update: see GEN.603 and GEN.609 (sourced caps; the floor
-  example is a card with Boss). Constants stay labelled placeholder
-  until the lane applies them.
+  placeholder. Flag names (TODO thread contradiction check, 2026-10-21):
+  `--density` already exists on `sector` and `galaxy` (a star-density
+  bias) and PERF.121's `scatter --mass` is a scatter kind, so the dials
+  are `--galaxy-mass` and `--surface-density`; the parity test also
+  fails when a lever flag has the same name as an existing flag of
+  another command with a different meaning. Limits update: see GEN.603
+  and GEN.609 (sourced caps; the floor example is a card with Boss).
+  Constants stay labelled placeholder until the lane applies them.
   Decided (Boss, 2026-10-21, 7:31 PM EDT, card
   cmsg_01RuNTFUNB92A8cm5CbojQAi3fuYsuMA8F7uwsFPFmekeV): Segue 1 is the
   floor example, replacing the Ursa Major III / UNIONS 1 placeholder
@@ -15783,7 +15741,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   half-light radius, 12 pc, sits in the extended star cluster range
   (report section 4); the lane decides whether that needs a warning.
   Registry minimums: mass 281 solar masses, scale length 7.1 pc, scale
-  height 4.8 pc, labelled derived with the Segue 1 source.
+  height 4.8 pc, labelled derived with the Segue 1 source. Density
+  limits (report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 3): the lever table's hard limits come from this report, not
+  from guesses. Recommended (the low-mass cut is decided below; two
+  cards stay open, the Segue floor length and the density floor, and the
+  numbers stand until he answers): every length above 0; scale height at
+  least 4 pc (warn under 8); scale length at least 7.1 pc (warn under
+  28); bulge scale radius at least 2 pc (warn under 4); stellar mass 281
+  to 1.55e11 solar masses; thin-disc crest density D at least about 1
+  (warn under 20 with the share of stars in planned sectors); surface
+  density at most 1e5 solar masses per pc^2 and at most the value that
+  puts a sector over 1e8 systems; pitch angle from 1 degree and arm
+  count from 1. The Sigma0 row 1e-8 to 1e9 is wrong at both ends (six
+  decades too low at the bottom, four too high at the top): gate the
+  pair (Sigma0, h) or show D under the dial.
+  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
+  relayed by the galaxy size research thread): the thick disc, the bar,
+  the stellar halo and the nuclear cluster and disc switch off below 3e8
+  solar masses of stars; below it a galaxy is one disc plus a bulge. The
+  lever table records it as the structure threshold (GEN.615): the
+  Structure dial's thick-disc, bar and halo levers and the nuclear
+  structures are inactive below 3e8 solar masses and the form says so.
   Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
 
 - [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
@@ -15862,24 +15842,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the lever table's unit column (GEN.601; Boss, 7:01 PM EDT); on
   the command line the unit is part of the value, as for Edge. The first
   family's mass range 3e9 to 2e11 (Boss, 2026-10-16) stays the family
-  draw's range for 9.4 (GEN.378); the pin range of this dial is wider at
-  the low end, and masses below the lowest size where the halo functions
-  work are accepted and run no halo function (GEN.606, Boss 7:33 PM
-  EDT). This is the only dial item that changes the default galaxy: the
-  new default window takes the next free generator epoch and the golden
-  files are regenerated, and system counts and the cost of a full
-  generation drop (check against GEN.545's mean system mass and measure
-  with PERF.146). Every other dial item keeps the default output
-  identical (a golden test); if this item lands first, their baseline is
-  main at that point. Done: tests for each pair of pins reproducing the
-  third within tolerance; the refusal and its message; same seed, mass
-  doubled, gives the same size sigma and thick disc sigma; the lever
-  table's scale length, scale height and mass rows carry exactly the
-  limits above as named constants labelled placeholder; the Auto draw
-  stays inside the default window over many seeds and a pin reaches the
-  minimum and the maximum, and a value outside either is refused with
-  the limit and its label; with the new default, golden files are
-  regenerated under the new epoch.
+  draw's range for 9.4 (docs/design/galaxy-types.md); the pin range of
+  this dial is wider at the low end, and masses below the lowest size
+  where the halo functions work are accepted and run no halo function
+  (GEN.606, Boss 7:33 PM EDT). This is the only dial item that changes
+  the default galaxy: the new default window takes the next free
+  generator epoch and the golden files are regenerated, and system
+  counts and the cost of a full generation drop (check against GEN.545's
+  mean system mass and measure with PERF.146). Every other dial item
+  keeps the default output identical (a golden test); if this item lands
+  first, their baseline is main at that point. Done: tests for each pair
+  of pins reproducing the third within tolerance; the refusal and its
+  message; same seed, mass doubled, gives the same size sigma and thick
+  disc sigma; the lever table's scale length, scale height and mass rows
+  carry exactly the limits above as named constants labelled
+  placeholder; the Auto draw stays inside the default window over many
+  seeds and a pin reaches the minimum and the maximum, and a value
+  outside either is refused with the limit and its label; with the new
+  default, golden files are regenerated under the new epoch.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
   Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609,
@@ -15911,12 +15891,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   down to log M* 5.5 and not below (GEN.612), so the floor of 281 solar
   masses (log M* 2.45) is accepted: it runs no halo function (GEN.606,
   Boss 7:33 PM EDT) and takes its size from the best available law until
-  GEN.612 sources one.
-  Superseded wording (Boss, 7:33 PM EDT, via the coordinator): masses
-  below the lowest size where the halo functions work are no longer
-  refused; they skip all halo functions (GEN.606). The earlier 'refused
-  with the reason until GEN.612 lands' no longer applies; GEN.612 now
-  only extends the size law and the non-halo laws.
+  GEN.612 sources one. Superseded wording (Boss, 7:33 PM EDT, via the
+  coordinator): masses below the lowest size where the halo functions
+  work are no longer refused; they skip all halo functions (GEN.606).
+  The earlier 'refused with the reason until GEN.612 lands' no longer
+  applies; GEN.612 now only extends the size law and the non-halo laws.
+  Density limits (report
+  /mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613):
+  hard and warn limits are listed in GEN.601; Sigma0's definition must
+  include the nuclear cluster and disc (12 to 80 percent of the stars of
+  the Auto-sized galaxies from 1e9 down to 281 solar masses at the
+  default amplitude, one seed) (the low-mass cut is decided: 3e8 solar
+  masses, GEN.615).
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
   Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
@@ -16198,6 +16184,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   upper limits and the dwarf laws are sourced as listed above, and the
   lower limits are now verified-derived (half of a sourced example), not
   placeholders.
+  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
+  relayed by the galaxy size research thread): the thick disc, the bar,
+  the stellar halo and the nuclear cluster and disc switch off below 3e8
+  solar masses of stars; below it a galaxy is one disc plus a bulge. The
+  sources check covers the thresholds' sources (GEN.615).
   Prerequisites: none.
 
 - [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
@@ -16320,6 +16311,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the skip threshold that are still thinly covered. Done (changed): the
   dial accepts the whole range down to 281 solar masses, below the
   threshold with no halo function run.
+  Dwarf-mass laws already worked out in docs/design/galaxy-types.md
+  sections 6.4 and 6.5 (the Carlsten 2021 fits, GEN.378, #2368): reuse
+  them.
+  Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
+  relayed by the galaxy size research thread): the thick disc, the bar,
+  the stellar halo and the nuclear cluster and disc switch off below 3e8
+  solar masses of stars; below it a galaxy is one disc plus a bulge. The
+  structure laws of this item stop at the cut (GEN.615); below it a
+  galaxy is one disc plus a bulge.
   Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
 
 - [ ] **GEN.613 Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them**
@@ -16337,13 +16337,97 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   where it breaks (a galaxy of a few systems, a very thin disc, a bulge
   larger than the disc, a sector grid coarser than the galaxy,
   floating-point limits of the density integral); the numbers at which
-  each lever range of GEN.601 should be gated; and proposals. Done: the
-  report exists, states each limit as a plain number with the code line
-  it comes from, checks the lever table's placeholder and sourced limits
-  (GEN.609) against it, and lists any limit change as a new item for the
-  TODO thread to file. Owner: the Galaxy size research thread (Boss's
-  request, 7:33 PM EDT, relayed by the coordinator).
+  each lever range of GEN.601 should be gated; and proposals. Done
+  (report delivered 7:56 PM EDT 2026-10-21 as the thread reported,
+  /mnt/project-files/reports/density-limits-2026-10-21.md; its items are
+  filed as GEN.614, GEN.615, GEN.616, GEN.617, GEN.618 and notes on
+  GEN.601, GEN.603 and GEN.370): the report exists, states each limit as
+  a plain number with the code line it comes from, checks the lever
+  table's placeholder and sourced limits (GEN.609) against it, and lists
+  any limit change as a new item for the TODO thread to file. Owner: the
+  Galaxy size research thread (Boss's request, 7:33 PM EDT, relayed by
+  the coordinator).
   Prerequisites: none. Related: GEN.601, GEN.603, GEN.404, GEN.609.
+
+- [ ] **GEN.614 The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. The nuclear disc keeps its true length while the
+  cluster is softened to the grid, so at small bulge radii it puts five
+  times too many systems into one cell (report section 2.3). Do: soften
+  the disc to the grid like the cluster, or switch it off when its
+  length is under 2 pc (the report prefers neither; the owner chooses
+  and states why). Done: a test builds galaxies with a bulge radius from
+  0.7 pc to 100 pc and the nuclear disc's systems per cell stay within
+  the cluster's; no ZeroDivisionError. Owner: none yet (GEN.280
+  follow-up; the coordinator assigns).
+  Prerequisites: none. Related: GEN.280, GEN.610, GEN.613.
+
+- [ ] **GEN.615 Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. Below the cut the structure laws are not defined for
+  the small galaxies (report section 2.3: 120 seeds each) and the halo
+  functions already skip (Boss, 7:33 PM EDT: the halo rule). Decided
+  (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card, relayed by
+  the galaxy size research thread): the thick disc, the bar, the stellar
+  halo and the nuclear cluster and disc switch off below 3e8 solar
+  masses of stars; below it a galaxy is one disc plus a bulge. The cut
+  is separate from the halo-skip threshold of GEN.606 (today 1e8). Do:
+  one named threshold constant, 3e8 solar masses, with its source
+  (Boss's ruling); below it only a thin disc and a bulge are drawn.
+  Done: planning galaxies below and above the threshold draws exactly
+  those components (a test patches each component's draw to fail below
+  it); at and above it nothing changes. Owner: the Galaxy dials lane
+  (proposed; the coordinator confirms). No longer blocked on a card.
+  Prerequisites: GEN.601. Related: GEN.606, GEN.609, GEN.612, GEN.604.
+
+- [ ] **GEN.616 Average the galaxy density over each planned sector (or a 3 by 3 by 3 sample) instead of taking its centre point, for galaxies under 28 pc scale length**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. Centre-point sampling overcounts tiny galaxies and
+  compact bulges: plus 50 to 184 percent systems at a scale length of
+  7.1 pc, plus 12 to 49 percent at 14.2 pc, plus 4 to 15 percent at 28
+  pc (report section 2.1). Not blocking: the warn limits of GEN.601
+  cover it until this lands. Do: average the model over each planned
+  sector, or over a 3 by 3 by 3 sample, below 28 pc. Done: the overcount
+  at 7.1 pc, 14.2 pc and 28 pc falls to within the sampling error, and
+  galaxies of 28 pc and above are byte-identical to today's. Takes a
+  generator epoch for the affected small galaxies only. Owner: none yet.
+  Prerequisites: none. Related: GEN.601, GEN.603.
+
+- [ ] **GEN.617 Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. A galaxy can have an empty outline or most of its
+  stars outside the planned sectors; the user should see it before a
+  run. Do: one line on the Generate form under the dials (ADM.124) and
+  in the command-line plan output with D (thin-disc crest density), the
+  share of stars in planned sectors (the table of report section 2.2)
+  and the outline size, with a warning under D 20 and a refusal when the
+  outline would be empty. Done: the line appears in both places with the
+  same numbers (a test compares them); an empty outline is refused with
+  the reason. Owner: the Galaxy dials lane (proposed).
+  Prerequisites: GEN.601. Related: ADM.124, GEN.605, GEN.603.
+
+- [ ] **GEN.618 The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end**
+  Found by the galaxy size research thread's density limits report
+  (/mnt/project-files/reports/density-limits-2026-10-21.md, GEN.613,
+  section 4; 2026-10-21, 7:56 PM EDT as the thread reported), filed by
+  the TODO thread. At the dials' ceiling of 2e11 solar masses of stars
+  the inversion returns a halo of about 6e13 solar masses (report
+  section 2.4), far above any galaxy halo (Andromeda's is 0.6 to 2.8e12,
+  GEN.609). Do: find whether the inversion is outside its fitted range,
+  and cap or replace it above the range with a sourced law, labelled.
+  Done: the halo mass for 1.5e11 to 2e11 solar masses of stars lies
+  inside the sourced halo range of the largest spirals, with a test.
+  Owner: none yet (whoever owns the Moster inversion; the coordinator
+  assigns).
+  Prerequisites: none. Related: GEN.606, GEN.609, GEN.612, GEN.380.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -18010,7 +18094,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   needs this item; it stays in 8.3 and later stores the drawn values
   (bar presence, axis ratios and angle) with the other component
   columns.
-  Prerequisites: GEN.378. Related: GEN.379, GEN.389.
+  Design merged (Blocker 2, 7:58 PM EDT 2026-10-21 as the lane reported,
+  GEN.378, #2368, docs only): docs/design/galaxy-types.md section 10
+  lists this item's columns. Boss must read and approve the design's
+  table before this item and GEN.379 are built (see the Needs Boss
+  list); the three questions with defaults are in section 12 and the ten
+  research requests R1 to R10 in section 11.
+  Prerequisites: none. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
@@ -21451,7 +21541,7 @@ clears each one.
   too: a test sweeps every slider across its range at several seeds and
   asserts the family stays inside the published bands, and that the
   warning of GEN.606 fires only outside them.
-  Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
+  Prerequisites: GEN.389. Related: TEST.196, GEN.366.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **TEST.206 Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism**
