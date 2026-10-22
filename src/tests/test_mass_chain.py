@@ -19,7 +19,7 @@ def _seed(number):
     return number.to_bytes(16, "big")
 
 
-LOW, HIGH = mass_chain.FIRST_FAMILY_LOG_MASS_RANGE
+LOW, HIGH = mass_chain.AUTO_LOG_MASS_RANGE
 
 
 def test_the_same_seed_gives_the_same_chain_and_two_seeds_differ():
@@ -28,7 +28,7 @@ def test_the_same_seed_gives_the_same_chain_and_two_seeds_differ():
     assert mass_chain.draw_mass_chain(None) == mass_chain.draw_mass_chain(mass_chain.FALLBACK_SEED)
 
 
-def test_every_draw_stays_in_the_first_familys_range():
+def test_every_draw_stays_in_the_auto_window():
     for number in range(1, 2001):
         chain = mass_chain.draw_mass_chain(_seed(number))
         assert LOW - 1e-9 <= math.log10(chain.stellar_mass_solar) <= HIGH + 1e-9

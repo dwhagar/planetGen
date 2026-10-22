@@ -7,7 +7,7 @@ One root draw and two links, all from the galaxy seed, with no Milky Way value a
 
 1. The stellar mass `M*` is drawn from the galaxy stellar mass function, a double Schechter function (Baldry et al.
    2012, arXiv:1111.5707, Eq. 6, with the density per dex `ln(10) x exp(-x) [phi1 x^alpha1 + phi2 x^alpha2]`,
-   `x = M / M*` of the function), by the inverse of its cumulative sum over the first family's range.
+   `x = M / M*` of the function), by the inverse of its cumulative sum over the Auto window (`AUTO_LOG_MASS_RANGE`).
 2. The halo mass `Mh` (200 times the critical density) is the median stellar-to-halo relation of Moster, Naab and
    White 2013 (arXiv:1205.5807, Eq. 2 and Table 1, z = 0) inverted numerically, with a log-normal draw about it.
 3. The virial radius `r200` follows from `Mh` and the critical density, and the NFW concentration `c200` from
@@ -51,8 +51,11 @@ ALPHA_1 = -0.35
 PHI_2 = 0.79e-3
 ALPHA_2 = -1.47
 
-FIRST_FAMILY_LOG_MASS_RANGE = (math.log10(3.0e9), math.log10(2.0e11))
-"""tuple: The stellar masses the first family covers, log10 solar masses (Boss, 2026-10-16, 9:39 PM EDT)."""
+AUTO_LOG_MASS_RANGE = (math.log10(3.0e9), math.log10(6.0e9))
+"""tuple: The stellar masses a galaxy with no pinned mass is drawn from, log10 solar masses: the lower edge of the first
+family (3e9, Boss, 2026-10-16, 9:39 PM EDT) up to a factor of two above it, so the thin disc's scale length is about
+1.3 to 1.5 kpc, roughly half that of a large spiral (Boss, 2026-10-21, 6:57 and 7:05 PM EDT: the sliders default to a
+smaller spiral, the user pushes up). A pinned mass is not limited to it (`dials` gates it)."""
 
 _GRID_STEPS = 4000
 """int: Steps of the grid the inverse cumulative sum is built on, about 0.00046 dex each."""
@@ -116,8 +119,8 @@ def stellar_mass_density_per_dex(log_mass):
 
 @functools.lru_cache(maxsize=1)
 def _mass_cdf():
-    """`(grid of log10 masses, cumulative share at each)` over the first family's range, by the trapezoid rule."""
-    low, high = FIRST_FAMILY_LOG_MASS_RANGE
+    """`(grid of log10 masses, cumulative share at each)` over the Auto window, by the trapezoid rule."""
+    low, high = AUTO_LOG_MASS_RANGE
     step = (high - low) / _GRID_STEPS
     grid = [low + step * i for i in range(_GRID_STEPS + 1)]
     density = [stellar_mass_density_per_dex(point) for point in grid]
@@ -129,7 +132,7 @@ def _mass_cdf():
 
 
 def log_stellar_mass_at(share):
-    """log10 of the stellar mass below which `share` (0 to 1) of the first family's galaxies lie, the inverse of the
+    """log10 of the stellar mass below which `share` (0 to 1) of the Auto window's galaxies lie, the inverse of the
     mass function's cumulative sum (linear between grid points)."""
     grid, cumulative = _mass_cdf()
     share = min(max(share, 0.0), 1.0)
@@ -275,7 +278,7 @@ def draw_mass_chain(galaxy_seed, stellar_mass_solar=None, halo_mass_solar=None):
             halo mass draw.
 
     Returns:
-        MassChain: `stellar_mass_solar` inside the first family's range (or the pinned one), then the halo mass,
+        MassChain: `stellar_mass_solar` inside the Auto window (or the pinned one), then the halo mass,
         virial radius and concentration it draws.
 
     Raises:
