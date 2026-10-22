@@ -15727,6 +15727,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
+  Decided (Boss, four card taps 5:12 to 5:18 PM EDT 2026-10-22 as the
+  lane's clock reads, each the recommended option; design draft
+  /mnt/project-files/design-drafts/perf123-galaxy-as-step-list.md): the
+  root commands are `sectors`, `link`, `backfill`, `population`, `settle`;
+  `galaxy` has no opt-outs; the estimate and the large-run prompt become a
+  step-list preview from the run's own cut; random starts are picked from
+  the run's seed when the step is cut, which changes which sector a
+  seed's random start lands on, so that slice takes a generator epoch.
 
 - [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
