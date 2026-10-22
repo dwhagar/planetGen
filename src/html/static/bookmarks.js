@@ -2,7 +2,10 @@
 //
 // Bookmarks (MAP.23, docs/design/galaxy-drilldown-navigation.md section
 // 8.2): places saved per browser, in localStorage, one list per database
-// ("planetgen.bookmarks.<db name>"), up to MAX_BOOKMARKS. Each entry is
+// ("planetgen.bookmarks.<db name>"), up to MAX_BOOKMARKS, through the
+// saved-list store (savedlist.js, UX.129) with its local backend. The
+// writes (add, rename, remove) answer with a promise, as a backend may
+// be slower than localStorage; the reads (list, find) are at once. Each entry is
 // {name, kind, value, created}, plus the page it opens (url) and, for a
 // generated sector, its id (sectorId, for the NAV page's system picker):
 // - kind "stage": value is a Galaxy Map stage URL (path and query);
@@ -34,18 +37,21 @@
 // The database comes from the first element's data-bookmark-db. The
 // Galaxy Map's breadcrumb ☆ (galaxystageview.js) uses toggleButton.
 
+// The page's ?v= stamp, so the store is fetched fresh with a release, as the pages' own scripts are.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { createStore, localBackend } = await import(`./savedlist.js${VERSION_QUERY}`);
+
 export const MAX_BOOKMARKS = 100;
 const KEY_PREFIX = "planetgen.bookmarks.";
-const CHANGE_EVENT = "planetgen-bookmarks-change";
 // `<kind>:<printed object ID>` (objectref.js; API.23): hex parts, up to three, joined by dashes.
 const ENDPOINT_RE = /^[a-z_]+:[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
 
-// --- Storage -------------------------------------------------------------------
+// --- The store -------------------------------------------------------------------
 
-function storageKey() {
+// The database comes from the first element's data-bookmark-db.
+function database() {
   const el = document.querySelector("[data-bookmark-db]");
-  const db = el ? el.getAttribute("data-bookmark-db") : "";
-  return db ? KEY_PREFIX + db : null;
+  return el ? el.getAttribute("data-bookmark-db") || "" : "";
 }
 
 function isEntry(entry) {
@@ -53,29 +59,28 @@ function isEntry(entry) {
     && typeof entry.name === "string" && entry.kind !== "" && entry.value !== "";
 }
 
-function read() {
-  const key = storageKey();
-  if (!key) return [];
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(key) || "[]");
-    return Array.isArray(parsed) ? parsed.filter(isEntry).slice(0, MAX_BOOKMARKS) : [];
-  } catch (e) {
-    return [];
-  }
+function keyOf(entry) {
+  return isEntry(entry) ? entry.kind + "\u0000" + entry.value : null;
 }
 
-// True when the list was saved.
-function write(entries) {
-  const key = storageKey();
-  if (!key) return false;
-  try {
-    window.localStorage.setItem(key, JSON.stringify(entries));
-  } catch (e) {
-    return false;
-  }
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
-  return true;
+function build(entry) {
+  const saved = { name: entry.name.trim() || entry.value, kind: entry.kind, value: entry.value, created: new Date().toISOString() };
+  if (entry.url) saved.url = entry.url;
+  if (entry.sectorId != null) saved.sectorId = entry.sectorId;
+  return saved;
 }
+
+export const store = createStore({
+  backend: localBackend({ prefix: KEY_PREFIX, suffix: database }),
+  keyOf: keyOf,
+  build: build,
+  max: MAX_BOOKMARKS,
+  words: {
+    invalid: "That can't be bookmarked.",
+    full: function (most) { return "You have " + most + " bookmarks, the most there can be; delete one first."; },
+    blocked: "This browser isn't letting the site save bookmarks.",
+  },
+});
 
 function indexOf(entries, kind, value) {
   return entries.findIndex(function (entry) { return entry.kind === kind && entry.value === value; });
@@ -83,57 +88,37 @@ function indexOf(entries, kind, value) {
 
 // --- The API ---------------------------------------------------------------------
 
+// Settles when the saved bookmarks have been read.
+export const ready = store.ready;
+
 // Every bookmark, oldest first (the order the 1-9 keys and the menus use).
 export function list() {
-  return read();
+  return store.list();
 }
 
 export function find(kind, value) {
-  const entries = read();
-  const index = indexOf(entries, kind, value);
-  return index < 0 ? null : entries[index];
+  return store.find(keyOf({ kind: kind, value: value, name: "" }));
 }
 
-// Saves `entry` ({name, kind, value, url?, sectorId?}): {ok, entry} or
+// Saves `entry` ({name, kind, value, url?, sectorId?}): a promise of {ok, entry} or
 // {ok: false, reason}. Already saved is ok, as it was.
 export function add(entry) {
-  if (!isEntry(entry)) return { ok: false, reason: "That can't be bookmarked." };
-  const entries = read();
-  const index = indexOf(entries, entry.kind, entry.value);
-  if (index >= 0) return { ok: true, entry: entries[index] };
-  if (entries.length >= MAX_BOOKMARKS) {
-    return { ok: false, reason: "You have " + MAX_BOOKMARKS + " bookmarks, the most there can be; delete one first." };
-  }
-  const saved = { name: entry.name.trim() || entry.value, kind: entry.kind, value: entry.value, created: new Date().toISOString() };
-  if (entry.url) saved.url = entry.url;
-  if (entry.sectorId != null) saved.sectorId = entry.sectorId;
-  entries.push(saved);
-  if (!write(entries)) return { ok: false, reason: "This browser isn't letting the site save bookmarks." };
-  return { ok: true, entry: saved };
+  return store.add(entry);
 }
 
+// A promise of whether the bookmark now has the name.
 export function rename(kind, value, name) {
-  const entries = read();
-  const index = indexOf(entries, kind, value);
-  if (index < 0 || !name.trim()) return false;
-  entries[index].name = name.trim();
-  return write(entries);
+  return store.rename(keyOf({ kind: kind, value: value, name: "" }), name);
 }
 
+// A promise of whether the bookmark is gone.
 export function remove(kind, value) {
-  const entries = read();
-  const index = indexOf(entries, kind, value);
-  if (index < 0) return false;
-  entries.splice(index, 1);
-  return write(entries);
+  return store.remove(keyOf({ kind: kind, value: value, name: "" }));
 }
 
 // Calls `fn` whenever the bookmarks change, here or in another tab.
 export function onChange(fn) {
-  window.addEventListener(CHANGE_EVENT, fn);
-  window.addEventListener("storage", function (event) {
-    if (event.key === null || event.key === storageKey()) fn();
-  });
+  store.onChange(fn);
 }
 
 // The page a bookmark opens.
@@ -200,27 +185,28 @@ export function toggleButton(button, entryFn) {
   function refresh() {
     const entry = entryFn();
     const saved = entry ? find(entry.kind, entry.value) : null;
-    button.disabled = !entry || !storageKey();
+    button.disabled = !entry || !store.available();
     button.setAttribute("aria-pressed", saved ? "true" : "false");
     const label = entry ? (saved ? "Bookmarked: " + saved.name + " (press to remove)" : "Bookmark " + entry.name) : "Bookmark";
     button.textContent = saved ? "★" : "☆";
     button.setAttribute("aria-label", label);
     button.title = label;
   }
-  button.addEventListener("click", function () {
+  button.addEventListener("click", async function () {
     const entry = entryFn();
     if (!entry) return;
     const saved = find(entry.kind, entry.value);
     if (saved) {
-      if (window.confirm("Remove the bookmark “" + saved.name + "”?")) remove(entry.kind, entry.value);
+      if (window.confirm("Remove the bookmark “" + saved.name + "”?")) await remove(entry.kind, entry.value);
     } else {
-      const result = add(entry);
+      const result = await add(entry);
       if (!result.ok) window.alert(result.reason);
     }
     refresh();
   });
   onChange(refresh);
   refresh();
+  ready.then(refresh);
   return refresh;
 }
 
@@ -249,8 +235,8 @@ function renderMenu(menu) {
   const panel = menu.querySelector("[data-bookmarks-panel]");
   if (!panel) return;
   panel.textContent = "";
-  const entries = read();
-  if (!storageKey()) {
+  const entries = list();
+  if (!store.available()) {
     panel.appendChild(el("p", "hint", "Bookmarks aren't available here."));
     return;
   }
@@ -279,8 +265,8 @@ function renderMenu(menu) {
     const deleteButton = el("button", "bookmarks-action", "Delete");
     deleteButton.type = "button";
     deleteButton.setAttribute("aria-label", "Delete bookmark " + entry.name);
-    deleteButton.addEventListener("click", function () {
-      remove(entry.kind, entry.value);
+    deleteButton.addEventListener("click", async function () {
+      await remove(entry.kind, entry.value);
       // The change re-rendered the menu. Keep the keyboard in it: on the
       // entry that took this one's place, or the menu button when none
       // is left.
@@ -314,13 +300,12 @@ function startRename(menu, li, entry) {
   function done() {
     renderMenu(menu);
     const links = menu.querySelectorAll(".bookmarks-open");
-    const entries = read();
-    const index = indexOf(entries, entry.kind, entry.value);
+    const index = indexOf(list(), entry.kind, entry.value);
     if (links[index]) links[index].focus();
   }
-  form.addEventListener("submit", function (event) {
+  form.addEventListener("submit", async function (event) {
     event.preventDefault();
-    if (input.value.trim()) rename(entry.kind, entry.value, input.value);
+    if (input.value.trim()) await rename(entry.kind, entry.value, input.value);
     done();
   });
   cancel.addEventListener("click", done);
@@ -348,6 +333,7 @@ function isTextField(target) {
 
 function wireMenu(menu) {
   renderMenu(menu);
+  ready.then(function () { renderMenu(menu); });
   onChange(function () {
     // Leave a rename in progress alone.
     if (!menu.querySelector(".bookmarks-rename")) renderMenu(menu);
@@ -373,7 +359,7 @@ function wireMenu(menu) {
       if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || isTextField(event.target)) return;
       if (!event.target || !event.target.nodeType || !scope.contains(event.target)) return;
       const n = /^[1-9]$/.test(event.key) ? Number(event.key) : 0;
-      const entry = n ? read()[n - 1] : null;
+      const entry = n ? list()[n - 1] : null;
       const url = entry ? pickUrlOf(entry, pickOf(menu)) : null;
       if (!url) return;
       event.preventDefault();
@@ -391,7 +377,7 @@ function renderNavSelect(form) {
   const select = form.querySelector("select");
   if (!select) return;
   const keep = form.getAttribute("data-keep-value") || "";
-  const entries = read();
+  const entries = list();
   const places = entries.filter(function (e) { return e.kind !== "stage" && e.kind !== "sector" && ENDPOINT_RE.test(e.value) && e.value !== keep; });
   const sectors = entries.filter(function (e) { return e.kind === "sector" && typeof e.sectorId === "string" && e.sectorId !== ""; });
   const views = entries.filter(function (e) { return e.kind === "stage"; });
@@ -417,6 +403,7 @@ function renderNavSelect(form) {
 
 function wireNavSelect(form) {
   renderNavSelect(form);
+  ready.then(function () { renderNavSelect(form); });
   onChange(function () { renderNavSelect(form); });
   form.addEventListener("submit", function (event) {
     event.preventDefault();
