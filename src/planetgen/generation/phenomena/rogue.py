@@ -30,6 +30,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
+from planetgen.generation.small_body import SmallBody
 from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.util.random import sample_power_law
 
@@ -370,7 +371,7 @@ def interstellar_comet_designation(sector_code, index):
     return f"I/{sector_code}-{index}" if sector_code else f"I/{index}"
 
 
-class InterstellarComet(LazySaladName, MassObject):
+class InterstellarComet(SmallBody):
     """
     A basic class to store information for a small icy body passing
     through on an unbound, hyperbolic interstellar trajectory (real
@@ -413,9 +414,7 @@ class InterstellarComet(LazySaladName, MassObject):
                 (its settings).
             name (str, optional): An explicit name. Random if omitted.
         """
-        self.system_config = system_config
-        self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        super().__init__(system_config, name=name)
 
         self.nucleus_diameter_km = draw.uniform(*tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
         self.velocity_kms = draw.uniform(*tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
@@ -431,12 +430,6 @@ class InterstellarComet(LazySaladName, MassObject):
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.
         self.rotation_period_hours = spin.small_body_period_hours()
         spin.set_spin(self, spin.GALACTIC_POLE, spin.yorp_tilt_deg())
-
-    def _encode(self, data):
-        data["composition"] = list(self.composition)
-
-    def _decode(self, data):
-        self.composition = list(data["composition"])
 
     def get_composition_summary(self):
         """

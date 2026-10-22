@@ -168,6 +168,29 @@ def test_compact_remnants_are_stellar_objects():
     assert not hasattr(Star(SystemConfig()), "_skip_property_init")
 
 
+def test_the_small_bodies_share_the_small_body_family_class():
+    """A bound comet, an interstellar comet and an asteroid field are `SmallBody` (GEN.565e): one constructor
+    preamble (the configuration, a name drawn on first read, whether it was given) and one list-of-strings
+    composition save and load; the field keeps its pairs."""
+    from planetgen.generation.comet import Comet
+    from planetgen.generation.small_body import SmallBody
+    config = SystemConfig()
+    for kind in (Comet, InterstellarComet, AsteroidField):
+        assert issubclass(kind, SmallBody)
+    for body in (Comet(config, 1.0, name="Given"), InterstellarComet(config, name="Given"),
+                 AsteroidField(config, name="Given")):
+        assert body.system_config is config and body.name_given and body.name == "Given"
+    for body in (Comet(config, 1.0), InterstellarComet(config), AsteroidField(config)):
+        assert not body.name_given
+    comet = InterstellarComet(config)
+    data = comet.to_dict()
+    assert data["composition"] == list(comet.composition)
+    assert InterstellarComet.from_dict(data, config).composition == comet.composition
+    field = AsteroidField(config)
+    again = AsteroidField.from_dict(field.to_dict(), config)
+    assert again.composition == field.composition and all(isinstance(pair, tuple) for pair in again.composition)
+
+
 def test_nebula_type_and_radius_within_configured_ranges():
     for _ in range(TRIALS):
         nebula = Nebula(make_config())
