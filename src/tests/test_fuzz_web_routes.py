@@ -440,7 +440,7 @@ def real_values(rule, seed):
             "nebula_id": pid("nebula", seed["nebula_id"], seed["config"]), "filename": "style.css", "key_id": 1,
             "job_id": "20260101-000000-abcdef", "star_id": 1, "planet_id": 1, "moon_id": 1, "facility_id": 1,
             "type_id": 1, "field_id": 1,
-            "type_slug": "nebula", "code": "D", "body_id": 1, "bright_star_id": 1,
+            "type_slug": "nebula", "code": "D", "body_id": 1, "bright_star_id": 1, "key": "add-sectors",
         }.get(name, "x")
     return values
 
@@ -1160,7 +1160,7 @@ def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
 
 ADMIN_JSON_ENDPOINTS = frozenset({"web.generate_status", "web.generate_sectors", "web.generate_job_stream",
                                   "web.generate_job_log", "web.admin_settings_export",
-                                  "web.generate_shape_report"})
+                                  "web.generate_shape_report", "web.admin_palette", "web.generate_command"})
 """The admin pages' own JSON routes: a 403 instead of a redirect."""
 
 @pytest.mark.parametrize("rule", ADMIN_PAGE_RULES, ids=_rule_ids(ADMIN_PAGE_RULES))

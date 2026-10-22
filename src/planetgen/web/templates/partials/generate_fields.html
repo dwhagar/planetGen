@@ -1,0 +1,235 @@
+{#- planetgen/web/templates/partials/generate_fields.html -- the Generate page's field macros (imported `with context`
+    by generate_task.html): number boxes, the limit sliders (UX.116), the scatter limits, prevalence, star mix and
+    overrides. Each is drawn once per task page. -#}
+{%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None) -%}
+<label class="search-field">{{ label }}
+  <input type="{{ kind }}" name="{{ name }}" value="{{ form.get(name, value) if form else value }}"
+    {%- if kind == "number" %} step="{{ step }}" inputmode="decimal"{% endif %}
+    {%- if min is not none %} min="{{ min }}"{% endif %}
+    {%- if max is not none %} max="{{ max }}"{% endif %}
+    {%- if placeholder %} placeholder="{{ placeholder }}"{% endif %}
+    {%- if required %} required{% endif %}
+    {%- if kind == "text" %} autocomplete="off" autocapitalize="off" spellcheck="false"{% endif %}>
+  {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
+</label>
+{%- endmacro -%}
+{#- UX.116: one control for every scatter and fill limit: a slider that moves a number box at its end, which shows the
+    value and takes a typed one (static/limitsliders.js; `spec` is a web/limit_sliders.LimitSlider). The box is the form
+    field. `follows` is `(id of the box it follows, factor)` for a limit that tracks another until it is set. -#}
+{%- macro limit_slider(id, spec, hint, follows=none, value=none) -%}
+{%- set posted = form.get(spec.name) if form else none -%}
+{%- set shown = posted if posted else (value if value is not none else spec.default) -%}
+<div class="search-field generate-slider limit-slider" data-limit-slider data-scale="{{ spec.scale }}"
+  data-stops="{{ spec.stops_json }}" data-default="{{ '{:.10g}'.format(shown|float) }}"
+  {%- if spec.snap %} data-snap{% endif %}
+  {%- if follows %} data-follows="{{ follows[0] }}" data-follow-factor="{{ follows[1] }}"{% endif %}>
+  <label for="{{ id }}-box">{{ spec.label }}</label>
+  <div class="limit-slider-row">
+    <input type="range" id="{{ id }}" list="{{ id }}-ticks" min="0" max="{{ spec.stops|length - 1 }}" step="1"
+      value="{{ spec.position(shown|float) }}" aria-label="{{ spec.label }}, slider" data-limit-range>
+    <datalist id="{{ id }}-ticks">{% for index in spec.tick_positions %}<option value="{{ index }}"></option>{% endfor %}</datalist>
+    <input type="number" class="range-value" id="{{ id }}-box" name="{{ spec.name }}" value="{{ '{:.10g}'.format(shown|float) }}"
+      step="any" min="{{ spec.low }}" max="{{ spec.high }}" inputmode="decimal" data-limit-box>
+  </div>
+  <span class="field-hint">{{ hint }}</span>
+</div>
+{%- endmacro -%}
+{#- GEN.195: the neutron star and black hole limit, apart from the stellar mass limit above. Ticked, it
+    follows the star setting; unticked, the dropdown's mass applies. Lower limits fill the database fast. -#}
+{%- macro compact_limit(id) -%}
+{%- set use_star = (not form) or form.get("compact_use_star") -%}
+{%- set chosen = (form.get("compact_min_mass") if form else none) or compact_presets[-1] -%}
+<fieldset class="generate-compact" data-compact-limit>
+  <legend>{{ compact_label }}</legend>
+  <label class="generate-compact-star"><input type="checkbox" name="compact_use_star" value="1" id="{{ id }}-star"
+    {%- if use_star %} checked{% endif %}> Use the star mass setting</label>
+  <label for="{{ id }}">Or neutron stars and black holes from
+    <select id="{{ id }}" name="compact_min_mass">
+      {%- for preset in compact_presets %}
+      <option value="{{ preset|int }}"{% if preset|int == chosen|float|int %} selected{% endif %}>{{ preset|int }}</option>
+      {%- endfor %}
+    </select> solar masses</label>
+  <span class="field-hint">Every neutron star and black hole at least this heavy is placed across the whole galaxy;
+  lighter ones are drawn when their sector is made. The central black hole or quasar is always created. Lower
+  limits fill the database: {% for preset, cost in compact_warnings %}{{ preset|int }} solar mass{{ "es" if preset > 1 }} is {{ cost }}{{ "; " if not loop.last else "." }}{% endfor %}</span>
+</fieldset>
+{%- endmacro -%}
+{#- GEN.601: one control per row of the lever table (planetgen.galaxy.dials), every one Auto (blank) until given. A
+    number row has its range (min, max) and step from the table; a length row has the unit selector its row lists;
+    an enum row is a dropdown. The advanced rows are folded away. -#}
+{%- macro lever_input(row) -%}
+{%- set shown = form.get(row.name, "") if form else "" -%}
+{%- if row.kind == "enum" -%}
+<label class="search-field">{{ row.label }}
+  <select name="{{ row.name }}" data-lever="{{ row.name }}">
+    {#- Blank is Auto. With one entry (spiral) the blank option is that entry; with more, Auto comes first. -#}
+    <option value=""{% if not shown %} selected{% endif %}>{{ row.choices[0]|capitalize if row.choices|length == 1 else "Auto" }}</option>
+    {%- if row.choices|length > 1 %}
+    {%- for choice in row.choices %}
+    <option value="{{ choice }}"{% if shown == choice %} selected{% endif %}>{{ choice|capitalize }}</option>
+    {%- endfor %}
+    {%- endif %}
+  </select>
+  <span class="field-hint">{{ row.help }} Auto: {{ row.auto_text }}.</span>
+</label>
+{%- else -%}
+<label class="search-field">{{ row.label }}{% if row.unit and row.kind != "length" %} ({{ row.unit }}){% endif %}
+  <span class="lever-entry">
+  <input type="number" name="{{ row.name }}" value="{{ shown }}" step="any" inputmode="decimal"
+    min="{{ row.minimum }}" max="{{ row.maximum }}" data-lever="{{ row.name }}" data-step="{{ row.step }}" data-dial="{{ row.dial }}"
+    {%- if row.name == "mass" %} data-no-dark-halo-below="{{ halo_min_stellar_mass }}" data-simple-below="{{ full_structure_min_mass }}"{% endif %}
+    placeholder="Auto">
+  {%- if row.kind == "length" %}
+  <select name="{{ row.name }}_unit" aria-label="{{ row.label }} unit">
+    {%- for unit in row.units %}
+    <option value="{{ unit.name }}"{% if (form.get(row.name ~ "_unit") if form else "") == unit.name %} selected{% endif %}>{{ unit.name }}</option>
+    {%- endfor %}
+  </select>
+  {%- endif %}
+  </span>
+  <span class="field-hint">{{ row.help }} Allowed {{ row.range_text() }}. Auto: {{ row.auto_text }}.</span>
+</label>
+{%- endif -%}
+{%- endmacro -%}
+{%- macro plan_inputs() -%}
+<div class="search-fields">
+  {%- for row in plan_fields if not row.advanced %}
+  {{ lever_input(row) }}
+  {%- endfor %}
+</div>
+<p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disc plus a bulge with no stellar halo, thick disc, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
+<p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
+<details class="generate-advanced">
+  <summary>Advanced shape options</summary>
+  <div class="search-fields">
+    {%- for row in plan_fields if row.advanced %}
+    {{ lever_input(row) }}
+    {%- endfor %}
+  </div>
+</details>
+{%- endmacro -%}
+{#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
+    first, then a segment each for the core, the halo and the crowded cells. -#}
+{%- macro scatter_limits(id) -%}
+<div class="search-fields scatter-limits">
+  {{ mass_limit_slider(id) }}
+  {{ bright_floor_slider(id ~ "-floor") }}
+  {{ compact_limit(id ~ "-compact") }}
+</div>
+<div class="scatter-segments">
+  {{ core_segment(id ~ "-core", id ~ "-floor", id) }}
+  {{ halo_segment(id ~ "-halo") }}
+  {{ dense_segment(id ~ "-dense") }}
+</div>
+{%- endmacro -%}
+{%- macro mass_limit_slider(id) -%}
+{{ limit_slider(id, sliders.phenomenon_min_mass, "Every star, neutron star and black hole at least this heavy is placed across the whole galaxy; lighter ones are drawn when their sector is made. Presets: " ~ mass_limit_presets|map("int")|join(", ") ~ ". Lower limits place more and take longer.") }}
+{%- endmacro -%}
+{%- macro bright_floor_slider(id) -%}
+{{ limit_slider(id, sliders.bright_min_luminosity, "Every star this bright or brighter is placed galaxy-wide. The steps are fine near the bottom (" ~ num(bright_floor_presets[0], ",.0f") ~ ") and coarse near the top (" ~ num(bright_floor_presets[-1], ",.0f") ~ "), and a typed value in between is kept. Around the generated sectors, lighter ones are added later, " ~ backfill_text ~ ".") }}
+{%- endmacro -%}
+{%- macro limit_segment_reset(id) -%}
+<div class="search-actions">
+  <button type="button" class="btn btn-secondary" data-limit-reset="{{ id }}">Reset to the defaults</button>
+  <span class="hint" role="status" aria-live="polite" data-limit-status></span>
+</div>
+{%- endmacro -%}
+{#- The core's two limits follow the galaxy-wide ones, 10% higher, until one is set. -#}
+{%- macro core_segment(id, floor_id, mass_id) -%}
+{%- set following = (not form) or form.get("core_follow") or not (form.get("core_min_luminosity") or form.get("core_mass_limit")) -%}
+<fieldset class="generate-mode limit-segment" id="{{ id }}" data-limit-segment>
+  <legend>Core</legend>
+  <p class="hint">Where the nuclear cluster and disc dominate, the scatter can draw its line a little higher: the core is
+  the densest part of the galaxy and holds far more stars than can be made.</p>
+  <label class="generate-check"><input type="checkbox" name="core_follow" value="1" data-core-follow
+    {%- if following %} checked{% endif %}> Follow the galaxy-wide limits ({{ core_factor_percent }}% of them)</label>
+  <div class="search-fields">
+    {{ limit_slider(id ~ "-floor", sliders.core_min_luminosity, "Stars at least this bright are placed in the core.", follows=(floor_id ~ "-box", core_factor), value=core_floor_default) }}
+    {{ limit_slider(id ~ "-mass", sliders.core_mass_limit, "Stars born at least this heavy are placed in the core.", follows=(mass_id ~ "-box", core_factor), value=core_mass_default) }}
+  </div>
+  <p class="hint warning" data-core-warning hidden>The core floor is below the galaxy-wide one, so the densest region
+  gets more rows than the rest.</p>
+  {{ limit_segment_reset(id) }}
+</fieldset>
+{%- endmacro -%}
+{%- macro halo_segment(id) -%}
+<fieldset class="generate-mode limit-segment" id="{{ id }}" data-limit-segment>
+  <legend>Halo and intergalactic space</legend>
+  <p class="hint">The halo is old and thin, so a lower floor places only its brightest giants. The halo takes the
+  galaxy-wide mass limit.</p>
+  <div class="search-fields">
+    {{ limit_slider(id ~ "-floor", sliders.halo_min_luminosity, "Stars at least this bright are placed in the halo. Lower floors place more rows: 500 gives about 3.8 million.") }}
+  </div>
+  {{ limit_segment_reset(id) }}
+</fieldset>
+{%- endmacro -%}
+{%- macro dense_segment(id) -%}
+<fieldset class="generate-mode limit-segment" id="{{ id }}" data-limit-segment>
+  <legend>Dense cells</legend>
+  <p class="hint">A cell that expects more systems than the ceiling is filled only with its brightest stars; the rest
+  is worked out from the address and not stored.</p>
+  <div class="search-fields">
+    {{ limit_slider(id ~ "-ceiling", sliders.cell_star_ceiling, "Most systems a cell makes before only its bright stars are made.") }}
+    {{ limit_slider(id ~ "-cap", sliders.fill_luminosity_cap, "A full cell is filled down to this brightness, higher where those stars alone would still pass the ceiling.") }}
+  </div>
+  <p class="hint" data-ceiling-cost data-seconds-per-system="{{ seconds_per_system }}" data-bytes-per-system="{{ bytes_per_system }}" data-ceiling-box="{{ id }}-ceiling-box"></p>
+  {{ limit_segment_reset(id) }}
+</fieldset>
+{%- endmacro -%}
+{#- ADM.16: the share of each feature a sector or galaxy run should
+    give, starting at its usual share (GEN.52 `--prevalence`). -#}
+{%- macro prevalence_inputs() -%}
+<fieldset class="generate-mode">
+  <legend>Prevalence</legend>
+  <p class="hint">How common each feature is in this run's systems. Every field starts at the share generation
+  gives with no changes; type a higher or lower share to change it, 0 for none.</p>
+  <div class="search-fields">
+    {%- for name, label, usual in prevalence_fields %}
+    {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
+    {%- endfor %}
+  </div>
+  <fieldset class="generate-mode" data-star-mix>
+    <legend>Star mix</legend>
+    <p class="hint">How many systems have one star, a close binary or a wide pair. These three must total exactly 100%:
+    raise one when you lower another.</p>
+    <div class="search-fields">
+      {%- for name, label, usual in star_mix_fields %}
+      {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
+      {%- endfor %}
+    </div>
+    <p class="hint" data-star-mix-total role="status" aria-live="polite"></p>
+  </fieldset>
+</fieldset>
+{%- endmacro -%}
+{#- GEN.96: minimums every generated sector must hold (`--directive`). -#}
+{%- macro directive_inputs() -%}
+<fieldset class="generate-mode">
+  <legend>Override</legend>
+  <p class="hint">Redraw each sector until it holds at least this much. After 200 draws the closest one is
+  kept and the job log says which minimum it missed. Blank or 0 asks for nothing.</p>
+  <div class="search-fields">
+    {%- for name, label, key in directive_fields %}
+    {{ field(name, label, min=0, max=1000, placeholder="no minimum") }}
+    {%- endfor %}
+  </div>
+</fieldset>
+{%- endmacro -%}
+{#- The rarely changed sector settings, folded: prevalence and star mix, and the minimums a sector must hold. Open when
+    the draft being shown again already holds a value for them. -#}
+{%- macro advanced_sector_inputs() -%}
+<details class="generate-advanced"{% if advanced_open %} open{% endif %}>
+  <summary>Advanced: prevalence, star mix and minimums</summary>
+  {{ prevalence_inputs() }}
+  {{ directive_inputs() }}
+</details>
+{%- endmacro -%}
+{%- macro skip_scatter(id) -%}
+<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
+  {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
+  <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy: right after the plan, or on a new galaxy once its first sectors are generated, leaving them out.</span></label>
+{%- endmacro -%}
+{%- macro confirm_field(id) -%}
+<label class="search-field">Type the database name to confirm
+  <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
+</label>
+{%- endmacro -%}

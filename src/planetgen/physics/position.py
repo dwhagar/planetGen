@@ -21,10 +21,12 @@ Forms
     spherical    (r, theta, phi): theta the same azimuth, phi the polar
                  angle from +z, in [0, pi].
 
-Lengths are in `length_unit_m` metres (default 1: metres), so an object
-kept in light-years or AU holds its own numbers exactly, with no round trip
-through metres; speeds are always metres a second and masses kilograms. The
-storage layer converts (km, mpc) at its edge (`planetgen.physics.units`).
+Lengths are in the unit `length_unit` names, a key of the unit registry
+(`planetgen.physics.unit_registry`; default "m"), so an object kept in
+light-years or AU holds its own numbers exactly, with no round trip through
+metres; speeds are always metres a second and masses kilograms. The storage
+layer converts (km, mpc) at its edge (`planetgen.physics.units`). A mass and
+its `mu` are the registry's declared relation "mass-mu".
 
 Precision: the position that was last set is kept as given, in the frame it
 was given in, and the other frames are derived from it. A moon placed by its
@@ -70,6 +72,7 @@ import math
 
 from planetgen.galaxy import spherical
 from planetgen.physics import constants as physical_constants
+from planetgen.physics import unit_registry
 from planetgen.util import detmath
 
 FRAMES = ("galactic", "sector", "system")
@@ -107,8 +110,11 @@ def update_interval_s(speed_ms, scale):
     return min(THRESHOLDS_M[scale] / speed_ms, MAX_UPDATE_INTERVAL_S)
 
 
-SPEED_OF_LIGHT_MS = 299_792_458.0
-"""float: The speed no body reaches, m/s."""
+_MASS_MU = unit_registry.RELATIONS["mass-mu"]
+"""Relation: The registry's mass and gravitational parameter pair (`mu` = G M, in kg and m^3/s^2)."""
+
+_KM_S = unit_registry.unit("km_s").factor
+"""float: Metres a second in a kilometre a second."""
 
 
 def _finite(values, what):
@@ -150,16 +156,6 @@ def spherical_to_cartesian(r, theta, phi):
     return (r * math.sin(phi) * math.cos(theta), r * math.sin(phi) * math.sin(theta), r * math.cos(phi))
 
 
-def mu_of(mass_kg):
-    """The gravitational parameter G * M (m^3/s^2) of `mass_kg`."""
-    return physical_constants.G * mass_kg
-
-
-def mass_of(mu):
-    """The mass (kg) whose gravitational parameter is `mu`."""
-    return mu / physical_constants.G
-
-
 class SpatialPosition3D:
     """
     One body's position, velocity and point-mass data, with every frame and
@@ -175,8 +171,9 @@ class SpatialPosition3D:
             galactic metres; `None` for a body with no star reference.
         is_star (bool): A star has no system frame.
         mass_kg (float or None): The body's mass; its `mu` follows.
-        length_unit_m (float): Metres in one unit of every coordinate and
-            anchor (1 for metres, `LY_TO_M` for light-years, `AU_M` for AU).
+        length_unit (str): The unit of every coordinate and anchor, a length
+            key of the unit registry ("m" metres, "ly" light-years, "au" AU,
+            "pc" parsecs).
         star_velocity_galactic (tuple): The nearest star's velocity, galactic
             axes, m/s: what the system frame's velocity is measured from.
         epoch_unix (float or None): When the position and velocity hold.
@@ -186,12 +183,13 @@ class SpatialPosition3D:
     """
 
     def __init__(self, galactic_cartesian, sector_center_galactic, velocity_vector_cartesian=(0.0, 0.0, 0.0),
-                 star_center_galactic=None, is_star=False, mass_kg=None, length_unit_m=1.0,
+                 star_center_galactic=None, is_star=False, mass_kg=None, length_unit="m",
                  star_velocity_galactic=(0.0, 0.0, 0.0), epoch_unix=None, sector_edge_pc=None):
-        _finite((length_unit_m,), "length unit")
-        if length_unit_m <= 0.0:
-            raise ValueError(f"the length unit must be positive, got {length_unit_m!r}")
-        self.length_unit_m = float(length_unit_m)
+        row = unit_registry.UNITS.get(length_unit)
+        if row is None or row.kind != "length":
+            raise ValueError(f"the length unit must be a length unit of the registry, got {length_unit!r}")
+        self.length_unit = length_unit
+        self._length_unit_m = float(row.factor)
         _finite(galactic_cartesian, "galactic position")
         _finite(sector_center_galactic, "sector center")
         if star_center_galactic is not None:
@@ -272,7 +270,7 @@ class SpatialPosition3D:
         if self._sector_edge_pc is None:
             raise ValueError("the sector edge is not known, so there is no sector address to set")
         center_pc = spherical.sector_position_pc(shell_index, band_index, wedge_index, self._sector_edge_pc)
-        from_pc = physical_constants.PARSEC_M / self.length_unit_m
+        from_pc = physical_constants.PARSEC_M / self._length_unit_m
         self.carry_sector_center(tuple(c * from_pc for c in center_pc))
 
     def _galactic_cartesian(self):
@@ -316,7 +314,7 @@ class SpatialPosition3D:
                 "spherical": cartesian_to_spherical(*xyz),
             }
         if self._sector_edge_pc is not None:
-            to_pc = self.length_unit_m / physical_constants.PARSEC_M
+            to_pc = self._length_unit_m / physical_constants.PARSEC_M
             self._sector_address = spherical.sector_address_at(tuple(c * to_pc for c in gal), self._sector_edge_pc)
 
     def _set(self, frame, xyz):
@@ -420,7 +418,7 @@ class SpatialPosition3D:
         vector = (float(vx), float(vy), float(vz))
         galactic = vector if key == "galactic" else tuple(a + b for a, b in zip(self._star_velocity, vector))
         for candidate in (vector, galactic):
-            if math.sqrt(sum(v * v for v in candidate)) >= SPEED_OF_LIGHT_MS:
+            if math.sqrt(sum(v * v for v in candidate)) >= physical_constants.SPEED_OF_LIGHT_M_S:
                 raise ValueError("a body cannot move at or above the speed of light")
         self._velocity_truth = (key, vector)
 
@@ -546,7 +544,7 @@ class SpatialPosition3D:
         if mass_kg < 0.0:
             raise ValueError(f"mass must not be negative, got {mass_kg!r}")
         self._mass_kg = float(mass_kg)
-        self._mu = mu_of(self._mass_kg)
+        self._mu = _MASS_MU.forward(self._mass_kg)
 
     def set_mu(self, mu):
         """Sets the gravitational parameter (m^3/s^2); the mass follows."""
@@ -554,7 +552,7 @@ class SpatialPosition3D:
         if mu < 0.0:
             raise ValueError(f"mu must not be negative, got {mu!r}")
         self._mu = float(mu)
-        self._mass_kg = mass_of(self._mu)
+        self._mass_kg = _MASS_MU.inverse(self._mu)
 
     @property
     def mass_kg(self):
@@ -620,7 +618,7 @@ def velocity_axis_property(index):
     """
     def read(self):
         if self.spatial is not None:
-            return self.spatial.get_velocity_vector("system")[index] / 1000.0
+            return self.spatial.get_velocity_vector("system")[index] / _KM_S
         staged = self._staged_velocity_kms
         return None if staged is None else staged[index]
 

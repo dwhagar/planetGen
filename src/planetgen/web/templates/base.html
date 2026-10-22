@@ -2,7 +2,7 @@
 
 Context (from web.helpers.render_page and the context processor in
 web/__init__.py): title, section, breadcrumbs, description, site_name,
-site_version, sections, static_url(), page_url(), current_admin(),
+site_version, sections, static_url(), page_url(), current_admin(), admin_shell(section), admin_job(),
 csrf_field().
 
 Blocks a page may fill: content (required), head (extra <link>/<script>
@@ -27,8 +27,7 @@ subhead (badges or actions under the <h1>). -#}
 </form>
 {%- endif -%}
 {%- endmacro -%}
-{#- The tab row on every admin page (UX.72): the hub and the pages under it. -#}
-{%- set admin_tabs = [('admin', 'admin', 'Overview'), ('generate', 'admin_generate', 'Generate'), ('admin_queue', 'admin_queue', 'Queue'), ('admin_stats', 'admin_stats', 'Stats'), ('admin_facility_types', 'admin_facility_types', 'Facility types'), ('admin_settings', 'admin_settings', 'Settings')] -%}
+{% from "partials/admin_jobstrip.html" import admin_jobstrip with context %}
 {%- macro gear_link(name, text, current, href=None) -%}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
 {%- endmacro -%}
@@ -148,14 +147,29 @@ subhead (badges or actions under the <h1>). -#}
   {%- block heading %}
   <h1 class="page-title">{{ title }}</h1>
   {%- endblock %}
-  {%- if section in ['admin', 'admin_generate', 'admin_queue', 'admin_stats', 'admin_facility_types', 'admin_settings'] %}
-  <nav class="admin-tabs" aria-label="Admin pages">
-    <ul>
-      {%- for page, name, text in admin_tabs %}
-      <li><a href="{{ page_url(page) }}"{% if name == section %} aria-current="page"{% endif %}>{{ text }}</a></li>
-      {%- endfor %}
-    </ul>
-  </nav>
+  {#- The admin shell (ADM.92): the rail of six destinations, the search box (Ctrl+K opens the palette) and the
+      density switch, on every page under /admin. -#}
+  {%- set shell = admin_shell(section) %}
+  {%- if shell %}
+  <div class="admin-shell" data-admin-shell data-search-url="{{ shell.search_url }}" data-palette-url="{{ shell.palette_url }}" data-command-url="{{ shell.command_url }}">
+    <nav class="admin-rail" aria-label="Admin">
+      <ul>
+        {%- for item in shell.destinations %}
+        <li><a href="{{ item.url }}" data-destination="{{ item.key }}"{% if item.current %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+    <form class="admin-find" method="get" action="{{ shell.search_url }}" role="search">
+      <label class="sr-only" for="admin-find-q">Search admin</label>
+      <input id="admin-find-q" type="search" name="q" placeholder="Search admin" autocomplete="off" data-admin-find>
+      <button type="submit">Search</button>
+    </form>
+    <label class="admin-density"><input type="checkbox" data-admin-density> Compact</label>
+  </div>
+  {{ admin_jobstrip(admin_job(), url_for('web.generate_status'), url_for('web.generate')) }}
+  <script src="{{ static_url('adminshell.js') }}"></script>
+  <script type="module" src="{{ static_url('adminpalette.js') }}"></script>
+  <script type="module" src="{{ static_url('adminjobstrip.js') }}"></script>
   {%- endif %}
   {%- block subhead %}{% endblock %}
   {%- set math_failed = math_check_failures() %}{% if math_failed and current_admin() %}

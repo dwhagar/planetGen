@@ -325,3 +325,13 @@ Consequences of answer 10 (new work): the job runner today allows exactly one ac
 * `settings_view.describe` is shared by the page, the API and the command line, so the new fields must come from the model, not the template.
 * The two pages share one rule: a control that cannot do anything for this admin is not drawn.
 * No fixed content: shape defaults stay "drawn from the seed" and nothing is prefilled from the Milky Way or the Solar System. Every time shown to the admin is the server's clock formatted as such; this draft's times are EDT.
+
+## 9. What is built
+
+- **Settings words and groups (ADM.101)** are in `util/settings.py` (`opt()` takes `label`, `summary`, `group`, and optionally `control`, `advanced`, `choice_labels` and `slider`); `util/settings_view.py` turns them into the groups and controls the page draws.
+- **Settings page (ADM.102 to ADM.106)**: `web/settings_page.py`, `templates/admin_settings.html`, `static/settingspage.js`.
+- **Registry (ADM.118)**: `web/adminregistry.py`. Pages and exempt routes are declared there (a test fails for an `/admin` page route in neither); settings entries are built from the settings model; tasks are added when the Generate cards exist.
+- **Shell (ADM.92)**: `templates/base.html` draws the rail, the search box and the Compact switch above every page whose `section` is in `adminregistry.SECTION_DESTINATION`. The rail is a bar across the top of the page (it wraps on a phone), not a side column. The Account page wears it too (ADM.93), except while the seeded credentials still have to be changed.
+- **Job strip (ADM.119)**: `templates/partials/admin_jobstrip.html`, `static/adminjobstrip.js`, fed by the `strip` field of `/admin/generate/status`.
+- **Search and palette (ADM.120), keys (ADM.122)**: `web/admin_search_page.py` (`/admin/search`, `/admin/palette.json`) and `static/adminpalette.js`.
+- **Queue one next job (ADM.123)**: `web/jobs.py` (`queue_next`, `queued_job`, `promote_queued`, `discard_queued`; the spec is the jobs directory's `next.json`, mode 0600 like `job.json`), started by `job_runner.run` when a job ends and by any strip poll. It starts after a succeeded or cancelled job and is held after a failed or interrupted one (Start now or Discard); a failed start also holds it.

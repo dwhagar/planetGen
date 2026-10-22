@@ -1,5 +1,5 @@
 {#- planetgen/web/templates/generate_system.html -- /admin/generate/system (web/system_page.py). -#}
-{% extends "base.html" %}
+{% extends "generate_base.html" %}
 {%- macro field(name, label, kind="text", step="any", min=None, max=None, placeholder=None, hint=None) -%}
 <label class="search-field">{{ label }}
   <input type="{{ kind }}" name="{{ name }}" value="{{ form.get(name, '') }}"
@@ -11,11 +11,8 @@
   {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
 </label>
 {%- endmacro -%}
-{% block main_class %} aligned-fields{% endblock %}
-{% block content %}
-{%- if error %}
-<p class="error" role="alert">{{ error }}</p>
-{%- endif %}
+{% block generate_body %}
+<p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
 
 <section class="panel" id="system-options" aria-labelledby="system-options-heading">
   <h2 id="system-options-heading">Options</h2>
@@ -38,15 +35,16 @@
     </div>
     <fieldset class="generate-mode">
       <legend>Force or forbid</legend>
-      <div class="search-fields">
+      <div class="tristate-rows">
         {%- for name, label in tristate_fields %}
-        <label class="search-field">{{ label }}
-          <select name="{{ name }}">
+        <fieldset class="tristate-row">
+          <legend>{{ label }}</legend>
+          <div class="setting-segments">
             {%- for value, text in tristate_choices %}
-            <option value="{{ value }}"{% if form.get(name, "") == value %} selected{% endif %}>{{ text }}</option>
+            <label><input type="radio" name="{{ name }}" value="{{ value }}"{% if form.get(name, "") == value %} checked{% endif %}><span>{{ text }}</span></label>
             {%- endfor %}
-          </select>
-        </label>
+          </div>
+        </fieldset>
         {%- endfor %}
       </div>
     </fieldset>

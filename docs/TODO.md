@@ -668,7 +668,7 @@ with `clamp()`.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): takes the JavaScript
   Quantity built from GEN.569's class and the registry table of UX.140
   (the browser copy), instead of GEN.299's.
-  Prerequisites: GEN.569, UX.140. Related: GEN.300, GEN.299.
+  Prerequisites: UX.140. Related: GEN.300, GEN.299.
 
 - [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -739,7 +739,7 @@ with `clamp()`.
   its name, so the user sees roughly what the model looks like before
   creating the galaxy.
   Lands in the Start a new galaxy task of the admin control suite: needs
-  ADM.110.
+  ADM.110 (done, #2498).
   Update (TODO thread, 2026-10-21): Boss (6:46 PM EDT) asked for a Shape
   selector now, unfilled: GEN.608 adds the lever-table row (key `shape`,
   flag `--shape`) and the dropdown with one entry, Spiral, in 8.1. This
@@ -860,39 +860,6 @@ with `clamp()`.
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
 
-- [ ] **UX.139 Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 4, one owner with UX.107
-  (Core 4 owns the description layer, whose call sites move with this
-  item). Do: `util/ladders.py` and `html/static/unitladder.js` keep
-  their rung order, thresholds, asides and preference systems as display
-  data and take `symbol` and `factor` from the registry; the 21
-  `format_*` wrappers in `util/format.py` (about 230 lines) become one
-  `format_quantity(Quantity)` entry plus thin names where call sites
-  need them. Nothing the site shows changes. Done: the rendered pages
-  are identical, a factor is stated once, and the generated ladder table
-  is current.
-  Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
-  and GEN.569, and this item follows GEN.569.
-  Core 4 (relayed 11:07 AM EDT 2026-10-22): GEN.568 is merged as #2476,
-  so this item no longer waits on it; GEN.569, GEN.573 and UX.139 are
-  built and gate together as one PR from about 11:09 AM EDT (Core 4 will
-  report its number).
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -980,6 +947,9 @@ with `clamp()`.
   Open for the later parts: facility pages, and nebula, region and
   cluster pages (not in the reference kinds yet). Core 2 does MAP.139
   with MAP.254 next as one PR.
+  Progress (Core 2, relayed 12:52 PM EDT 2026-10-22 as the lane's clock
+  reads, with #2485): still open are the facility pages (a facility is
+  not in the reference registry) and the cluster and region pages.
   Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
 
 - [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
@@ -1011,7 +981,14 @@ with `clamp()`.
   /api/phenomena/<type>/<id>/contents`. The cluster and region part
   waits on DB.85 (globular clusters and superbubbles are not stored as
   containers).
-  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
+  Progress (Core 2, UX.144 merged in part as #2485, 12:52 PM EDT
+  2026-10-22 as the lane reported): the Location block is on item, system
+  and phenomenon pages (the chain from the galaxy down, each a link), nebula and remnant
+  pages list what is inside them, through the new API `GET
+  /api/phenomena/<type>/<id>/contents`. Still open here: the 'Inside:'
+  line naming a containing globular cluster or superbubble, which waits
+  on DB.85 (no such records are stored as containers).
+  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2531,6 +2508,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own. MAP.139 is retired. Still open here: the navigation chart and the
   list and search results keep their own links, and the browser table of
   every kind by every view is not written.
+  Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock reads):
+  unchanged by #2485; the remainder is the navigation chart, the list
+  and search results, and the browser table of kinds by views.
 
 - [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
   Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
@@ -5453,60 +5433,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dropped from the generator's laws above.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
-- [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
-  Boss (2026-10-16, 11:35 AM EDT, project chat): "Add new item to Phase
-  3, a "unit" class, similar to what we do with the Point in space
-  class, so that whatever kind of unit it is (length, mass, luminosity,
-  etc...) the class itself makes sure that every version of that data is
-  available all the time, and it does all the conversions, uses the
-  shared ladders, etc" Design and build. A `Quantity` class (the unit
-  class), the way SpatialPosition3D (physics/position.py, GEN.74,
-  GEN.294) is the point-in-space class: one object per measured value,
-  built from a value in any unit of its kind, with every other version
-  of that value (the SI base value and each rung of the kind's ladder)
-  available at every moment as an attribute, kept in step when the value
-  changes, so no caller converts by hand and no copy of a unit version
-  can go stale. The kinds are the ladder families the repository already
-  shows (length, mass, luminosity, time, temperature, pressure, speed,
-  density, gravity, energy and the rest of
-  docs/design/units-and-number-formatting.md); the class reads the
-  shared ladders (util/ladders.py, the one data table that
-  scripts/build_unit_ladders.py also writes for the browser) for its
-  units, conversion factors and the rung a value is shown in, and the
-  browser gets the same class from the same table, so Python and
-  JavaScript cannot disagree. It does the conversions between kinds that
-  are really one dimension (a mass as a gravitational parameter,
-  SpatialPosition3D's length_unit_m and mu_of and mass_of), refuses a
-  conversion between kinds that are not (length to mass), takes a value
-  deterministically (GEN.135) and formats through format_quantity.
-  Default decisions (they stand unless Boss says otherwise): stored
-  columns stay one column per quantity in the SI base unit, with no
-  second column or JSON for a unit version; every other version is
-  computed from the class on read and is never stored. Kinds are added
-  to the ladder table, not declared on the class, so a new kind is one
-  table row. Done: the class and its kinds, all conversions and the
-  formatting algorithm in Python and in the browser from the one ladder
-  table, SpatialPosition3D reading its mass and length through it, a
-  property test that every kind round-trips through every rung and that
-  the Python and JavaScript copies agree, and the design note updated.
-  Prerequisites: none. Related: GEN.74, GEN.109, UX.107, UX.108.
-  Overlap to settle (the TODO thread, 10:45 AM EDT 2026-10-22, asked by
-  the coordinator whether anyone holds this item): no lane row holds it
-  and nothing is reported in progress (it is only in Core 3's queue).
-  But GEN.569 (The Quantity value class, owner Core 4, assigned by the
-  coordinator at 8:16 AM EDT 2026-10-22) defines the same class in the
-  unified unit plan (docs/design/unified-unit-quantity.md, Boss's six
-  cards of 11:56 to 11:57 PM EDT 2026-10-17), and that design doc does
-  not name GEN.299 or GEN.300. Core 4 answered (relayed 10:45 AM EDT
-  2026-10-22): see below.
-  Design:
-  [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-  Replaced (Core 4's answer, relayed 10:45 AM EDT 2026-10-22): GEN.299
-  is replaced by GEN.568 (the unit registry), GEN.569 (the Quantity
-  class), GEN.573 and UX.139; its browser copy is UX.140, and the
-  every-rung round-trip test goes into Core 4's PR. Retire this item
-  once GEN.569 merges. Core 3 does not start it (it does DB.56 first).
-
 - [ ] **GEN.300 Every quantity in the code moves onto the Quantity class, and hand conversions are removed**
   Boss (2026-10-16, 11:35 AM EDT): the Quantity class (GEN.299) makes
   every version of a value available and does all the conversions, so
@@ -5533,7 +5459,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is only partly covered by the unified unit plan (the factor sweep is
   GEN.571 and the describe and API shape is GEN.574). Its subitems
   GEN.348, UX.128 and GEN.349 are not retired: they now build on
-  GEN.569's Quantity instead of GEN.299's.
+  GEN.569's Quantity instead of GEN.299's. GEN.299, GEN.569, GEN.573 and
+  UX.139 merged as #2490 (Core 4, 2:20 PM EDT 2026-10-22 as the lane
+  reported), so the sweep items are unblocked.
   Prerequisites: GEN.348, UX.128, GEN.349. Related: GEN.294, UX.108.
 
 - [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
@@ -6216,7 +6144,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): takes GEN.569's Quantity
   (the class GEN.299 would have been); the prerequisite moved from
   GEN.299 to GEN.569.
-  Prerequisites: GEN.569. Related: GEN.300, GEN.299, GEN.571, GEN.574.
+  Prerequisites: none. Related: GEN.300, GEN.299, GEN.571, GEN.574.
 
 - [ ] **GEN.349 API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed**
   Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13171,7 +13099,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy from what it holds; the interior is the same stars for the same
   seed whatever the configuration. Owner: Core 1 or Core 3 (proposed,
   whichever holds the plan and scatter code after 8.1).
-  Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.537, GEN.301,
+  Prerequisites: GEN.537, GEN.301. Related: GEN.537, GEN.301,
   GEN.235, PERF.121. Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy
   setting will also tell the scatter functions if they can scatter the
   halo and / or the satellite galaxies, either / or"): the stored galaxy
@@ -13245,7 +13173,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy; the interior is unchanged either way (a test); the Generate
   page and the API run it as a step (UX.137). Owner: Core 1 or Core 3
   (proposed).
-  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.540,
+  Prerequisites: GEN.538. Related: GEN.537, GEN.538, GEN.540,
   PERF.120.
   Boss, 2026-10-17, 4:49 PM EDT: the halo scatter kinds read this switch
   from the stored galaxy setting, and no other scatter kind does.
@@ -13294,7 +13222,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the satellite commands are never selected; default off for a new
   galaxy; a test per switch state and for each combination of the two
   switches. Owner: Core 1 or Core 3 (proposed).
-  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.539,
+  Prerequisites: GEN.538. Related: GEN.537, GEN.538, GEN.539,
   PERF.120, GEN.371.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
@@ -13684,7 +13612,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its stamp at the next release). Boss chose 'Keep the cap' on the black
   hole cap card (12:39 PM EDT 2026-10-21, as Core 4 reported). The item
   stays open for the mass islands and the kick step. Boss's 1:17 PM EDT
-  2026-10-21 note (as the coordinator relayed): Network access to
+  2026-10-21 note (as the coordinator relayed; he opened the network at
+  3:05 PM EDT 2026-10-22): Network access to
   arxiv.org, doi.org and crossref stays closed until he opens it, and
   information already included in the repository or in files he provided
   is valid; so the kick-escape share and any other source this step
@@ -13708,8 +13637,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent is a test target only; the published Milky Way halo gives 27
   percent). Perturber mass changes from 1.44 to 0.88 and the encounter
   limit from 1.1e4 to 1.9e4 AU because of the new rates. Network access
-  is closed (Boss, 1:17 PM EDT), so the unverified sources stay labelled
-  recalled. Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT
+  was closed (Boss, 1:17 PM EDT) and is open since 3:05 PM EDT
+  2026-10-22 (Boss), so the owner can now verify the sources that stayed
+  labelled recalled. Slices 2 and 3 merged as #2399 (Core 4, about 11:43 PM EDT
   2026-10-21 as the lane reported; GEN.597 was fixed inside it), release
   8.0.1873, generator epoch 43. Effects: the standalone neutron star
   rate is 4.66e-3 per star (Boss's 4.0e-3 stays a test target), the
@@ -14264,43 +14194,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.4 phase 1, no behaviour change.
   Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
 
-- [ ] **GEN.569 The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Owner: Core 4 (assigned by the coordinator, 8:16 AM EDT 2026-10-22;
-  Core 5, the proposed owner, reported it is not in progress), after
-  GEN.568; GEN.570 and UX.139 then follow it. Do: `Quantity(kind, value,
-  unit)` that keeps the truth as given and never converts it (Q1 and the
-  point class's rule); other forms are `value * factor_given /
-  factor_wanted` from the truth on first read and cached, marked stale
-  by `set`; `__slots__`; declared relations (the point class's `mass_kg`
-  and `mu` becomes the first one); finite, sign and range checks and a
-  clear error for a unit of another kind; `to_dict` giving `{kind,
-  value, unit}`; temperature offsets, with a temperature difference as
-  its own kind. Generation kernels stay on plain floats (Q2), so a PERF
-  check on the sector fill benchmark is part of GEN.570. Done: tests of
-  every form in step after any set, the relations, the refusals and that
-  a conversion between units whose ratio is a power of ten stays exact
-  in the common range.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design:
-  [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-  Core 4 (relayed 11:07 AM EDT 2026-10-22): GEN.568 is merged as #2476,
-  so this item no longer waits on it; GEN.569, GEN.573 and UX.139 are
-  built and gate together as one PR from about 11:09 AM EDT (Core 4 will
-  report its number).
-
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -14327,7 +14220,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check. Done: the sector fill time stays inside its PERF budget, the
   serialized rows are bit-identical, and a test fails when a unit-valued
   field has no declaration.
-  Prerequisites: GEN.569, GEN.565. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.565. Related: GEN.550, GEN.565,
   DB.74.
   Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
   and GEN.569, and this item follows GEN.569.
@@ -14389,34 +14282,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
-- [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 4 (the point in space,
-  with the mass object core). Do: `physics/position.py` takes
-  `length_unit` by registry key instead of `length_unit_m`, loses its
-  own `SPEED_OF_LIGHT_MS` and the bare `1000.0` in `set_velocity_kms`,
-  and its `mass_kg` and `mu` pair becomes the first declared relation of
-  the Quantity class. Nothing in the point class's frames or forms
-  changes. Done: position tests unchanged and bit-identical.
-  Core 4 (relayed 11:07 AM EDT 2026-10-22): GEN.568 is merged as #2476,
-  so this item no longer waits on it; GEN.569, GEN.573 and UX.139 are
-  built and gate together as one PR from about 11:09 AM EDT (Core 4 will
-  report its number).
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **GEN.574 Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit}**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -14438,7 +14303,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569. Related: GEN.550, GEN.565,
+  Prerequisites: none. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14601,7 +14466,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class changes. Done: the point class's tests pass and a body's
   absolute position equals the top barycentre plus the sum of the
   offsets down its chain.
-  Prerequisites: GEN.576, GEN.569, GEN.573. Related: GEN.550, GEN.552,
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Scope expanded (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
   2026-10-18, as the coordinator relayed;
@@ -15065,7 +14930,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   deliberately wrong formula fails the gate; kernel and wrapper agree
   bit for bit on the golden inputs; the module header states the unit
   rules and that kernels take plain SI floats.
-  Prerequisites: GEN.585, GEN.569. Related: GEN.550, GEN.565, GEN.568,
+  Progress (Core 4, relayed 2:20 PM EDT 2026-10-22 as the lane's clock
+  reads): built on a branch with 21 laws, gated separately from GEN.585,
+  not merged; the vector laws `obliquity` and `galactic_orbit` are left
+  for GEN.584 to declare because the formulas here take scalars only.
+  Prerequisites: GEN.585. Related: GEN.550, GEN.565, GEN.568,
   GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -15976,103 +15845,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
-- [ ] **PERF.121 `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band)**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `planetgen plan` is
-  nine jobs behind flags (the skeleton; the bright-star band; the
-  map-luminosity fill; the habitability re-score; the nebula-field
-  clean-up; redo scatters; phenomena only; bright stars only; and the
-  three scatters after the skeleton unless `--no-bright-stars`). Done:
-  `plan` builds the skeleton and nothing else; `scatter` takes exactly
-  one of `--mass`, `--luminosity`, `--phenomena`, `--nebula-field`,
-  `--band` and only that kind's parameters (the draw limits and the seed
-  that belong to it); each kind is its own registered command
-  (PERF.106); the flags that grouped them (`--no-bright-stars`,
-  `--bright-stars-only`, `--phenomena-only`, `--redo-scatters`,
-  `--bright-stars-down-to`, `--redo-nebula-field`) are gone with no
-  shim; a test runs each command alone and the wrapper builds the old
-  `plan` run as a step list that gives the same galaxy for the same
-  seed. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.106, PERF.118, PERF.120. Order
-  on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites
-  give; the UX.102 chain (UX.121, UX.122, UX.123, TEST.183) comes after
-  the command follow-ups, not before them, with PERF.118 merged (#2159).
-  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, cards F5 and F7,
-  relayed by the coordinator): F5: one `planetgen scatter` root with
-  exactly one kind flag (`--mass`, `--luminosity`, `--phenomena`,
-  `--nebula-field`, `--band`). F7: redoing a scatter is a SEPARATE
-  `planetgen clear-scatter` command, not a `--redo` flag (this is
-  against Core 5's recommendation, and Boss's answer stands);
-  `--redo-scatters` is removed with no shim. Lane report (Core 5, 7:34
-  AM EDT 2026-10-21 as the lane reported, filed by the TODO thread):
-  coded in a side worktree and uncommitted, per the F5 to F7 answers:
-  `scatter` takes exactly one kind flag and refuses while that kind is
-  stored; `fill-map-luminosity`, `rescore-habitability` and
-  `clean-nebula-field` (dry run, `--apply`) are one root each; F7 is a
-  separate `clear-scatter` command with `--redo-scatters` removed and no
-  shim. Pure-Python tests pass (398); the DB tests, the same-galaxy
-  equivalence check and the gate come after the PERF.107 and PERF.108
-  merge. Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane
-  reported): built together with PERF.122 on branch claude/core5-perf121
-  (main merged in, f74b4f7). Wording above that is stale: `plan` now
-  places no stars (it is the skeleton only) and the five commands exist
-  (scatter, clear-scatter, fill-map-luminosity, rescore-habitability,
-  clean-nebula-field). The old-against-new equivalence check (galaxy
-  fingerprint on a 200-shell grid, old plan on main against plan plus
-  scatter --mass, --luminosity and --phenomena on the branch) has the
-  old side done (51 minutes) and the new side running since 4:35 PM EDT
-  (expected end about 5:30 PM EDT); the `changed` gate starts after the
-  fingerprints match. Finding from the same lane: `plan --max-shell`
-  does not shrink the scatter (the grid is 65,536 shells;
-  `--reach-shells` does), so a default-size plan run takes hours; this
-  item's rework should make the shell limit apply or remove the option,
-  no shim.
-  Overlap (TODO thread, 2026-10-21, Boss 6:49 PM EDT: fold the existing
-  items into the shape-dials chain): `plan --max-shell` is retired by
-  GEN.602 and replaced by the Edge dial GEN.605, which reads the plan
-  configuration (GEN.538), so this rework need not fix `--max-shell`
-  (GEN.605 retires it); if the rework removes it first, GEN.605 only has
-  to drop its remaining references.
-  Design:
-  [docs/design/command-inventory.md](design/command-inventory.md)
-  Follow-up from the plan configuration decisions (Boss, 9:21 to 9:24 PM
-  EDT 2026-10-21, decision 5): `scatter` gains one region parameter
-  (interior, halo or satellites) with completion stored per kind and
-  region; it is GEN.538's work after this item merges and does not
-  change this item's gate in flight.
-
-- [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `plan
-  --fill-map-luminosity` and `plan --fill-habitability` are modes of the
-  skeleton command. Done: each is its own command with its own
-  parameters (the batch size and the id range), registered with the
-  wrapper, runnable alone, with the `plan` flags removed and no shim; a
-  test runs each alone. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.106, PERF.116,
-  PERF.117, PERF.121.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, card F6, relayed by
-  the coordinator): one root command each, named like the registered
-  commands: `planetgen fill-map-luminosity`, `planetgen
-  rescore-habitability` and `planetgen clean-nebula-field` (with
-  `--apply`). They replace the `plan --fill-map-luminosity`, `plan
-  --fill-habitability` and `plan --redo-nebula-field` modes.
-  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
-  built with PERF.121 on branch claude/core5-perf121; see the note
-  there. The `changed` gate has not started.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -16092,7 +15864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill, population, settle) and prints it with `--estimate-only`;
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.121. Related: PERF.107,
+  Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -16472,7 +16244,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.43, DB.45, DB.46, DB.47, DB.48.
+  Prerequisites: DB.45, DB.46, DB.47, DB.48.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
@@ -16765,34 +16537,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damage a healthy sector.
   Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
 
-- [ ] **DB.43 Reed-Solomon codec in the standard library: planetgen/util/rscodec.py**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A GF(256) Reed-Solomon module with no
-  new dependency: a Cauchy generator scaled so row 0 is plain XOR,
-  `RS(k, m)` with `encode` (k equal-length blocks to m parity blocks),
-  `decode` (any k of the k+m blocks back to the data) and `update` (new
-  parity when one member changes, from the old and new bytes). The
-  tested code is in docs/design/db-check-and-parity-repair.md 5.9. Why:
-  the parity file (child d) and the repair command (child e) both stand
-  on it, and it can be built and tested with no database. Done: the
-  module and its tests: random erasure patterns of up to m blocks decode
-  exactly for (k, m) of (16,1), (16,2), (32,2) and (8,3); `update`
-  equals a fresh `encode`; unequal member lengths work through zero
-  padding; the time to encode and to rebuild one 32-member group of 43
-  KB blocks is recorded in the PR.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: DB.9.
-
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Compute the sector's storage checksum
@@ -16837,7 +16581,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.43, DB.45. Related: DB.9.
+  Prerequisites: DB.45. Related: DB.9.
 
 - [ ] **DB.47 planetgen repair-db: rebuild damaged sectors from the parity file**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -17502,40 +17246,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Core 1 (proposed: the identity chain), 8.4 phase 1.
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
 
-- [ ] **DB.76 Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 1 (storage, sequenced
-  after its current storage item; it touches `point_columns.py` and the
-  tables Core 1 changes in the identity and repair chains). Do:
-  generalise `db/point_columns.py` to every numeric column (926
-  declarations, 422 with a unit in the name): `column -> (table, kind,
-  stored unit)` generated from one list, `PointLayout` becomes a thin
-  client, and the stored unit is declared per column for precision (Q3;
-  galaxy pc, sector mpc, system km or au stay). No data migration:
-  values and units stay as stored, only declarations are added (a column
-  later unified is a normal migration). Done: a test like
-  `test_point_columns.py` that fails when a numeric column has no
-  declaration, and a test that each unit suffix equals the declared unit
-  (Q4). Fits the load and insert of DB.74.
-  Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
-  then DB.76, DB.73 and DB.74.
-  GEN.568 is merged as #2476 (relayed 11:07 AM EDT 2026-10-22), so this
-  item no longer waits on it.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **DB.77 Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -17558,7 +17268,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in a wider frame or a wanderer with its own galactic frame at lower
   precision. Done: a test reads the table and fails when a column with a
   10 m floor body exceeds its limit.
-  Prerequisites: DB.76. Related: GEN.550, GEN.565, DB.74.
+  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
@@ -17667,6 +17377,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the generator with no fixed content. Owner: none (the coordinator
   assigns; Core 2 asked for it).
   Prerequisites: none. Related: UX.144, MAP.254, UX.143.
+
+- [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
+  Found by Core 1 (relayed 1:03 PM EDT 2026-10-22 as the lane's clock
+  reads, when DB.76 merged as #2487), filed by the TODO thread. DB.76's
+  column registry (`db/column_units.py`, reconciled with GEN.568's unit
+  registry) declares six columns as 'unspecified' because their unit has
+  no source yet: four quantities, atm_density, atm_molar_density,
+  formed_at and parabolic_mean_anomaly, and two more columns Core 1 did
+  not name. Do: find each column's real unit from the code that writes
+  and reads it (and a source where the value is a physical constant),
+  name the two unnamed columns from `column_units.py`, declare their
+  units in the registry, and add the suffix or kind they need. No
+  guessed units, no fixed content. Done: no column in the registry is
+  'unspecified', and the DB.76 suffix test passes with the declarations.
+  Owner: Core 1 (proposed; the registry is its work), after DB.74.
+  Prerequisites: none. Related: DB.76, DB.74, GEN.568.
 
 ## API: The JSON API
 
@@ -18196,7 +17922,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   that goes through approval; ADM.71 takes the placement functions from
   here and narrows to the move operation and the drag (2026-10-16
   review).
-  Prerequisites: ADM.92, ADM.58, ADM.65, ADM.66, ADM.82.
+  Prerequisites: ADM.58, ADM.65, ADM.66, ADM.82.
 
 - [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
   Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
@@ -18230,7 +17956,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   collision validation, the recompute, the unbound report) as a plan
   operation; ADM.72 adds the element form and the moons following on the
   same operation.
-  Prerequisites: ADM.92, ADM.58, ADM.65, ADM.66.
+  Prerequisites: ADM.58, ADM.65, ADM.66.
 
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
@@ -18243,7 +17969,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   radial distance, then saves the system with random positions on the
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
-  Prerequisites: ADM.92, ADM.58, ADM.66, ADM.82, API.28. Related:
+  Prerequisites: ADM.58, ADM.66, ADM.82, API.28. Related:
   ADM.32, ADM.35, ADM.36, API.18.
   Moved to phase 2, Approval and history, between ADM.66 and ADM.67
   (2026-10-16 review): the drag edit saves through a plan
@@ -18251,73 +17977,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `save_system_edits`, which ADM.82 wraps), and the command line writes
   the same plan as a recipe (API.28). If it grows past a day, split the
   command line recipe into its own item after the editor.
-
-- [ ] **ADM.55 Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout**
-  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
-  update on everything once this is done so all the controls work
-  properly, then run the ADM update chain since our admin pages need
-  desperately to be streamlined and fixed, they aren't very usable."
-  Done: walk every admin page and task (the admin start page, stats and
-  its tables, generation and its jobs, sectors and system generator, the
-  queue and its confirmations, facility types, maintenance and the edit
-  actions on object pages) as an administrator would, one real task at a
-  time (add a sector, regenerate, backfill, erase, edit an object, read
-  a job, change a setting); for each record clicks needed, controls that
-  fail or mislead, wording, missing feedback, missing or doubled pages,
-  and the order of the menu; write a design note in docs/design (with
-  its README row in the same PR) that ranks the defects and proposes one
-  admin layout: one shell with one navigation, the same table, form,
-  confirmation and job-log pattern everywhere. Queued after UX.115; the
-  audit starts the ADM chain.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. This audit narrows to the pages other than
-  Generate and Settings (key K8); the Generate and Settings audit is the
-  report.
-  Prerequisites: none (UX.115 dropped, Boss 6:01 PM EDT 2026-10-21: the redesign starts now). Related: ADM.98, ADM.56, ADM.43, ADM.35, UX.102, UX.115.
-
-- [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
-  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
-  update on everything once this is done so all the controls work
-  properly, then run the ADM update chain since our admin pages need
-  desperately to be streamlined and fixed, they aren't very usable."
-  Done: build the layout the audit (ADM.55) proposes and fix every
-  defect it ranks above its line, so the admin pages are usable end to
-  end: one shell and navigation, the same table, form, confirmation and
-  job-log pattern on every page, clear feedback and error messages, and
-  nothing left that is doubled or dead. The new admin items of the chain
-  (ADM.13, ADM.35, ADM.32, ADM.36, ADM.52) are built inside this shell;
-  the settings page (ADM.43, ADM.44) is built earlier, in 8.1, in the
-  admin layout of the day, and this item moves it into the shell.
-  Prerequisites: ADM.92, ADM.93. Related: ADM.43, ADM.44, ADM.13,
-  ADM.35, UX.102, UX.49.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: ADM.92, ADM.93. ADM.56 is 'build the audit's
-  layout and fix every defect it ranks above its line': its size is
-  unknown until ADM.55 reports, and one PR cannot restyle and repair
-  every admin page.
-  Scope after the review (2026-10-16 review): this item is the umbrella
-  of the shell (child a: one layout, one navigation and the shared
-  table, form, confirmation and job-log components) and moving every
-  existing admin page onto it with the fixes the audit ranks above its
-  line (child b). The new admin items ADM.32, ADM.36, ADM.52 and POP.13
-  build on the shell.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once.
 
 - [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
   Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
@@ -18826,63 +18485,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
   DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
-- [ ] **ADM.92 Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components**
-  Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). The admin pages have no common frame,
-  so every new admin page invents its own table, form, confirmation and
-  job log. ADM.55's design note proposes one layout; this item builds
-  only the frame and the shared parts, not the page-by-page conversion.
-  Build the admin base template and the one navigation (menu order from
-  the audit), and the four shared parts as template macros or partials
-  plus their CSS: the table, the form (Shoelace fields, UX.49), the
-  confirmation page and the job log (the UX.102 logging standard).
-  Convert the admin start page as the worked example and write the usage
-  rules in the design note. Done: the shell and the four parts exist and
-  are documented, the admin start page uses them, every item of the ADM
-  chain can be built on them, and a browser test opens the converted
-  page in both themes with no console error.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Key K2 of the report; its prerequisites are
-  the admin registry (ADM.118) and the research (ADM.98).
-  Fit-the-window rule (Boss, 2026-10-21, 6:10 PM EDT, as the coordinator
-  relayed): the shell's content region stays inside the browser window
-  and a long table or panel scrolls in its own region, the same rule as
-  the viewers (UX.142); the shell's browser test runs at those window
-  sizes.
-  Prerequisites: ADM.118. Related: ADM.56.
-
-- [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
-  Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). With the shell in place, convert the
-  remaining admin pages (stats and its tables, generation and its jobs,
-  sectors and the system generator, the queue and its confirmations,
-  facility types, maintenance, the edit actions on object pages) and fix
-  each defect ADM.55 ranks above its line: failing or misleading
-  controls, wording, missing feedback, doubled or dead pages, the menu
-  order. ADM.55 files one item per page group when it reports, and this
-  item is the umbrella over those; if it finds fewer than three groups
-  it stays one item. Done: every admin page uses the shell and the
-  shared parts, no defect above the audit's line is left open, and
-  nothing is doubled or dead.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it had none).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Key K7 of the report; one change per
-  destination: Overview, Jobs, Data, Account.
-  Prerequisites: ADM.92, ADM.55. Related: ADM.56.
-
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Write the library under
@@ -18914,304 +18516,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.13).
   Prerequisites: API.8. Related: API.3.
 
-- [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
-  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
-  somewhere? generate is horribly to use, it needs a full redesign as
-  it's grown too complicated for it's simplistic format, the settings
-  page is incomprehensible and we need nice, clean, settings that don't
-  look like I'm writing a linux config file, also a lot of stuff in
-  there can't be changed, so how about just not list the things that
-  cannot be changed or have an option to hide them that is defaulted to
-  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
-  own dedicated thread, add an issue for it to group all the todo items
-  together in if one doesn't exist. Start researching ways to pack a lot
-  of options into an admin control suite that will include the generate
-  control suite. The interface needs to get out of the way. All items
-  related to this not already in progress move immediately to the new
-  thread -- however, before it's begins building, it's going to
-  research, generate a report, and give me decision / choice cards." The
-  page has grown past its simple format (layer specs, spans, radial
-  fills, directives, one-off systems, jobs, and soon the switches of
-  UX.134 and UX.137 and the missing-data option of GEN.599). Do:
-  redesign the Generate control suite from the report and the answered
-  cards of ADM.98: the common task first and every other option
-  reachable without clutter, presets and the last runs, the plan shown
-  before a run, the job text and log on the shared job-log part (ADM.92,
-  UX.123), every control on the field macro (this replaces UX.125).
-  Done: the Generate suite is built on the admin shell, every control of
-  today's page is reachable, a browser test runs one common job and one
-  advanced job in both themes and at phone width, and the page help
-  (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
-  the cards of ADM.98.
-  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112,
-  ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.124. Related: UX.125,
-  UX.134, UX.137, DOC.13, GEN.599.
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. Closes with its children ADM.107 to ADM.117
-  (G1 to G11) and the shared suite items ADM.118 to ADM.123.
-
-- [ ] **ADM.107 Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G1).
-  The shared frame of every Generate screen; its job panel becomes the
-  shared job strip (the strip item of the suite). Done: a browser test
-  opens a running job from every Generate screen; Cancel works; the idle
-  panel shows Run again. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Prerequisites: none. Related: ADM.99.
-
-- [ ] **ADM.108 Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G2).
-  Every task is the same five steps. The Run step shows the data check
-  and keeps the rule that a run refuses on missing downloaded files
-  unless told to disregard them (GEN.599, Boss 5:53 PM EDT). Replaces
-  UX.125 for the Generate page. Uses the queue-one-next-job slot (Boss's
-  answer 10). Done: any task reaches Review and Back keeps every value;
-  works without script; the estimate refusal and 'Generate anyway' still
-  work (ADM.33). Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: ADM.107, UX.125, ADM.123. Related: ADM.99, UX.125,
-  GEN.599.
-
-- [ ] **ADM.109 Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G3).
-  Boss's answer 12. Done: the argv for every old mode and centre choice
-  is reproduced byte for byte by a test table; the finder still lists
-  filled sectors. Owner: the admin redesign thread (Boss, 2026-10-21,
-  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
-  then the shell and palette, then Generate).
-  Prerequisites: ADM.108. Related: ADM.99.
-
-- [ ] **ADM.110 Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G4).
-  UX.134 and UX.137 add their controls here. Done: the shape fields are
-  the dials panel ADM.124 (built from the lever table GEN.601; the old
-  absolute boxes are gone); pinned and unpinned dials produce the
-  table's flags (GEN.602) and an Auto dial adds none; the confirmation
-  refuses a wrong name. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Rewritten onto the lever table (Boss, 6:45 PM EDT 2026-10-21, 'Redesign
-  around the five dials'; Boss 6:49 PM EDT: fold the existing items into
-  the new chain).
-  Prerequisites: ADM.108. Related: ADM.99, UX.134,
-  UX.137.
-
-- [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G5).
-  One reset and the stored values shown; the controls GEN.301 adds are
-  placed in this block by their own items. Done: one definition of each
-  limit renders once; Reset all restores the defaults; the three old
-  actions build the same jobs as before. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.108. Related: ADM.99, UX.116, UX.137, GEN.301.
-
-- [ ] **ADM.112 Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G6).
-  One definition used by Add sectors and Start a new galaxy. Done: the
-  100 percent total checker works; the 'usual' values are shown; Add
-  sectors and Start a new galaxy use the one block. Owner: the admin
-  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
-  (Boss's answer 1: Settings first, then the shell and palette, then
-  Generate).
-  Prerequisites: ADM.108. Related: ADM.99, ADM.16, ADM.45.
-
-- [ ] **ADM.113 Generate: the one-off system on the frame, with tri-state rows as segmented controls**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G7).
-  Done: `test_web_generate`'s tri-state field test still matches the CLI
-  list. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
-  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
-  shell and palette, then Generate).
-  Prerequisites: ADM.107, UX.125. Related: ADM.99, UX.125.
-
-- [ ] **ADM.114 Generate: the Check and Wipe tasks and the History tab**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G8).
-  Wipe is last, red and needs the typed database name (Reset and New
-  galaxy always do). Done: Wipe needs the typed name; History lists the
-  same rows as Recent jobs. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.107. Related: ADM.99.
-
-- [ ] **ADM.115 Generate: Run again from History**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G9).
-  Boss's answer 11. The job record must hold the form. Done: Run again
-  re-runs a finished job with its stored settings; a failed job's Run
-  again goes back to its Review step; (named recipes were split out to
-  ADM.125 at the admin redesign thread's suggestion, 8:30 AM EDT
-  2026-10-22 as the lane reported; Run again is built). Owner: the admin
-  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
-  (Boss's answer 1: Settings first, then the shell and palette, then
-  Generate).
-  Run again is built in the lane's pending shell and Generate PR
-  (ADM.118 to ADM.123, ADM.92, ADM.93, ADM.107 to ADM.109, ADM.113 to
-  ADM.115, ADM.121, plus TEST.269), which waits on one more full gate
-  (the coordinator, 8:31 AM EDT).
-  Prerequisites: ADM.108, ADM.114. Related: ADM.99.
-
-- [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G10).
-  Done: the removed files are gone; no unused CSS; the docs match.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Also removes the old absolute shape boxes and their handlers (retired
-  by GEN.602); ADM.124 replaces them.
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
-  Related: ADM.99.
-
-- [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G11).
-  Joins TEST.168 and TEST.169 as the Generate share. Done: a failing
-  step fails the test with a screenshot. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
-  Related: ADM.99, TEST.168, TEST.169.
-
-- [ ] **ADM.118 Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K1).
-  Done: a test fails for any admin route missing from the registry; the
-  settings entries come from the settings model with no second list.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Prerequisites: none. Related: ADM.92.
-
-- [ ] **ADM.119 Job strip on every admin page: a thin strip that shows a running job, Cancel and the log**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K3).
-  Boss's answer 5. Replaces G1's current-job panel as the shared part.
-  Done: the strip shows a running job from every page, Cancel works, the
-  log opens from it, there is one SSE stream per page and none when
-  idle. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
-  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
-  shell and palette, then Generate).
-  Prerequisites: ADM.92. Related: ADM.92, ADM.107.
-
-- [ ] **ADM.120 Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K4).
-  Boss's answer 3: the palette plus the visible rail, with the plain
-  search page for no-script use. Done: a screen-reader pattern test;
-  works with script off through the search page; a restart-only or
-  overridden setting says so in its result. Owner: the admin redesign
-  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
-  answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.118, ADM.92. Related: ADM.92.
-
-- [ ] **ADM.121 Typed commands that open a task's Review step pre-filled and never run by themselves**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K5).
-  Boss's answer 4. Done: a table of command strings to argv, byte for
-  byte against the old forms; ambiguous input is refused with a message.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
-  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
-  and palette, then Generate).
-  Prerequisites: ADM.120, ADM.108. Related: ADM.92.
-
-- [ ] **ADM.122 Admin keyboard set and a help overlay**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K6).
-  Boss's answer 6: the small set. Done: shortcuts are off inside fields;
-  the overlay lists every shortcut; a test for each. Owner: the admin
-  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
-  (Boss's answer 1: Settings first, then the shell and palette, then
-  Generate).
-  Prerequisites: ADM.92. Related: ADM.92.
-
-- [ ] **ADM.123 Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key K9).
-  Boss's answer 10 (his pick over the recommended lock-forms option):
-  forms stay usable while a job runs and Run queues one job behind it.
-  Today the runner allows exactly one active job (`web/jobs.py`, the
-  `active` lock file); this adds one 'next' slot beside the lock,
-  started by the runner when the active job ends, refused when full; one
-  job still runs at a time. Settle in the build: the queued job re-runs
-  its estimate check at start and refuses if the disk no longer fits; a
-  queued Wipe or New galaxy is allowed only with its typed confirmation
-  already given; a failed job cancels the queued one with a visible
-  reason unless the admin chose otherwise. Done: a second submit while a
-  job runs queues and a third is refused; finishing starts it; a failure
-  or Cancel clears it with a visible reason; a destructive job queued
-  without its confirmation is refused. Owner: the admin redesign thread
-  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.119. Related: ADM.99, PERF.99.
-
-- [ ] **ADM.124 Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown**
-  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
-  mass, size and density as one 'any two of three' group with the third
-  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
-  Structure, Edge, Halo and Census, one lever table builds the
-  command-line flags and the Generate form, range gated, Auto = the
-  seed's draw, the old absolute shape options retired with no shim.
-  Proposal:
-  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
-  sections 2, 7 and 8; research:
-  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Child of the
-  admin control suite and of ADM.110's Start a new galaxy task (pinned
-  and unpinned fields produce the same argv as the table's flags). The
-  panel is generated from the registry (GEN.601): slider minimum,
-  maximum and step, the Auto state, the range source in the Details,
-  Census under Advanced. The Scale group shows the third of mass, size
-  and density as a read-out, and a refusal message when all three are
-  pinned. The Shape dropdown has one entry, Spiral, and fills with
-  GEN.389/UX.134 later. The edge form follows Boss's card. Done: a
-  browser test moves each slider, pins and unpins it, and sees the argv
-  in the Review step; the form never offers a value the command line
-  refuses; works in both themes, without script and at phone width.
-  Owner: the admin redesign thread (the Generate suite); the lever table
-  items belong to the Galaxy dials lane. Unit selectors (Boss, 7:01 PM
-  EDT 2026-10-21): Edge has a unit selector (L, pc, kpc, Mpc) whose
-  slider range and step follow the unit; the absolute scale length has
-  pc and kpc; both read the lever table's unit column (GEN.601). The
-  first release shows four dials, Scale, Structure, Edge and Halo;
-  Census (GEN.607, merged as #2443) is the fifth dial. GEN.617 is merged
-  as #2469 (the Galaxy dials lane, relayed 9:38 AM EDT 2026-10-22): the
-  Generate page already shows the density line under the dials through
-  the admin JSON route /admin/generate/shape-report (shared code
-  `generation/plan_outline.py`, element `[data-shape-report]`); this
-  panel reuses both.
-  Prerequisites: ADM.108. Related: ADM.99, ADM.112, DB.81.
-
 - [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
   Child of the admin control suite (Boss's 13 decision cards, tapped
   6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
@@ -19224,7 +18528,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   saved form, kept per admin. Do: a control-database table of recipes
   (admin, name, the form as the job record stores it, created and
   updated times) with its Alembic migration (the next free revision on
-  main at merge time; head is 0117, 0118 is free), a Save as recipe
+  main at merge time; head is 0117, 0118 is held by DB.56), a Save as recipe
   action on the Review step, a recipe list on the Start screen that
   fills the form, and rename and delete. Done: a recipe saves, lists,
   runs and deletes per admin, one admin cannot see or run another's, the
@@ -19232,7 +18536,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   save, run and delete. Owner: the admin redesign thread (Boss,
   2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
   Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.115. Related: ADM.99, ADM.108.
+  Prerequisites: none. Related: ADM.99, ADM.108.
+
+- [ ] **ADM.126 Generate: a live 'how big' count while typing a command or filling the form**
+  Deferred by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
+  the lane's clock reads, when #2494 merged), filed by the TODO thread.
+  Part of the Generate rebuild of the admin control suite
+  (docs/design/admin-control-suite.md): while an admin types a command
+  or fills the Generate form, show a live count of how big the run will
+  be (the stars, systems and sectors it will make), from the same
+  estimate `planetgen generate --estimate-only` prints, so the cost
+  shows before Run. Do: an admin API that returns the estimate for the
+  form's current values (no job started, no data written, cached by the
+  form's values), and a line under the form that updates as the fields
+  change, with a debounce, and says when the values are not valid yet.
+  Done: changing a dial or the address changes the count within a
+  second, the count equals the estimate-only output for the same values
+  (a test), and nothing is written. Owner: the Admin redesign lane
+  (proposed), after ADM.116.
+  Prerequisites: none. Related: ADM.99, ADM.115, ADM.125.
 
 ## SEC: Security
 
@@ -19990,7 +19312,7 @@ clears each one.
   edit an object, read a job and its log, change a setting, confirm and
   cancel a queue action), written on the harness of TEST.168; it adds
   nothing to the failure rules.
-  Prerequisites: ADM.56, TEST.168. Related: TEST.168, ADM.55.
+  Prerequisites: TEST.168. Related: TEST.168, ADM.55.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -21116,85 +20438,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.267 test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug)**
-  Found by Core 1 (about 6:07 AM EDT 2026-10-22 as the lane reported, in
-  a `changed` gate for DB.33), filed by the TODO thread. Kind: flaky
-  test on random data (src/tests/test_object_list.py, UX.141's page-walk
-  test). It failed once with "the galaxy has too few planets for a page
-  walk" (3 planets, 6 needed) and passed alone 3 of 3 times. Fails on
-  main: not checked. Frequency: 1 in 4 runs seen. Reproducer: loop the
-  test on a fresh database. Do: make the test's galaxy deterministic (a
-  seed that always holds enough planets, or generate until the minimum
-  is met under a fixed seed) so the page walk always has the planets it
-  needs; no skip when the galaxy is short. Done: the test passes in 20
-  runs on fresh databases. Owner: Core 2 (the coordinator, about 6:01 AM
-  EDT 2026-10-22 as the lane reported; Core 2 wrote UX.141's page-walk
-  test).
-  Prerequisites: none. Related: UX.141, TEST.266.
-
-- [ ] **TEST.268 Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug)**
-  Found by the Galaxy dials lane (about 7:05 AM EDT 2026-10-22 as the
-  lane reported, while merging GEN.607), filed by the TODO thread. Kind:
-  regression, fails on main at 2365499 without GEN.607's change, every
-  run:
-  src/tests/test_galaxy_gen.py::test_an_address_named_outside_the_outline_is_generated_from_its_profile
-  (3 params) and
-  ::test_neighborhood_around_a_sector_outside_the_outline_takes_the_reach_and_says_how_big_it_is
-  (generate exits with status 1). Reproducer: run those tests alone. The
-  lane named DB.66 (#2439) and "GEN.379 (#2440)" as the commits before
-  the break; #2440 was a docs-only PR, so the cause is among the
-  generator and schema merges since the last green run: DB.66 (the new
-  `galaxy_shape` columns, migration 0117), GEN.545 (#2434, the derived
-  mean system mass), GEN.596 (#2428) or GEN.621 (#2418). Do: read the
-  status-1 message, bisect over those merges, and fix the cause (or the
-  tests if one of them changed a documented behavior on purpose). Done:
-  the four tests pass and a full gate shows them green. Owner: Bug Hunt
-  (the coordinator, about 7:08 AM EDT 2026-10-22 as the lane reported):
-  bisect first, ahead of TEST.258; it hands to Core 1 or Blocker 2
-  through the coordinator if the culprit is theirs.
-  Unreproduced (Bug Hunt, relayed by the coordinator about 7:20 AM EDT
-  2026-10-22 as the lane reported): Bug Hunt cannot reproduce the four
-  failures on main or in a fresh clone, so the cause is likely
-  machine-specific (the Galaxy dials lane's MySQL grant). The
-  coordinator asked that lane for the exact output and its SHOW GRANTS.
-  Keep this item open as unreproduced until it answers; if the output is
-  a grant error (1044) it is the known machine setup gap and the item is
-  dropped.
-  Reopened (the coordinator, relayed 10:00 AM EDT 2026-10-22; the
-  earlier 'not reproducible' call, and the drop of this item at about
-  7:25 AM EDT, were wrong): Bug Hunt found the cause. The four tests and
-  test_generation_stats.py::test_estimate_only_writes_nothing fail on
-  any machine with under 5 GB free on the database drive, because a
-  generate run refuses to start (PERF.3) and `--strict` exits 1. Lane
-  machines fill up because the test MySQL writes binary logs by default
-  (one lane held 25 GB). The fix makes the tests independent of free
-  space and also fixes a NameError in the plan step of `planetgen
-  benchmark`. Owner: Bug Hunt (its fix is in its gate now). The Galaxy
-  dials lane's note that the failures did not reproduce is superseded:
-  they reproduce on a machine with a full disk.
-  Prerequisites: none. Related: DB.66, GEN.545.
-
-- [ ] **TEST.269 test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug)**
-  Found by the Admin redesign lane (about 6:49 AM EDT 2026-10-22 as the
-  lane reported, in a full non-browser phase), filed by the TODO thread.
-  Kind: test bug (src/tests/test_settings_writer.py, line 198). The test
-  saves eight times and asserts `names == sorted(names, reverse=True)`.
-  When two saves land in the same second, the second archive is named
-  with a `-2` suffix (src/planetgen/backup/core.py, `{base}-{n}`), and
-  `list_archives` correctly lists it first (it sorts with `_order`), but
-  as plain strings `...02Z-2.tar.bz2` sorts before `...02Z.tar.bz2` (`-`
-  is 0x2d, `.` is 0x2e), so the assertion fails. The code is right and
-  the test's ordering is wrong. Failed names seen:
-  ['20261022T104902Z-2.tar.bz2', '20261022T104902Z.tar.bz2',
-  '20261022T104901Z-4.tar.bz2']. Fails on main: yes whenever two saves
-  fall in one second (1 in this gate; it should be common on a fast
-  machine). Reproducer: run the test in a loop. Do: compare with
-  `backup.core._order` (sort the names with the same key `list_archives`
-  uses), not as strings. Done: the test passes 50 runs in a row. Owner:
-  the Admin redesign lane (the coordinator, about 7:17 AM EDT 2026-10-22
-  as the lane reported).
-  Prerequisites: none. Related: ADM.101.
-
 - [ ] **TEST.270 check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake)**
   Found by Core 1 (9:50 AM EDT 2026-10-22 as the lane reported, in the
   GEN.598 gate), filed by the TODO thread. Kind: flake. Tests:
@@ -21225,6 +20468,15 @@ clears each one.
   the full gate and failed again on the `--resume` rerun, so it is not
   only a first-pass failure; both pass alone and in a targeted run with
   the same code.
+  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
+  clock reads, fixed inside #2441): test_db_check's CASCADE drift test
+  (`test_a_foreign_key_with_another_delete_rule_is_drift`) left a changed
+  `facilities` foreign key in the worker's shared database, because the
+  pool's reset compares constraint names only, so later check-db tests
+  on that worker failed with "remove_fk/add_fk facilities.fk_facilities_type"
+  depending on worker order; the test now restores the key in a
+  `finally`. This item stays open until Bug Hunt sees the two tests
+  green in 20 full-gate runs after #2441, or a gate shows it again.
   Prerequisites: none. Related: TEST.265, TEST.262.
 
 - [ ] **TEST.271 test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug)**
@@ -21243,6 +20495,14 @@ clears each one.
   hides a real lock. Done: the test passes 20 runs in a row on a clean
   checkout. Owner: Bug Hunt, after its current work (the coordinator,
   relayed 10:45 AM EDT 2026-10-22).
+  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
+  clock reads, #2441): in a lane container `performance_schema` is OFF,
+  so the reader of another database is never found and the test fails
+  even alone on main (the earlier "passes alone" verdict was wrong); the
+  test now skips when `performance_schema` is not ON. Core 3's text was
+  a lock wait timeout, which may be the same cause or not. This item
+  stays open until Core 3's lane (or Bug Hunt's) is checked for
+  `performance_schema` and the test passes there with it ON.
   Prerequisites: none. Related: TEST.265, TEST.270.
 
 - [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**
@@ -21269,6 +20529,62 @@ clears each one.
   work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
   text is now recorded above.
   Prerequisites: none. Related: TEST.262, TEST.270.
+
+- [ ] **TEST.273 test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake)**
+  Found by Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock
+  reads, in a full run for UX.144), filed by the TODO thread. Kind:
+  flake. Test: test_the_index_takes_its_size_off_the_tile_cache_budget.
+  Failure: it compared max_cache_bytes 1073577984 against 1073741824
+  (the cache.max_mb budget of 1024 MB) and failed in a full run; it
+  passes alone. Fails on main: not checked. Frequency: 1 sighting.
+  Reproducer: a full `scripts/test.py changed` gate; not reproducible
+  alone. It looks like state left by another test in the cache area (the
+  tile cache budget, PERF.140 and `planetgen warm`). Do: find which test
+  or fixture leaves the cache budget or `max_cache_bytes` changed for
+  this worker and make that test restore it, or give this test its own
+  configuration; no retry loop that hides the cause. Done: the cause is
+  on this item and the test passes in 20 full-gate runs. Owner: Bug Hunt
+  (proposed; a test-flake finding of the TEST.265 family).
+  Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
+
+- [ ] **TEST.275 test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug)**
+  Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
+  the lane's clock reads, when #2494 merged), filed by the TODO thread.
+  Kind: test over its time limit, fails on main. Test:
+  src/tests/test_fuzz_web_routes.py::test_admin_pages_survive_hostile_query_when_logged_in[GET
+  /admin/generate/shape-report], the route GEN.617 added. It runs past
+  the 900 s pytest timeout on plain main, every run; alone it takes
+  about 25 minutes. Fails on main: yes. Reproducer: that test id alone.
+  It means the route does a very large piece of work for a hostile query
+  string (a huge or odd dial value) instead of rejecting it. Do: find
+  which hostile value makes the shape report slow, and make the route
+  validate its inputs and answer quickly (a clear 4xx for a bad value,
+  bounded work for a big one), the way the other fuzzed routes do; no
+  timeout bump and no exemption that hides a slow route. Done: the test
+  passes alone in under a minute and in a full gate. Owner: Bug Hunt
+  (proposed by the coordinator, relayed 2:55 PM EDT 2026-10-22 as the
+  lane's clock reads, because the Galaxy dials lane that wrote GEN.617's
+  route is retired; after its current queue: TEST.268, TEST.270,
+  TEST.271, TEST.272), urgent because the test also blocks any lane that
+  runs test_fuzz_web_routes.
+  Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
+
+- [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
+  Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
+  the lane's clock reads), filed by the TODO thread. Kind: flake. Test:
+  src/tests/test_scatter_kinds.py::test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing.
+  Failure: it failed once under parallel load with an empty `readouterr`
+  (the message the test expects was not captured); it passes alone.
+  Fails on main: not checked. Frequency: 1 sighting. Reproducer: a full
+  `scripts/test.py changed` gate; not reproducible alone. The test is
+  part of PERF.121/122's `clear-scatter` work (#2441). Do: find why the
+  captured output is empty under load (output written through a logger
+  or a child process instead of stdout, or a read of the capture before
+  the command flushes) and make the test read the right stream; no retry
+  loop. Done: the cause is on this item and the test passes in 20
+  full-gate runs. Owner: Core 5 (proposed; it wrote the test) or Bug
+  Hunt.
+  Prerequisites: none. Related: PERF.121, PERF.122, TEST.265.
 
 ## USR: User accounts
 
@@ -22565,7 +21881,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `docs/design/database-schema.md` for the registry, Quantity, Field and
   column registry; the unit rules in the registry file header. Done: the
   docs gate passes and no page describes a second unit table.
-  Prerequisites: GEN.569, DB.76. Related: GEN.550, GEN.565,
+  Prerequisites: none. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -22994,7 +22310,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   for the page, Generate for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
-  Prerequisites: ADM.92. Related: POP.10 (done, PRs #1517 and #1524),
+  Prerequisites: none. Related: POP.10 (done, PRs #1517 and #1524),
   POP.9, ADM.9.
   Moved to phase 2 with the shell as its prerequisite, so it is built on
   the shared table, form and confirmation and is not missed by the audit

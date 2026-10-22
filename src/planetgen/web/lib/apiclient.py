@@ -818,6 +818,14 @@ def get_phenomenon(db, phenomenon_type, phenomenon_id):
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
+def get_phenomenon_contents(db, phenomenon_type, phenomenon_id, limit=None):
+    """Returns `GET /api/phenomena/<type>/<id>/contents` -- what sits inside a nebula or supernova remnant
+    (`db.cloudcontents.cloud_contents`)."""
+    _require_db(db)
+    return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}/contents",
+                    [("db", db)] + ([("limit", limit)] if limit else []))
+
+
 def get_uncharted_phenomenon(db, scatter_id):
     """Returns `GET /api/uncharted-phenomena/<id>`'s dict -- see `db.query.scattered_phenomenon_detail`."""
     _require_db(db)

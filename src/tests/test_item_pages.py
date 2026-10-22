@@ -51,6 +51,7 @@ def client(monkeypatch):
 
     monkeypatch.setattr(apiclient, "get_object", get_object)
     monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: _document())
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: {"inside": None})
     app = create_app(_FakeConfig)
     app.testing = True
     return app.test_client()
@@ -86,3 +87,11 @@ def test_a_body_with_no_system_is_not_found(client):
 
 def test_an_unknown_body_is_not_found(client):
     assert client.get("/object/planet:FE81000A2B-0000005-099").status_code == 404
+
+
+def test_the_page_has_a_location_block_from_the_parent_chain(client):
+    page = client.get(f"/object/{MOON}").get_data(as_text=True)
+    assert 'id="location"' in page
+    for url in ('href="/galaxy"', 'href="/sector/4"', 'href="/system/9"', f'href="/object/{PLANET}"'):
+        assert url in page
+    assert "Not inside any nebula or supernova remnant." in page

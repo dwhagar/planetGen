@@ -996,3 +996,38 @@ Baseline: PR #1817.
 | GEN.598 | 8.1 | Galaxy laws build |
 | GEN.311 | 8.1 | Multi-star and compact systems |
 | GEN.269 | 8.1 | Multi-star and compact systems |
+| PERF.121 | 8.1 | Queue, caches and performance |
+| PERF.122 | 8.1 | Queue, caches and performance |
+| TEST.267 | 8.1 | Bugs and flaky tests |
+| DB.76 | 8.4 | Bulk composition |
+| DB.43 | 8.1 | Reproducible galaxies |
+| GEN.569 | 8.4 | Bulk composition |
+| UX.139 | 8.4 | Bulk composition |
+| GEN.573 | 8.4 | Bulk composition |
+| GEN.299 | 8.3 | The Quantity class |
+| TEST.274 | 8.1 | Bugs and flaky tests |
+| TEST.269 | 8.1 | Bugs and flaky tests |
+| ADM.118 | 8.1 | Admin control suite |
+| ADM.92 | 8.1 | Admin control suite |
+| ADM.119 | 8.1 | Admin control suite |
+| ADM.120 | 8.1 | Admin control suite |
+| ADM.122 | 8.1 | Admin control suite |
+| ADM.123 | 8.1 | Admin control suite |
+| ADM.107 | 8.1 | Admin control suite |
+| ADM.108 | 8.1 | Admin control suite |
+| ADM.109 | 8.1 | Admin control suite |
+| ADM.124 | 8.1 | Admin control suite |
+| ADM.113 | 8.1 | Admin control suite |
+| ADM.115 | 8.1 | Admin control suite |
+| ADM.121 | 8.1 | Admin control suite |
+| ADM.93 | 8.1 | Admin control suite |
+| ADM.55 | 8.1 | Admin control suite |
+| ADM.110 | 8.1 | Admin control suite |
+| ADM.111 | 8.1 | Admin control suite |
+| ADM.112 | 8.1 | Admin control suite |
+| ADM.114 | 8.1 | Admin control suite |
+| ADM.116 | 8.1 | Admin control suite |
+| ADM.117 | 8.1 | Admin control suite |
+| ADM.56 | 8.1 | Admin control suite |
+| ADM.99 | 8.1 | Admin control suite |
+| TEST.268 | 8.1 | Bugs and flaky tests |

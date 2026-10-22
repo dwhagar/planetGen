@@ -69,6 +69,52 @@ def _crumbs(found, name):
     return crumbs
 
 
+def location(parents, inside):
+    """
+    The Location block (UX.144): the places above an item as links, galaxy first, and the cloud it sits inside.
+
+    Args:
+        parents (list[dict]): The API's parent chain (`ref`, `kind`, `name`), galaxy first.
+        inside (dict or None): The detail's `inside` (`type`, `id`, `name`), or `None` in open space.
+    """
+    chain = []
+    for parent in parents:
+        if parent["kind"] == "galaxy":
+            chain.append({"label": "Galaxy", "url": page_url("galaxy")})
+        else:
+            chain.append({"label": parent["name"], "url": item_url(parent["ref"])})
+    cloud = None if not inside else {"name": inside["name"], "url": own_page_url(inside["type"], inside["id"])}
+    return {"chain": chain, "inside": cloud}
+
+
+def sector_location(sector_id, sector_name, inside):
+    """`location` for something whose only place above it is its sector (a system or a phenomenon): `sector_id` is
+    `None` for one with no sector."""
+    parents = [{"ref": "galaxy", "kind": "galaxy"}]
+    if sector_id is not None:
+        parents.append({"ref": f"sector:{sector_id}", "kind": "sector", "name": sector_name or "Sector"})
+    return location(parents, inside)
+
+
+CONTENT_LABELS = {
+    "system": "Star systems", "nebula": "Nebulae", "supernova_remnant": "Supernova remnants",
+    "asteroid_field": "Asteroid fields", "rogue_planet": "Rogue planets", "interstellar_comet": "Interstellar comets",
+    "black_hole": "Black holes", "neutron_star": "Neutron stars",
+}
+
+
+def contents(listing):
+    """The "What is inside it" block from `GET /api/phenomena/<type>/<id>/contents`, grouped by kind."""
+    groups = []
+    for kind, label in CONTENT_LABELS.items():
+        count = listing["counts"].get(kind)
+        if count:
+            items = [{"name": item["name"], "url": own_page_url(kind, item["id"])}
+                     for item in listing["items"] if item["kind"] == kind]
+            groups.append({"label": label, "count": count, "entries": items})
+    return {"total": listing["total"], "shown": len(listing["items"]), "groups": groups}
+
+
 def _section(document, ref):
     """The description's section for `ref`, or `None`."""
     wanted = ref.lower()
@@ -93,6 +139,7 @@ def render_item(kind, printed_id):
         abort(404)
     system_id = system["ref"].partition(":")[2]
     document = apiclient.get_system_description(db, system_id)
+    inside = apiclient.get_system(db, system_id).get("inside")
     piece = _section(document, ref)
     name = found["name"]
     label = KIND_LABELS[kind]
@@ -108,6 +155,7 @@ def render_item(kind, printed_id):
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         children=children,
+        location=location(found["parents"], inside),
         system_url=page_url("system", system_id=system_id),
         row_url=page_url("system", _anchor=body_anchor(kind, printed_id), system_id=system_id),
         system_name=esc(system["name"]),

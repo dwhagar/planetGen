@@ -15,6 +15,7 @@ seen closer than it is.
 """
 
 
+from planetgen.physics import unit_registry
 from planetgen.physics.constants import SPEED_OF_LIGHT_M_S
 from planetgen.util import detmath
 
@@ -84,7 +85,7 @@ def apparent_position_of(body, observer, now_s=None, speed_m_s=SPEED_OF_LIGHT_M_
         now_s = 0.0 if epoch is None else epoch
     if epoch is None:
         epoch = now_s
-    unit = body.length_unit_m
+    unit = unit_registry.unit(body.length_unit).factor
     position = tuple(v * unit for v in body.get_coordinates("galactic", "cartesian"))
     velocity = body.get_velocity_vector("galactic")
     return apparent_position(uniform_motion(position, velocity, epoch), observer, now_s, speed_m_s)

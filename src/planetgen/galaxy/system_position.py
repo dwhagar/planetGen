@@ -170,7 +170,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
         star_velocities[id(star)] = system_velocity
         mass = getattr(star, "mass", None)
         star.spatial = SpatialPosition3D(
-            at, sector_au, is_star=True, length_unit_m=physical_constants.AU_M, sector_edge_pc=sector_edge_pc,
+            at, sector_au, is_star=True, length_unit="au", sector_edge_pc=sector_edge_pc,
             mass_kg=mass if isinstance(mass, (int, float)) and mass >= 0 else None,
             velocity_vector_cartesian=star_velocities[id(star)])
 

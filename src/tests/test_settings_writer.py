@@ -200,7 +200,7 @@ def test_only_the_newest_archives_are_kept(config):
     for number in range(2, 9):
         _save({"jobs.keep": number})
     names = [a.name for a in backup.list_archives()]
-    assert len(names) == 3 and names == sorted(names, reverse=True)
+    assert len(names) == 3 and names == sorted(names, key=backup.core._order, reverse=True)
 
 
 def test_a_failed_write_leaves_the_old_file_and_no_stray_files(config, monkeypatch):

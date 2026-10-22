@@ -434,6 +434,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "polity_id": items("/api/polities")[0]["id"],
         "node_id": sample_job_tree,  # web.admin_queue_tree
         "action": "queue-pause",  # web.admin_queue_confirm
+        "key": "scatters",  # web.generate_task (the other tasks are checked in test_web_generate_flow_browser.py)
         # web.admin_backup: no backup exists here, so it answers 404 and is skipped (NO_SAMPLE_OBJECT); the real page is
         # checked in test_web_settings_browser.py.
         "archive": "20200101T000000Z.tar.bz2",

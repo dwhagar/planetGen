@@ -55,6 +55,7 @@ ID_PATHS = {
     },
     "api.phenomena": {"items[].id": "phenomenon"},
     "api.phenomenon": {"id": "phenomenon", "inside.id": "phenomenon", **_NEAREST},
+    "api.phenomenon_contents": {"items[].id": "by-kind"},
     "api.uncharted_phenomenon": {"target.id": "by-kind"},
     "api.object_ref_route": {"id": "by-kind", "siblings[]": "ref"},
     "api.nav": {

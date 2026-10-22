@@ -3065,18 +3065,33 @@ body.app {
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* UX.72: the tab row on every admin page (Overview, Generate, Queue,
-   Stats), and the hub's list. */
-.app .admin-tabs ul {
-  list-style: none;
+/* ADM.92: the admin shell -- the rail of destinations, the search box and the density switch above every admin
+   page. The rail wraps on a phone; compact density (the default; `data-density="roomy"` on the body turns it off)
+   tightens the panels and forms under it. */
+.app .admin-shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
   margin: 0 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.app .admin-rail {
+  flex: 1 1 auto;
+}
+
+.app .admin-rail ul {
+  list-style: none;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.15rem;
 }
 
-.app .admin-tabs a {
+.app .admin-rail a {
   display: block;
   padding: 0.35rem 0.7rem;
   border-radius: 8px;
@@ -3085,16 +3100,63 @@ body.app {
   color: var(--text-muted);
 }
 
-.app .admin-tabs a:hover {
+.app .admin-rail a:hover {
   background: var(--bg-subtle);
   color: var(--link);
   text-decoration: none;
 }
 
-.app .admin-tabs a[aria-current="page"] {
+.app .admin-rail a[aria-current="page"] {
   color: var(--link);
   background: var(--bg-subtle);
   box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .admin-find {
+  display: flex;
+  gap: 0.35rem;
+  flex: 0 1 18rem;
+}
+
+.app .admin-find input[type="search"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app .admin-density {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.app .admin-results {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.app .admin-results li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.app .admin-results .hint {
+  display: block;
+}
+
+.app:not([data-density="roomy"]) main:has(.admin-shell) .panel {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.app:not([data-density="roomy"]) main:has(.admin-shell) h2 {
+  margin: 0 0 0.5rem;
+}
+
+.app:not([data-density="roomy"]) main:has(.admin-shell) td,
+.app:not([data-density="roomy"]) main:has(.admin-shell) th {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .app .admin-hub {
@@ -3455,116 +3517,127 @@ body.app {
   font-weight: 400;
 }
 
-/* The Generate page's Customize window (ADM.28, static/generatecustomize.js). */
-.customize-group {
-  border: 1px solid var(--border);
+/* ADM.107, ADM.108: the Generate frame (tabs, task cards) and a task's Advanced block. */
+.generate-tabs ul {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.generate-tabs a {
+  display: block;
+  padding: 0.3rem 0.8rem;
   border-radius: 8px;
-  padding: 0.5rem 0.9rem 0.25rem;
-  margin: 0 0 0.75rem;
-  min-width: 0;
-}
-
-.customize-group > legend {
   font-weight: 600;
-  padding: 0 0.3rem;
+  color: var(--text-muted);
 }
 
-.customize-dialog {
-  width: min(52rem, calc(100vw - 2rem));
-  max-height: calc(100vh - 2rem);
-  overflow: auto;
+.generate-tabs a[aria-current="page"] {
+  color: var(--link);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.generate-cards {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.generate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg-elevated);
-  color: inherit;
 }
 
-.customize-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
+.generate-card-destroys {
+  border-color: var(--error);
 }
 
-.customize-dialog .customize-group {
-  border: 0;
-  padding: 0;
+.generate-cards-danger {
+  margin-top: 1.5rem;
 }
 
-.customize-dialog .customize-group > legend {
-  display: none;
+.generate-last {
+  margin: 0 0 1rem;
 }
 
-.customize-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+.generate-crumb {
+  margin: 0 0 0.5rem;
+}
+
+.generate-advanced {
   margin: 0 0 0.75rem;
 }
 
-.customize-tab {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.35rem 0.8rem;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+.generate-advanced > summary {
   cursor: pointer;
-}
-
-.customize-tab.selected {
-  background: var(--accent, var(--border));
   font-weight: 600;
 }
 
-/* Generate page sections fold (ADM.4): the heading is the toggle. */
-.panel-fold > .fold > summary {
+.generate-steps {
+  padding-left: 1.25rem;
+}
+
+.command-line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.what-choice .choice {
+  display: inline-block;
+  margin: 0 1.25rem 0.5rem 0;
+  font-weight: 400;
+}
+
+/* The Add sectors place picker: radios drawn as tabs once script shows one panel at a time. */
+.place-tabs {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-  list-style: none;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+}
+
+.place-tab {
+  border: 1px solid var(--border);
   border-radius: 6px;
-  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  font-weight: 400;
+  cursor: pointer;
 }
 
-.panel-fold > .fold > summary::-webkit-details-marker {
-  display: none;
+.tabs-on .place-tab:has(input:checked) {
+  border-color: var(--accent);
+  font-weight: 600;
 }
 
-.panel-fold > .fold > summary::before {
-  content: "\25B8"; /* ▸, closed */
-  color: var(--text-muted);
-  width: 0.8rem;
-  flex: none;
+.tabs-on .place-tab input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.panel-fold > .fold[open] > summary::before {
-  content: "\25BE"; /* ▾, open */
-}
-
-.panel-fold > .fold > summary:focus-visible {
-  outline: 2px solid var(--link);
+.tabs-on .place-tab:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.panel-fold > .fold > summary h2 {
-  margin: 0;
-}
-
-.panel-fold > .fold[open] > summary {
-  margin-bottom: 0.75rem;
-}
-
-.panel-fold > .fold > .fold-body > :last-child {
-  margin-bottom: 0;
-}
-
-@media (pointer: coarse) {
-  .panel-fold > .fold > summary {
-    min-height: 2.75rem;
-  }
-}
-
-.generate-center {
-  margin-left: 0.25rem;
+.place-panel[hidden],
+[data-place-shared][hidden],
+[data-what-panel][hidden] {
+  display: none;
 }
 
 .sector-finder [hidden] {
@@ -4850,4 +4923,118 @@ p.hint a {
   background: var(--bg-subtle);
   font-size: 0.85rem;
   pointer-events: none;
+}
+
+/* ADM.120/122: the admin palette (Ctrl+K) and the keyboard list. */
+.app dialog.admin-palette {
+  width: min(40rem, calc(100vw - 2rem));
+  margin-top: 8vh;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.app dialog.admin-palette::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.app .admin-palette input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app .admin-palette ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.app .admin-palette li a {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.app .admin-palette li[aria-selected="true"] a,
+.app .admin-palette li a:hover {
+  background: var(--bg-subtle);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.app .admin-palette .hint {
+  display: block;
+}
+
+.app .admin-keys dt {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.app .admin-keys dd {
+  margin: 0 0 0.5rem;
+}
+
+/* ADM.119: the thin job strip under the rail on every admin page. */
+.app .admin-jobstrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  font-size: 0.88rem;
+}
+
+.app .admin-jobstrip[hidden] {
+  display: none;
+}
+
+.app .admin-jobstrip-title {
+  font-weight: 600;
+}
+
+.app .admin-jobstrip-text {
+  flex: 1 1 8rem;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.app .admin-jobstrip progress {
+  width: 8rem;
+}
+
+.app .admin-jobstrip-cancel {
+  margin: 0;
+}
+
+/* ADM.113: the one-off system's force-or-forbid rows, each a Generator decides / Yes / No choice. */
+.tristate-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 0.5rem 1.5rem;
+}
+
+.tristate-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tristate-row legend {
+  float: left;
+  padding: 0;
 }

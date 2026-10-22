@@ -18,11 +18,11 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.622 |
 | PERF | PERF.149 |
-| DB | DB.86 |
+| DB | DB.87 |
 | API | API.32 |
-| ADM | ADM.126 |
+| ADM | ADM.127 |
 | SEC | SEC.34 |
-| TEST | TEST.273 |
+| TEST | TEST.277 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.74 |
@@ -443,8 +443,8 @@ Parents marked "new parent" had no old number of their own.
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) | none | done, PR #1401 |
-| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | none | open |
-| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | none | open |
+| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | none | done, PR #2498 |
+| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | none | done, PR #2498 |
 | ADM.57 | Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan | none | open |
 | ADM.58 | Change plan engine: operations, the effect diff and the plan states, as a library | none | open |
 | ADM.59 | Change plan store: save, load and list plans, and mark them stale | none | open |
@@ -480,14 +480,14 @@ Parents marked "new parent" had no old number of their own.
 | ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | none | open |
 | ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | none | open |
 | ADM.91 | Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | none | open |
-| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | none | open |
-| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | open |
+| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | none | done, PR #2494 |
+| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | done, PR #2494 |
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | none | open |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
 | ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | done, PR #2456 |
 | ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | done, PR #2411 |
-| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | open |
+| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | done, PR #2498 |
 | ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | done, PR #2456 |
 | ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | done, PR #2411 |
 | ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | done, PR #2456 |
@@ -495,25 +495,26 @@ Parents marked "new parent" had no old number of their own.
 | ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | done, PR #2456 |
 | ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | none | done, PR #2456 |
 | ADM.106 | Settings: the server-files disclosure and the overridden-option badge | none | done, PR #2456 |
-| ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | open |
-| ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | open |
-| ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | open |
-| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | none | open |
-| ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | none | open |
-| ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | open |
-| ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | open |
-| ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | open |
-| ADM.115 | Generate: Run again from History | none | open |
-| ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | open |
-| ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | open |
-| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | open |
-| ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | none | open |
-| ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | none | open |
-| ADM.121 | Typed commands that open a task's Review step pre-filled and never run by themselves | none | open |
-| ADM.122 | Admin keyboard set and a help overlay | none | open |
-| ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | none | open |
-| ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | open |
+| ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | done, PR #2494 |
+| ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | done, PR #2494 |
+| ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | done, PR #2494 |
+| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | none | done, PR #2498 |
+| ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | none | done, PR #2498 |
+| ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | done, PR #2498 |
+| ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | done, PR #2494 |
+| ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | done, PR #2498 |
+| ADM.115 | Generate: Run again from History | none | done, PR #2494 |
+| ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | done, PR #2498 |
+| ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | done, PR #2498 |
+| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | done, PR #2494 |
+| ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | none | done, PR #2494 |
+| ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | none | done, PR #2494 |
+| ADM.121 | Typed commands that open a task's Review step pre-filled and never run by themselves | none | done, PR #2494 |
+| ADM.122 | Admin keyboard set and a help overlay | none | done, PR #2494 |
+| ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | none | done, PR #2494 |
+| ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | done, PR #2494 |
 | ADM.125 | Generate: named recipes saved per admin in the control database | none | open |
+| ADM.126 | Generate: a live 'how big' count while typing a command or filling the form | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -587,7 +588,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | none | open |
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
-| DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | open |
+| DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | done, PR #2423 |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | open |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
@@ -620,7 +621,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | open |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open |
-| DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | open |
+| DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | done, PR #2487 |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | open |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
 | DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index | none | done, PR #2361 |
@@ -630,6 +631,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
+| DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1001,7 +1003,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
 | GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy | none | open |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | done, PR #2132 |
-| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | open |
+| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | done, PR #2490 |
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | none | open |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
@@ -1271,11 +1273,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | open |
 | GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | none | done, PR #2190 |
 | GEN.568 | One registry of every unit the project uses | none | done, PR #2476 |
-| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | none | open |
+| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | none | done, PR #2490 |
 | GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | none | open |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | none | open |
 | GEN.572 | The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change | none | done, PR #2243 |
-| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | open |
+| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | done, PR #2490 |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | none | open |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | none | open |
 | GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | none | open |
@@ -1823,8 +1825,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item | none | done, PR #2159 |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | none | open |
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | none | open |
-| PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | open |
-| PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | none | open |
+| PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | done, PR #2441 |
+| PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | none | done, PR #2441 |
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | none | open |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | open |
 | PERF.125 | The population pass and the territories pass are separate commands | none | open |
@@ -2068,7 +2070,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do | none | open |
 | UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | none | open |
 | UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | none | open |
-| UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | open |
+| UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | done, PR #2490 |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | open |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | done, PR #2408 |
 | UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |
@@ -2446,12 +2448,17 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.264 | test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug) | none | done, PR #2425 |
 | TEST.265 | A test database drop ended another worker's query: "Lost connection to MySQL server during query" and 503 "database unavailable" in parallel gates (bug) | none | done, PR #2442 |
 | TEST.266 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False] fails under load with "run ... is running" (Busy) and passes alone (bug) | none | done, PR #2466 |
-| TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | open |
-| TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | open |
-| TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | open |
+| TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | done, PR #2485 |
+| TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | done, PR #2502 |
+| TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | done, PR #2494 |
 | TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | open |
 | TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) | none | open |
 | TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) | none | open |
+| TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) | none | open |
+| TEST.274 | test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it fails on main: _relative_circular_km was removed by #2481 (bug) | none | done, PR #2493 |
+| TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
+| TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
+| TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

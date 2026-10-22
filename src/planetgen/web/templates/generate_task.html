@@ -1,0 +1,237 @@
+{#- planetgen/web/templates/generate_task.html -- /admin/generate/task/<key> (ADM.108): one task's form. It posts to this
+    same page, which answers with the Review step (generate_review.html); Run is there. -#}
+{% extends "generate_base.html" %}
+{% from "partials/generate_fields.html" import field, limit_slider, plan_inputs, scatter_limits, mass_limit_slider,
+        bright_floor_slider, compact_limit, advanced_sector_inputs, prevalence_inputs, skip_scatter, confirm_field with context %}
+{% block generate_head %}
+<script type="module" src="{{ static_url('generatelevers.js') }}"></script>
+<script type="module" src="{{ static_url('limitsliders.js') }}"></script>
+<script type="module" src="{{ static_url('generatestarmix.js') }}"></script>
+<script type="module" src="{{ static_url('generatefinder.js') }}"></script>
+<script type="module" src="{{ static_url('generateplace.js') }}"></script>
+{% endblock %}
+{% block generate_body %}
+<p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
+<section class="panel generate-task" id="task-{{ task.key }}" aria-labelledby="task-heading">
+  <h2 id="task-heading">{{ task.label }}</h2>
+  <p class="hint">{{ task.summary }}</p>
+  <form method="post" action="{{ url_for('web.generate_task', key=task.key) }}" class="search-form">
+    {{ csrf_field() }}
+    {%- if task.actions|length == 1 %}
+    <input type="hidden" name="action" value="{{ task.actions[0] }}">
+    {%- endif %}
+    {%- if task.key == "add-sectors" %}
+    {%- set grid = form.get("mode") if form and form.get("mode") in ("shell", "span") else "shell" %}
+    {%- set what = form.get("what") if form and form.get("what") else ("grid" if form and form.get("mode") in ("shell", "span") else "place") %}
+    {%- set place = form.get("place", "random") if form else "random" %}
+    <div class="add-sectors" data-add-sectors>
+    <fieldset class="generate-mode what-choice">
+      <legend>What do you want to add?</legend>
+      <label class="choice"><input type="radio" name="what" value="place"{% if what != "grid" %} checked{% endif %}> Sectors around a place</label>
+      <label class="choice"><input type="radio" name="what" value="grid"{% if what == "grid" %} checked{% endif %}> Sectors by shell, band and wedge</label>
+    </fieldset>
+    <fieldset class="generate-mode" data-what-panel="place">
+      <legend>Where</legend>
+      <div class="place-tabs" role="group" aria-label="How to name the place">
+        {%- for value, label, hint in place_tabs %}
+        <label class="place-tab"><input type="radio" name="place" value="{{ value }}"{% if value == place %} checked{% endif %}> {{ label }}</label>
+        {%- endfor %}
+      </div>
+      {%- for value, label, hint in place_tabs %}
+      <div class="place-panel" data-place-panel="{{ value }}">
+        <p class="hint">{{ hint }}{% if value == "random" %} Generates the sectors within a radius of it (12 pc, about 39 ly, when the radius is left blank); the four steps of sectors out from every generated one get their heavier stars either way, {{ backfill_text }}.{% endif %}</p>
+        {%- if value == "random" %}
+        <div class="search-fields">
+          {{ field("radius_pc", "Radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
+          {{ field("max_shell", "Highest shell", placeholder="Milky Way size", step="1", min=0, max=max_shell) }}
+          {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
+          {{ field("neighborhoods", "Neighborhoods", placeholder="1", step="1", min=1, max=max_neighborhoods,
+                   hint="More than one makes that many, each whole inside the galaxy and at least twice the radius from the others.") }}
+          {{ field("neighborhood_gamma", "Density bias", placeholder="0", min=0, max=10,
+                   hint="0 picks starts evenly by volume; higher favors denser space.") }}
+          <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
+        </div>
+        {%- elif value == "sector" %}
+        <div class="sector-finder" data-finder data-locate-url="{{ url_for('web.galaxy_locate') }}"
+          data-list-url="{{ url_for('web.generate_sectors') }}" hidden>
+          <div class="search-fields">
+            <label class="search-field">Find a sector by name
+              <input type="search" data-finder-query placeholder="a sector or star system name"
+                autocomplete="off" autocapitalize="off" spellcheck="false">
+              <span class="field-hint">A star system's name finds the sector it is in.</span>
+            </label>
+          </div>
+          <div class="search-actions">
+            <button type="button" class="btn" data-finder-list>List filled sectors</button>
+          </div>
+          <p class="hint" data-finder-status role="status" aria-live="polite"></p>
+          <ul class="sector-finder-results" data-finder-results></ul>
+          <div class="search-actions" data-finder-pager hidden>
+            <button type="button" class="btn" data-finder-prev>Previous</button>
+            <button type="button" class="btn" data-finder-next>Next</button>
+          </div>
+        </div>
+        <div class="search-fields">
+          {{ field("center_sector", "Sector ID", step="1", min=1) }}
+        </div>
+        <p class="hint" data-finder-chosen role="status" aria-live="polite"></p>
+        {%- elif value == "address" %}
+        <div class="search-fields">
+          {{ field("center_shell", "Shell", step="1", min=0, max=max_shell) }}
+          {{ field("center_band", "Band", placeholder="0", step="1") }}
+          {{ field("center_wedge", "Wedge", step="1", min=0) }}
+        </div>
+        {%- else %}
+        <div class="search-fields">
+          {{ field("center_x_pc", "x (pc)") }}
+          {{ field("center_y_pc", "y (pc)") }}
+          {{ field("center_z_pc", "z (pc)", placeholder="0") }}
+        </div>
+        {%- endif %}
+      </div>
+      {%- endfor %}
+      <div class="search-fields" data-place-shared="sector address position">
+        {{ field("center_radius_pc", "Radius around it (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of the sector or position named above. Not used for a random spot, which has its own radius.") }}
+      </div>
+    </fieldset>
+    <fieldset class="generate-mode" data-what-panel="grid">
+      <legend>Which sectors</legend>
+      <div class="place-tabs" role="group" aria-label="Whole shell or a range">
+        {%- for value, label, hint in grid_choices %}
+        <label class="place-tab"><input type="radio" name="mode" value="{{ value }}"{% if value == grid %} checked{% endif %}> {{ label }}</label>
+        {%- endfor %}
+      </div>
+      {%- for value, label, hint in grid_choices %}
+      <div class="place-panel" data-grid-panel="{{ value }}">
+        <p class="hint">{{ hint }} Large ones need a limit or the confirmation box past 2,000 sectors.</p>
+        <div class="search-fields">
+        {%- if value == "shell" %}
+          {{ field("shell_index", "Shell", step="1", min=0, max=max_shell) }}
+          {{ field("shell_band", "Band", placeholder="every band", step="1") }}
+          {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
+          <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
+        {%- else %}
+          {{ field("span_shells", "Shells", kind="text", placeholder="all, e.g. 10:20") }}
+          {{ field("span_bands", "Bands", kind="text", placeholder="all, e.g. -2:2") }}
+          {{ field("span_wedges", "Wedges (one shell and band only)", kind="text", placeholder="the whole band, e.g. 4:9") }}
+          {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
+          <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
+        {%- endif %}
+        </div>
+      </div>
+      {%- endfor %}
+    </fieldset>
+    </div>
+    {{ advanced_sector_inputs() }}
+    {%- elif task.key == "new-galaxy" %}
+    <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code>, plans a new galaxy,
+    then generates a first neighborhood around a random populated spot. Admin logins and API keys are kept.</p>
+    <fieldset class="generate-mode">
+      <legend>Galaxy shape</legend>
+      <p class="hint">Blank boxes are drawn from the galaxy seed.</p>
+      {{ plan_inputs() }}
+    </fieldset>
+    <fieldset class="generate-mode">
+      <legend>First neighborhood</legend>
+      <div class="search-fields">
+        {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
+        {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
+                 hint="1.0 is as dense as the Sun's neighborhood.") }}
+      </div>
+    </fieldset>
+    <details class="generate-advanced"{% if advanced_open %} open{% endif %}>
+      <summary>Advanced: bright stars, prevalence and star mix</summary>
+      <fieldset class="generate-mode">
+        <legend>Bright stars</legend>
+        {{ scatter_limits("new-galaxy-mass-limit") }}
+        <div class="search-fields">
+          {{ skip_scatter("new-galaxy-skip-bright") }}
+        </div>
+      </fieldset>
+      {{ prevalence_inputs() }}
+    </details>
+    <div class="search-fields">
+      {{ confirm_field("new-galaxy-confirm") }}
+    </div>
+    {%- elif task.key == "scatters" %}
+    {%- set chosen = form.get("action", "plan") if form else "plan" %}
+    {%- if summary.bright and summary.bright.limits %}
+    {%- set stored = summary.bright.limits %}
+    <p class="hint" id="stored-limits"><strong>Stored with this plan:</strong> the core takes stars of
+    {{ num(stored.core_min_luminosity_sol, ",.0f") }} solar luminosities or more and {{ num(stored.core_mass_limit_sol, ",.1f") }}
+    solar masses or more{% if stored.core_follows %} (following the galaxy-wide limits){% endif %}; the halo takes
+    {{ num(stored.halo_min_luminosity_sol, ",.0f") }} solar luminosities or more; a cell makes at most
+    {{ num(stored.cell_star_ceiling, ",.0f") }} systems and, above that, the stars of {{ num(stored.fill_luminosity_cap_sol, ",.0f") }}
+    solar luminosities or more.</p>
+    {%- endif %}
+    <fieldset class="generate-mode">
+      <legend><label><input type="radio" name="action" value="plan"{% if chosen == "plan" %} checked{% endif %}> Plan the galaxy again and scatter</label></legend>
+      <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist, then
+      scatters the bright stars. Sectors already generated stay as they are, and the scatter leaves them out.</p>
+      {{ plan_inputs() }}
+      <div class="search-fields">
+        {{ skip_scatter("plan-skip-bright") }}
+      </div>
+    </fieldset>
+    <fieldset class="generate-mode">
+      <legend><label><input type="radio" name="action" value="redo_scatters"{% if chosen == "redo_scatters" %} checked{% endif %}> Redo only some scatters</label></legend>
+      <p class="hint">Tick the scatters to redo on the current plan, each with its own new setting. They run as one job:
+      each ticked scatter is cleared, then drawn again; the ones left unticked are left as they are. The bright stars
+      are split from the massive stars at the mass limit, so redoing the massive stars redoes the bright stars with
+      them. Sectors already generated are always left out. Needs a plan.</p>
+      {%- if summary.bright %}
+      <p class="hint">{% if summary.bright.scattered %}Now: every star of {{ num(summary.bright.min_luminosity_sol, ",.0f") }}
+      solar luminosities or more is placed (seed {{ summary.bright.seed }}).{% else %}No scatter has run on this plan yet.{% endif %}
+      A plain plan uses {{ num(summary.bright.default_min_luminosity_sol, ",.0f") }} and up.</p>
+      {%- endif %}
+      <fieldset class="redo-scatter">
+        <label class="redo-scatter-check"><input type="checkbox" name="redo_mass" value="1" id="redo-mass"
+          {%- if form and form.get("redo_mass") %} checked{% endif %}> Massive stars (the stellar mass limit below)</label>
+      </fieldset>
+      <fieldset class="redo-scatter">
+        <label class="redo-scatter-check"><input type="checkbox" name="redo_luminosity" value="1" id="redo-luminosity"
+          {%- if form and form.get("redo_luminosity") %} checked{% endif %}> Bright stars (the luminosity floor below)</label>
+      </fieldset>
+      <fieldset class="redo-scatter">
+        <label class="redo-scatter-check"><input type="checkbox" name="redo_phenomena" value="1" id="redo-phenomena"
+          {%- if form and form.get("redo_phenomena") %} checked{% endif %}> Phenomena (neutron stars, black holes, nebulae and the rest; the limit below)</label>
+      </fieldset>
+    </fieldset>
+    <fieldset class="generate-mode scatter-limits-block">
+      <legend>Scatter limits</legend>
+      <p class="hint">Used by "Plan the galaxy again and scatter" and by "Redo only some scatters" (the ones ticked above
+      use the limit that belongs to them). They are drawn once here, so the value you set is the value that is sent.</p>
+      {{ scatter_limits("plan-mass-limit") }}
+    </fieldset>
+    <fieldset class="generate-mode">
+      <legend><label><input type="radio" name="action" value="bright_band"{% if chosen == "bright_band" %} checked{% endif %}> Add a dimmer step of bright stars</label></legend>
+      <p class="hint">Keeps every bright star already placed and adds only the stars from a lower level up to
+      the current one, then lowers the galaxy's star-fill level. Sectors already generated are left out: their
+      own systems were drawn below the old level, so they already hold stars that bright.
+      {%- if summary.bright and summary.bright.scattered %} The star-fill level is
+      {{ num(summary.bright.min_luminosity_sol, ",.0f") }} solar luminosities.{% else %} Needs a bright-star
+      scatter first.{% endif %}</p>
+      <div class="search-fields">
+        {{ field("down_to", "Go down to (solar luminosities)", value="", min=1, placeholder="100") }}
+      </div>
+    </fieldset>
+    {%- elif task.key == "check" %}
+    <p>Looks for damage in <code>{{ database }}</code>: the schema version, table health, rows whose parent is gone,
+    ids that would clash, impossible values, sector counts and version keys. It changes nothing, and the job ends
+    with one pass or fail line per check.</p>
+    <label class="check"><input type="checkbox" name="deep" value="1"{% if form and form.get("deep") %} checked{% endif %}> Deep check: also validate every star system
+      and run the slower table checks. The Review step shows the time it expects.</label>
+    {%- elif task.key == "wipe" %}
+    <p>Deletes every sector, system, phenomenon and the plan from <code>{{ database }}</code>. This can't be undone.
+    Admin logins and API keys are kept.</p>
+    <div class="search-fields">
+      {{ confirm_field("reset-confirm") }}
+    </div>
+    {%- endif %}
+    <div class="search-actions">
+      <button type="submit" class="btn{% if task.danger == 'destroys' %} btn-danger{% endif %}" data-review>Review</button>
+      <a class="btn" href="{{ url_for('web.generate') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

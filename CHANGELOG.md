@@ -2,6 +2,141 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1928] - 2026-10-22
+
+**Headline:** The generate tests no longer depend on the free space of the machine that runs them, and dead copies in two modules are gone.
+
+### Fixed
+- **Five tests failed on a machine whose drive was nearly full (TEST.268).** A generate run refuses to start when it would leave under 5 GB free (PERF.3) and `--strict` turns that into exit status 1, so `test_an_address_named_outside_the_outline_is_generated_from_its_profile` (3 cases), `test_neighborhood_around_a_sector_outside_the_outline_takes_the_reach_and_says_how_big_it_is` and `test_estimate_only_writes_nothing` failed wherever the free space was under 5 GB (a test MySQL server's binary logs had filled one machine to 97%). The test suite now shows the code a drive with at least 200 GB free, unless a test sets its own.
+- **Dead code left by earlier moves is gone.** `web/lib/xfetch.py` still held copies of `is_cacheable` and `shared_key` that named a constant and a module it never imported (the live ones are in `pagecache.py`), and `cli/orbits.py` defined `_stage_label` twice.
+
+TODO items resolved: TEST.268. Added: none.
+
+## [8.0.1927] - 2026-10-22
+
+**Headline:** The Generate pages' prevalence and star mix block is held to one definition by a test, and the file list in the architecture notes is current.
+
+### Changed
+- **One prevalence and star mix block.** A test checks that Add sectors and Start a new galaxy each show the block once, with the usual share on every field and the 100 percent total line (ADM.112).
+- **Architecture notes.** The Generate page's old Customize window and range script are gone from the file list; the shape dials' script, the shell, the palette and the job strip are in (ADM.116).
+
+## [8.0.1926] - 2026-10-22
+
+**Headline:** A browser test now holds the Ctrl+K palette and the keyboard help on the admin pages.
+
+### Changed
+- **Palette and keys tested in a browser.** Ctrl+K and a word land on that page, `?` lists the keys and Escape closes the list (ADM.117).
+
+## [8.0.1925] - 2026-10-22
+
+**Headline:** Every admin page now sits in one shell with a rail, a search box that finds any page, task or setting (Ctrl+K), and a thin strip showing the running job.
+
+### Changed
+- **One admin shell.** The tab row is replaced by a rail of six destinations (Overview, Generate, Settings, Jobs, Data, Account), a search box and a Compact switch (compact by default, remembered in this browser). Every page under `/admin`, and Account, wears it; the registry (`web/adminregistry.py`) lists each page, task and setting once, and a test fails when an admin page is left out of it.
+- **Search and palette.** `/admin/search` finds a page or setting by what it does and works without script. Ctrl+K (or `/`) opens the same list as a palette; Enter opens the result, and nothing runs from it.
+- **Keys.** `g` then `g`, `s`, `j` or `d` goes to Generate, Settings, Jobs or Data; `?` lists the keys; Esc closes. They are off while typing in a field.
+- **Job strip.** The running job, its stage, a bar, the elapsed time, a link and Cancel show above every admin page and follow the job live.
+- **Queue one next job.** Starting a second job while one runs no longer fails: it waits as the one job behind it, shown under the strip with Discard. It starts by itself when the running job succeeds or is cancelled; if that job failed it is held, and the strip offers Start now. A third is refused until the waiting one starts or is discarded. (The Galaxy Map's one-click buttons still say a job is running.)
+
+## [8.0.1924] - 2026-10-22
+
+**Headline:** Generate is now a Start screen with a card per task, a page for each task and a Review step that shows what will run before anything does.
+
+### Changed
+- **Start screen and task pages.** The one long page of folding sections is replaced by six task cards (Add sectors, Start a new galaxy, Change what is scattered, Make one system, Check the database, and the Wipe card last and red). Each task is its own page; the rarely changed prevalence, star mix and sector minimums fold under Advanced. The Customize window and the folding sections' memory are gone.
+- **Review before Run.** Every task ends in a Review step: what will run, each step's command line, the size and time of a galaxy run, the disk refusal with "Generate anyway", then Run, or Back to the form with everything still filled in. The old size-and-time page is this step.
+- **The frame.** A status strip, Start and History tabs and the current job (or the last job's result with Show on Galaxy Map) are on every Generate screen, and the forms stay usable while a job runs. History lists the recent jobs with a link to the Work Queue. The one-off system page sits in the same frame, with its ten force-or-forbid options as Generator decides / Yes / No choices.
+- **Add sectors in two choices.** "Sectors around a place" or "Sectors by shell, band and wedge". A place is named on one of four tabs (a random populated spot, a named sector with the finder, a sector address, a position in parsecs); the grid choice is a whole shell or a range. The five modes and three center choices of the old form are gone from the page; the command each builds is unchanged, and a test holds it.
+- **Typed commands.** In the Ctrl+K palette (and on the plain search page) a line such as `add sectors around sector 9 radius 20`, `add sectors shell 40 limit 200` or `check deep` offers a Review link with the form filled in. Nothing runs from a command: you press Run on the Review step. A line that cannot be read says why.
+- **Run again.** A job started from the Generate page keeps the form it was made from. History and the last-job line offer "Run again", which opens the Review step for the same settings; nothing starts until you press Run. A job that deletes data is not offered again, and a job started from the command line has no form to repeat.
+
+## [8.0.1923] - 2026-10-22
+
+**Headline:** The test of a body far from its epoch reads the stored orbit tree again.
+
+### Changed
+- **The far-from-its-epoch test follows the orbit tree (TEST.274).** It called a function the stored orbit tree (GEN.311) removed; it now moves a binary's stored mean anomaly by the wrapped turn and checks the same position comes out of `positions_at`'s star path a million days on.
+
+generation-output: unchanged
+
+## [8.0.1922] - 2026-10-22
+
+**Headline:** The unit ladders take every factor from the unit registry, and a `Quantity` can be shown on the site's ladders directly.
+
+### Changed
+- **Ladder rungs and companions are built from the registry** (UX.139): `ladders.rung("km", start=0.0, ...)` and
+  `ladders.companion("atm", ...)` read the factor, offset and name from `unit_registry`, so a factor is stated once;
+  the ladder keeps its display data (rung order, thresholds, asides, singulars, unit systems, and a symbol where it shows
+  another, "lunar masses" for M☾). The rendered text and the generated `unitladders.js` are unchanged.
+- **`format_measure(quantity)`** shows a `Quantity` on the ladder of its kind (`ladders.for_kind`) from its base value.
+  The `format_*` names for a unit other than the ladder's base (km, AU, ly, pc, km/s, years, atm, g, solar masses,
+  solar luminosities, particles per cm³, gauss) now share one helper over the registry's factors instead of eleven
+  typed factors; each gives the same text as before.
+- `unit_registry` gains the millibar and takes the Fahrenheit offset from `constants.CELSIUS_ZERO_K`; `to_base` and
+  `from_base` leave a value alone when the unit has no offset (a `-0.0` stays `-0.0`).
+
+## [8.0.1921] - 2026-10-22
+
+**Headline:** A point in space now takes its length unit by registry key and states no unit factor of its own.
+
+### Changed
+- **`SpatialPosition3D` takes `length_unit` ("m", "au", "ly", "pc"), a length key of the unit registry, instead of
+  `length_unit_m`** (GEN.573). The factor comes from `unit_registry`; a key that is no length unit is refused. The point
+  class loses its own `SPEED_OF_LIGHT_MS` (it reads `constants.SPEED_OF_LIGHT_M_S`), the bare 1000 between m/s and km/s
+  (the registry's km/s factor, here and in `MassObject`), and `mu_of` and `mass_of` (a mass and its `mu` are the
+  registry's declared "mass-mu" relation). Every stored and drawn value is bit-identical.
+
+## [8.0.1920] - 2026-10-22
+
+**Headline:** A number with a unit is now one `Quantity` object that keeps what it was given and answers in every other unit of its kind.
+
+### Added
+- **`planetgen.physics.quantity.Quantity`** (GEN.569). `Quantity("power", 3.828e26, "W")` keeps the number and unit as
+  given and never converts them; `.kW`, `.Lsun` and `.as_("erg_s")` give every other unit of its kind, worked out from
+  the truth on first read and kept, and `set` drops them so every form is in step. A relation of the registry answers
+  a quantity of another kind (`related`: a mass's gravitational parameter, a radius's diameter, a period's frequency).
+  A value is checked finite and inside its kind's bounds when made or set, and a unit of another kind is refused by
+  name. `to_dict` gives `{kind, value, unit}`. It is for the edges; the generator's kernels stay on plain floats.
+
+### Changed
+- `unit_registry.convert` multiplies or divides by the power of ten itself when two units' factors are a power of ten
+  apart (`unit_registry.scale`): 1.5 km is exactly 1500.0 m, where the two-step product rounded twice for about a
+  third of all values.
+
+## [8.0.1919] - 2026-10-22
+
+**Headline:** A Reed-Solomon codec in the standard library lets the sector parity file rebuild lost data exactly.
+
+### Added
+- **`planetgen.util.rscodec`, a GF(256) Reed-Solomon erasure code with no new dependency (DB.43).** `RS(k, m)` makes
+  `m` parity blocks from `k` data blocks (`encode`), gives the data back from any `k` of the `k + m` blocks
+  (`decode`), and makes the new parity when one member changes from its old and new bytes (`update`). The first
+  parity block is the plain XOR of the data. Members of unequal length work through zero padding. Nothing reads it
+  yet: the parity file (DB.46) and the repair command (DB.47) stand on it.
+
+## [8.0.1918] - 2026-10-22
+
+**Headline:** Every numeric column of the database now declares the unit it is stored in, in one list.
+
+### Changed
+- **The column registry (`db/column_units.py`).** The 974 numeric columns of the 63 tables are listed by table and unit (`TABLES`), each unit a key of the unit registry (`physics.unit_registry`), or of `LOCAL_UNITS` for the few it does not hold yet (volumes, rates, a dose rate, logarithmic scales): lengths in `km`, `au`, `pc`, `mpc` or `ly`, masses in `kg` or `Msun`, times in `h`, `yr`, `Gyr` or `unix_s`, and so on. A column with no unit of its own says what it is (`ratio`, `count`, `index`, `id`, `key`, `seed`, `flag`, `unit-vector`, `row-defined`); six columns holding four quantities whose code states no unit (`atm_density`, `atm_molar_density`, `formed_at`, `parabolic_mean_anomaly`) are declared `unspecified` and wait for a source. Nothing in the data moves: values and units stay as stored.
+- `point_columns.PointLayout` no longer carries a position unit and a mass unit of its own; it reads them from the registry (`position_unit`, `mass_unit`), and `LENGTH_M` and `MASS_KG` are gone (the mass unit of the solar-mass columns is now `Msun`).
+- `tests/test_column_units.py` fails when a numeric column has no declaration, when a declaration names no column, and when the unit in a column's name is not the unit it is declared in.
+
+TODO items resolved: DB.76. Added: none.
+
+## [8.0.1917] - 2026-10-22
+
+**Headline:** Every item's page now says where it is, and a nebula lists what is inside it.
+
+### Changed
+
+- A star, planet, moon, belt or comet page, a system page and a phenomenon page each have a Location block: the places above the item as links (galaxy, sector, system, the planet a moon circles) and a line `Inside: <nebula or supernova remnant>` linking the cloud it sits in, or a line saying it sits in none.
+- A nebula's or supernova remnant's page lists what is inside it, grouped by kind (star systems, rogue planets, black holes and the rest) with a link to each, or says nothing generated sits inside it.
+- New API route `GET /api/phenomena/<type>/<id>/contents` behind that list.
+
+TODO items resolved / Added: UX.144 (nebulae and supernova remnants; globular clusters and superbubbles are not stored as containers yet) / Added: none
+
 ## [8.0.1916] - 2026-10-22
 
 **Headline:** `planetgen plan` is only the plan; each scatter, fill and clean-up is a command of its own.

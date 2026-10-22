@@ -190,6 +190,26 @@ def _phenomenon_inside(detail):
     return None
 
 
+def _phenomenon_inside_cloud(detail):
+    """A phenomenon's own `inside_nebula_id`/`inside_remnant_id` as the Location block's `inside` (`type`, `id`, `name`),
+    or `None` in open space."""
+    for column, kind in (("inside_nebula_id", "nebula"), ("inside_remnant_id", "supernova_remnant")):
+        cloud_id = detail.get(column)
+        if cloud_id is not None:
+            return {"type": kind, "id": cloud_id, "name": apiclient.get_phenomenon(db_name(), kind, cloud_id)["name"]}
+    return None
+
+
+def _phenomenon_contents(phenomenon_type, phenomenon_id):
+    """The "What is inside it" block of a nebula or supernova remnant (UX.144), or `None` for any other type."""
+    if phenomenon_type not in ("nebula", "supernova_remnant"):
+        return None
+    try:
+        return item_pages.contents(apiclient.get_phenomenon_contents(db_name(), phenomenon_type, phenomenon_id))
+    except apiclient.ApiError:
+        return None   # the list is extra: the page opens without it
+
+
 def _badges(system):
     badges = []
     if system["quadrant"]:
@@ -330,6 +350,7 @@ def system(system_id):
         system=detail,
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
+        location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"), inside),
         nav_links=links,
         nearby_url=nearby_url(endpoint("system", system_id)),
         pick=pick,
@@ -954,6 +975,9 @@ def phenomenon(phenomenon_type, phenomenon_id):
         nearest_html=trusted_html(nearest_systems_html(detail["nearest"], _system_url))
         if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
+        location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"),
+                                            _phenomenon_inside_cloud(detail)),
+        contents=_phenomenon_contents(phenomenon_type, detail["id"]),
         nav_links=phenomenon_nav[0],
         nearby_url=nearby_url(endpoint(phenomenon_type, phenomenon_id)),
         pick=phenomenon_nav[1],

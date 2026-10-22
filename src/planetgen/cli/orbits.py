@@ -228,10 +228,6 @@ class _Cancel:
             signal.signal(signum, handler)
 
 
-def _stage_label(index):
-    return f"{stagemark.marker(index + 1, len(STAGES))}: {STAGES[index]}"
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Advance every planet's, moon's, star's, binary system's, and standalone exotic "

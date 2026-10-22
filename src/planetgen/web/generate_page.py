@@ -37,8 +37,8 @@ Server-Sent Events stream (`/admin/generate/jobs/<id>/stream`, ADM.22;
 jobs, each with its page at `/admin/generate/jobs/<id>` and its full
 output to download at `/admin/generate/jobs/<id>/log`.
 
-Every section folds (ADM.4; `static/generatefolds.js` remembers which
-are open per browser).
+The Generate page is a Start screen with a card per task; each task has
+its own page and a Review step before anything runs (`generate_flow.py`).
 
 Admins only: a visitor who isn't logged in is sent to the login page,
 and any POST or status request without an admin session gets a 403.
@@ -51,6 +51,7 @@ import json
 import os
 import time
 from typing import Annotated
+from urllib.parse import urlsplit
 
 from flask import (Response, abort, current_app, jsonify, make_response, redirect, request, send_file,
                    stream_with_context, url_for)
@@ -111,44 +112,36 @@ BACKFILL_TEXT = _backfill_text()
 """str: How far down the bright-star backfill around the generated sectors
 goes, step by step (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 
-GALAXY_MODES = (
-    ("random", "Around a random start",
-     "Picks a random populated spot and generates the sectors within a radius of it "
-     "(12 pc, about 39 ly, when the radius is left blank; the four steps of sectors out from every "
-     f"generated one get their heavier stars either way, {BACKFILL_TEXT})."),
-    ("shell", "A whole shell",
-     "Every not-yet-generated sector in one shell, the 4 pc deep sphere of cells at one distance from the "
-     "center (shell 0 is the core ball), optionally only one band of it. A shell holds up to thousands of "
-     "sectors, so it needs a limit or the confirmation box past 2,000."),
-    ("center", "Around a sector",
-     "Every not-yet-generated sector within a radius of a center: an existing filled sector "
-     "(found by name or picked from the list), a sector address, or a position in the galaxy."),
-    ("address", "One address",
-     "Exactly one sector, by shell, band and wedge (the address the Galaxy Map shows). "
-     "With a radius, its neighborhood too."),
-    ("span", "A span of shells, bands or wedges",
-     "Every not-yet-generated sector in a range of shells, a range of bands, or both, or one arc of "
-     "wedges in a single band of a single shell. Leave a box blank for all of it. Ranges are "
-     "FIRST:LAST, both included; a single number is just that one. Large spans need a limit or the "
-     "confirmation box past 2,000."),
-)
-
-CENTER_CHOICES = (
-    ("sector", "A filled sector", "Find it by name, pick it from the list, or type its ID."),
+PLACE_TABS = (
+    ("random", "A random populated spot", "Picks a spot at random where stars are dense enough and generates around it."),
+    ("sector", "A named sector", "Find a filled sector by name, pick it from the list, or type its ID."),
     ("address", "A sector address", "Shell, band and wedge, as the Galaxy Map shows them. "
                                     "The sector there is generated first if it isn't yet."),
     ("position", "A position (pc)", "Galaxy-frame x, y and z in parsecs (the center is 0, 0, 0; "
                                     "z is height above the plane). The sector holding that point is the center."),
 )
-"""tuple: How "Around a sector" names its center (`center_by`):
-`(value, label, hint)`."""
+"""tuple: The tabs of the Add sectors place picker (`place`), `(value, label, hint)`: the random start and the three
+ways to name the center of "Around a sector" (`center_by`)."""
 
-SECTION_FOR_ACTION = {
-    "new_galaxy": "new-galaxy", "galaxy": "generate-sectors", "plan": "plan",
-    "redo_scatters": "redo-scatters", "bright_band": "bright-band", "reset": "reset",
-}
-"""dict: The page section each form lives in, so a form shown again
-with an error is open whatever the browser remembered."""
+GRID_CHOICES = (
+    ("shell", "A whole shell", "Every not-yet-generated sector in one shell, optionally only one band of it."),
+    ("span", "A range", "A range of shells, a range of bands, or one arc of wedges. Leave a box blank for all of it."),
+)
+"""tuple: The two ways to pick sectors by their grid address (`mode` with `what=grid`), `(value, label, hint)`."""
+
+
+def where(form):
+    """
+    The `(mode, center_by)` the Add sectors form means. The page posts `what` (`place` or `grid`) and, for a place,
+    the picked `place` tab: `random` is the random start, any other tab is "Around a sector" naming its center that way.
+    A grid choice keeps `mode` (`shell` or `span`). A post without `what` (the Galaxy Map's dialog, the sector page's
+    button) names `mode` and `center_by` itself.
+    """
+    place = form.get("place")
+    if place and form.get("what") != "grid":
+        return ("random", None) if place == "random" else ("center", place)
+    return form.get("mode") or "random", form.get("center_by") or "sector"
+
 
 FINDER_PAGE_SIZE = 50
 """int: Sectors per page in the "Around a sector" list (every web list
@@ -475,7 +468,7 @@ def center_argv(form, edge_pc=None):
     Returns:
         tuple: `(argv, description)`.
     """
-    by = form.get("center_by") or "sector"
+    by = where(form)[1]
     if by == "sector":
         sector_id = _number(form, "center_sector", "Sector ID", int, required=True, minimum=1)
         description = f"around sector {sector_id}"
@@ -516,7 +509,7 @@ def galaxy_argv(form, edge_pc=None):
     Returns:
         tuple: `(argv, description)`.
     """
-    mode = form.get("mode") or "random"
+    mode = where(form)[0]
     if mode == "random":
         return random_start_argv(form), "around a random start"
     if mode == "center":
@@ -1030,7 +1023,7 @@ def _edge_pc(action, form, database):
     sector" was given a position (the one form that needs it); `None`
     otherwise, or when the database doesn't answer (the standard edge is
     then used)."""
-    if action != "galaxy" or form.get("mode") != "center" or form.get("center_by") != "position":
+    if action != "galaxy" or where(form) != ("center", "position"):
         return None
     try:
         shape = apiclient.get_galaxy_shape(database)
@@ -1038,15 +1031,6 @@ def _edge_pc(action, form, database):
         log.error(f"Generate page: no galaxy shape for a center position: {exc}")
         return None
     return (shape or {}).get("edge_pc")
-
-
-def _kept_section(form):
-    """
-    The section of a form shown again (with its error or its estimate),
-    which the server renders open and `static/generatefolds.js` leaves
-    open whatever the browser remembered; `None` on a plain visit.
-    """
-    return SECTION_FOR_ACTION.get(form.get("action")) if form else None
 
 
 MAKES_SECTORS_KINDS = ("galaxy", "new_galaxy")
@@ -1069,6 +1053,7 @@ def _job_view(job):
         if job.get("created_at") else ""
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
     view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
+    view["rerun_url"] = generate_flow.rerun_url(job)
     # ADM.31: a finished run that makes sectors offers them on the Galaxy Map.
     view["made_url"] = None
     if job.get("finished") and job.get("kind") in MAKES_SECTORS_KINDS and job.get("started_at"):
@@ -1096,6 +1081,49 @@ def _job_view(job):
             text += f", about {format_elapsed(detail['eta_s'])} left"
         view["progress_detail_text"] = text
     return view
+
+
+def _back_to_page():
+    """The admin page the strip's button was pressed on (the referrer, when it is this site), else Generate."""
+    parts = urlsplit(request.referrer or "")
+    if parts.netloc == request.host and parts.path.startswith("/admin") and not parts.path.startswith("//"):
+        return parts.path + (f"?{parts.query}" if parts.query else "")
+    return url_for("web.generate")
+
+
+def strip_view():
+    """
+    What the admin shell's job strip shows (ADM.119, ADM.123), or `None` when nothing runs or waits:
+    `{"job", "queued"}`. `job` is the running job's `id`, `title`, `status`, `url`, `text` (the stage, else the
+    progress), `elapsed_text` and `value` (0 to 1, or `None` when it does not know how far it is); `queued` is the
+    one job waiting behind it (`title`, `admin`, `held`: why it is waiting for an admin, or `None`).
+    `static/adminjobstrip.js` keeps it current from `/admin/generate/status`.
+
+    A waiting job whose predecessor has ended is started here, so it never waits for the runner's last act.
+    """
+    try:
+        root = jobs.jobs_dir()
+        jobs.promote_queued(root)
+        job = jobs.active_job(root)
+        queued = jobs.queued_job(root)
+    except OSError:
+        return None
+    if job is None and queued is None:
+        return None
+    view = _job_view(job) if job else None
+    value = None
+    if view:
+        value = view.get("overall_value") if view.get("overall_shown") else None
+        if value is None and view.get("progress_total"):
+            value = min(1.0, (view.get("progress_completed") or 0) / view["progress_total"])
+    return {
+        "job": {
+            "id": view["id"], "title": view.get("title") or "Job", "status": view.get("status") or "",
+            "url": view["url"], "text": view.get("stage_text") or view.get("progress_text") or "",
+            "elapsed_text": view.get("elapsed_text") or "", "value": value,
+        } if view else None,
+        "queued": {"title": queued["title"], "admin": queued["admin"], "held": queued["held"]} if queued else None,
+    }
 
 
 def overall_view(job, step_remaining, now=None):
@@ -1218,7 +1246,12 @@ def format_elapsed(seconds):
     return f"{secs} s"
 
 
-def _page(admin, error=None, status=200, form=None, estimate=None, estimate_title=None, estimate_fields=()):
+def page_context(admin, form=None, error=None, status=200):
+    """
+    What every Generate screen's template is drawn from (`web/generate_flow.py`): the galaxy summary, the running job
+    and the last one, the recent jobs, and the form constants (field lists, limits, presets). `form` is the draft being
+    shown again.
+    """
     database = db_name()
     try:
         root = jobs.jobs_dir()
@@ -1231,12 +1264,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         active, recent, jobs_error = None, [], str(exc)
         recent_total, recent_page = 0, 1
         log.error(f"Generate page: {exc}")
-    return _no_store(render_page(
-        "generate.html",
-        title="Generate",
-        section="admin_generate",
-        breadcrumbs=[crumb("Admin", "admin"), crumb("Generate")],
-        description="Generate, plan or reset this site's galaxy.",
+    return dict(
         admin=admin,
         database=database,
         summary=_galaxy_summary(database),
@@ -1268,24 +1296,34 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         compact_presets=tuning.COMPACT_MIN_MASS_PRESETS,
         compact_warnings=COMPACT_STORAGE_WARNINGS,
         backfill_text=BACKFILL_TEXT,
-        galaxy_modes=GALAXY_MODES,
+        place_tabs=PLACE_TABS,
+        grid_choices=GRID_CHOICES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
         min_radius_ly=MIN_NEIGHBORHOOD_RADIUS_LY,
         max_radius_ly=MAX_GENERATE_RADIUS_LY,
         max_shell=MAX_GENERATE_SHELL,
         max_limit=MAX_GENERATE_LIMIT,
         max_neighborhoods=MAX_GENERATE_NEIGHBORHOODS,
-        center_choices=CENTER_CHOICES,
-        kept_section=_kept_section(form),
+        advanced_open=bool(form) and any(name.startswith(ADVANCED_PREFIXES) for name in form),
         error=error,
         form=form or {},
-        estimate=estimate,
-        estimate_title=estimate_title,
-        estimate_fields=estimate_fields,
         estimate_confirm_field=ESTIMATE_CONFIRM_FIELD,
         generate_anyway_field=GENERATE_ANYWAY_FIELD,
         status=status,
-    ))
+        last_job=_job_view(recent[0]) if recent and not active else None,
+        queued_job=_queued(),
+    )
+
+
+ADVANCED_PREFIXES = ("prevalence_", "star_mix_", "directive_")
+"""tuple: Form fields that live in the Advanced block; a draft shown again that holds one opens it."""
+
+
+def _queued():
+    try:
+        return jobs.queued_job()
+    except OSError:
+        return None
 
 
 @bp.route("/admin/generate", methods=["GET", "POST"])
@@ -1295,7 +1333,7 @@ def generate():
     started)."""
     if request.method in ("GET", "HEAD"):
         admin, response = _admin_or_redirect()
-        return response or _page(admin)
+        return response or generate_flow.start_page(admin)
 
     admin = _admin_or_403()
     action = request.form.get("action") or ""
@@ -1308,38 +1346,46 @@ def generate():
             log.error(f"Could not cancel job {job_id}: {exc}")
         return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
 
+    if action in ("discard_queued", "start_queued"):
+        if action == "discard_queued":
+            if jobs.discard_queued():
+                activity_log.event("GEN", "job.unqueue", user=admin.get("username"))
+        else:
+            started = jobs.promote_queued(force=True)
+            if started:
+                activity_log.event("GEN", "job.start", user=admin.get("username"), job=started, queued=True)
+        return _no_store(redirect(_back_to_page(), code=303))
+
     database = db_name()
     wants_json = _wants_json()
+
+    def refuse(message, status):
+        """The refusal as JSON for a script, else the task's page with the draft and the message."""
+        if wants_json:
+            return _no_store(make_response(jsonify({"error": message}), status))
+        return generate_flow.task_page_for_action(admin, action, form=request.form, error=message, status=status)
+
     try:
         kind, title, steps = build_job(action, request.form, database, edge_pc=_edge_pc(action, request.form, database))
     except FormError as exc:
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": str(exc)}), 400))
-        return _page(admin, error=str(exc), status=400, form=request.form)
+        return refuse(str(exc), 400)
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-    if kind in ("galaxy", "check_db") and (kind == "galaxy" or request.form.get("deep")) \
-            and not request.form.get(ESTIMATE_CONFIRM_FIELD):
-        # PERF.3: show the size and time first; the admin confirms (or the
-        # disk refuses it) before the job starts.
+    if estimate_needed(kind, request.form) and not request.form.get(ESTIMATE_CONFIRM_FIELD):
+        # PERF.3: show the size and time first; the admin confirms (or the disk refuses it) before the job starts.
         try:
-            argv = steps[-1]["argv"]
-            estimate = estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
-                                              lambda: run_estimate(argv, env))
+            estimate = estimate_for(kind, steps, database, env)
         except FormError as exc:
-            if wants_json:
-                return _no_store(make_response(jsonify({"error": str(exc)}), 400))
-            return _page(admin, error=str(exc), status=400, form=request.form)
+            return refuse(str(exc), 400)
         if wants_json:
             return _no_store(make_response(jsonify({
                 "error": estimate.get("refusal") or f"Confirm first: {estimate.get('summary') or estimate.get('what')}",
                 "estimate": estimate, "confirm_field": ESTIMATE_CONFIRM_FIELD,
                 "generate_anyway_field": GENERATE_ANYWAY_FIELD,
             }), 409))
-        return _page(admin, form=request.form, estimate=_estimate_view(estimate), estimate_title=title,
-                     estimate_fields=[(name, value) for name, value in request.form.items(multi=True)
-                                      if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD)])
+        return generate_flow.review_page(admin, action, kind, title, steps, request.form, estimate=_estimate_view(estimate))
     try:
-        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database,
+                                draft=generate_flow.draft_of(action, request.form))
         activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                           title=title)
         if kind == "galaxy" and request.form.get(GENERATE_ANYWAY_FIELD):
@@ -1347,19 +1393,24 @@ def generate():
                                title=title)
     except jobs.JobBusy as exc:
         running = exc.job["title"] if exc.job else "Another job"
-        message = f"{running} is still running. Wait for it to finish, or cancel it first."
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": message}), 409))
-        return _page(admin, error=message, status=409, form=request.form)
+        if not wants_json:
+            try:
+                jobs.queue_next(kind, title, steps, env=env, admin=admin.get("username"), database=database,
+                                draft=generate_flow.draft_of(action, request.form))
+                jobs.promote_queued()       # the running job may have ended since the lock was refused
+                activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
+                return _no_store(redirect(url_for("web.generate"), code=303))
+            except jobs.QueueFull:
+                return refuse(f"{running} is still running and another job is already waiting behind it. "
+                              "Discard the waiting job, or wait for the running one to finish.", 409)
+            except OSError as queue_exc:
+                log.error(f"Could not queue a {kind} job: {queue_exc}")
+        return refuse(f"{running} is still running. Wait for it to finish, or cancel it first.", 409)
     except updateguard.UpdateRunning as exc:
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": str(exc)}), 503))
-        return _page(admin, error=str(exc), status=503, form=request.form)
+        return refuse(str(exc), 503)
     except OSError as exc:
         log.exception(f"Could not start a {kind} job: {exc}")
-        if wants_json:
-            return _no_store(make_response(jsonify({"error": f"The job could not be started: {exc}"}), 500))
-        return _page(admin, error=f"The job could not be started: {exc}", status=500, form=request.form)
+        return refuse(f"The job could not be started: {exc}", 500)
     if wants_json:
         return _no_store(make_response(jsonify({
             "job": job_id,
@@ -1367,6 +1418,22 @@ def generate():
             "status_url": url_for("web.generate_status", job=job_id),
         }), 202))
     return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
+
+
+def estimate_needed(kind, form):
+    """Whether a job asks for its size and time first (a galaxy run, or a deep database check)."""
+    return kind in ("galaxy", "check_db") and (kind == "galaxy" or bool(form.get("deep")))
+
+
+def estimate_for(kind, steps, database, env):
+    """The size and time of the job's last step (`run_estimate`, cached by `estimatecache`).
+
+    Raises:
+        FormError: The estimate refused the arguments.
+    """
+    argv = steps[-1]["argv"]
+    return estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
+                                  lambda: run_estimate(argv, env))
 
 
 def _estimate_view(estimate):
@@ -1403,7 +1470,7 @@ def generate_status():
     root = jobs.jobs_dir()
     job_id = request.args.get("job")
     job = jobs.get_job(job_id, root) if job_id else jobs.active_job(root)
-    body = {"job": _job_view(job), "log": jobs.log_tail(job["id"], max_bytes=8 * 1024, root=root) if job else None}
+    body = {"job": _job_view(job), "strip": strip_view(), "log": jobs.log_tail(job["id"], max_bytes=8 * 1024, root=root) if job else None}
     return _no_store(jsonify(body))
 
 
@@ -1574,8 +1641,8 @@ generate_job_log.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @bp.route("/admin/generate/sectors")
 def generate_sectors():
     """
-    JSON for "Around a sector"'s list of filled sectors
-    (`static/generatefolds.js`): `?page=N`, 50 a page, nearest the
+    JSON for the named-sector tab's list of filled sectors
+    (`static/generatefinder.js`): `?page=N`, 50 a page, nearest the
     galactic core first (`apiclient.get_sectors`). Sectors without an
     address (placed before the cylindrical grid) are listed too: the
     center only needs their ID.
@@ -1620,3 +1687,6 @@ def generate_job(job_id):
         job=_job_view(job),
         output=jobs.log_tail(job_id, max_bytes=256 * 1024, root=root),
     ))
+
+
+from . import generate_flow  # noqa: E402,F401 -- the Generate screens (they use this module's logic)
