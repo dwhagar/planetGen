@@ -1504,6 +1504,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (128, _table_marker("constellations")),
     (127, _column_marker("stars", "cluster_id")),
     (126, _table_marker("request_comments")),
     (125, _column_marker("sectors", "override_id")),

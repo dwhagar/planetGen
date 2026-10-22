@@ -352,6 +352,24 @@ comets = sa.Table(
 )
 
 
+constellations = sa.Table(
+    'constellations',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('system_uid', mysql.BINARY(12), nullable=False),
+    sa.Column('constellation_index', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('name_id', mysql.BINARY(12), nullable=True),
+    sa.Column('members', mysql.JSON(), nullable=False),
+    sa.Column('edges', mysql.JSON(), nullable=False),
+    sa.Column('seed', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('version_key', mysql.CHAR(22), nullable=False),
+    sa.Column('created_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_constellations_name', 'name_id'),
+    sa.Index('uq_constellations_system_index', 'system_uid', 'constellation_index', unique=True),
+    mysql_engine="InnoDB",
+)
+
+
 edit_journal = sa.Table(
     'edit_journal',
     metadata,

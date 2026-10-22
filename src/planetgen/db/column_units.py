@@ -184,6 +184,11 @@ TABLES = {
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "kg": ("mass_kg",),
     },
+    "constellations": {
+        "id": ("id",),
+        "index": ("constellation_index",),
+        "seed": ("seed",),
+    },
     "edit_journal": {
         "id": ("id", "op_id", "plan_id", "sector_id"),
         "index": ("generator_epoch",),
