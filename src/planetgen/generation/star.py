@@ -28,11 +28,9 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
-from planetgen.galaxy import enclosed_mass, scales
-from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
-from planetgen.names.wordsalad import LazySaladName
-from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
-from planetgen.physics.orbits import calculate_habitable_zone, calculate_hill_sphere
+from planetgen.galaxy import scales
+from planetgen.generation.stellar_object import StellarObject
+from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.util.checks import finite_domain
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
@@ -162,7 +160,7 @@ def compressed_heliosphere_radius(radius_au, density_cm3, temperature_k):
     return radius_au * math.sqrt(constants.ISM_PRESSURE / pressure)
 
 
-class Star(LazySaladName, MassObject):
+class Star(StellarObject):
     """
     Represents a single star, encapsulating its physical and orbital properties.
 
@@ -184,98 +182,6 @@ class Star(LazySaladName, MassObject):
     mixed `planets` list) -- the two just happen to share a common English
     word as their name.
     """
-
-    SERIALIZABLE_FIELDS = [
-        "name", "type", "yerkes_class", "mass", "radius", "temperature",
-        "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
-        "heliosphere_radius", *GALACTIC_MOTION_FIELDS,
-        "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
-        *activity.STAR_ACTIVITY_FIELDS, "metallicity_fe_h",
-        "disk_kind", "disk_mass_solar", "disk_inner_au", "disk_outer_au",
-    ]
-    """
-    Every attribute set by `__init__`/`generate_star`, excluding
-    `system_config` (a shared back-reference threaded into `from_dict`
-    rather than serialized redundantly on every star).
-    """
-
-    metallicity_fe_h = None
-    """float or None: [Fe/H] in dex (GEN.158); class-level default for the same reason as `a_crit_au`."""
-
-    disk_kind = None
-    disk_mass_solar = None
-    disk_inner_au = None
-    disk_outer_au = None
-    """The disk descriptor of a protostar or a young pre-main-sequence star (GEN.242, `pre_main_sequence.draw_disk`):
-    `disk_kind` ("class-0", "class-i" or "class-ii"), its mass in solar masses and its inner and outer edge in AU;
-    None for every other star. A descriptor only: no body is placed in it. Class-level defaults for the same reason as
-    `a_crit_au`."""
-
-    a_crit_au = None
-    """
-    float or None: Class-level default (rather than only an `__init__`
-    instance assignment) so a `Star` reconstructed via `from_dict`'s
-    `object.__new__`+`fields_from_dict` path -- which leaves a field
-    untouched when its key is absent from the loaded data (see
-    `serialization.fields_from_dict`) -- still reads back `None` for any
-    system saved before this field existed, rather than raising
-    `AttributeError`. Populated only for a star that is one constituent of
-    an S-type (wide) binary: this star's own Holman & Wiegert (1999)
-    critical semi-major axis (see
-    `orbits.holman_wiegert_critical_semimajor_axis`), the maximum orbit
-    distance that stays long-term stable against its companion's
-    perturbation. `None` for a single star or either star of a P-type
-    (close) binary, where no such companion-driven limit applies (a P-type
-    pair's planets orbit the merged `BinaryStarProxy`, which never sets
-    this at all). Set directly by `StarSystem.__init__` after both stars
-    of a wide pair exist -- a `Star` never computes this on its own, since
-    it depends on the companion star's mass/separation/eccentricity, none
-    of which a lone `Star` instance knows about.
-    """
-
-    initial_mass_sol = None
-    """float or None: The initial (zero-age) mass in Msun of a star drawn
-    from the population model (`_generate_from_population_model`); None for
-    a specified-type or reloaded star. A binary secondary's mass is a
-    fraction of the primary's initial mass, since the primary may have lost
-    mass since (a white dwarf)."""
-
-    phase_end_age_gy = None
-    """float or None: The age (Gy) at which a population-model star leaves
-    its present evolutionary phase; `adjust_age_for_planets` keeps its age
-    below it so the star's class stays true. None otherwise."""
-
-    _model_age_lifespan = None
-    _model_fe_h = None
-
-    reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
-    """
-    float: Class-level defaults (schema v20), same "still readable after
-    `from_dict`'s `object.__new__`+`fields_from_dict` path" reasoning as
-    `a_crit_au` above. This star's own displacement (AU) from its nominal
-    fixed point, caused by the combined gravitational pull of every planet
-    orbiting it directly -- the "wobble" half of a proper two-body
-    treatment, alongside the planets' own unchanged `position_x/y/z` (see
-    `orbits.calculate_reflex_offset`'s docstring). Zero for a star with no
-    planets. Set directly by `StarSystem.__init__` once `self.planets`
-    exists -- a `Star` never computes this on its own construction, the
-    same reasoning `a_crit_au` documents above. Applies identically to a
-    `BlackHole`/`NeutronStar` (both subclass `Star`), consistent with
-    `store.advance_orbital_phases`' class-blind bulk `UPDATE`s.
-    """
-
-    def _encode(self, data):
-        """`habitable_zone` is stored as a list (JSON has no tuple type). `lifespan` is stored as `None` in place of
-        `float('inf')` (white dwarfs) -- the same convention `planetgen/db/store.py` uses via `_lifespan_gy` --
-        since `float('inf')` round-trips through the standard `json` module as a non-standard `Infinity` token that
-        not every JSON consumer accepts."""
-        data["habitable_zone"] = list(self.habitable_zone)
-        data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
-
-    def _decode(self, data):
-        self.habitable_zone = tuple(data["habitable_zone"])
-        self.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
 
     def _calculate_initial_star_age_and_lifespan(self):
         """
@@ -470,209 +376,6 @@ class Star(LazySaladName, MassObject):
 
         return age, lifespan
 
-    def planet_age_requirement_gy(self, planets):
-        """
-        The youngest age (Gy) this star can have and still host `planets`:
-        the highest minimum age any planet's `planet_class` needs on one of
-        this star's `supported_evolutionary_scales`. 0.0 when none needs
-        any. See `adjust_age_for_planets`.
-        """
-        # Uses get_star_evolutionary_profile rather than a raw
-        # STAR_EVOLUTION[spectral_class] lookup so giants/supergiants/white
-        # dwarfs etc. (whose spectral letter reflects only current
-        # temperature, not a main-sequence lifespan) are handled correctly.
-        supported_scales = get_star_evolutionary_profile(self).get("supported_evolutionary_scales", [])
-        required = 0.0
-        for planet in planets:
-            if hasattr(planet, 'planet_class') and planet.planet_class in tuning.PLANET_CLASSES:
-                age_ranges = tuning.PLANET_CLASSES[planet.planet_class].get("age_ranges", {})
-                for scale in supported_scales:
-                    if scale in age_ranges:
-                        required = max(required, age_ranges[scale][0])
-        return required
-
-    def age_ceiling_gy(self):
-        """
-        The oldest (Gy) this star can be made by `adjust_age_for_planets`
-        without contradicting what was generated for it, never below its
-        present age: a population-model star stays inside its present phase
-        (a white dwarf's age sets its cooling, so it can't move at all); a
-        specified-type star stays inside its lifespan. Both are capped at
-        the age of the universe. A binary's companion passes its ceiling to
-        the star that sets the pair's shared age (see
-        `adjust_pair_age_for_planets`).
-        """
-        if self.phase_end_age_gy == float('inf'):
-            return self.age
-        if self.phase_end_age_gy is not None:
-            limit = self.phase_end_age_gy
-        elif self.lifespan != float('inf'):
-            limit = self.lifespan
-        else:
-            return float('inf')
-        return max(self.age, min(limit * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
-                                 tuning.UNIVERSE_AGE_GY))
-
-    def adjust_age_for_planets(self, planets, min_required_age_gy=0.0, age_ceiling_gy=None):
-        """
-        Adjusts the star's age to ensure it is at least as old as the minimum
-        age required for the most "evolved" planet in its system. This method
-        should be called by the `StarSystem` class after planets have been generated.
-
-        The star's age is a crucial factor in planetary evolution. This function
-        iterates through all generated planets, identifies their minimum required
-        ages based on their `planet_class` and the star's `supported_evolutionary_scales`,
-        and then ensures the star's age meets or exceeds the highest of these
-        minimum requirements. This prevents scenarios where a young star might
-        host an "old" planet (e.g., a terraformed world requiring billions of years
-        of development).
-
-        If the star's lifespan is too short to accommodate the required
-        planetary age even at its very end, the star's age is set to be near
-        the end of its lifespan (the closest it can get), reflecting a system
-        that has evolved as rapidly as physically possible for its type. If
-        the requirement *is* reachable within the lifespan, `config.AGE`
-        ("young"/"old") still biases where in the achievable window the age
-        falls, the same way it biases the star's initial age in
-        `_calculate_initial_star_age_and_lifespan` — a forced minimum age
-        should narrow the age range, not silently discard a young/old
-        request entirely.
-
-        Args:
-            planets (list): A list of `Planet` objects in the system.
-            min_required_age_gy (float): A further minimum age, from planets
-                judged by another star (a binary companion's own).
-            age_ceiling_gy (float, optional): A further maximum age (a
-                binary companion's `age_ceiling_gy`); the age then also
-                never drops below its present value, since the companion was
-                born at it.
-        """
-        original_age = self.age
-        if self.phase_end_age_gy == float('inf'):
-            # A population-model white dwarf's age sets its cooling
-            # luminosity and temperature; it stays as drawn.
-            return
-
-        min_required_age_for_system = max(self.planet_age_requirement_gy(planets), min_required_age_gy)
-
-        # Ensure the star's age is at least the minimum required by its planets
-        if self.age < min_required_age_for_system:
-            if self.phase_end_age_gy is not None and self.phase_end_age_gy != float('inf'):
-                # A population-model star can't age past its present phase
-                # without its class, luminosity and radius becoming wrong.
-                max_reachable_age = min(
-                    self.phase_end_age_gy * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
-                    tuning.UNIVERSE_AGE_GY,
-                )
-            elif self.lifespan != float('inf'):
-                # Capped at the age of the universe for the same reason as
-                # the initial age roll in _calculate_initial_star_age_and_lifespan
-                # -- a long-lived class's lifespan-derived ceiling can be far
-                # larger than any star could actually have reached yet.
-                max_reachable_age = min(
-                    self.lifespan * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
-                    tuning.UNIVERSE_AGE_GY,
-                )
-            else:
-                max_reachable_age = min_required_age_for_system + tuning.WHITE_DWARF_AGE_ADDITION_GY # Add 5 GY for WD if no upper bound
-            if age_ceiling_gy is not None:
-                max_reachable_age = max(min(max_reachable_age, age_ceiling_gy), original_age)
-
-            if max_reachable_age < min_required_age_for_system:
-                # The requirement is physically unreachable within this star's lifespan
-                # (e.g. a habitable world's minimum age exceeds a short-lived O/B/A star's
-                # entire life). The best it can do is sit near the very end of its life --
-                # there's no real "young" vs "old" choice left to honor here.
-                # `min(..., max_reachable_age)` keeps this "near the end of its
-                # reachable life" for a long-lived class too: lifespan * 0.85
-                # can itself be far larger than max_reachable_age once that's
-                # capped at UNIVERSE_AGE_GY, which would otherwise widen this
-                # into a near-full-lifespan random range instead of "near the end."
-                self.age = draw.uniform(
-                    min(self.lifespan * tuning.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
-                    max_reachable_age,
-                )
-                if self.phase_end_age_gy is not None or age_ceiling_gy is not None:
-                    # Never younger than it was: that could move a
-                    # population-model star (or a binary companion born at
-                    # this age) back into an earlier phase.
-                    self.age = max(self.age, original_age)
-            else:
-                # The requirement is reachable within the lifespan: bias where in the
-                # achievable [min_required_age_for_system, max_reachable_age] window the
-                # age falls, mirroring the young/old bias used for the initial age roll.
-                low, high = min_required_age_for_system, max_reachable_age
-                if self.system_config.AGE == "old":
-                    low = low + (high - low) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
-                elif self.system_config.AGE == "young":
-                    high = high - (high - low) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
-                self.age = draw.uniform(low, high)
-
-        # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
-        if self.lifespan != float('inf') and self.age >= self.lifespan:
-            self.age = self.lifespan * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR # Star is near end of life
-        if age_ceiling_gy is not None:
-            self.age = max(min(self.age, age_ceiling_gy), original_age)
-
-    def calculate_system_perimeter(self, galactic_center_dist_ly=None):
-        """
-        Calculates the Hill sphere for the star system relative to the galaxy.
-
-        The Hill sphere defines the gravitational sphere of influence of the star
-        within the larger galactic environment. Any object orbiting the star
-        beyond this radius would be more strongly perturbed by the galaxy's
-        gravity than by the star's, making it unlikely to be gravitationally
-        bound to the star system.
-
-        This method uses the star's mass, the mass of its galaxy inside the star's own distance from the
-        galactic center (`galaxy.enclosed_mass`, GEN.370) and that distance to compute this boundary.
-        The result is converted from meters to Astronomical Units (AU) for
-        convenience and consistency with other system-scale measurements.
-
-        Args:
-            galactic_center_dist_ly (float, optional): This star's actual
-                distance from the galactic center, in light-years -- derived
-                from its owning sector's `galactic_radius_pc` once sectors
-                are placed in galaxy-space (see
-                `docs/design/galaxy-coordinate-system.md` section 5). `None`
-                (the default) falls back to the radius that holds half of the galaxy's disc stars (`galaxy.scales`) --
-                the correct behavior for a system generated outside any
-                galaxy context (e.g. `generation/run_sector.py`'s own standalone CLI,
-                whose sectors are never placed in a galaxy).
-
-        Returns:
-            float: The radius of the Hill sphere in Astronomical Units (AU).
-        """
-        if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = scales.default_galactocentric_ly()
-        galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, enclosed_mass.current_enclosed_mass_kg(galactic_center_dist_m / constants.PARSEC_M))
-        return hill_radius_m / constants.AU_TO_M
-
-    def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
-        """
-        Calculates this star system's circular orbital speed and period
-        around the galactic center, via `galactic_orbit.calculate_galactic_orbit`.
-
-        Unlike `calculate_system_perimeter`, the result doesn't depend on
-        this star's own mass -- see that function's docstring -- so this
-        method exists purely to thread the star's `galactic_center_dist_ly`
-        fallback convention through, the same way `calculate_system_perimeter`
-        does.
-
-        Args:
-            galactic_center_dist_ly (float, optional): This system's actual
-                distance from the galactic center, in light-years -- see
-                `calculate_system_perimeter`'s docstring for the same
-                parameter. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
-
-        Returns:
-            tuple: `(orbital_speed_kms, orbital_period_gy)` -- see
-                  `galactic_orbit.calculate_galactic_orbit`.
-        """
-        if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = scales.default_galactocentric_ly()
-        return calculate_galactic_orbit(galactic_center_dist_ly)
 
     @staticmethod
     @finite_domain()
@@ -808,7 +511,7 @@ class Star(LazySaladName, MassObject):
         """
         return Star._calculate_heliosphere_radius_static(self.mass, self.luminosity, self.radius, self.type, self.yerkes_class)
 
-    def __init__(self, system_config: SystemConfig, name=None, _skip_property_init=False, **kwargs):
+    def __init__(self, system_config: SystemConfig, name=None, **kwargs):
         """
         Initializes a Star object, generating its properties based on specified constraints.
 
@@ -832,9 +535,6 @@ class Star(LazySaladName, MassObject):
             system_config (SystemConfig): The shared SystemConfig object for the system.
             name (str, optional): The name to assign to the star. If None, a
                                   random name will be generated. Defaults to None.
-            _skip_property_init (bool): If True, skips initialization of properties
-                                        that might be managed by a subclass (e.g., BinaryStarProxy).
-                                        Defaults to False.
 
         Keyword Args:
             mass_override (float, optional): An explicit mass (kg) for
@@ -860,29 +560,26 @@ class Star(LazySaladName, MassObject):
                 correct behavior for a standalone `Star` with no system
                 threading this through.
         """
-        self.system_config = system_config # Storing the SystemConfig instance
-        self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.galactic_center_dist_ly = kwargs.get('galactic_center_dist_ly')
+        super().__init__(system_config, name=name, galactic_center_dist_ly=kwargs.get('galactic_center_dist_ly'))
 
-        if not _skip_property_init:
-            self.luminosity = None
-            self.temperature = None
-            self.mass = None
-            self.radius = None
-            self.type = None
-            self.yerkes_class = None
-            self.habitable_zone = None
-            self.system_perimeter = None
-            self.heliosphere_radius = None
-            self.galactic_orbital_speed_kms = None
-            self.galactic_orbital_period_gy = None
-            self.galactic_orbital_phase_deg = None
-            self.galactic_min_update_interval_years = None
-            # Added mass_override for secondary star generation in binary systems
-            self.generate_star(mass_override=kwargs.get('mass_override'),
-                               initial_mass_sol=kwargs.get('initial_mass_sol'),
-                               age_gy=kwargs.get('age_gy'))
-            self._finish_init(kwargs)
+        self.luminosity = None
+        self.temperature = None
+        self.mass = None
+        self.radius = None
+        self.type = None
+        self.yerkes_class = None
+        self.habitable_zone = None
+        self.system_perimeter = None
+        self.heliosphere_radius = None
+        self.galactic_orbital_speed_kms = None
+        self.galactic_orbital_period_gy = None
+        self.galactic_orbital_phase_deg = None
+        self.galactic_min_update_interval_years = None
+        # Added mass_override for secondary star generation in binary systems
+        self.generate_star(mass_override=kwargs.get('mass_override'),
+                           initial_mass_sol=kwargs.get('initial_mass_sol'),
+                           age_gy=kwargs.get('age_gy'))
+        self._finish_init(kwargs)
 
     def _finish_init(self, kwargs):
         """The derived properties every generated star gets once its core
@@ -1015,7 +712,9 @@ class Star(LazySaladName, MassObject):
         # GEN.158: a stored [Fe/H] is kept; none (or an old row) leaves the star to draw its own.
         if params.get("metallicity_fe_h") is not None:
             kwargs.setdefault("metallicity_fe_h", params["metallicity_fe_h"])
-        star = cls(system_config, name=name, _skip_property_init=True, **kwargs)
+        star = cls.__new__(cls)
+        StellarObject.__init__(star, system_config, name=name,
+                               galactic_center_dist_ly=kwargs.get("galactic_center_dist_ly"))
         star._apply_params(params)
         star._finish_init(kwargs)
         return star
@@ -1267,86 +966,6 @@ def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_p
                                    min_required_age_gy=secondary.planet_age_requirement_gy(secondary_planets),
                                    age_ceiling_gy=secondary.age_ceiling_gy())
     secondary.age = primary.age
-
-
-def get_star_spectral_class(star):
-    """
-    Returns the uppercase spectral class character (e.g. 'G') for a star.
-
-    Works for both a plain `Star` and a `BinaryStarProxy`, without importing
-    `BinaryStarProxy` here (which would create a circular import) — a proxy
-    is detected by duck-typing on its `_primary` attribute, and its primary
-    star's type is used as the representative spectral class.
-
-    Args:
-        star: A `Star` or `BinaryStarProxy` instance.
-
-    Returns:
-        str: The uppercase spectral class character.
-    """
-    reference_star = star._primary if hasattr(star, '_primary') else star
-    return reference_star.type[0].upper()
-
-
-def get_star_evolutionary_profile(star):
-    """
-    Returns the `STAR_EVOLUTION`-shaped profile describing which life
-    chemicals and evolutionary paces are plausible for planets orbiting
-    `star`, correctly accounting for its Yerkes luminosity class.
-
-    `STAR_EVOLUTION` is keyed by spectral letter (e.g. 'G'), which for a
-    main-sequence (Yerkes 'V') star fully determines both its current
-    temperature and its total lifespan -- so that class's fixed entry
-    applies directly.
-
-    For any evolved or remnant star (giants, supergiants, subgiants, bright
-    giants, hypergiants, subdwarfs, white dwarfs), the spectral letter only
-    reflects the star's *current* temperature/color, not a lifespan -- e.g.
-    an "F5VII" white dwarf merely glows at F-like temperature; it did not
-    live and die as an F-type main-sequence star. Using STAR_EVOLUTION['F']
-    directly for such a star would misapply a main-sequence lifespan/scale
-    table to an unrelated evolutionary history. `potentially_viable_chemicals`
-    (driven by the star's current emission spectrum) is still taken from the
-    current-temperature letter, since that part genuinely is about current
-    color. `supported_evolutionary_scales`, which is really a proxy for how
-    much time was available for a biosphere to develop, is instead derived
-    from the star's own already-computed age/lifespan (already correctly
-    yerkes-class-aware -- see `Star._calculate_initial_star_age_and_lifespan`),
-    by checking which evolutionary paces could reach their technological
-    civilization milestone within that time budget.
-
-    Args:
-        star: A `Star` or `BinaryStarProxy` instance.
-
-    Returns:
-        dict: A `STAR_EVOLUTION`-entry-shaped dict (with at least
-              `potentially_viable_chemicals` and `supported_evolutionary_scales`
-              keys), or `{}` if the spectral letter has no entry.
-    """
-    reference_star = star._primary if hasattr(star, '_primary') else star
-    spectral_class_char = reference_star.type[0].upper()
-    base_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
-    if not base_info:
-        return {}
-
-    if reference_star.yerkes_class == "V":
-        return base_info
-
-    # A white dwarf's lifespan is infinite (it just cools forever), so "how
-    # much time has been available so far" is better represented by its age.
-    # Every other evolved class has a finite lifespan, used as-is.
-    time_budget = reference_star.age if reference_star.lifespan == float('inf') else reference_star.lifespan
-
-    reachable_scales = [
-        scale for scale in ["fast", "normal", "slow"]
-        if tuning.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget
-    ]
-    if not reachable_scales:
-        # Even the fastest pace doesn't fit -- still return it so callers have
-        # something to work with, mirroring the fallback in get_evolutionary_timeline.
-        reachable_scales = ["fast"]
-
-    return {**base_info, "supported_evolutionary_scales": reachable_scales}
 
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)

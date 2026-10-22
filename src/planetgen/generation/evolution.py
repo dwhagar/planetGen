@@ -18,7 +18,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation.star import get_star_evolutionary_profile
+from planetgen.generation.stellar_object import get_star_evolutionary_profile
 from planetgen.util.format import format_age_string, to_paragraph
 # Removed: from . import config # Import the config module
 

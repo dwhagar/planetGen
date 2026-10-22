@@ -22,13 +22,14 @@ from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from planetgen.generation.stellar_object import StellarObject
 from planetgen.galaxy import enclosed_mass, scales
 from planetgen.physics.orbits import (
     calculate_habitable_zone, calculate_hill_sphere, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
 )
 from planetgen.util.checks import finite_domain
 
-class BinaryStarProxy(Star):
+class BinaryStarProxy(StellarObject):
     """
     A proxy class representing a binary star system as a single effective star.
 
@@ -105,8 +106,7 @@ class BinaryStarProxy(Star):
                 around the galaxy together, not independently). `None` (the
                 default) rolls a fresh random value in `[0, 360)`.
         """
-        # Initialize the base Star class with _skip_property_init=True
-        # The name will be overridden, and other properties will be handled by getters.
+        # The base class takes the name only; the other properties are set below and by getters.
         # The proxy stands in for the whole system (its own `.name` is what
         # `store.insert_star_system` stores as `star_systems.name`), so it
         # takes the primary's own bare name -- exactly what a 'wide' (S-type)
@@ -114,7 +114,7 @@ class BinaryStarProxy(Star):
         # the primary `Star` itself, never renamed) -- rather than a
         # generated-looking "<name> Binary System" suffix no other system
         # kind gets.
-        super().__init__(system_config, name=primary_star.name, _skip_property_init=True)
+        super().__init__(system_config, name=primary_star.name)
 
         if secondary_star.mass > primary_star.mass:
             temp_star = secondary_star

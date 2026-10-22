@@ -28,7 +28,7 @@ from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
 from planetgen.galaxy import galactic_orbit
-from planetgen.generation import star as star_module
+from planetgen.generation import stellar_object as star_module
 from planetgen.generation import wide_binary
 from planetgen.physics import formation
 from planetgen.physics import orbits

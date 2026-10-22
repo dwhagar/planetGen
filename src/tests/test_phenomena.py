@@ -154,11 +154,18 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
         assert ns.luminosity > 0  # nonzero even at the coolest end -- see NeutronStar.__init__
 
 
-def test_compact_remnants_are_star_subclasses():
+def test_compact_remnants_are_stellar_objects():
+    """A star, a binary's proxy and a compact remnant share the `StellarObject` family class (GEN.565d); a remnant is
+    not a `Star`, which is the drawn star."""
+    from planetgen.generation.binary import BinaryStarProxy
+    from planetgen.generation.star import Star
+    from planetgen.generation.stellar_object import StellarObject
     assert issubclass(BlackHole, CompactRemnant)
     assert issubclass(NeutronStar, CompactRemnant)
-    from planetgen.generation.star import Star
-    assert issubclass(CompactRemnant, Star)
+    for kind in (Star, BinaryStarProxy, CompactRemnant):
+        assert issubclass(kind, StellarObject)
+    assert not issubclass(CompactRemnant, Star) and not issubclass(BinaryStarProxy, Star)
+    assert not hasattr(Star(SystemConfig()), "_skip_property_init")
 
 
 def test_nebula_type_and_radius_within_configured_ranges():

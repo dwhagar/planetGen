@@ -12,10 +12,9 @@ place of an ordinary `Star` -- e.g. a pulsar with a fallback-disk planet
 (real examples exist, PSR B1257+12), or a lone stellar-mass black hole with
 nothing left orbiting it at all.
 
-Both classes subclass `Star` the same way `binary.BinaryStarProxy`
-does: `_skip_property_init=True` skips `Star.__init__`'s own
-`generate_star()`-driven property block, and this module fills in the same
-attribute surface (`mass`, `radius`, `temperature`, `luminosity`, `age`,
+Both classes subclass `StellarObject` (`generation/stellar_object.py`), the
+family class `Star` and `binary.BinaryStarProxy` share, and this module fills
+in the same attribute surface (`mass`, `radius`, `temperature`, `luminosity`, `age`,
 `lifespan`, `habitable_zone`, `system_perimeter`, `heliosphere_radius`,
 `galactic_orbital_*`) with values appropriate to a compact remnant instead.
 This lets a `CompactRemnant` drop into every place `StarSystem` expects a
@@ -48,7 +47,7 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.mass_object import MassObject
-from planetgen.generation.star import Star
+from planetgen.generation.stellar_object import StellarObject
 from planetgen.galaxy import shape_draw as shapeDraw, structure as galaxyStructure
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.physics.orbits import calculate_habitable_zone
@@ -88,9 +87,9 @@ def infer_black_hole_mass_class(mass_solar):
     return "stellar"
 
 
-class CompactRemnant(Star):
+class CompactRemnant(StellarObject):
     """
-    Shared base for `BlackHole`/`NeutronStar` -- both are `Star` subclasses
+    Shared base for `BlackHole`/`NeutronStar` -- both are `StellarObject` subclasses
     (see module docstring) that generate an entirely different set of
     physical properties than `Star.generate_star()` would, then reuse this
     class's `_finish_init`/`_generate_remnant_age_and_lifespan`/`to_dict`/
@@ -113,8 +112,7 @@ class CompactRemnant(Star):
                 parameter -- threaded through to this remnant's own Hill-
                 sphere/galactic-orbit calculations.
         """
-        super().__init__(system_config, name=name, _skip_property_init=True)
-        self.galactic_center_dist_ly = galactic_center_dist_ly
+        super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
 
     ejecta_velocity_kms = None
     """tuple or None: The galactic-axes velocity of a remnant the galaxy ejected (`eject`, GEN.238), km/s; `None` for a
@@ -207,10 +205,10 @@ class BlackHole(CompactRemnant):
             visible, actively-accreting disk.
     """
 
-    SERIALIZABLE_FIELDS = Star.SERIALIZABLE_FIELDS + [
+    SERIALIZABLE_FIELDS = StellarObject.SERIALIZABLE_FIELDS + [
         "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk", "mass_class",
     ]
-    """Extends `Star.SERIALIZABLE_FIELDS` (minus `yerkes_class`'s normal
+    """Extends `StellarObject.SERIALIZABLE_FIELDS` (minus `yerkes_class`'s normal
     meaning, repurposed here as the literal marker `"BH"` so `stars.
     yerkes_class` -- `NOT NULL` -- still holds a value) with this class's
     own fields. `mass`/`radius` are still serialized via the inherited
@@ -360,11 +358,11 @@ class NeutronStar(CompactRemnant):
             also `self.temperature`.
     """
 
-    SERIALIZABLE_FIELDS = Star.SERIALIZABLE_FIELDS + [
+    SERIALIZABLE_FIELDS = StellarObject.SERIALIZABLE_FIELDS + [
         "mass_solar", "spin_period_ms", "magnetic_field_gauss", "pulsar_type", "surface_temperature_k",
     ]
     """See `BlackHole.SERIALIZABLE_FIELDS`'s docstring for the same
-    `Star.SERIALIZABLE_FIELDS`-extension convention; `yerkes_class` here is
+    `StellarObject.SERIALIZABLE_FIELDS`-extension convention; `yerkes_class` here is
     the literal marker `"NS"`."""
 
     def _pulsar_chance(self):
