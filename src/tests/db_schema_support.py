@@ -136,15 +136,8 @@ def schema_differences(migrated, fresh):
 
 
 def check_constraints(conn):
-    """Every CHECK in the connected database as `{t, n, clause}` rows.
-    MariaDB names an unnamed table CHECK `CONSTRAINT_<n>` per table, so its
-    rows are matched by table (its CHECK_CONSTRAINTS has TABLE_NAME;
-    MySQL's, whose names are unique per schema, doesn't)."""
-    if "mariadb" in conn.execute("SELECT VERSION() AS v").fetchone()["v"].lower():
-        return conn.execute(
-            "SELECT TABLE_NAME AS t, CONSTRAINT_NAME AS n, CHECK_CLAUSE AS clause FROM information_schema.CHECK_CONSTRAINTS"
-            " WHERE CONSTRAINT_SCHEMA = DATABASE() ORDER BY TABLE_NAME, CONSTRAINT_NAME"
-        ).fetchall()
+    """Every CHECK in the connected database as `{t, n, clause}` rows. MySQL's CHECK_CONSTRAINTS has no
+    TABLE_NAME (constraint names are unique per schema), so the table comes from TABLE_CONSTRAINTS."""
     return conn.execute(
         "SELECT tc.TABLE_NAME AS t, cc.CONSTRAINT_NAME AS n, cc.CHECK_CLAUSE AS clause"
         " FROM information_schema.CHECK_CONSTRAINTS cc JOIN information_schema.TABLE_CONSTRAINTS tc"

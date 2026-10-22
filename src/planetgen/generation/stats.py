@@ -269,7 +269,7 @@ class GenerationStats:
         when it holds any systems, and keeps it for the next estimate."""
         try:
             # MySQL 8 caches these sizes for a day by default, so a run's
-            # growth wouldn't show; MariaDB (no such variable) reads live.
+            # growth wouldn't show.
             galaxy_conn.execute("SET SESSION information_schema_stats_expiry = 0")
         except Exception:  # noqa: BLE001
             pass
@@ -441,8 +441,7 @@ class DiskSpace:
     mount: str = None
     """str or None: The mount point holding `path`."""
     source: str = "data directory"
-    """str: How it was measured: the server's `data directory` seen from here, or `server report`
-    (MariaDB's `information_schema.DISKS`, for a database on another machine)."""
+    """str: How it was measured: the server's `data directory` seen from here."""
 
     def where(self):
         """`"/mnt/data (data directory /mnt/data/mysql/)"`: the drive and the path measured."""
@@ -472,25 +471,6 @@ def _mount_point(path):
         return None
 
 
-def _disk_from_server(conn, datadir):
-    """MariaDB lists its mounts in `information_schema.DISKS` (the `disks` plugin); the one holding
-    `datadir` is the longest `Path` that prefixes it. `None` when the server has no such table."""
-    try:
-        rows = conn.execute("SELECT Path AS p, Total AS t, Available AS a FROM information_schema.DISKS").fetchall()
-    except Exception:  # noqa: BLE001 -- MySQL, or the plugin is off
-        return None
-    wanted = datadir.rstrip("/")
-    best = None
-    for row in rows:
-        path = (row["p"] or "").rstrip("/")
-        if (wanted == path or wanted.startswith(path + "/") or path == "") and (best is None or len(path) > len(best[0])):
-            best = (path, row)
-    if best is None:
-        return None
-    row = best[1]
-    return DiskSpace(datadir, int(row["t"]), int(row["a"]), mount=row["p"] or "/", source="server report")
-
-
 def database_disk(galaxy_conn, mysql_host, database=None):
     """
     The drive holding the MySQL server's data directory, asked of the
@@ -498,8 +478,7 @@ def database_disk(galaxy_conn, mysql_host, database=None):
     directory is resolved to its mount (symlinks, bind mounts) and measured there. A server on this machine is
     measured at that path. A server on another machine is measured only if
     that path is really its data directory seen from here (the database's
-    own folder is in it) or, failing that, from the server's own report
-    (MariaDB's `information_schema.DISKS`).
+    own folder is in it).
 
     Args:
         galaxy_conn (Connection): Any connection to the server.
@@ -528,10 +507,6 @@ def database_disk(galaxy_conn, mysql_host, database=None):
             return disk
         except OSError as exc:
             log.debug(f"Database disk: can't read {datadir} ({exc}).")
-    reported = _disk_from_server(galaxy_conn, datadir)
-    if reported is not None:
-        log.debug(f"Database disk: {reported.where()} from the server's own report.")
-        return reported
     where = "its data directory isn't visible from this machine" if not local else f"can't read {datadir}"
     return Unmeasured(f"the database server's data directory ({datadir}) is not measurable here: {where}")
 

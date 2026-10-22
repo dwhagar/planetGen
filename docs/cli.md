@@ -394,7 +394,7 @@ data directory, asked of the server itself (`SELECT @@datadir`) and never
 assumed to be the boot drive; the estimate names the path and the mount
 measured, with symlinks and bind mounts resolved. A
 server on another machine is measured only if that directory is visible
-here or the server reports its own disks (MariaDB); otherwise the disk
+here; otherwise the disk
 shows as "unknown" with the reason and nothing is refused for space. `--yes` never overrides a refusal;
 generate fewer sectors (`--limit`, a smaller radius) instead.
 
