@@ -53,6 +53,19 @@ def _poly(coefficients, zeta):
     return sum(c * zeta ** power for power, c in enumerate(coefficients))
 
 
+@functools.lru_cache(maxsize=256)
+def _base_terms(zeta):
+    """`a27 .. a32` of equation 10 at this `zeta` (cached: they depend on the metallicity alone, not on the mass)."""
+    return tuple(_poly(_BASE[n], zeta) for n in (27, 28, 29, 30, 31, 32))
+
+
+@functools.lru_cache(maxsize=256)
+def _tip_terms(zeta):
+    """`(b9, b10, b11, b12, b13)` of equation 49 at this `zeta`, `b11` and `b13` squared as the paper has them."""
+    return (_poly(_TIP[9], zeta), _poly(_TIP[10], zeta), _poly(_TIP[11], zeta) ** 2, _poly(_TIP[12], zeta),
+            _poly(_TIP[13], zeta) ** 2)
+
+
 def helium_flash_mass_sol(fe_h=0.0):
     """The heaviest initial mass whose helium ignites degenerately, in a flash (equation 2), solar masses."""
     zeta = ms_lifetime.zeta(fe_h)
@@ -62,7 +75,7 @@ def helium_flash_mass_sol(fe_h=0.0):
 def base_luminosity_sol(mass_sol, fe_h=0.0):
     """The luminosity at the base of the giant branch (equation 10), solar luminosities."""
     zeta = ms_lifetime.zeta(fe_h)
-    a27, a28, a29p, a30, a31, a32 = (_poly(_BASE[n], zeta) for n in (27, 28, 29, 30, 31, 32))
+    a27, a28, a29p, a30, a31, a32 = _base_terms(zeta)
     m = mass_sol
     return ((a27 * m ** a31 + a28 * m ** _BASE_C2)
             / (a29p ** a32 + a30 * m ** _BASE_C3 + m ** a32))
@@ -72,9 +85,7 @@ def tip_luminosity_sol(mass_sol, fe_h=0.0):
     """The luminosity at helium ignition, where the branch ends (equation 49), solar luminosities."""
     zeta = ms_lifetime.zeta(fe_h)
     flash_mass = helium_flash_mass_sol(fe_h)
-    b9, b10 = (_poly(_TIP[n], zeta) for n in (9, 10))
-    b11, b13 = _poly(_TIP[11], zeta) ** 2, _poly(_TIP[13], zeta) ** 2
-    b12 = _poly(_TIP[12], zeta)
+    b9, b10, b11, b12, b13 = _tip_terms(zeta)
 
     def intermediate(m):
         return (b11 + b12 * m ** 3.8) / (b13 + m * m)
