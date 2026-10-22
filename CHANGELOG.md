@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1930] - 2026-10-22
+
+**Headline:** The database now has a place to record every collision, merger, split, ejection, capture, unbind and warning of the orbital update.
+
+### Added
+- Migration 0118 (DB.56) adds `orbital_events`, one row per orbital event with its kind, outcome code, regime, impact and detection time, the seed string that replays it, the numbers it was decided from, the conservation check, the products and the flags of docs/design/collisions-and-mergers.md section 7 (including `numeric_warning`), and `orbital_event_bodies`, the participants and products of an event, one row each. Nothing writes the tables yet (GEN.197's `record_event` does) and no view reads them (GEN.143).
+
 ## [8.0.1929] - 2026-10-22
 
 **Headline:** The 8.1 closing audits run in the suite: every region of the galaxy is filled with seeded sectors and every kind is counted against its expectation.
