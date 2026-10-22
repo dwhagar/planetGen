@@ -10,7 +10,7 @@ named here beside the rest.
 from flask import abort, request
 
 from planetgen.web.lib import apiclient
-from planetgen.web.lib.datatable import Column, Result, Table
+from planetgen.web.lib.datatable import Column, Result, Table, read_from_start
 from planetgen.web.lib.fmt import distance_km_html, quantity_html
 
 from . import bp, tables
@@ -56,18 +56,21 @@ def _row(item):
 
 def _loader(kind):
     def load(state, limit, offset, want_facets, after=None):
-        envelope = apiclient.get_object_list(
-            db_name(), kind, limit=limit, sort=_SORT_KEYS.get(state.sort), descending=state.descending, after=after)
+        envelope, note = read_from_start(
+            lambda start: apiclient.get_object_list(
+                db_name(), kind, limit=limit, sort=_SORT_KEYS.get(state.sort), descending=state.descending,
+                after=after, start=start or None),
+            state.start)
         items = envelope["items"]
         return Result([_row(item) for item in items], envelope["total"], None, envelope.get("total_capped", False),
-                      envelope["next"])
+                      envelope["next"], note)
     return load
 
 
 LIST_TABLES = {
     kind: tables.register(Table(
         f"list-{kind}", labels[2], COLUMNS, _loader(kind), prefix=f"{kind}_", noun=labels[:2], keyset=True,
-        default_sort="name"))
+        default_sort="name", jump={"name": "A letter or the start of a name"}))
     for kind, labels in KIND_LABELS.items()
 }
 """dict: Each kind's table, registered under `list-<kind>`."""

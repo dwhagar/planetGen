@@ -24,8 +24,8 @@ def site(monkeypatch):
     seen = []
 
     def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
-                        sector_id=None):
-        seen.append({"kind": kind, "limit": limit, "sort": sort, "descending": descending, "after": after})
+                        sector_id=None, start=None):
+        seen.append({"kind": kind, "limit": limit, "sort": sort, "descending": descending, "after": after, "start": start})
         items = [_item(index, kind) for index in range(1, 3)]
         return {"items": items, "next": items[-1]["id"], "total": 7, "total_capped": False}
 
@@ -59,7 +59,7 @@ def test_the_table_route_passes_the_key_on_and_gives_the_last_object_as_next(sit
     client, seen = site
     body = client.get("/table/list-moon?after=FE81000A2B-0000005-001&sort=mass&order=desc&limit=2").get_json()
     assert seen[-1] == {"kind": "moon", "limit": 2, "sort": "mass", "descending": True,
-                        "after": "FE81000A2B-0000005-001"}
+                        "after": "FE81000A2B-0000005-001", "start": None}
     assert body["next"] == "FE81000A2B-0000005-002" and len(body["rows"]) == 2 and body["total"] == 7
     assert body["rows"][0][0]["href"] == "/object/moon:FE81000A2B-0000005-001"
 
@@ -69,3 +69,10 @@ def test_an_unknown_kind_has_no_page_or_table(site):
     assert client.get("/lists/galaxy").status_code == 404
     assert client.get("/lists/facility").status_code == 404
     assert client.get("/table/list-galaxy").status_code == 404
+
+
+def test_the_jump_box_begins_a_name_sorted_list_at_a_name(site):
+    client, seen = site
+    assert "_from" in client.get("/lists/star").get_data(as_text=True)
+    client.get("/table/list-star?from=Tr&limit=2")
+    assert seen[-1]["start"] == "Tr"

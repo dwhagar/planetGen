@@ -800,12 +800,14 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
 
 
 def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
-                    sector_id=None):
+                    sector_id=None, start=None):
     """Returns `GET /api/object-lists/<kind>`'s `items`/`next`/`total` -- one keyset page of the object index
-    (`db.objectlist.list_objects`). `after` is the printed object ID the previous page ended on (UX.141)."""
+    (`db.objectlist.list_objects`). `after` is the printed object ID the previous page ended on and `start` begins a
+    name-sorted list at the first name from it on (UX.141)."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("sort", sort), ("order", "desc" if descending else None),
-              ("after", after), ("name", name), ("class", object_class), ("sector_id", sector_id)]
+              ("after", after), ("name", name), ("class", object_class), ("sector_id", sector_id),
+              ("from", start or None)]
     return _request(f"/object-lists/{kind}", [(key, value) for key, value in params if value is not None])
 
 
