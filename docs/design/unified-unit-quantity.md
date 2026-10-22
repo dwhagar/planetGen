@@ -323,3 +323,5 @@ Document's numbers differ by at most 3e-16 relative (the AU to km step and the l
 Left for later: `dose` has no registry kind, so `describe/quantity.py` still writes mSv by a factor of 1000; the thin
 `format_distance_km`-style wrappers stay (they hold no factor); the class pages' ranges already hold their numbers in the
 unit they print, so they convert nothing.
+
+The column registry (`db/column_units.py`) no longer has its own `light-day`: `broad_line_region_light_days` is declared in the registry's `ld`, so a unit lives in one place.

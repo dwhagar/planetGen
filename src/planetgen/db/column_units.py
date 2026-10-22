@@ -50,7 +50,6 @@ _YEAR_S = constants.SECONDS_PER_YEAR
 LOCAL_UNITS = {
     # kinds the registry has not got: volume, rates, dose, magnetic moment, logarithmic scales
     "km3": LocalUnit("volume", 1000.0 ** 3), "pc3": LocalUnit("volume", constants.PARSEC_M ** 3),
-    "light-day": LocalUnit("length", constants.SPEED_OF_LIGHT_M_S * 86400.0),
     "1/s": LocalUnit("rate", 1.0), "1/yr": LocalUnit("rate", 1.0 / _YEAR_S),
     "1/Gy": LocalUnit("rate", 1.0 / (1e9 * _YEAR_S)),
     "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
@@ -77,7 +76,7 @@ def unit_info(key):
 
 SUFFIXES = (
     ("_j_per_kg", "J/kg"), ("_msv_yr", "mSv/yr"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"),
-    ("_g_cm3", "g_cm3"), ("_light_days", "light-day"), ("_gauss", "G"), ("_myr", "Myr"), ("_ms", "ms"), ("_us", "us"), ("_mj", "Mjup"),
+    ("_g_cm3", "g_cm3"), ("_light_days", "ld"), ("_gauss", "G"), ("_myr", "Myr"), ("_ms", "ms"), ("_us", "us"), ("_mj", "Mjup"),
     ("_km3", "km3"), ("_pc3", "pc3"), ("_kms", "km_s"), ("_km", "km"), ("_pc", "pc"), ("_mpc", "mpc"), ("_au", "au"),
     ("_ly", "ly"), ("_deg", "deg"), ("_rad", "rad"), ("_years", "yr"), ("_yr", "yr"), ("_gyr", "Gyr"), ("_gy", "Gyr"),
     ("_unix", "unix_s"), ("_hours", "h"), ("_kpa", "kPa"), ("_pa", "Pa"), ("_kg", "kg"), ("_k", "K"), ("_w", "W"),
@@ -577,7 +576,7 @@ TABLES = {
         "ratio": ("eddington_ratio",),
         "W": ("luminosity_w",),
         "Msun/yr": ("accretion_rate_solar_per_year",),
-        "light-day": ("broad_line_region_light_days",),
+        "ld": ("broad_line_region_light_days",),
         "flag": ("is_radio_loud",),
         "ly": ("jet_length_ly",),
         "yr": ("active_age_years",),
