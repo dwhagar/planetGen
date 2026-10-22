@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1870] - 2026-10-22
+
+**Headline:** The object index writes its rows without the deprecated `VALUES()` function.
+
+### Changed
+- **Object index upsert (DB.82).** The index builder takes its rows from a derived table and updates from that table's columns instead of calling `VALUES()`, which MySQL deprecated in 8.0.20. The rows it writes are the same.
+
+TODO items resolved / Added: DB.82 / Added: none
+
 ## [8.0.1869] - 2026-10-22
 
 **Headline:** A pre-placed star's nebula shows before its sector is built: the star's page names it and the uncharted sector's map draws it.
