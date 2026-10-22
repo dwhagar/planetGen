@@ -5436,7 +5436,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.569's Quantity instead of GEN.299's. GEN.299, GEN.569, GEN.573 and
   UX.139 merged as #2490 (Core 4, 2:20 PM EDT 2026-10-22 as the lane
   reported), so the sweep items are unblocked.
-  Prerequisites: GEN.348, UX.128, GEN.349. Related: GEN.294, UX.108.
+  Prerequisites: UX.128, GEN.349. Related: GEN.294, UX.108.
 
 - [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
   Boss (2026-10-16, 1:07 PM EDT): "I also want the new generate scatters
@@ -6106,20 +6106,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lists the three outcomes of the test and the test passes.
   Prerequisites: GEN.346. Related: GEN.143.
 
-- [ ] **GEN.348 Describer, CLI query lines and class page ranges take Quantity**
-  Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The Python text output: the
-  describer, the CLI query lines, the class page ranges and the
-  wide-binary, comet, nebula and quasar numbers that UX.107 sends
-  through the ladders take a Quantity instead of multiplying by a unit
-  factor or calling format_quantity beside a unit. Done: none of those
-  call sites converts by hand, output is unchanged, the old helpers they
-  used have no caller.
-  Rescoped (relayed 10:45 AM EDT 2026-10-22): takes GEN.569's Quantity
-  (the class GEN.299 would have been); the prerequisite moved from
-  GEN.299 to GEN.569.
-  Prerequisites: none. Related: GEN.300, GEN.299, GEN.571, GEN.574.
-
 - [ ] **GEN.349 API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed**
   Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). The last call sites (the API
@@ -6129,7 +6115,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the grep test passes and no compatibility layer is left.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): the sweep builds on
   GEN.569's Quantity, through GEN.348 and UX.128.
-  Prerequisites: GEN.348, UX.128. Related: GEN.300.
+  Prerequisites: UX.128. Related: GEN.300.
 
 - [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -17077,6 +17063,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (proposed; the registry is its work), after DB.74.
   Prerequisites: none. Related: DB.76, DB.74, GEN.568.
 
+- [ ] **DB.87 The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug)**
+  URGENT: red on main. Found by Core 3 (relayed 7:13 PM EDT 2026-10-22,
+  about 6:33 PM EDT on the lane's clock, while merging GEN.348 and
+  TEST.279; confirmed on origin/main at ec2de9b by the TODO thread, 1
+  failed, 19 passed), filed by the TODO thread. Kind: bug (two merges
+  that do not know each other: DB.63's vessels table, #2530 at 5:40 PM EDT, and
+  DB.77's precision table, #2534 at 6:55 PM EDT as the lane reported).
+  Test:
+  src/tests/test_precision.py::test_the_floor_of_every_table_with_a_position_is_the_documented_one.
+  Failure: vessels is in the precision table with a reach but missing from
+  EXPECTED_FLOOR_M (an extra item 'vessels' in the left set). Fails on
+  main: yes, every run. Reproducer: python3 -m pytest -q
+  src/tests/test_precision.py. Do: work out the floor body the vessels
+  table's position columns place, add it to EXPECTED_FLOOR_M and to the
+  table in docs/design/unified-unit-quantity.md (section 6.1), as the
+  test's own docstring requires; no loosening of the test. Done:
+  test_precision.py passes on main and the design table lists vessels.
+  Owner: the DB items chain lane (the coordinator, relayed 7:13 PM EDT),
+  before DB.85.
+  Prerequisites: none. Related: DB.63, DB.77.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -20181,42 +20188,6 @@ clears each one.
   the test passes in 20 full-gate runs. Owner: Bug Hunt (proposed, after
   TEST.275).
   Prerequisites: none. Related: PERF.144, TEST.265.
-
-- [ ] **TEST.279 Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug)**
-  Found by Core 3 (relayed 4:54 PM EDT 2026-10-22 as the lane's clock
-  reads), filed by the TODO thread. Kind: eight tests fail on main with
-  an assertion: a phenomenon page answers 404 where the test expects
-  200. Tests: src/tests/test_web_system_phen.py (test_phenomenon_detail,
-  test_phenomenon_page_shows_it_on_the_galaxy_map,
-  test_phenomenon_page_has_a_bookmark_button,
-  test_remnant_page_keeps_the_au_diagram,
-  test_phenomenon_page_pick_mode_offers_only_the_pick_button) and
-  src/tests/test_class_pages.py (test_phenomenon_page_links_its_class
-  for nebula and supernova_remnant,
-  test_phenomenon_unknown_class_stays_text). Fails on main: yes, in a
-  clean worktree of origin/main at the Release 8.0.1930 commit on Core
-  3's machine; other machines not checked. Frequency: every run.
-  Reproducer: python3 -m pytest -q src/tests/test_web_system_phen.py
-  src/tests/test_class_pages.py (about 40 s). Core 3's reading: the
-  phenomenon fixture finds no phenomenon row in that machine's seeded
-  galaxy, so it may be the fixture or the seed and not a page bug. Do:
-  find out whether the fixture creates its own phenomenon or relies on a
-  seeded galaxy; if it relies on one, make the fixture create the row it
-  needs; if it creates one and the page 404s, fix the page (UX.144's
-  phenomenon contents route #2485 and UX.143's object pages #2432 touch
-  these pages). No skip and no retry. Done: the eight tests pass on a
-  clean checkout of main and in a full gate. Owner: Core 3 (the
-  coordinator, relayed 5:26 PM EDT 2026-10-22 as the lane's clock reads;
-  urgent: it blocks any lane that runs these two files).
-  Prerequisites: none. Related: UX.143, UX.144, TEST.267.
-  Cause found (the coordinator, relayed 5:26 PM EDT 2026-10-22 as the
-  lane's clock reads): environment dependent, from UX.144 (#2485).
-  `test_web_system_phen.py`'s `_FAKED` lacks
-  `apiclient.get_phenomenon_contents`, so on a machine with Apache up on
-  port 80 the call gets an HTML 404, raises `NotFoundError` (not an
-  `ApiError` subclass) and the phenomenon route answers 404. Fix: add
-  the function to `_FAKED` (one line) and catch `NotFoundError` in
-  `_phenomenon_contents`. Not a seed or fixture problem as first guessed.
 
 - [ ] **TEST.280 Five tests are refused as Busy in a full gate because workers share the default Redis database (race)**
   Found by Bug Hunt (relayed 7:03 PM EDT 2026-10-22 as the lane's clock

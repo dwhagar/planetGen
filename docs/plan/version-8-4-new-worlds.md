@@ -112,10 +112,9 @@ The ground's composition and the small bodies' composition from the bulk model, 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.348 | Describer, CLI query lines and class page ranges take Quantity |  | Split from GEN.300. Moved from 8.3 and rescoped onto GEN.569's Quantity (Core 4's answer, relayed 10:45 AM EDT 2026-10-22). |
 | UX.128 | Map side panels and other browser call sites take Quantity | UX.140 | Split from GEN.300. Moved from 8.3 and rescoped onto GEN.569 and UX.140. |
-| GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | GEN.348, UX.128 | Split from GEN.300. Moved from 8.3. |
-| GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | GEN.348, UX.128, GEN.349 | The call-site sweep, partly covered by GEN.571 and GEN.574. Moved from 8.3. |
+| GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | UX.128 | Split from GEN.300. Moved from 8.3. |
+| GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | UX.128, GEN.349 | The call-site sweep, partly covered by GEN.571 and GEN.574. Moved from 8.3. |
 
 ## Phase 3: Ozone, haze, dust and cloud, and the stored shares
 

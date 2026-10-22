@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.624 |
 | PERF | PERF.156 |
-| DB | DB.87 |
+| DB | DB.88 |
 | API | API.32 |
 | ADM | ADM.127 |
 | SEC | SEC.34 |
@@ -632,6 +632,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | open |
+| DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1052,7 +1053,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation | none | done, PR #2473 |
 | GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | none | open |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | none | open |
-| GEN.348 | Describer, CLI query lines and class page ranges take Quantity | none | open |
+| GEN.348 | Describer, CLI query lines and class page ranges take Quantity | none | done, PR #2539 |
 | GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | none | open |
 | GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | none | open |
 | GEN.351 | Class U, icy world | none | open |
@@ -2470,7 +2471,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | open |
 | TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) | none | open |
 | TEST.278 | test_column_units fails on main: 36 columns of orbital_events and orbital_event_bodies are not declared in column_units.py (bug) | none | done, PR #2510 |
-| TEST.279 | Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug) | none | open |
+| TEST.279 | Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug) | none | done, PR #2540 |
 | TEST.280 | Five tests are refused as Busy in a full gate because workers share the default Redis database (race) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

@@ -79,3 +79,4 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 | UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
 | UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds |  |  |
+| DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) |  | Urgent: red on main. |
