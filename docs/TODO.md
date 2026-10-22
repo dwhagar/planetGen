@@ -17423,6 +17423,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   both a default-size galaxy and a pinned large one; cost per option and
   the sector and system counts will differ.
 
+- [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
+  Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
+  task gets its own progress bar once it is expected to take, or does
+  take, longer than 15 seconds, with an ETA blended from the running
+  tasks and subtasks and the stored generation statistics, the current
+  run weighted more heavily than the stored statistics. It extends the
+  existing second bar (the shell scatter bar, shown over 30 seconds,
+  with the stored statistics as its starting rate) to every task and
+  lowers the threshold to 15 seconds. Related Boss message in the Bug
+  Hunt thread (8:43 PM EDT, quoted so the lane can decide whether it is
+  a separate item): "So here is what I'd like, instead of unit chunks
+  being based on expected work, just break up the task space evenly so
+  each chunk is as close to the same size as possible to get. That will
+  make my readings of the logs significantly easier." Do: find where the
+  second bar and the stored statistics live, define one task and subtask
+  progress record (done, total, started at), compute the ETA as a
+  weighted blend whose weight moves from the stored rate to the current
+  run's rate as the run proceeds (the weights are named constants), show
+  the bar in the command-line output and on the Generate and admin queue
+  pages from the same record, and show it only when the expected or
+  actual time passes 15 seconds. Done: a task under 15 seconds shows no
+  bar; one expected over 15 seconds shows its bar from the start with
+  the stored-rate ETA; one that overruns 15 seconds gains the bar when
+  it passes the threshold; the ETA moves toward the current run's rate
+  as it proceeds (a test with fake clocks and a changed rate); the shell
+  scatter bar keeps working through the same record; the Generate page
+  and the log show the same numbers. Owner: Bug Hunt (proposed; it has
+  PERF.145 queued and the log work, the coordinator decides), after
+  PERF.145.
+  Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
