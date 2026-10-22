@@ -583,11 +583,13 @@ The map panels and their data.
 | `sectorreach.js` | Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152). |
 | `systemreach.js` | Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152). |
 | `groupfade.js` | Draws a scene group at a share of its strength: the fade of a sector's or a system's scene coming in (MAP.152). |
-| `generatecustomize.js` | The admin Generate page's "Customize" window (ADM.28). |
 | `generatefinder.js` | The Add sectors form's named-sector finder (ADM.4, ADM.108). |
 | `generateplace.js` | The Add sectors form's choices: shows the one panel of the choice made (ADM.108). |
-| `generateranges.js` | The Generate page's sliders: shows a range input's value (GEN.183). |
 | `generatestarmix.js` | The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45). |
+| `generatelevers.js` | The Generate task pages' shape dials: the line under them (disc crest, planned-star share, outline) read from `/admin/generate/shape-report` (GEN.617, ADM.124). |
+| `adminshell.js` | The admin shell's density switch: compact by default, the choice kept in the browser (ADM.92). |
+| `adminpalette.js` | The Ctrl+K palette, its typed commands and the keyboard set (ADM.120, ADM.121, ADM.122). |
+| `adminjobstrip.js` | The job strip on every admin page: the running and the queued job, Cancel, Discard and Start now (ADM.119, ADM.123). |
 | `gridopacity.js` | The translucent blocks of a drill-down stage add up along the line of sight (MAP.188). |
 | `joblog.js` | The job output box: a terminal (Xterm.js) that shows the job's raw output as it streams (ADM.22). |
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |

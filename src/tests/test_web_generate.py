@@ -1775,3 +1775,16 @@ def test_the_shape_report_refuses_an_empty_outline_and_a_value_out_of_range(site
     assert empty.get_json()["line"].startswith("Outline: empty")
     bad = client.get("/admin/generate/shape-report?mass=1")
     assert bad.status_code == 400 and "Stellar mass" in bad.get_json()["error"]
+
+
+def test_add_sectors_and_a_new_galaxy_use_the_one_prevalence_and_star_mix_block(site, client):
+    """ADM.112: one definition of the block, rendered once on each page that has it, with the usual share shown for
+    every field and the box that says whether the star mix totals 100 percent."""
+    names = [name for name, _label, _usual in generate_page.PREVALENCE_FIELDS]
+    for key in ("add-sectors", "new-galaxy"):
+        html = _task_html(client, key)
+        assert html.count("<legend>Prevalence</legend>") == 1 and html.count("<legend>Star mix</legend>") == 1, key
+        assert html.count("data-star-mix-total") == 1 and html.count("Usual: ") >= len(names), key
+        for name in names:
+            assert html.count(f'name="{name}"') == 1, (key, name)
+    assert "<legend>Prevalence</legend>" not in _task_html(client, "scatters")
