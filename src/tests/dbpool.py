@@ -81,7 +81,7 @@ def forget_database(config):
 def _forget_redis(name):
     """Deletes what `planetgen` stored in Redis under this database's name (the stored counts, for one): the
     next test has the same name, and a stored answer from the last one would be read as its own."""
-    url = os.environ.get("PLANETGEN_TEST_REDIS_URL")
+    url = os.environ.get("PLANETGEN_REDIS_URL")   # the worker's own database (tests/private_redis.py)
     if not url:
         return
     try:

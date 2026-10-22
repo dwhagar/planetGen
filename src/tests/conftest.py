@@ -39,7 +39,7 @@ from planetgen import tuning
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
-from tests import areas, browser_waits, dbpool, failure_capture, inline_queue, publicids
+from tests import areas, browser_waits, dbpool, failure_capture, inline_queue, private_redis, publicids
 
 # Every program a test starts (the generate CLI, a worker, a stand-in script) imports `planetgen` from this
 # checkout, not from whichever checkout the editable install points at (TEST.143, TEST.145): from a git
@@ -67,10 +67,13 @@ os.environ["PLANETGEN_MAINTENANCE_FILE"] = os.path.join(tempfile.mkdtemp(prefix=
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
 # A run with more than one worker queues its tasks on Redis (PERF.24):
-# the test server's, when PLANETGEN_TEST_REDIS_URL names one (CI does).
-# Without a Redis server such a run falls back to one worker.
+# the test server's, when PLANETGEN_TEST_REDIS_URL names one (CI does), in a
+# database of this xdist worker's own (TEST.266, TEST.280): a process a test
+# starts takes the machine's one live-run lock and its queues, which another
+# worker's process would otherwise meet. Without a Redis server such a run
+# falls back to one worker.
 if os.environ.get("PLANETGEN_TEST_REDIS_URL"):
-    os.environ.setdefault("PLANETGEN_REDIS_URL", os.environ["PLANETGEN_TEST_REDIS_URL"])
+    os.environ["PLANETGEN_REDIS_URL"] = private_redis.url_for_worker(os.environ["PLANETGEN_TEST_REDIS_URL"])
 
 # Request limits and login lockouts count on that Redis server in a real
 # install (SEC.30). Tests count in memory, per process, so parallel workers
@@ -586,6 +589,17 @@ def _datasets_are_real(request):
     _DATASETS_ARE_REAL = request.node.get_closest_marker("real_datasets") is not None
     yield
     _DATASETS_ARE_REAL = False
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _worker_redis_database():
+    """The worker's own Redis database (see the top of this file) is empty when its tests start and when they end."""
+    url = os.environ.get("PLANETGEN_REDIS_URL")
+    if url:
+        private_redis.flush(url)
+    yield
+    if url:
+        private_redis.flush(url)
 
 
 @pytest.fixture(autouse=True)

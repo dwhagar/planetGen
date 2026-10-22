@@ -31,7 +31,6 @@ from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 from tests.test_work_queue import _rows, control_config  # noqa: F401 -- fixture
-from tests.private_redis import private_redis  # noqa: F401 -- fixture
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -455,9 +454,7 @@ _LAUNCH_GENERATE = ("from planetgen.generation import run_galaxy; run_galaxy.req
     (signal.SIGTERM, True),   # Cancel on the Generate page stops the step's whole process group
     (signal.SIGTERM, False),  # `kill <pid>` of the run alone
 ])
-def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(control_config, private_redis, sig, group):
-    # TEST.266: the run takes the machine's one live-run lock, which another worker's run held; `private_redis` gives
-    # the run a Redis database of this worker's own.
+def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(control_config, sig, group):
     _plan_wide_galaxy(control_config)
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
     env.pop(workQueue.PARENT_ENV_VAR, None)
