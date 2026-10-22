@@ -422,3 +422,21 @@ def test_a_measure_is_shown_the_same_whatever_unit_it_was_held_in():
     assert format_measure(Quantity("temperature", 15.0, "degC")) == format_measure(Quantity("temperature", 288.15, "K"))
     assert format_measure(Quantity("temperature", 288.15, "K"), companions=False) == "288 K"
     assert format_measure(Quantity("mass", 1.0, "Mearth")) == "1 Earth mass"
+
+
+@pytest.mark.parametrize("ladder", ladders.LADDERS, ids=lambda ladder: ladder.quantity)
+def test_every_ladder_rung_round_trips_through_every_other_rung(ladder):
+    """A value of one rung, read in each other rung of the ladder and back, is the value, 0.3 so a speed stays under c (GEN.299's property test)."""
+    from planetgen.physics import unit_registry
+    from planetgen.physics.quantity import Quantity
+
+    kind = ladders._BY_KIND_OF_LADDER[ladder.quantity]
+    rows = {row.factor: row for row in unit_registry.units_of(kind) if row.offset == 0.0}
+    keys = [rows[rung.factor].key for rung in ladder.rungs if rung.offset == 0.0 and rung.factor in rows]
+    assert len(keys) >= 1
+    for source in keys:
+        quantity = Quantity(kind, 0.3, source)
+        for target in keys:
+            there = quantity.as_(target)
+            back = Quantity(kind, there, target).as_(source)
+            assert back == pytest.approx(0.3, rel=1e-12), (ladder.quantity, source, target)
