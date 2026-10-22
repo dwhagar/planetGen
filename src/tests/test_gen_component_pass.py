@@ -8,6 +8,7 @@ share the sector fill already takes off the component's cells, so no pre-placed 
 """
 
 import collections
+import datetime
 import math
 
 import numpy as np
@@ -205,3 +206,158 @@ def test_a_plan_scatter_places_the_components_stars_and_phenomena(mysql_config):
     assert populations.get("cluster", 0) > 50 and populations.get("satellite", 0) > 50
     assert stars["total"] >= sum(populations.values())
     assert phenomena["total"] == placed > 0
+
+
+def test_components_are_cut_into_tasks_by_their_expected_rows_alone():
+    huge, big, small = _satellite("Huge", mass=1.0e9), _satellite("Big", mass=2.0e8), _cluster("Small", mass=1.0e5)
+    weighted = [(small, 10.0), (huge, 250.0), (_cluster("Dead"), 0.0), (big, 100.0), (_cluster("Other"), 30.0)]
+    tasks = component_pass.parts(weighted, 100.0)
+    assert [(round(expected), [part[1:] for part in task]) for expected, task in tasks] == [
+        (83, [["Huge", 0, 3]]), (83, [["Huge", 1, 3]]), (83, [["Huge", 2, 3]]),
+        (10, [["Small", 0, 1]]), (100, [["Big", 0, 1]]), (30, [["Other", 0, 1]])], "a large component in slices, the rest bundled"
+    assert sum(expected for expected, _task in tasks) == pytest.approx(10.0 + 250.0 + 100.0 + 30.0)
+    assert max(expected for expected, _task in tasks) <= 100.0, "no task holds more than the size"
+    bundled = component_pass.parts([(_cluster(f"C{index}"), 30.0) for index in range(7)], 100.0)
+    assert [round(expected) for expected, _task in bundled] == [90, 90, 30]
+    assert component_pass.parts(weighted, 100.0) == tasks, "the same rows are the same tasks"
+
+
+def test_a_task_names_its_components_and_their_slices_and_a_missing_component_is_said():
+    found = [_cluster("One"), _satellite("Two"), _cluster("Three")]
+    chosen, slices = component_pass.chosen(found, [["satellite", "Two", 1, 4], ["cluster", "One", 0, 1]])
+    assert [component.name for component in chosen] == ["Two", "One"]
+    assert slices == {("satellite", "Two"): (1, 4), ("cluster", "One"): (0, 1)}
+    with pytest.raises(ValueError, match="Gone"):
+        component_pass.chosen(found, [["cluster", "Gone", 0, 1]])
+
+
+def test_a_component_in_one_slice_keeps_its_stars_and_its_slices_are_draws_of_its_own():
+    cloud = _satellite(mass=5.0e5)
+    whole = _stars([cloud])
+    assert _stars([cloud], slices={("satellite", cloud.name): (0, 1)}) == whole
+    first, second = (_stars([cloud], slices={("satellite", cloud.name): (index, 2)}) for index in range(2))
+    assert first and second and first != second and first != whole
+    # Together the slices are a draw of the whole component: their Poisson means add to its mean.
+    assert len(first) + len(second) == pytest.approx(len(whole), abs=6.0 * math.sqrt(len(whole)))
+    again = _stars([cloud], slices={("satellite", cloud.name): (1, 2)})
+    assert again == second, "a slice does not depend on the other slices or on the worker that draws it"
+
+
+def test_the_phenomena_of_a_component_in_slices_are_draws_of_its_own_that_add_up_to_its_whole():
+    cut = 1.0
+    cluster = _cluster(mass=4.0e6)
+    whole = list(component_pass.scatter_phenomena([cluster], EDGE, SEED, min_mass_solar=cut))
+    assert list(component_pass.scatter_phenomena(
+        [cluster], EDGE, SEED, min_mass_solar=cut, slices={("cluster", cluster.name): (0, 1)})) == whole
+    slices = [list(component_pass.scatter_phenomena(
+        [cluster], EDGE, SEED, min_mass_solar=cut, slices={("cluster", cluster.name): (index, 3)}))
+        for index in range(3)]
+    assert all(slices) and slices[0] != slices[1]
+    assert sum(len(rows) for rows in slices) == pytest.approx(len(whole), abs=6.0 * math.sqrt(len(whole)))
+    assert slices[2] == list(component_pass.scatter_phenomena(
+        [cluster], EDGE, SEED, min_mass_solar=cut, slices={("cluster", cluster.name): (2, 3)}))
+
+
+def _seed_components(mysql_config, found):
+    from tests.test_bright_star_scatter import E_VALUE as e_value, EDGE_PC as edge_pc, SEED as galaxy_seed, SHAPE as shape
+    store.save_galaxy_shape(shape, edge_pc=edge_pc, outer_shell_index=8, expected_system_count_at_density_1=e_value,
+                            config=mysql_config, cell_star_ceiling=1e12, galaxy_seed=galaxy_seed)
+    store.replace_galaxy_shells(EXTENTS, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        store.replace_galaxy_components(conn, found)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _stored(mysql_config, table):
+    conn = store.get_connection(mysql_config)
+    try:
+        return sorted(tuple(str(value) for key, value in row.items()
+                            if key != "id" and not isinstance(value, datetime.datetime))
+                      for row in conn.execute(f"SELECT * FROM {table}").fetchall())
+    finally:
+        conn.close()
+
+
+@pytest.mark.fresh_database
+def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_adds_up_at_any_order(
+        mysql_config, monkeypatch):
+    import json
+
+    from planetgen.queue import commands, wrapper
+    monkeypatch.setattr(component_pass, "STAR_SLICE_STARS", 100.0)
+    monkeypatch.setattr(run_plan, "COMPONENT_REPORT_ROWS", 4)
+    monkeypatch.setattr(run_plan, "CHANNEL_INTERVAL_SECONDS", 0.0)
+    _seed_components(mysql_config, [_satellite("Big Cloud", mass=1.0e7, half=40.0, center=(150.0, -90.0, 60.0)),
+                                    _cluster("Small One", mass=1.0e6, half=30.0, w0=5, center=(160.0, -90.0, 60.0)),
+                                    _cluster("Small Two", mass=1.0e6, half=30.0, w0=5, center=(170.0, -90.0, 60.0))])
+    params = {"database": wrapper.database_args(mysql_config), "min_luminosity_sol": 2500.0, "mass_limit_sol": 8.0,
+              "seed": 77}
+    expansion = run_plan.expand_scatter_luminosity(params)
+    shape = run_plan._ScatterShape.from_json(expansion.plan)
+    assert expansion.plan == json.loads(json.dumps(expansion.plan))
+    assert {key: expansion.plan[key] for key in shape.to_json()} == shape.to_json()
+    named = [parts for _key, parts in sorted(shape.component_parts.items())]
+    assert len(named) > 2 and sum(1 for task in named if task[0][1] == "Big Cloud") == max(
+        part[3] for task in named for part in task if part[1] == "Big Cloud") > 1
+    assert all(len(task) == 1 for task in named if task[0][1] == "Big Cloud")
+    assert sum(shape.tasks[key][0][2] for key in shape.component_parts) == pytest.approx(
+        shape.expected[run_plan.COMPONENT_TASK_SHELL])
+    assert all(shape.tasks[key][0][2] <= 100.0 * 1.0001 for key in shape.component_parts)
+    mine = [(args, cost) for args, cost in expansion.units if args["component_parts"]]
+    assert len(mine) == len(named)
+
+    def run_all(units):
+        conn = store.get_connection(mysql_config)
+        try:
+            conn.execute("DELETE FROM bright_stars")
+            conn.commit()
+        finally:
+            conn.close()
+        reports = []
+        for args, _cost in units:
+            run_plan.scatter_shells_unit(json.loads(json.dumps(args)), lambda done, estimate: reports.append(
+                (args["key"], done, estimate)))
+        return _stored(mysql_config, "bright_stars"), reports
+
+    stars, reports = run_all(mine)
+    assert len(stars) > 60
+    heaviest = max(mine, key=lambda unit: unit[1])[0]["key"]
+    seen = [(done, estimate) for key, done, estimate in reports if key == heaviest]
+    assert len(seen) >= 3 and seen == sorted(seen), "a component's stars report their progress as they are drawn"
+    assert all(estimate >= done for done, estimate in seen)
+    assert run_all(list(reversed(mine)))[0] == stars, "the stars do not depend on the order the units run in"
+
+
+@pytest.mark.fresh_database
+def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_order(mysql_config, monkeypatch):
+    import json
+
+    from planetgen.queue import wrapper
+    monkeypatch.setattr(component_pass, "PHENOMENON_SLICE_ROWS", 40000.0)
+    _seed_components(mysql_config, [_cluster("Rich", mass=1.0e7, half=30.0, w0=5, center=(150.0, -90.0, 60.0)),
+                                    _satellite("Cloud", mass=1.0e7, half=40.0, center=(150.0, -90.0, 60.0))])
+    params = {"database": wrapper.database_args(mysql_config), "min_mass_solar": 8.0, "seed": 77}
+    expansion = run_plan.expand_scatter_phenomena(params)
+    shape = run_plan._PhenomenaShape.from_json(expansion.plan)
+    assert shape.to_json() == expansion.plan == json.loads(json.dumps(expansion.plan))
+    assert len(shape.component_parts) > 2
+    assert all(shape.tasks[key][0][2] <= 40000.0 * 1.0001 for key in shape.component_parts)
+    mine = [(args, cost) for args, cost in expansion.units if args["component_parts"]]
+    assert len(mine) == len(shape.component_parts)
+
+    def run_all(units):
+        conn = store.get_connection(mysql_config)
+        try:
+            conn.execute("DELETE FROM phenomenon_scatter")
+            conn.commit()
+        finally:
+            conn.close()
+        for args, _cost in units:
+            run_plan.scatter_phenomena_unit(json.loads(json.dumps(args)), lambda done, estimate: None)
+        return _stored(mysql_config, "phenomenon_scatter")
+
+    rows = run_all(mine)
+    assert len(rows) > 100 and run_all(list(reversed(mine))) == rows
