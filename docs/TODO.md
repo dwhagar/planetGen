@@ -16504,56 +16504,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a second update replaces it, and a test on a small galaxy checks both.
   Prerequisites: GEN.212, GEN.340. Related: MAP.192.
 
-- [ ] **DB.58 Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses**
-  Split from USR.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). USR.2, USR.4, USR.5 and USR.6 each
-  need control-database tables; Core 1 places one revision (the next
-  control version) instead of three. It adds role (user, moderator,
-  admin, Owner; moderator is accepted by the column constraint and has
-  no permissions until 10.0, as USR.2 states),
-  email and status (active, disabled) to the accounts table (Boss,
-  2026-10-10: add the columns now, rename `admin_users` to `accounts`
-  later), a database-level single-Owner unique index on a generated
-  column, `account_tokens` (hashed token, purpose, account, created,
-  expires, used_at: the shared table for USR.4, USR.5 and USR.6) and
-  `invite_uses`; existing admins get role admin and the lowest id
-  becomes the Owner. Done: the revision applies on a control database
-  with several admins and on a fresh install (install creates exactly
-  one Owner), a second Owner insert fails in MySQL, a moderator row
-  inserts and reads back, and the schema
-  header comments are updated.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: USR.2, USR.26.
-
-- [ ] **DB.62 Upload bookkeeping tables in the control database (migration only)**
-  Split from API.11 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic migration on the control
-  database (the control database is at version 14, so a later one) adds
-  `upload_runs` (id, owner, key id, galaxy database, state, created,
-  last contact), `upload_batches` (run, seq, sha256, bytes, received
-  at), `upload_units` (run, unit key, state open, sealed, verified,
-  finalized or rejected, manifest hash, errors), `upload_claims` (run,
-  sector address, state) and `upload_id_ranges` (run, table, first id,
-  last id). Core 1 owns the migration number. Done: the migration,
-  models, an old-schema fixture, an idempotent upgrade and a round-trip
-  test; no code reads the tables yet.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: API.11.
-
 - [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "for the migration we'll have to
@@ -17105,9 +17055,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /api/phenomena/<type>/<id>/contents`). Done: for a star inside a
   globular cluster and a star inside a superbubble, the query names the
   container; a container lists what it holds; the stored rows come from
-  the generator with no fixed content. Owner: the DB items chain lane,
-  after DB.58 and DB.62 (proposed by the coordinator, relayed 5:40 PM EDT
-  2026-10-22 as the lane's clock reads; Core 2 asked for it).
+  the generator with no fixed content. Owner: the DB items chain lane, started after DB.58 and DB.62 merged (the
+  coordinator, relayed 7:03 PM EDT 2026-10-22 as the lane's clock reads;
+  Core 2 asked for it). Numbers: revision 0130 and generator epoch 51,
+  given to the lane at 7:06 PM EDT.
   Prerequisites: none. Related: UX.144, MAP.254, UX.143.
 
 - [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
@@ -17198,7 +17149,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     it uses (`upload_runs`, `upload_claims`, `upload_id_ranges`)
     (2026-10-16 review). Added to Done: applying a change plan refuses a
     sector an upload run has claimed, with a test.
-    Prerequisites: DB.62.
+    Prerequisites: none.
 
   - [ ] **API.11 Staging tables**
     Done: staging storage (a galaxy schema migration) for received
@@ -17225,7 +17176,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     Scope after the review (2026-10-16 review): this item is the
     umbrella of the upload bookkeeping tables in the control database
     (child a, Core 1) and the spool and unit-state code (child b).
-    Prerequisites: DB.62, API.29.
+    Prerequisites: API.29.
 
   - [ ] **API.12 The download: seed, skeleton and name state**
     Done: a route that returns, compressed, what a local run needs
@@ -17373,7 +17324,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   evaluated per request (open question for Boss, default: a user-level
   key made by an admin acts as the creating account with read-only
   scope).
-  Prerequisites: DB.58, USR.26.
+  Prerequisites: USR.26.
 
 - [ ] **API.15 Log every API call with its user, how it came in, and its HTTP response code**
   Boss (2026-10-02 01:31Z): "all api call logs should log the user that
@@ -17541,7 +17492,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   else 202 with a job id). It calls the finalizer through API.8. Done:
   the spool and the state machine with tests for each transition, a
   restart that keeps staged units, and the spool cap.
-  Prerequisites: DB.62. Related: API.11.
+  Prerequisites: none. Related: API.11.
 
 - [ ] **API.30 generate.py --remote: the client driver for sector and galaxy runs**
   Split from API.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -18561,7 +18512,7 @@ clears each one.
   Sighting with captured failure text (Bug Hunt, 2026-10-17, 7:19 PM EDT
   as the lane reported, filed by the TODO thread; gate 586fdaa6 = main
   62bca47c merged with the Bug Hunt branch, browser phase, 2 workers,
-  finished 7:15 PM EDT; none of the three test files is touched by that
+  finished 7:06 PM EDT; none of the three test files is touched by that
   branch; each passes alone on the gate's own rerun; the earlier build
   4632033c at 5:51 PM EDT did not show them): (1)
   `test_open_map_menus_hold_no_overlap[web.sector-390]` at 6:53 PM EDT,
@@ -20267,6 +20218,36 @@ clears each one.
   the function to `_FAKED` (one line) and catch `NotFoundError` in
   `_phenomenon_contents`. Not a seed or fixture problem as first guessed.
 
+- [ ] **TEST.280 Five tests are refused as Busy in a full gate because workers share the default Redis database (race)**
+  Found by Bug Hunt (relayed 7:03 PM EDT 2026-10-22 as the lane's clock
+  reads, from its full 'scripts/test.py changed' gate), filed by the
+  TODO thread. Kind: cross-worker race (a test that starts a real run or
+  queue worker on the machine's shared Redis). Tests:
+  src/tests/test_update_guard.py::test_the_command_begins_ends_and_reports,
+  src/tests/test_update_database_step.py::test_a_database_that_needs_migrating_is_migrated_and_keeps_its_data,
+  ::test_a_migration_leaves_the_real_maintenance_file_alone,
+  ::test_a_failed_migration_stops_the_step_and_keeps_the_version, and
+  src/tests/test_work_units.py::test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded.
+  Failure: all refused on worker gw2 at 8:14 PM and 9:45 PM EDT (the
+  lane's clock as reported) because another xdist worker's job or a real
+  queue worker was running on the machine's default Redis (database 0,
+  prefix planetgen, queue planetgen-bulk); stderr ends 'nothing was
+  cancelled. Run it again when the work has finished, or add
+  --cancel-running'. Fails on main: not run alone yet; they passed alone
+  in earlier gates, so it is a race between workers. Frequency: 5 of
+  21,430 tests in that gate; the same class as TEST.266. Reproducer: a
+  full gate with several xdist workers. Do: every xdist worker runs all
+  its tests, and the processes they start, on the Redis database
+  numbered after the worker (this generalises the TEST.266 fixture
+  tests/private_redis.py, which goes away); the other seven real_queue
+  modules named in the execution notes (test_api_jobs,
+  test_inline_queue, test_reset_jobs, test_rq_time_limits,
+  test_update_guard_work, test_wanted_workers_key and test_workers) then
+  need no fixture. Done: the five tests pass in 20 full-gate runs and no
+  test starts a process on database 0. Owner: Bug Hunt (fix in hand,
+  same branch as TEST.270 and TEST.272).
+  Prerequisites: none. Related: TEST.266, TEST.277.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20352,7 +20333,7 @@ clears each one.
   2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
   8.1 on the Owner account stub USR.31; the full accounts of this item
   replace the stub in 8.2.
-    Prerequisites: DB.58, USR.26, USR.27.
+    Prerequisites: USR.26, USR.27.
 
   - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
@@ -20414,7 +20395,7 @@ clears each one.
     valid link; tokens and `invite_uses` come from the account-token
     library and the first child of USR.2. Placed after USR.5 because its
     sign-up ends in the set-password email loop.
-    Prerequisites: DB.58, USR.26, USR.3, USR.28, USR.5.
+    Prerequisites: USR.26, USR.3, USR.28, USR.5.
 
   - [ ] **USR.5 Email loop for setting and resetting passwords**
     Boss: "an
@@ -20493,7 +20474,7 @@ clears each one.
     for every kind (bookmark, course), the routes for a user's own rows
     only, the account page and the one-time import of
     the browser list); the list and rename UI is UX.47's.
-    Prerequisites: DB.58, USR.26, UX.129.
+    Prerequisites: USR.26, UX.129.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
@@ -20813,7 +20794,7 @@ clears each one.
   2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
   8.1 on the Owner account stub USR.31; this item replaces the stub with
   the full roles in 8.2.
-  Prerequisites: DB.58, SEC.32. Related: USR.2.
+  Prerequisites: SEC.32. Related: USR.2.
 
 - [ ] **USR.27 Admin Users page: list accounts, promote, demote, disable and delete**
   Split from USR.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -20838,7 +20819,7 @@ clears each one.
   rate limits the flows add. No flows and no pages. Done: tests for
   single use under two concurrent redeems, expiry, wrong purpose, hash
   only in the database, and the lifetimes.
-  Prerequisites: DB.58. Related: USR.4, USR.5, USR.6.
+  Prerequisites: none. Related: USR.4, USR.5, USR.6.
 
 - [ ] **USR.29 Vessel and station objects: add, move along a course and list, with ownership**
   Split from USR.10 (2026-10-16, Boss 1:07 PM EDT: look at each item for
