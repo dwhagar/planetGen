@@ -440,6 +440,24 @@ def from_base(base_value, key):
     return (base_value - row.offset) / row.factor
 
 
+_TEN_POWERS = tuple(float(f"1e{exponent}") for exponent in range(23))
+"""tuple: `10.0 ** n` for n = 0 to 22, the powers of ten a float holds exactly."""
+
+
+def scale(value, source_factor, target_factor):
+    """
+    `value * source_factor / target_factor`, exact where the ratio of the factors is a power of ten: then `value` is
+    multiplied or divided by that power, one correctly rounded step (km to m, 1.5 -> 1500.0; m to km, 1500 -> 1.5),
+    where the two-step product would round twice (`v * 1e3 / 1e-6` differs from `v * 1e9` for a third of all `v`).
+    """
+    ratio = source_factor / target_factor
+    if ratio > 0.0 and math.isfinite(ratio):
+        exponent = round(math.log10(ratio))
+        if -22 <= exponent <= 22 and abs(ratio - float(f"1e{exponent}")) <= 1e-14 * ratio:
+            return value * _TEN_POWERS[exponent] if exponent >= 0 else value / _TEN_POWERS[-exponent]
+    return value * source_factor / target_factor
+
+
 def convert(value, from_key, to_key):
     """`value` of the unit `from_key` in the unit `to_key`; a unit of another kind raises `ValueError`."""
     source, target = unit(from_key), unit(to_key)
@@ -447,6 +465,8 @@ def convert(value, from_key, to_key):
         raise ValueError(f"cannot convert {source.symbol} ({source.kind}) to {target.symbol} ({target.kind})")
     if source.factor == target.factor and source.offset == target.offset:
         return value
+    if source.offset == target.offset:
+        return scale(value, source.factor, target.factor)
     return (value * source.factor + source.offset - target.offset) / target.factor
 
 
