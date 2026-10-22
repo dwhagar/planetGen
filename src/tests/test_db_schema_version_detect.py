@@ -38,6 +38,17 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE galaxy_shape DROP CONSTRAINT chk_galaxy_shape_family, "
+                     "DROP CONSTRAINT chk_galaxy_shape_bar_axis_ratio_b, DROP CONSTRAINT chk_galaxy_shape_bar_axis_ratio_c, "
+                     "DROP CONSTRAINT chk_galaxy_shape_thick_disk_amplitude, DROP CONSTRAINT chk_galaxy_shape_spheroid_amplitude, "
+                     "DROP CONSTRAINT chk_galaxy_shape_spheroid_sersic_n, DROP CONSTRAINT chk_galaxy_shape_spheroid_effective_radius, "
+                     "DROP CONSTRAINT chk_galaxy_shape_spheroid_axis_ratio_b, DROP CONSTRAINT chk_galaxy_shape_spheroid_axis_ratio_c, "
+                     "DROP CONSTRAINT chk_galaxy_shape_body_clump_share")  # v117
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN family, DROP COLUMN bar_present, DROP COLUMN bar_axis_ratio_b, "
+                     "DROP COLUMN bar_axis_ratio_c, DROP COLUMN bar_angle_rad, DROP COLUMN thick_disk_amplitude, "
+                     "DROP COLUMN spheroid_amplitude, DROP COLUMN spheroid_sersic_n, DROP COLUMN spheroid_effective_radius_pc, "
+                     "DROP COLUMN spheroid_axis_ratio_b, DROP COLUMN spheroid_axis_ratio_c, DROP COLUMN spheroid_orientation_1_rad, "
+                     "DROP COLUMN spheroid_orientation_2_rad, DROP COLUMN spheroid_orientation_3_rad, DROP COLUMN body_clump_share")  # v117
         for table in ("nebula_block_state", "nebula_block_classes", "nebula_block_stats"):
             conn.execute(f"DROP TABLE {table}")  # v116
         conn.execute("ALTER TABLE sectors DROP COLUMN parity_dirty, DROP COLUMN storage_checksum, ALGORITHM=COPY")  # v115

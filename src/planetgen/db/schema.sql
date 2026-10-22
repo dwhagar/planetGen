@@ -1360,6 +1360,11 @@
 --   ladder (`galaxy/drill.py`, levels 243 to 3): count, volume, centroid, bounding radius, the volume of each family, the dominant
 --   class and the cover, kept by `db/nebula_blocks.py`. Made from `nebula_field` and the stored nebulae; no sector is needed.
 --
+-- v117 (DB.66): `galaxy_shape.family` (`spiral`, `lenticular`, `elliptical`, `irregular`, `dwarf_spheroid`) and the columns of
+--   the components a family may have that a spiral does not draw today: the bar's axis ratios and angle, the thick disk's
+--   amplitude, the Sersic spheroid (amplitude, index, effective radius, axis ratios, three orientation angles) and the
+--   irregular family's clump share. Existing galaxies become spirals with no spheroid; nothing reads the columns yet.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1569,6 +1574,26 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- again at this mass; `galaxy_shape_pins` lists what the plan was told.
     pinned_stellar_mass_solar    DOUBLE,
 
+    -- v117 (DB.66, docs/design/galaxy-types.md section 10): the galaxy family and the numbers of the components a
+    -- family may have that a spiral does not draw today. Nothing reads them yet (GEN.379 does). A galaxy planned
+    -- before v117 is a spiral with no spheroid and no clump share. The bar and the thick disk were never stored, so
+    -- NULL means "as the structure draw gives them from the seed"; an amplitude of 0 removes a component exactly.
+    family                          VARCHAR(16) NOT NULL DEFAULT 'spiral',
+    bar_present                     TINYINT,
+    bar_axis_ratio_b                DOUBLE,
+    bar_axis_ratio_c                DOUBLE,
+    bar_angle_rad                   DOUBLE,
+    thick_disk_amplitude            DOUBLE,
+    spheroid_amplitude              DOUBLE NOT NULL DEFAULT 0,
+    spheroid_sersic_n               DOUBLE NOT NULL DEFAULT 0,
+    spheroid_effective_radius_pc    DOUBLE NOT NULL DEFAULT 0,
+    spheroid_axis_ratio_b           DOUBLE NOT NULL DEFAULT 1,
+    spheroid_axis_ratio_c           DOUBLE NOT NULL DEFAULT 1,
+    spheroid_orientation_1_rad      DOUBLE NOT NULL DEFAULT 0,
+    spheroid_orientation_2_rad      DOUBLE NOT NULL DEFAULT 0,
+    spheroid_orientation_3_rad      DOUBLE NOT NULL DEFAULT 0,
+    body_clump_share                DOUBLE NOT NULL DEFAULT 0,
+
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
     -- this, not `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`.
@@ -1609,7 +1634,18 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     CONSTRAINT chk_galaxy_shape_cell_star_ceiling CHECK (cell_star_ceiling >= 1),  -- v100 (GEN.281)
     CONSTRAINT chk_galaxy_shape_scatter_limits CHECK (  -- v101 (DB.54)
         halo_min_luminosity_sol >= 50 AND (core_min_luminosity_sol IS NULL OR core_min_luminosity_sol > 0)
-        AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0))
+        AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0)),
+    CONSTRAINT chk_galaxy_shape_family CHECK (  -- v117 (DB.66)
+        family IN ('spiral', 'lenticular', 'elliptical', 'irregular', 'dwarf_spheroid')),
+    CONSTRAINT chk_galaxy_shape_bar_axis_ratio_b CHECK (bar_axis_ratio_b > 0 AND bar_axis_ratio_b <= 1),  -- v117 (DB.66), NULL passes
+    CONSTRAINT chk_galaxy_shape_bar_axis_ratio_c CHECK (bar_axis_ratio_c > 0 AND bar_axis_ratio_c <= 1),
+    CONSTRAINT chk_galaxy_shape_thick_disk_amplitude CHECK (thick_disk_amplitude >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_amplitude CHECK (spheroid_amplitude >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_sersic_n CHECK (spheroid_sersic_n >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_effective_radius CHECK (spheroid_effective_radius_pc >= 0),
+    CONSTRAINT chk_galaxy_shape_spheroid_axis_ratio_b CHECK (spheroid_axis_ratio_b > 0 AND spheroid_axis_ratio_b <= 1),
+    CONSTRAINT chk_galaxy_shape_spheroid_axis_ratio_c CHECK (spheroid_axis_ratio_c > 0 AND spheroid_axis_ratio_c <= 1),
+    CONSTRAINT chk_galaxy_shape_body_clump_share CHECK (body_clump_share BETWEEN 0 AND 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

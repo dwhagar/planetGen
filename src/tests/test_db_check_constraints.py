@@ -27,6 +27,7 @@ _NULL_OR_IN = re.compile(r"^`?(\w+)`?\s+is\s+null\s*\)?\s+or\s+\(?`?\1`?\s+in\s*
 _BETWEEN = re.compile(r"^`?(\w+)`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGNORECASE)
 _AT_LEAST = re.compile(r"^`?(\w+)`?\s*>=\s*(-?\d+)")
 _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
+_OPEN_UNIT_RANGE = re.compile(r"^`?(\w+)`?\s*>\s*0\)?\s+and\s+\(?`?\1`?\s*<=\s*1$", re.IGNORECASE)
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
@@ -92,6 +93,9 @@ def _breaking_value(conn, table, clause, row):
     if match:
         return match[1], int(match[2]) - 1
     match = _EQUALS_ONE.match(clause)
+    if match:
+        return match[1], 2
+    match = _OPEN_UNIT_RANGE.match(clause)
     if match:
         return match[1], 2
     match = _NULL_TOGETHER.search(clause)
