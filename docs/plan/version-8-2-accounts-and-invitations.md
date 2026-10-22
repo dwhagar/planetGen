@@ -30,9 +30,8 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.129 | Saved lists in the browser and in the account: one store with a local and an account backend |  | Foundation found in the review. |
-| UX.46 | Wiping the galaxy wipes the bookmarks | UX.129 |  |
-| UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46, UX.129 |  |
+| UX.46 | Wiping the galaxy wipes the bookmarks |  |  |
+| UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47, MAP.190 |  |
 | UX.45 | Bookmark management | UX.46, UX.47, UX.48 | Parent; per browser until accounts (USR.7) move them. |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 |  |
@@ -55,7 +54,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | USR.26 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
-| USR.7 | A user-level interface with bookmarks | USR.26, UX.129 | Bookmarks of any object use NAV.7 references. |
+| USR.7 | A user-level interface with bookmarks | USR.26 | Bookmarks of any object use NAV.7 references. |
 | USR.27 | Admin Users page: list accounts, promote, demote, disable and delete | USR.26 | Split from USR.2. |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | USR.26, USR.27 | Control schema; no blockers, placed late by priority. |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |

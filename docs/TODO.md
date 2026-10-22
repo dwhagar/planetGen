@@ -327,7 +327,7 @@ with `clamp()`.
     migration.
     Needs the saved-list store, which holds the galaxy instance stamp
     that this item compares (2026-10-16 review).
-    Prerequisites: UX.129.
+    Prerequisites: none.
 
   - [ ] **UX.47 A bookmark manager: list, rename, sort, group and delete**
     Done: a Bookmarks page listing every bookmark with its kind and
@@ -341,7 +341,7 @@ with `clamp()`.
     Scope after the review (2026-10-16 review): the Bookmarks manager
     page over the saved-list store (sort, group, open on its map, export
     and import with validation, move up and down).
-    Prerequisites: UX.46, UX.129.
+    Prerequisites: UX.46.
 
   - [ ] **UX.48 Charted regions as bookmarks that frame and outline the region**
     Boss (2026-10-07 11:47Z): "Clusters of contiguous generated content
@@ -671,25 +671,6 @@ with `clamp()`.
   Owner: Core 3, after UX.140 (the coordinator, relayed 3:56 PM EDT
   2026-10-22 as the lane's clock reads).
   Prerequisites: UX.140. Related: GEN.300, GEN.299.
-
-- [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). Split `static/bookmarks.js` (447 lines; synchronous
-  read() and write() over localStorage, one list per database) into a
-  store and its views. The store offers list, find, add, rename, remove
-  and onChange on a list kind (`bookmark` now, `course` for NAV.18)
-  behind a backend interface that may be asynchronous: the local backend
-  (today's per-database localStorage key) and, later, an account backend
-  over the API; a hook for the galaxy instance stamp that UX.46 needs.
-  The toggle button and menu keep working on top. Done: the existing
-  bookmark toggle, menu, rename and delete behave as before through the
-  store, a second list kind can be created without new storage code, and
-  a fake asynchronous backend passes the same tests.
-  Owner: Core 2 (confirmed, started 5:02 PM EDT 2026-10-22 as the lane
-  reported, after the MAP.254 remainder merged as #2514; relayed 5:00 PM
-  EDT by the coordinator).
-  Prerequisites: none. Related: UX.46, UX.47, USR.7, NAV.18, NAV.19.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -1851,7 +1832,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.209's status note (same sector-open tests, #1776, found one
   document, a filled panel and working star selection); the item stays
   open and waits on Boss's answers listed there.
-  Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
+  Reproduced by a test (Core 2, relayed 7:24 PM EDT 2026-10-22 as the lane's
+  clock reads): src/tests/test_web_browser_sector_open.py::
+  test_a_star_in_an_opened_sector_is_selectable fails alone on main (no
+  click on a star of 5 picks one; the panel shows the uncharted sector or
+  a star '(uncharted)'); filed as TEST.281.
+  Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163, TEST.281.
 
 - [ ] **MAP.212 A region selection tool on the Galaxy Map and the Sector Map, for admin actions**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -2526,8 +2512,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     galaxy and says if anything changed since it was saved (the
     correlative update moves systems along their galactic orbits, and
     a regenerated system can vanish).
-    Owner: Core 2 after UX.129 (confirmed by Core 2; relayed 5:00 PM EDT
-    2026-10-22 as the lane's clock reads).
+    Owner: Core 2 (confirmed by Core 2; relayed 5:00 PM EDT 2026-10-22 as
+    the lane's clock reads). Built after UX.129 merged as #2544:
+    `static/savedcourse.js` holds the record with both forms, the `course`
+    kind and the 'what changed' sentences, with 9 JS tests; its gate
+    started 7:25 PM EDT as the lane reported.
 
   - [ ] **NAV.18 Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store**
     Done: a Save course button on the NAV result; a Courses list
@@ -2538,7 +2527,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     delete) and the viewer's switch between Direct and Route; the Save
     action is NAV.4's; this adds the `course` kind to the store
     (2026-10-16 review).
-    Prerequisites: UX.129.
+    Prerequisites: none.
 
   - [ ] **NAV.19 Saved courses in the account (after USR.7)**
     Done: the `course` kind of the saved-list store (USR.7's
@@ -20069,6 +20058,9 @@ clears each one.
   `-k shape-report -o timeout=90 --timeout-method=thread`. Core 2 names
   Core 1 (GEN.545, ADM.118) as the likely owner; the owner line stays Bug
   Hunt unless the coordinator moves it.
+  Fourth sighting (Core 2, relayed 7:24 PM EDT 2026-10-22 as the lane's
+  clock reads, when UX.129 merged as #2544): the case fails alone too,
+  the call taking 1802 s.
   Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
@@ -20134,6 +20126,26 @@ clears each one.
   test starts a process on database 0. Owner: Bug Hunt (fix in hand,
   same branch as TEST.270 and TEST.272).
   Prerequisites: none. Related: TEST.266, TEST.277.
+
+- [ ] **TEST.281 test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug)**
+  Found by Core 2 (relayed 7:24 PM EDT 2026-10-22 as the lane's clock
+  reads, when UX.129 merged as #2544), filed by the TODO thread. Kind:
+  bug (a browser test that fails on main). Test:
+  src/tests/test_web_browser_sector_open.py::test_a_star_in_an_opened_sector_is_selectable.
+  Failure: it fails alone; no click on a star of 5 picks one, and the
+  panel shows the uncharted sector or a star '(uncharted)'. Fails on
+  main: yes, also at 736f8e7, so it is older than Core 2's merges.
+  Frequency: every run. Reproducer: python3 -m pytest -q
+  src/tests/test_web_browser_sector_open.py. This is probably the test
+  form of Boss's MAP.210 (no star can be picked in sector view,
+  2026-10-15). Do: find whether the star's projected position, the
+  picker (mappick.js) or the opened sector's data has changed since the
+  test passed (a git bisect between #1776 and 736f8e7 narrows it), and
+  fix the cause, not the test. Done: the test passes alone and in a
+  gate, and MAP.210 can close with it. Owner: Core 2 (MAP.210's owner;
+  proposed by the TODO thread, because the lane named the area; the
+  coordinator can move it).
+  Prerequisites: none. Related: MAP.210, MAP.209.
 
 ## USR: User accounts
 
@@ -20361,7 +20373,7 @@ clears each one.
     for every kind (bookmark, course), the routes for a user's own rows
     only, the account page and the one-time import of
     the browser list); the list and rename UI is UX.47's.
-    Prerequisites: USR.26, UX.129.
+    Prerequisites: USR.26.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
