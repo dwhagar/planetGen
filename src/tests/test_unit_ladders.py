@@ -27,7 +27,14 @@ from hypothesis import strategies as st
 
 from planetgen.physics import constants
 from planetgen.util import ladders
-from planetgen.util.format import format_quantity, pick_rung
+from planetgen.util.format import (
+    format_distance_au as format_distance_au_, format_distance_km as format_distance_km_,
+    format_distance_ly as format_distance_ly_, format_distance_pc as format_distance_pc_,
+    format_gravity_g as format_gravity_g_, format_luminosity_sol as format_luminosity_sol_,
+    format_magnetic_field_gauss as format_magnetic_field_gauss_, format_mass_solar as format_mass_solar_,
+    format_measure, format_number_density_cm3 as format_number_density_cm3_,
+    format_period_years as format_period_years_, format_pressure_atm as format_pressure_atm_, format_quantity,
+    format_speed_kms as format_speed_kms_, pick_rung)
 from tests import fuzz_support  # noqa: F401  (loads the hypothesis profile)
 
 _ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
@@ -365,3 +372,53 @@ def test_the_browser_body_radius_is_scientific_km_like_python():
     python = [re.sub(r"<sup>(-?\d+)</sup>", lambda m: m.group(1).translate(str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")),
                      format_body_radius_km(km)) for km in radii]
     assert json.loads(out) == python
+
+
+# --- The registry owns the units (UX.139) ----------------------------------------------------------------------------
+
+def test_every_rung_and_companion_is_a_registry_unit_with_its_factor_and_offset():
+    from planetgen.physics import unit_registry
+
+    for ladder in ladders.LADDERS:
+        kind = ladders._BY_KIND_OF_LADDER[ladder.quantity]
+        rows = unit_registry.units_of(kind)
+        for unit in (*ladder.rungs, *ladder.companions):
+            assert any(row.factor == unit.factor and row.offset == unit.offset for row in rows), \
+                f"{ladder.quantity}: {unit.symbol}"
+
+
+def test_a_ladder_is_found_by_its_registry_kind():
+    from planetgen.physics import unit_registry
+
+    assert ladders.for_kind("length") is ladders.LENGTH
+    assert ladders.for_kind("acceleration") is ladders.GRAVITY
+    assert ladders.for_kind("duration") is ladders.TIME
+    for kind in ("angle", "instant", "energy"):
+        with pytest.raises(ValueError, match="no ladder shows"):
+            ladders.for_kind(kind)
+    for ladder in ladders.LADDERS:
+        assert unit_registry.KINDS[ladders._BY_KIND_OF_LADDER[ladder.quantity]].base
+
+
+@pytest.mark.parametrize("wrapper, ladder, unit, value", [
+    (format_distance_km_, "length", "km", 384_400.0), (format_distance_au_, "length", "au", 1.52),
+    (format_distance_ly_, "length", "ly", 4.2), (format_distance_pc_, "length", "pc", 8.1),
+    (format_speed_kms_, "speed", "km_s", 29.8), (format_period_years_, "duration", "yr", 1.88),
+    (format_pressure_atm_, "pressure", "atm", 92.0), (format_gravity_g_, "acceleration", "g0", 0.378),
+    (format_mass_solar_, "mass", "Msun", 0.122), (format_luminosity_sol_, "power", "Lsun", 1.0),
+    (format_number_density_cm3_, "number_density", "cm-3", 3.5), (format_magnetic_field_gauss_, "magnetic_field", "G", 5e12),
+])
+def test_a_format_name_for_a_unit_is_format_measure_of_a_quantity_in_it(wrapper, ladder, unit, value):
+    from planetgen.physics.quantity import Quantity
+
+    assert wrapper(value) == format_measure(Quantity(ladder, value, unit))
+    assert wrapper(None) == "–"
+
+
+def test_a_measure_is_shown_the_same_whatever_unit_it_was_held_in():
+    from planetgen.physics.quantity import Quantity
+
+    assert format_measure(Quantity("length", 384.4, "Mm")) == format_measure(Quantity("length", 384_400.0, "km"))
+    assert format_measure(Quantity("temperature", 15.0, "degC")) == format_measure(Quantity("temperature", 288.15, "K"))
+    assert format_measure(Quantity("temperature", 288.15, "K"), companions=False) == "288 K"
+    assert format_measure(Quantity("mass", 1.0, "Mearth")) == "1 Earth mass"

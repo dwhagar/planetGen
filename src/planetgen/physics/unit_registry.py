@@ -228,8 +228,8 @@ _JULIAN_YEAR_S = constants.SECONDS_PER_YEAR
 def _lengths():
     _prefixed("length", "m", "m", "meters", 1.0, singular="meter")
     for key, symbol, name, factor in (
-            ("au", "AU", "astronomical units", float(constants.AU_M)),
-            ("ly", "ly", "light-years", float(constants.LIGHTYEAR_M)),
+            ("au", "AU", "astronomical units", constants.AU_M),
+            ("ly", "ly", "light-years", constants.LIGHTYEAR_M),
             ("ft", "ft", "feet", constants.FOOT_M),
             ("mi", "mi", "miles", constants.MILE_M),
             ("Rsun", "R☉", "solar radii", constants.SOLAR_RADIUS_M),
@@ -283,7 +283,7 @@ def _kinematics():
             ("km_h", "km/h", "kilometers per hour", 1e3 / _HOUR_S, (("km", 1), ("h", -1))),
             ("mph", "mph", "miles per hour", constants.MILE_M / _HOUR_S, (("mi", 1), ("h", -1))),
             ("mi_s", "mi/s", "miles per second", constants.MILE_M, (("mi", 1), ("s", -1))),
-            ("c", "c", "times the speed of light", float(constants.SPEED_OF_LIGHT_M_S), ())):
+            ("c", "c", "times the speed of light", constants.SPEED_OF_LIGHT_M_S, ())):
         _unit(key, "speed", symbol, name, factor, parts=parts)
     _unit("m_s2", "acceleration", "m/s²", "meters per second squared", 1.0, parts=(("m", 1), ("s", -2)))
     _unit("ft_s2", "acceleration", "ft/s²", "feet per second squared", constants.FOOT_M,
@@ -294,7 +294,7 @@ def _kinematics():
 def _thermal():
     _prefixed("temperature", "K", "K", "kelvins", 1.0, SI_PREFIXES[:4], singular="kelvin")
     _unit("degC", "temperature", "°C", "degrees Celsius", 1.0, offset=constants.CELSIUS_ZERO_K, singular="degree Celsius")
-    _unit("degF", "temperature", "°F", "degrees Fahrenheit", 5.0 / 9.0, offset=459.67 * 5.0 / 9.0,
+    _unit("degF", "temperature", "°F", "degrees Fahrenheit", 5.0 / 9.0, offset=constants.CELSIUS_ZERO_K - 32 * 5.0 / 9.0,
           singular="degree Fahrenheit")
     _unit("dK", "delta_temperature", "K", "kelvins", 1.0, singular="kelvin")
     _unit("ddegC", "delta_temperature", "°C", "degrees Celsius", 1.0, singular="degree Celsius")
@@ -326,6 +326,7 @@ def _energetic():
     _unit("MeV", "energy", "MeV", "megaelectronvolts", constants.ELECTRON_VOLT_J * 1e6, singular="megaelectronvolt")
     _prefixed("pressure", "Pa", "Pa", "pascals", 1.0, SI_PREFIXES[:12], singular="pascal")
     _unit("bar", "pressure", "bar", "bars", 1e5)
+    _unit("mbar", "pressure", "mbar", "millibars", 1e2)
     _unit("atm", "pressure", "atm", "standard atmospheres", constants.STANDARD_ATMOSPHERE_PA)
     _unit("psi", "pressure", "psi", "pounds per square inch", constants.PSI_PA)
     _prefixed("flux", "W_m2", "W/m²", "watts per square meter", 1.0, SI_PREFIXES[:12],
@@ -431,13 +432,13 @@ def parts_factor(key):
 def to_base(value, key):
     """`value` of the unit `key` in its kind's base unit."""
     row = unit(key)
-    return value * row.factor + row.offset
+    return value * row.factor + row.offset if row.offset else value * row.factor
 
 
 def from_base(base_value, key):
     """A base value of the kind of unit `key`, in that unit."""
     row = unit(key)
-    return (base_value - row.offset) / row.factor
+    return (base_value - row.offset) / row.factor if row.offset else base_value / row.factor
 
 
 _TEN_POWERS = tuple(float(f"1e{exponent}") for exponent in range(23))

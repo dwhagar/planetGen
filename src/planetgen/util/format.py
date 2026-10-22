@@ -15,7 +15,7 @@ import math
 import re
 
 from planetgen import tuning
-from planetgen.physics import constants as physical_constants
+from planetgen.physics import unit_registry
 from planetgen.util import ladders
 
 
@@ -192,6 +192,21 @@ def format_quantity(ladder, value, companions=True, system=ladders.AUTOMATIC):
     return text
 
 
+def format_measure(quantity, companions=True, system=ladders.AUTOMATIC):
+    """
+    `format_quantity` for a `Quantity` (`planetgen.physics.quantity`): the ladder its kind is shown on
+    (`ladders.for_kind`) and its value in the registry's base unit, so a value is shown the same whatever unit it
+    was held in ("384,400 km" for 384.4 Mm).
+    """
+    return format_quantity(ladders.for_kind(quantity.kind), quantity.base(), companions, system)
+
+
+def _format_in(ladder, value, unit, companions=True):
+    """`format_quantity` for `value` of the registry unit `unit` ("km", "au", "Msun"), the factor the registry's;
+    `None` gives the en dash. What the `format_*` names for a unit other than the ladder's base are."""
+    return format_quantity(ladder, None if value is None else unit_registry.to_base(value, unit), companions)
+
+
 def _companion_applies(companion, value):
     """True when a companion unit is shown beside `value`: its size is in the companion's range."""
     size = abs(value)
@@ -240,22 +255,22 @@ def format_distance_m(meters):
 
 def format_distance_km(km):
     """`format_distance_m` for a value in kilometers (the schema's unit)."""
-    return format_distance_m(None if km is None else km * physical_constants.KM_M)
+    return _format_in(ladders.LENGTH, km, "km")
 
 
 def format_distance_au(au):
     """`format_distance_m` for a value in AU (generation's orbit unit)."""
-    return format_distance_m(None if au is None else au * physical_constants.AU_M)
+    return _format_in(ladders.LENGTH, au, "au")
 
 
 def format_distance_ly(ly):
     """`format_distance_m` for a value in light-years."""
-    return format_distance_m(None if ly is None else ly * physical_constants.LIGHTYEAR_M)
+    return _format_in(ladders.LENGTH, ly, "ly")
 
 
 def format_distance_pc(pc):
     """`format_distance_m` for a value in parsecs (galaxy geometry)."""
-    return format_distance_m(None if pc is None else pc * physical_constants.PARSEC_M)
+    return _format_in(ladders.LENGTH, pc, "pc")
 
 
 def format_speed_kms(kms):
@@ -277,7 +292,7 @@ def format_speed_kms(kms):
         str: e.g. "36 km/h", "29.8 km/s", "4.5 Mm/s", "0.25 c". `None`
              gives an en dash.
     """
-    return format_quantity(ladders.SPEED, None if kms is None else kms * physical_constants.KM_M)
+    return _format_in(ladders.SPEED, kms, "km_s")
 
 
 def format_speed_ms(ms):
@@ -307,7 +322,7 @@ def format_duration_seconds(seconds):
 def format_period_years(years):
     """`format_duration_seconds` for a value in (Julian) years -- every
     orbital period the generator stores is in years or Gyr."""
-    return format_duration_seconds(None if years is None else years * physical_constants.SECONDS_PER_YEAR)
+    return _format_in(ladders.TIME, years, "yr")
 
 
 def _whole_or_tenths(value):
@@ -372,7 +387,7 @@ def format_pressure_pa(pascals, companions=True):
 
 def format_pressure_atm(atm):
     """`format_pressure_pa` for a value in standard atmospheres."""
-    return format_pressure_pa(None if atm is None else atm * physical_constants.STANDARD_ATMOSPHERE_PA)
+    return _format_in(ladders.PRESSURE, atm, "atm")
 
 
 def format_gravity_g(gravity_g):
@@ -389,7 +404,7 @@ def format_gravity_g(gravity_g):
     Returns:
         str: `None` gives an en dash.
     """
-    return format_quantity(ladders.GRAVITY, None if gravity_g is None else gravity_g * physical_constants.EARTH_GRAVITY)
+    return _format_in(ladders.GRAVITY, gravity_g, "g0")
 
 
 def format_gravity_g_short(gravity_g):
@@ -412,7 +427,7 @@ def format_mass_kg(kilograms):
 def format_mass_solar(solar_masses):
     """`format_mass_kg` for a mass held in solar masses (black holes, neutron
     stars, the quasar's black hole)."""
-    return format_quantity(ladders.MASS, None if solar_masses is None else solar_masses * physical_constants.SOLAR_MASS_TO_KG)
+    return _format_in(ladders.MASS, solar_masses, "Msun")
 
 
 def format_power_w(watts):
@@ -423,8 +438,7 @@ def format_power_w(watts):
 
 def format_luminosity_sol(solar_luminosities):
     """`format_power_w` for a luminosity held in solar luminosities."""
-    return format_quantity(ladders.POWER, None if solar_luminosities is None
-                           else solar_luminosities * physical_constants.SOLAR_LUMINOSITY)
+    return _format_in(ladders.POWER, solar_luminosities, "Lsun")
 
 
 def format_flux_w_m2(flux):
@@ -435,13 +449,13 @@ def format_flux_w_m2(flux):
 def format_number_density_cm3(per_cm3):
     """A particle density in particles per cubic centimeter (clouds,
     remnants): "3.5 particles/cm³". `None` gives an en dash."""
-    return format_quantity(ladders.NUMBER_DENSITY, None if per_cm3 is None else per_cm3 * 1e6)
+    return _format_in(ladders.NUMBER_DENSITY, per_cm3, "cm-3")
 
 
 def format_magnetic_field_gauss(gauss):
     """A magnetic field held in gauss (the schema's `magnetic_field_gauss`) on
     the field ladder: "50 µT" for a planet, "1.00 × 10¹² G" for a pulsar."""
-    return format_quantity(ladders.MAGNETIC_FIELD, None if gauss is None else gauss * 1e-4)
+    return _format_in(ladders.MAGNETIC_FIELD, gauss, "G")
 
 
 def format_body_radius_km(radius_km, precision=None):
