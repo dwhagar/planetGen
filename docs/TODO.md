@@ -978,28 +978,6 @@ with `clamp()`.
   decides).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
-- [ ] **UX.145 The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug)**
-  Boss (2026-10-21, 8:18 PM EDT, as the coordinator relayed): "Bug,
-  admin menu on sector map (and possibly others) deploys and goes off
-  the visible screen." Kind: layout bug. Reproduce: open the Sector Map
-  signed in as an admin, open the Admin menu; the opened menu extends
-  beyond the window and part of it cannot be reached. Do: find which
-  pages and window sizes do it (check every viewer and admin page at
-  1280x720, 1366x768, a 768x1024 tablet and a 390x844 phone), root-cause
-  it (a menu positioned without a viewport bound, a fixed height, or a
-  container that clips it) and fix the cause in the shared menu, not one
-  page. The menu keeps inside the visible window and scrolls inside
-  itself when it is taller than the space left. Done: a browser test
-  opens the admin menu on each viewer page and each admin page at those
-  window sizes and asserts the opened menu lies inside the window
-  (bounding box within the viewport) and every entry can be reached;
-  both themes. Related to UX.142 (windows fit the browser, 8.2), which
-  covers the viewers' own controls. Owner: Bug Hunt (the coordinator,
-  8:18 PM EDT 2026-10-21); if the admin shell (ADM.92) replaces the menu
-  first, the test moves to the new menu.
-  Prerequisites: none. Related: UX.142, ADM.92, ADM.98.
-
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -16766,33 +16744,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
 
-- [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
-  Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of
-  13): 4. Plan the galaxy.' and 'Stage 4 of 13: Plan the galaxy.' right
-  after the banner '=== Stage 4 of 13: Plan the galaxy ===', which
-  already says it; the extra mentions of the stage are redundant and
-  should be removed. The two lines come from `begin` and `_announce` in
-  src/planetgen/generation/stages.py (the stage-list line, with its
-  '(stages 4 to 4 of 13)' wording, and the per-stage announcement built
-  with `stagemark.marker`). Keep one marker per stage (the banner), keep
-  the skipped-stage line with its reason, and keep what the Generate
-  page and the progress file read (`progress_file.set_stage`,
-  `stage_text`); change the tests that assert the old lines
-  (src/tests/test_stages.py asserts the stage-list wording). A command
-  cleanup, not a bug. Done: a run logs each stage once, in the banner,
-  with no 'N stage(s) (stages a to b of c)' line and no repeated 'Stage
-  n of N: label.' line; a skipped stage still says why; the Generate
-  page's stage text and the progress file are unchanged; the tests pass.
-  Bug Hunt's reading (5:24 PM EDT as the lane reported): it applies to
-  every stage of every command, a line that carries information the
-  banner does not stays, and a test covers it.
-  Owner: Bug Hunt, after PERF.142 and PERF.143 (Boss's item relayed by
-  the coordinator, 5:23 PM EDT).
-  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported): done
-  in a side worktree; its gate runs after Boss's stalled-job
-  investigation.
-  Prerequisites: none. Related: PERF.120.
-
 - [ ] **PERF.146 A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages**
   Boss, 2026-10-21, 6:34 PM EDT, as the coordinator relayed: "have we
   done a performance test on the bright star scatter? Or any of the
@@ -21716,26 +21667,6 @@ clears each one.
   the item stays open.
   Prerequisites: none. Related: TEST.253.
 
-- [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
-  Found by Core 1 (its GEN.591 gate, reported about 9:09 AM EDT
-  2026-10-21 on the lane's clock: 20,307 passed, 1 failed), filed by the
-  TODO thread.
-  `src/tests/test_web_fresh_after_cli.py::test_sector_page_and_tiles_show_a_phenomenon_the_cli_added`
-  failed with `assert warm["tiles"][WHOLE_GALAXY_TILE]["clouds"] == []`:
-  it got one dark nebula (class N, id 00008FFFE80007-8000000-000) after
-  `galaxy --shell 0 --limit 1 --num-systems 1` on a planned galaxy.
-  Kind: unseeded-data flake. Fails on main: not checked (the path does
-  not touch GEN.591's change). Frequency: 1 of 1 gate run; passes alone
-  (4 passed in 45 s). Reproducer: loop the test; the plan and galaxy
-  draws are unseeded, so a nebula lands in the whole-galaxy tile in some
-  draws. Do: seed the galaxy or make the assertion about the phenomenon
-  the test adds (its cloud) rather than an empty cloud list; no
-  quarantine. Done: the test passes 30 of 30 loop runs on an idle
-  machine and the cause is on this item. Owner: Bug Hunt (proposed).
-  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported):
-  fixed in a side worktree, not yet gated or merged.
-  Prerequisites: none. Related: TEST.254, TEST.256.
-
 - [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
   Suggested by Core 3 (2:02 PM EDT 2026-10-21 as the lane reported,
   after fixing TEST.256 in #2327), filed by the TODO thread. GEN.404
@@ -21874,30 +21805,14 @@ clears each one.
   sightings above; Bug Hunt looks at all of them. The same gate saw
   test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
   fail once under load (TEST.260's run lock collision).
+  Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM EDT 2026-10-22
+  as the lane reported, filed by the TODO thread): under load five
+  browser tests failed in module-fixture setup after 1,988 to 2,063
+  seconds (test_web_browser_crumbs at 1280 and at 320, and three in
+  test_web_browser_units), and test_old_jobs_are_pruned timed out at 30
+  seconds once; all pass alone. Same load class as the sightings above;
+  Bug Hunt looks at all of them.
   Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.263 test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug)**
-  Found by Core 2 (about 7:25 PM EDT 2026-10-21 as the lane reported,
-  while gating DB.79), filed by the TODO thread. Kind: test. Test:
-  src/tests/test_db_check_constraints.py::test_every_check_rejects_a_bad_row.
-  Failure text: "AssertionError: the seeded galaxy has no
-  planet_reflection_spectrum row to break
-  planet_reflection_spectrum_chk_1 on". Fails on main: yes (reproduced
-  on a clean worktree at 649aa51 on Core 2's machine, datasets fetched).
-  Frequency: 4 of 4 runs there. Reproducer: run that one test. Cause
-  (Core 2's reading): the rich galaxy (tests/rich_galaxy_support.py,
-  seed 20261001) builds 129 planets and 208 moons but 0
-  planet_reflection_spectrum and 0 moon_reflection_spectrum rows, so the
-  test probably needs an _EMPTY_TABLE_ROWS entry for those two tables or
-  a forced habitable planet in the rich galaxy. Do: find why the rows
-  are not written (a change to the generator or to the rich galaxy) and
-  fix the cause, or add the table to the test's empty-table list with
-  the reason. Done: the test passes alone and in the full gate. Owner:
-  Bug Hunt, in its queue after PERF.144 and PERF.145 (the coordinator,
-  7:25 PM EDT 2026-10-21).
-  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported):
-  fixed in a side worktree, not yet gated or merged.
-  Prerequisites: none.
 
 ## USR: User accounts
 

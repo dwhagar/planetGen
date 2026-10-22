@@ -957,3 +957,7 @@ Baseline: PR #1817.
 | ADM.98 | 8.1 | Admin control suite |
 | ADM.101 | 8.1 | Admin control suite |
 | PERF.141 | 8.2 | Robust tile caching |
+| PERF.145 | 8.1 | Queue, caches and performance |
+| TEST.263 | 8.1 | Bugs and flaky tests |
+| TEST.257 | 8.1 | Bugs and flaky tests |
+| UX.145 | 8.1 | Admin control suite |
