@@ -187,20 +187,22 @@ def generate_task(key):
     fields fills the form with them, and with `review=1` shows the Review step for them, which is where a typed command
     lands (`generate_commands`); nothing runs until Run is pressed on that step.
     """
-    task = task_for_key(key)
-    if task is None:
-        abort(404)
     if request.method in ("GET", "HEAD"):
         admin, response = _admin_or_redirect()
         if response:
             return response
+    else:
+        admin = _admin_or_403()
+    task = task_for_key(key)
+    if task is None:
+        abort(404)
+    if request.method in ("GET", "HEAD"):
         form = request.args
         if not form:
             return task_page(admin, task)
         if form.get("review") and not form.get("back"):
             return _review_or_form(admin, task, form)
         return task_page(admin, task, form=form)
-    admin = _admin_or_403()
     form = request.form
     if form.get("back"):
         return task_page(admin, task, form=form)
