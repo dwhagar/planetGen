@@ -403,11 +403,10 @@ def check_order(items: dict) -> list[dict]:
 
 ROADMAP_RELEASE_RE = re.compile(r"^Release (" + VERSION_RE + r"): (.*)$")
 ROADMAP_FIELD_RE = re.compile(r"^(Status|Headline|Today|Change|Needs|Lanes|Alternative)(?: \(([^)]+)\))?:\s*(.*)$")
-ROADMAP_SUGGEST_RE = re.compile(r"^- (S(?:[\d.]+|L)-[a-z]): (.*)$")
 
 
 def parse_roadmap(text: str) -> dict:
-    """docs/plan/release-roadmap.md: each version's headline, needs and the ideas not yet filed."""
+    """docs/plan/release-roadmap.md: each version's headline and needs."""
     out = {"title": "", "intro": [], "how": [], "releases": [], "questions": []}
     cur, section, last = None, "intro", None
     for line in text.splitlines():
@@ -419,7 +418,7 @@ def parse_roadmap(text: str) -> dict:
             found = ROADMAP_RELEASE_RE.match(title)
             if found:
                 cur = {"version": found.group(1), "name": found.group(2), "fields": {},
-                       "alternatives": [], "suggested": []}
+                       "alternatives": []}
                 out["releases"].append(cur)
                 section = "release"
             else:
@@ -435,12 +434,8 @@ def parse_roadmap(text: str) -> dict:
         elif section == "Questions for Boss":
             out["questions"].append(line[2:].strip() if line.startswith("- ") else line.strip())
         elif section == "release" and cur is not None:
-            sug = ROADMAP_SUGGEST_RE.match(line)
             field = ROADMAP_FIELD_RE.match(line)
-            if sug:
-                cur["suggested"].append({"code": sug.group(1), "text": sug.group(2)})
-                last = None
-            elif line.startswith("  ") and last is not None:
+            if line.startswith("  ") and last is not None:
                 last["text"] += " " + line.strip()
             elif field:
                 key, label, value = field.groups()
@@ -450,8 +445,6 @@ def parse_roadmap(text: str) -> dict:
                 else:
                     last = {"text": value}
                     cur["fields"][key] = last
-            elif line.strip() == "Suggested:":
-                last = None
     return out
 
 

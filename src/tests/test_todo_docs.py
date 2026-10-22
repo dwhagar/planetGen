@@ -89,9 +89,6 @@ def test_the_release_roadmap_is_in_build_order_with_a_headline_per_release():
     assert "10.0" in versions, "Boss (2026-10-16, 1:43 PM EDT): 10.0 is roles and permissions"
     for rel in road["releases"]:
         assert rel["fields"].get("Headline"), f"release {rel['version']} has no headline"
-        prefix = "SL-" if rel["version"] == "later" else f"S{rel['version']}-"
-        for sug in rel["suggested"]:
-            assert sug["code"].startswith(prefix), sug
 
 
 def test_every_headline_tag_names_a_version_of_the_map():
