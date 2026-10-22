@@ -1,13 +1,156 @@
 {
  "retrieved": "2026-10-17",
  "licence": "open",
- "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity (GEN.410)",
+ "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
  "sources": [
   "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
-  "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02"
+  "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
+  "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Burkholder 2020, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) binned to 35 bins in part 02 section 2.3"
  ],
  "licence_note": "Boss, 2026-10-17, 2:35 PM EDT: every paper and dataset acquired is usable; the raw tables are not redistributed and the licence column is a record. NIST SRD is copyrighted (permission noted in body-composition part G4); PubChem and USGS are public domain; 'open' means none was found.",
- "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K).",
+ "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` where under half of the bin is covered.",
+ "uv_bins_nm": [
+  [
+   10.0,
+   30.0
+  ],
+  [
+   30.0,
+   60.0
+  ],
+  [
+   60.0,
+   80.0
+  ],
+  [
+   80.0,
+   91.2
+  ],
+  [
+   91.2,
+   100.0
+  ],
+  [
+   100.0,
+   110.0
+  ],
+  [
+   110.0,
+   120.0
+  ],
+  [
+   120.0,
+   123.0
+  ],
+  [
+   123.0,
+   130.0
+  ],
+  [
+   130.0,
+   140.0
+  ],
+  [
+   140.0,
+   150.0
+  ],
+  [
+   150.0,
+   160.0
+  ],
+  [
+   160.0,
+   170.0
+  ],
+  [
+   170.0,
+   180.0
+  ],
+  [
+   180.0,
+   190.0
+  ],
+  [
+   190.0,
+   200.0
+  ],
+  [
+   200.0,
+   210.0
+  ],
+  [
+   210.0,
+   220.0
+  ],
+  [
+   220.0,
+   230.0
+  ],
+  [
+   230.0,
+   240.0
+  ],
+  [
+   240.0,
+   260.0
+  ],
+  [
+   260.0,
+   280.0
+  ],
+  [
+   280.0,
+   300.0
+  ],
+  [
+   300.0,
+   320.0
+  ],
+  [
+   320.0,
+   340.0
+  ],
+  [
+   340.0,
+   360.0
+  ],
+  [
+   360.0,
+   400.0
+  ],
+  [
+   400.0,
+   450.0
+  ],
+  [
+   450.0,
+   500.0
+  ],
+  [
+   500.0,
+   550.0
+  ],
+  [
+   550.0,
+   600.0
+  ],
+  [
+   600.0,
+   650.0
+  ],
+  [
+   650.0,
+   700.0
+  ],
+  [
+   700.0,
+   800.0
+  ],
+  [
+   800.0,
+   1100.0
+  ]
+ ],
  "gases": [
   {
    "formula": "H2",
@@ -99,9 +242,106 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "H2",
+    "coverage_nm": [
+     0.1,
+     119.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     3.5e-19,
+     3.5e-18,
+     1e-17,
+     1.6e-17,
+     3.6e-17,
+     2e-17,
+     1.9e-19,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -250,9 +490,21 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -400,9 +652,21 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -495,9 +759,21 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -590,9 +866,21 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -685,9 +973,21 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -850,9 +1150,106 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "N2",
+    "coverage_nm": [
+     11.6,
+     99.9
+    ],
+    "origin": "Ranjan and Sasselov, READ, quote no N2 extinction detected longward of 108 nm",
+    "cross_section_cm2": [
+     6.4e-18,
+     2.1e-17,
+     2.7e-17,
+     2.2e-17,
+     4.3e-17,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -945,9 +1342,106 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "N2, O2, H2, He, Ar, Ne, Kr, Xe",
+    "fundamentals_text": "no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O2, weak magnetic-dipole bands",
+    "strength_text": "transparent in lines; important only as CIA partners and as broadening gas",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "physics",
+    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "O2",
+    "coverage_nm": [
+     4.2,
+     239.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     9.5e-18,
+     2.2e-17,
+     2.5e-17,
+     1.5e-17,
+     1.2e-17,
+     1.5e-18,
+     6.2e-19,
+     2.9e-18,
+     1.7e-18,
+     6.8e-18,
+     1.4e-17,
+     8.3e-18,
+     2.8e-18,
+     5.2e-19,
+     1.7e-20,
+     3.9e-22,
+     7.6e-24,
+     5.1e-24,
+     3.2e-24,
+     1.6e-24,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "partly verified",
+    "limit": "band means understate the transmission of thick columns of the structured Schumann-Runge bands (175 to 200 nm): the research says the generator needs a k-distribution or effective cross section there"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1029,9 +1523,125 @@
     "state": "partly verified",
     "limit": "the NIST median and the thermo fit differ by a factor 7.4"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 1042,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 1110,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 705,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "O3",
+    "fundamentals_text": "nu3 1042 (9.6); nu1 1110; nu2 705 (14.2)",
+    "strength_text": "strong, but it is also a strong UV/visible absorber, so it heats the stratosphere (affects tropopause, section 5)",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "O3",
+    "coverage_nm": [
+     0.06,
+     1099.9
+    ],
+    "origin": "Huebner 2015 below 52.7 nm, Heays 2017 above",
+    "cross_section_cm2": [
+     1.2e-17,
+     2.6e-17,
+     3.4e-17,
+     2e-17,
+     1.1e-17,
+     9.3e-18,
+     9.8e-18,
+     2.4e-17,
+     8e-18,
+     1.1e-17,
+     3.4e-18,
+     1.7e-18,
+     1.2e-18,
+     8.7e-19,
+     6.6e-19,
+     4.1e-19,
+     3.8e-19,
+     1.1e-18,
+     3e-18,
+     6.4e-18,
+     1.1e-17,
+     7.7e-18,
+     1.6e-18,
+     1.2e-19,
+     6.2e-21,
+     2.1e-22,
+     2.9e-24,
+     6.2e-23,
+     5.4e-22,
+     2.2e-21,
+     4.3e-21,
+     3.8e-21,
+     1.5e-21,
+     3.9e-22,
+     3.8e-23
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1113,9 +1723,134 @@
     "state": "partly verified",
     "limit": "polar: Chapman-Enskog is 10 percent high and the research gives the NIST value at 300 K only, no temperature law"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2 bend",
+      "wavenumber_cm1": 1594.59,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 3656.65,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 3755.79,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "pure rotation edge",
+      "wavenumber_cm1": null,
+      "range_cm1": [
+       0.0,
+       600.0
+      ],
+      "approximate": true
+     }
+    ],
+    "research_row": "H2O",
+    "fundamentals_text": "nu2 bend 1594.59 (6.27); nu1 3656.65 (2.73); nu3 3755.79 (2.66); pure rotation band below about 600 cm-1 (beyond 17 um); window 800-1250 cm-1 held by the continuum (section 3.2)",
+    "strength_text": "very strong; rank 11; dominant on warm worlds; condensable, so its column is set by T and RH",
+    "saturated_rank": 11,
+    "no_band": false,
+    "source": "NIST/Shimanouchi 1972; rank from Byrne and Goldblatt 2014b",
+    "research_status": "DATA; rank READ; rotation edge RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"DATA; rank READ; rotation edge RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "H2O",
+    "coverage_nm": [
+     0.1,
+     230.4
+    ],
+    "origin": "Ranjan 2020 for 192 to 230 nm",
+    "cross_section_cm2": [
+     5e-18,
+     1.7e-17,
+     2.1e-17,
+     1.9e-17,
+     1.8e-17,
+     8.1e-18,
+     6.2e-18,
+     1e-17,
+     8.1e-18,
+     4e-18,
+     7.6e-19,
+     2.6e-18,
+     5.3e-18,
+     3.5e-18,
+     2e-19,
+     1.7e-21,
+     1.7e-23,
+     3.3e-25,
+     5e-27,
+     2.9e-28,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1242,9 +1977,94 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "uv": {
+    "research_name": "H2O2",
+    "coverage_nm": [
+     65.1,
+     349.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     null,
+     null,
+     1.2e-17,
+     2.5e-17,
+     2.3e-17,
+     1e-17,
+     1e-17,
+     9.7e-18,
+     8.3e-18,
+     8.2e-18,
+     6.2e-18,
+     2.2e-18,
+     1.2e-18,
+     1.2e-18,
+     9.5e-19,
+     5.7e-19,
+     4.2e-19,
+     3.1e-19,
+     2.2e-19,
+     1.6e-19,
+     9e-20,
+     3.9e-20,
+     1.2e-20,
+     4e-21,
+     1.4e-21,
+     6e-22,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1340,9 +2160,113 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "fundamental",
+      "wavenumber_cm1": 2143,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "CO",
+    "fundamentals_text": "fundamental about 2143 (4.67)",
+    "strength_text": "poor absorber, still optically thin at 1 bar for a pure-CO atmosphere (READ in Koll 2019, arXiv:1907.13145, his Fig. 4 text)",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "Koll 2019",
+    "research_status": "READ; band RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"READ; band RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "CO",
+    "coverage_nm": [
+     0.1,
+     166.5
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     6.5e-18,
+     1.8e-17,
+     2.4e-17,
+     3.3e-17,
+     3e-17,
+     2e-17,
+     1e-18,
+     7e-20,
+     1.5e-19,
+     4.8e-18,
+     1.9e-17,
+     1e-17,
+     5e-20,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1438,9 +2362,143 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 667,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 2349,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "2nu2/nu1 Fermi dyad",
+      "wavenumber_cm1": 1388,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "2nu2/nu1 Fermi dyad",
+      "wavenumber_cm1": 1285,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "hot band",
+      "wavenumber_cm1": 960,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "hot band",
+      "wavenumber_cm1": 1063,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "CO2",
+    "fundamentals_text": "nu2 667 (15.0); nu3 2349 (4.26); 2nu2/nu1 Fermi dyad about 1388 and 1285 (7.2, 7.8); hot bands about 960 and 1063 (10.4, 9.4)",
+    "strength_text": "strong in band centre, saturated; rank 16; far wings plus CIA matter at tens of bar",
+    "saturated_rank": 16,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED; rank READ",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED; rank READ\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "CO2",
+    "coverage_nm": [
+     0.2,
+     212.8
+    ],
+    "origin": "Schmidt 2013 at 270 K, reduced resolution, above 138.9 nm",
+    "cross_section_cm2": [
+     1.1e-17,
+     2.9e-17,
+     3.5e-17,
+     3.5e-17,
+     5.8e-17,
+     2.8e-17,
+     1.7e-17,
+     6.4e-20,
+     3.3e-19,
+     6.4e-19,
+     3.7e-19,
+     3.1e-19,
+     6.7e-20,
+     6.9e-21,
+     4.1e-22,
+     1.7e-23,
+     4.8e-25,
+     3.8e-26,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1536,9 +2594,131 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu4",
+      "wavenumber_cm1": 1306.2,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 1533.6,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 2917,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 3018.9,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "CH4",
+    "fundamentals_text": "nu4 1306.2 (7.66); nu2 1533.6 (6.52); nu1 2917 (3.43); nu3 3018.9 (3.31)",
+    "strength_text": "rank 27 in the saturated metric; strong near-IR absorption also absorbs sunlight, so forcing saturates: peak 10.3, 9, 8.3 W m-2 for 0.5, 1, 2 bar N2 (READ in B&G 2014b)",
+    "saturated_rank": 27,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "CH4",
+    "coverage_nm": [
+     5.7,
+     1000.0
+    ],
+    "origin": "Lee 2001 for 142 to 152 nm, Karkoschka 1994 for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED",
+    "cross_section_cm2": [
+     2.3e-18,
+     1.8e-17,
+     3.9e-17,
+     4.7e-17,
+     4.4e-17,
+     3e-17,
+     1.9e-17,
+     1.8e-17,
+     1.8e-17,
+     7.9e-18,
+     9.5e-20,
+     2.9e-24,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     2.1e-28,
+     1.4e-27,
+     8.3e-27,
+     5.1e-27,
+     4.4e-26,
+     2.7e-26,
+     2.4e-25,
+     1.6e-24
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "partly verified",
+    "limit": "the visible bins rest on Karkoschka 1994, which the research did not reach; giant-planet methane bands are one to two decades stronger than these bin means and need a band model (part 03)"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1634,9 +2814,125 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu5 CH bend",
+      "wavenumber_cm1": 730.3,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu2 CC",
+      "wavenumber_cm1": 1973.8,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 3289,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "C2H2",
+    "fundamentals_text": "nu5 CH bend 730.3 (13.7); nu2 CC 1973.8 (5.07); nu3 3289 (3.04)",
+    "strength_text": "strong (rank 6 by the saturated metric); photochemical product",
+    "saturated_rank": 6,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "C2H2",
+    "coverage_nm": [
+     6.3,
+     299.4
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     3.9e-18,
+     2.1e-17,
+     4.4e-17,
+     4.6e-17,
+     3.9e-17,
+     3e-17,
+     2.2e-17,
+     3.2e-17,
+     2.4e-17,
+     3.8e-17,
+     9.2e-18,
+     1.8e-17,
+     9.3e-19,
+     1e-18,
+     3.4e-19,
+     9.7e-20,
+     2.9e-20,
+     7.7e-21,
+     9.4e-21,
+     5.1e-21,
+     3.6e-21,
+     2.3e-21,
+     6.4e-22,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1717,9 +3013,131 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu7 wag",
+      "wavenumber_cm1": 949.3,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu10 rock",
+      "wavenumber_cm1": 826.0,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu12",
+      "wavenumber_cm1": 1443.5,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu11",
+      "wavenumber_cm1": 2988.66,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "C2H4",
+    "fundamentals_text": "nu7 wag 949.3 (10.5); nu10 rock 826.0 (12.1); nu12 1443.5; nu11 2988.66",
+    "strength_text": "strong at 10.5 um window; HITRAN underestimates (B&G apply a factor 0.1 on abundance)",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "C2H4",
+    "coverage_nm": [
+     0.1,
+     194.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     5.5e-18,
+     3e-17,
+     5.4e-17,
+     5.3e-17,
+     5.4e-17,
+     3.3e-17,
+     1.9e-17,
+     2.3e-17,
+     2.5e-17,
+     1.8e-17,
+     1e-17,
+     2.3e-17,
+     3.1e-17,
+     1.5e-17,
+     4.8e-19,
+     9.4e-20,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -1815,9 +3233,137 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu12 CH3 rock",
+      "wavenumber_cm1": 821.6,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "CH3 deform",
+      "wavenumber_cm1": null,
+      "range_cm1": [
+       1379,
+       1469
+      ],
+      "approximate": false
+     },
+     {
+      "label": "CH stretch",
+      "wavenumber_cm1": null,
+      "range_cm1": [
+       2896,
+       2985
+      ],
+      "approximate": false
+     },
+     {
+      "label": "torsion",
+      "wavenumber_cm1": 289,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "C2H6",
+    "fundamentals_text": "CH3 rock nu12 821.6 (12.2); CH3 deform 1379-1469 (6.8-7.3); CH stretch 2896-2985 (3.4); torsion 289",
+    "strength_text": "moderate; fills the 12 um window; important for Titan-like and methane-photochemistry worlds",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST",
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "C2H6",
+    "coverage_nm": [
+     15.4,
+     149.5
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     3.8e-18,
+     2.7e-17,
+     6.1e-17,
+     6.7e-17,
+     5.3e-17,
+     4.4e-17,
+     2.9e-17,
+     2.3e-17,
+     2.4e-17,
+     2e-17,
+     3.1e-18,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2120,9 +3666,125 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2 bend",
+      "wavenumber_cm1": 711.98,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3 CN",
+      "wavenumber_cm1": 2096.85,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1 CH",
+      "wavenumber_cm1": 3311.47,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "HCN",
+    "fundamentals_text": "nu2 bend 711.98 (14.04); nu3 CN 2096.85 (4.77); nu1 CH 3311.47 (3.02)",
+    "strength_text": "strong, overlaps the 15 um CO2 band; in the \"forcings of order 10 W m-2 at under 1 ppmv\" group",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "HCN",
+    "coverage_nm": [
+     0.1,
+     187.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     3.9e-18,
+     1.4e-17,
+     2.7e-17,
+     2.7e-17,
+     2.6e-17,
+     3.1e-17,
+     4e-17,
+     2.5e-17,
+     3.6e-18,
+     4.2e-18,
+     2.2e-18,
+     3.5e-19,
+     1.4e-19,
+     3.9e-20,
+     3.7e-21,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2189,9 +3851,143 @@
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2 CO",
+      "wavenumber_cm1": 1746.1,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3 CH2 scissor",
+      "wavenumber_cm1": 1500.1,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu5",
+      "wavenumber_cm1": 1249.1,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu6",
+      "wavenumber_cm1": 1167.3,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 2782.5,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu4",
+      "wavenumber_cm1": 2843.1,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "H2CO",
+    "fundamentals_text": "nu2 CO 1746.1 (5.73); nu3 CH2 scis 1500.1; nu5 1249.1; nu6 1167.3; nu1/nu4 2782.5/2843.1",
+    "strength_text": "HITRAN lacks the 1000-1550 cm-1 band; B&G note it would be optically thick above 5e-6 (READ)",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "H2CO",
+    "coverage_nm": [
+     6.3,
+     375.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     6.5e-18,
+     2.5e-17,
+     3.6e-17,
+     3.2e-17,
+     3.9e-17,
+     1.6e-17,
+     1.6e-17,
+     1.3e-17,
+     1.6e-17,
+     1.1e-17,
+     5.8e-18,
+     1.4e-17,
+     6e-19,
+     8.9e-18,
+     8.6e-20,
+     0.0,
+     0.0,
+     0.0,
+     9.8e-23,
+     4.7e-22,
+     2.9e-21,
+     1.3e-20,
+     2.6e-20,
+     2.8e-20,
+     1.9e-20,
+     6.1e-21,
+     1.9e-22,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2267,9 +4063,58 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu8 CO stretch",
+      "wavenumber_cm1": 1033,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu6 OH bend",
+      "wavenumber_cm1": 1345,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "CH3 modes",
+      "wavenumber_cm1": null,
+      "range_cm1": [
+       1455,
+       1477
+      ],
+      "approximate": false
+     },
+     {
+      "label": "CH3 modes",
+      "wavenumber_cm1": null,
+      "range_cm1": [
+       2844,
+       3000
+      ],
+      "approximate": false
+     },
+     {
+      "label": "OH stretch",
+      "wavenumber_cm1": 3681,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "CH3OH",
+    "fundamentals_text": "nu8 CO str 1033 (9.68); nu6 OH bend 1345; CH3 modes 1455-1477, 2844-3000; OH str 3681",
+    "strength_text": "rank 1 in the saturated metric (strongest per molecule)",
+    "saturated_rank": 1,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -2362,9 +4207,137 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2 umbrella",
+      "wavenumber_cm1": 932.5,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu2 umbrella",
+      "wavenumber_cm1": 968.3,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu4",
+      "wavenumber_cm1": 1626,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 3336,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 3444,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "NH3",
+    "fundamentals_text": "nu2 umbrella 932.5/968.3 (10.3, 10.7); nu4 1626 (6.15); nu1 3336; nu3 3444",
+    "strength_text": "strong; window-filling at 10 um; broadening-sensitive: 55-60 percent of the forcing difference between 0.5 and 2 bar N2 at 5 ppm is pressure broadening (READ)",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST; B&G 2014b",
+    "research_status": "DATA; READ",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "NH3",
+    "coverage_nm": [
+     0.1,
+     230.0
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     3.6e-18,
+     1.8e-17,
+     3.1e-17,
+     2.6e-17,
+     1.8e-17,
+     2.4e-17,
+     1.9e-17,
+     1.2e-17,
+     1.1e-17,
+     1.1e-17,
+     2.3e-18,
+     1.1e-18,
+     9.9e-19,
+     3.2e-18,
+     8e-18,
+     9.8e-18,
+     5.3e-18,
+     6.4e-19,
+     2e-20,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2512,9 +4485,125 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 589,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 1285,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 2224,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "N2O",
+    "fundamentals_text": "nu2 589 (17); nu1 1285 (7.8); nu3 2224 (4.5)",
+    "strength_text": "moderate; overlaps CO2",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "N2O",
+    "coverage_nm": [
+     91.3,
+     209.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     null,
+     null,
+     null,
+     null,
+     4.8e-17,
+     2.3e-17,
+     1.5e-17,
+     3.8e-18,
+     5.1e-17,
+     1.8e-17,
+     3.8e-18,
+     4.1e-19,
+     5e-20,
+     8e-20,
+     1e-19,
+     6.5e-20,
+     1.5e-20,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2590,9 +4679,94 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "uv": {
+    "research_name": "NO",
+    "coverage_nm": [
+     0.1,
+     229.3
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     7e-18,
+     2.1e-17,
+     2.1e-17,
+     2.6e-17,
+     2.3e-17,
+     1.3e-17,
+     3.4e-18,
+     2.4e-18,
+     2.3e-18,
+     2.6e-18,
+     3.1e-18,
+     1.7e-18,
+     1.2e-18,
+     3.1e-18,
+     3e-18,
+     9.6e-19,
+     2.3e-19,
+     2.9e-19,
+     1.7e-19,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2657,9 +4831,125 @@
     "state": "partly verified",
     "limit": "the compiled values span a factor 6"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "NO2",
+      "wavenumber_cm1": 750,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "NO2",
+      "wavenumber_cm1": 1318,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "NO2",
+      "wavenumber_cm1": 1618,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "OCS, NO2, HCl, HF, HNO3",
+    "fundamentals_text": "OCS about 520, 859, 2062; NO2 about 750, 1318, 1618; HCl about 2886; HF about 3962",
+    "strength_text": "all listed by B&G among HITRAN gases that reach 10 W m-2 below 1e-5 for the strongest of them",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "NO2",
+    "coverage_nm": [
+     0.06,
+     660.0
+    ],
+    "origin": "Burkholder 2020 above 397.75 nm",
+    "cross_section_cm2": [
+     1.1e-17,
+     2.8e-17,
+     4e-17,
+     4.4e-17,
+     3e-17,
+     1.4e-17,
+     9.7e-18,
+     9.8e-18,
+     2.4e-17,
+     9.8e-18,
+     1.3e-17,
+     1.5e-17,
+     1.6e-17,
+     1.1e-17,
+     1.8e-18,
+     2.5e-19,
+     3.4e-19,
+     4.3e-19,
+     3.7e-19,
+     1.8e-19,
+     2.6e-20,
+     3.1e-20,
+     8.6e-20,
+     1.8e-19,
+     3.1e-19,
+     4.4e-19,
+     5.6e-19,
+     5.6e-19,
+     3.5e-19,
+     1.6e-19,
+     6.2e-20,
+     2.1e-20,
+     9.2e-21,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -2776,9 +5066,21 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [],
+    "research_row": "OCS, NO2, HCl, HF, HNO3",
+    "fundamentals_text": "OCS about 520, 859, 2062; NO2 about 750, 1318, 1618; HCl about 2886; HF about 3962",
+    "strength_text": "all listed by B&G among HITRAN gases that reach 10 W m-2 below 1e-5 for the strongest of them",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -3217,9 +5519,46 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 992.1,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu4",
+      "wavenumber_cm1": 1118.3,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 2322.9,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 2327.7,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "PH3",
+    "fundamentals_text": "nu2 992.1 (10.1); nu4 1118.3 (8.9); nu1 2322.9; nu3 2327.7",
+    "strength_text": "window absorber; broadening-sensitive",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST",
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -3315,9 +5654,125 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 1182.7,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 2614.6,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 2626,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "H2S",
+    "fundamentals_text": "nu2 1182.7 (8.45); nu1 2614.6 (3.82); nu3 2626 (3.81)",
+    "strength_text": "strong band but narrow; listed among the weaker per-molecule gases in the B&G ordering",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST",
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
+   "uv": {
+    "research_name": "H2S",
+    "coverage_nm": [
+     0.06,
+     316.0
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     1.1e-18,
+     5.5e-18,
+     1.6e-17,
+     2.5e-17,
+     3.3e-17,
+     4.2e-17,
+     3.9e-17,
+     4.3e-17,
+     4.4e-17,
+     3.3e-17,
+     4e-17,
+     1.6e-17,
+     2.8e-19,
+     1.2e-18,
+     4e-18,
+     6.7e-18,
+     4.6e-18,
+     2.3e-18,
+     1e-18,
+     4e-19,
+     7e-20,
+     1.3e-21,
+     3.1e-22,
+     9.4e-23,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -3410,9 +5865,125 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 518,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu1",
+      "wavenumber_cm1": 1151,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "nu3",
+      "wavenumber_cm1": 1362,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "SO2",
+    "fundamentals_text": "nu2 518 (19.3); nu1 1151 (8.7); nu3 1362 (7.3)",
+    "strength_text": "strong (rank 8); also a strong UV absorber",
+    "saturated_rank": 8,
+    "no_band": false,
+    "source": "recalled; rank B&G 2014b",
+    "research_status": "RECALLED; rank READ",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED; rank READ\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "SO2",
+    "coverage_nm": [
+     1.7,
+     416.6
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     9.8e-18,
+     3.5e-17,
+     5.7e-17,
+     4.3e-17,
+     4.6e-17,
+     2.4e-17,
+     1.9e-17,
+     3.6e-17,
+     6.1e-17,
+     6.4e-18,
+     4.5e-18,
+     3.5e-18,
+     5.1e-19,
+     1.1e-18,
+     3.8e-18,
+     7.3e-18,
+     5.9e-18,
+     2.6e-18,
+     4e-19,
+     3.9e-20,
+     1.1e-19,
+     5.3e-19,
+     7.5e-19,
+     2.9e-19,
+     7.3e-21,
+     1.1e-22,
+     7.3e-23,
+     4.7e-25,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     true,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -3609,9 +6180,125 @@
     "state": "verified",
     "limit": ""
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "OCS",
+      "wavenumber_cm1": 520,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "OCS",
+      "wavenumber_cm1": 859,
+      "range_cm1": null,
+      "approximate": true
+     },
+     {
+      "label": "OCS",
+      "wavenumber_cm1": 2062,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "OCS, NO2, HCl, HF, HNO3",
+    "fundamentals_text": "OCS about 520, 859, 2062; NO2 about 750, 1318, 1618; HCl about 2886; HF about 3962",
+    "strength_text": "all listed by B&G among HITRAN gases that reach 10 W m-2 below 1e-5 for the strongest of them",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "OCS",
+    "coverage_nm": [
+     3.5,
+     279.4
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     7.3e-18,
+     2.6e-17,
+     5.1e-17,
+     7e-17,
+     7.2e-17,
+     5.7e-17,
+     2.5e-17,
+     1.7e-17,
+     2.3e-17,
+     1.8e-17,
+     3.2e-17,
+     9.2e-17,
+     2e-17,
+     1.1e-17,
+     5.6e-19,
+     1.8e-20,
+     8.1e-20,
+     1.9e-19,
+     2.8e-19,
+     1.8e-19,
+     3.1e-20,
+     5.5e-21,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -4042,9 +6729,113 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "HCl",
+      "wavenumber_cm1": 2886,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "OCS, NO2, HCl, HF, HNO3",
+    "fundamentals_text": "OCS about 520, 859, 2062; NO2 about 750, 1318, 1618; HCl about 2886; HF about 3962",
+    "strength_text": "all listed by B&G among HITRAN gases that reach 10 W m-2 below 1e-5 for the strongest of them",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
+   "uv": {
+    "research_name": "HCl",
+    "coverage_nm": [
+     4.5,
+     229.9
+    ],
+    "origin": "Heays 2017 or Huebner 2015",
+    "cross_section_cm2": [
+     1.1e-18,
+     1.8e-17,
+     4.4e-17,
+     3.9e-17,
+     3.5e-17,
+     3.7e-17,
+     1.8e-17,
+     2.3e-18,
+     3.6e-17,
+     2e-18,
+     2.7e-18,
+     3.3e-18,
+     2.4e-18,
+     1.1e-18,
+     3.2e-19,
+     7e-20,
+     1.1e-20,
+     1.4e-21,
+     1.3e-22,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "partial_bin": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "research_status": "DATA, COMPUTED",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
    "licence": "open"
   },
   {
@@ -4105,9 +6896,28 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "HF",
+      "wavenumber_cm1": 3962,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "OCS, NO2, HCl, HF, HNO3",
+    "fundamentals_text": "OCS about 520, 859, 2062; NO2 about 750, 1318, 1618; HCl about 2886; HF about 3962",
+    "strength_text": "all listed by B&G among HITRAN gases that reach 10 W m-2 below 1e-5 for the strongest of them",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4261,9 +7071,46 @@
     "state": "partly verified",
     "limit": "Chapman-Enskog only, not compared with a NIST fluid value"
    },
+   "infrared": {
+    "bands": [
+     {
+      "label": "nu3 CCl",
+      "wavenumber_cm1": 732.1,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu6 rock",
+      "wavenumber_cm1": 1017.3,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu2",
+      "wavenumber_cm1": 1354.9,
+      "range_cm1": null,
+      "approximate": false
+     },
+     {
+      "label": "nu5",
+      "wavenumber_cm1": 1452.1,
+      "range_cm1": null,
+      "approximate": false
+     }
+    ],
+    "research_row": "CH3Cl",
+    "fundamentals_text": "nu3 CCl 732.1 (13.7); nu6 rock 1017.3 (9.8); nu2 1354.9 (7.4); nu5 1452.1",
+    "strength_text": "in the strong group of the saturated ranking",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "NIST",
+    "research_status": "DATA",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4647,9 +7494,28 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "infrared": {
+    "bands": [
+     {
+      "label": "fundamental",
+      "wavenumber_cm1": 1242,
+      "range_cm1": null,
+      "approximate": true
+     }
+    ],
+    "research_row": "SiO",
+    "fundamentals_text": "fundamental about 1242 (8.05)",
+    "strength_text": "hot-body species (lava worlds); no reachable line-strength data in this lane",
+    "saturated_rank": null,
+    "no_band": false,
+    "source": "recalled",
+    "research_status": "RECALLED",
+    "state": "partly verified",
+    "limit": "research status \"RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
+   },
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4699,9 +7565,21 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "infrared": {
+    "bands": [],
+    "research_row": "TiO, VO, Na, K, Fe, Mg",
+    "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
+    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "Guillot 2010",
+    "research_status": "READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4751,9 +7629,21 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "infrared": {
+    "bands": [],
+    "research_row": "TiO, VO, Na, K, Fe, Mg",
+    "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
+    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "Guillot 2010",
+    "research_status": "READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4855,9 +7745,21 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "infrared": {
+    "bands": [],
+    "research_row": "TiO, VO, Na, K, Fe, Mg",
+    "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
+    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "Guillot 2010",
+    "research_status": "READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4907,9 +7809,21 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
+   "infrared": {
+    "bands": [],
+    "research_row": "TiO, VO, Na, K, Fe, Mg",
+    "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
+    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "Guillot 2010",
+    "research_status": "READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -4954,9 +7868,21 @@
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
    "extras_note": "JANAF Cp in T3 agrees within 4% at 300 K; vapour curve in T6",
+   "infrared": {
+    "bands": [],
+    "research_row": "TiO, VO, Na, K, Fe, Mg",
+    "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
+    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "Guillot 2010",
+    "research_status": "READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {
@@ -5205,9 +8131,21 @@
    },
    "extras_note": "NOT REACHED",
    "thermal_status": "COMPUTED",
+   "infrared": {
+    "bands": [],
+    "research_row": "TiO, VO, Na, K, Fe, Mg",
+    "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
+    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "saturated_rank": null,
+    "no_band": true,
+    "source": "Guillot 2010",
+    "research_status": "READ",
+    "state": "verified",
+    "limit": ""
+   },
    "state": "partly verified",
    "limit": "identity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
    "licence": "open"
   },
   {

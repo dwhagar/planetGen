@@ -1,5 +1,5 @@
 """GEN.410: the table of the gases and compounds that can be in an atmosphere (`planetgen/physics/gases.py`, its data
-file `physics/data/gases.json`, built by `scripts/build_gas_table.py` from the research parts 01 and 02). The audit at
+file `physics/data/gases.json`, built by `scripts/build_gas_table.py` from the research parts 01, 02 and 03). The audit at
 the end fails when a gas the code or the docs name is not a row of the table."""
 
 import json
@@ -208,6 +208,130 @@ def test_the_loader_refuses_a_henry_or_viscosity_entry_that_is_not_physical(brok
         entry["state"], entry["limit"] = "partly verified", ""
 
     for edit in (zero_henry, zero_sigma, partly_without_limit):
+        with pytest.raises(DataError):
+            broken(edit)()
+
+
+# --- The infrared bands and the ultraviolet bins (the third slice) -------------------------------------------------
+
+def test_every_infrared_band_is_a_number_the_research_cell_states():
+    listed = [row for row in gases.GASES if row.infrared]
+    assert len(listed) == 37
+    for row in listed:
+        entry = row.infrared
+        text = entry.fundamentals_text.replace(",", "")
+        for band in entry.bands:
+            for value in (band.wavenumber_cm1, *(band.range_cm1 or ())):
+                assert value in (None, 0.0) or f"{value:g}" in text, f"{row.formula}: {value} is not in {entry.fundamentals_text!r}"
+
+
+def test_the_band_centres_agree_with_the_wavelengths_the_research_prints_beside_them():
+    water = {band.label: band for band in gases.gas("H2O").infrared.bands}
+    assert water["nu2 bend"].wavelength_um == pytest.approx(6.27, abs=0.005)
+    assert water["nu1"].wavelength_um == pytest.approx(2.73, abs=0.005)
+    methane = {band.label: band for band in gases.gas("CH4").infrared.bands}
+    assert methane["nu4"].wavenumber_cm1 == 1306.2 and methane["nu4"].wavelength_um == pytest.approx(7.66, abs=0.005)
+    carbon_dioxide = gases.gas("CO2").infrared
+    assert [band.wavenumber_cm1 for band in carbon_dioxide.bands if band.label == "hot band"] == [960, 1063]
+    assert all(band.approximate for band in carbon_dioxide.bands), "the CO2 bands are recalled, not read"
+    assert not any(band.approximate for band in gases.gas("CH4").infrared.bands)
+    assert gases.gas("CH3OH").infrared.bands[2].wavenumber_cm1 is None and gases.gas("CH3OH").infrared.bands[2].range_cm1 == (1455.0, 1477.0)
+
+
+def test_the_saturated_absorption_rank_is_the_one_the_research_states():
+    ranks = {row.formula: row.infrared.saturated_rank for row in gases.GASES if row.infrared and row.infrared.saturated_rank}
+    assert ranks == {"H2O": 11, "CO2": 16, "CH4": 27, "C2H2": 6, "SO2": 8, "CH3OH": 1}
+
+
+def test_a_gas_without_fundamentals_has_no_band_and_says_why():
+    for formula in ("N2", "O2", "H2", "He", "Ne", "Ar", "Kr", "Xe", "TiO", "Na", "HNO3"):
+        entry = gases.gas(formula).infrared
+        assert entry.bands == () and entry.strength_text, formula
+    assert "collision-induced" in gases.gas("N2").infrared.fundamentals_text
+    assert gases.gas("CH4").infrared.state == "verified" and gases.gas("CH4").infrared.limit == ""
+    assert gases.gas("H2O").infrared.state == "partly verified" and "rotation edge RECALLED" in gases.gas("H2O").infrared.limit
+
+
+def test_recalled_band_positions_are_partly_verified_with_their_limit():
+    for formula in ("CO2", "O3", "N2O", "SO2", "CO", "OCS", "SiO"):
+        entry = gases.gas(formula).infrared
+        assert entry.state == "partly verified" and "RECALLED" in entry.limit, formula
+
+
+def test_the_ultraviolet_bins_run_from_10_to_1100_nm_one_after_another():
+    bins = gases.UV_BINS_NM
+    assert len(bins) == 35 and bins[0] == (10.0, 30.0) and bins[-1] == (800.0, 1100.0)
+    assert all(a[1] == b[0] for a, b in zip(bins, bins[1:]))
+
+
+def test_the_ultraviolet_values_are_the_ones_the_research_table_prints():
+    assert gases.gas("O3").uv.at(255.0) == 1.1e-17                 # the Hartley band, 240 to 260 nm
+    assert gases.gas("O3").uv.at(620.0) == 3.8e-21                 # the Chappuis band
+    assert gases.gas("O2").uv.at(145.0) == 1.4e-17                 # the Schumann-Runge continuum
+    assert gases.gas("NO2").uv.at(420.0) == 5.6e-19                # the only broad visible band
+    assert gases.gas("CH4").uv.at(900.0) == 1.6e-24
+    assert gases.gas("CH2O").uv.at(310.0) == 2.8e-20               # the research's H2CO is the table's CH2O
+    assert gases.gas("SO2").uv.at(30.0) == 3.5e-17                 # the edge of a bin belongs to the bin above it
+    assert gases.gas("SO2").uv.at(1100.0) == 0.0
+
+
+def test_a_bin_outside_the_data_is_none_and_counts_as_zero():
+    h2 = gases.gas("H2").uv
+    assert h2.coverage_nm == (0.1, 119.9)
+    assert h2.cross_section_cm2[gases.UV_BINS_NM.index((120.0, 123.0))] is None and h2.at(121.6) == 0.0
+    assert gases.gas("CO2").uv.partial_bin[gases.UV_BINS_NM.index((210.0, 220.0))] is True
+
+
+def test_every_cell_is_missing_exactly_where_the_bin_lies_outside_the_coverage():
+    listed = [row for row in gases.GASES if row.uv]
+    assert len(listed) == 22
+    for row in listed:
+        low, high = row.uv.coverage_nm
+        for (bin_low, bin_high), value in zip(gases.UV_BINS_NM, row.uv.cross_section_cm2):
+            assert (value is None) == (bin_high <= low or bin_low >= high), (row.formula, bin_low, bin_high)
+
+
+def test_the_ultraviolet_search_for_the_longest_absorbing_wavelength():
+    assert gases.gas("SO2").uv.longest_wavelength_above(1e-20) == 320.0       # the 300 to 320 nm bin is the last at 1e-20
+    assert gases.gas("NO2").uv.longest_wavelength_above(1e-20) == 650.0
+    assert gases.gas("N2").uv.longest_wavelength_above(1e-10) is None
+    assert gases.gas("H2O").uv.longest_wavelength_above(1e-18) < 200.0, "water vapour does not shield the ground ultraviolet"
+
+
+def test_the_limits_the_research_names_for_the_ultraviolet_bins_are_kept():
+    assert "k-distribution" in gases.gas("O2").uv.limit and gases.gas("O2").uv.state == "partly verified"
+    assert "Karkoschka" in gases.gas("CH4").uv.limit
+    assert gases.gas("O3").uv.state == "verified" and gases.gas("O3").uv.limit == ""
+    assert "Huebner 2015 below 52.7 nm" in gases.gas("O3").uv.origin
+    assert gases.gas("O2").uv.origin == "Heays 2017 or Huebner 2015"
+
+
+def test_the_loader_refuses_an_infrared_or_ultraviolet_entry_that_is_not_physical(broken):
+    def row(data, formula):
+        return next(item for item in data["gases"] if item["formula"] == formula)
+
+    def no_centre(data):
+        row(data, "CH4")["infrared"]["bands"][0]["wavenumber_cm1"] = None
+
+    def negative_centre(data):
+        row(data, "CH4")["infrared"]["bands"][0]["wavenumber_cm1"] = -1.0
+
+    def wrong_band_count(data):
+        row(data, "N2")["infrared"]["bands"] = row(data, "CH4")["infrared"]["bands"]
+
+    def short_values(data):
+        row(data, "O3")["uv"]["cross_section_cm2"].pop()
+
+    def negative_value(data):
+        row(data, "O3")["uv"]["cross_section_cm2"][3] = -1e-17
+
+    def bins_apart(data):
+        data["uv_bins_nm"][4][1] += 1.0
+
+    def no_bins(data):
+        data.pop("uv_bins_nm")
+
+    for edit in (no_centre, negative_centre, wrong_band_count, short_values, negative_value, bins_apart, no_bins):
         with pytest.raises(DataError):
             broken(edit)()
 
