@@ -16388,7 +16388,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.43, DB.45, DB.46, DB.47, DB.48.
+  Prerequisites: DB.45, DB.46, DB.47, DB.48.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
@@ -16681,34 +16681,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damage a healthy sector.
   Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
 
-- [ ] **DB.43 Reed-Solomon codec in the standard library: planetgen/util/rscodec.py**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A GF(256) Reed-Solomon module with no
-  new dependency: a Cauchy generator scaled so row 0 is plain XOR,
-  `RS(k, m)` with `encode` (k equal-length blocks to m parity blocks),
-  `decode` (any k of the k+m blocks back to the data) and `update` (new
-  parity when one member changes, from the old and new bytes). The
-  tested code is in docs/design/db-check-and-parity-repair.md 5.9. Why:
-  the parity file (child d) and the repair command (child e) both stand
-  on it, and it can be built and tested with no database. Done: the
-  module and its tests: random erasure patterns of up to m blocks decode
-  exactly for (k, m) of (16,1), (16,2), (32,2) and (8,3); `update`
-  equals a fresh `encode`; unequal member lengths work through zero
-  padding; the time to encode and to rebuild one 32-member group of 43
-  KB blocks is recorded in the PR.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
-  a dedicated DB thread that will start on DB.80 and run in that order";
-  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
-  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
-  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
-  and DB.66 (docs and report
-  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
-  earlier owner line on this item.
-  Prerequisites: none. Related: DB.9.
-
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Compute the sector's storage checksum
@@ -16753,7 +16725,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.43, DB.45. Related: DB.9.
+  Prerequisites: DB.45. Related: DB.9.
 
 - [ ] **DB.47 planetgen repair-db: rebuild damaged sectors from the parity file**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for

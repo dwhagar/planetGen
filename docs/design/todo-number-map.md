@@ -587,7 +587,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | none | open |
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
-| DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | open |
+| DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | done, PR #2423 |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | open |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
