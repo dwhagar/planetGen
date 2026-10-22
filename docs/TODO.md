@@ -8485,7 +8485,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one bump and does not take an epoch of its own.
   Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
   lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in one file in the repo root. This
+  one; the licence information lives in DATA-LICENSE.md. This
   overrides every line of this item that calls the licence column
   mandatory; GEN.623 does the removal.
 
@@ -10883,7 +10883,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-flag rows left in B17 are m3, m4 and m11.
   Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
   lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in one file in the repo root. This
+  one; the licence information lives in DATA-LICENSE.md. This
   overrides every line of this item that calls the licence column
   mandatory; GEN.623 does the removal.
 
@@ -15269,7 +15269,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 4 owns the remnant distribution work of GEN.554).
   Prerequisites: none. Related: GEN.554, TEST.160.
 
-- [ ] **GEN.623 Data tables carry no licence column or licence check; the licence information lives in one file in the repo root**
+- [ ] **GEN.623 Data tables carry no licence column or licence check; the licence information lives in DATA-LICENSE.md**
   Boss, 4:41 to 4:42 PM EDT 2026-10-22 (in the Blocker 3 thread, as the
   coordinator relayed at 4:42 PM EDT as the lane's clock reads): remove
   the licence column from data tables and move the licence information
@@ -15283,11 +15283,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   licence (the loader refusals, the `licence` entries in the
   required-field lists, the `"open"` default, and the licence assertions
   in TEST.214 and the table tests); write the licence information for
-  each data source (name, licence, where read) in one file in the repo
-  root (the lane picks its name, for example DATA-LICENCES.md) and have
-  the README point to it. Done: no data table, loader or test has a
-  licence field or check, nothing fails when a table carries no licence,
-  the root file lists every source the tables cite, the docs that call
+  each data source (name, licence, where read) in a new repo root file,
+  DATA-LICENSE.md (Boss, 4:46 PM EDT 2026-10-22, after first saying
+  LICENSE.md; the project's own LICENSE.md stays as it is) and have the
+  README point to it. Done: no data table, loader or test has a licence
+  field or check, nothing fails when a table carries no licence,
+  DATA-LICENSE.md lists every source the tables cite, the docs that call
   the licence column mandatory (docs/design/atmosphere-composition.md
   and the design notes of GEN.427, GEN.438, GEN.472) say so no more, and
   a grep for `licence` in the table modules finds none. No epoch, no
@@ -19645,7 +19646,7 @@ clears each one.
   exists, so the 1:40 AM and 1:51 AM EDT 2026-10-17 texts agree.
   Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
   lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in one file in the repo root. This
+  one; the licence information lives in DATA-LICENSE.md. This
   overrides every line of this item that calls the licence column
   mandatory; GEN.623 does the removal.
 
