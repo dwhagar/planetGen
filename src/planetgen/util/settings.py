@@ -38,6 +38,8 @@ Field metadata sits in `json_schema_extra` under `x-` keys, written with
 - `x-control`: the control the page draws when the type alone doesn't say (`slider`, `duration`, `rate`, `color`,
   `asset`, `language`); empty means the control the type gives (switch, choice, number, text, chips, text area)
 - `x-advanced`: shown only under "Advanced" in its group (search always reaches it)
+- `x-choice-labels`: `{value: words}` for a choice option whose values are not words an admin reads
+- `x-slider`: `(low, high)`, the range a `slider` control's logarithmic stops span (0 is added when the option allows it)
 
 The log options (`debug`, `log_file`, `log_dir`, `log_rotation`) are read
 by `planetgen.util.logpaths`, which needs only the standard library (the
@@ -71,11 +73,11 @@ _FALSE_STRINGS = ("", "0", "false", "no", "off")
 
 def opt(default, description, env=None, restart=False, secret=False, editable=True, role="admin",
         unit=None, env_empty=False, multiline=False, *, label, summary, group, control=None, advanced=False,
-        **constraints):
+        choice_labels=None, slider=None, **constraints):
     """A model field with its `x-` metadata (see the module docstring)."""
     extra = {"x-restart": restart, "x-secret": secret, "x-editable": editable, "x-min_role": role,
              "x-label": label, "x-summary": summary, "x-group": group, "x-control": control,
-             "x-advanced": advanced, "x-multiline": multiline}
+             "x-advanced": advanced, "x-multiline": multiline, "x-choice-labels": choice_labels, "x-slider": slider}
     if env:
         extra["x-env"] = env
     if env_empty:
@@ -223,6 +225,7 @@ class Cache(_Section):
                         label="Disk cache size",
                         summary="How much disk the site's stored caches may use in all; 0 turns "
                                 "them off.",
+                        slider=(16, 1048576),
                         control="slider")
     warm_on_change: bool = opt(True, "Start the warm-up by itself after anything that changes what the site shows (a "
                                "generation run, the orbital update, an edit), so the caches are rebuilt without "
@@ -514,12 +517,14 @@ class Seo(_Section):
         "top_pages", "Whether search engines may index the site: off (robots.txt disallows everything and every page "
         "says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the "
         "system, sector and phenomenon pages).", group="search",
+        choice_labels={"off": "Off", "top_pages": "Main pages only", "all": "All pages"},
         label="Search engine indexing",
         summary="Which pages search engines may list: none, the main pages, or all of them.")
     detail_pages: Literal["noindex", "index"] = opt(
         "noindex", "Whether the generated system, sector and phenomenon pages may be indexed when indexing is "
         "top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by "
         "default; a small galaxy can switch this to index.", group="search",
+        choice_labels={"noindex": "Keep out of search", "index": "Allow in search"},
         label="Index generated pages",
         summary="Whether the generated system, sector and phenomenon pages may be indexed.")
     description: str = opt("", "The description search engines show for pages that give none of their own (about 155 "
@@ -624,6 +629,7 @@ class OpenGraph(_Section):
                              control="asset")
     twitter_card: Literal["summary", "summary_large_image"] = opt(
         "summary_large_image", "How X (Twitter) draws a preview: a large picture or a small one.", group="previews",
+        choice_labels={"summary": "Small picture", "summary_large_image": "Large picture"},
         label="X (Twitter) card style",
         summary="Whether X draws a large or a small preview picture.")
     twitter_site: str = opt("", "The site's X (Twitter) account, as @name; empty names none.", group="previews",
@@ -639,6 +645,7 @@ class OpenGraph(_Section):
                                ge=0,
                                label="Preview picture disk use",
                                summary="How much disk the drawn preview pictures may use.",
+                               slider=(10, 10240),
                                control="slider")
     card_cache_dir: str = opt("", "Where drawn preview pictures are cached; empty means the state folder.",
                               editable=False, group="paths",
@@ -717,6 +724,7 @@ class Settings(_Section):
         logpaths.DEFAULT_LOG_ROTATION, "How the activity log is rotated: system (logrotate or newsyslog), app (the "
         "program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else "
         "app).", restart=True, editable=False, group="logging",
+        choice_labels={"auto": "Automatic", "system": "The system (logrotate)", "app": "The program"},
         label="Log rotation",
         summary="Who trims old activity logs: the system, the program, or whichever is installed.")
     settings: SettingsFile = SettingsFile()

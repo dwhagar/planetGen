@@ -98,9 +98,10 @@ def describe(role="admin", environ=None):
     Returns:
         dict: `file_hash` (what a save sends back as `expect_hash`), `problem` (why the page can't save, or
             `""`), `file_error` (why config.json can't be read, or `""`), `groups` (`[{"key", "title",
-            "options"}]`, in page order) and `options`, the same options in one flat list. Each option is
+            "options"}]`, in page order) and `options`, the same options in one flat list, and `fixed_count`, how many the caller's role may not change (each
+            group has its own `fixed_count`; `fixed_kind` says why: `"owner"` or `"server"`). Each option is
             `{"path", "section", "name", "title", "summary", "description", "group", "control", "advanced", "kind", "choices",
-            "limits", "unit", "multiline",
+            "limits", "choice_labels", "slider", "unit", "multiline", "fixed_kind", "overridden",
             "default", "value", "effective", "is_set", "source", "env", "restart", "secret", "editable",
             "min_role", "allowed", "reason"}`. `value` is what the file holds (the default where it holds
             nothing): what the form edits. `effective` is the value in use, which differs from `value` when an
@@ -143,6 +144,9 @@ def describe(role="admin", environ=None):
             "group": meta["x-group"],
             "control": meta["x-control"] or ("secret" if secret else "textarea" if meta["x-multiline"] else CONTROLS[kind]),
             "advanced": bool(meta["x-advanced"]),
+            "choice_labels": dict(meta.get("x-choice-labels") or {}),
+            "slider": list(meta["x-slider"]) if meta.get("x-slider") else None,
+            "fixed_kind": "" if permitted else ("server" if not meta["x-editable"] else "owner"),
             "kind": kind,
             "choices": list(get_args(annotation)) if kind == "choice" else [],
             "limits": _limits(info),
@@ -155,6 +159,7 @@ def describe(role="admin", environ=None):
             "source": _source(path, meta, document, environ),
             "env": meta.get("x-env") or "",
             "restart": bool(meta["x-restart"]),
+            "overridden": _source(path, meta, document, environ) == "environment",
             "secret": secret,
             "editable": bool(meta["x-editable"]),
             "min_role": meta["x-min_role"],
@@ -165,8 +170,10 @@ def describe(role="admin", environ=None):
     present = sorted({option["group"] for option in options}, key=order.index)
     groups = [{"key": key, "title": GROUPS[key], "options": [o for o in options if o["group"] == key]}
               for key in present]
+    for group in groups:
+        group["fixed_count"] = sum(1 for o in group["options"] if not o["allowed"])
     return {"file_hash": file_hash, "problem": problem, "file_error": file_error, "groups": groups,
-            "options": options}
+            "options": options, "fixed_count": sum(1 for o in options if not o["allowed"])}
 
 
 # ---------------------------------------------------------------------

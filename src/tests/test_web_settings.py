@@ -344,6 +344,58 @@ def test_the_page_lists_every_option_and_hides_every_secret(site, config):
     assert 'aria-current="page"' in html
 
 
+def test_the_settings_an_admin_cannot_change_are_hidden_until_asked_for(site, config):
+    view = settings_view.describe("admin")
+    fixed = [o["path"] for o in view["options"] if not o["allowed"]]
+    assert view["fixed_count"] == len(fixed) and 0 < len(fixed) < len(view["options"])
+    hidden = site.get("/admin/settings").get_data(as_text=True)
+    shown = site.get("/admin/settings?show=fixed").get_data(as_text=True)
+    assert 'data-show-fixed="false"' in hidden and 'data-show-fixed="true"' in shown
+    assert f"Show settings that cannot be changed ({len(fixed)})" in hidden
+    assert 'action="/admin/settings?show=fixed"' in shown and 'action="/admin/settings"' in hidden
+
+
+def test_each_setting_gets_the_control_that_fits_it(site, config):
+    html = site.get("/admin/settings").get_data(as_text=True)
+    assert 'role="switch" id="opt-seo-json_ld"' in html                              # yes or no
+    assert 'name="opt.seo.indexing" value="top_pages" checked' in html               # few choices: segments
+    assert "Main pages only" in html and "Keep out of search" in html
+    assert 'data-limit-slider' in html and 'id="opt-cache-max_mb"' in html           # a size: slider with a box
+    assert 'type="color"' in html and 'name="rate.ratelimit.pages.search.count"' in html
+    assert "Change it on the Images page" in html                                    # an uploaded file
+    assert "Details" in html and "Advanced (" in html
+
+
+def test_a_search_keeps_only_the_settings_it_matches(site, config):
+    html = site.get("/admin/settings?q=sitemap").get_data(as_text=True)
+    assert 'id="setting-seo-sitemap_enabled"' in html and 'id="setting-site_name"' not in html
+    assert "No setting matches" in site.get("/admin/settings?q=zzzz-nothing").get_data(as_text=True)
+
+
+@pytest.mark.parametrize("text, expected", [("30 per minute", ("30", "minute")), ("", ("", "minute")),
+                                             ("5 per DAY", ("5", "day")), ("200 per day;50 per hour", None)])
+def test_a_rate_is_read_as_a_number_and_a_period_or_left_to_text(text, expected):
+    found = settings_page.parse_rate(text)
+    assert (found and (found["limit"], found["period"])) == expected
+
+
+def test_a_rate_control_is_composed_back_into_the_limit_text(config):
+    options = _options()
+    form = {settings_page.RATE_FIELD + "ratelimit.pages.search.count": "90",
+            settings_page.RATE_FIELD + "ratelimit.pages.search.per": "hour"}
+    changes, _ = settings_page.collect(list(options.values()), form)
+    assert changes == {"ratelimit.pages.search": "90 per hour"}
+    form[settings_page.RATE_FIELD + "ratelimit.pages.search.off"] = "1"
+    assert settings_page.collect(list(options.values()), form)[0] == {"ratelimit.pages.search": ""}
+
+
+@pytest.mark.parametrize("value, unit, words", [("21600", "seconds", "6 hours"), ("15", "seconds", "15 seconds"),
+                                                 ("90000", "seconds", "1 day 1 hour"), ("24", "hours", "1 day"),
+                                                 ("0", "seconds", "off"), ("soon", "seconds", "")])
+def test_a_duration_is_said_in_words(value, unit, words):
+    assert settings_page.duration_text(value, unit) == words
+
+
 def test_the_page_needs_an_admin(site):
     assert site.application.test_client().get("/admin/settings").status_code == 302
 
@@ -353,7 +405,7 @@ def test_the_review_step_shows_the_diff_and_writes_nothing(site, config):
         "/api/admin/settings").get_json()["file_hash"], action="review")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200 and "These changes will be saved" in html
-    assert "Mine" in html and "Home" in html and "needs a restart" in html
+    assert "Mine" in html and "Home" in html and "applies after a restart" in html
     assert json.loads(config.read_text())["site_name"] == "Mine"
     assert re.search(r'name="changes" value="[^"]*Home', html)
 
