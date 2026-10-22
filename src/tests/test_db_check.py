@@ -131,7 +131,10 @@ def test_a_foreign_key_whose_delete_rule_is_the_default_is_not_drift(saved, rule
 
 def test_a_foreign_key_with_another_delete_rule_is_drift(saved):
     _sql(saved, _DROP_FACILITIES_TYPE_KEY, _FACILITIES_TYPE_KEY.format(rule=" ON DELETE CASCADE"))
-    assert any("fk" in line or "facilities" in line for line in check._model_drift(saved))
+    try:
+        assert any("fk" in line or "facilities" in line for line in check._model_drift(saved))
+    finally:  # the pool's reset reads constraint names only, so it would hand the next test this key as it is
+        _sql(saved, _DROP_FACILITIES_TYPE_KEY, _FACILITIES_TYPE_KEY.format(rule=""))
 
 
 def test_a_check_that_cannot_run_is_not_called_damage(saved, monkeypatch):
