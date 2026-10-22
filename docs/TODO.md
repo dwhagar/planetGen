@@ -7023,25 +7023,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spiral family written as components. No fixed content (Boss, 4:11 and
   4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234,
-  GEN.280.
+  Prerequisites: DB.66. Related: GEN.338, GEN.381, GEN.234, GEN.280.
   Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
   one call site in `galaxy/density_modulation.py` (GEN.393) that
   multiplies each population's density after the component sum; this
   rewrite keeps that one call and does not move the factor into the
-  components.
-  Design merged (GEN.378, #2368): docs/design/galaxy-types.md is the
-  checked design; Boss reads and approves its table before this item and
-  DB.66 are built (Needs Boss list).
+  components. Design merged (GEN.378, #2368):
+  docs/design/galaxy-types.md is the checked design; Boss reads and
+  approves its table before this item and DB.66 are built (Needs Boss
+  list).
   Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
   written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
   the table in docs/design/galaxy-types.md is approved as written. The
   approval that held this item is given.
-  Owner: Core 1's queue lists it after GEN.545 (lane report, 4:39 PM EDT
-  as the lane reported) and it has no branch, so it is queued, not in
-  progress. The Blocker 2 lane can take it only if Core 1 confirms it
-  has not started; until then it stays with Core 1 (the TODO thread,
-  9:09 PM EDT 2026-10-21).
+  Owner: the Blocker 2 lane. Core 1 confirmed nothing is started and
+  gave it up (the coordinator, 9:12 PM EDT 2026-10-21), so it leaves
+  Core 1's queue.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -18035,26 +18032,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   table lists them. The migration gives every existing galaxy the spiral
   family and the values the model derives for it today, so no stored
   density changes. No reader changes in this item. The early-alpha
-  schema is not a constraint.
-  Boss (12:56 PM EDT, card "Draw it in 8.1", relayed in words): the bar
-  is drawn in 8.1 by GEN.533 without a stored column, so nothing in 8.1
-  needs this item; it stays in 8.3 and later stores the drawn values
-  (bar presence, axis ratios and angle) with the other component
-  columns.
-  Design merged (Blocker 2, 7:58 PM EDT 2026-10-21 as the lane reported,
-  GEN.378, #2368, docs only): docs/design/galaxy-types.md section 10
-  lists this item's columns. Boss must read and approve the design's
-  table before this item and GEN.379 are built (see the Needs Boss
-  list); the three questions with defaults are in section 12 and the ten
-  research requests R1 to R10 in section 11.
+  schema is not a constraint. Boss (12:56 PM EDT, card "Draw it in 8.1",
+  relayed in words): the bar is drawn in 8.1 by GEN.533 without a stored
+  column, so nothing in 8.1 needs this item; it stays in 8.3 and later
+  stores the drawn values (bar presence, axis ratios and angle) with the
+  other component columns. Design merged (Blocker 2, 7:58 PM EDT
+  2026-10-21 as the lane reported, GEN.378, #2368, docs only):
+  docs/design/galaxy-types.md section 10 lists this item's columns. Boss
+  must read and approve the design's table before this item and GEN.379
+  are built (see the Needs Boss list); the three questions with defaults
+  are in section 12 and the ten research requests R1 to R10 in section
+  11.
   Decided (Boss, 9:01 PM EDT 2026-10-21, tapped "Approve the table as
   written", card cmsg_01RuNTFUNB92A8cm5CbojQAiCGTfQaBbcDrkbWs45yyKk8):
   the table in docs/design/galaxy-types.md is approved as written. The
   approval that held this item is given.
-  Owner: none in any lane's queue and not in progress; the coordinator
-  proposes the Blocker 2 lane (the author of the approved design, 9:09
-  PM EDT 2026-10-21). The next Alembic revision is 0114 unless another
-  lane takes it first.
+  Owner: the Blocker 2 lane (the author of the approved design; the
+  coordinator, 9:15 PM EDT 2026-10-21). The next Alembic revision is
+  0114 unless another lane takes it first.
   Prerequisites: none. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -18651,6 +18646,26 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
   Prerequisites: GEN.601. Related: GEN.603, DB.66.
+
+- [ ] **DB.82 The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug)**
+  Found by the Blocker 2 lane (9:12 PM EDT 2026-10-21 as the lane
+  reported), filed by the TODO thread. Kind: test failure. Test:
+  src/tests/test_sql_portability.py::test_no_new_values_function_in_on_duplicate_key_update.
+  Text: "planetgen/db/objectindex.py:134: VALUES(__expr__) in:
+  object_index . __expr__ = VALUES ( __expr__ )" (VALUES() in ON
+  DUPLICATE KEY UPDATE is deprecated since MySQL 8.0.20). Fails on main:
+  yes (objectindex.py and the test match origin/main 5f4f32b); the code
+  came in with PERF.140 (#2370, Core 2). Frequency: every run,
+  deterministic. Reproducer: python -m pytest
+  src/tests/test_sql_portability.py -q. It blocks the DB.44 gate. Do:
+  write the upsert with the row alias form (INSERT ... AS new ... ON
+  DUPLICATE KEY UPDATE col = new.col), which works on the MySQL 8.0.19
+  minimum, and leave no VALUES() use in the file; no shim. Done: the
+  test passes and the object index tests still pass. Owner: Core 2 (the
+  author of PERF.140); the Blocker 2 lane may take it only if Core 2
+  says it has not started, since it blocks DB.44's gate (the coordinator
+  decides).
+  Prerequisites: none. Related: PERF.140, DB.79, DB.44.
 
 ## API: The JSON API
 

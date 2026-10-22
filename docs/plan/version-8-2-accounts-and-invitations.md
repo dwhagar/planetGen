@@ -44,6 +44,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging |  | Boss, 2026-10-18, 5:43 PM EDT (a list of every list). |
+| DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) |  | Blocker 2 finding, 9:12 PM EDT 2026-10-21; blocks the DB.44 gate. |
 | PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows |  | Boss, 2026-10-18, 5:43 PM EDT (multiple warm-up phases). |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 
