@@ -21704,53 +21704,6 @@ clears each one.
   symptom is a loaded-gate failure).
   Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
 
-- [ ] **TEST.260 test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug)**
-  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
-  Core 3's note, in its `scripts/test.py changed` gate), filed by the
-  TODO thread. Kind: test infrastructure, the PERF.142 family.
-  `src/tests/test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-the
-  largest allowed radius, wider than the test galaxy]` fails with `hang:
-  planetgen galaxy --quiet --center-sector 1 --radius-pc 200.0 ... did
-  not finish within 10s` (`_Timeout` at units.py `follow_stage`). Fails
-  on main: yes, alone, a 25 s run on a worktree of main d839e5d (4
-  cores, no load). Frequency: 2 of 2. Effect: the timed-out run leaves
-  `planetgen:run:active` set in the test Redis, so every later test that
-  starts a run fails with `Busy: run ... is running`; in one gate 170
-  tests (test_galaxy_gen, test_phenomenon_scatter, test_work_units and
-  every browser fixture) failed or errored and the gate's rerun phase
-  kept failing them for two hours. Reproducer: run the test, then
-  `redis-cli get planetgen:run:active` shows a live run id. Do: make the
-  radius-200 case finish inside the limit (or give it the limit its work
-  needs, from the recorded stats, PERF.144), and make the test release
-  the lock when its run times out; PERF.142 covers the lock having no
-  expiry. Done: the test passes alone and leaves no run key behind.
-  Owner: Bug Hunt (proposed).
-  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): the hung run
-  leaving `planetgen:run:active` set is the same path as PERF.142, and
-  its takeover should clear it after the owner dies; the lane checks the
-  test once that PR is in, and the 10 s hang itself stays this item's.
-  Sightings (Bug Hunt, PERF.148's `changed` gate, about 11:10 PM EDT
-  2026-10-21 as the lane reported, filed by the TODO thread): (1)
-  src/tests/test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
-  failed once with `Busy: run ... is running`: it launches a real galaxy
-  run and collides on the global `planetgen:run:active` lock with
-  another xdist worker's run; it passes alone on main and on the lane's
-  branch; frequency 1 in that gate. The lock collision between tests is
-  this item's family (PERF.142 is done). (2) Run alone, the same test
-  leaves 2 `planetgen.cli.worker` processes running afterwards; they
-  keep taking units of later runs without the database password, so
-  those runs fail with "Access denied ... using password: NO". Do
-  (added): the test and every test that starts a real run use their own
-  run lock key or run serially, and leave no worker process behind. (3)
-  Environment: a gate run without PLANETGEN_TEST_REDIS_URL fails about
-  200 tests with `Busy` (saved to team memory as
-  gate-needs-redis-test-env); a lane's gate must set it.
-  Second sighting of the run lock collision (Core 2, UX.141's gate,
-  about 1:44 AM EDT 2026-10-22 as the lane reported):
-  test_work_queue_failures::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-False]
-  failed once under load; it passes alone.
-  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
-
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full bug hunt audit, and it MUST be done before every single
@@ -21833,27 +21786,12 @@ clears each one.
   test_web_browser_units), and test_old_jobs_are_pruned timed out at 30
   seconds once; all pass alone. Same load class as the sightings above;
   Bug Hunt looks at all of them.
+  Sixth sighting (Bug Hunt, #2425's gate, about 4:43 AM EDT 2026-10-22
+  as the lane reported, filed by the TODO thread):
+  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
+  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
+  Same load class as the sightings above; Bug Hunt takes TEST.262 next.
   Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.264 test_web_a11y: every page test errors on main because the new /lists/<kind> route has no sample value in sample_params (bug)**
-  Found by the Admin redesign lane (about 4:36 AM EDT 2026-10-22 as the
-  lane reported, main fa98ba1 plus its Settings commit), filed by the
-  TODO thread. UX.141 (#2404, #2408) added the route `web.object_list`
-  (`/lists/<kind>`) but did not add a `kind` entry to `sample_params` in
-  `src/tests/test_web_a11y.py`, so every test that uses `page_targets`
-  errors with "web.object_list (/lists/<kind>) takes kind: add a sample
-  value to sample_params" (24 errors in the non-browser phase and the
-  whole browser phase of that lane's gate). Fails on main: yes, since
-  commit 0fc4ea4 (read from the code on main: no `kind` sample exists;
-  the test skips on a machine with no database, so the TODO thread did
-  not reproduce the errors). Reproducer: `python scripts/test.py
-  changed` or `pytest src/tests/test_web_a11y.py`. Do: add `"kind":
-  "star"` (a kind the object index lists) to `sample_params`. Done:
-  `pytest src/tests/test_web_a11y.py` has no errors. Owner: the Admin
-  redesign lane, which adds the one line in its Settings page PR so its
-  gate can pass; Core 2 (UX.141's owner) does not duplicate it. Retire
-  when that PR merges.
-  Prerequisites: none. Related: UX.141.
 
 ## USR: User accounts
 
