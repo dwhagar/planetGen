@@ -824,6 +824,8 @@ def test_system_map_gives_body_panels_nav_buttons(db_app, mysql_config):
     # NAV.45: and "What's within 10 pc" with the body filled in.
     assert 'data-nav-nearby="/nearby?place={ref}&amp;distance=10"' in html
     assert "data-nav-nearby-label=\"What’s within 10 pc\"" in html
+    # UX.143, MAP.254: and the View button to the body's own page.
+    assert 'data-nav-view="/object/{ref}"' in html
     # Every star marker carries the id the object reference needs.
     assert re.search(r'data-kind="star" data-id="[0-9A-F-]+"', html) or re.search(r'data-id="[0-9A-F-]+"[^>]*data-kind="star"', html)
 
@@ -831,6 +833,7 @@ def test_system_map_gives_body_panels_nav_buttons(db_app, mysql_config):
     assert f'data-nav-take="/nav?from=system:{psys(second)}&amp;to={{ref}}"' in picking
     assert 'data-nav-label="End Here"' in picking and "data-nav-start" not in picking
     assert "data-nav-nearby" not in picking, "nothing that would leave the course being picked (NAV.30)"
+    assert "data-nav-view" not in picking
     choosing_start = client.get(f"/system/{pid('system', first)}?pick=from&to=system:{pid('system', second)}").get_data(as_text=True)
     assert f'data-nav-take="/nav?from={{ref}}&amp;to=system:{psys(second)}"' in choosing_start
 
@@ -850,10 +853,13 @@ def test_browser_nav_buttons_follow_the_server_templates():
         "const both = {dataset: {navStart: '/nav?from={ref}', navEnd: '/nav?to={ref}'}};"
         "const near = {dataset: {navNearby: '/nearby?place={ref}&distance=10', navNearbyLabel: 'What’s within 10 pc'}};"
         "const picking = {dataset: {navTake: '/nav?from=system:5&to={ref}', navNearby: '/nearby?place={ref}&distance=10'}};"
+        "const view = {dataset: {navView: '/object/{ref}'}};"
+        "const viewPicking = {dataset: {navView: '/object/{ref}', navTake: '/nav?to={ref}'}};"
         "console.log(JSON.stringify([m.navActions(take, 'moon:7'), m.navActions(both, 'planet:3'),"
         " m.navActions(both, 'barycenter'), m.navActions(both, 'sector:1'), m.navActions(null, 'moon:7'),"
         " m.nearbyLinks(near, 'planet:3'), m.nearbyLinks(near, 'barycenter'), m.nearbyLinks(picking, 'planet:3'),"
-        " m.nearbyLinks(null, 'moon:7')]));"
+        " m.nearbyLinks(null, 'moon:7'), m.viewLink(view, 'planet:3', 'planet'), m.viewLink(view, 'sector:1', 'sector'),"
+        " m.viewLink(viewPicking, 'planet:3', 'planet'), m.viewLink(null, 'planet:3', 'planet')]));"
     )
     module_url = "file://" + os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "html", "static", "systemnav.js"))
     out = json.loads(subprocess.run(["node", "--input-type=module", "-e", script, module_url],
@@ -863,6 +869,7 @@ def test_browser_nav_buttons_follow_the_server_templates():
         [{"label": "Start Here", "href": "/nav?from=planet:3"}, {"label": "End Here", "href": "/nav?to=planet:3"}],
         [], [], [],
         [{"label": "What’s within 10 pc", "href": "/nearby?place=planet:3&distance=10"}], [], [], [],
+        {"label": "View planet →", "href": "/object/planet:3"}, None, None, None,
     ]
 
 

@@ -37,7 +37,8 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
-const { appendNavActions } = await import(`./systemnav.js${VERSION_QUERY}`);
+const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
+const { infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 
 function classField(el) {
@@ -460,75 +461,48 @@ function gatherSphereMarkers(sceneEl) {
 
 // --- Info panel / scene switching ------------------------------------------
 
+// The body's rows for the shared info panel (mappick.js), each [label, value]; an empty value leaves its row out.
+function infoFields(el) {
+  var kind = el.dataset.kind;
+  var d = el.dataset;
+  if (kind === "star") {
+    return [["Role", d.role], ["Star type", d.type], ["Temperature", d.temp], ["Mass", d.mass], ["Radius", d.radius],
+      ["Luminosity", d.lum]];
+  }
+  if (kind === "facility") {
+    return [["Kind", d.facilitykind], ["Host", d.host], ["Placement", d.placement], ["Orbital distance", d.distance],
+      ["Orbital period", d.period], ["Orbital speed", d.speed]];
+  }
+  if (kind === "belt") {
+    return [["Density", d.density], ["Distance", d.distance], ["Composition", d.composition]];
+  }
+  return [["Class", classField(el)], ["Type", d.bodytype], ["Radius", d.radius], ["Mass", d.mass], ["Zone", d.zone],
+    ["Distance", d.distance], ["Period", d.period], ["Gravity", d.gravity], ["Atmosphere", d.atmosphere],
+    ["Surface composition", d.composition], ["Surface temperature", d.surfacetemp],
+    ["Surface pressure", d.surfacepressure], ["Life Chemistry", d.life],
+    kind === "moon" ? ["Orbits", d.parent] : ["Moons", d.moons], ["Note", d.note]];
+}
+
 function showInfo(el) {
-  var panel = document.getElementById("sysmap-info");
+  var panel = infoPanelOf(document.getElementById("sysmap-info"));
   if (!panel) {
     return;
   }
-  panel.textContent = "";
-
-  var heading = document.createElement("h3");
-  heading.textContent = el.dataset.name || "Unknown";
-  panel.appendChild(heading);
-
-  var dl = document.createElement("dl");
+  var root = document.getElementById("sysmap-root");
   var kind = el.dataset.kind;
-  if (kind === "star") {
-    addField(dl, "Role", el.dataset.role);
-    addField(dl, "Star type", el.dataset.type);
-    addField(dl, "Temperature", el.dataset.temp);
-    addField(dl, "Mass", el.dataset.mass);
-    addField(dl, "Radius", el.dataset.radius);
-    addField(dl, "Luminosity", el.dataset.lum);
-  } else if (kind === "facility") {
-    addField(dl, "Kind", el.dataset.facilitykind);
-    addField(dl, "Host", el.dataset.host);
-    addField(dl, "Placement", el.dataset.placement);
-    addField(dl, "Orbital distance", el.dataset.distance);
-    addField(dl, "Orbital period", el.dataset.period);
-    addField(dl, "Orbital speed", el.dataset.speed);
-  } else if (kind === "belt") {
-    addField(dl, "Density", el.dataset.density);
-    addField(dl, "Distance", el.dataset.distance);
-    addField(dl, "Composition", el.dataset.composition);
-  } else {
-    addField(dl, "Class", classField(el));
-    addField(dl, "Type", el.dataset.bodytype);
-    addField(dl, "Radius", el.dataset.radius);
-    addField(dl, "Mass", el.dataset.mass);
-    addField(dl, "Zone", el.dataset.zone);
-    addField(dl, "Distance", el.dataset.distance);
-    addField(dl, "Period", el.dataset.period);
-    addField(dl, "Gravity", el.dataset.gravity);
-    addField(dl, "Atmosphere", el.dataset.atmosphere);
-    addField(dl, "Surface composition", el.dataset.composition);
-    addField(dl, "Surface temperature", el.dataset.surfacetemp);
-    addField(dl, "Surface pressure", el.dataset.surfacepressure);
-    addField(dl, "Life Chemistry", el.dataset.life);
-    if (kind === "moon") {
-      addField(dl, "Orbits", el.dataset.parent);
-    } else if (el.dataset.moons) {
-      addField(dl, "Moons", el.dataset.moons);
-    }
-    addField(dl, "Note", el.dataset.note);
-  }
-  panel.appendChild(dl);
-  appendNavActions(panel, document.getElementById("sysmap-root"), kind + ":" + el.dataset.id);
-
-  if (el.dataset.scene) {
-    var hint = document.createElement("p");
-    hint.className = "hint";
-    hint.textContent = "Click again to view its moon system.";
-    panel.appendChild(hint);
-  }
+  var ref = kind + ":" + el.dataset.id;
+  panel.show({
+    title: el.dataset.name || "Unknown",
+    fields: infoFields(el),
+    view: viewLink(root, ref, kind),
+    nav: navActions(root, ref),
+    links: nearbyLinks(root, ref),
+    hint: el.dataset.scene ? "Click again to view its moon system." : null,
+  });
 }
 
 function resetInfo(panel) {
-  panel.textContent = "";
-  var hint = document.createElement("p");
-  hint.className = "hint";
-  hint.textContent = "Click a star, planet, moon, asteroid belt or facility for details.";
-  panel.appendChild(hint);
+  infoPanelOf(panel).hint("Click a star, planet, moon, asteroid belt or facility for details.");
 }
 
 // --- Labels that never overlap ------------------------------------------
