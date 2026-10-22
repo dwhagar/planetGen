@@ -7,7 +7,8 @@ Builds the gas and compound constants file (GEN.410) from the atmosphere researc
 
 The file is `src/planetgen/physics/data/gases.json`. The numbers are read from the markdown tables of the research parts
 (`docs/design/atmosphere-composition-parts/`): T1 identity, T2 phase points and T3 heat capacity of part 01, and the
-Rayleigh tables 2.1a and 2.1b of part 02; part 01 sections 8 (Henry constants) and 9 (viscosity) add two more blocks. The names, the choice of which Rayleigh row is adopted for a gas, and the
+Rayleigh tables 2.1a and 2.1b of part 02; part 01 sections 8 (Henry constants) and 9 (viscosity) add two more blocks; part 03
+table 2.1 gives the infrared bands and part 02 section 2.3 the ultraviolet and visible absorption bins (GEN.410 third slice). The names, the choice of which Rayleigh row is adopted for a gas, and the
 reference temperature of each refractivity fit are typed in below, each with the reason. Nothing is fitted or invented
 here: a number that the tables do not give is `null` and its block says so in its state.
 """
@@ -24,6 +25,7 @@ OUT = os.path.join(HERE, "..", "src", "planetgen", "physics", "data", "gases.jso
 
 PART_01 = "01-gas-table-thermodynamics.md"
 PART_02 = "02-gas-optics-uv-visible.md"
+PART_03 = "03-infrared-greenhouse-thermal.md"
 
 RETRIEVED = "2026-10-17"
 """str: The day the research parts were merged (the tables' own date)."""
@@ -335,6 +337,147 @@ def build_viscosity(rows):
     return out
 
 
+# ---- Infrared bands (part 03 table 2.1) ----
+
+def _band(label, cm1=None, low=None, high=None, about=False):
+    """One band: its label as the research writes it, a centre in cm-1 (`about` where the research writes "about") or a range."""
+    return {"label": label, "wavenumber_cm1": cm1, "range_cm1": None if low is None else [low, high], "approximate": about}
+
+
+# The rows of table 2.1: the row label of the research table, then the band centres typed from its "Fundamentals" cell (the check in
+# `build_infrared` fails when a number is not in that cell), and the rank of the gas in the saturated-absorption ordering of Byrne and
+# Goldblatt 2014b where the strength cell gives one. A gas with no band has an empty list and the research's reason in the row.
+INFRARED = {
+    "H2O": ("H2O", [_band("nu2 bend", 1594.59), _band("nu1", 3656.65), _band("nu3", 3755.79),
+                    _band("pure rotation edge", low=0.0, high=600.0, about=True)], 11),
+    "CO2": ("CO2", [_band("nu2", 667, about=True), _band("nu3", 2349, about=True), _band("2nu2/nu1 Fermi dyad", 1388, about=True),
+                    _band("2nu2/nu1 Fermi dyad", 1285, about=True), _band("hot band", 960, about=True),
+                    _band("hot band", 1063, about=True)], 16),
+    "CH4": ("CH4", [_band("nu4", 1306.2), _band("nu2", 1533.6), _band("nu1", 2917), _band("nu3", 3018.9)], 27),
+    "NH3": ("NH3", [_band("nu2 umbrella", 932.5), _band("nu2 umbrella", 968.3), _band("nu4", 1626), _band("nu1", 3336),
+                    _band("nu3", 3444)], None),
+    "H2S": ("H2S", [_band("nu2", 1182.7), _band("nu1", 2614.6), _band("nu3", 2626)], None),
+    "HCN": ("HCN", [_band("nu2 bend", 711.98), _band("nu3 CN", 2096.85), _band("nu1 CH", 3311.47)], None),
+    "C2H6": ("C2H6", [_band("nu12 CH3 rock", 821.6), _band("CH3 deform", low=1379, high=1469),
+                      _band("CH stretch", low=2896, high=2985), _band("torsion", 289)], None),
+    "C2H2": ("C2H2", [_band("nu5 CH bend", 730.3), _band("nu2 CC", 1973.8), _band("nu3", 3289)], 6),
+    "CH2O": ("H2CO", [_band("nu2 CO", 1746.1), _band("nu3 CH2 scissor", 1500.1), _band("nu5", 1249.1), _band("nu6", 1167.3),
+                      _band("nu1", 2782.5), _band("nu4", 2843.1)], None),
+    "CH3Cl": ("CH3Cl", [_band("nu3 CCl", 732.1), _band("nu6 rock", 1017.3), _band("nu2", 1354.9), _band("nu5", 1452.1)], None),
+    "C2H4": ("C2H4", [_band("nu7 wag", 949.3), _band("nu10 rock", 826.0), _band("nu12", 1443.5), _band("nu11", 2988.66)], None),
+    "PH3": ("PH3", [_band("nu2", 992.1), _band("nu4", 1118.3), _band("nu1", 2322.9), _band("nu3", 2327.7)], None),
+    "CH3OH": ("CH3OH", [_band("nu8 CO stretch", 1033), _band("nu6 OH bend", 1345), _band("CH3 modes", low=1455, high=1477),
+                        _band("CH3 modes", low=2844, high=3000), _band("OH stretch", 3681)], 1),
+    "O3": ("O3", [_band("nu3", 1042, about=True), _band("nu1", 1110, about=True), _band("nu2", 705, about=True)], None),
+    "N2O": ("N2O", [_band("nu2", 589, about=True), _band("nu1", 1285, about=True), _band("nu3", 2224, about=True)], None),
+    "SO2": ("SO2", [_band("nu2", 518, about=True), _band("nu1", 1151, about=True), _band("nu3", 1362, about=True)], 8),
+    "CO": ("CO", [_band("fundamental", 2143, about=True)], None),
+    "OCS": ("OCS, NO2, HCl, HF, HNO3", [_band("OCS", 520, about=True), _band("OCS", 859, about=True), _band("OCS", 2062, about=True)], None),
+    "NO2": ("OCS, NO2, HCl, HF, HNO3", [_band("NO2", 750, about=True), _band("NO2", 1318, about=True), _band("NO2", 1618, about=True)], None),
+    "HCl": ("OCS, NO2, HCl, HF, HNO3", [_band("HCl", 2886, about=True)], None),
+    "HF": ("OCS, NO2, HCl, HF, HNO3", [_band("HF", 3962, about=True)], None),
+    "HNO3": ("OCS, NO2, HCl, HF, HNO3", [], None),
+    "SiO": ("SiO", [_band("fundamental", 1242, about=True)], None),
+    **{f: ("N2, O2, H2, He, Ar, Ne, Kr, Xe", [], None) for f in ("N2", "O2", "H2", "He", "Ne", "Ar", "Kr", "Xe")},
+    **{f: ("TiO, VO, Na, K, Fe, Mg", [], None) for f in ("TiO", "VO", "Na", "K", "Fe", "Mg")},
+}
+
+
+def build_infrared(rows):
+    """`{formula: infrared entry}` from the rows of part 03 table 2.1 and the typed bands of `INFRARED`."""
+    by_label = {cells[0]: cells for cells in rows}
+    out = {}
+    for formula, (label, bands, rank) in INFRARED.items():
+        if label not in by_label:
+            raise SystemExit(f"part 03 table 2.1 has no row {label!r}")
+        _gas, fundamentals, strength, source, status = by_label[label]
+        for band in bands:
+            for value in (band["wavenumber_cm1"], *(band["range_cm1"] or ())):
+                if value is not None and value != 0.0 and f"{value:g}" not in fundamentals.replace(",", ""):
+                    raise SystemExit(f"{formula}: {value:g} cm-1 is not in the research row {label!r}: {fundamentals!r}")
+        if rank is not None and f"rank {rank}" not in strength:
+            raise SystemExit(f"{formula}: the research row {label!r} does not say 'rank {rank}'")
+        recalled = "RECALLED" in status
+        out[formula] = {
+            "bands": bands, "research_row": label, "fundamentals_text": fundamentals, "strength_text": strength,
+            "saturated_rank": rank, "no_band": not bands, "source": source, "research_status": status,
+            "state": "partly verified" if recalled else "verified",
+            "limit": f"research status \"{status}\": what is RECALLED was recalled, not read from a table (part 03 section 12)" if recalled else "",
+        }
+    return out
+
+
+# ---- Ultraviolet and visible absorption (part 02 section 2.3) ----
+
+UV_SPECIES = {"H2CO": "CH2O"}
+"""dict: The research's name of a species and the formula of its row where they differ."""
+
+UV_TABLE_HEADERS = ("| bin nm | O2 |", "| bin nm | NH3 |", "| bin nm | H2CO |")
+
+UV_LIMITS = {
+    "O2": ("band means understate the transmission of thick columns of the structured Schumann-Runge bands (175 to 200 nm): "
+           "the research says the generator needs a k-distribution or effective cross section there"),
+    "CH4": ("the visible bins rest on Karkoschka 1994, which the research did not reach; giant-planet methane bands are one to two "
+            "decades stronger than these bin means and need a band model (part 03)"),
+}
+"""dict: The limits the research names for the bin tables of a species (the other species' cells are DATA, COMPUTED)."""
+
+
+def _uv_cell(cell):
+    """`(value or None, partial)` of a table cell: `-` is outside the data, `0` a zero in the file, `*` less than half the bin covered."""
+    if cell == "-":
+        return None, False
+    partial = cell.endswith("*")
+    return float(cell.rstrip("*")), partial
+
+
+def build_uv():
+    """`{formula: uv entry}` from the three bin tables and the coverage sentence of part 02 section 2.3."""
+    with open(os.path.join(PARTS, PART_02), encoding="utf-8") as handle:
+        text = handle.read()
+    lines = text.split("\n")
+    edges, columns = None, {}
+    for header in UV_TABLE_HEADERS:
+        rows = read_table(PART_02, header)
+        names = [cell.strip() for cell in next(line for line in lines if line.startswith(header)).strip().strip("|").split("|")][1:]
+        bins = []
+        for cells in rows:
+            low, high = cells[0].split("-")
+            bins.append([float(low), float(high)])
+        if edges is None:
+            edges = bins
+        elif bins != edges:
+            raise SystemExit("the three ultraviolet tables do not share their bins")
+        for index, name in enumerate(names, 1):
+            columns[name] = [_uv_cell(cells[index]) for cells in rows]
+    sentence = re.search(r"coverage in nm is (.*?)\. Unlisted origins are (.*?)\.", text, re.S)
+    if not sentence:
+        raise SystemExit("part 02 section 2.3 has no coverage sentence")
+    default_origin = sentence.group(2)
+    coverage = {}
+    for item in sentence.group(1).split("; "):
+        match = re.fullmatch(r"(\S+) ([\d.]+) to ([\d.]+)(?: \((.*)\))?", item.strip(), re.S)
+        if not match:
+            raise SystemExit(f"cannot read the coverage item {item!r}")
+        coverage[match.group(1)] = (float(match.group(2)), float(match.group(3)), (match.group(4) or "").replace("**", ""))
+    out = {}
+    for name, cells in columns.items():
+        if name not in coverage:
+            raise SystemExit(f"part 02 section 2.3 gives no coverage for {name}")
+        low, high, origin = coverage[name]
+        for (value, _partial), (bin_low, bin_high) in zip(cells, edges):
+            overlaps = bin_high > low and bin_low < high
+            if (value is None) == overlaps:
+                raise SystemExit(f"{name}: the bin {bin_low}-{bin_high} nm disagrees with the coverage {low} to {high} nm")
+        limit = UV_LIMITS.get(name, "")
+        out[UV_SPECIES.get(name, name)] = {
+            "research_name": name, "coverage_nm": [low, high], "origin": origin or default_origin,
+            "cross_section_cm2": [value for value, _partial in cells], "partial_bin": [partial for _value, partial in cells],
+            "research_status": "DATA, COMPUTED", "state": "partly verified" if limit else "verified", "limit": limit,
+        }
+    return {"bins_nm": edges, "species": out}
+
+
 def state_of(blocks):
     """
     The source state of a row from the status words of its blocks (`{block name: status text}`), in the vocabulary of GEN.472:
@@ -376,6 +519,12 @@ def build():
         if unknown:
             raise SystemExit(f"the {name} table names species that are not rows: {unknown}")
     rayleigh = build_rayleigh(read_table(PART_02, "| Gas | sigma 450 nm |"), read_table(PART_02, "| Gas | alpha (A^3) | rho_n | F_K"))
+    infrared = build_infrared(read_table(PART_03, "| Gas | Fundamentals"))
+    uv = build_uv()
+    for name, table in (("infrared", infrared), ("ultraviolet", uv["species"])):
+        unknown = [f for f in table if f not in identity and f not in extras]
+        if unknown:
+            raise SystemExit(f"the {name} table names species that are not rows: {unknown}")
 
     gases = []
     for formula in list(identity) + [f for f in extras if f not in identity]:
@@ -403,6 +552,10 @@ def build():
             row["henry"] = henry[formula]
         if formula in viscosity:
             row["viscosity"] = viscosity[formula]
+        if formula in infrared:
+            row["infrared"] = infrared[formula]
+        if formula in uv["species"]:
+            row["uv"] = uv["species"][formula]
         blocks = {name: row[key] for name, key in (("identity", "identity_status"), ("phase points", "phase_status"),
                                                    ("heat capacity", "thermal_status")) if row.get(key)}
         state, limit = state_of(blocks)
@@ -411,19 +564,24 @@ def build():
         row["source"] = (f"docs/design/atmosphere-composition-parts/{PART_01} T1, T2, T3 (section 5 for the species it adds)"
                          + (f" and {PART_02} table 2.1" if formula in rayleigh else "")
                          + (f"; {PART_01} section 8" if formula in henry else "")
-                         + (f"; {PART_01} section 9" if formula in viscosity else ""))
+                         + (f"; {PART_01} section 9" if formula in viscosity else "")
+                         + (f"; {PART_03} table 2.1" if formula in infrared else "")
+                         + (f"; {PART_02} section 2.3" if formula in uv["species"] else ""))
         row["licence"] = "open"
         gases.append(row)
 
     return {
         "retrieved": RETRIEVED,
         "licence": "open",
-        "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity (GEN.410)",
+        "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
         "sources": [
             "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, "
             "cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
             "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; "
             "Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
+            "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; "
+            "photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Burkholder 2020, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) "
+            "binned to 35 bins in part 02 section 2.3",
         ],
         "licence_note": ("Boss, 2026-10-17, 2:35 PM EDT: every paper and dataset acquired is usable; the raw tables are not "
                          "redistributed and the licence column is a record. NIST SRD is copyrighted (permission noted in "
@@ -433,7 +591,11 @@ def build():
                   "in the file is the research part's, kept for the audit; the loader computes the working value from "
                   "`physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the "
                   "temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K "
-                  "with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K)."),
+                  "with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists "
+                  "the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean "
+                  "photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` "
+                  "where under half of the bin is covered."),
+        "uv_bins_nm": uv["bins_nm"],
         "gases": gases,
     }
 

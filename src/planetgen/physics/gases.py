@@ -15,13 +15,14 @@ comes from (`source`), under what licence (`licence`, `"open"` where none is fou
 GEN.454 to GEN.456) and the class gate belong to them, and cite these rows by `formula`.
 
 The data are `physics/data/gases.json`, built by `scripts/build_gas_table.py` from the tables of the research parts
-(`docs/design/atmosphere-composition-parts/`, parts 01 and 02) and checked in with the values read from them. The loader
+(`docs/design/atmosphere-composition-parts/`, parts 01, 02 and 03) and checked in with the values read from them. The loader
 refuses a file or a row without the fields above (`DataError`), a duplicate formula, a formula it cannot read, and a molar
 mass of the research part that is more than 0.01 g/mol from the sum of the element table (`physics.elements`, GEN.438).
 
 Units: molar mass in kg/mol (computed here from `physics.elements`; the research part's own figure is `research_molar_mass`),
 temperatures in K, pressures in Pa, heat capacity in J/(mol K), latent heat in kJ/mol, Rayleigh cross section in cm2 per
-molecule (the unit the optics tables are published in), Henry constants in mol/(kg bar), viscosity in uPa s. A number the research does not give is `None`.
+molecule (the unit the optics tables are published in), Henry constants in mol/(kg bar), viscosity in uPa s, band centres in cm-1
+(`Band.wavelength_um` gives the wavelength), the ultraviolet cross sections in cm2 per molecule over the bins `UV_BINS_NM` (nm). A number the research does not give is `None`.
 
 Use:
 
@@ -29,6 +30,8 @@ Use:
     gas("CO2").rayleigh.sigma_cm2[550]
     gas("CO2").henry.kh(288.15)      # mol/(kg bar), 273.15 to 323.15 K only
     gas("N2").viscosity_upa_s(300)   # Chapman-Enskog, the non-polar gases
+    gas("O3").uv.at(255.0)           # Hartley band, bin mean in cm2 per molecule
+    gas("CO2").infrared.bands        # the band centres the research gives
     stored("h2o")                    # the row of a stored partial (O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2)
     GASES                            # every row, in the research table's order
 """
@@ -166,6 +169,100 @@ def _omega22(reduced_temperature):
 
 
 @dataclass(frozen=True)
+class Band:
+    """
+    One infrared band as part 03 table 2.1 writes it.
+
+    Attributes:
+        label (str): The research's name of the band (`"nu2 bend"`, `"hot band"`, the molecule's own name for a row of several).
+        wavenumber_cm1 (float or None): The band centre; `None` for a band the research gives only as a range.
+        range_cm1 (tuple or None): The lowest and highest wavenumber of a band given as a range (the pure rotation band's edge is
+            `(0, 600)`, written "below about 600 cm-1").
+        approximate (bool): The research writes "about" (the value is recalled, not read from a table).
+    """
+
+    label: str
+    wavenumber_cm1: float | None
+    range_cm1: tuple | None
+    approximate: bool
+
+    @property
+    def wavelength_um(self):
+        """The wavelength of the band centre, um (`None` for a band given as a range)."""
+        return None if self.wavenumber_cm1 is None else 1.0e4 / self.wavenumber_cm1
+
+
+@dataclass(frozen=True)
+class Infrared:
+    """
+    The infrared bands of one gas (part 03 table 2.1).
+
+    Attributes:
+        bands (tuple[Band]): The fundamentals and the other bands the research lists; empty for a gas with none (the noble gases,
+            N2, O2 and H2 have only collision-induced bands, the metals and oxides electronic ones, and HNO3 has none written).
+        saturated_rank (int or None): The gas's place in the Byrne and Goldblatt 2014b ranking of saturated blackbody absorption
+            (1 is the strongest per molecule), where the research states it.
+        strength_text, fundamentals_text (str): The research's own strength and band cells, kept whole because they carry what
+            is not a number (forcing statements, overlaps, broadening).
+        research_row (str): The row of table 2.1 (one row serves several gases).
+        state (str), limit (str): How far the band centres are checked (recalled values are partly verified).
+    """
+
+    bands: tuple
+    saturated_rank: int | None
+    strength_text: str
+    fundamentals_text: str
+    research_row: str
+    state: str
+    limit: str
+
+
+UV_BINS_NM = ()
+"""tuple: The 35 wavelength bins `(low, high)`, nm, of the ultraviolet tables (part 02 section 2.3), from 10 to 1100 nm."""
+
+
+@dataclass(frozen=True)
+class UvAbsorption:
+    """
+    The mean total photoabsorption cross section of one gas over the bins `UV_BINS_NM` (part 02 section 2.3), cm2 per molecule:
+    each cell is the mean over the part of the bin the data cover.
+
+    Attributes:
+        cross_section_cm2 (tuple): One value per bin; `None` where the bin lies outside the data (the cross section is treated as
+            zero there, as the source package does) and `0.0` where the file holds zero.
+        partial_bin (tuple): One flag per bin: under half of the bin is covered, so the mean is of less than half of it.
+        coverage_nm (tuple): The wavelengths the data cover, `(low, high)`.
+        origin (str): Where the data come from (the research names it where it differs from Heays 2017 or Huebner 2015).
+        state (str), limit (str): How far the bins are checked (the structured O2 and the CH4 visible bins carry a limit).
+    """
+
+    cross_section_cm2: tuple
+    partial_bin: tuple
+    coverage_nm: tuple
+    origin: str
+    state: str
+    limit: str
+
+    def at(self, wavelength_nm):
+        """
+        The bin mean at `wavelength_nm`, cm2 per molecule (`0.0` outside the data).
+
+        Raises:
+            NoData: The wavelength is outside 10 to 1100 nm, the range of the bins.
+        """
+        for (low, high), value in zip(UV_BINS_NM, self.cross_section_cm2):
+            if low <= wavelength_nm < high or (wavelength_nm == high == UV_BINS_NM[-1][1]):
+                return 0.0 if value is None else value
+        raise NoData(f"the ultraviolet bins cover {UV_BINS_NM[0][0]} to {UV_BINS_NM[-1][1]} nm, not {wavelength_nm} nm")
+
+    def longest_wavelength_above(self, cross_section_cm2):
+        """The upper edge of the last bin whose mean is at least `cross_section_cm2`, nm, or `None` when no bin is."""
+        edges = [high for (_low, high), value in zip(UV_BINS_NM, self.cross_section_cm2)
+                 if value is not None and value >= cross_section_cm2]
+        return max(edges) if edges else None
+
+
+@dataclass(frozen=True)
 class Gas:
     """
     One gas or volatile compound.
@@ -192,6 +289,8 @@ class Gas:
         rayleigh (Rayleigh or None): The Rayleigh entry, for the gases that have one.
         henry (Henry or None): The Henry constant, for the gases that dissolve in water and were compiled.
         viscosity (Viscosity or None): The Lennard-Jones constants, for the gases the research tabulates.
+        infrared (Infrared or None): The infrared bands, for the gases part 03 lists.
+        uv (UvAbsorption or None): The ultraviolet and visible absorption bins, for the 22 gases part 02 tabulates.
         source (str), licence (str), state (str), limit (str): Where the row comes from and how far it is checked.
         statuses (dict): The research part's status word of each block (`identity`, `phase points`, `heat capacity`).
         data (dict): The row as the file holds it, for the columns above that are not named fields.
@@ -222,6 +321,8 @@ class Gas:
     rayleigh: Rayleigh | None
     henry: Henry | None
     viscosity: Viscosity | None
+    infrared: Infrared | None
+    uv: UvAbsorption | None
     source: str
     licence: str
     state: str
@@ -314,6 +415,50 @@ def _viscosity(formula, item):
     return entry
 
 
+def _infrared(formula, item):
+    if item is None:
+        return None
+    try:
+        bands = []
+        for band in item["bands"]:
+            centre, span = band["wavenumber_cm1"], band["range_cm1"]
+            if (centre is None) == (span is None):
+                raise DataError(f"gases.json: {formula} has a band with a centre and a range, or with neither")
+            if (centre is not None and not centre > 0) or (span is not None and not 0 <= span[0] < span[1]):
+                raise DataError(f"gases.json: {formula} has a band at no positive wavenumber")
+            bands.append(Band(band["label"], centre, None if span is None else (float(span[0]), float(span[1])),
+                              bool(band["approximate"])))
+        entry = Infrared(bands=tuple(bands), saturated_rank=item["saturated_rank"], strength_text=item["strength_text"],
+                         fundamentals_text=item["fundamentals_text"], research_row=item["research_row"], state=item["state"],
+                         limit=item["limit"])
+    except KeyError as exc:
+        raise DataError(f"gases.json: {formula} infrared entry lacks {exc}") from None
+    if bool(entry.bands) == bool(item["no_band"]):
+        raise DataError(f"gases.json: {formula} infrared entry says it has {'no band' if item['no_band'] else 'bands'} and lists the opposite")
+    _check_state(f"{formula} infrared", entry.state, entry.limit)
+    return entry
+
+
+def _uv(formula, item, bins):
+    if item is None:
+        return None
+    try:
+        values = tuple(None if value is None else float(value) for value in item["cross_section_cm2"])
+        entry = UvAbsorption(cross_section_cm2=values, partial_bin=tuple(bool(flag) for flag in item["partial_bin"]),
+                             coverage_nm=tuple(float(edge) for edge in item["coverage_nm"]), origin=item["origin"],
+                             state=item["state"], limit=item["limit"])
+    except KeyError as exc:
+        raise DataError(f"gases.json: {formula} ultraviolet entry lacks {exc}") from None
+    if len(values) != len(bins) or len(entry.partial_bin) != len(bins):
+        raise DataError(f"gases.json: {formula} ultraviolet entry has {len(values)} values for {len(bins)} bins")
+    if not all(value is None or (math.isfinite(value) and value >= 0.0) for value in values):
+        raise DataError(f"gases.json: {formula} ultraviolet cross section is negative or not finite")
+    if not entry.coverage_nm[0] < entry.coverage_nm[1]:
+        raise DataError(f"gases.json: {formula} ultraviolet coverage is not an interval")
+    _check_state(f"{formula} ultraviolet", entry.state, entry.limit)
+    return entry
+
+
 def _check_state(label, state, limit):
     if state not in STATES:
         raise DataError(f"gases.json: {label} state {state!r} is none of {', '.join(STATES)}")
@@ -327,6 +472,11 @@ def _load():
     for field in ("sources", "licence", "retrieved", "title"):
         if not data.get(field):
             raise DataError(f"gases.json states no {field}")
+    global UV_BINS_NM
+    bins = tuple((float(low), float(high)) for low, high in data.get("uv_bins_nm") or ())
+    if not bins or any(not low < high for low, high in bins) or any(a[1] != b[0] for a, b in zip(bins, bins[1:])):
+        raise DataError("gases.json: the ultraviolet bins are missing, empty, or not one after another")
+    UV_BINS_NM = bins
     rows = []
     seen = set()
     for item in data.get("gases") or ():
@@ -361,6 +511,7 @@ def _load():
             gamma_300=item.get("gamma_300"), latent_heat_vaporisation_kj_mol=item.get("latent_heat_vaporisation_kj_mol"),
             latent_heat_sublimation_kj_mol=item.get("latent_heat_sublimation_kj_mol"), rayleigh=_rayleigh(formula, item.get("rayleigh")),
             henry=_henry(formula, item.get("henry")), viscosity=_viscosity(formula, item.get("viscosity")),
+            infrared=_infrared(formula, item.get("infrared")), uv=_uv(formula, item.get("uv"), bins),
             source=item["source"], licence=item["licence"], state=item["state"], limit=item.get("limit", ""),
             statuses={name: item[key] for name, key in (("identity", "identity_status"), ("phase points", "phase_status"),
                                                         ("heat capacity", "thermal_status")) if item.get(key)},
