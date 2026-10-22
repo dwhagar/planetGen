@@ -37,7 +37,7 @@ from planetgen import tuning
 from planetgen.generation.phenomena.compact_remnant import BlackHole
 from planetgen.galaxy import enclosed_mass, remnant_density
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants
+from planetgen.physics import constants, mathcheck
 from planetgen.physics.units import pc_to_ly
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -369,7 +369,7 @@ def test_generate_sector_real_capacity_overflow_returns_a_partial_sector(monkeyp
     # 1.15e11 (a test value) 200 of 200 held 8 to 26, so the overflow does not depend on the draw.
     monkeypatch.setattr(enclosed_mass, "current_enclosed_mass_kg", lambda radius_pc: 1.15e11 * constants.SOLAR_MASS_TO_KG)
     args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
-    # at the Milky Way's 8.2 kpc, where the Hill spheres are as wide as the test was set for
-    _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(8200.0))
+    # at the Milky Way's 8.128 kpc, where the Hill spheres are as wide as the test was set for
+    _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(mathcheck.SUN_REFERENCE_RADIUS_PC))
 
     assert 0 < len(sector.entries) < 120
