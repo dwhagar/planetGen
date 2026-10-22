@@ -17634,6 +17634,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -17735,6 +17743,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Database adds migrations" becomes "any lane writes its own migration,
   and Core 1 settles the revision number", which matches Core 4 owning
   this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
@@ -17812,6 +17828,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration, the regenerated models, an old-schema fixture, an
   idempotent upgrade and a round-trip test; no code reads the tables
   yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: ADM.57, ADM.58, ADM.59.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -17823,6 +17847,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   reason): a lock is a standing keep mark. Core 1 owns the migration
   number. Done: the migration, models and an idempotent upgrade with a
   round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -17835,6 +17867,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
   a region too. Core 1 owns the migration number. Done: the migration,
   models and an idempotent upgrade with a round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: MAP.119, ADM.57, GEN.391.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -17850,6 +17890,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   created) and `request_notifications` (request, recipient, kind, sent).
   Core 1 owns the migration number. Done: the migration, models and an
   idempotent upgrade with a round-trip test.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). It follows DB.36.
+  This replaces any earlier owner line on this item.
   Prerequisites: none. Related: USR.25, DB.36.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
@@ -17939,6 +17987,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.44 Migration only: the sector storage checksum and the parity dirty flag**
@@ -18057,6 +18113,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
@@ -18109,6 +18173,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   one Owner), a second Owner insert fails in MySQL, a moderator row
   inserts and reads back, and the schema
   header comments are updated.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: USR.2, USR.26.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
@@ -18123,6 +18195,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   The stored density multiplier is also added to the stored directive of
   GEN.179 (or to the DB.38 migration); say so in both items (2026-10-16
   review).
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). It cannot start
+  before DB.38 merges. This replaces any earlier owner line on this
+  item.
   Prerequisites: DB.38. Related: MAP.119.
 
 - [ ] **DB.61 Migration: unnamed clusters and a star-to-cluster parent link (migration only)**
@@ -18136,6 +18217,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   models, an old-schema fixture, an idempotent upgrade and a round-trip
   test; existing clusters keep their names and no code writes the link
   yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.209.
 
 - [ ] **DB.62 Upload bookkeeping tables in the control database (migration only)**
@@ -18150,6 +18239,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   last id). Core 1 owns the migration number. Done: the migration,
   models, an old-schema fixture, an idempotent upgrade and a round-trip
   test; no code reads the tables yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: API.11.
 
 - [ ] **DB.63 Table for ships and stations, user-owned or generated (migration only)**
@@ -18163,6 +18260,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration number and settles the columns. Done: the
   migration, models, an old-schema fixture, an idempotent upgrade and a
   round-trip test; no code reads the table yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: USR.10.
 
 - [ ] **DB.64 Table for stored constellations (migration only)**
@@ -18174,6 +18279,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the migration number. Done: the migration, models, an old-schema
   fixture, an idempotent upgrade and a round-trip test; no code writes
   it yet.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: VIEW.3.
 
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
@@ -18778,6 +18891,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
   fails by design, so a lane's machine must run MySQL 8 (the recipe is
   in project memory). Owner: not assigned.
+  Owner: the DB items chain lane (Boss, 9:54 PM EDT 2026-10-21: "fire up
+  a dedicated DB thread that will start on DB.80 and run in that order";
+  thread DB items chain (2026-10-21)). Order: DB.80, DB.43, DB.30,
+  DB.49, DB.16, DB.36, DB.37, DB.38, DB.60, DB.39, DB.61, DB.64, DB.63,
+  DB.58, DB.62; the galaxy chain items merge one at a time after DB.44
+  and DB.66 (docs and report
+  /mnt/project-files/reports/db-order-2026-10-21.md). This replaces any
+  earlier owner line on this item.
   Prerequisites: none. Related: GEN.276.
 
 - [ ] **DB.81 Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn'**
