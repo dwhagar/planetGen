@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 9.1
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 A heat map of the gravitational field inside a sector and across a star system (MAP.167), moved from 9.0 because Boss does not think it is the best 9.0 headline. The view from a planet (phase 1: the photometry library, the sky catalogue, the star map and the PNG) joins it here from 9.0 (Boss, 2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"), because it builds on the atmosphere colour of 9.0; its sky data and research are in 8.9. Boss (2026-10-16, 11:42 PM EDT, card "View from a planet"): the view from a planet is the headline of 9.1 and the gravity map is the second feature.

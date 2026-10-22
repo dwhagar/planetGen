@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.6
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 The admin has complete control: move stars, change orbits, change densities, regenerate any star to any specification, and the world adjusts after the admin approves the generation plan (ADM.57). In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves before anything is written; the design is [edit-everything.md](../design/edit-everything.md).

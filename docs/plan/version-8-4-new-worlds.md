@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.4
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 Phases 1 to 4 hold the generation and storage half of the composition of every body and of the atmosphere colour: the bulk composition that drives mass, density and gravity, the surface and small-body composition, the one atmosphere mixture, the stored albedo and greenhouse values, ozone, haze, dust and cloud, and the consistency proofs (Boss, 2026-10-16, 11:25 PM EDT, 11:49 PM EDT and 11:58 PM EDT). Their research, designs and data tables are in 8.1; the headline that completes them is 9.0. Phase 5: the planet class refactor around the habitability index (classes R to Z), nebula conditions on planets, asteroid fields as object systems and the habitability symbols on the pages. Proposed by the TODO thread; not yet approved by Boss.

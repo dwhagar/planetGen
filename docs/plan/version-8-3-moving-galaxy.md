@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.3
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 The orbital update (GEN.105): every object moves on its orbit each day with n-body influence, collisions and ejections, built on one point-in-space object for every kind of object, with the gravity field evaluator, the Quantity class, long steps, events and the nightly run. The orbital motion update (four steps, forks F1 to F5) is approved to build (Boss, card taps of 2026-10-18, 5:30 to 5:33 PM EDT, as the coordinator reported them); the rest of the version is as proposed by the TODO thread.

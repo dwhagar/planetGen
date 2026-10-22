@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.9
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here what was planned for 9.0 and needs nothing of the atmosphere colour: the sky data and research of the view from a planet (phase 3) and the backups and repair chain (ADM.91, phases 4 and 5).

@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 10.0
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 Three roles, User, Moderator and Admin (the Owner stays above admin): users submit edit requests, moderators approve user requests, admins approve moderator requests, and an admin's own edit needs no approval, only the preview and confirm of the plan (USR.25, Boss 1:43 PM and 1:49 PM EDT). A request is a change plan of 8.6, so it keeps the preview, the apply job, the history and the undo; the roles of 8.2 supply the accounts and one permission check `can()` replaces every admin-only guard. Design: [docs/design/roles-and-requests.md](../design/roles-and-requests.md). 10.0 is a major version and needs Boss's word for its `.major.md` note.

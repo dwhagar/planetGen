@@ -6,6 +6,8 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 9.2
 
+Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+
 ## Goal
 
 Territories that grow and shift over time on the map, with borders drawn and polities that trade. Boss (2026-10-16): politics and territories come before ships and stations. No items exist yet beyond the population design note.
