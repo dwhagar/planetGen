@@ -460,7 +460,6 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution |  |  |
 | GEN.607 | Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default | GEN.545 | Shape dials (Boss 6:45 PM EDT 2026-10-21). |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | GEN.545 |  |
-| GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) |  |  |
 | GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) |  |  |
 | GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system |  | Research requests R1 to R15 of the GEN.406 note; does not gate GEN.301. |
 
