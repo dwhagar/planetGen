@@ -32,12 +32,14 @@ def _law_mean_solar(law):
 def population_means_solar(shape):
     """
     The mean system mass of each population of `shape`'s galaxy, solar masses: `tuning.STELLAR_POPULATION_AGE_RANGES_GY`'s
-    names to the mean over the window, with the age law of the disk's three populations (`galaxy.disk_history`).
+    names to the mean over the window, with the age law of the disk's three populations (`galaxy.disk_history`),
+    divided by the shape's `system_mass_scale` (1 unless the Census dial set the richness, GEN.607).
     """
     laws = disk_history.population_age_laws(shape)
     means = {}
     for name, window in tuning.STELLAR_POPULATION_AGE_RANGES_GY.items():
-        means[name] = _law_mean_solar(laws[name]) if name in laws else system_mass.window_mean_system_mass_solar(*window)
+        mean = _law_mean_solar(laws[name]) if name in laws else system_mass.window_mean_system_mass_solar(*window)
+        means[name] = mean / shape.system_mass_scale
     return means
 
 

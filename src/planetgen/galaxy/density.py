@@ -55,9 +55,9 @@ GalaxyShape = namedtuple(
         "bulge_scale_radius_pc", "bulge_amplitude",
         "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
-        "k_norm", "components", "masses", "structure",
+        "k_norm", "components", "masses", "structure", "system_mass_scale",
     ],
-    defaults=(None, None, galaxyStructure.REFERENCE_STRUCTURE),
+    defaults=(None, None, galaxyStructure.REFERENCE_STRUCTURE, 1.0),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
 caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
@@ -67,7 +67,10 @@ galaxy without; it is not part of the stored shape row. `masses` is `(stellar ma
 galaxy's own (`galaxy.mass_chain`; GEN.469), which its disk's star formation history is worked out from; `None` takes the
 median galaxy of the disk's size (`galaxy.disk_history.population_shares`). `structure` is the galaxy's thick disk, bar,
 stellar halo and population motions (`galaxy.structure`, GEN.532, GEN.533). Neither is part of the stored row: both are
-drawn again from the galaxy's seed; a shape built with no seed has the Milky Way's published structure."""
+drawn again from the galaxy's seed; a shape built with no seed has the Milky Way's published structure.
+`system_mass_scale` is how many times the mean system mass the generator derives (GEN.545) is divided by in this galaxy:
+1 for the derived richness, more when the Census dial (GEN.607) made the galaxy hold more, lighter systems; it is not
+part of the stored row (the plan's pins hold the richness, `with_system_richness` sets it again)."""
 
 
 def _sech_squared(x):
@@ -339,7 +342,7 @@ def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     fields = shape._asdict()
-    del fields["components"], fields["masses"], fields["structure"]
+    del fields["components"], fields["masses"], fields["structure"], fields["system_mass_scale"]
     return {**fields, **model_terms(shape), **halo_terms(shape)}
 
 
@@ -748,6 +751,16 @@ def total_density_array(x, y, z, shape):
             + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * bulge, 0.0) + np.maximum(nuclear, 0.0))
 
 
+def with_system_richness(shape, systems_per_solar_mass):
+    """
+    `shape` with the Census dial's richness (GEN.607) set: the galaxy holds `systems_per_solar_mass` systems for each
+    solar mass of its stars, so the mean mass of its systems is the inverse, whatever the populations' laws derive.
+    `system_mass_scale` is set so that `mean_system_mass_solar` gives it; `k_norm` is not touched (the caller's).
+    """
+    derived = mean_system_mass_solar(shape._replace(system_mass_scale=1.0))
+    return shape._replace(system_mass_scale=derived * systems_per_solar_mass)
+
+
 def build_galaxy_shape(
     disk_scale_length_pc,
     disk_scale_height_pc,
@@ -761,6 +774,7 @@ def build_galaxy_shape(
     nuclear_amplitude=0.0,
     masses=None,
     structure=galaxyStructure.REFERENCE_STRUCTURE,
+    systems_per_solar_mass=None,
 ):
     """
     Builds a `GalaxyShape` with `k_norm` computed automatically, rather than left for the caller to guess: the
@@ -783,6 +797,8 @@ def build_galaxy_shape(
             is `None` for a galaxy with no halo (`mass_chain.has_halo`).
         structure (galaxy.structure.Structure): The galaxy's thick disk, bar, stellar halo and population motions
             (GEN.532, GEN.533); the Milky Way's published one when none is given.
+        systems_per_solar_mass (float, optional): The Census dial's richness (GEN.607): the systems the galaxy holds for each
+            solar mass of its stars; `None` takes the mean system mass the generator derives (GEN.545).
 
     Returns:
         GalaxyShape: With `k_norm` filled in.
@@ -804,6 +820,8 @@ def build_galaxy_shape(
         structure=structure,
     )
 
+    if systems_per_solar_mass is not None:
+        unnormalized = with_system_richness(unnormalized, systems_per_solar_mass)
     systems = structure.stellar_mass_solar / mean_system_mass_solar(unnormalized)
     local_per_pc3 = physical_constants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
     k_norm = systems / (local_per_pc3 * total_mass(unnormalized))
