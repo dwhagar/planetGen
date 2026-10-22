@@ -191,7 +191,7 @@ LEVERS = (
         law="the galaxy family: which laws draw the rest of the shape (galaxy.shape_draw)",
         auto_text="the family the seed draws, which is spiral, the only family built",
         help="The galaxy family. A selector, not a dial: it never sets a size or a count.",
-        source="GEN.378 families; only the spiral exists, UX.134 and GEN.380 fill the list", status="theory"),
+        source="the galaxy families; only the spiral exists, later families fill the list", status="theory"),
     Lever(
         name="disk_scale_length", flag="--disk-scale-length", dial="scale", label="Disk scale length",
         kind="length", unit="pc", minimum=0.9, maximum=8000.0, step=0.1, advanced=True,
@@ -205,7 +205,7 @@ LEVERS = (
     Lever(
         name="disk_scale_height_pc", flag="--disk-scale-height-pc", dial="structure",
         label="Disk scale height (pc)", kind="float", unit="pc", minimum=0.3, maximum=750.0, step=0.1,
-        law="the thin disk's scale height (the thick disk's is 3x); retired by GEN.602 for flatness",
+        law="the thin disk's scale height (the thick disk's is 3x); retired for flatness",
         auto_text="drawn from the scale length over 7.3 with a 0.13 dex scatter",
         help="Thin disk exponential scale height, parsecs.",
         source="Boss, 10-21 (7:13 PM EDT): the same limits as the length. Floor: the length floor over a flatness of "
@@ -214,14 +214,14 @@ LEVERS = (
     Lever(
         name="bulge_scale_radius_pc", flag="--bulge-scale-radius-pc", dial="structure",
         label="Bulge scale radius (pc)", kind="float", unit="pc", minimum=1.0, maximum=100000.0, step=1.0,
-        law="the bar bulge's scale length along the bar; retired by GEN.602 for bulge size",
+        law="the bar bulge's scale length along the bar; retired for bulge size",
         auto_text="drawn from the seed, a third of the bar's length",
         help="Bar bulge scale length along the bar, parsecs (0.39x across it, 0.27x vertically).",
         source="hand option of the first plan, no source", status="placeholder"),
     Lever(
         name="bulge_amplitude", flag="--bulge-amplitude", dial="structure", label="Bulge density", kind="float",
         unit="", minimum=0.0, maximum=100.0, step=0.1,
-        law="the bulge's central density against the thin disk's 1; retired by GEN.602 for bulge share",
+        law="the bulge's central density against the thin disk's 1; retired for bulge share",
         auto_text="solved from a bulge-to-total ratio drawn from the seed",
         help="Bulge central density, relative to the thin disk's at the center.",
         source="hand option of the first plan, no source", status="placeholder"),
@@ -252,14 +252,14 @@ LEVERS = (
     Lever(
         name="arm_density", flag="--arm-density", dial="pattern", label="Arm density", kind="float", unit="",
         minimum=0.01, maximum=10.0, step=0.1, auto_value=1.4,
-        law="the thin disk's density on an arm crest; retired by GEN.602 for arm contrast (GEN.611)",
+        law="the thin disk's density on an arm crest; retired for arm contrast",
         auto_text="1.4",
         help="The thin disk's density on a spiral arm crest, in the disk's own units. At least --interarm-density.",
         source="hand option of the first plan, no source", status="placeholder"),
     Lever(
         name="interarm_density", flag="--interarm-density", dial="pattern", label="Inter-arm density",
         kind="float", unit="", minimum=0.0, maximum=10.0, step=0.1, auto_value=0.6,
-        law="the thin disk's density midway between arms; retired by GEN.602 for arm contrast (GEN.611)",
+        law="the thin disk's density midway between arms; retired for arm contrast",
         auto_text="0.6",
         help="The thin disk's density midway between arms, in the same units.",
         source="hand option of the first plan, no source", status="placeholder"),
