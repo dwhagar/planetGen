@@ -6566,6 +6566,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as an output, drawn from the galaxy's potential; the potential module
   is GEN.338 (8.3), so the velocities arrive with GEN.339 (8.3), not with
   this item's 8.1 build, which keeps them at rest and says so.
+  Owner: Bugfix 2 (third; the prerequisite of GEN.624, not started
+  elsewhere; Boss, 8:52 PM EDT 2026-10-22: the plan-number bugs and
+  their prerequisites go to a second bugfix lane; this replaces any
+  earlier owner line).
   Prerequisites: none. Related: GEN.371, GEN.237, GEN.366, GEN.324,
   GEN.297.
   Waits on GEN.371, the feasibility study of generating satellites
@@ -7338,7 +7342,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   matters. Needs GEN.368's build (GEN.400).
   Prerequisites: none. Related: GEN.368, GEN.380.
 
-- [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
+- [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 (bug)**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
   source Shen et al. 2003, approximation for the halo mass, no home
   position, every derived law draws its natural scatter from the seed,
@@ -7445,6 +7449,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Boss's live observation (8:48 PM EDT 2026-10-22, plan-numbers check):
+  157 globular clusters hold 112.6 million systems, 1.3 percent of a 4e9
+  solar-mass host against 0.07 percent for the Milky Way, so this is a
+  bug and an 8.1 item (`generation/clusters.py:113`, `tuning.py:1102`);
+  the module's own docstring names the S_N formula it does not use.
+  Owner: Core 1, moved from Core 4's queue so one lane builds the
+  satellite, cluster and outline fixes in order (the TODO thread, 8:52
+  PM EDT 2026-10-22; this replaces any earlier owner line).
+  Owner: Bugfix 2 (fifth, moved from Core 4's queue; Boss, 8:52 PM EDT
+  2026-10-22: the plan-number bugs and their prerequisites go to a
+  second bugfix lane; this replaces any earlier owner line).
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
@@ -15484,7 +15499,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
   GEN.472, TEST.214.
 
-- [ ] **GEN.624 Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch)**
+- [ ] **GEN.624 Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) (bug)**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
   with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
@@ -15507,6 +15522,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.146 shows the saving, and a test checks the law at three host
   masses. Owner: Core 1, after GEN.369 (the satellite items are Core 1's;
   the TODO thread, 8:15 PM EDT 2026-10-22).
+  Also from the plan-numbers check (8:48 PM EDT 2026-10-22; Boss's
+  observation, so a bug): no satellite lies beyond the host's virial
+  radius, and the distances scale with the halo, not with the disc scale
+  length (`generation/plan_outline.py:61`,
+  `generation/satellites.py:93-95`); on Boss's seed the satellites hold
+  77.6 percent of the host's stars (the Large Magellanic Cloud row alone
+  62 percent) and 44 percent of everything the plan will generate. Core
+  1 builds it early: right after GEN.628 and GEN.625, with GEN.369.
+  Owner: Bugfix 2 (fourth, right after GEN.369; Boss, 8:52 PM EDT
+  2026-10-22: the plan-number bugs and their prerequisites go to a
+  second bugfix lane; this replaces any earlier owner line).
   Prerequisites: GEN.369. Related: PERF.146, GEN.403, GEN.625, PERF.163.
 
 - [ ] **GEN.625 Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug)**
@@ -15542,7 +15568,102 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   next 52 and so on, numbered at merge. Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
-  Prerequisites: none. Related: GEN.624, GEN.613, GEN.619.
+  Owner: Core 1, holds this item only from the plan-number bugs; it is
+  not merged until Bugfix 2 lands GEN.626 and GEN.628 (the coordinator,
+  relayed Boss's 8:52 PM EDT 2026-10-22 note; this replaces any earlier
+  owner line).
+  Prerequisites: GEN.626, GEN.628 (the retune must see the corrected crest and the final thin-disc share; the plan-numbers check of 8:48 PM EDT 2026-10-22, reports/plan-numbers-check-2026-10-22.md, shows the crest line is wrong, the nuclear disc is fixed Milky Way content, and satellites and clusters are not yet scaled, so the 1,000-seed sweep is re-run after GEN.624 and GEN.403 land). Related: GEN.624, GEN.613, GEN.619.
+
+- [ ] **GEN.626 The plan's crest line and planned-share figure are wrong: print them from the built density, not a table and a fixed system mass (bug)**
+  Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
+  of Boss's Stage 4 plan run, PlanetGen 8.0.1961, seed
+  2139DD5841E680B009A3D17A6319B2AA). Boss's live observations are bugs
+  (8:44 PM EDT 2026-10-22). The plan prints a crest of 11.5 times the
+  one-star density; the model's own thin-disc crest on an arm crest is
+  8.76 (31 percent lower), and with `--richness 1.0` the line still says
+  11.5 while the model gives 4.37, because the line
+  (`galaxy/dials.py:398`, `:430-432`) uses a fixed 0.483 solar masses a
+  system, a thin-disc share that forgets the nuclear cluster and disc
+  (`galaxy/shape_draw.py:320-324`), and no Census dial input. The "38
+  percent of its stars sit in planned sectors" figure is a table keyed
+  on the thin crest alone and measured on the Milky Way's structure
+  (`galaxy/dials.py:411-427`); the model's own integral gives 59
+  percent. Do: print the crest from the built shape (`k_norm x arm_level
+  x (1 + arm_amplitude) x E`, the number the outline walks on), and
+  print the planned share from one integral of the built density over
+  radius and height (about a second); drop the lookup table; the warning
+  threshold of 20 and the text stay. Done: tests that the printed crest
+  equals the outline's own peak expected-systems-per-cell for a galaxy
+  with a nuclear disc and for richness 1.0 and 3.0, and that the printed
+  planned share equals an independent integral to within 2 percent; the
+  lookup table and the fixed 0.483 are gone. No generator epoch: only
+  the printed figures change. Owner: Core 1, first in its queue, before
+  GEN.625 (the coordinator, relayed 8:48 PM EDT 2026-10-22).
+  Owner: Bugfix 2 (first on its queue; Core 1's GEN.625 waits for it;
+  Boss, 8:52 PM EDT 2026-10-22: the plan-number bugs and their
+  prerequisites go to a second bugfix lane; this replaces any earlier
+  owner line).
+  Prerequisites: none. Related: GEN.625, GEN.607.
+
+- [ ] **GEN.627 The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug)**
+  Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
+  of Boss's Stage 4 plan run, PlanetGen 8.0.1961, seed
+  2139DD5841E680B009A3D17A6319B2AA). Boss's live observations are bugs
+  (8:44 PM EDT 2026-10-22). The outline takes a component in by its
+  tidal reach, not by the density it reaches
+  (`galaxy/component_field.py:261-310`, `high_band`; `bound` at
+  `:239-259` is density-based, the two disagree). The Sagittarius row
+  (peak 0.58 systems per cell, never reaching one) alone adds 10.4
+  billion candidate cells because its 15.6 kpc tidal sphere covers the
+  whole host; the globular clusters add 3.8 billion and the open
+  clusters 1.0 billion. The printed 16,443,878,393 candidate sectors is
+  about 16 times the real count (about 1.0 billion cells reach one
+  expected system), and `GalaxyBounds.random_address`
+  (`galaxy/skeleton.py:294-309`), which draws uniformly over candidate
+  cells, would put about 94 percent of random starts in cells that hold
+  nothing (arithmetic from the cell counts, not yet observed). Do: take
+  a component in by the radius where its density falls below the
+  one-system threshold instead of the tidal radius; print both the
+  candidate count and the count of cells that reach one expected system.
+  Done: for the seed above the candidate count falls to the order of 1.0
+  billion and every random start lands in a cell that reaches one
+  expected system (a test over 1,000 random starts); a component that
+  never reaches the threshold adds no cells. Needs a generator epoch if
+  any generated value changes (random starts do), numbered at merge.
+  Owner: Core 1, after GEN.624 (the coordinator, relayed 8:48 PM EDT
+  2026-10-22).
+  Owner: Bugfix 2 (sixth; Boss, 8:52 PM EDT 2026-10-22: the plan-number
+  bugs and their prerequisites go to a second bugfix lane; this replaces
+  any earlier owner line).
+  Prerequisites: none. Related: GEN.624, GEN.403, GEN.625.
+
+- [ ] **GEN.628 The nuclear disc is a fixed 61 times the nuclear cluster, 21 percent of a small galaxy's stars against about 3 percent for the Milky Way: draw it from a law (bug, needs a generator epoch)**
+  Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
+  of Boss's Stage 4 plan run, PlanetGen 8.0.1961, seed
+  2139DD5841E680B009A3D17A6319B2AA). Boss's live observations are bugs
+  (8:44 PM EDT 2026-10-22). The nuclear disc is a fixed 61 times the
+  nuclear cluster (`tuning.py:1216`, `galaxy/density.py:266`; the tuning
+  comment itself calls the ratio a Milky Way stand-in, recalled). In
+  Boss's galaxy the cluster is 1.75e7 solar masses (0.43 percent of the
+  host) so the disc is 8.4e8, 21 percent of all the galaxy's stars in a
+  disc of 27 pc scale length, against about 3 percent for the Milky Way;
+  it is also what makes the thin disc only 23 percent of the galaxy.
+  This is fixed Milky Way content, which the rule of no fixed content
+  forbids. Do: draw the nuclear disc mass from a stated law of the
+  galaxy's bulge and stellar mass with its natural scatter from the seed
+  (source named in the code and the doc; verified wins, widest range
+  when two are in question), and remove the constant 61 in the same
+  change. Done: over many seeds the nuclear disc share follows the
+  stated law with its scatter and a Milky Way mass galaxy lands near 3
+  percent; no constant ratio remains; same seed same disc. Needs a
+  generator epoch, numbered at merge. Owner: Core 1, before GEN.625
+  because the retune depends on the final thin-disc share (the
+  coordinator, relayed 8:48 PM EDT 2026-10-22).
+  Owner: Bugfix 2 (second; GEN.625's retune needs the final thin-disc
+  share; Boss, 8:52 PM EDT 2026-10-22: the plan-number bugs and their
+  prerequisites go to a second bugfix lane; this replaces any earlier
+  owner line).
+  Prerequisites: none. Related: GEN.625, GEN.626, GEN.387.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16688,6 +16809,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after. Done: the plan log prints the step timings, a report names the
   top cost, and a repeatable benchmark command runs it. Owner: the
   performance thread, as part of or beside PERF.146.
+  From the plan-numbers check (8:48 PM EDT 2026-10-22): most of the time
+  is a cache bug, not the skeleton (3.71 s is 1.4 percent of the stage).
+  `mean_system_mass_at_age_solar` (`generation/system_mass.py:171-172`)
+  caches 512 ages while a plan asks for 13,995 distinct ones
+  (`galaxy/components.py:87-91` rounds to 1e-6 Gy, so every open cluster
+  is its own key); each miss costs about 3 ms, the component field pays
+  it once (`galaxy/component_field.py:107-108`) and
+  `run_plan.py:338-340` pays it again for the printed sums: about 76 s
+  on the checker's machine, about 180 s on Boss's, of the 264 s. Fix:
+  round ages to the population's quarter-decade edges (each cluster
+  already sits in a quarter-decade population) or size the cache to the
+  component count, and compute the three sums from the field instead of
+  a second pass. The other 80 s (database writes of 13,987 components
+  and 1,578 shell rows, queue start-up, naming key) is unmeasured and
+  needs a MySQL run.
   Prerequisites: none. Related: PERF.146, GEN.624.
 
 ## DB: Database and schema
