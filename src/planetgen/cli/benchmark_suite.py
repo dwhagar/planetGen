@@ -1,7 +1,7 @@
 # planetgen/cli/benchmark_suite.py
 
 """
-`planetgen benchmark --suite` (PERF.146): a performance profile of every generation option, one repeatable command.
+`planetgen benchmark --suite`: a performance profile of every generation option, one repeatable command.
 
 `planetgen benchmark` (PERF.31) times a small galaxy from the plan to the fill. The suite times each part of a galaxy
 run on its own, at a size you pick, in scratch databases (nothing is written to the real one), and writes the result as
@@ -118,9 +118,29 @@ ABSOLUTE_COUNT = frozenset({"rescore-habitability", "fill-map-luminosity", "warm
 """frozenset[str]: The steps whose count is the table's size after them, not the rows they added."""
 
 
+def _positive_int(text):
+    """`argparse` type for a count of at least one."""
+    try:
+        value = int(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid int value: {text!r}") from None
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"must be at least 1, got {text!r}")
+    return value
+
+
+def _positive_mass(text):
+    """`argparse` type for a mass in solar masses: a finite number above zero."""
+    from planetgen.cli.generate import finite_float
+    value = finite_float(text)
+    if value <= 0.0:
+        raise argparse.ArgumentTypeError(f"must be above zero, got {text!r}")
+    return value
+
+
 def add_suite_arguments(parser):
     """Adds the suite's options to the `benchmark` parser."""
-    group = parser.add_argument_group("the suite (--suite, PERF.146)")
+    group = parser.add_argument_group("the performance suite (--suite)")
     group.add_argument("--suite", action="store_true",
                        help="Run the performance suite of every generation option instead of the small fill: "
                             "the plan, each scatter kind, the fill, the population pass, the re-score, the "
@@ -131,15 +151,15 @@ def add_suite_arguments(parser):
     group.add_argument("--steps", metavar="STEP[,STEP...]", default=None,
                        help="With --suite: only these steps (default all, in order; a step needs the ones before it "
                             "to have run, so a list starts from the plan): " + ", ".join(STEP_ORDER) + ".")
-    group.add_argument("--repeats", type=int, default=1, metavar="N",
+    group.add_argument("--repeats", type=_positive_int, default=1, metavar="N",
                        help="With --suite: run the whole pipeline N times in fresh databases and report each step's "
                             "fastest, median and slowest run (default 1).")
-    group.add_argument("--step-timeout", type=int, default=DEFAULT_STEP_TIMEOUT_MINUTES, metavar="MINUTES",
+    group.add_argument("--step-timeout", type=_positive_int, default=DEFAULT_STEP_TIMEOUT_MINUTES, metavar="MINUTES",
                        help=f"With --suite: stop a step that runs longer than this and record it as not finished "
                             f"(default {DEFAULT_STEP_TIMEOUT_MINUTES}).")
-    group.add_argument("--mass", type=float, default=None, metavar="M_SUN",
+    group.add_argument("--mass", type=_positive_mass, default=None, metavar="M_SUN",
                        help="With --suite: the galaxy's stellar mass in solar masses, instead of the size's.")
-    group.add_argument("--fill-sectors", type=int, default=None, metavar="N",
+    group.add_argument("--fill-sectors", type=_positive_int, default=None, metavar="N",
                        help="With --suite: the sectors the fill makes, instead of the size's.")
 
 

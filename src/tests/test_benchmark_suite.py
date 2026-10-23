@@ -1,7 +1,7 @@
 # tests/test_benchmark_suite.py
 
 """
-`planetgen benchmark --suite` (PERF.146): the steps and sizes, the commands each step runs, the report's layout, and one
+`planetgen benchmark --suite`: the steps and sizes, the commands each step runs, the report's layout, and one
 real run of the first step on the smallest size that checks the JSON's shape. The numbers of a real run live in
 docs/design/generation-performance.md.
 """
@@ -130,7 +130,8 @@ def test_the_report_lists_each_step_its_stages_the_counters_and_the_ranking():
     assert "Questions 500" in text and "Com_delete" not in text      # a counter of zero is left out
     assert "ms per star" in text and "worker start-up: 1.20 s" in text
     assert "run-to-run" in text and "ranked by wall time" in text
-    assert text.index("90.0%") < text.index("10.0%")
+    ranked = text.split("ranked by wall time")[1]
+    assert ranked.index("90.0%") < ranked.index("10.0%")
 
 
 def test_the_machine_cpu_is_a_growing_number_on_linux():
