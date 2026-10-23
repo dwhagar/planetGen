@@ -1075,3 +1075,4 @@ Baseline: PR #1817.
 | TEST.272 | 8.1 | Bugs and flaky tests |
 | TEST.280 | 8.1 | Bugs and flaky tests |
 | TEST.271 | 8.1 | Bugs and flaky tests |
+| PERF.163 | 8.1 | The headline closes |

@@ -16604,42 +16604,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
-- [ ] **PERF.163 The Stage 4 plan takes 264 s against a 3.71 s skeleton: find where the other time goes (bug)**
-  The Stage 4 plan of a default-size galaxy with the default dials
-  (PlanetGen 8.0.1961, Boss's run, 8:23 PM EDT 2026-10-22) took 264 s
-  while the skeleton took 3.71 s. The log does not show where the other
-  260 s went; the research thread
-  (reports/plan-warning-explained-2026-10-22.md) suspects cluster and
-  satellite drawing, storing the shells and the bright stars, but did
-  not check. Why: the plan stage is the first thing a person runs, and
-  PERF.146 profiles generation options and scatters but not this stage
-  by name. Do: profile the plan stage on a default galaxy, with a
-  per-step timing table in the plan log (skeleton, outline, shell
-  storage, bright stars, clusters, satellites, globular clusters), find
-  where the 260 s goes and either fix it or file the ranked fixes. Note
-  that the satellites hold about 6.4e9 systems against about 8.4e9 for
-  the host (see GEN.624, decided: they scale with the host's mass), so
-  their share of this time falls once GEN.624 lands; measure before and
-  after. Done: the plan log prints the step timings, a report names the
-  top cost, and a repeatable benchmark command runs it. Owner: the
-  performance thread, as part of or beside PERF.146.
-  From the plan-numbers check (8:48 PM EDT 2026-10-22): most of the time
-  is a cache bug, not the skeleton (3.71 s is 1.4 percent of the stage).
-  `mean_system_mass_at_age_solar` (`generation/system_mass.py:171-172`)
-  caches 512 ages while a plan asks for 13,995 distinct ones
-  (`galaxy/components.py:87-91` rounds to 1e-6 Gy, so every open cluster
-  is its own key); each miss costs about 3 ms, the component field pays
-  it once (`galaxy/component_field.py:107-108`) and
-  `run_plan.py:338-340` pays it again for the printed sums: about 76 s
-  on the checker's machine, about 180 s on Boss's, of the 264 s. Fix:
-  round ages to the population's quarter-decade edges (each cluster
-  already sits in a quarter-decade population) or size the cache to the
-  component count, and compute the three sums from the field instead of
-  a second pass. The other 80 s (database writes of 13,987 components
-  and 1,578 shell rows, queue start-up, naming key) is unmeasured and
-  needs a MySQL run.
-  Prerequisites: none. Related: PERF.146, GEN.624.
-
 - [ ] **PERF.164 The generation performance report holds only the small size: measure medium and large after PERF.163 and re-rank**
   Follow-up to PERF.146 (merged as #2559, about 9:10 PM EDT 2026-10-22
   as the Performance lane reported; the benchmark suite `planetgen
@@ -16654,7 +16618,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the ranked list is checked against them. Owner: the Performance
   thread, after PERF.163 (the Performance lane, relayed 9:04 PM EDT
   2026-10-22).
-  Prerequisites: PERF.163. Related: PERF.146, PERF.163.
+  Prerequisites: none. Related: PERF.146, PERF.163.
+
+- [ ] **PERF.165 The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug)**
+  Found by the Performance lane in PERF.163 (merged as #2576, relayed
+  10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
+  of the 264 s plan stage, so a bug. PERF.163 raised the
+  mean-system-mass cache from 512 to 65,536 ages (a plan asks for about
+  22,000); `plan --mass 4e9` fell from about 2 minutes (8.0.1960) to
+  about 30 s after PERF.146 and about 25 s now, and the plan log ends
+  with a step table. What is left that changes no generated value: (1)
+  the 22,267 components are stored row by row (3.1 s of a 12.3 s unit);
+  store them in batches; (2) about 10 s of start-up outside the unit:
+  plan_shape runs twice, the math check takes 2 s, the queue workers
+  start. Do: batch the component insert and run the shape once, and make
+  the math check cheap or skippable on a plan; keep every value the
+  same. Done: the plan step table shows the storing and start-up rows
+  smaller, the golden outputs are unchanged, and `plan --mass 4e9` is
+  measured again. Owner: the Performance thread, after PERF.164 (the
+  Performance lane, relayed 10:25 PM EDT 2026-10-22).
+  Prerequisites: none. Related: PERF.163, PERF.164, PERF.146.
+
+- [ ] **PERF.166 The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug)**
+  Found by the Performance lane in PERF.163 (merged as #2576, relayed
+  10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
+  of the 264 s plan stage, so a bug. PERF.163 raised the
+  mean-system-mass cache from 512 to 65,536 ages (a plan asks for about
+  22,000); `plan --mass 4e9` fell from about 2 minutes (8.0.1960) to
+  about 30 s after PERF.146 and about 25 s now, and the plan log ends
+  with a step table. The per-age bisection in the mean-system-mass
+  lookup costs 0.2 ms per age and 22,000 ages are asked for; replacing
+  it with a closed form or an interpolation table would change the last
+  bits of the result, so it changes generated values and needs a
+  generator epoch (numbered at merge) and Boss's word, and goes to a
+  later version unless he says otherwise. Do: measure what the bisection
+  costs now (the lane's table says it is small after the cache fix), and
+  only if it is worth it, design the replacement with the error bound
+  stated and the golden outputs re-baselined. Done: either the measured
+  cost is on this item and Boss agrees to leave it, or the replacement
+  is merged with its epoch. Owner: none for now (needs Boss's word;
+  pool).
+  Prerequisites: none. Related: PERF.163, PERF.165.
 
 ## DB: Database and schema
 
@@ -20760,6 +20764,27 @@ clears each one.
   the scene in the test process); what remains here is the selection
   itself, which is MAP.210.
   Prerequisites: none. Related: MAP.210, MAP.209.
+
+- [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails on main: 2 uncharted where 3 are expected (bug)**
+  Found by the Performance lane (relayed 10:25 PM EDT 2026-10-22 as the
+  lane reported) while re-running the ten failures it had seen, on
+  current main with the control database present. Kind: test fails on
+  main. Test:
+  src/tests/test_uncharted_phenomenon.py::test_an_uncharted_black_hole_page_names_its_class.
+  Failure text: the page shows 2 uncharted where the test expects 3.
+  Fails on main: yes on the Performance lane's clean checkout; not yet
+  confirmed on another lane. Frequency: every run on that lane.
+  Reproducer: python3 -m pytest -q
+  src/tests/test_uncharted_phenomenon.py::test_an_uncharted_black_hole_page_names_its_class.
+  Do: confirm it on another lane's main (Bug Hunt), find the cause (a
+  recent change to uncharted counting or to black hole classification),
+  and fix the cause, not the test. Done: the test passes alone and in a
+  gate. Owner: Bug Hunt (proposed by the TODO thread, after TEST.275).
+  Two other failures the lane saw are its own machine's grants
+  (test_update_database_step: Access denied for planetgen@127.0.0.1 on
+  the test database) and pass alone (test_count_cache, test_slow_route),
+  so they are not filed.
+  Prerequisites: none. Related: TEST.275.
 
 ## USR: User accounts
 
