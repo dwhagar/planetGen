@@ -49,7 +49,7 @@ def test_a_filled_sector_records_the_running_code(mysql_config):
         later = store.sector_versions(conn)
     finally:
         conn.close()
-    assert groups == [dict(RUNNING, sectors=1)]
+    assert groups == [dict(RUNNING, generator_epoch=generator_epoch.generator_epoch(), sectors=1)]
     assert later[0]["version_key"] == "0007000100010003110900"
     assert "7.1.1 when generated" in version_check.mixed_version_warning(later)
 

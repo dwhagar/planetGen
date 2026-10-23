@@ -7711,11 +7711,13 @@ def sector_versions(conn):
     """
     The code that generated the galaxy's sectors (v67, DB.7; from the run each sector points at since v121, DB.16): one
     dict per distinct `version_key` (`None` for sectors with no recorded version) with `planetgen_version`,
-    `python_version`, `platform` and the `sectors` count, the largest group first.
+    `python_version`, `platform`, `generator_epoch` (OPS.58; `None` for runs from before v131) and the `sectors` count,
+    the largest group first.
     """
     rows = conn.execute(
         "SELECT r.version_key AS version_key, MIN(r.planetgen_version) AS planetgen_version,"
-        " MIN(r.python_version) AS python_version, MIN(r.platform) AS platform, COUNT(*) AS sectors"
+        " MIN(r.python_version) AS python_version, MIN(r.platform) AS platform,"
+        " MIN(r.generator_epoch) AS generator_epoch, COUNT(*) AS sectors"
         " FROM sectors s LEFT JOIN generation_runs r ON r.id = s.run_id GROUP BY r.version_key"
         " ORDER BY sectors DESC, version_key").fetchall()
     return [dict(row) for row in rows]

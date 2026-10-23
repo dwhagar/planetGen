@@ -49,6 +49,8 @@ PROSE_TEXT_COLUMNS = {
     # Control schema: an error message and the audit log's note.
     ("work_tasks", "error"), ("admin_audit_log", "detail"),
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
+    # OPS.58: the generator battery's digest per case and the environment record, as JSON documents read whole
+    ("galaxy_shape", "battery_cases"), ("version_key_history", "battery_cases"), ("version_key_history", "environment"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 
