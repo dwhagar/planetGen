@@ -1105,3 +1105,4 @@ Baseline: PR #1817.
 | GEN.625 | 8.1 | Reproducible galaxies |
 | TEST.181 | 8.1 | Reproducible galaxies |
 | OPS.57 | 8.1 | Reproducible galaxies |
+| PERF.168 | 8.1 | The headline closes |

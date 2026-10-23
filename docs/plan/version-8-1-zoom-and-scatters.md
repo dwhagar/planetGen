@@ -135,7 +135,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.289 | Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug) |  |  |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) |  |  |
 | TEST.291 | test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug) |  |  |
-| API.32 | GET /api/containers answers 500 to a hostile query string (bug) |  |  |
+| API.32 | test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug) |  |  |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
