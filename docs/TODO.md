@@ -3200,7 +3200,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
     Backfill case (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane reported): the rule "a sector's contents come out the same whichever sectors were generated before it" still fails for the backfill, which adds its dimmer bright stars only to sectors not yet generated; filed as GEN.633, which is now a subitem and a prerequisite until Boss decides whether it is needed before 8.1.
-  Prerequisites: TEST.181, GEN.633.
+  Progress (Core 1, OPS.57 and TEST.181 merged together as #2628,
+  relayed 4:52 AM EDT 2026-10-23 as the lane reported; releases 8.0.2003
+  and 8.0.2004): TEST.181 is done and covers the cases that hold
+  (sectors reached by an earlier run's backfill in either order, 1
+  against 4 workers, the shared ID cell). GEN.633 is the only subitem
+  left, and this item stays open on it until Boss decides on his card.
+  Prerequisites: GEN.633.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -3218,7 +3224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: OPS.57, OPS.58.
+    Prerequisites: OPS.58.
 
   - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
     Boss (2026-10-02 02:28Z): "We're going to have to build a
@@ -3349,7 +3355,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: OPS.57, GEN.57.
+    Prerequisites: GEN.57.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -5098,7 +5104,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets to about 275 AU, a dense core to a fraction of an AU), so this
   item is unblocked and Core 4 starts it now with the
   dispersion-convention fix above. It takes the next free epoch at merge
-  (55 or later).
+  (56 or later; 55 went to GEN.625).
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -7316,6 +7322,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfix 2 (fifth, moved from Core 4's queue; Boss, 8:52 PM EDT
   2026-10-22: the plan-number bugs and their prerequisites go to a
   second bugfix lane; this replaces any earlier owner line).
+  Progress (the TODO thread, 4:47 AM EDT 2026-10-23, GEN.625 merged as
+  #2627, relayed by the coordinator as the lane reported, release
+  8.0.2002, generator epoch 55): the all-Auto galaxy now draws its size
+  and flatness until the plan raises none of its grid warnings (warn
+  rate 17.5 percent to 0 over 1,000 seeds, mean mass 4.3e9, mean scale
+  length 1,224 pc). The plan-numbers check asks for the 1,000-seed sweep
+  to be re-run after GEN.624 and GEN.403 land, because they change the
+  satellites and clusters the plan counts.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
@@ -14849,63 +14863,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfix 2 (fourth, right after GEN.369; Boss, 8:52 PM EDT
   2026-10-22: the plan-number bugs and their prerequisites go to a
   second bugfix lane; this replaces any earlier owner line).
+  Progress (the TODO thread, 4:47 AM EDT 2026-10-23, GEN.625 merged as
+  #2627, relayed by the coordinator as the lane reported, release
+  8.0.2002, generator epoch 55): the all-Auto galaxy now draws its size
+  and flatness until the plan raises none of its grid warnings (warn
+  rate 17.5 percent to 0 over 1,000 seeds, mean mass 4.3e9, mean scale
+  length 1,224 pc). The plan-numbers check asks for the 1,000-seed sweep
+  to be re-run after GEN.624 and GEN.403 land, because they change the
+  satellites and clusters the plan counts.
   Prerequisites: GEN.369. Related: PERF.146, GEN.403, GEN.625, PERF.163.
-
-- [ ] **GEN.625 Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug)**
-  Boss (8:28 PM EDT 2026-10-22), after reading the plan coverage warning
-  (reports/plan-warning-explained-2026-10-22.md: "the disc's crest is
-  11.5 times the one-star density (under 20): about 38 percent of its
-  stars sit in planned sectors"): "Ok can we tune the defaults to avoid
-  the warnings? I don't want it more than half as big as the milky way
-  on average if possible." Filed by the TODO thread through the
-  coordinator. Reading chosen: the Auto draws for stellar mass, disk
-  scale length, flatness and central density
-  (docs/design/galaxy-size-levers.md, `galaxy/dials.py`) are retuned so that a
-  default galaxy does not trigger the warning (the disc's crest is at
-  least 20 times the one-star density), while the average default galaxy
-  stays at most half the Milky Way's size (its disk scale length and its
-  stellar mass both at most half the Milky Way's; the Auto mass range of
-  3e9 to 6e9 solar masses is already under a quarter, so the size and
-  flatness draws are the levers, since the crest goes as stellar mass
-  over scale length cubed and as flatness). If Boss meant total systems
-  rather than size, the same test applies to the system count. Do: (1)
-  sweep the Auto draws over at least 1,000 seeds and report the share
-  that warn today, with the crest and planned-star share for each; (2)
-  retune the size-mass relation draw, the flatness draw and the central
-  density so none warns, keeping every value inside its sourced range
-  (source rules: verified wins; a range that cannot hold both goals is
-  reported to Boss, not stretched); (3) the warning text and threshold
-  stay as they are. Done: a test that draws 1,000 Auto galaxies and
-  finds no warning, with a mean size at most half the Milky Way's, and
-  docs/design/galaxy-size-levers.md states the new Auto draws. Generator epoch: the draws
-  change generated values, so this needs a generator epoch; GEN.307 took
-  51 (#2595, 11:57 PM EDT 2026-10-22 as the lane reported) and GEN.315
-  slice 1 took 52 (#2605, 1:25 AM EDT 2026-10-23 as the lane reported),
-  so 53 was the next free number (GEN.628 took it, #2620, 3:08 AM EDT 2026-10-23 as the lane reported; 54 is next) and the epochs file must stay
-  contiguous: the first of this item and PERF.123 slice C to merge
-  takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Update (4:20 AM EDT 2026-10-23 as the lane reported): GEN.628 took 53 (#2620) and GEN.325 took 54 (#2624, release 8.0.2000), so 55 is next: GEN.329 (Core 3, gating) plans it, and this item and PERF.123 slice C follow. Owner: Core 1, first in its
-  queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
-  EDT 2026-10-22).
-  Owner: Core 1, holds this item only from the plan-number bugs; it is
-  not merged until Bugfix 2 lands GEN.626 and GEN.628 (the coordinator,
-  relayed Boss's 8:52 PM EDT 2026-10-22 note; this replaces any earlier
-  owner line).
-  Progress (the coordinator, relayed 12:20 AM EDT 2026-10-23): GEN.626
-  merged as #2598, so the crest and the planned share now come from the
-  built density: on Boss's seed the crest goes from 11.5 to 8.76 and the
-  planned share from 38 to 59 percent, and at richness 1.0 the crest is
-  4.37. The coordinator told Core 1 to start this item; GEN.628 (the
-  nuclear disc law) is still open and the retune should see its final
-  thin-disc share before this item merges.
-  Progress (the coordinator, relayed 3:08 AM EDT 2026-10-23 as the lane
-  reported): GEN.628 merged as #2620 and took generator epoch 53, so
-  this item is cleared to merge; Core 1 rebases and takes the next free
-  epoch at merge (55 if it merges first of GEN.329 and this item,
-  otherwise the next after GEN.329's; GEN.325 took 54). Core 1's gate numbers (as the
-  lane reported, 2:40 AM EDT): the warn rate 20 percent to 0 over 1,000
-  seeds, mean mass 4.3e9, mean disc scale length 1,200 pc; re-run them
-  on the rebased code.
-  Prerequisites: none (GEN.628 merged as #2620; the retune sees the corrected crest and the final thin-disc share; the plan-numbers check of 8:48 PM EDT 2026-10-22, reports/plan-numbers-check-2026-10-22.md, shows the crest line is wrong, the nuclear disc is fixed Milky Way content, and satellites and clusters are not yet scaled, so the 1,000-seed sweep is re-run after GEN.624 and GEN.403 land). Related: GEN.624, GEN.613, GEN.619.
 
 - [ ] **GEN.627 The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug)**
   Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
@@ -19023,26 +18989,6 @@ clears each one.
   the newest full archive.
   Prerequisites: ADM.89, DB.42, ADM.90, OPS.55. Related: ADM.91.
 
-- [ ] **TEST.181 The order-independence test: the same sectors at 1 and 4 workers and in two orders**
-  Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A test generates the same small set
-  of sectors (one reached by a backfill, two sharing an ID cell) at 1
-  and at 4 workers and in two orders and compares their fingerprints
-  (GEN.58's encoder now, GEN.136:a when it lands); nearest-system links
-  and population data stay out of the comparison (they are rebuilt from
-  content). Why: this is the proof GEN.57 states, and TEST.77's tier B
-  stands on it. Done: the test runs in the `changed` gate and fails when
-  a or b is reverted.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Progress (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane
-  reported): building it, the test covers what holds: sectors reached by
-  an earlier run's backfill in either order, 1 against 4 workers, and
-  the shared ID cell. The backfill case that does not hold is filed as
-  GEN.633 and is not decided here.
-  Prerequisites: none. Related: GEN.57.
-
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). TEST.77's golden galaxy runs a
@@ -20858,7 +20804,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: OPS.57, OPS.58.
+  Prerequisites: OPS.58.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
@@ -20947,29 +20893,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
-- [ ] **OPS.57 generator_battery_digest(): a database-free digest over 6 to 8 canned cases**
-  Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A pure function in the package, no
-  database and no network, over 6 to 8 tiny canned cases (a 3-system
-  sector through `generate_sector` under a bound unit seed; one
-  phenomenon; one nebula shape; one bright-star scatter on a tiny
-  region; one population stream; one `unit_seed` known answer), each
-  hashed with GEN.136's encoder into a structural and a float digest,
-  returning the overall digest and a per-case digest (design
-  generation-determinism.md 5.4, 3 to 5 s). Why: it is what OPS.15,
-  OPS.14's mismatch check and TEST.77's tier A compare. Done: the
-  function and a test that it is stable across two runs and two hash
-  seeds, and that changing one canned draw changes exactly one case's
-  digest.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  fingerprint encoder is GEN.304's (split from GEN.136, 2026-10-16), not
-  GEN.136's.
-  Prerequisites: none. Related: OPS.28.
-
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). The `version_key_history` row
@@ -21000,7 +20923,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   defaults approved);
   nothing records a cut, so the missing entry in the split text is a
   slip.
-  Prerequisites: OPS.57. Related: OPS.28.
+  Prerequisites: none. Related: OPS.28.
 
 - [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
   Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed

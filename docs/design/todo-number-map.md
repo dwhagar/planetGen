@@ -1334,7 +1334,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.622 | pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug) | none | open |
 | GEN.623 | Data tables carry no licence column or licence check; the licence information lives in DATA-LICENSE.md | none | done, PR #2596 |
 | GEN.624 | Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) (bug) | none | open |
-| GEN.625 | Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug) | none | open |
+| GEN.625 | Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug) | none | done, PR #2627 |
 | GEN.626 | The plan's crest line and planned-share figure are wrong: print them from the built density, not a table and a fixed system mass (bug) | none | done, PR #2598 |
 | GEN.627 | The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug) | none | open |
 | GEN.628 | The nuclear disc is a fixed 61 times the nuclear cluster, 21 percent of a small galaxy's stars against about 3 percent for the Milky Way: draw it from a law (bug, needs a generator epoch) | none | done, PR #2620 |
@@ -1716,7 +1716,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.54 | The orbital update refuses to run while an update is running, with tests | none | done, PR #1782 |
 | OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | none | open |
 | OPS.56 | The generator epoch counter and the PR rule that enforces it | none | done, PR #1877 |
-| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | open |
+| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | done, PR #2628 |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | none | open |
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | done, PR #2124 |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` | none | done, PR #2227 |
@@ -2399,7 +2399,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | none | open |
 | TEST.179 | Permission matrix test: every route and page checked for every role against the catalogue | none | open |
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | none | open |
-| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | none | open |
+| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | none | done, PR #2628 |
 | TEST.182 | Put one block-first backfill into the golden galaxy | none | open |
 | TEST.183 | A test that fails when a new output path formats its own lines | none | open |
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | done, PR #2504 |
