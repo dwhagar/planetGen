@@ -9289,6 +9289,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the old table and the copy line are gone. Owner: Core 4 (the 8.4
   atmosphere chain, proposed).
   Progress: GEN.470 merged as #2590 (11:20 PM EDT 2026-10-22 as the lane reported): `physics/saturation.py` and `data/saturation_pressure.json`, one saturation-pressure function; Fray and Schmitt fits for Ne, N2, CO, Ar, O2, CH4, Kr, Xe, C2H6, C2H4, C2H2, H2S, CO2, NH3, SO2, HCN, CH3OH and C6H6, water by Feistel and Wagner; no liquid branch yet (GEN.452 adds it); no column, migration or epoch.
+  Progress (Blocker 2, relayed 11:38 PM EDT 2026-10-22 as the
+  coordinator reported): part 1 merged as #2593 (the liquid branch of
+  the saturation function, Wagner fits and the hydrogen solid; no stored
+  change and no epoch). Part 2 (atmosphere.py reads the curves in place
+  of the condensation table) changes stored freeze-out values, so its
+  merge is held and it rides the one 8.4 epoch bump (Boss, fork 1,
+  2026-10-18). The design's CO2-2 recommendation was wrong in the cold:
+  filed as DOC.74; the lane uses CO2-1 below 195.3 K.
   Prerequisites: none. Related: GEN.409, GEN.410,
   GEN.422, GEN.451, GEN.414, GEN.434, GEN.470.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
@@ -21745,6 +21753,25 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: TEST.265.
+
+- [ ] **DOC.74 Design part 01, section 7.4: the CO2 row and its recommended CO2-2 sublimation fit are wrong in the cold; the table now says to use CO2-1 below 195.3 K (bug)**
+  Found by Blocker 2 in GEN.452 (relayed 11:38 PM EDT 2026-10-22 as the
+  coordinator reported), when its liquid branch of the saturation
+  function was checked against the design. Kind: design document error.
+  File:
+  docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md,
+  the CO2-2 row of the sublimation fit table and the CO2 row of the
+  section 7.4 table. Failure: CO2-2 is 4 K too cold at 100 Pa and 17 K
+  too cold at 1 mPa against the gas table's own sublimation heat (25.2
+  to 27.2 kJ/mol); the other 12 rows reproduce to 0.12 K. The lane uses
+  CO2-1 below 195.3 K (GEN.452, #2593). Do: the two rows now say so
+  (corrected by the TODO thread in the docs PR that filed this item);
+  also check that docs/design/gap-filling-plan.md and
+  docs/design/atmosphere-composition-parts/08-verification-of-boss-added-research-A.md
+  do not repeat the recommendation, and that GEN.497 (the cold-end
+  vapour pressures) reads the corrected row. Done: no design document
+  recommends CO2-2 below 195.3 K. Owner: the TODO thread.
+  Prerequisites: none. Related: GEN.452, GEN.470, GEN.497.
 
 ## VIEW: The view from a planet
 
