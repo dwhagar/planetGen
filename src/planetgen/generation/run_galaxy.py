@@ -342,6 +342,8 @@ def _fill_context(args, address):
                 # own: they are dark, below the cap, and part of what it leaves unresolved.
                 expected = profile.expected_systems
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
+        if not resolution.capped:
+            _take_to_the_deepest_floor(conn, skeleton, address, limits, backfill_seed)
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         emission_hosts = _emission_hosts(conn, skeleton, address, profile)
@@ -358,6 +360,24 @@ def _fill_context(args, address):
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
                                    resolution=resolution, emission_hosts=emission_hosts, member_trees=member_trees,
                                    orbit_epoch_unix=orbit_epoch_unix)
+
+
+def _take_to_the_deepest_floor(conn, skeleton, address, limits, seed):
+    """
+    GEN.633: before a sector is filled, takes its pre-placed bright stars down to the deepest floor the mass backfill
+    ever uses (the first of `BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`), whatever the backfill has reached so far. The
+    backfill skips a sector once it is filled, so without this a sector the backfill reached first held the dimmer
+    stars of its ring and one generated before the backfill reached it did not, and its contents depended on the order
+    the sectors were generated in. A sector's draw is seeded from the scatter's seed, its address and fixed mass
+    bands, so the stars drawn here are the ones the backfill would have drawn, and a sector the backfill already took
+    to a heavier floor is topped up with only the masses it lacks. A sector at or below the floor (a band whose mass
+    limit already reaches it) is left alone.
+    """
+    floor = float(min(program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
+    mass_limit = limits.mass_limit_at(address[0], address[1])
+    if mass_limit is not None and mass_limit <= floor:
+        return
+    run_plan._draw_sector_masses(conn, skeleton, {tuple(address): floor}, limits, seed)
 
 
 def backfill_step_targets(addresses, bounds, step_masses=None):
