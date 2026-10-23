@@ -114,3 +114,25 @@ def test_every_evolved_draw_is_reproducible():
             with draw.bound(seed):
                 b = md.draw_mixture(Subject(body_class, {**BASE, **changes}))
             assert a.mole_fractions == b.mole_fractions
+
+
+def test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage():
+    from planetgen.physics import mixture_trace as mt
+    life = dict(o2_pal=1.0, life_chemical=True, sep_reducing=False, lightning=True, co2_rich=False, h2_poor=True,
+                has_solid_ground=True, h2o_present=True, carbon_bearing=True, gas_has_co_h2s=False, t_layer_k=280.0)
+    needed = mt.required_trace_inputs("A")
+    assert {"o2_pal", "life_chemical", "lightning", "co2_rich", "h2_poor", "has_solid_ground"} <= set(needed)
+    seen = set()
+    for seed in range(40):
+        subject = Subject("A", {**BASE, **life})
+        with draw.bound(seed):
+            first = md.draw_mixture(subject)
+            result = mt.draw_trace_gases(subject, first)
+        assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+        assert all(gases.has(formula) for formula in result.mole_fractions)
+        for gas in ("N2O", "PH3", "HCl", "HF", "NO2", "CH3Cl"):
+            if gas in result.mole_fractions and gas not in first.mole_fractions:
+                seen.add(gas)
+        assert set(first.mole_fractions) <= set(result.mole_fractions)
+        assert "m1" in result.recipe.binaries                     # the ozone rows are in the result for the ozone code
+    assert {"N2O", "PH3"} & seen

@@ -1,8 +1,9 @@
 # The atmosphere mixture of a body: from regimes to mole fractions (GEN.451, GEN.479, GEN.454, GEN.499)
 
 Status: every family implemented and tested (`physics/mixture_draw.py`, `draw_mixture`), not yet called by the generator. Lane I
-(GEN.411) stores the result and owns the pressure. What is still to do: the trace and minor gases `m` after the life stage (the
-draw of `m` rows needs `o2_pal`), and the dataset fallbacks (GEN.594).
+(GEN.411) stores the result and owns the pressure. The trace and minor gases of table `m` are drawn after the life stage by
+`physics/mixture_trace.py` (`draw_trace_gases`, which adds N2O, PH3, HCl, HF, NO2 and CH3Cl at stand-in amounts where the rows draw them
+present); the ozone rows are lane F's.
 
 ## The split
 
