@@ -82,17 +82,20 @@ MACHINE = {
                state="stand-in", replacement="GEN.513",
                dist={"kind": "normal", "mu": "3.5 + 2*log10(mass_earth)", "sigma": 1.0, "range": [-6, 6]},
                correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482."),
-    "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1 (GEN.513 tunes it)", kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
-               dist={"kind": "normal", "mu": -1.26, "sigma": 0.45},
-               source="22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, "
-                      "via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic "
-                      "bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
+    "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
+               dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
+               source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table "
+                      "1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); "
+                      "the width 0.22 is the intrinsic spread of the 13 well-constrained stars (COMPUTED) and lies inside the "
+                      "0 to 0.38 the detection model accepts (GEN.513, docs/design/wd-redox-tuning.md); the meteoritic bracket "
+                      "-1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the uniform U[-1.4, 0] has its mean 0.55 dex above the "
                           "white dwarf ensemble; the core-formation scale differs from the surface magma-ocean scale of a1."),
-    "a4": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample; GEN.513 tunes it with the detection and settling model", kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw", tunable=True,
-               dist={"kind": "normal", "mu": -1.25, "sigma": 0.45},
-               source="22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 (Doyle 2020, "
-                      "Doyle 2023; READ, COMPUTED)",
+    "a4": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample; the width 0.22 is tuned with the detection model, the settling is not modelled (GEN.513)", kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw", tunable=True,
+               dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
+               source="22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 of the reported medians "
+                      "(Doyle 2020, Doyle 2023; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 "
+                      "well-constrained stars and lies inside the 0 to 0.38 the detection model accepts (GEN.513)",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the centre -1.0 came from the first six stars; the "
                           "22-value mean is -1.25 +/- 0.10 and the bracket [-1.37, -0.6] of six stars is dropped."),
     "a5": dict(kind="option", group="a", classes=ROCKY, weight="phi((0 - redox_diw)/0.5)"),

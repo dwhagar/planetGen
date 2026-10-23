@@ -184,6 +184,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Dispositions (GEN.480 to GEN.494, GEN.501, lane M, 2026-10-23):** the 43 atmosphere rows that were `open` are now partly verified or labelled stand-ins that name the builder above; the row-by-row table is `docs/design/weight-research-dispositions.md`.
 
+**Built (GEN.513, lane M, 2026-10-23):** rows a3 and a4 are retuned with the white-dwarf detection model (`docs/design/wd-redox-tuning.md`): the centre is -1.25 for both and the width falls from 0.45 to 0.22, inside the 0 to about 0.38 the detection model accepts; the four targets name the model. The scale conversion to row a1 and the settling are not modelled.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

@@ -39,7 +39,7 @@ Validity: effective temperature 10,120 to 21,200 K; DA, DB and DZ atmospheres; b
 
 ## 4. What it does not do
 
-- The target table (`tuning_targets.json`) still has a3 and a4 with no selection model: the shipped recipe draws N(-1.25, 0.45). Applying the model to those targets would fail the sd target (the draw is too wide) and so asks for a retune of the width to between 0 and about 0.15. That retune is a value change with a generator epoch and belongs to B5 (GEN.513), which also decides the scale conversion between the core-formation dIW of the white dwarfs and the surface magma-ocean scale of row a1.
+- The shipped rows a3 and a4 were retuned with this model (GEN.513, `docs/design/wd-redox-tuning.md`): the width 0.45 became 0.22 and the four targets now name this model. The conversion between the core-formation dIW of the white dwarfs and the surface magma-ocean scale of row a1 is not tested.
 - The settling of elements out of the atmosphere (Doyle 2020 section 3.2 and Figs. 8 to 11) is not modelled: a DB observed long after accretion has waned can show a more reduced body than fell on it (the papers' time-dependent model, Koester 2013 diffusion times, is the reference). The model's case is a body observed in its build-up or steady-state phase; a tuned width is an upper bound where the sample may hold stars observed later.
 - The detection of pollution itself (which white dwarfs are polluted, 27 to about 50 percent, Koester et al. 2014) gates "rocky debris exists" and is not part of this selection: every simulated body is one that fell.
 - The convention for the two limit stars' error and the Gaussian form of the abundance error are model choices; the fit changes if either is dropped (the two brackets above).

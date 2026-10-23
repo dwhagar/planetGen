@@ -360,7 +360,7 @@ def test_example_p_the_uv_regime_depends_on_the_stellar_mass_through_the_saturat
 def test_the_corrected_white_dwarf_redox_ensemble_replaces_the_six_star_centre():
     d4 = RECIPES._dist_of(RECIPES.entry("a4"), Subject("E", {}))
     d3 = RECIPES._dist_of(RECIPES.entry("a3"), Subject("E", {}))
-    assert d4["mu"] == -1.25 and d4["sigma"] == 0.45 and d3["mu"] == -1.26
+    assert d4["mu"] == -1.25 and d4["sigma"] == 0.22 and d3["mu"] == -1.25 and d3["sigma"] == 0.22
     assert "Corrected 2026-10-18" in RECIPES.entry("a3").notes and "0.55 dex" in RECIPES.entry("a3").notes
 
 

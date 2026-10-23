@@ -6,7 +6,7 @@
   {
    "id": "a3-mean",
    "row": "atmosphere-a:a3",
-   "statistic": "mean of log10 fO2 above the iron-wuestite buffer (dIW) of the rocky material that polluted white dwarfs, 22 values",
+   "statistic": "mean of the reported median of log10 fO2 above the iron-wuestite buffer (dIW) of the rocky material that polluted white dwarfs, 22 values",
    "kind": "mean",
    "value": -1.25,
    "sigma": 0.1,
@@ -16,13 +16,15 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.482",
-   "falsifier": "a mean of the drawn dIW more than 2 sigma from -1.25 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a mean of the reported dIW (the draw through the white-dwarf detection model, error model fitted to the whole sample or to the stars with both bounds) more than 2 sigma from -1.25 over 3000 seeds",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw"
   },
   {
    "id": "a3-sd",
    "row": "atmosphere-a:a3",
-   "statistic": "sample standard deviation of dIW over the same 22 polluted white dwarfs",
+   "statistic": "sample standard deviation of the reported median dIW over the same 22 polluted white dwarfs",
    "kind": "sd",
    "value": 0.45,
    "sigma": 0.069,
@@ -32,13 +34,15 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.482",
-   "falsifier": "a sample sd of the drawn dIW more than 2 sigma from 0.45 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/wd-pollution-detection.md)",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw"
   },
   {
    "id": "a4-mean",
    "row": "atmosphere-a:a4",
-   "statistic": "mean of dIW of the debris of polluted white dwarfs, 22 values",
+   "statistic": "mean of the reported median of dIW of the debris of polluted white dwarfs, 22 values",
    "kind": "mean",
    "value": -1.25,
    "sigma": 0.1,
@@ -48,13 +52,15 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.489",
-   "falsifier": "a mean of the drawn dIW more than 2 sigma from -1.25 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a mean of the reported dIW (the draw through the white-dwarf detection model, error model fitted to the whole sample or to the stars with both bounds) more than 2 sigma from -1.25 over 3000 seeds",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw"
   },
   {
    "id": "a4-sd",
    "row": "atmosphere-a:a4",
-   "statistic": "sample standard deviation of dIW over the same 22 polluted white dwarfs",
+   "statistic": "sample standard deviation of the reported median dIW over the same 22 polluted white dwarfs",
    "kind": "sd",
    "value": 0.45,
    "sigma": 0.069,
@@ -64,8 +70,10 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.489",
-   "falsifier": "a sample sd of the drawn dIW more than 2 sigma from 0.45 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/wd-pollution-detection.md)",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw"
   }
  ]
 }

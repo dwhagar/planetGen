@@ -298,12 +298,30 @@ def test_simulate_skips_a_draw_whose_gate_did_not_pass():
 # --- the worked example ----------------------------------------------------------------------------------------------
 
 
+BOUNDED = None
+
+
+def bounded_model():
+    """The abundance-error model fitted to the stars with both bounds: the one the redox spread is tuned with (GEN.513)."""
+    global BOUNDED
+    if BOUNDED is None:
+        from planetgen.physics import wd_pollution
+        BOUNDED = wd_pollution.fit_error_model(flagged=False)
+    return BOUNDED
+
+
+def wd_sampler(row_id, subject, recipes=None, model=None):
+    from planetgen.physics import wd_pollution
+    return wd_pollution.observed_sampler(th.recipe_sampler(row_id, subject, recipes), model or bounded_model())
+
+
 @pytest.mark.parametrize("target_id, body_class", [("a3-mean", "C"), ("a3-sd", "C"), ("a4-mean", "E"), ("a4-sd", "E")])
 def test_the_tunable_redox_rows_drawn_at_many_seeds_match_their_published_statistics(target_id, body_class):
     t = th.TARGETS.get(target_id)
+    assert t.selection_model == "wd-pollution-detection" and t.field == "diw"
     subject = Subject(body_class, {"host_type": "WD"})
-    result = th.simulate_and_compare(t, th.recipe_sampler(t.row_id, subject), n=2000, quantities=subject)
-    assert result.draws == 2000 and result.extrapolated == ()
+    result = th.simulate_and_compare(t, wd_sampler(t.row_id, subject), n=3000, quantities=subject)
+    assert result.draws > 2000 and result.extrapolated == ()
     assert result.passed, (target_id, result.simulated, result.z)
 
 
@@ -314,7 +332,7 @@ def test_a_knob_retuned_away_from_the_target_fails_the_comparison():
     recipes = Recipes(document, register=False)
     t = th.TARGETS.get("a4-mean")
     subject = Subject("E", {"host_type": "WD"})
-    result = th.simulate_and_compare(t, th.recipe_sampler("a4", subject, recipes), n=2000)
+    result = th.simulate_and_compare(t, wd_sampler("a4", subject, recipes), n=2000)
     assert not result.passed and result.z > 2
 
 

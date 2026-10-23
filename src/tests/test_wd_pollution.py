@@ -234,7 +234,7 @@ def test_a_target_naming_the_model_imports_it_on_first_use():
     code = ("from planetgen.generation import tuning_harness as t; "
             "assert not t.SELECTION_MODELS; "
             "assert t.selection_model('wd-pollution-detection') is not None; "
-            "assert t.selection_model('kepler-recovery') is None; print('ok')")
+            "assert set(t.SELECTION_MODELS) == {'wd-pollution-detection'}, 'only the named model is imported'; print('ok')")
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert result.stdout.strip() == "ok"
 
@@ -262,6 +262,46 @@ def test_a_tuned_width_is_compared_with_the_reported_sample_and_not_the_bodies()
 
 def test_the_error_model_changes_nothing_in_the_shipped_recipes_or_targets():
     assert {t.id for t in th.TARGETS} == {"a3-mean", "a3-sd", "a4-mean", "a4-sd"}
-    assert all(t.selection_model is None for t in th.TARGETS)
+    assert all(t.selection_model == "wd-pollution-detection" and t.field == "diw" for t in th.TARGETS)
     document = copy.deepcopy(th.TARGETS.document)
     assert th.TargetTable(document).digest() == th.TARGETS.digest()
+
+
+# --- the redox rows (GEN.513) ------------------------------------------------------------------------------------------------
+
+
+def _a4_recipes(sigma):
+    import copy
+    from planetgen.physics.atmosphere_recipes import RECIPES, Recipes
+    document = copy.deepcopy(RECIPES.document)
+    next(e for e in document["entries"] if e["id"] == "a4")["dist"]["sigma"] = sigma
+    return Recipes(document, register=False)
+
+
+def _compare(target_id, sigma, model, n=3000):
+    from planetgen.generation import tuning_harness as th
+    from planetgen.generation.possibility_table import Subject
+    subject = Subject("E", {"host_type": "WD"})
+    sampler = wd.observed_sampler(th.recipe_sampler("a4", subject, _a4_recipes(sigma)), model)
+    return th.simulate_and_compare(th.TARGETS.get(target_id), sampler, n=n, quantities=subject)
+
+
+def test_the_shipped_width_is_the_intrinsic_spread_of_the_well_constrained_stars_and_inside_the_accepted_range():
+    from planetgen.physics.atmosphere_recipes import RECIPES
+    for row in ("a3", "a4"):
+        dist = RECIPES.entry(row).spec["dist"]
+        assert dist["mu"] == pytest.approx(-1.25) and dist["sigma"] == pytest.approx(0.22)
+    # the deterministic expected sample: the reported spread at the shipped width is inside 2 sigma of the published 0.447
+    bounded = wd.fit_error_model(flagged=False)
+    assert abs(wd.expected_sample(-1.25, 0.22, bounded).reported_sd - 0.447) < 2 * 0.069
+    assert wd.expected_sample(-1.25, 0.0, bounded).reported_sd > 0.447 - 2 * 0.069, "zero width is accepted too: the width is not identified"
+    assert wd.expected_sample(-1.25, 0.45, bounded).reported_sd > 0.447 + 2 * 0.069, "the earlier width 0.45 is too wide"
+
+
+def test_the_spread_is_tuned_with_the_error_of_the_stars_with_both_bounds_and_the_whole_sample_model_over_disperses():
+    bounded = wd.fit_error_model(flagged=False)
+    assert _compare("a4-sd", 0.22, bounded).passed
+    assert not _compare("a4-sd", 0.22, wd.ERROR_MODEL).passed, "the whole-sample error model fails the spread at every width"
+    assert not _compare("a4-sd", 0.01, wd.ERROR_MODEL).passed
+    assert not _compare("a4-sd", 0.45, bounded).passed, "the earlier width"
+    assert _compare("a4-mean", 0.22, wd.ERROR_MODEL).passed and _compare("a4-mean", 0.22, bounded).passed
