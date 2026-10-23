@@ -17654,28 +17654,6 @@ and #221.
 
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
 
-- [ ] **SEC.32 Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix**
-  Argon2id with the OWASP minimum (19 MiB, t=2, p=1) via `argon2-cffi`;
-  a prefix-dispatching `verify_password`; `needs_rehash` true for old
-  schemes and weaker Argon2 parameters (upgraded at login); a maximum
-  password length of 1,024 (none exists in `admin/auth.py`
-  `validate_password_policy`; only the 2 MB body limit bounds it); cost
-  parameters in the settings model; the `__Host-` session cookie prefix
-  when Secure. Ideally before USR.2 so new accounts start on it. Decided
-  (Boss, 2026-10-10 18:44Z, defaults approved; default yes): move from
-  PBKDF2-600k to Argon2id (a
-  new dependency); minimum length 12 with the blocklist, 15 only if
-  NIST's password-only guidance is wanted.
-  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT
-  2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads). It adds the dependency
-  `argon2-cffi`, which update.sh must install.
-  Finding (the coordinator, relayed 7:58 PM EDT 2026-10-22 as the lane's
-  clock reads, from the audit playbook): passwords use PBKDF2 with
-  600,000 iterations on main while the design doc plans Argon2id; this
-  item moves them to Argon2id. Owner stays Blocker 3.
-  Prerequisites: none.
-  Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
-
 - [ ] **SEC.33 Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full security code audit, and it MUST be done before every
@@ -20201,7 +20179,7 @@ clears each one.
   2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
   8.1 on the Owner account stub USR.31; this item replaces the stub with
   the full roles in 8.2.
-  Prerequisites: SEC.32. Related: USR.2.
+  Prerequisites: none. Related: USR.2, SEC.32 (done, #2667).
 
 - [ ] **USR.27 Admin Users page: list accounts, promote, demote, disable and delete**
   Split from USR.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for

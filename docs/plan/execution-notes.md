@@ -47,6 +47,7 @@ Boss, 7:41 PM EDT 2026-10-21: every lane builds the next steps of its build path
 
 ## Needs Boss
 
+- **SEC.32 shipped (Blocker 3, #2667, 10:20 AM EDT 2026-10-23 as the lane reported), note for Boss:** passwords hash with Argon2id from now on (existing PBKDF2 hashes re-hash at login) and the admin session cookie is named __Host-pg_admin_session, so after `./update.sh` every admin signs in once more. update.sh installs argon2-cffi.
 *The defaults in docs/TODO.md stand as decided until Boss says otherwise; each of these needs one answer or one input.*
 
 - **GEN.537:** answered (Boss, 9:21 to 9:24 PM EDT 2026-10-21, eight cards, seven took the recommendation; card 7: switching off keeps stored content visible); decisions in /mnt/project-files/reports/gen537-plan-configuration-decisions-2026-10-22.md and on GEN.537; nothing is owed; the design note in docs/design is written from it.
