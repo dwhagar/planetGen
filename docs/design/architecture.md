@@ -584,6 +584,7 @@ The map panels and their data.
 | `datatable.js` | The site's data table (UX.41), taking over the table a list page rendered (partials/datatable.html, web/lib/datatable.py). |
 | `datatablestate.js` | The data table's logic without the page (UX.41): the query a state turns into, which pages the visible rows need, and the store that keeps the pages already fetched. |
 | `dialogmenus.js` | What picking a menu item does: opens a dialog or goes to a page (UX.26, UX.27, UX.31). |
+| `headersearch.js` | Puts the cursor in the header's search box when its button drops it down (UX.146). |
 | `facilityform.js` | The system page's "Place a facility" form (web/templates/system.html, web/system_facilities.py). |
 | `galaxysystem.js` | A star system opened in place on the Galaxy Map (MAP.125), using `systemview3d.js` at the system's position. |
 | `galaxytilecut.js` | The tiles the Galaxy Map fetches for a camera, chosen by distance (MAP.152). |

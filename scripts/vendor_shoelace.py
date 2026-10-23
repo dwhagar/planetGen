@@ -31,7 +31,7 @@ COMPONENTS = ("button", "icon-button", "icon", "dropdown", "menu", "menu-item", 
 UTILITIES = ("icon-library",)
 """tuple: Shoelace utility modules the shared set imports (static/shoelaceicons.js)."""
 
-ICONS = ("gear",)
+ICONS = ("gear", "search")
 """tuple: Bootstrap icons (Shoelace's icon set, MIT) copied to assets/icons/."""
 
 SYSTEM_ICONS = ("caret", "check", "chevron-left", "chevron-right", "x-lg")

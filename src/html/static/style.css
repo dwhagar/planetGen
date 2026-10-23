@@ -3197,21 +3197,17 @@ body.app {
   display: none;
 }
 
+/* The search control (UX.146): an icon button in the bar that drops this
+   form down. */
 .app .site-search {
   display: flex;
   align-items: stretch;
-  flex: 1 1 10rem;
-  max-width: 18rem;
-  min-width: 0;
-  margin-left: auto;
+  margin: 0;
 }
 
 .app .site-search input {
   flex: 1;
-  min-width: 0;
-  /* Lets the box shrink below the input's default size, so the logged-in
-     header (Admin/Stats/Logout) still fits at desktop widths. */
-  width: 100%;
+  min-width: 12rem;
   font: inherit;
   font-size: 0.9rem;
   color: var(--text);
@@ -3239,24 +3235,86 @@ body.app {
   cursor: pointer;
 }
 
-/* The sections Menu and the gear: Shoelace dropdowns (components.js), which
-   close on an outside click or Escape and hand focus back to the button.
-   Each panel is as wide as its longest entry (UX.2), capped at the screen
-   and at 22rem, and only the search box in the gear stretches to it. */
+/* The Nav section's button (UX.146) looks like the other section links,
+   with a caret to show it opens a menu. */
+.app .site-nav-trigger {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.app .site-nav-trigger::after {
+  content: "";
+  display: inline-block;
+  margin-left: 0.35rem;
+  vertical-align: 0.15em;
+  border: 0.28em solid transparent;
+  border-top-color: currentColor;
+  border-bottom-width: 0;
+}
+
+.app .site-nav-trigger:hover,
+.app .site-nav-trigger[aria-expanded="true"] {
+  background: var(--bg-subtle);
+  color: var(--link);
+}
+
+.app .site-nav-trigger[aria-current="page"] {
+  /* As the section links: --link, not --accent (contrast on --bg-subtle). */
+  color: var(--link);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .site-nav-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* In the narrow Menu panel Nav is a label over its two links. */
+.app .site-nav-label {
+  display: block;
+  padding: 0.4rem 0.7rem 0.1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.app .site-nav-group ul {
+  padding-left: 0.9rem;
+}
+
+/* The section Menu, Nav's menu, the search and the gear: Shoelace
+   dropdowns (components.js), which close on an outside click or Escape and
+   hand focus back to the button. Each panel is as wide as its longest
+   entry (UX.2), capped at the screen and at 22rem. `static` keeps their
+   panels placed against the window and not the header, a size container
+   (UX.145). */
 .app .site-menu,
-.app .site-gear {
+.app .site-gear,
+.app .site-nav-menu,
+.app .site-search-menu {
   position: static;
 }
 
 .app .site-menu {
   display: none;
   /* With the section buttons folded away, the Menu takes their place and
-     pushes the search box and gear to the right. */
+     pushes the search button and gear to the right. */
   margin-right: auto;
 }
 
 .app .site-menu-panel,
-.app .site-gear-panel {
+.app .site-gear-panel,
+.app .site-search-panel {
   padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
@@ -3266,15 +3324,8 @@ body.app {
   max-width: min(22rem, calc(100vw - 1rem));
 }
 
-.app .site-gear-panel .site-search {
-  display: flex;
-  flex: none;
-  max-width: none;
-  margin: 0;
-}
-
-.app .site-gear-panel .site-search input {
-  min-width: 10rem;
+.app .site-search-panel {
+  padding: 0.75rem;
 }
 
 .app .site-menu-panel ul,
@@ -3288,33 +3339,8 @@ body.app {
   text-align: left;
 }
 
-/* The bar's own search box shows only when there's room for a text entry
-   at least twice the button's width next to everything else; otherwise
-   search lives under the gear. Widths: the name (~6rem), six section
-   buttons (~32.5rem) or the Menu (~5.5rem), the gear (~2.5rem), the gaps
-   and padding, and the search itself (a >= 9rem entry plus its ~4.5rem
-   button). Checked from 360 to 1400 px: the entry is always at least
-   twice the button when shown, and nothing overflows. */
-.app .site-header-inner > .site-search {
-  display: none;
-}
-
-.app .site-header-inner > .site-search input {
-  min-width: 9rem;
-}
-
-@container site-header (min-width: 64rem) {
-  .app .site-header-inner > .site-search {
-    display: flex;
-  }
-
-  .app .site-gear-panel .site-search {
-    display: none;
-  }
-}
-
-/* The six section buttons need about 49rem with the name, the gear and
-   the header's padding; below that they fold into the Menu. */
+/* The section buttons need about 49rem with the name, the search, the
+   gear and the header's padding; below that they fold into the Menu. */
 @container site-header (max-width: 49rem) {
   .app .site-wide {
     display: none;
@@ -3322,16 +3348,6 @@ body.app {
 
   .app .site-menu {
     display: block;
-  }
-}
-
-@container site-header (min-width: 34rem) and (max-width: 49rem) {
-  .app .site-header-inner > .site-search {
-    display: flex;
-  }
-
-  .app .site-gear-panel .site-search {
-    display: none;
   }
 }
 

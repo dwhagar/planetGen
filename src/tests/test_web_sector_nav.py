@@ -643,7 +643,8 @@ def test_nav_starts_with_a_sector_picker(client, fake):
     resp = client.get("/nav")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
-    assert re.search(r'<a href="/nav" aria-current="page">Nav</a>', html)
+    assert re.search(r'class="site-nav-trigger"[^>]*aria-current="page">Nav</button>', html)
+    assert '<sl-menu-item data-href="/nav" aria-current="page">Plot Course</sl-menu-item>' in html
     form = _form(html, "from_sector")
     assert '<option value="5">Fake Sector</option>' in form and '<option value="9">Far Sector</option>' in form
     assert 'type="hidden"' not in form

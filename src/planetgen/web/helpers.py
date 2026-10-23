@@ -163,14 +163,21 @@ SECTIONS = (
     ("sectors", "Sectors"),
     ("systems", "Systems"),
     ("phenomena", "Phenomena"),
-    ("lists", "Lists"),
     ("nav", "Nav"),
-    ("nearby", "Nearby"),
     ("classes", "Classes"),
     ("species", "Species"),
 )
 """tuple: The header's main sections, in order. A view marks one active
-with `render_page(section=...)`."""
+with `render_page(section=...)`. Lists is under the gear (UX.146)."""
+
+NAV_MENU = (
+    # (endpoint name, label)
+    ("nav", "Plot Course"),
+    ("nearby", "Nearby Search"),
+)
+"""tuple: What the Nav section opens (UX.146): its two pages, in order. The
+Nav section is current on both (a page names `section="nav"` or
+`section="nearby"`)."""
 
 POPULATION_SECTIONS = {"species"}
 """set: Sections shown only once population data exists

@@ -56,7 +56,7 @@ from planetgen.util.settings import get_settings  # noqa: E402
 from planetgen.util import settings_view  # noqa: E402
 
 from . import adminregistry, csrf, errors, seo, transport  # noqa: E402
-from .helpers import current_admin, page_url, visible_sections  # noqa: E402
+from .helpers import NAV_MENU, current_admin, page_url, visible_sections  # noqa: E402
 
 # `default-src 'self'` covers scripts, styles, images, fonts and fetch():
 # the pages only load same-origin `static/` files, the map pages build
@@ -162,6 +162,7 @@ def _template_globals():
         "site_tagline": get_settings().site.tagline,
         "privacy_note": get_settings().seo.privacy_note,
         "sections": visible_sections,
+        "nav_menu": NAV_MENU,
         "static_url": static_url,
         "module_graph": module_graph,
         "icon": icon,
