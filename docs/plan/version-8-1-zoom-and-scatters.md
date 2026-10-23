@@ -186,6 +186,7 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
 | ADM.125 | Generate: named recipes saved per admin in the control database |  |  |
 | ADM.126 | Generate: a live 'how big' count while typing a command or filling the form |  |  |
+| ADM.127 | Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units |  |  |
 | UX.126 | The admin pages and the edit dialogs on the field macro | UX.124 | The admin page conversion rides ADM.56 and ADM.93. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124 | Follows UX.40 (done): the fields themselves become Shoelace components. |
 
@@ -244,7 +245,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios |  | Body lane G-2: photolysis lifetimes as constants of the species table. Core 4 proposed. |
 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |  | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
 | GEN.623 | Data tables carry no licence column or licence check; the licence information lives in DATA-LICENSE.md |  |  |
-| GEN.624 | QUESTION for Boss: a 3e7 solar-mass galaxy holds 3.1 million phenomena and 487,000 band stars because the 11 satellites' 6.4e9 systems exist at every galaxy mass |  |  |
+| GEN.624 | Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) | GEN.369 |  |
 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | GEN.427 | Body composition research lane part F items F1 and F1t; no behaviour change until GEN.452 reads it. Core 4 proposed. |
 | GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted |  | Body lane G-4 (part G3): one IW reference scale (Hirschmann 2021), delta-IW stored on it. Core 4 proposed. |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | GEN.470 | Body lane G-3 (part G4): the corrected cold-end tables and Span and Wagner CO2 extend GEN.470. Core 4 proposed. |
