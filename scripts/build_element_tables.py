@@ -7,7 +7,7 @@ Builds the element and isotope data files (GEN.438) from the published tables th
     python scripts/build_element_tables.py --check        # build in memory and fail if the committed files differ
 
 The data files are `src/planetgen/physics/data/elements.json`, `isotopes.json` and `decay_series.json`; each states its
-sources, citations and licence. The raw tables are not committed and are never redistributed; only the values read from
+sources and citations. The raw tables are not committed and are never redistributed; only the values read from
 them are. Sources, all read on the day the files were built:
 
 * `ciaaw-standard.html` and `ciaaw-abridged.html`: CIAAW, Standard Atomic Weights and Abridged Standard Atomic Weights
@@ -341,7 +341,7 @@ def build(source_dir=None):
             entry["longest_lived_mass_number"] = max(lived)[1] if lived else None
         elements.append(entry)
 
-    common = {"retrieved": RETRIEVED, "licence": "open"}
+    common = {"retrieved": RETRIEVED}
     element_file = {
         **common, "title": "The elements: atomic number, symbol, name and atomic weight (GEN.438)",
         "sources": [
@@ -353,9 +353,6 @@ def build(source_dir=None):
                  "uncertainty; standard_weight (and standard_weight_uncertainty) is the full-precision value where the "
                  "element has one, standard_interval the interval where it has that instead; an element with no stable "
                  "isotope or no standard weight has neither and longest_lived_mass_number names its longest-lived isotope (NUBASE2020).",
-        "licence_note": "The tables are CIAAW's (c) 2007-2024; no licence statement was found, so the licence is recorded "
-                        "as open (Boss, 2026-10-17, 2:35 PM EDT: every acquired dataset is usable; the raw tables are not "
-                        "redistributed).",
         "elements": elements}
     isotope_file = {
         **common, "title": "The isotopes: masses, natural abundance, half-lives, decay modes and decay energies (GEN.438)",
@@ -372,8 +369,6 @@ def build(source_dir=None):
             "238U, 235U, 232Th and 40K (kept as the cross-check: the newer evaluation wins where they differ)"],
         "notes": "abundance is an atom fraction of the element in normal material, null for an isotope that is not "
                  "primordial; modes are NUBASE2020's [mode, percent] pairs; masses are of the neutral atom.",
-        "licence_note": "NUBASE2020 and AME2020 are the AMDC's, NIST's listing carries no licence statement, and the two papers "
-                        "are published; recorded as open (Boss, 2026-10-17, 2:35 PM EDT).",
         "isotopes": isotopes}
     series_file = {
         **common, "title": "The decay chains of 238U, 235U and 232Th (GEN.438)",
@@ -384,7 +379,6 @@ def build(source_dir=None):
                     "ME(parent) - ME(daughter); for electron capture and beta-plus that is the electron-capture Q value"],
         "notes": "Steps are between ground states; an isomer fed by a step (234mPa) is not listed, the chain's totals are "
                  "the decay_energy_j of the parent in isotopes.json.",
-        "licence_note": "Computed here from the open NUBASE2020 file.",
         "series": list(series.values())}
     return {"elements.json": element_file, "isotopes.json": isotope_file, "decay_series.json": series_file}
 

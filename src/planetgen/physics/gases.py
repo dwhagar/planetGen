@@ -9,7 +9,7 @@ mass, the flags that decide what a gas does (infrared absorber, near-ultraviolet
 photolysis threshold, triple, boiling and critical points, ideal-gas heat capacity at 100, 300 and 1000 K, latent heats,
 the Rayleigh cross section with the reference temperature its refractivity fit was made at, the Henry constant of the
 gases that dissolve in water and the Lennard-Jones constants that give the viscosity. Every row says where it
-comes from (`source`), under what licence (`licence`, `"open"` where none is found) and how far it is checked (`state`:
+comes from (`source`) and how far it is checked (`state`:
 `verified`, `partly verified` with its `limit`, `open`). It is a constants table and not a possibility table
 (`generation/possibility_table.py`): it has no weights and no class gate; the recipes that weight these gases (GEN.411,
 GEN.454 to GEN.456) and the class gate belong to them, and cite these rows by `formula`.
@@ -291,7 +291,7 @@ class Gas:
         viscosity (Viscosity or None): The Lennard-Jones constants, for the gases the research tabulates.
         infrared (Infrared or None): The infrared bands, for the gases part 03 lists.
         uv (UvAbsorption or None): The ultraviolet and visible absorption bins, for the 22 gases part 02 tabulates.
-        source (str), licence (str), state (str), limit (str): Where the row comes from and how far it is checked.
+        source (str), state (str), limit (str): Where the row comes from and how far it is checked.
         statuses (dict): The research part's status word of each block (`identity`, `phase points`, `heat capacity`).
         data (dict): The row as the file holds it, for the columns above that are not named fields.
     """
@@ -324,7 +324,6 @@ class Gas:
     infrared: Infrared | None
     uv: UvAbsorption | None
     source: str
-    licence: str
     state: str
     limit: str
     statuses: dict
@@ -469,7 +468,7 @@ def _check_state(label, state, limit):
 def _load():
     with open(DATA_FILE, encoding="utf-8") as handle:
         data = json.load(handle)
-    for field in ("sources", "licence", "retrieved", "title"):
+    for field in ("sources", "retrieved", "title"):
         if not data.get(field):
             raise DataError(f"gases.json states no {field}")
     global UV_BINS_NM
@@ -484,9 +483,9 @@ def _load():
         if not formula or formula in seen:
             raise DataError(f"gases.json: a row has no formula, or {formula!r} appears twice")
         seen.add(formula)
-        for field in ("name", "source", "licence", "state", "molar_mass_research_g_mol"):
+        for field in ("name", "source", "state", "molar_mass_research_g_mol"):
             if item.get(field) in (None, ""):
-                raise DataError(f"gases.json: {formula} has no {field} (write 'open' where no licence is found)")
+                raise DataError(f"gases.json: {formula} has no {field}")
         _check_state(formula, item["state"], item.get("limit", ""))
         if item.get("ir") not in _IR or item.get("volatility") not in _VOLATILITY:
             raise DataError(f"gases.json: {formula} has an unknown infrared flag or volatility class")
@@ -512,7 +511,7 @@ def _load():
             latent_heat_sublimation_kj_mol=item.get("latent_heat_sublimation_kj_mol"), rayleigh=_rayleigh(formula, item.get("rayleigh")),
             henry=_henry(formula, item.get("henry")), viscosity=_viscosity(formula, item.get("viscosity")),
             infrared=_infrared(formula, item.get("infrared")), uv=_uv(formula, item.get("uv"), bins),
-            source=item["source"], licence=item["licence"], state=item["state"], limit=item.get("limit", ""),
+            source=item["source"], state=item["state"], limit=item.get("limit", ""),
             statuses={name: item[key] for name, key in (("identity", "identity_status"), ("phase points", "phase_status"),
                                                         ("heat capacity", "thermal_status")) if item.get(key)},
             data=item))

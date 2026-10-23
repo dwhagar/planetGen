@@ -1,0 +1,7265 @@
+{
+ "retrieved": "2026-10-22",
+ "title": "The shared materials and components table: every element, mineral, ice, organic and alloy a body can contain, with the properties and equation-of-state constants of each (GEN.427)",
+ "notes": "Properties: a number, its unit, the source key and the code of part E's label column (R read, C computed, H second-hand, S snippet, N not reached); a value with no source is null with the code N. Equations of state: the model and its constants as the source gives them (pressures in GPa, densities in kg/m3 unless the name says otherwise), the range they are valid over, the source and the code. Gate groups: `any` (every planet and moon class and every small-body kind) and `planetary` (planet and moon classes only: the high-pressure phases and the envelopes). A group row lists member rows and carries no number. The molar mass is computed from the formula with `physics.elements`.",
+ "sources": {
+  "research-e": "Part E of the body composition research, section 2.10 (docs/design/body-composition-parts/E-ground-radiogenic-shielding.md): the values its label column marks R (read), H (second-hand) or C (computed); a value marked Q (recalled) is not kept",
+  "nist-webbook": "NIST Chemistry WebBook phase-change and critical data, as read in part E (label R)",
+  "crc-chemicals": "CRC Handbook tables as carried in the chemicals 1.5.2 package, as read in part E (label H, second-hand)",
+  "pdg-nuclear": "Particle Data Group atomic and nuclear properties, nuclear interaction length, as read in part E (label R)",
+  "slb2011-burnman": "Stixrude and Lithgow-Bertelloni mineral parameters read in the burnman package, as read in part E (label H)",
+  "e-table-2.6": "Band reflectance of part E table 2.6, computed from the spectral library values it lists (label C)",
+  "computed-e": "Computed in part E from its other columns (molar mass, latent heat per kilogram, interaction length from oxides)",
+  "handbook-mineralogy": "Anthony, Bideaux, Bladh and Nichols, Handbook of Mineralogy, Mineralogical Society of America (Mineral Data Publishing, 2001-2005), the page of the mineral: D(calc.) and D(meas.)",
+  "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
+  "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
+  "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
+  "seager2007": "Seager, Kuchner, Hier-Majumder and Militzer 2007, Mass-radius relationships for solid exoplanets, ApJ 669, 1279 (arXiv:0707.2895), Tables 1, 2 and 3 (read)",
+  "hakim2018": "Hakim et al. 2018, Icarus 313, 61 (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
+  "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/body-composition-parts/B-rocky.md section 2.1b)",
+  "slb2024-burnman": "Stixrude and Lithgow-Bertelloni 2024, Thermodynamics of mantle minerals III, GJI 237, 1699 (doi:10.1093/gji/ggae126), as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
+  "exoplex": "ExoPlex 1.0.1a1 source distribution (Anderson and Ahrens 1994 liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
+  "hp2011-burnman": "Holland and Powell 2011 data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
+  "journaux2020": "Journaux et al. 2020, JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C section 2.3 (computed from second-hand data)",
+  "blum-bischoff": "Blum and Bischoff, arXiv:2207.12731, as read in part C section 2.3 (comet densities)",
+  "ideal-gas": "The ideal gas law rho = P M / (R T); exact, no constants of its own"
+ },
+ "legacy_names": {
+  "class_compositions": {
+   "igneous silica and basalt": [
+    "igneous silica",
+    "basalt"
+   ],
+   "iron, potassium, silicon, and sulfur": [
+    "iron",
+    "potassium",
+    "silicon",
+    "sulfur"
+   ],
+   "anthracite, basalt, and hydrocarbons": [
+    "anthracite",
+    "basalt",
+    "hydrocarbons"
+   ],
+   "frozen hydrocarbons and ice": [
+    "frozen hydrocarbons",
+    "ice"
+   ],
+   "silicon, iron, and magnesium": [
+    "silicon",
+    "iron",
+    "magnesium"
+   ],
+   "rock, ice, methane, and ammonia": [
+    "rock",
+    "ice",
+    "methane",
+    "ammonia"
+   ],
+   "hydrogen and helium": [
+    "hydrogen",
+    "helium"
+   ],
+   "silicon, iron, magnesium, and ice": [
+    "silicon",
+    "iron",
+    "magnesium",
+    "ice"
+   ],
+   "silicate rock over a large iron core": [
+    "silicate rock",
+    "iron"
+   ],
+   "hydrogen, helium, and hydrocarbons": [
+    "hydrogen",
+    "helium",
+    "hydrocarbons"
+   ],
+   "iron, iridium, tungsten, and nickel": [
+    "iron",
+    "iridium",
+    "tungsten",
+    "nickel"
+   ]
+  }
+ },
+ "materials": [
+  {
+   "id": "water_ice",
+   "name": "water ice",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "H2O",
+   "aliases": [
+    "water ice",
+    "ice"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.917,
+     "unit": "g/cm3",
+     "source": "research-e",
+     "code": "R"
+    },
+    "t_melt_k": {
+     "value": 273.15,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_boil_or_sub_k": {
+     "value": 373.15,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_triple_k": {
+     "value": 273.16,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "p_triple_bar": {
+     "value": 0.0061,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 647.1,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "p_crit_bar": {
+     "value": 220.64,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 6.01,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 40.65,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_fus_kj_kg": {
+     "value": 333.6,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": 83.3,
+     "unit": "g/cm2",
+     "source": "pdg-nuclear",
+     "code": "R"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.832,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.832,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.822,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        0.1,
+        273.15,
+        916.72,
+        8.49,
+        4.89,
+        0.00016
+       ],
+       [
+        0.1,
+        200.0,
+        926.13,
+        9.46,
+        6.38,
+        0.000116
+       ],
+       [
+        0.1,
+        100.0,
+        933.05,
+        10.45,
+        8.07,
+        3e-05
+       ],
+       [
+        200.0,
+        251.15,
+        939.82,
+        9.86,
+        5.39,
+        0.000113
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       0.0,
+       400.0
+      ],
+      "t_k": [
+       1.0,
+       301.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    }
+   ],
+   "labels": "rho=R;Tm=H;Tb=R;Tt=H;Pt=R;Tc=H;Pc=R;Hfus=H;Hvap=H;Hfus_kg=C;lamI=R;debye=N;alb=C",
+   "note": "Ice Ih at ambient pressure; the pressure phases are ice_ii to ice_x. Comet ice is 934 kg/m3 at low temperature (Blum and Bischoff).",
+   "source": "research-e; crc-chemicals; nist-webbook; computed-e; pdg-nuclear; e-table-2.6; journaux2020",
+   "state": "partly verified",
+   "limit": "t_melt_k: second-hand; t_triple_k: second-hand; t_crit_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; debye_k: no source; eos reference-points: second-hand"
+  },
+  {
+   "id": "co2_ice",
+   "name": "co2 ice",
+   "family": "ice",
+   "formula": "CO2",
+   "composition": "CO2",
+   "aliases": [
+    "carbon dioxide ice"
+   ],
+   "members": null,
+   "gas_formula": "CO2",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.56,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "about 194 K, solid"
+    },
+    "t_melt_k": {
+     "value": 216.58,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 194.67,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_triple_k": {
+     "value": 216.58,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_triple_bar": {
+     "value": 5.185,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 304.18,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_crit_bar": {
+     "value": 73.8,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 9.02,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 16.7,
+     "unit": "kJ/mol",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_sub_kj_mol": {
+     "value": 26.1,
+     "unit": "kJ/mol",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_kg": {
+     "value": 204.9,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": 88.9,
+     "unit": "g/cm2",
+     "source": "pdg-nuclear",
+     "code": "R"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=R;Hsub=R;Hfus_kg=C;lamI=R;debye=N;alb=N",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 1.56 (recalled, no source).",
+   "source": "pubchem; nist-webbook; crc-chemicals; computed-e; pdg-nuclear",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; h_fus_kj_mol: second-hand; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "ch4_ice",
+   "name": "ch4 ice",
+   "family": "ice",
+   "formula": "CH4",
+   "composition": "CH4",
+   "aliases": [
+    "methane ice",
+    "methane"
+   ],
+   "members": null,
+   "gas_formula": "CH4",
+   "gate": "any",
+   "props": {
+    "t_melt_k": {
+     "value": 90.67,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 111.66,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_triple_k": {
+     "value": 90.67,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_triple_bar": {
+     "value": 0.1169,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 190.56,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_fus_kj_mol": {
+     "value": 0.94,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 8.19,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_sub_kj_mol": {
+     "value": 9.7,
+     "unit": "kJ/mol",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_kg": {
+     "value": 58.6,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": null,
+     "unit": "g/cm2",
+     "source": null,
+     "code": "N"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=H;Hfus=H;Hvap=H;Hsub=R;Hfus_kg=C;lamI=N;debye=N;alb=N;rho=N",
+   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept).",
+   "source": "nist-webbook; crc-chemicals; computed-e",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; t_crit_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; lambda_i_g_cm2: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source; rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "nh3_ice",
+   "name": "nh3 ice",
+   "family": "ice",
+   "formula": "NH3",
+   "composition": "NH3",
+   "aliases": [
+    "ammonia ice",
+    "ammonia"
+   ],
+   "members": null,
+   "gas_formula": "NH3",
+   "gate": "any",
+   "props": {
+    "t_melt_k": {
+     "value": 194.95,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 239.72,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_triple_k": {
+     "value": 195.41,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "p_triple_bar": {
+     "value": 0.0606,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 405.4,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_crit_bar": {
+     "value": 113.0,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 5.66,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 23.33,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_sub_kj_mol": {
+     "value": 31.2,
+     "unit": "kJ/mol",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_kg": {
+     "value": 332.3,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": null,
+     "unit": "g/cm2",
+     "source": null,
+     "code": "N"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "Tm=R;Tb=H;Tt=H;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;Hsub=R;Hfus_kg=C;lamI=N;debye=N;alb=N;rho=N",
+   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept).",
+   "source": "nist-webbook; crc-chemicals; computed-e",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; t_triple_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; lambda_i_g_cm2: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source; rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "n2_ice",
+   "name": "n2 ice",
+   "family": "ice",
+   "formula": "N2",
+   "composition": "N2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "N2",
+   "gate": "any",
+   "props": {
+    "t_melt_k": {
+     "value": 63.3,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 77.34,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_triple_k": {
+     "value": 63.14,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_triple_bar": {
+     "value": 0.1252,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 126.2,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_crit_bar": {
+     "value": 33.98,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 0.71,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 5.57,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_fus_kj_kg": {
+     "value": 25.3,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": 89.7,
+     "unit": "g/cm2",
+     "source": "pdg-nuclear",
+     "code": "R"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "rho_grain_g_cm3": {
+     "value": 1.0265,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "solid, temperature not given"
+    }
+   },
+   "eos": [],
+   "labels": "Tm=R;Tb=R;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;Hfus_kg=C;lamI=R;debye=N;alb=N;rho=R",
+   "note": "",
+   "source": "nist-webbook; crc-chemicals; computed-e; pdg-nuclear; pubchem",
+   "state": "partly verified",
+   "limit": "h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "so2_ice",
+   "name": "so2 ice",
+   "family": "ice",
+   "formula": "SO2",
+   "composition": "SO2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "SO2",
+   "gate": "any",
+   "props": {
+    "t_melt_k": {
+     "value": 200.75,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 263.13,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_triple_k": {
+     "value": 197.64,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_triple_bar": {
+     "value": 0.0167,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 430.34,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": null,
+     "unit": "kJ/mol",
+     "source": null,
+     "code": "N"
+    },
+    "h_vap_kj_mol": {
+     "value": 24.94,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_fus_kj_kg": {
+     "value": null,
+     "unit": "kJ/kg",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": null,
+     "unit": "g/cm2",
+     "source": null,
+     "code": "N"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Hfus=N;Hvap=H;Hfus_kg=N;lamI=N;debye=N;alb=N;rho=N",
+   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept).",
+   "source": "nist-webbook; crc-chemicals",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; h_vap_kj_mol: second-hand; h_fus_kj_mol: no source; h_fus_kj_kg: no source; lambda_i_g_cm2: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source; rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "sulfur",
+   "name": "sulfur",
+   "family": "element",
+   "formula": "S",
+   "composition": "S",
+   "aliases": [
+    "sulfur"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.076,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) of native sulfur (the page is filed as sulphur)",
+     "measured_range": [
+      2.07,
+      2.07
+     ]
+    },
+    "t_melt_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "t_boil_or_sub_k": {
+     "value": 717.8,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_crit_k": {
+     "value": 1313.0,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_crit_bar": {
+     "value": 182.08,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 1.721,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 45.0,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_fus_kj_kg": {
+     "value": 53.7,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": 112.4,
+     "unit": "g/cm2",
+     "source": "pdg-nuclear",
+     "code": "R"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.362,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.777,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.824,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;Tm=N;Tb=H;Tc=R;Pc=R;Hfus=H;Hvap=H;Hfus_kg=C;lamI=R;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: t_melt_k 388.4 (recalled, no source). Part E's 2.0 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "source": "handbook-mineralogy; crc-chemicals; nist-webbook; computed-e; pdg-nuclear; e-table-2.6",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; t_melt_k: no source; debye_k: no source"
+  },
+  {
+   "id": "iron",
+   "name": "iron",
+   "family": "metal",
+   "formula": "Fe",
+   "composition": "Fe",
+   "aliases": [
+    "iron"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 7.874,
+     "unit": "g/cm3",
+     "source": "research-e",
+     "code": "R"
+    },
+    "t_melt_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "t_boil_or_sub_k": {
+     "value": 3133.35,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_fus_kj_mol": {
+     "value": 13.81,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": null,
+     "unit": "kJ/mol",
+     "source": null,
+     "code": "N"
+    },
+    "h_fus_kj_kg": {
+     "value": 247.3,
+     "unit": "kJ/kg",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "lambda_i_g_cm2": {
+     "value": 132.1,
+     "unit": "g/cm2",
+     "source": "pdg-nuclear",
+     "code": "R"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 7860.0,
+      "k0_gpa": 162.5,
+      "k0p": 5.5
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "alpha iron, Table 1, references 1 and 3",
+     "uncertainty": {
+      "k0_gpa": 5.0,
+      "k0p": 0.8
+     }
+    }
+   ],
+   "labels": "rho=R;Tm=N;Tb=H;Hfus=H;Hvap=N;Hfus_kg=C;lamI=R;debye=N;alb=N",
+   "note": "Dropped as recalled with no source: t_melt_k 1811 (recalled, no source); h_vap_kj_mol 340 (recalled, no source).",
+   "source": "research-e; crc-chemicals; computed-e; pdg-nuclear; seager2007",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; h_fus_kj_mol: second-hand; t_melt_k: no source; h_vap_kj_mol: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "basalt_powder",
+   "name": "basalt powder",
+   "family": "rock",
+   "formula": null,
+   "composition": "N-MORB oxides",
+   "aliases": [
+    "basalt"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "t_melt_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "h_fus_kj_kg": {
+     "value": null,
+     "unit": "kJ/kg",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": 103.3,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.207,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.214,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.224,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;Tm=N;Hfus_kg=N;lamI=C;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.9 (recalled, no source); t_melt_k 1400 (recalled, no source); h_fus_kj_kg 400 (recalled, no source).",
+   "source": "computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source; t_melt_k: no source; h_fus_kj_kg: no source; debye_k: no source"
+  },
+  {
+   "id": "basalt_slab",
+   "name": "basalt slab",
+   "family": "rock",
+   "formula": null,
+   "composition": "N-MORB oxides",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "t_melt_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "h_fus_kj_kg": {
+     "value": null,
+     "unit": "kJ/kg",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": 103.3,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.125,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.121,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.116,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;Tm=N;Hfus_kg=N;lamI=C;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.9 (recalled, no source); t_melt_k 1400 (recalled, no source); h_fus_kj_kg 400 (recalled, no source).",
+   "source": "computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source; t_melt_k: no source; h_fus_kj_kg: no source; debye_k: no source"
+  },
+  {
+   "id": "felsic_granite_powder_a",
+   "name": "felsic granite powder a",
+   "family": "rock",
+   "formula": null,
+   "composition": "UCC oxides",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": 101.1,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.688,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.76,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.815,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;lamI=C;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.7 (recalled, no source).",
+   "source": "computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source; debye_k: no source"
+  },
+  {
+   "id": "felsic_granite_powder_b",
+   "name": "felsic granite powder b",
+   "family": "rock",
+   "formula": null,
+   "composition": "UCC oxides",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": 101.1,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.395,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.436,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.451,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;lamI=C;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.7 (recalled, no source).",
+   "source": "computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source; debye_k: no source"
+  },
+  {
+   "id": "ultramafic_dunite_powder",
+   "name": "ultramafic dunite powder",
+   "family": "rock",
+   "formula": null,
+   "composition": "DMM oxides",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": 100.8,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.629,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.69,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.706,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;lamI=C;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 3.3 (recalled, no source).",
+   "source": "computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source; debye_k: no source"
+  },
+  {
+   "id": "ultramafic_pyroxenite_powder",
+   "name": "ultramafic pyroxenite powder",
+   "family": "rock",
+   "formula": null,
+   "composition": "DMM oxides",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "lambda_i_g_cm2": {
+     "value": 100.8,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": null,
+     "unit": "K",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.348,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.371,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.37,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;lamI=C;debye=N;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 3.3 (recalled, no source).",
+   "source": "computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source; debye_k: no source"
+  },
+  {
+   "id": "anorthosite_powder",
+   "name": "anorthosite powder",
+   "family": "rock",
+   "formula": "CaAl2Si2O8",
+   "composition": "CaAl2Si2O8",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.7652,
+     "unit": "g/cm3",
+     "source": "slb2011-burnman",
+     "code": "H"
+    },
+    "lambda_i_g_cm2": {
+     "value": 103.3,
+     "unit": "g/cm2",
+     "source": "computed-e",
+     "code": "C"
+    },
+    "debye_k": {
+     "value": 752.39,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    },
+    "alb_040_050": {
+     "value": 0.71,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.734,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.75,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;lamI=C;debye=H;alb=C",
+   "note": "",
+   "source": "slb2011-burnman; computed-e; e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; debye_k: second-hand"
+  },
+  {
+   "id": "komatiite",
+   "name": "komatiite",
+   "family": "rock",
+   "formula": null,
+   "composition": "ultramafic lava",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "no property value yet"
+  },
+  {
+   "id": "carbon_black",
+   "name": "carbon black",
+   "family": "carbon",
+   "formula": "C",
+   "composition": "C",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.019,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.019,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.019,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;alb=C",
+   "note": "",
+   "source": "e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "kerogen",
+   "name": "kerogen",
+   "family": "carbon",
+   "formula": null,
+   "composition": "CxHy",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": 0.013,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.016,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.021,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N;alb=C",
+   "note": "",
+   "source": "e-table-2.6",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "halite",
+   "name": "halite",
+   "family": "evaporite",
+   "formula": "NaCl",
+   "composition": "NaCl",
+   "aliases": [
+    "sodium chloride"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.165,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.168,
+      2.168
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.817,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.855,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.876,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.17 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "gypsum",
+   "name": "gypsum",
+   "family": "evaporite",
+   "formula": "CaSO4.2H2O",
+   "composition": "CaSO4.2H2O",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.31,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.317,
+      2.317
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.901,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.917,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.925,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.31 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "calcite",
+   "name": "calcite",
+   "family": "evaporite",
+   "formula": "CaCO3",
+   "composition": "CaCO3",
+   "aliases": [
+    "calcium carbonate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.711,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.7102,
+      2.7102
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.911,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.941,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.946,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.71 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "kaolinite",
+   "name": "kaolinite",
+   "family": "clay",
+   "formula": "Al2Si2O5(OH)4",
+   "composition": "Al2Si2O5(OH)4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.63,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.61,
+      2.68
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.687,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.751,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.768,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.6 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "serpentine",
+   "name": "serpentine",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "Mg3Si2O5(OH)4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.57,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) of lizardite",
+     "measured_range": [
+      2.55,
+      2.55
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.25,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.267,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.241,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 2.55 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "hematite_fine",
+   "name": "hematite fine",
+   "family": "oxidised",
+   "formula": "Fe2O3",
+   "composition": "Fe2O3",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.255,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      5.26,
+      5.26
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.092,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.086,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.085,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 5.26 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "hematite_lt10um",
+   "name": "hematite lt10um",
+   "family": "oxidised",
+   "formula": "Fe2O3",
+   "composition": "Fe2O3",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.255,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      5.26,
+      5.26
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.041,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.042,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.061,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 5.26 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "goethite",
+   "name": "goethite",
+   "family": "oxidised",
+   "formula": "FeOOH",
+   "composition": "FeOOH",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.18,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.28,
+      4.28
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.03,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.122,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.206,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 4.3 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "ilmenite",
+   "name": "ilmenite",
+   "family": "metal-bearing",
+   "formula": "FeTiO3",
+   "composition": "FeTiO3",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.789,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.72,
+      4.72
+     ]
+    },
+    "alb_040_050": {
+     "value": 0.055,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_050_060": {
+     "value": 0.054,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    },
+    "alb_060_070": {
+     "value": 0.056,
+     "unit": "1",
+     "source": "e-table-2.6",
+     "code": "C"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;alb=C",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 4.7 (recalled, no source).",
+   "source": "handbook-mineralogy; e-table-2.6",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "forsterite",
+   "name": "forsterite",
+   "family": "mineral",
+   "formula": "Mg2SiO4",
+   "composition": "Mg2SiO4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.271,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.275,
+      3.275
+     ]
+    },
+    "debye_k": {
+     "value": 809.17,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 43.603,
+      "rho0_g_cm3": 3.227,
+      "k0_gpa": 127.96,
+      "k0p": 4.218,
+      "theta0_k": 809.2,
+      "gamma0": 0.993,
+      "q0": 2.107,
+      "unit_formula": "Mg2SiO4",
+      "unit_molar_mass_g_mol": 140.691
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R;debye=H",
+   "note": "Part E's 3.2266 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "fayalite",
+   "name": "fayalite",
+   "family": "mineral",
+   "formula": "Fe2SiO4",
+   "composition": "Fe2SiO4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.4,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets",
+     "measured_range": [
+      4.392,
+      4.392
+     ]
+    },
+    "debye_k": {
+     "value": 618.7,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 46.29,
+      "rho0_g_cm3": 4.402,
+      "k0_gpa": 136.49,
+      "k0p": 4.882,
+      "theta0_k": 619.0,
+      "gamma0": 1.084,
+      "q0": 2.881,
+      "unit_formula": "Fe2SiO4",
+      "unit_molar_mass_g_mol": 203.772
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R;debye=H",
+   "note": "",
+   "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "enstatite",
+   "name": "enstatite",
+   "family": "mineral",
+   "formula": "Mg2Si2O6",
+   "composition": "Mg2Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.189,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.2,
+      3.9
+     ]
+    },
+    "debye_k": {
+     "value": 812.18,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 62.676,
+      "rho0_g_cm3": 3.203,
+      "k0_gpa": 107.08,
+      "k0p": 7.028,
+      "theta0_k": 812.2,
+      "gamma0": 0.785,
+      "q0": 3.438,
+      "unit_formula": "Mg2Si2O6",
+      "unit_molar_mass_g_mol": 200.775
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 3220.0,
+      "k0_gpa": 125.0,
+      "k0p": 5.0
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "MgSiO3 (en), Table 1; K0' is assumed there"
+    }
+   ],
+   "labels": "rho=R;debye=H",
+   "note": "",
+   "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman; seager2007",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "ferrosilite",
+   "name": "ferrosilite",
+   "family": "mineral",
+   "formula": "Fe2Si2O6",
+   "composition": "Fe2Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.87,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets",
+     "measured_range": [
+      3.96,
+      3.96
+     ]
+    },
+    "debye_k": {
+     "value": 674.48,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 65.941,
+      "rho0_g_cm3": 4.001,
+      "k0_gpa": 100.55,
+      "k0p": 7.876,
+      "theta0_k": 677.9,
+      "gamma0": 0.714,
+      "q0": 3.438,
+      "unit_formula": "Fe2Si2O6",
+      "unit_molar_mass_g_mol": 263.855
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R;debye=H",
+   "note": "Part E's 4.0014 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "diopside",
+   "name": "diopside",
+   "family": "mineral",
+   "formula": "CaMgSi2O6",
+   "composition": "CaMgSi2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.278,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.22,
+      3.38
+     ]
+    },
+    "debye_k": {
+     "value": 781.61,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 66.039,
+      "rho0_g_cm3": 3.279,
+      "k0_gpa": 113.76,
+      "k0p": 4.806,
+      "theta0_k": 782.6,
+      "gamma0": 1.009,
+      "q0": 0.601,
+      "unit_formula": "CaMgSi2O6",
+      "unit_molar_mass_g_mol": 216.548
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R;debye=H",
+   "note": "",
+   "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "albite",
+   "name": "albite",
+   "family": "mineral",
+   "formula": "NaAlSi3O8",
+   "composition": "NaAlSi3O8",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.615,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "middle of D(calc.) 2.609 to 2.621",
+     "measured_range": [
+      2.6,
+      2.65
+     ]
+    },
+    "debye_k": {
+     "value": 713.78,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;debye=H",
+   "note": "",
+   "source": "handbook-mineralogy; slb2011-burnman",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand"
+  },
+  {
+   "id": "quartz",
+   "name": "quartz",
+   "family": "mineral",
+   "formula": "SiO2",
+   "composition": "SiO2",
+   "aliases": [
+    "silicon dioxide",
+    "igneous silica"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.66,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.65,
+      2.65
+     ]
+    },
+    "lambda_i_g_cm2": {
+     "value": 97.8,
+     "unit": "g/cm2",
+     "source": "pdg-nuclear",
+     "code": "R"
+    },
+    "debye_k": {
+     "value": 816.33,
+     "unit": "K",
+     "source": "slb2011-burnman",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 22.421,
+      "rho0_g_cm3": 2.68,
+      "k0_gpa": 61.43,
+      "k0p": 19.78,
+      "theta0_k": 883.5,
+      "gamma0": -0.04,
+      "q0": 1.0,
+      "unit_formula": "SiO2",
+      "unit_molar_mass_g_mol": 60.084
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R;lamI=R;debye=H",
+   "note": "Part E's 2.5384 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "source": "handbook-mineralogy; pdg-nuclear; slb2011-burnman; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "carbon_graphite",
+   "name": "graphite",
+   "family": "element",
+   "formula": "C",
+   "composition": "",
+   "aliases": [
+    "carbon"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.267,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 2250.0,
+      "k0_gpa": 33.8,
+      "k0p": 8.9
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 1, references 1 and 2",
+     "uncertainty": {
+      "k0_gpa": 3.0,
+      "k0p": 1.0
+     }
+    },
+    {
+     "model": "modified-polytrope",
+     "params": {
+      "rho0_kg_m3": 2250.0,
+      "c_kg_m3_pa_n": 0.0035,
+      "n": 0.514
+     },
+     "valid": {
+      "p_pa": [
+       0.0,
+       1e+16
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 3, rho = rho0 + c P^n, P in Pa, the Vinet or BME fit merged with Thomas-Fermi-Dirac; C (graphite)"
+    }
+   ],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki; seager2007",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "carbon_diamond",
+   "name": "diamond",
+   "family": "element",
+   "formula": "C",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.513,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "silicon",
+   "name": "silicon",
+   "family": "element",
+   "formula": "Si",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.33,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "magnesium",
+   "name": "magnesium",
+   "family": "element",
+   "formula": "Mg",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.738,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "aluminum",
+   "name": "aluminum",
+   "family": "element",
+   "formula": "Al",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.7,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "calcium",
+   "name": "calcium",
+   "family": "element",
+   "formula": "Ca",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.55,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "phosphorus",
+   "name": "phosphorus",
+   "family": "element",
+   "formula": "P",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.34,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "Red phosphorus; white is 1.823 and black 2.69 g/cm3 on the same page.",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "nickel",
+   "name": "nickel",
+   "family": "element",
+   "formula": "Ni",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 8.908,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "iridium",
+   "name": "iridium",
+   "family": "element",
+   "formula": "Ir",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 22.56,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "palladium",
+   "name": "palladium",
+   "family": "element",
+   "formula": "Pd",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 12.023,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "platinum",
+   "name": "platinum",
+   "family": "element",
+   "formula": "Pt",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 21.45,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "gold",
+   "name": "gold",
+   "family": "element",
+   "formula": "Au",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 19.3,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "osmium",
+   "name": "osmium",
+   "family": "element",
+   "formula": "Os",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 22.59,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "ruthenium",
+   "name": "ruthenium",
+   "family": "element",
+   "formula": "Ru",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 12.45,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "rhodium",
+   "name": "rhodium",
+   "family": "element",
+   "formula": "Rh",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 12.41,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "titanium",
+   "name": "titanium",
+   "family": "element",
+   "formula": "Ti",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.506,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "potassium",
+   "name": "potassium",
+   "family": "element",
+   "formula": "K",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.89,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "tungsten",
+   "name": "tungsten",
+   "family": "element",
+   "formula": "W",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 19.25,
+     "unit": "g/cm3",
+     "source": "crc-density-wiki",
+     "code": "H"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "crc-density-wiki",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
+  },
+  {
+   "id": "troilite",
+   "name": "troilite",
+   "family": "sulfide",
+   "formula": "FeS",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.85,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.67,
+      4.79
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "holzapfel",
+     "params": {
+      "rho0_kg_m3": 6118.0,
+      "k0_gpa": 144.3,
+      "k0p": 4.79
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "Sata 2010 refit, Hakim 2018 Table D.5; the high-pressure phase"
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 4770.0,
+      "k0_gpa": 35.0,
+      "k0p": 5.0
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "FeS, Table 1, references 1 and 5; the low-pressure phase",
+     "uncertainty": {
+      "k0_gpa": 4.0,
+      "k0p": 2.0
+     }
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; hakim2018; seager2007",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "schreibersite",
+   "name": "schreibersite",
+   "family": "phosphide",
+   "formula": null,
+   "composition": "(Fe,Ni)3P",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 7.28,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "middle of D(calc.) 7.12 to 7.44",
+     "measured_range": [
+      7.0,
+      7.3
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "cohenite",
+   "name": "cohenite",
+   "family": "carbide",
+   "formula": "Fe3C",
+   "composition": "(Fe,Ni,Co)3C; the formula is the iron end member",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 7.68,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      7.2,
+      7.65
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "holzapfel",
+     "params": {
+      "rho0_kg_m3": 7980.0,
+      "k0_gpa": 289.4,
+      "k0p": 3.81
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "Fe3C, Sata 2010 refit, Hakim 2018 Table D.5"
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; hakim2018",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "magnetite",
+   "name": "magnetite",
+   "family": "oxide",
+   "formula": "Fe3O4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.2,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); page is a scan, read as 5.20",
+     "measured_range": [
+      5.175,
+      5.175
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 44.528,
+      "rho0_g_cm3": 5.2,
+      "k0_gpa": 183.88,
+      "k0p": 5.228,
+      "theta0_k": 529.5,
+      "gamma0": 1.358,
+      "q0": 0.419,
+      "unit_formula": "Fe3O4",
+      "unit_molar_mass_g_mol": 231.531
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "hematite",
+   "name": "hematite",
+   "family": "oxide",
+   "formula": "Fe2O3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.255,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      5.26,
+      5.26
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 30.287,
+      "rho0_g_cm3": 5.272,
+      "k0_gpa": 204.25,
+      "k0p": 4.1,
+      "theta0_k": 653.8,
+      "gamma0": 1.589,
+      "q0": 2.225,
+      "unit_formula": "Fe2O3",
+      "unit_molar_mass_g_mol": 159.687
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "chromite",
+   "name": "chromite",
+   "family": "oxide",
+   "formula": "FeCr2O4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.12,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) of the ideal formula (printed in brackets); page is a scan",
+     "measured_range": [
+      4.5,
+      4.8
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "moissanite",
+   "name": "moissanite",
+   "family": "carbide",
+   "formula": "SiC",
+   "composition": "",
+   "aliases": [
+    "silicon carbide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.22,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed range",
+     "measured_range": [
+      3.218,
+      3.22
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 3220.0,
+      "k0_gpa": 227.0,
+      "k0p": 4.1
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "SiC, Table 1, references 1 and 12",
+     "uncertainty": {
+      "k0_gpa": 3.0,
+      "k0p": 0.1
+     }
+    },
+    {
+     "model": "modified-polytrope",
+     "params": {
+      "rho0_kg_m3": 3220.0,
+      "c_kg_m3_pa_n": 0.00172,
+      "n": 0.537
+     },
+     "valid": {
+      "p_pa": [
+       0.0,
+       1e+16
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 3, rho = rho0 + c P^n, P in Pa, the Vinet or BME fit merged with Thomas-Fermi-Dirac; SiC"
+    }
+   ],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral; seager2007",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "bastnasite",
+   "name": "bastnasite",
+   "family": "rare-earth",
+   "formula": "CeCO3F",
+   "composition": "bastnasite-(Ce)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.97,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average (bastnasite-(Ce))",
+     "measured_range": [
+      4.95,
+      5.0
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "monazite",
+   "name": "monazite",
+   "family": "rare-earth",
+   "formula": "CePO4",
+   "composition": "monazite-(Ce); (Ce,La,Nd,Th)PO4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.15,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average (monazite-(Ce))",
+     "measured_range": [
+      4.8,
+      5.5
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "xenotime",
+   "name": "xenotime",
+   "family": "rare-earth",
+   "formula": "YPO4",
+   "composition": "xenotime-(Y)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.75,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average (xenotime-(Y))",
+     "measured_range": [
+      4.4,
+      5.1
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "cerite",
+   "name": "cerite",
+   "family": "rare-earth",
+   "formula": null,
+   "composition": "cerite-(Ce), a hydrous cerium silicate",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.86,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single density listed (cerite-(Ce))",
+     "measured_range": [
+      4.86,
+      4.86
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "gadolinite",
+   "name": "gadolinite",
+   "family": "rare-earth",
+   "formula": null,
+   "composition": "gadolinite-(Ce), (Ce,La,Nd,Y)2FeBe2Si2O10",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.2,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single density listed (gadolinite-(Ce))",
+     "measured_range": [
+      4.2,
+      4.2
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "samarskite",
+   "name": "samarskite",
+   "family": "rare-earth",
+   "formula": null,
+   "composition": "samarskite-(Y), (Y,Fe,U)(Nb,Ta)5O4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.69,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average (samarskite-(Y))",
+     "measured_range": [
+      5.6,
+      5.8
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "fergusonite",
+   "name": "fergusonite",
+   "family": "rare-earth",
+   "formula": "YNbO4",
+   "composition": "fergusonite-(Y)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.05,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average (fergusonite-(Y))",
+     "measured_range": [
+      4.3,
+      5.8
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "euxenite",
+   "name": "euxenite",
+   "family": "rare-earth",
+   "formula": null,
+   "composition": "euxenite-(Y), (Y,Ca,Ce)(Nb,Ta,Ti)2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average (euxenite-(Y))",
+     "measured_range": [
+      4.7,
+      5.0
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "osmiridium",
+   "name": "osmiridium",
+   "family": "platinum-group",
+   "formula": null,
+   "composition": "an osmium-iridium alloy; the density is that of iridosmine (Os,Ir)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 22.15,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) of iridosmine (Os,Ir); no measurement"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "sperrylite",
+   "name": "sperrylite",
+   "family": "platinum-group",
+   "formula": "PtAs2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 10.78,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      10.58,
+      10.58
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "cooperite",
+   "name": "cooperite",
+   "family": "platinum-group",
+   "formula": "PtS",
+   "composition": "(Pt,Pd)S",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 10.2,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      9.5,
+      9.5
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "braggite",
+   "name": "braggite",
+   "family": "platinum-group",
+   "formula": null,
+   "composition": "(Pt,Pd,Ni)S",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 9.383,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); measured is printed as about 10"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "laurite",
+   "name": "laurite",
+   "family": "platinum-group",
+   "formula": "RuS2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 6.39,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      6.43,
+      6.43
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "vysotskite",
+   "name": "vysotskite",
+   "family": "platinum-group",
+   "formula": null,
+   "composition": "(Pd,Ni)S",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 6.705,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); no measurement"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "uraninite",
+   "name": "uraninite",
+   "family": "radioactive",
+   "formula": "UO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 10.88,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); falls to 6.5 with oxidation",
+     "measured_range": [
+      10.63,
+      10.95
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "thorianite",
+   "name": "thorianite",
+   "family": "radioactive",
+   "formula": "ThO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 9.991,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      9.7,
+      9.8
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "carnotite",
+   "name": "carnotite",
+   "family": "radioactive",
+   "formula": "K2(UO2)2(VO4)2.3H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.91,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.7,
+      4.7
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "autunite",
+   "name": "autunite",
+   "family": "radioactive",
+   "formula": "Ca(UO2)2(PO4)2.11H2O",
+   "composition": "10 to 12 H2O",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.14,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); varies with hydration",
+     "measured_range": [
+      3.05,
+      3.2
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "brannerite",
+   "name": "brannerite",
+   "family": "radioactive",
+   "formula": null,
+   "composition": "(U,Ca,Y,Ce)(Ti,Fe)2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.2,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets; page is a scan",
+     "measured_range": [
+      4.2,
+      5.43
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "torbernite",
+   "name": "torbernite",
+   "family": "radioactive",
+   "formula": "Cu(UO2)2(PO4)2.12H2O",
+   "composition": "8 to 12 H2O",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.2,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the single density listed",
+     "measured_range": [
+      3.2,
+      3.2
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "coffinite",
+   "name": "coffinite",
+   "family": "radioactive",
+   "formula": "USiO4",
+   "composition": "U(SiO4)1-x(OH)4x",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.1,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "the one measured value (no calculated density printed)",
+     "measured_range": [
+      5.1,
+      5.1
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "rutile",
+   "name": "rutile",
+   "family": "oxide",
+   "formula": "TiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.25,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); the measured value rises with Nb and Ta",
+     "measured_range": [
+      4.23,
+      4.23
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "titanite",
+   "name": "titanite",
+   "family": "silicate",
+   "formula": "CaTiSiO5",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.53,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets",
+     "measured_range": [
+      3.48,
+      3.6
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "perovskite",
+   "name": "perovskite",
+   "family": "oxide",
+   "formula": "CaTiO3",
+   "composition": "the calcium titanate mineral; not the magnesium silicate perovskite (bridgmanite)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.02,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.98,
+      4.26
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "brookite",
+   "name": "brookite",
+   "family": "oxide",
+   "formula": "TiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.133,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.08,
+      4.18
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "anatase",
+   "name": "anatase",
+   "family": "oxide",
+   "formula": "TiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.89,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets",
+     "measured_range": [
+      3.79,
+      3.97
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "corundum",
+   "name": "corundum",
+   "family": "oxide",
+   "formula": "Al2O3",
+   "composition": "",
+   "aliases": [
+    "aluminum oxide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.997,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.98,
+      4.1
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 25.577,
+      "rho0_g_cm3": 3.986,
+      "k0_gpa": 252.59,
+      "k0p": 3.887,
+      "theta0_k": 932.2,
+      "gamma0": 1.308,
+      "q0": 1.712,
+      "unit_formula": "Al2O3",
+      "unit_molar_mass_g_mol": 101.96
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "beryl",
+   "name": "beryl",
+   "family": "silicate",
+   "formula": "Be3Al2Si6O18",
+   "composition": "",
+   "aliases": [
+    "beryllium aluminum cyclosilicate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.64,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); rises with alkali content",
+     "measured_range": [
+      2.63,
+      2.97
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "topaz",
+   "name": "topaz",
+   "family": "silicate",
+   "formula": "Al2SiO4F2",
+   "composition": "Al2SiO4(F,OH)2; the formula is the fluorine end member",
+   "aliases": [
+    "aluminum silicate fluoride hydroxide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.55,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.49,
+      3.57
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "spinel",
+   "name": "spinel",
+   "family": "oxide",
+   "formula": "MgAl2O4",
+   "composition": "",
+   "aliases": [
+    "magnesium aluminum oxide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.64,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average",
+     "measured_range": [
+      3.57,
+      3.72
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 39.762,
+      "rho0_g_cm3": 3.578,
+      "k0_gpa": 195.1,
+      "k0p": 4.627,
+      "theta0_k": 801.9,
+      "gamma0": 0.974,
+      "q0": 3.971,
+      "unit_formula": "MgAl2O4",
+      "unit_molar_mass_g_mol": 142.264
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "zircon",
+   "name": "zircon",
+   "family": "silicate",
+   "formula": "ZrSiO4",
+   "composition": "",
+   "aliases": [
+    "zirconium silicate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.714,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.6,
+      4.7
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "schorl",
+   "name": "schorl",
+   "family": "silicate",
+   "formula": "NaFe3Al6(BO3)3Si6O18(OH)4",
+   "composition": "a tourmaline",
+   "aliases": [
+    "borosilicate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.244,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.18,
+      3.22
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "orthoclase",
+   "name": "orthoclase",
+   "family": "silicate",
+   "formula": "KAlSi3O8",
+   "composition": "",
+   "aliases": [
+    "potassium aluminum silicate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.563,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.55,
+      2.63
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "fluorite",
+   "name": "fluorite",
+   "family": "halide",
+   "formula": "CaF2",
+   "composition": "",
+   "aliases": [
+    "calcium fluoride"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.18,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); to 3.56 if rich in rare earths",
+     "measured_range": [
+      3.175,
+      3.184
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "fluorapatite",
+   "name": "fluorapatite",
+   "family": "phosphate",
+   "formula": "Ca5(PO4)3F",
+   "composition": "",
+   "aliases": [
+    "calcium fluorophosphate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.18,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.1,
+      3.25
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "turquoise",
+   "name": "turquoise",
+   "family": "phosphate",
+   "formula": "CuAl6(PO4)4(OH)8.4H2O",
+   "composition": "",
+   "aliases": [
+    "hydrated copper aluminum phosphate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.91,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.); less if massive",
+     "measured_range": [
+      2.86,
+      2.86
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "malachite",
+   "name": "malachite",
+   "family": "carbonate",
+   "formula": "Cu2(CO3)(OH)2",
+   "composition": "",
+   "aliases": [
+    "copper carbonate hydroxide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.983,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.05,
+      4.05
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "almandine",
+   "name": "almandine",
+   "family": "silicate",
+   "formula": "Fe3Al2(SiO4)3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.313,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.318,
+      4.318
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "pyrope",
+   "name": "pyrope",
+   "family": "silicate",
+   "formula": "Mg3Al2(SiO4)3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.74,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "the listed average",
+     "measured_range": [
+      3.65,
+      3.84
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 113.08,
+      "rho0_g_cm3": 3.565,
+      "k0_gpa": 170.24,
+      "k0p": 4.111,
+      "theta0_k": 823.2,
+      "gamma0": 1.014,
+      "q0": 1.422,
+      "unit_formula": "Mg3Al2(SiO4)3",
+      "unit_molar_mass_g_mol": 403.123
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "",
+   "source": "webmineral; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "spessartine",
+   "name": "spessartine",
+   "family": "silicate",
+   "formula": "Mn3Al2(SiO4)3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.179,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.19,
+      4.19
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "grossular",
+   "name": "grossular",
+   "family": "silicate",
+   "formula": "Ca3Al2(SiO4)3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.594,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.594,
+      3.594
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 125.12,
+      "rho0_g_cm3": 3.6,
+      "k0_gpa": 167.06,
+      "k0p": 3.915,
+      "theta0_k": 822.8,
+      "gamma0": 1.054,
+      "q0": 1.889,
+      "unit_formula": "Ca3Al2(SiO4)3",
+      "unit_molar_mass_g_mol": 450.442
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "muscovite",
+   "name": "muscovite",
+   "family": "silicate",
+   "formula": "KAl3Si3O10(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.83,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.77,
+      2.88
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "biotite",
+   "name": "biotite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "K(Mg,Fe)3(Al,Fe)Si3O10(OH,F)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.25,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.7,
+      3.3
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "chrysoberyl",
+   "name": "chrysoberyl",
+   "family": "oxide",
+   "formula": "BeAl2O4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.69,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.75,
+      3.75
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "kamacite",
+   "name": "kamacite",
+   "family": "metal",
+   "formula": null,
+   "composition": "alpha iron-nickel, about 5 to 7 percent nickel by mass in the Handbook's analyses",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 7.9,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets; no measurement"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "taenite",
+   "name": "taenite",
+   "family": "metal",
+   "formula": null,
+   "composition": "gamma iron-nickel, about 25 to 31 percent nickel by mass in the Handbook's analyses",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 8.29,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) of the ordered phase",
+     "measured_range": [
+      7.8,
+      8.22
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "periclase",
+   "name": "periclase",
+   "family": "oxide",
+   "formula": "MgO",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.58,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.56,
+      3.68
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 44.976,
+      "rho0_g_cm3": 3.584,
+      "k0_gpa": 161.14,
+      "k0p": 3.908,
+      "theta0_k": 770.9,
+      "gamma0": 1.45,
+      "q0": 1.549,
+      "unit_formula": "Mg4O4",
+      "unit_molar_mass_g_mol": 161.216
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": "K0 161.14 GPa here; some older tables give 177"
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 3560.0,
+      "k0_gpa": 177.0,
+      "k0p": 4.0
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "MgO, Table 1, reference 8; SLB's 161.14 is the other choice",
+     "uncertainty": {
+      "k0_gpa": 4.0,
+      "k0p": 0.1
+     }
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; slb2024-burnman; seager2007",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "wustite",
+   "name": "wustite",
+   "family": "oxide",
+   "formula": "FeO",
+   "composition": "Fe(1-x)O",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.97,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      5.88,
+      5.88
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "holzapfel",
+     "params": {
+      "rho0_kg_m3": 5764.0,
+      "k0_gpa": 152.7,
+      "k0p": 4.13
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "Fe0.95O, Sata 2010 refit, Hakim 2018 Table D.5"
+    },
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 49.024,
+      "rho0_g_cm3": 5.862,
+      "k0_gpa": 160.7,
+      "k0p": 4.0,
+      "theta0_k": 427.0,
+      "gamma0": 1.45,
+      "q0": 1.549,
+      "unit_formula": "Fe4O4",
+      "unit_molar_mass_g_mol": 287.376
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    },
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 43.4,
+      "rho0_g_cm3": 6.622,
+      "k0_gpa": 199.7,
+      "k0p": 4.0,
+      "theta0_k": 493.0,
+      "gamma0": 1.45,
+      "q0": 1.549,
+      "unit_formula": "Fe4O4",
+      "unit_molar_mass_g_mol": 287.376
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": "the low-spin state"
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; hakim2018; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "anorthite",
+   "name": "anorthite",
+   "family": "silicate",
+   "formula": "CaAl2Si2O8",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.76,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.74,
+      2.76
+     ]
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 100.61,
+      "rho0_g_cm3": 2.765,
+      "k0_gpa": 84.09,
+      "k0p": 6.734,
+      "theta0_k": 754.5,
+      "gamma0": 0.385,
+      "q0": 1.0,
+      "unit_formula": "CaAl2Si2O8",
+      "unit_molar_mass_g_mol": 278.204
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "handbook-mineralogy; slb2024-burnman",
+   "state": "partly verified",
+   "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "naphthalene",
+   "name": "naphthalene",
+   "family": "polycyclic aromatic hydrocarbon",
+   "formula": "C10H8",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.162,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "20 C, solid"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "pubchem",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "anthracene",
+   "name": "anthracene",
+   "family": "polycyclic aromatic hydrocarbon",
+   "formula": "C14H10",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.25,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "27 C, solid"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "pubchem",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "phenanthrene",
+   "name": "phenanthrene",
+   "family": "polycyclic aromatic hydrocarbon",
+   "formula": "C14H10",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.179,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "25 C, solid"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "pubchem",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "pyrene",
+   "name": "pyrene",
+   "family": "polycyclic aromatic hydrocarbon",
+   "formula": "C16H10",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.271,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "23 C, solid"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "pubchem",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "coronene",
+   "name": "coronene",
+   "family": "polycyclic aromatic hydrocarbon",
+   "formula": "C24H12",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No density reached (PubChem has no record of the compound's density).",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "fluoranthene",
+   "name": "fluoranthene",
+   "family": "polycyclic aromatic hydrocarbon",
+   "formula": "C16H10",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.252,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "0 C, solid"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "pubchem",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "co_ice",
+   "name": "carbon monoxide ice",
+   "family": "ice",
+   "formula": "CO",
+   "composition": "",
+   "aliases": [
+    "carbon monoxide ice"
+   ],
+   "members": null,
+   "gas_formula": "CO",
+   "gate": "any",
+   "props": {
+    "t_melt_k": {
+     "value": 68.1,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 81.63,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_triple_k": {
+     "value": 68.09,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 134.45,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_crit_bar": {
+     "value": 34.99,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 0.833,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 6.04,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "rho_grain_g_cm3": {
+     "value": 0.929,
+     "unit": "g/cm3",
+     "source": "pubchem",
+     "code": "R",
+     "basis": "65 K, hexagonal solid"
+    }
+   },
+   "eos": [],
+   "labels": "Tm=R;Tb=R;Tt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;rho=R",
+   "note": "Phase points are part E's carbon monoxide gas row; the solid density is PubChem's hexagonal solid at 65 K.",
+   "source": "nist-webbook; crc-chemicals; pubchem",
+   "state": "partly verified",
+   "limit": "h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand"
+  },
+  {
+   "id": "hcn_ice",
+   "name": "hydrogen cyanide ice",
+   "family": "ice",
+   "formula": "HCN",
+   "composition": "",
+   "aliases": [
+    "hydrogen cyanide"
+   ],
+   "members": null,
+   "gas_formula": "HCN",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "PubChem lists the liquid (0.6875 g/cm3 at 20 C) only; no solid density was reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "formaldehyde",
+   "name": "formaldehyde",
+   "family": "organic ice",
+   "formula": "CH2O",
+   "composition": "",
+   "aliases": [
+    "formaldehyde"
+   ],
+   "members": null,
+   "gas_formula": "CH2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "PubChem lists the anhydrous liquid (0.815 g/cm3 at -20 C) only; no solid density was reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "amorphous_carbon",
+   "name": "amorphous carbon",
+   "family": "carbon",
+   "formula": "C",
+   "composition": "",
+   "aliases": [
+    "amorphous carbon"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No density source reached; the value depends on the hydrogen content and the formation.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "complex_organics",
+   "name": "complex organic compounds",
+   "family": "organic",
+   "formula": null,
+   "composition": "refractory organics of comets and primitive bodies",
+   "aliases": [
+    "complex organic compounds"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.5,
+     "unit": "g/cm3",
+     "source": "blum-bischoff",
+     "code": "R",
+     "measured_range": [
+      1.0,
+      2.0
+     ],
+     "basis": "organics 1000 to 2000 kg/m3: the middle"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R",
+   "note": "",
+   "source": "blum-bischoff",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "anthracite",
+   "name": "anthracite",
+   "family": "carbon",
+   "formula": null,
+   "composition": "high-rank coal",
+   "aliases": [
+    "anthracite"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No density source reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "olivine",
+   "name": "olivine",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "olivine"
+   ],
+   "members": [
+    "forsterite",
+    "fayalite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "pyroxene",
+   "name": "pyroxene",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "pyroxene"
+   ],
+   "members": [
+    "enstatite",
+    "ferrosilite",
+    "diopside"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "plagioclase",
+   "name": "plagioclase feldspars",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "plagioclase feldspars"
+   ],
+   "members": [
+    "albite",
+    "anorthite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "silicate_dust",
+   "name": "silicate dust",
+   "family": "dust",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "silicate dust"
+   ],
+   "members": [
+    "forsterite",
+    "fayalite",
+    "enstatite",
+    "ferrosilite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "hydrocarbons",
+   "name": "hydrocarbons",
+   "family": "organic group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "hydrocarbons"
+   ],
+   "members": [
+    "naphthalene",
+    "anthracene",
+    "phenanthrene",
+    "pyrene",
+    "coronene",
+    "fluoranthene",
+    "complex_organics"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "frozen_hydrocarbons",
+   "name": "frozen hydrocarbons",
+   "family": "organic ice group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "frozen hydrocarbons"
+   ],
+   "members": [
+    "ch4_ice",
+    "complex_organics"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "rock",
+   "name": "rock",
+   "family": "rock group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "rock",
+    "silicate rock"
+   ],
+   "members": [
+    "basalt_powder",
+    "felsic_granite_powder_a",
+    "ultramafic_dunite_powder",
+    "anorthosite_powder",
+    "forsterite",
+    "enstatite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "hydrogen",
+   "name": "hydrogen",
+   "family": "envelope",
+   "formula": "H2",
+   "composition": "",
+   "aliases": [
+    "hydrogen"
+   ],
+   "members": null,
+   "gas_formula": "H2",
+   "gate": "planetary",
+   "props": {
+    "t_melt_k": {
+     "value": 13.95,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_boil_or_sub_k": {
+     "value": 20.39,
+     "unit": "K",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "t_triple_k": {
+     "value": 13.95,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_triple_bar": {
+     "value": 0.0721,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "t_crit_k": {
+     "value": 33.18,
+     "unit": "K",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "p_crit_bar": {
+     "value": 13.0,
+     "unit": "bar",
+     "source": "nist-webbook",
+     "code": "R"
+    },
+    "h_fus_kj_mol": {
+     "value": 0.12,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "h_vap_kj_mol": {
+     "value": 0.9,
+     "unit": "kJ/mol",
+     "source": "crc-chemicals",
+     "code": "H"
+    },
+    "rho_gas_stp_g_l": {
+     "value": 0.08988,
+     "unit": "g/L",
+     "source": "crc-density-wiki",
+     "code": "H",
+     "basis": "0 C, 1 atm"
+    }
+   },
+   "eos": [
+    {
+     "model": "ideal-gas",
+     "params": {},
+     "valid": {},
+     "source": "ideal-gas",
+     "code": "C",
+     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the Lopez and Fortney and Fortney 2007 tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
+    }
+   ],
+   "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;rhog=H",
+   "note": "",
+   "source": "nist-webbook; crc-chemicals; crc-density-wiki; ideal-gas",
+   "state": "partly verified",
+   "limit": "t_boil_or_sub_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; rho_gas_stp_g_l: second-hand"
+  },
+  {
+   "id": "helium",
+   "name": "helium",
+   "family": "envelope",
+   "formula": "He",
+   "composition": "",
+   "aliases": [
+    "helium"
+   ],
+   "members": null,
+   "gas_formula": "He",
+   "gate": "planetary",
+   "props": {
+    "rho_gas_stp_g_l": {
+     "value": 0.1786,
+     "unit": "g/L",
+     "source": "crc-density-wiki",
+     "code": "H",
+     "basis": "0 C, 1 atm"
+    }
+   },
+   "eos": [
+    {
+     "model": "ideal-gas",
+     "params": {},
+     "valid": {},
+     "source": "ideal-gas",
+     "code": "C",
+     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the Lopez and Fortney and Fortney 2007 tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
+    }
+   ],
+   "labels": "rhog=H",
+   "note": "",
+   "source": "crc-density-wiki; ideal-gas",
+   "state": "partly verified",
+   "limit": "rho_gas_stp_g_l: second-hand"
+  },
+  {
+   "id": "iron_epsilon",
+   "name": "epsilon iron (hcp)",
+   "family": "metal",
+   "formula": "Fe",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 8.3,
+     "unit": "g/cm3",
+     "source": "seager2007",
+     "code": "R",
+     "basis": "rho0 of the Vinet fit"
+    }
+   },
+   "eos": [
+    {
+     "model": "vinet",
+     "params": {
+      "rho0_kg_m3": 8264.2,
+      "k0_gpa": 157.07,
+      "k0p": 5.6167
+     },
+     "valid": {},
+     "source": "part-b-fit",
+     "code": "C",
+     "note": "the single Vinet fit the solver uses, 0.3 percent over 1 to 1000 GPa and 1.9 percent to 20 TPa (COMPUTED in part B)"
+    },
+    {
+     "model": "vinet",
+     "params": {
+      "rho0_kg_m3": 8270.0,
+      "k0_gpa": 163.4,
+      "k0p": 5.38
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "room-temperature Vinet below 234.4 GPa (Dewaele et al., as in Hakim 2018)"
+    },
+    {
+     "model": "vinet",
+     "params": {
+      "rho0_kg_m3": 8300.0,
+      "k0_gpa": 160.2,
+      "k0p": 5.82
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "the Valencia parameters, Hakim 2018 Table F.7"
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 8341.0,
+      "k0_gpa": 173.98,
+      "k0p": 5.297
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "the Dorn parameters, Hakim 2018 Table F.7"
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 8269.0,
+      "k0_gpa": 172.7,
+      "k0p": 4.79
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "the Fei parameters, Hakim 2018 Table F.7"
+    },
+    {
+     "model": "vinet",
+     "params": {
+      "rho0_kg_m3": 8300.0,
+      "k0_gpa": 156.2,
+      "k0p": 6.08
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 1, reference 4",
+     "uncertainty": {
+      "k0_gpa": 1.8,
+      "k0p": 0.12
+     }
+    },
+    {
+     "model": "modified-polytrope",
+     "params": {
+      "rho0_kg_m3": 8300.0,
+      "c_kg_m3_pa_n": 0.00349,
+      "n": 0.528
+     },
+     "valid": {
+      "p_pa": [
+       0.0,
+       1e+16
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 3, rho = rho0 + c P^n, P in Pa, the Vinet or BME fit merged with Thomas-Fermi-Dirac; printed as Fe(alpha) in the table; the merge uses the epsilon Vinet fit (K0 156.2)"
+    }
+   ],
+   "labels": "rho=R",
+   "note": "The high-pressure iron phase of cores; the ambient row is iron.",
+   "source": "seager2007; part-b-fit; hakim2018",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "iron_liquid",
+   "name": "liquid iron",
+   "family": "metal",
+   "formula": "Fe",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 7.019,
+     "unit": "g/cm3",
+     "source": "exoplex",
+     "code": "H",
+     "basis": "rho0 of the BM4 fit"
+    }
+   },
+   "eos": [
+    {
+     "model": "bme",
+     "params": {
+      "order": 4,
+      "rho0_kg_m3": 7019.0,
+      "k0_gpa": 109.7,
+      "k0p": 4.66,
+      "k0pp_per_gpa": -0.043
+     },
+     "valid": {},
+     "source": "exoplex",
+     "code": "H",
+     "note": "Anderson and Ahrens 1994 as carried in the ExoPlex source; the original was not reached"
+    }
+   ],
+   "labels": "rho=H",
+   "note": "",
+   "source": "exoplex",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos bme: second-hand"
+  },
+  {
+   "id": "fesi",
+   "name": "iron silicide",
+   "family": "light-element compound",
+   "formula": "FeSi",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 6.522,
+     "unit": "g/cm3",
+     "source": "hakim2018",
+     "code": "R",
+     "basis": "rho0 of the Sata 2010 refit"
+    }
+   },
+   "eos": [
+    {
+     "model": "holzapfel",
+     "params": {
+      "rho0_kg_m3": 6522.0,
+      "k0_gpa": 219.5,
+      "k0p": 4.29
+     },
+     "valid": {},
+     "source": "hakim2018",
+     "code": "R",
+     "note": "Sata 2010 refit, Hakim 2018 Table D.5"
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "hakim2018",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "mgfe_bridgmanite",
+   "name": "iron-bearing bridgmanite (Mg0.88,Fe0.12)SiO3",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Mg0.88,Fe0.12)SiO3 perovskite",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.26,
+     "unit": "g/cm3",
+     "source": "seager2007",
+     "code": "R",
+     "basis": "rho0 of Table 1"
+    }
+   },
+   "eos": [
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 4260.0,
+      "k0_gpa": 266.0,
+      "k0p": 3.9
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "(Mg0.88,Fe0.12)SiO3 (pv), Table 1",
+     "uncertainty": {
+      "k0_gpa": 6.0,
+      "k0p": 0.04
+     }
+    },
+    {
+     "model": "modified-polytrope",
+     "params": {
+      "rho0_kg_m3": 4260.0,
+      "c_kg_m3_pa_n": 0.00127,
+      "n": 0.549
+     },
+     "valid": {
+      "p_pa": [
+       0.0,
+       1e+16
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 3, rho = rho0 + c P^n, P in Pa, the Vinet or BME fit merged with Thomas-Fermi-Dirac; (Mg,Fe)SiO3"
+    }
+   ],
+   "labels": "rho=R",
+   "note": "",
+   "source": "seager2007",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "mg_wadsleyite",
+   "name": "mg-wadsleyite",
+   "family": "silicate",
+   "formula": "Mg2SiO4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.473,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 40.515,
+      "rho0_g_cm3": 3.473,
+      "k0_gpa": 168.7,
+      "k0p": 4.123,
+      "theta0_k": 849.1,
+      "gamma0": 1.205,
+      "q0": 2.208,
+      "unit_formula": "Mg2SiO4",
+      "unit_molar_mass_g_mol": 140.691
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: about 10 to 20 GPa.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "fe_wadsleyite",
+   "name": "fe-wadsleyite",
+   "family": "silicate",
+   "formula": "Fe2SiO4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.761,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 42.8,
+      "rho0_g_cm3": 4.761,
+      "k0_gpa": 168.57,
+      "k0p": 4.123,
+      "theta0_k": 636.8,
+      "gamma0": 1.205,
+      "q0": 2.208,
+      "unit_formula": "Fe2SiO4",
+      "unit_molar_mass_g_mol": 203.772
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "mg_ringwoodite",
+   "name": "mg-ringwoodite",
+   "family": "silicate",
+   "formula": "Mg2SiO4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.562,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 39.493,
+      "rho0_g_cm3": 3.562,
+      "k0_gpa": 184.9,
+      "k0p": 4.22,
+      "theta0_k": 879.8,
+      "gamma0": 1.108,
+      "q0": 2.392,
+      "unit_formula": "Mg2SiO4",
+      "unit_molar_mass_g_mol": 140.691
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: about 17 to 25 GPa.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "fe_ringwoodite",
+   "name": "fe-ringwoodite",
+   "family": "silicate",
+   "formula": "Fe2SiO4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.868,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 41.86,
+      "rho0_g_cm3": 4.868,
+      "k0_gpa": 213.41,
+      "k0p": 4.22,
+      "theta0_k": 651.5,
+      "gamma0": 1.262,
+      "q0": 2.392,
+      "unit_formula": "Fe2SiO4",
+      "unit_molar_mass_g_mol": 203.772
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "mg_bridgmanite",
+   "name": "mg-bridgmanite",
+   "family": "silicate",
+   "formula": "MgSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.107,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 24.445,
+      "rho0_g_cm3": 4.107,
+      "k0_gpa": 250.57,
+      "k0p": 4.134,
+      "theta0_k": 893.0,
+      "gamma0": 1.545,
+      "q0": 0.834,
+      "unit_formula": "MgSiO3",
+      "unit_molar_mass_g_mol": 100.388
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 4,
+      "rho0_kg_m3": 4100.0,
+      "k0_gpa": 247.0,
+      "k0p": 3.97,
+      "k0pp_per_gpa": -0.016
+     },
+     "valid": {
+      "p_gpa": [
+       0.0,
+       200.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "MgSiO3 (pv), Table 1; fourth-order fit with K0'' -0.016 /GPa",
+     "uncertainty": {
+      "k0_gpa": 4.0
+     }
+    },
+    {
+     "model": "modified-polytrope",
+     "params": {
+      "rho0_kg_m3": 4100.0,
+      "c_kg_m3_pa_n": 0.00161,
+      "n": 0.541
+     },
+     "valid": {
+      "p_pa": [
+       0.0,
+       1e+16
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 3, rho = rho0 + c P^n, P in Pa, the Vinet or BME fit merged with Thomas-Fermi-Dirac; MgSiO3 (perovskite)"
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: 25 to 127 GPa.",
+   "source": "slb2024-burnman; seager2007",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "fe_bridgmanite",
+   "name": "fe-bridgmanite",
+   "family": "silicate",
+   "formula": "FeSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.21,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 25.321,
+      "rho0_g_cm3": 5.21,
+      "k0_gpa": 270.58,
+      "k0p": 4.01,
+      "theta0_k": 740.4,
+      "gamma0": 1.545,
+      "q0": 0.834,
+      "unit_formula": "FeSiO3",
+      "unit_molar_mass_g_mol": 131.928
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "mg_post_perovskite",
+   "name": "mg-post-perovskite",
+   "family": "silicate",
+   "formula": "MgSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.164,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 24.111,
+      "rho0_g_cm3": 4.164,
+      "k0_gpa": 247.74,
+      "k0p": 4.0,
+      "theta0_k": 931.0,
+      "gamma0": 1.64,
+      "q0": 1.765,
+      "unit_formula": "MgSiO3",
+      "unit_molar_mass_g_mol": 100.388
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: above about 127 GPa (T about 2530 K).",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "fe_post_perovskite",
+   "name": "fe-post-perovskite",
+   "family": "silicate",
+   "formula": "FeSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.215,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 25.296,
+      "rho0_g_cm3": 5.215,
+      "k0_gpa": 247.74,
+      "k0p": 4.0,
+      "theta0_k": 769.3,
+      "gamma0": 1.64,
+      "q0": 1.765,
+      "unit_formula": "FeSiO3",
+      "unit_molar_mass_g_mol": 131.928
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "ca_perovskite",
+   "name": "ca-perovskite",
+   "family": "silicate",
+   "formula": "CaSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.232,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 27.45,
+      "rho0_g_cm3": 4.232,
+      "k0_gpa": 236.0,
+      "k0p": 3.9,
+      "theta0_k": 800.3,
+      "gamma0": 1.89,
+      "q0": 0.896,
+      "unit_formula": "CaSiO3",
+      "unit_molar_mass_g_mol": 116.16
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: high P.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "hp_clinoenstatite",
+   "name": "hp-clinoenstatite",
+   "family": "silicate",
+   "formula": "Mg2Si2O6",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.304,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 60.76,
+      "rho0_g_cm3": 3.304,
+      "k0_gpa": 116.03,
+      "k0p": 6.237,
+      "theta0_k": 824.4,
+      "gamma0": 1.125,
+      "q0": 0.204,
+      "unit_formula": "Mg2Si2O6",
+      "unit_molar_mass_g_mol": 200.775
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: about 9.4 to 17 GPa.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "clinoenstatite",
+   "name": "clinoenstatite",
+   "family": "silicate",
+   "formula": "Mg2Si2O6",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.212,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 62.5,
+      "rho0_g_cm3": 3.212,
+      "k0_gpa": 113.76,
+      "k0p": 4.806,
+      "theta0_k": 805.6,
+      "gamma0": 1.009,
+      "q0": 0.601,
+      "unit_formula": "Mg2Si2O6",
+      "unit_molar_mass_g_mol": 200.775
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "mg_akimotoite",
+   "name": "mg-akimotoite",
+   "family": "silicate",
+   "formula": "MgSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.809,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 26.354,
+      "rho0_g_cm3": 3.809,
+      "k0_gpa": 210.69,
+      "k0p": 5.215,
+      "theta0_k": 929.0,
+      "gamma0": 1.193,
+      "q0": 2.225,
+      "unit_formula": "MgSiO3",
+      "unit_molar_mass_g_mol": 100.388
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: about 20 to 25 GPa.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "coesite",
+   "name": "coesite",
+   "family": "silicate",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.909,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 20.657,
+      "rho0_g_cm3": 2.909,
+      "k0_gpa": 103.54,
+      "k0p": 2.901,
+      "theta0_k": 875.2,
+      "gamma0": 0.29,
+      "q0": 1.0,
+      "unit_formula": "SiO2",
+      "unit_molar_mass_g_mol": 60.084
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "stishovite",
+   "name": "stishovite",
+   "family": "silicate",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.286,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 14.017,
+      "rho0_g_cm3": 4.286,
+      "k0_gpa": 305.84,
+      "k0p": 4.029,
+      "theta0_k": 1096.1,
+      "gamma0": 1.557,
+      "q0": 2.211,
+      "unit_formula": "SiO2",
+      "unit_molar_mass_g_mol": 60.084
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: with Mg/Si below 1.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "seifertite",
+   "name": "(seifertite)",
+   "family": "silicate",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.395,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 13.67,
+      "rho0_g_cm3": 4.395,
+      "k0_gpa": 327.16,
+      "k0p": 4.017,
+      "theta0_k": 1133.0,
+      "gamma0": 1.557,
+      "q0": 2.211,
+      "unit_formula": "SiO2",
+      "unit_molar_mass_g_mol": 60.084
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: very high P.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "al_perovskite",
+   "name": "al-perovskite",
+   "family": "silicate",
+   "formula": "Al2O3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.088,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 24.944,
+      "rho0_g_cm3": 4.088,
+      "k0_gpa": 242.4,
+      "k0p": 4.1,
+      "theta0_k": 856.2,
+      "gamma0": 1.545,
+      "q0": 0.834,
+      "unit_formula": "Al2O3",
+      "unit_molar_mass_g_mol": 101.96
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "al_post_perovskite",
+   "name": "al-post-perovskite",
+   "family": "silicate",
+   "formula": "Al2O3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.162,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 24.5,
+      "rho0_g_cm3": 4.162,
+      "k0_gpa": 247.74,
+      "k0p": 4.0,
+      "theta0_k": 752.0,
+      "gamma0": 1.865,
+      "q0": 1.765,
+      "unit_formula": "Al2O3",
+      "unit_molar_mass_g_mol": 101.96
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "mg_majorite",
+   "name": "mg-majorite",
+   "family": "silicate",
+   "formula": "Mg4Si4O12",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "planetary",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.512,
+     "unit": "g/cm3",
+     "source": "slb2024-burnman",
+     "code": "H",
+     "basis": "rho0 at 1 bar and 300 K"
+    }
+   },
+   "eos": [
+    {
+     "model": "mgd-slb3",
+     "params": {
+      "v0_cm3_mol": 114.324,
+      "rho0_g_cm3": 3.512,
+      "k0_gpa": 165.12,
+      "k0p": 4.212,
+      "theta0_k": 822.5,
+      "gamma0": 0.977,
+      "q0": 1.536,
+      "unit_formula": "Mg4Si4O12",
+      "unit_molar_mass_g_mol": 401.55
+     },
+     "valid": {},
+     "source": "slb2024-burnman",
+     "code": "H",
+     "note": ""
+    }
+   ],
+   "labels": "rho=H",
+   "note": "Stable in the mantle: no range given in part B.",
+   "source": "slb2024-burnman",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: second-hand; eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "ice_ii",
+   "name": "ice II",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {},
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        300.0,
+        200.0,
+        1196.0,
+        14.89,
+        5.95,
+        0.000114
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       0.0,
+       900.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    }
+   ],
+   "labels": "",
+   "note": "",
+   "source": "journaux2020",
+   "state": "partly verified",
+   "limit": "eos reference-points: second-hand"
+  },
+  {
+   "id": "ice_iii",
+   "name": "ice III",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {},
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        209.5,
+        251.15,
+        1154.5,
+        9.19,
+        6.25,
+        0.00022
+       ],
+       [
+        355.0,
+        256.43,
+        1170.8,
+        10.01,
+        6.0,
+        0.000205
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       0.0,
+       500.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    }
+   ],
+   "labels": "",
+   "note": "",
+   "source": "journaux2020",
+   "state": "partly verified",
+   "limit": "eos reference-points: second-hand"
+  },
+  {
+   "id": "ice_v",
+   "name": "ice V",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {},
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        355.0,
+        256.43,
+        1244.9,
+        12.92,
+        6.15,
+        0.00018
+       ],
+       [
+        618.4,
+        272.73,
+        1265.7,
+        14.24,
+        5.89,
+        0.000168
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       0.0,
+       1000.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    }
+   ],
+   "labels": "",
+   "note": "",
+   "source": "journaux2020",
+   "state": "partly verified",
+   "limit": "eos reference-points: second-hand"
+  },
+  {
+   "id": "ice_vi",
+   "name": "ice VI",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {},
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        618.4,
+        272.73,
+        1327.2,
+        14.87,
+        6.73,
+        0.000244
+       ],
+       [
+        1000.0,
+        300.0,
+        1351.1,
+        16.64,
+        6.34,
+        0.000226
+       ],
+       [
+        2216.0,
+        355.0,
+        1422.5,
+        22.44,
+        5.53,
+        0.000178
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       0.0,
+       3000.0
+      ],
+      "t_k": [
+       0.0,
+       400.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    }
+   ],
+   "labels": "",
+   "note": "",
+   "source": "journaux2020",
+   "state": "partly verified",
+   "limit": "eos reference-points: second-hand"
+  },
+  {
+   "id": "ice_vii",
+   "name": "ice VII",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "planetary",
+   "props": {},
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        2216.0,
+        355.0,
+        1476.4,
+        26.57,
+        2.11,
+        0.00026
+       ],
+       [
+        3000.0,
+        300.0,
+        1537.6,
+        29.29,
+        2.37,
+        0.0002
+       ],
+       [
+        10000.0,
+        300.0,
+        1845.3,
+        50.85,
+        3.53,
+        0.0001
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       1700.0,
+       1000000.0
+      ],
+      "t_k": [
+       20.0,
+       1800.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    },
+    {
+     "model": "bme",
+     "params": {
+      "order": 3,
+      "rho0_kg_m3": 1460.0,
+      "k0_gpa": 23.7,
+      "k0p": 4.15
+     },
+     "valid": {
+      "p_gpa": [
+       3.0,
+       60.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 1, reference 6 (Hemley et al.); zero-pressure form",
+     "uncertainty": {
+      "k0_gpa": 0.9,
+      "k0p": 0.07
+     }
+    }
+   ],
+   "labels": "",
+   "note": "",
+   "source": "journaux2020; seager2007",
+   "state": "partly verified",
+   "limit": "eos reference-points: second-hand"
+  },
+  {
+   "id": "ice_x",
+   "name": "ice X (and superionic water above about 100 GPa and 2000 K)",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "planetary",
+   "props": {},
+   "eos": [
+    {
+     "model": "reference-points",
+     "params": {
+      "columns": [
+       "p_mpa",
+       "t_k",
+       "rho_kg_m3",
+       "k_t_gpa",
+       "dk_dp",
+       "alpha_per_k"
+      ],
+      "points": [
+       [
+        50000.0,
+        300.0,
+        2674.6,
+        204.8,
+        5.11,
+        2e-05
+       ],
+       [
+        100000.0,
+        300.0,
+        3107.1,
+        503.8,
+        4.62,
+        7.4e-06
+       ],
+       [
+        500000.0,
+        300.0,
+        4669.7,
+        1708.0,
+        2.79,
+        1.6e-06
+       ],
+       [
+        1000000.0,
+        300.0,
+        5814.4,
+        2880.0,
+        1.91,
+        7.8e-07
+       ]
+      ]
+     },
+     "valid": {
+      "p_mpa": [
+       1700.0,
+       1000000.0
+      ],
+      "t_k": [
+       20.0,
+       1800.0
+      ]
+     },
+     "source": "journaux2020",
+     "code": "H",
+     "note": "density, isothermal bulk modulus, its pressure derivative and the expansivity evaluated from the Gibbs spline (rho = 1/(dG/dP), K = -(dG/dP)/(d2G/dP2)); the paper was not read"
+    },
+    {
+     "model": "vinet",
+     "params": {
+      "rho0_kg_m3": 1460.0,
+      "k0_gpa": 14.3771,
+      "k0p": 6.57972
+     },
+     "valid": {
+      "p_gpa": [
+       2.0,
+       7700.0
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Vinet fit to the DFT ices VIII and X, deviation under 2.5 percent in density (section 3.2)"
+    },
+    {
+     "model": "tabulated",
+     "params": {
+      "columns": [
+       "p_gpa",
+       "rho_kg_m3"
+      ],
+      "points": [
+       [
+        2.32,
+        1636.617
+       ],
+       [
+        4.155,
+        1725.86
+       ],
+       [
+        6.664,
+        1821.712
+       ],
+       [
+        9.823,
+        1924.8
+       ],
+       [
+        18.791,
+        2155.574
+       ],
+       [
+        25.361,
+        2284.82
+       ],
+       [
+        33.744,
+        2424.761
+       ],
+       [
+        44.314,
+        2576.285
+       ],
+       [
+        56.97,
+        2740.606
+       ],
+       [
+        74.188,
+        2919.275
+       ],
+       [
+        94.406,
+        3113.919
+       ],
+       [
+        126.815,
+        3326.163
+       ],
+       [
+        155.924,
+        3485.175
+       ],
+       [
+        240.696,
+        3867.031
+       ],
+       [
+        351.114,
+        4290.649
+       ],
+       [
+        498.66,
+        4760.933
+       ],
+       [
+        691.938,
+        5282.621
+       ],
+       [
+        937.585,
+        5861.45
+       ],
+       [
+        1260.182,
+        6503.954
+       ],
+       [
+        1673.049,
+        7216.474
+       ],
+       [
+        2188.301,
+        8006.625
+       ],
+       [
+        2853.712,
+        8884.186
+       ],
+       [
+        3691.387,
+        9858.497
+       ],
+       [
+        4737.211,
+        10938.603
+       ],
+       [
+        6040.611,
+        12134.882
+       ],
+       [
+        7686.171,
+        13467.635
+       ]
+      ]
+     },
+     "valid": {
+      "p_gpa": [
+       2.32,
+       7686.171
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 2, DFT ices VIII and X; the table prints Mg/m3 and is multiplied by 1000 here"
+    },
+    {
+     "model": "modified-polytrope",
+     "params": {
+      "rho0_kg_m3": 1460.0,
+      "c_kg_m3_pa_n": 0.00311,
+      "n": 0.513
+     },
+     "valid": {
+      "p_pa": [
+       0.0,
+       1e+16
+      ]
+     },
+     "source": "seager2007",
+     "code": "R",
+     "note": "Table 3, rho = rho0 + c P^n, P in Pa, the Vinet or BME fit merged with Thomas-Fermi-Dirac; H2O"
+    }
+   ],
+   "labels": "",
+   "note": "",
+   "source": "journaux2020; seager2007",
+   "state": "partly verified",
+   "limit": "eos reference-points: second-hand"
+  },
+  {
+   "id": "water_liquid",
+   "name": "liquid water",
+   "family": "liquid",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.9965599999999999,
+     "unit": "g/cm3",
+     "source": "journaux2020",
+     "code": "C",
+     "basis": "1 bar and 300 K (Bollengier spline)"
+    }
+   },
+   "eos": [
+    {
+     "model": "bme",
+     "params": {
+      "order": 4,
+      "v0_cm3_mol": 18.797,
+      "k0_gpa": 2.06,
+      "k0p": 6.29,
+      "k0pp_per_gpa": null
+     },
+     "valid": {},
+     "source": "exoplex",
+     "code": "H",
+     "note": "the ExoPlex water BM4 constants; K'' is not given there"
+    }
+   ],
+   "labels": "rho=C",
+   "note": "",
+   "source": "journaux2020; exoplex",
+   "state": "partly verified",
+   "limit": "eos bme: second-hand"
+  }
+ ]
+}

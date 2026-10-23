@@ -10,7 +10,7 @@ no weight, no draw; the weights that use it are the abundance rows of GEN.439 an
 table and not a possibility table (`generation/possibility_table.py`): it has no weights and no class gate.
 
 The data are three files in `physics/data/`, built by `scripts/build_element_tables.py` from published tables and checked in
-with the values read from them; each states its sources, citations, retrieval date and licence, and the loader below
+with the values read from them; each states its sources, citations and retrieval date, and the loader below
 refuses a file that does not (`DataError`):
 
 * `elements.json`: atomic number, symbol, name and atomic weight of the 118 elements, from CIAAW's Atomic Weights 2021
@@ -189,7 +189,7 @@ def _load(filename, rows_key):
     path = os.path.join(DATA_DIRECTORY, filename)
     with open(path, encoding="utf-8") as handle:
         data = json.load(handle)
-    for field in ("sources", "licence", "retrieved", "title"):
+    for field in ("sources", "retrieved", "title"):
         if not data.get(field):
             raise DataError(f"{filename} states no {field}")
     if not data.get(rows_key):

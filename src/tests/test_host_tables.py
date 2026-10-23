@@ -43,7 +43,7 @@ def test_the_tables_are_registered_and_each_row_says_where_its_weight_comes_from
         table = pt.REGISTRY.get(name)
         assert table is hosts.REGISTRY_TABLES[name]
         for row in table.rows:
-            assert row.source and row.licence and row.state in pt.STATES, (name, row.name)
+            assert row.source and row.state in pt.STATES, (name, row.name)
     assert "stand-in" in pt.REGISTRY.get("planet-satellites").state_counts()
 
 

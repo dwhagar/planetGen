@@ -26,7 +26,7 @@ def _piece(name, payload, url=None):
 
 def _dataset(*payloads, key="fixture"):
     pieces = tuple(_piece(f"part{i}.dat", payload, f"https://example.org/{key}/part{i}.dat") for i, payload in enumerate(payloads))
-    return fetch.Dataset(key, "A fixture", "Nobody 2026", "open", pieces, "a flat table", "XX1")
+    return fetch.Dataset(key, "A fixture", "Nobody 2026", pieces, "a flat table", "XX1")
 
 
 class _Response(io.BytesIO):
@@ -220,9 +220,9 @@ def test_locate_hashes_a_file_once_per_process(cache, monkeypatch):
     lambda: fetch.Piece("x", "http://e.org/x", "0" * 64, 1),
     lambda: fetch.Piece("x", "https://e.org/x", "ABC", 1),
     lambda: fetch.Piece("x", "https://e.org/x", "0" * 64, 0),
-    lambda: fetch.Dataset("a/b", "t", "s", "l", (_piece("x", b"1"),), "s", "f"),
-    lambda: fetch.Dataset("a", "t", "s", "l", (), "s", "f"),
-    lambda: fetch.Dataset("a", "t", "s", "l", (_piece("x", b"1"), _piece("x", b"2")), "s", "f"),
+    lambda: fetch.Dataset("a/b", "t", "s", (_piece("x", b"1"),), "s", "f"),
+    lambda: fetch.Dataset("a", "t", "s", (), "s", "f"),
+    lambda: fetch.Dataset("a", "t", "s", (_piece("x", b"1"), _piece("x", b"2")), "s", "f"),
 ])
 def test_a_malformed_catalogue_entry_is_refused(make):
     with pytest.raises(ValueError):
@@ -233,7 +233,7 @@ def test_every_catalogue_entry_is_well_formed_and_keys_are_unique():
     keys = [dataset.key for dataset in catalogue.ALL]
     assert len(keys) == len(set(keys))
     for dataset in catalogue.ALL:
-        assert dataset.source and dataset.licence and dataset.replaces and dataset.fill
+        assert dataset.source and dataset.replaces and dataset.fill
 
 
 def test_the_cache_folder_defaults_outside_the_checkout_and_can_move(monkeypatch):
@@ -294,7 +294,7 @@ def _archive_dataset(derive=None, version=1, payload=b"1,2\n3,4\n"):
         text = (pathlib.Path(folder) / "big.csv").read_text()
         return {"sum.txt": str(sum(int(v) for line in text.split() for v in line.split(","))).encode()}
 
-    return fetch.Dataset("archive", "A fixture", "Nobody 2026", "open", (piece,), "a flat table", "XX2",
+    return fetch.Dataset("archive", "A fixture", "Nobody 2026", (piece,), "a flat table", "XX2",
                          derived=("sum.txt",), derive=derive or sums, derive_version=version), payload
 
 
@@ -344,7 +344,7 @@ def test_derive_must_make_exactly_the_files_the_catalogue_names(cache):
 
 def test_a_transient_file_needs_a_derive_function():
     with pytest.raises(ValueError):
-        fetch.Dataset("a", "t", "s", "l", (fetch.Piece("x", "https://e.org/x", "0" * 64, 1, transient=True),), "s", "f")
+        fetch.Dataset("a", "t", "s", (fetch.Piece("x", "https://e.org/x", "0" * 64, 1, transient=True),), "s", "f")
 
 
 # ---- the URL of every file is printed (GEN.600) ----

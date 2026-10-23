@@ -23,16 +23,16 @@ STORED_SPECIES_FORMULAS = {"o2": "O2", "co2": "CO2", "co": "CO", "n2": "N2", "ar
 # --- The data files state where they come from ----------------------------------------------------------------
 
 @pytest.mark.parametrize("name", ["elements.json", "isotopes.json", "decay_series.json"])
-def test_every_data_file_states_its_sources_its_licence_and_when_it_was_read(name):
+def test_every_data_file_states_its_sources_and_when_it_was_read(name):
     with open(os.path.join(elements.DATA_DIRECTORY, name), encoding="utf-8") as handle:
         data = json.load(handle)
-    assert data["title"] and data["licence"] and data["retrieved"]
+    assert data["title"] and data["retrieved"] and "licence" not in data
     assert data["sources"] and all(len(source) > 30 for source in data["sources"])
     assert any("doi" in source or "ciaaw" in source.lower() or "nist" in source.lower() for source in data["sources"])
 
 
-@pytest.mark.parametrize("field", ["sources", "licence", "retrieved"])
-def test_the_loader_refuses_a_file_that_states_no_source_or_licence(tmp_path, monkeypatch, field):
+@pytest.mark.parametrize("field", ["sources", "retrieved"])
+def test_the_loader_refuses_a_file_that_states_no_source(tmp_path, monkeypatch, field):
     shutil.copytree(elements.DATA_DIRECTORY, tmp_path / "data")
     path = tmp_path / "data" / "elements.json"
     data = json.loads(path.read_text(encoding="utf-8"))

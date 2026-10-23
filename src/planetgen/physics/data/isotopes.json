@@ -1,6 +1,5 @@
 {
  "retrieved": "2026-10-17",
- "licence": "open",
  "title": "The isotopes: masses, natural abundance, half-lives, decay modes and decay energies (GEN.438)",
  "sources": [
   "NIST, Atomic Weights and Isotopic Compositions with Relative Atomic Masses (physics.nist.gov/Comp): the relative atomic mass (u) of each isotope and its natural isotopic composition (IUPAC)",
@@ -9,7 +8,6 @@
   "Dye, Rev. Geophys. 50, RG3007 (2012), doi:10.1029/2012RG000400, Table 2: dye_2012, the heat constants of 238U, 235U, 232Th and 40K (kept as the cross-check: the newer evaluation wins where they differ)"
  ],
  "notes": "abundance is an atom fraction of the element in normal material, null for an isotope that is not primordial; modes are NUBASE2020's [mode, percent] pairs; masses are of the neutral atom.",
- "licence_note": "NUBASE2020 and AME2020 are the AMDC's, NIST's listing carries no licence statement, and the two papers are published; recorded as open (Boss, 2026-10-17, 2:35 PM EDT).",
  "isotopes": [
   {
    "z": 1,

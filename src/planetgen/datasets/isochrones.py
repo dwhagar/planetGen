@@ -34,7 +34,6 @@ DATASET = fetch.Dataset(
     key="isochrones",
     title="MIST v1.2 isochrones, main sequence (v/vcrit 0.4, solar-scaled)",
     source="Choi et al. 2016 (ApJ 823, 102) and Dotter 2016 (ApJS 222, 8), MIST v1.2, mist.science",
-    licence="open; cite Choi et al. 2016 and Dotter 2016",
     pieces=(fetch.Piece(ARCHIVE, "https://mist.science/data/tarballs_v1.2/" + ARCHIVE,
                         "bb3f42743f75676fa8bf6ca63c4cb2723a0839b77204efebcae39fa4610a92c8", 221507784, transient=True),),
     replaces="the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note",

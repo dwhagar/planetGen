@@ -6,7 +6,7 @@ The gated possibility table and its loader (GEN.472)
 
 Every composition category (the gases of an atmosphere, the materials of a body, the abundance pattern of a star, the
 origin of a moon) is a table of possibilities. A row names one possibility, the classes it supports, a weight, where the
-weight comes from and what licence the data has. A body's composition is drawn by taking the rows whose gate passes the
+weight comes from. A body's composition is drawn by taking the rows whose gate passes the
 body, evaluating their weights, normalising to 100 percent and picking one. The format and the draw are written up in
 docs/design/composition-model.md section 4b; this module is the one loader every table uses.
 
@@ -35,7 +35,7 @@ both ways the result adds up to 1 within 1e-12.
 Rules that follow, each an error and never a silent fallback:
 
 - No row passes the gate, or every weight is zero: `PossibilityError`, naming the class and the table.
-- A row without a source and a licence, a partly verified row without its limit, a stand-in without its replacement
+- A row without a source, a partly verified row without its limit, a stand-in without its replacement
   item, a row whose state and weight disagree (`OPEN` is the open state and no other), a duplicate row name, or a
   component that is not a row of the one shared components table: `TableError`, at load.
 - A row's source state (`VERIFIED`, `PARTLY_VERIFIED`, `OPEN`, `STAND_IN`) is counted per table and listed in
@@ -155,7 +155,6 @@ class Row:
         classes (frozenset or tuple): The class gate: the classes the row supports, or `(ANY_CLASS,)`.
         weight: A number, `OPEN`, or a function of the `Subject`.
         source (str): Where the weight comes from; `"open"` for an open weight.
-        licence (str): The licence of the data; `"open"` where none is found.
         state (str): One of `STATES`.
         conditions (tuple): `Condition`s that must also hold.
         limit (str): For a partly verified row, the limit the check named (validity window or caveat).
@@ -170,7 +169,6 @@ class Row:
     classes: tuple
     weight: object
     source: str
-    licence: str
     state: str = VERIFIED
     conditions: tuple = ()
     limit: str = ""
@@ -192,8 +190,6 @@ class Row:
             raise TableError(f"row {name!r}: state {self.state!r} is none of {', '.join(STATES)}")
         if not str(self.source).strip():
             raise TableError(f"row {name!r} has no source")
-        if not str(self.licence).strip():
-            raise TableError(f"row {name!r} has no licence (write 'open' where none is found)")
         if self.state == OPEN_STATE:
             if self.weight != OPEN or self.source != OPEN:
                 raise TableError(f"row {name!r}: an open row has the weight and the source 'open' and no other")

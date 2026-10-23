@@ -32,7 +32,6 @@ DATASET = fetch.Dataset(
     key="white_dwarf_models",
     title="Bédard et al. 2020 white-dwarf cooling sequences",
     source="Bédard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93 (doi:10.3847/1538-4357/abafbe)",
-    licence="open; cite Bédard et al. 2020",
     pieces=(fetch.Piece(ARCHIVE, "https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/"
                         + ARCHIVE, "5c99114fcba0087395fcde2779ad7bdc9b7ace224abb71322d45165facae45ac", 2519040),),
     replaces="the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split",

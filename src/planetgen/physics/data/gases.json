@@ -1,13 +1,11 @@
 {
  "retrieved": "2026-10-17",
- "licence": "open",
  "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
  "sources": [
   "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
   "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
   "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Burkholder 2020, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) binned to 35 bins in part 02 section 2.3"
  ],
- "licence_note": "Boss, 2026-10-17, 2:35 PM EDT: every paper and dataset acquired is usable; the raw tables are not redistributed and the licence column is a record. NIST SRD is copyrighted (permission noted in body-composition part G4); PubChem and USGS are public domain; 'open' means none was found.",
  "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` where under half of the bin is covered.",
  "uv_bins_nm": [
   [
@@ -341,8 +339,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "HD",
@@ -397,8 +394,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "He",
@@ -504,8 +500,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "3He",
@@ -559,8 +554,7 @@
    "thermal_status": "COMPUTED",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "Ne",
@@ -666,8 +660,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Ar",
@@ -773,8 +766,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Kr",
@@ -880,8 +872,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Xe",
@@ -987,8 +978,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Rn",
@@ -1057,8 +1047,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8"
   },
   {
    "formula": "N2",
@@ -1249,8 +1238,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "O2",
@@ -1441,8 +1429,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "O3",
@@ -1641,8 +1628,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "H2O",
@@ -1850,8 +1836,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "HDO",
@@ -1901,8 +1886,7 @@
    "thermal_status": "DATA",
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "H2O2",
@@ -2064,8 +2048,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "CO",
@@ -2266,8 +2249,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "CO2",
@@ -2498,8 +2480,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "CH4",
@@ -2718,8 +2699,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "C2H2",
@@ -2932,8 +2912,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "C2H4",
@@ -3137,8 +3116,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "C2H6",
@@ -3363,8 +3341,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "C3H8",
@@ -3426,8 +3403,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "C4H10",
@@ -3489,8 +3465,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "C6H6",
@@ -3570,8 +3545,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "HCN",
@@ -3784,8 +3758,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "CH2O",
@@ -3987,8 +3960,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "CH3OH",
@@ -4114,8 +4086,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "NH3",
@@ -4337,8 +4308,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "N2H4",
@@ -4389,8 +4359,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "N2O",
@@ -4603,8 +4572,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "NO",
@@ -4766,8 +4734,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "NO2",
@@ -4949,8 +4916,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "N2O4",
@@ -5001,8 +4967,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "HNO3",
@@ -5080,8 +5045,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "HNCO",
@@ -5126,8 +5090,7 @@
    "thermal_status": "DATA",
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "C3O2",
@@ -5178,8 +5141,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "CN",
@@ -5224,8 +5186,7 @@
    "thermal_status": "DATA",
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "C2N2",
@@ -5290,8 +5251,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "CH3CN",
@@ -5342,8 +5302,7 @@
    "thermal_status": "DATA (x)",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "HC3N",
@@ -5388,8 +5347,7 @@
    "thermal_status": "NOT REACHED",
    "state": "partly verified",
    "limit": "phase points not reached; heat capacity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "C4H2",
@@ -5443,8 +5401,7 @@
    "thermal_status": "DATA (x)",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "PH3",
@@ -5558,8 +5515,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "H2S",
@@ -5772,8 +5728,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "SO2",
@@ -5983,8 +5938,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "SO3",
@@ -6035,8 +5989,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "H2SO4",
@@ -6087,8 +6040,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "OCS",
@@ -6298,8 +6250,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "CS2",
@@ -6376,8 +6327,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "S2",
@@ -6422,8 +6372,7 @@
    "thermal_status": "DATA",
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "S8",
@@ -6468,8 +6417,7 @@
    "thermal_status": "DATA",
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "SO",
@@ -6514,8 +6462,7 @@
    "thermal_status": "DATA",
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "CH3SH",
@@ -6566,8 +6513,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "(CH3)2S",
@@ -6633,8 +6579,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8"
   },
   {
    "formula": "HCl",
@@ -6835,8 +6780,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds) and 02-gas-optics-uv-visible.md table 2.1; 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1; 02-gas-optics-uv-visible.md section 2.3"
   },
   {
    "formula": "HF",
@@ -6917,8 +6861,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Cl2",
@@ -6995,8 +6938,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "CH3Cl",
@@ -7110,8 +7052,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9; 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "HBr",
@@ -7173,8 +7114,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "HClO4",
@@ -7225,8 +7165,7 @@
    "thermal_status": "NOT REACHED",
    "state": "partly verified",
    "limit": "heat capacity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "CF4",
@@ -7306,8 +7245,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "SF6",
@@ -7387,8 +7325,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 8; 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "SiH4",
@@ -7450,8 +7387,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 01-gas-table-thermodynamics.md section 9"
   },
   {
    "formula": "SiO",
@@ -7515,8 +7451,7 @@
    },
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Na",
@@ -7579,8 +7514,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "K",
@@ -7643,8 +7577,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Ca",
@@ -7695,8 +7628,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "Mg",
@@ -7759,8 +7691,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "Fe",
@@ -7823,8 +7754,7 @@
    },
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "TiO",
@@ -7882,8 +7812,7 @@
    },
    "state": "partly verified",
    "limit": "phase points not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "NaCl",
@@ -7934,8 +7863,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "KCl",
@@ -7986,8 +7914,7 @@
    "thermal_status": "DATA",
    "state": "verified",
    "limit": "",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "NH4Cl",
@@ -8041,8 +7968,7 @@
    "thermal_status": "NOT REACHED",
    "state": "partly verified",
    "limit": "heat capacity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "FeH",
@@ -8064,8 +7990,7 @@
    "thermal_status": "COMPUTED",
    "state": "partly verified",
    "limit": "identity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "CrH",
@@ -8087,8 +8012,7 @@
    "thermal_status": "COMPUTED",
    "state": "partly verified",
    "limit": "identity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "AlH",
@@ -8110,8 +8034,7 @@
    "thermal_status": "COMPUTED",
    "state": "partly verified",
    "limit": "identity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "VO",
@@ -8145,8 +8068,7 @@
    },
    "state": "partly verified",
    "limit": "identity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds); 03-infrared-greenhouse-thermal.md table 2.1"
   },
   {
    "formula": "CaOH",
@@ -8168,8 +8090,7 @@
    "thermal_status": "COMPUTED",
    "state": "partly verified",
    "limit": "identity not reached",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   },
   {
    "formula": "NH4SH",
@@ -8191,8 +8112,7 @@
    "thermal_status": "NOT REACHED (Cp)",
    "state": "open",
    "limit": "no block reached by the research",
-   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)",
-   "licence": "open"
+   "source": "docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   }
  ]
 }
