@@ -109,7 +109,8 @@ def test_under_3e8_a_galaxy_is_one_disc_plus_a_bulge():
     for mass in (281.0, ABOVE, FULL * 0.99):
         structure = structure_draw.draw_structure(SEED, mass)
         assert structure.thick_mass_ratio == 0.0 and structure.halo_stellar_ratio == 0.0
-        assert structure.nuclear_cluster_mass_solar == 0.0 and not structure.bar_present
+        assert structure.nuclear_cluster_mass_solar == 0.0 and structure.nuclear_disc_mass_solar == 0.0
+        assert not structure.bar_present
         assert structure.thick_length_ratio > 0 and structure.thick_height_ratio > 0   # nothing divides by zero
 
 

@@ -159,9 +159,9 @@ def test_the_halo_does_not_widen_the_outline():
     # 3,426 (3,576 at the recalled 0.4 a system, 3,762 for the density tuned to the real count at the Sun, 3,127 with the
     # isothermal disk).
     extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
-    assert outer == 3453
-    assert len(extents) == 3454
-    assert sum(high for _shell, high in extents) == 865199
+    assert outer == 3454
+    assert len(extents) == 3455
+    assert sum(high for _shell, high in extents) == 865333
 
 
 def _halo_and_edge_cells(shape):

@@ -259,11 +259,11 @@ def model_terms(shape):
     main_mass = (bulge_mass + _disk_mass(shape.arm_level, length, shape.disk_scale_height_pc)
                  + _disk_mass(thick_amplitude, thick_length, thick_height))
     # The model's units per solar mass of the visible stars (the galaxy's stars less the stellar halo's): the nuclear
-    # cluster is drawn in solar masses (GEN.402) and enters the model through it.
+    # cluster (GEN.402) and the nuclear disc (GEN.628) are drawn in solar masses and enter the model through it.
     per_solar = main_mass / (structure.stellar_mass_solar * (1.0 - structure.halo_stellar_ratio))
     cluster_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_cluster_mass_solar * per_solar
     cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
-    disc_mass = cluster_mass * tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO
+    disc_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_disc_mass_solar * per_solar
     disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
     disc_height = tuning.NUCLEAR_DISC_HEIGHT_RATIO * shape.bulge_scale_radius_pc
     return {
