@@ -122,7 +122,8 @@ def test_a_random_body_of_any_rocky_class_gets_a_mixture_from_the_inputs_the_fun
                           host_type=rng.choice(["G", "K", "M", "F", "WD", "PSR"]), is_moon=rng.random() < 0.2,
                           insolation=10 ** rng.uniform(-4, 3), luminosity_solar=10 ** rng.uniform(-3, 1), water_lost=rng.random() < 0.2,
                           runaway_ratio=rng.uniform(0.2, 2), teq_k=temperature * 0.8, xuv_index=10 ** rng.uniform(-1, 2),
-                          v_esc_kms=10 ** rng.uniform(0, 1.6), radius_km=10 ** rng.uniform(2.5, 4.3), t_layer_k=temperature * 0.9)
+                          v_esc_kms=10 ** rng.uniform(0, 1.6), radius_km=10 ** rng.uniform(2.5, 4.3), t_layer_k=temperature * 0.9, thin_disc_fgk=True)
+        quantities["core_radius_earth"] = 0.5 * quantities["radius_km"] / 6371.0
         wanted = set(md.required_inputs(body_class))
         subject = Subject(body_class, {name: value for name, value in quantities.items() if name in wanted})
         with draw.bound(index):
