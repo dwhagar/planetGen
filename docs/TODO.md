@@ -7980,7 +7980,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.458, GEN.557. Related: GEN.429,
+  Prerequisites: GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -8325,7 +8325,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459.
+  Prerequisites: GEN.428, GEN.429, GEN.459.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -9272,63 +9272,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread.
-  `SNOW_LINE_AU_AT_1_LSUN = 2.7` in `physics/constants.py` (used by
-  `formation.snow_line_au`) is the 170 K blackbody value (derived in
-  docs/design/bulk-composition-sources-check.md); real snow lines move
-  by a factor of 2 to 3, about 0.2 dex, with the disc and the star's
-  history (Mulders 2015), so one value per star is a simplification
-  (finding F8, parts C section 2.1 and D section 2.4). Do: draw each
-  system's snow line once, seeded through `draw.py`, as 0.2 dex of
-  scatter around the blackbody position for the star's luminosity, store
-  it with the system and record a born-beyond-the-snow-line flag per
-  body; the water share (GEN.428), the small-body zones (GEN.442) and
-  the moons (GEN.466) read it; the fixed constant is removed in the same
-  change (no shim). Water share (Boss, 2026-10-17, 1:21 AM EDT, card
-  "Keep the switch"): the water share of the solids beyond the line is
-  one switch with both values selectable, the Marboeuf-derived sequence
-  (water 0.14 to 0.39 of the solids) as the research draft's default and
-  the Lodders, Zeng, Venturini, Bitsch and Burn convention (about 0.5);
-  GEN.468 is done (Core 4, #2644, 7:04 AM EDT 2026-10-23 as the lane reported): the factor of two is narrowed, not settled (different denominators plus a real ice/rock difference, equilibrium about 2.0 against comets about 1.0), the default stays Marboeuf-derived and the switch names its denominator (docs/design/body-composition-parts/H-gen465-second-pass-tables.md section 2). Changes
-  stored values, so it ships with a generator epoch bump and joins the
-  one rescatter of 8.4. Done: a test checks the draw's median and
-  scatter against the stated values, that the same system gives the same
-  snow line at any worker count, and that no code reads the old
-  constant. Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the earlier proposal of Core 4).
-  Prerequisites: none. Related: GEN.426, GEN.428, GEN.442, GEN.461,
-  GEN.466, DB.69.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): no table: the snow line is a drawn scalar (0.2 dex
-  around the 170 K position) that the gated weights of GEN.428, GEN.442
-  and GEN.466 take as an argument.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 16, "Keep 170 K
-  centre": the snow line keeps the 170 K blackbody centre
-  (`SNOW_LINE_AU_AT_1_LSUN = 2.7`) with 0.2 dex of scatter; 150 K lies
-  inside that scatter and is noted, not a second centre.
-
 - [ ] **GEN.459 One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -9578,7 +9521,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.458. Related: GEN.427, GEN.428,
+  Prerequisites: GEN.428, GEN.429. Related: GEN.427, GEN.428,
   GEN.429, GEN.441, GEN.466, DB.70, GEN.471.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -9723,7 +9666,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.442, GEN.458. Related:
+  Prerequisites: GEN.428, GEN.429, GEN.442. Related:
   GEN.442,
   GEN.457, GEN.461, DB.70.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -10089,7 +10032,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.442, GEN.458, DB.70. Related:
+  Prerequisites: GEN.442, DB.70. Related:
   GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -16024,7 +15967,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460. Related:
+  Prerequisites: GEN.429, GEN.459, GEN.460. Related:
   DB.67,
   DB.68.
   Part F of the Body composition research lane
