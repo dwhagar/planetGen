@@ -55,3 +55,14 @@ composition part G4); PubChem and USGS data are public domain. The sources are l
 | `neutron_star_matter` | CC BY 4.0 |
 | `white_dwarf_models` | Open; cite Bedard et al. 2020 |
 | `white_dwarf_mass_radius.json` | Computed here from physical constants; no third-party data |
+
+## The comet volatile population (`src/planetgen/physics/data/comet_population.json`, GEN.495)
+
+The keys are the source keys of the file. Only values computed or read from the papers are kept; the database is not in the repository.
+
+| Source key | Source | Terms known |
+|---|---|---|
+| `rob24` | Robinson, Malamud, Opitom, Perets and Blum 2024 (arXiv:2403.15644) and its database (Edinburgh DataShare, doi 10.7488/ds/7723) | The database was downloaded for the research; per-species statistics were computed and only those are kept; no licence statement was read |
+| `hp22` | Harrington Pinto et al. 2022 (arXiv:2209.09985) | Published paper; values only |
+| `coch15` | Cochran et al. 2015, Space Science Reviews 197, 9 (arXiv:1507.00761) | Published paper; values only |
+| `cor25` | Cordiner et al. 2025 (arXiv:2508.18209) | Preprint; two measured ratios only |
