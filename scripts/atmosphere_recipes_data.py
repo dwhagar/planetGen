@@ -327,15 +327,26 @@ MACHINE = {
     # ---- o. ground radioisotopes ----
     "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=True)], bins=[0.7, 1.4],
                dist={"kind": "normal", "log10": True, "mu": 0.08, "sigma": 0.058}),
-    "o2": dict(state="partly verified", limit="thin and thick disc [Th/Mg] from Hypatia (N=215, 32); halo, young and M hosts have no data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)],
-               dist={"kind": "loguniform", "lo": "10**-0.23", "hi": "10**0.40"}),
+    "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, scale of heterogeneous catalogues, 0.14 dex under the solar-twin scale of o1); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
+               dist={"kind": "normal", "log10": True, "mu": -0.063, "sigma": 0.19, "range": [-0.64, 0.52]},
+               source="Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 "
+                      "(N=215), so no thick-thin offset in the planet-relevant ratio (DATA, COMPUTED; tunable-gaps 3.2)",
+               correction="Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; "
+                          "the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest "
+                          "of the intrinsic 0.056 (Botelho 2019) and the catalogue's 0.15 to 0.19."),
     "o3": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "loguniform", "lo": 8.9e3, "hi": 1.4e4}),
-    "o4": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "uniform", "lo": 3.8, "hi": 4.5}),
+    "o4": dict(state="partly verified", limit="the production ratio 1.667 to 2.0 and the decay constants are published; the effective r-process duration T of the gas (3 to 13 Gyr, the widest bracket) is calibrated on one Solar System datum and waits for a chemical-evolution model (GEN.514)", kind="param", classes=ROCKY,
+               dist={"kind": "uniform", "lo": "0.97483*1.667*1.16254*exp(0.105802*age_gy)", "hi": "0.97483*2.0*1.71724*exp(0.105802*age_gy)"},
+               source="Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), "
+                      "F(T) = [(1 - exp(-l232 T))/l232] / [(1 - exp(-l238 T))/l238] with half-lives 14.05 and 4.468 Gyr; "
+                      "F(3 Gyr) = 1.16254 and F(13 Gyr) = 1.71724 bound the birth epoch (COMPUTED, tunable-gaps 2.6)",
+               correction="Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's "
+                          "age (x1.17 over 1.5 Gyr). At 4.5 Gyr the formula gives 3.04 to 5.39."),
     "o5": dict(kind="derived", classes=ROCKY,
                values={"heating_ratio": "0.384*exp(0.693147/4.468*(4.5 - age_gy)) + 0.016*exp(0.693147/0.7038*(4.5 - age_gy))"
                                         " + 0.402*exp(0.693147/14.05*(4.5 - age_gy)) + 0.193*exp(0.693147/1.248*(4.5 - age_gy))"}),
-    "o6": dict(state="partly verified", limit="the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution (GEN.514)", kind="binary", classes=ROCKY, when=[c("planetesimals_early", equals=True)],
-               constants={"c_o6": [0.1, 1.0, "log"]}, weight="c_o6"),
+    "o6": dict(state="partly verified", limit="the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution, so the bracket is the widest and no target exists (GEN.514)", kind="binary", classes=ROCKY, when=[c("planetesimals_early", equals=True)],
+               constants={"c_o6": [0.04, 0.66, "log"]}, weight="c_o6"),
 
     # ---- p. host-star UV regime ----
     "p1": dict(kind="option", group="p", classes=ANY, when=[c("host_type", one_of=["F", "G"]), c("age_gy", minimum=0.1)],

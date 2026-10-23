@@ -9,7 +9,7 @@ Before this change 43 of the 104 rows of part 09 were `open`: a `DESIGN` weight 
 - **partly verified** with a stated limit, where a published statistic, gate or bracket exists and only an edge, a width or a share is a design choice. The limit says which.
 - **stand-in** naming the builder item (GEN.509 to GEN.525, GEN.595) that replaces it, where no measurement exists, the value rests on Solar System bodies, or the only number is a SNIPPET or RECALLED value (the target table never tunes to those).
 
-No row is `verified` or `derived` by this change: no source was newly opened. The loader therefore lists no `open` row, and 30 stand-ins (2 before: 28 new) and 38 partly verified rows (23 before: 15 new) carry the open work, each pointing at the builder that owns it. (GEN.516 later retuned f5 to a verified source and it is no longer counted among the partly verified: 36.)
+No row is `verified` or `derived` by this change: no source was newly opened. The loader therefore lists no `open` row, and 30 stand-ins (2 before: 28 new) and 38 partly verified rows (23 before: 15 new) carry the open work, each pointing at the builder that owns it. (Later builders move rows: GEN.516 retuned f5 to a verified source, and GEN.514 turned o4 from a stand-in into a partly verified formula; the counts are then 37 partly verified and 29 stand-ins.)
 
 The recipes are not yet read by the generator, so this change draws nothing differently and takes no generator epoch.
 

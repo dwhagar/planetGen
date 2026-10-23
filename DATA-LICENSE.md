@@ -111,6 +111,14 @@ Fitted numbers only (the recovery curve, the effective-depth law, the noise line
 | NASA Exoplanet Archive, table `keplerstellar` (delivery q1_q17_dr25_stellar), retrieved 2026-10-23 | Same |
 | Burke and Catanzarite 2017, Kepler Science Document KSCI-19083 | Published document; the form of the recovery curve only |
 
+## The thorium of thick-disc stars (`src/planetgen/physics/data/tuning_targets.json` targets o2-mean and o2-sd, GEN.514)
+
+Two summary statistics only (the mean and the standard deviation of [Th/Mg] of 32 stars); the catalogue's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| Hypatia Catalog (Hinkel et al. 2014, AJ 148, 54, arXiv:1405.6719), open web API, queried 2026-10 | The site states no open licence; the two statistics are computed from it and no rows are kept |
+
 ## The comets with a measured composition (`src/planetgen/physics/data/comet_admission.json`, GEN.507)
 
 Fitted numbers only (counts of known and measured comets by group and perihelion bin, and two regression lines and their scatter); the database's rows are not kept.

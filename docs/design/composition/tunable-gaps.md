@@ -190,6 +190,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.517, lane M, 2026-10-23):** rows g1 to g5 now take their edges and softness from the Kirkpatrick 2021 temperature map (`planetgen/physics/brown_dwarf_types.py`, `docs/design/brown-dwarf-types.md`): 2238, 1273, 686 and 460 K with scatter 134 and 79 K, in place of the design edges 2200, 1300, 700 and 500 K at 100 K. The type is a derived function of the temperature, so there is no target to tune; the test pins the recipe to the map.
 
+**Built (GEN.514, lane M, 2026-10-23):** rows o2, o4 and o6 are retuned (`docs/design/radioisotope-tuning.md`): the thorium scale of non-thin-disc hosts is the 32-star Hypatia statistic (-0.063 dex, 0.19), Th/U follows the published formula with the planet's age (3.04 to 5.39 at 4.5 Gyr), and the aluminium-26 share bracket is 0.04 to 0.66. Row o3 stays a stand-in (Solar System only).
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

@@ -88,3 +88,29 @@ def test_the_table_refuses_a_malformed_scale_threshold_or_subject():
         th.TargetTable({"version": 1, "targets": [dict(proportion, below=True)]})
     with pytest.raises(th.TargetError, match="names no subject"):
         th.check_target(th.TargetTable({"version": 1, "targets": [proportion]}).get("p"))
+
+
+# --- radioisotopes (GEN.514) -------------------------------------------------------------------------------------------------
+
+
+def test_the_thorium_scale_of_non_thin_disc_hosts_is_the_thick_disc_statistic_and_not_a_fourteen_star_bracket():
+    spec = RECIPES.entry("o2").spec["dist"]
+    assert spec["kind"] == "normal" and spec["log10"] and spec["mu"] == -0.063 and spec["sigma"] == 0.19
+    old = retuned("o2", lambda e: e.update(dist={"kind": "loguniform", "lo": "10**-0.23", "hi": "10**0.40"}))
+    assert not th.check_target(th.TARGETS.get("o2-mean"), recipes=old, n=3000).passed, "the bracket's log-mean is +0.085"
+
+
+def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the_published_formula():
+    from planetgen.generation.possibility_table import Subject
+    dist = lambda age: RECIPES._dist_of(RECIPES.entry("o4"), Subject("A", {"age_gy": age}))   # noqa: E731
+    low, high = dist(4.5)["lo"], dist(4.5)["hi"]
+    # the report's table (PR 1.751, mass Th/U at 4.5 Gyr) is 3.19 for T = 3 Gyr and 4.72 for T = 13 Gyr; the bounds use PR 1.667 and 2.0
+    assert low == pytest.approx(3.19 * 1.667 / 1.751, rel=0.005) and high == pytest.approx(4.72 * 2.0 / 1.751, rel=0.005)
+    assert dist(6.0)["lo"] / low == pytest.approx(1.1719, rel=0.002), "x1.17 over 1.5 Gyr (decay constants 0.1058 per Gyr)"
+    assert dist(0.0)["lo"] == pytest.approx(0.97483 * 1.667 * 1.16254, rel=1e-6)
+    assert RECIPES.entry("o4").state == "partly verified" and "chemical-evolution" in RECIPES.entry("o4").limit
+
+
+def test_the_enriched_aluminium_share_bracket_is_the_published_one():
+    constant = RECIPES.entry("o6").constants["c_o6"]
+    assert (constant[0], constant[1]) == (0.04, 0.66), "at least 4 percent of systems (Curry 2022) to the white-dwarf upper estimate"

@@ -312,6 +312,54 @@
    "fill_id": "GEN.516",
    "falsifier": "a sample sd of the drawn C/O more than 2 sigma from 0.27 over 2000 seeds",
    "role": "target"
+  },
+  {
+   "id": "o2-mean",
+   "row": "atmosphere-o:o2",
+   "statistic": "mean of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
+   "kind": "mean",
+   "scale": "log10",
+   "value": -0.063,
+   "sigma": 0.034,
+   "n": 32,
+   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; sigma = 0.193 / sqrt(32); thin disc -0.044 (N=215), so no offset",
+   "label": "COMPUTED",
+   "validity": {
+    "thin_disc_fgk": false
+   },
+   "subject": {
+    "body_class": "A",
+    "quantities": {
+     "thin_disc_fgk": false
+    }
+   },
+   "fill_id": "GEN.514",
+   "falsifier": "a mean of the drawn log10 Th/Mg more than 2 sigma from -0.063 over 2000 seeds; the catalogue mixes many papers, so the scale is not the solar-twin scale of row o1 (0.14 dex apart)",
+   "role": "target"
+  },
+  {
+   "id": "o2-sd",
+   "row": "atmosphere-o:o2",
+   "statistic": "sample standard deviation of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
+   "kind": "sd",
+   "scale": "log10",
+   "value": 0.193,
+   "sigma": 0.025,
+   "n": 32,
+   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: sd 0.193 (thin disc 0.153, N=215; intrinsic 0.056 in 53 solar twins, Botelho 2019); sigma = 0.193 / sqrt(2 x 31)",
+   "label": "COMPUTED",
+   "validity": {
+    "thin_disc_fgk": false
+   },
+   "subject": {
+    "body_class": "A",
+    "quantities": {
+     "thin_disc_fgk": false
+    }
+   },
+   "fill_id": "GEN.514",
+   "falsifier": "a sample sd of the drawn log10 Th/Mg more than 2 sigma from 0.193 over 2000 seeds; the catalogue spread includes measurement and catalogue scatter, so 0.193 is an upper bound on the intrinsic width",
+   "role": "target"
   }
  ]
 }
