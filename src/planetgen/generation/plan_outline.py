@@ -23,6 +23,7 @@ from planetgen.galaxy.skeleton import (
 )
 from planetgen.generation import clusters, satellites
 from planetgen.generation import open_clusters as openClusters
+from planetgen.util import step_timer as stepTimer
 
 PREVIEW_SEED = bytes(range(16))
 """bytes: The seed a preview draws the Auto levers from when the galaxy has none yet (the real run draws its own)."""
@@ -46,6 +47,7 @@ class Outline:
     shape_args: object
     galaxy_seed: bytes
     elapsed_s: float
+    timer: object
 
 
 def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHELL):
@@ -56,24 +58,31 @@ def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHEL
     Raises:
         ValueError: A lever is outside its range, or the Edge dial is not a length the galaxy can use.
     """
+    timer = stepTimer.StepTimer()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
-    shape, drawn = shapeDraw.plan_shape(shape_args, galaxy_seed)
+    with timer.step("the galaxy's shape (the levers, the halo, the disc's history)"):
+        shape, drawn = shapeDraw.plan_shape(shape_args, galaxy_seed)
     scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
     epoch = program_constants.SCATTER_PHASE_ORIGIN_UNIX
-    found = clusters.generate_clusters(galaxy_seed, epoch_unix=epoch, scale=scale)
-    dwarfs = satellites.place_satellites(
-        galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
-        model_terms(shape)["reference_angle_rad"], epoch_unix=epoch, scale=scale)
-    young = openClusters.generate_open_clusters(galaxy_seed, shape, edge_pc, e_value, epoch_unix=epoch)
-    shape = shape._replace(components=componentField.ComponentField(found + young + dwarfs, edge_pc, e_value))
+    with timer.step("the globular clusters"):
+        found = clusters.generate_clusters(galaxy_seed, epoch_unix=epoch, scale=scale)
+    with timer.step("the satellite galaxies"):
+        dwarfs = satellites.place_satellites(
+            galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
+            model_terms(shape)["reference_angle_rad"], epoch_unix=epoch, scale=scale)
+    with timer.step("the young open clusters"):
+        young = openClusters.generate_open_clusters(galaxy_seed, shape, edge_pc, e_value, epoch_unix=epoch)
+    with timer.step("the component field (each cluster's and satellite's systems)"):
+        shape = shape._replace(components=componentField.ComponentField(found + young + dwarfs, edge_pc, e_value))
     edge_limit = shapeDraw.edge_limit_pc(dials.resolved(shape_args, "edge"), shape.disk_scale_length_pc)
     max_shell = reach_shell_index if edge_limit is None else min(math.ceil(edge_limit / edge_pc), reach_shell_index)
-    started = time.perf_counter()
-    extents, outer_shell_index, edge_confirmed = build_shell_extents(
-        shape, edge_pc, 1.0 / e_value, max_shell=max_shell)
-    elapsed = time.perf_counter() - started
+    with timer.step("the outline (the skeleton's shells)"):
+        started = time.perf_counter()
+        extents, outer_shell_index, edge_confirmed = build_shell_extents(
+            shape, edge_pc, 1.0 / e_value, max_shell=max_shell)
+        elapsed = time.perf_counter() - started
     return Outline(shape, drawn, found, young, dwarfs, extents, outer_shell_index, edge_confirmed, edge_pc, e_value,
-                   shape_args, galaxy_seed, elapsed)
+                   shape_args, galaxy_seed, elapsed, timer)
 
 
 EMPTY_OUTLINE_REASON = (

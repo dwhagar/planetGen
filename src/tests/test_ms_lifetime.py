@@ -76,3 +76,24 @@ def test_the_companion_draw_caps_its_mass_by_the_age():
     cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9)
     assert 4.0 < cap < 6.0
     assert all(multistar._alive_star_mass(0.1, 50.0, age_yr, rng) <= cap * 1.0001 for _ in range(200))
+
+
+@pytest.mark.parametrize("fe_h", [-2.0, -0.4, 0.0, 0.25])
+@pytest.mark.parametrize("lifetime", [1.0e-4, 0.003, 0.05, 1.7, 9.0, 40.0, 1.0e3])
+def test_the_mass_for_a_lifetime_is_what_the_bisection_over_lifetime_gy_gives_bit_for_bit(fe_h, lifetime):
+    """PERF.163: the search reads the metallicity's terms once; the mass is what the plain bisection over
+    `lifetime_gy` found."""
+    low, high = math.log(ms_lifetime.MIN_MASS_SOL), math.log(ms_lifetime.MAX_MASS_SOL)
+    if lifetime >= ms_lifetime.lifetime_gy(ms_lifetime.MIN_MASS_SOL, fe_h):
+        wanted = ms_lifetime.MIN_MASS_SOL
+    elif lifetime <= ms_lifetime.lifetime_gy(ms_lifetime.MAX_MASS_SOL, fe_h):
+        wanted = ms_lifetime.MAX_MASS_SOL
+    else:
+        for _ in range(ms_lifetime._BISECTIONS):
+            middle = 0.5 * (low + high)
+            if ms_lifetime.lifetime_gy(math.exp(middle), fe_h) > lifetime:
+                low = middle
+            else:
+                high = middle
+        wanted = math.exp(0.5 * (low + high))
+    assert ms_lifetime.mass_for_lifetime_gy(lifetime, fe_h) == wanted

@@ -200,7 +200,7 @@ def _placed_states():
     return number, others, _remnant_states(mean_mass), _remnant_states(companions)
 
 
-@functools.lru_cache(maxsize=512)
+@functools.lru_cache(maxsize=65536)
 def mean_system_mass_at_age_solar(age_gy):
     """The mean mass of a system whose stars formed `age_gy` ago, solar masses: the placed star's (remnants included)
     and the other stars of its system (see the module docstring)."""
