@@ -15578,23 +15578,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
 
-- [ ] **PERF.169 The plan stage spends 3.5 s of a 12.4 s unit on its report lines**
-  Found by the Performance lane in PERF.165 (merged as #2636; relayed
-  6:27 AM EDT 2026-10-23 as the lane reported); filed by the TODO
-  thread. Kind: cost, value-neutral. After PERF.165's fix the plan unit
-  takes 12.4 s: the report lines 3.5 s (28 percent, not yet looked at),
-  the component field 2.7 s, storing the clusters 1.2 to 1.8 s, the
-  outline 1.0 to 1.3 s. Reproducer: `planetgen plan --mass 4e9` with the
-  plan log's step table (PERF.163), or the benchmark suite's plan step.
-  Do: find what the report lines compute (a second pass over the
-  components, or a second call of the field), reuse what the unit
-  already holds and say what the lines cost in the plan log. Done: the
-  plan unit is faster by about the report lines' share with identical
-  output (the report text and the stored rows unchanged). Owner:
-  Performance (proposed by the TODO thread, because the lane offered to
-  take it next).
-  Prerequisites: none. Related: PERF.163, PERF.165, PERF.146.
-
 - [ ] **PERF.170 The start-up math check (the TEST.68 gate, 2.5 s for 60 checks) runs before every bulk run: skip it or stamp a pass on disk? (open question for Boss)**
   Found by the Performance lane in PERF.165 (relayed 6:27 AM EDT
   2026-10-23 as the lane reported); filed by the TODO thread as an open
@@ -19688,6 +19671,14 @@ clears each one.
   make the draw independent of it, or make the test wait for the state
   it needs. Done: the test passes 50 times in a row at -n 4 under load.
   Owner: Bug Hunt (proposed by the TODO thread).
+  Second sighting, worse (Performance, relayed 7:47 AM EDT 2026-10-23 as
+  the lane reported, in its gate for PERF.169, #2648): the test hit the
+  900 s pytest-timeout with 4 xdist workers at load 5 to 6, with a
+  warning about fork in a multithreaded process; alone it passes in
+  0.8 s. So the failure is a hang, probably the four-worker draw forking
+  a pool from a threaded process. Do: reproduce it with the fork warning
+  on, find the thread or lock the forked child inherits, and start the
+  workers in a way that cannot deadlock (spawn, or fork before threads).
   Prerequisites: none. Related: TEST.287, TEST.290, TEST.291.
 
 ## USR: User accounts
