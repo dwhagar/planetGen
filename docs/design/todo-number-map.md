@@ -1864,7 +1864,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds | none | open |
 | PERF.148 | Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line | none | done, PR #2397 |
 | PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs | none | open |
-| PERF.150 | Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1) | none | open |
+| PERF.150 | Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1) | none | done, PR #2588 |
 | PERF.151 | A reserved interactive worker outside `wanted` at nice 5, and a long-job lane (cap 1) for API jobs expected to run over 60 seconds (F2) | none | done, PR #2562 |
 | PERF.152 | Pause and resume reach the worker queues: a Redis flag the workers honour, written by the Queue page (F3) | none | done, PR #2562 |
 | PERF.153 | An API job that finds a live generation run waits (a bounded retry, shown as waiting for run X) instead of failing Busy, and a Generate stage waits for an API job holding the key (F4) | none | done, PR #2562 |
