@@ -109,6 +109,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) | Planets in nebulae, near pulsars, black holes and compact binaries | research |
 | [anomalies.md](anomalies.md) | Anomalies for the starmap | research |
 | [generation-performance-study.md](generation-performance-study.md) | Where generation time goes | research (recommendations built) |
+| [generation-performance.md](generation-performance.md) | Every generation step timed at four galaxy sizes with `planetgen benchmark --suite`, the fixes of the first round and a ranked list of what is left (PERF.146) | reference |
 | [generation-benchmark-report.md](generation-benchmark-report.md) | A measured benchmark of one build box | reference |
 | [scatter-queue-feasibility.md](scatter-queue-feasibility.md) | A shuffled sector queue for scatters | research (recommendations built) |
 

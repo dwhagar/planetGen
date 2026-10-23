@@ -1363,6 +1363,40 @@ class _ReportChannel:
         self.report(done, estimate)
 
 
+def _unit_skeleton(unit_args):
+    """`(mysql_config, skeleton)` of a scatter unit: the database it names, with the credentials of this worker's
+    settings, and the galaxy's shape read from it."""
+    named = unit_args["database"]
+    mysql_config = store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
+                                     database=named["database"])
+    conn = store.get_connection(mysql_config)
+    try:
+        return mysql_config, store.get_galaxy_shape(conn)
+    finally:
+        conn.close()
+
+
+def scatter_shells_warm(unit_args):
+    """
+    The `warm` function of the shell scatters (`units.warm_unit`, PERF.146): reads the shape a unit reads, which builds the
+    component field, and works out the pass's sampling tables, the share of each population's stars in the band
+    (`brightStars.pass_of`, the cached `star_population._bright_table`), which `scatter_shell` looks up first thing
+    and which take seconds to build. The worker does it once and every horse it forks starts with both.
+    """
+    mysql_config, skeleton = _unit_skeleton(unit_args)
+    try:
+        mass_range = unit_args.get("mass_range")
+        mass_range = None if mass_range is None else tuple(mass_range)
+        tiered = scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton)
+        brightStars.pass_of(tiered, unit_args["min_luminosity_sol"], unit_args.get("max_luminosity_sol"), mass_range,
+                            brightStars.age_laws_of(skeleton.shape))
+        if unit_args.get("component_parts"):       # the clusters' and satellites' stars: an even spread of ages
+            brightStars.pass_of(tiered, unit_args["min_luminosity_sol"], unit_args.get("max_luminosity_sol"),
+                                mass_range)
+    finally:
+        store.close_pool(mysql_config)
+
+
 def scatter_shells_unit(unit_args, report):
     """
     A `scatter-mass` unit of the new queue (PERF.97, `queue/units.py`; PERF.118, `queue/commands.py`): the shells `_scatter_shells_task` draws and
@@ -1373,14 +1407,7 @@ def scatter_shells_unit(unit_args, report):
         dict: `_scatter_shells_task`'s, plus `seconds` the unit took.
     """
     started = time.monotonic()
-    named = unit_args["database"]
-    mysql_config = store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
-                                     database=named["database"])
-    conn = store.get_connection(mysql_config)
-    try:
-        skeleton = store.get_galaxy_shape(conn)
-    finally:
-        conn.close()
+    mysql_config, skeleton = _unit_skeleton(unit_args)
     mass_range = unit_args.get("mass_range")
     far = unit_args.get("far")
     result = _scatter_shells_task({

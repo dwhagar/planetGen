@@ -672,6 +672,25 @@ planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
 *   `--sectors N`: the sectors the fill makes (2 by default). `--shell I`: the shell the fill starts in (12 by default; a lower shell is denser). `--max-shell I`: the plan's outermost shell (12 by default, a small galaxy). `--seed HEX`: the galaxy seed (32 hex digits).
 *   `--workers N[,N...]`: the worker counts to run at, one run each (1 by default).
 *   `--profile`: also profiles one single-worker fill and lists its costliest functions. `--keep`: leaves the scratch databases in place. `--output FILE`: writes the results to `FILE` as JSON.
+*   `--suite`: the performance suite of every generation option instead (below).
+
+### The performance suite
+
+`planetgen benchmark --suite` (PERF.146) times every part of a galaxy run on its own, at a size you pick, in scratch databases of its own, and writes the result as JSON for the next run to compare with. Where `planetgen benchmark` times one small fill, the suite runs these steps one after another, each as the real command in a child process (so a worker's cost is in it): `plan`, `scatter-mass`, `scatter-luminosity`, `scatter-phenomena`, `scatter-nebula-field`, `scatter-band`, `fill-nebula-blocks`, `fill` (one `planetgen galaxy --shell` run, with the time of each stage it records), `population`, `rescore-habitability`, `fill-map-luminosity` (after emptying the column it fills) and `warm`.
+
+```bash
+planetgen benchmark --suite --size small --workers 3 --output small.json
+planetgen benchmark --suite --size medium --repeats 3 --output medium.json
+planetgen benchmark --suite --size small --steps plan,scatter-mass
+```
+
+*   `--size tiny|small|medium|large`: the galaxy's stellar mass, which sets the clusters, shells and stars every step meets: `tiny` 2e6 solar masses (for tests), `small` 3e7, `medium` 4e9 (a default-size galaxy) and `large` 5e10 (Milky-Way size). `--mass M_SUN` and `--fill-sectors N` replace the size's own numbers. `--seed HEX` is the galaxy seed, fixed by default, so two runs make the same galaxy.
+*   `--steps STEP[,STEP...]`: only these steps, in the suite's order; a step needs the ones before it to have run, so a list starts from `plan`.
+*   `--repeats N`: runs the whole pipeline N times in fresh databases and reports each step's fastest, median and slowest run and the spread.
+*   `--step-timeout MINUTES` (240): a step still running then is stopped and recorded as not finished; later steps are not run.
+*   Each step records the wall time and its share of the run, the CPU the machine spent (less the database server's and Redis's own share), the statements and rows the database server counted, the peak memory of the generation processes (together and the largest), what it made (stars, systems, rows) and the time per thing made, and the stage rows the command stored.
+
+The suite stops the queue workers before and after each step, so every step starts with cold ones, and it turns the automatic cache warm-up off (`PLANETGEN_WARM_ON_CHANGE=0`). The machine must be the suite's alone while it runs: the CPU and database counters are the machine's, and the Redis queue is the real one. It needs Linux (`/proc`), the Redis queue and a database account that can create databases. The numbers of a run, the ranked costs and the optimizations they led to are in [design/generation-performance.md](design/generation-performance.md).
 
 ## Warm the caches
 

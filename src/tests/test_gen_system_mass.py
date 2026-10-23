@@ -152,3 +152,14 @@ def test_the_galaxy_holds_the_systems_its_stellar_mass_makes_at_the_derived_mean
 def test_the_history_does_not_depend_on_the_normalization():
     shape = mathcheck._reference_galaxy_shape()
     assert disk_history.history_of(shape) is disk_history.history_of(shape._replace(k_norm=shape.k_norm * 3.0))
+
+
+@pytest.mark.parametrize("age_gy", [1.0e-4, 0.02, 0.3, 1.7, 4.0, 9.5, 13.8])
+def test_the_cached_means_are_the_means_the_public_masses_give(age_gy):
+    # PERF.146: the means a galaxy's thousands of clusters ask for share what no age changes (the remnants' masses and the
+    # companions' birth masses); the value each age gets is the one `present_mass_sol` gives for it, bit for bit.
+    number, mean_mass, others = system_mass._placed_bins()
+    fractions = system_mass.companion_fractions(mean_mass)
+    further = system_mass.present_mass_sol(mean_mass[:, None] * fractions, age_gy).mean(axis=1)
+    placed = float(np.sum(number * system_mass.present_mass_sol(mean_mass, age_gy)) / np.sum(number))
+    assert system_mass.mean_system_mass_at_age_solar(age_gy) == placed + float(np.sum(number * others * further) / np.sum(number))

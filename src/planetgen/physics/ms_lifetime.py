@@ -47,6 +47,7 @@ _BISECTIONS = 50
 
 
 @functools.lru_cache(maxsize=4096)
+@functools.lru_cache(maxsize=64)
 def _terms(zeta):
     """`a1` to `a10` at this `zeta`, and the share `x` of the base-of-giant-branch time the main sequence takes."""
     terms = tuple(sum(c * zeta ** power for power, c in enumerate(_COEFFICIENTS[n])) for n in range(1, 11))
@@ -59,11 +60,16 @@ def zeta(fe_h):
     return math.log10(tuning.MS_LIFETIME_REFERENCE_Z / HPT_REFERENCE_Z) + fe_h
 
 
-def base_of_giant_branch_gy(mass_sol, fe_h=0.0):
-    """The age at which a star of this mass leaves the Hertzsprung gap for the giant branch (eq. 4), Gyr."""
-    (a1, a2, a3, a4, a5, *_rest), _x = _terms(zeta(fe_h))
+def _base_of_giant_branch_gy(terms, mass_sol):
+    """`base_of_giant_branch_gy` from the `terms` of its [Fe/H]."""
+    a1, a2, a3, a4, a5 = terms[:5]
     m = mass_sol
     return (a1 + a2 * m ** 4 + a3 * m ** 5.5 + m ** 7) / (a4 * m ** 2 + a5 * m ** 7) / _MYR_PER_GYR
+
+
+def base_of_giant_branch_gy(mass_sol, fe_h=0.0):
+    """The age at which a star of this mass leaves the Hertzsprung gap for the giant branch (eq. 4), Gyr."""
+    return _base_of_giant_branch_gy(_terms(zeta(fe_h))[0], mass_sol)
 
 
 def lifetime_gy(mass_sol, fe_h=0.0):
@@ -71,7 +77,7 @@ def lifetime_gy(mass_sol, fe_h=0.0):
     terms, x = _terms(zeta(fe_h))
     _a1, _a2, _a3, _a4, _a5, a6, a7, a8, a9, a10 = terms
     hook = max(0.5, 1.0 - 0.01 * max(a6 / mass_sol ** a7, a8 + a9 / mass_sol ** a10))
-    return max(hook, x) * base_of_giant_branch_gy(mass_sol, fe_h)
+    return max(hook, x) * _base_of_giant_branch_gy(terms, mass_sol)
 
 
 def mass_for_lifetime_gy(lifetime, fe_h=0.0):

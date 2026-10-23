@@ -84,6 +84,8 @@ def add_benchmark_arguments(parser):
     parser.add_argument("--keep", action="store_true", help="Leave the scratch databases in place.")
     parser.add_argument("--output", metavar="FILE", help="Write the results to FILE as JSON.")
     store.add_mysql_connection_args(parser)
+    from planetgen.cli import benchmark_suite
+    benchmark_suite.add_suite_arguments(parser)
 
 
 def _workers(text):
@@ -242,6 +244,9 @@ def _fill_args(args):
 
 def run_benchmark(args):
     """`planetgen benchmark`: runs, prints and (with `--output`) saves the report."""
+    if getattr(args, "suite", False):
+        from planetgen.cli import benchmark_suite
+        return benchmark_suite.run_suite(args)
     config = store.mysql_config_from_args(args)
     counts = _workers(args.workers)
     results = []

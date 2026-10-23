@@ -256,3 +256,19 @@ def test_the_youngest_progenitor_of_a_remnant_accounts_for_the_helium_burning_ph
         mass = se.youngest_progenitor_sol(age_yr)
         lifetime = se.main_sequence_lifetime_gy(mass) * se.remnant_age_fraction(mass) * 1.0e9
         assert lifetime == pytest.approx(age_yr, rel=1e-6)
+
+
+@pytest.mark.parametrize("fe_h", [-2.3, -0.5, 0.0, 0.3])
+def test_the_metallicity_terms_worked_out_once_give_the_luminosities_the_plain_polynomials_do(fe_h):
+    """PERF.146: `a27 .. a32` and `b9 .. b13` depend on [Fe/H] alone and are worked out once; the base luminosity is
+    what the polynomials worked out each call give, bit for bit."""
+    zeta = giant_branch.ms_lifetime.zeta(fe_h)
+    a27, a28, a29p, a30, a31, a32 = (giant_branch._poly(giant_branch._BASE[n], zeta) for n in (27, 28, 29, 30, 31, 32))
+    b9, b10 = (giant_branch._poly(giant_branch._TIP[n], zeta) for n in (9, 10))
+    b11, b13 = giant_branch._poly(giant_branch._TIP[11], zeta) ** 2, giant_branch._poly(giant_branch._TIP[13], zeta) ** 2
+    b12 = giant_branch._poly(giant_branch._TIP[12], zeta)
+    assert giant_branch._base_terms(zeta) == (a27, a28, a29p, a30, a31, a32)
+    assert giant_branch._tip_terms(zeta) == (b9, b10, b11, b12, b13)
+    for m in (0.8, 1.5, 2.4, 5.0, 20.0):
+        assert giant_branch.base_luminosity_sol(m, fe_h) == (
+            (a27 * m ** a31 + a28 * m ** giant_branch._BASE_C2) / (a29p ** a32 + a30 * m ** giant_branch._BASE_C3 + m ** a32))

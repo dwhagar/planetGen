@@ -120,6 +120,37 @@ def cohort_moments(age_low_gy, age_high_gy, remnants=True):
     return (sum(m for m, _s in moments) / COHORT_AGES, sum(s for _m, s in moments) / COHORT_AGES)
 
 
+def _remnant_states(initial):
+    """
+    What `present_mass_sol` takes from the birth masses alone, not the age: `(initial, remnant)`, `initial` an array of
+    birth masses and `remnant` the mass each has once its star has ended: the white dwarf of the initial-final relation
+    below the white dwarf progenitors' top, and above it a black hole of the kind's mean mass where the progenitor lies in
+    a failure window (`remnant_progenitors`) and a neutron star of the kind's mean mass elsewhere. A cohort's age only
+    moves the turn-off, so the means over many ages (a galaxy's thousands of clusters) work these out once.
+    """
+    wd_high = tuning.WHITE_DWARF_PROGENITOR_SOL[1]
+    fails = np.zeros(initial.shape, dtype=bool)
+    for low, high in remnant_progenitors.kind_windows(remnant_progenitors.BLACK_HOLE):
+        fails |= (initial >= low) & (initial <= high)
+    remnant = np.where(initial < wd_high, remnant_mass.white_dwarf_mass_sol(np.minimum(initial, wd_high)),
+                       np.where(~fails, remnant_mass.uniform_moments("neutron-star")[0],
+                                remnant_mass.uniform_moments("black-hole")[0]))
+    return initial, remnant
+
+
+def _turn_off_sol(age_gy):
+    """The heaviest birth mass a star can have and still be alive at `age_gy`: the lightest progenitor whose giant phases
+    have ended, capped at the IMF's top."""
+    return min(tuning.IMF_BREAKS_SOL[-1], stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9))
+
+
+def _present_mass(states, turn_off):
+    """`present_mass_sol` for birth masses whose `_remnant_states` are `states`, for a population whose turn-off is
+    `turn_off` solar masses (`_turn_off_sol`): the birth mass up to the turn-off, the remnant above it."""
+    initial, remnant = states
+    return np.where(initial <= turn_off, initial, remnant)
+
+
 def present_mass_sol(initial_mass_sol, age_gy):
     """
     The mass at `age_gy` of a star born with `initial_mass_sol` (an array of masses), by the rules
@@ -129,17 +160,7 @@ def present_mass_sol(initial_mass_sol, age_gy):
     of the kind's mean mass where the progenitor lies in a failure window (`remnant_progenitors`) and a neutron star of
     the kind's mean mass elsewhere.
     """
-    initial = np.asarray(initial_mass_sol, dtype=float)
-    turn_off = min(tuning.IMF_BREAKS_SOL[-1], stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9))
-    wd_high = tuning.WHITE_DWARF_PROGENITOR_SOL[1]
-    fails = np.zeros(initial.shape, dtype=bool)
-    for low, high in remnant_progenitors.kind_windows(remnant_progenitors.BLACK_HOLE):
-        fails |= (initial >= low) & (initial <= high)
-    return np.select(
-        [initial <= turn_off, initial < wd_high, ~fails],
-        [initial, remnant_mass.white_dwarf_mass_sol(np.minimum(initial, wd_high)),
-         remnant_mass.uniform_moments("neutron-star")[0]],
-        remnant_mass.uniform_moments("black-hole")[0])
+    return _present_mass(_remnant_states(np.asarray(initial_mass_sol, dtype=float)), _turn_off_sol(age_gy))
 
 
 @functools.lru_cache(maxsize=1)
@@ -169,15 +190,25 @@ def companion_fractions(birth_mass_sol):
     return ranges[:, :1] + (ranges[:, 1:] - ranges[:, :1]) * steps[None, :]
 
 
+@functools.lru_cache(maxsize=1)
+def _placed_states():
+    """`(number, others, placed states, companion states)`: `_placed_bins`' number and other stars, and the
+    `_remnant_states` of the placed stars' birth masses and of their further stars' (`companion_fractions`), which no age
+    changes."""
+    number, mean_mass, others = _placed_bins()
+    companions = mean_mass[:, None] * companion_fractions(mean_mass)
+    return number, others, _remnant_states(mean_mass), _remnant_states(companions)
+
+
 @functools.lru_cache(maxsize=512)
 def mean_system_mass_at_age_solar(age_gy):
     """The mean mass of a system whose stars formed `age_gy` ago, solar masses: the placed star's (remnants included)
     and the other stars of its system (see the module docstring)."""
     age_gy = max(float(age_gy), 1.0e-4)
-    number, mean_mass, others = _placed_bins()
-    placed = float(np.sum(number * present_mass_sol(mean_mass, age_gy)) / np.sum(number))
-    fractions = companion_fractions(mean_mass)
-    further = present_mass_sol(mean_mass[:, None] * fractions, age_gy).mean(axis=1)
+    number, others, placed_states, companion_states = _placed_states()
+    turn_off = _turn_off_sol(age_gy)
+    placed = float(np.sum(number * _present_mass(placed_states, turn_off)) / np.sum(number))
+    further = _present_mass(companion_states, turn_off).mean(axis=1)
     return placed + float(np.sum(number * others * further) / np.sum(number))
 
 

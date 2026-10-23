@@ -5802,16 +5802,18 @@ def delete_unbuilt_bright_stars(conn, address):
 
 
 def _cell_tiers(limits, cells):
-    """`{(shell, band, wedge): tier index}` of each of `cells`, one tier lookup per shell (`ScatterLimits.tiers_in`)."""
+    """`{(shell, band, wedge): tier index}` of each of `cells`, one tier lookup per shell, of the bands the cells are in
+    (`ScatterLimits.tiers_of`)."""
     by_shell = {}
     for cell in cells:
         by_shell.setdefault(cell[0], []).append(cell)
     found = {}
     for shell_index, group in by_shell.items():
-        high = max(abs(cell[1]) for cell in group)
-        tiers = limits.tiers_in(shell_index, high)
+        bands = sorted({cell[1] for cell in group})
+        tiers = limits.tiers_of(shell_index, bands)
+        place = {band: index for index, band in enumerate(bands)}
         for cell in group:
-            found[cell] = int(tiers[cell[1] + high])
+            found[cell] = int(tiers[place[cell[1]]])
     return found
 
 
