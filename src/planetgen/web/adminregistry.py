@@ -102,6 +102,7 @@ EXEMPT = {
     "generate_sectors": "JSON for the sector picker",
     "generate_shape_report": "JSON for the line under the shape dials",
     "generate_command": "JSON for the palette's typed commands",
+    "generate_size": "JSON for the live size line under a Generate form",
     "generate_system_download": "A file download",
     "admin_queue_tree": "A queue entry's detail, reached from the queue",
     "admin_queue_confirm": "A confirmation step, reached from the queue",

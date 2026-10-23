@@ -9,6 +9,7 @@
 <script type="module" src="{{ static_url('generatestarmix.js') }}"></script>
 <script type="module" src="{{ static_url('generatefinder.js') }}"></script>
 <script type="module" src="{{ static_url('generateplace.js') }}"></script>
+<script type="module" src="{{ static_url('generatesize.js') }}"></script>
 {% endblock %}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
@@ -229,6 +230,9 @@
     <div class="search-fields">
       {{ disregard_data("disregard-data") }}
     </div>
+    {%- endif %}
+    {%- if task.key in ("add-sectors", "check") %}
+    <p class="hint generate-size" id="size-report" data-size-report data-url="{{ url_for('web.generate_size', key=task.key) }}" role="status" aria-live="polite" hidden></p>
     {%- endif %}
     <div class="search-actions">
       <button type="submit" class="btn{% if task.danger == 'destroys' %} btn-danger{% endif %}" data-review>Review</button>
