@@ -19641,6 +19641,26 @@ clears each one.
   cause on this item. Owner: Bug Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.297, TEST.141.
 
+- [ ] **TEST.299 test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug)**
+  Found by Core 4 (relayed 5:06 PM EDT 2026-10-23 as the lane reported)
+  in its 4-worker full run for GEN.267 (22,894 passed, 3 failed; the
+  other two failures were its own tests and are fixed); filed by the
+  TODO thread. Kind: order- or data-dependent test. Test:
+  src/tests/test_population.py::test_api_species_tech_filters. Failure
+  text: assert 6.55 == 6.0, the first species of the tech-descending
+  listing was a 6.55 one, so a species with tech above 6.0 existed in
+  the population pass's output and the test's UPDATE to 6.0 did not make
+  it the top. Passes alone, and the test touches nothing the lane
+  changed. Fails on main: not checked. Frequency: once in two full runs
+  on that branch (the other gate did not select it). Reproducer: run the
+  full suite; the result depends on which species population.run_pass
+  makes for the galaxy fixture. Do: make the test set its own species so
+  no other species can outrank it (raise the top species' tech above any
+  generated value, or filter by its own sector), then loop the test in a
+  full run. Done: the cause is on this item and the test passes in 10
+  full runs. Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.296, TEST.298.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20396,6 +20416,40 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   own Done. Owner: the Setup script lane (started 2:52 PM EDT
   2026-10-23).
   Prerequisites: none. Related: OPS.62, OPS.45.
+
+- [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
+  Asked for by Boss for 8.2. Today the version
+  is MAJOR.REVISION.BUILD (for example 8.0.2040) and says nothing about
+  which database schema, which generator epoch or which API version a
+  build carries, so a database, a generated galaxy or a client cannot be
+  matched to a release by its version alone. Make the version code carry
+  all three: the database schema version (the Alembic head,
+  SCHEMA_VERSION in db/store.py), the generator epoch
+  (src/tests/golden/epochs.json) and the API version (API_VERSION in
+  api/version.py). Proposed default, pending Boss's word on the format
+  (a card is with Boss): the one version string gains a PEP 440 local
+  suffix that the stamping step writes, for example
+  8.2.2100+db134.gen62.api5; the three numbers are read from their own
+  sources at stamp time, never typed. This touches the version scheme:
+  nobody hand-bumps anything, the change goes through
+  scripts/bump_version.py (its stamping and its BUILD rule, where BUILD
+  stays the count of stamped releases and still never resets),
+  _version.py, the README badge and the CHANGELOG entry together, and
+  the PR check (--check-pr) must refuse a note or file that sets the
+  suffix by hand. setup.py reads __version__ by regex, so the suffix
+  must stay a valid package version, and the user agent
+  (util/user_agent.py) and every page or response that shows the version
+  show the full code. Do:
+  choose the format with Boss, teach bump_version.py to build the suffix
+  from the three sources, keep its tests and --check-pr in step, and
+  update changes/README.md, docs/design/design-decisions.md (the OPS.1
+  version section) and the docs that quote the version format. Done: a
+  stamped release carries the three numbers in its version code, they
+  match the schema head, the epoch and the API version of that tree, a
+  PR that edits the suffix by hand is refused, and the docs gate and the
+  bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
+  5:07 PM EDT 2026-10-23.
+  Prerequisites: none. Related: OPS.56, OPS.1.
 
 ## DOC: Documentation
 
