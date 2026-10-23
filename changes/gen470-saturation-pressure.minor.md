@@ -1,6 +1,0 @@
-**Headline:** The pressure at which any common gas turns to frost can be looked up from one place, with a note on how far to trust it.
-
-### Changed
-- **One saturation-pressure function (GEN.470).** The new `physics/saturation.py` and `physics/data/saturation_pressure.json` give the pressure at which the vapour and the solid are in balance, in pascals, for neon, nitrogen, carbon monoxide, argon, oxygen, methane, krypton, xenon, ethane, ethylene, acetylene, hydrogen sulphide, carbon dioxide, ammonia, sulphur dioxide, hydrogen cyanide, methanol, benzene and water. The first eighteen use the Fray and Schmitt 2009 polynomials as quoted in a later paper's table, water uses the Feistel and Wagner 2007 form (76.03 Pa at 250 K, 611.657 Pa at the triple point). Each answer carries a status: below 50 K it is marked `cold-unverified`, above the triple point `above-triple` (there is no liquid branch yet), and under a polynomial's turning point `below-fit`. Where a species has more than one fit the switch temperature is derived, not read from the paper, and is labelled a stand-in. Nothing reads the function yet (GEN.452 does), so no generated value changes.
-
-generation-output: unchanged
