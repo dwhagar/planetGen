@@ -4477,6 +4477,20 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     return _top_by_key(picks, int(count), even=False)
 
 
+def _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
+    """
+    Whether `galaxy_bright_stars_in_box` reads the box's stars by walking the luminosity index (else by address) -- the
+    two answer the same, so this only chooses the cheaper (PERF.157). The address path reads the box's share of the
+    stars; the walk reads, down each of its `2 x populations` arms, until `limit x EVEN_DROP_POOL` stars of the
+    arm are inside the box, so about that many over the box's share. The share is the box's share of the outline's
+    cells and longitudes, which counts its height above the plane, where the share of the disc's area (which sets
+    whether the box is answered from the sample) does not: a 1 kpc box a kiloparsec up holds a sliver of the stars.
+    """
+    share = max((1.0 if cell_share is None else cell_share) * angle_share, 1e-12)
+    walks = 2 * len(BRIGHT_STAR_POPULATIONS)
+    return limit * EVEN_DROP_POOL * walks / share < share * total
+
+
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=False,
                                brightest=None):
     """
@@ -4565,7 +4579,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
     # sort every star in the box first, millions in a zoomed-out tile.
     order = "luminosity_w DESC, id DESC"
-    if by_luminosity < by_address:
+    if _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
         # One walk per population and height down (population, off_plane,
         # luminosity), each stopping at `limit`: a single walk down the
         # luminosity index would meet only young stars (the weights of
@@ -4910,13 +4924,20 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 """int: Most scattered points one coarse tile lists."""
 
 
+SCATTERED_MAX_SHELL_RANGES = 1000
+"""int: Most `(shell, bands)` index ranges one tile's scattered-point query lists before it reads the whole run of shells
+in one range instead (PERF.157). The one range reads every row of those shells, bands and wedges the box does not reach
+included, and the optimizer then often scans the table (3.6 million rows for a 256 pc tile at the centre); a range per
+shell, with the bands the box reaches there, reads only those. It was 64."""
+
+
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse tile lists those too), so "Charted only" dims the others (MAP.111)."""
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
         return []
-    if len(bands) > 64:
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
         where_address = "shell_index BETWEEN ? AND ?"
         address_params = [bands[0][0], bands[-1][0]]
     else:

@@ -96,10 +96,27 @@ def store_member_tree(conn, table, row_id, tree, epoch_unix):
                  (tree.member_count, tree.system_mass_solar, row_id))
 
 
+def _double(value):
+    """`value` as SQL text that MySQL reads as a DOUBLE (an exponent makes it one), the same number the driver's own
+    escaping sends, so a literal row and a parameter row store the same bits."""
+    text = repr(float(value))
+    return text if "e" in text else text + "e0"
+
+
+def _update_counts(conn, table, counts):
+    """Sets `member_count` and `system_mass_solar` of many rows with one statement (PERF.158): `counts` is
+    `(member_count, system_mass_solar, row_id)` each, the numbers only, so the text is built here."""
+    values = ",".join(f"ROW({int(row_id)},{int(count)},{_double(mass)})" for count, mass, row_id in counts)
+    conn.execute_literal(
+        f"UPDATE {table} t JOIN (VALUES {values}) AS v(id, n, m) ON t.id = v.id"
+        " SET t.member_count = v.n, t.system_mass_solar = v.m")
+
+
 def store_member_trees(conn, table, items, epoch_unix, batch_rows=2000):
     """
     Stores the trees of many freshly written scatter rows at once (`store_member_tree` for a batch): the members and
-    nodes of every tree with nodes, and their rows' `member_count` and `system_mass_solar`, in a few statements.
+    nodes of every tree with nodes, and their rows' `member_count` and `system_mass_solar`, in a few statements (one
+    `UPDATE` for the counts of the whole batch, PERF.158).
     The rows are new, so nothing is deleted first.
 
     Args:
@@ -120,7 +137,7 @@ def store_member_trees(conn, table, items, epoch_unix, batch_rows=2000):
         if counts:
             _insert_members(conn, members)
             _insert_nodes(conn, nodes)
-            conn.executemany(f"UPDATE {table} SET member_count = ?, system_mass_solar = ? WHERE id = ?", counts)
+            _update_counts(conn, table, counts)
         members.clear()
         nodes.clear()
         counts.clear()
