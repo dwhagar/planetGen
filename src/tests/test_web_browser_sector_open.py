@@ -92,9 +92,17 @@ def _designation(detail):
     return sector_designation(detail)
 
 
-def _star_spots(page, base_url, sector_id, detail):
+def _scene(site_app, sector_id):
+    """The sector's scene JSON, asked of the app in the test process. Through the served site it waited behind the
+    page's own requests and the software renderer's load and timed out at 30 s in the gate (TEST.272)."""
+    response = site_app.test_client().get(f"/sector/{sector_id}/scene")
+    assert response.status_code == 200, response.status_code
+    return response.get_json()
+
+
+def _star_spots(page, site_app, sector_id):
     """Where the opened sector's stars fall on the page: [(name, (x, y))], from the sector's scene JSON."""
-    scene = page.request.get(f"{base_url}/sector/{sector_id}/scene").json()
+    scene = _scene(site_app, sector_id)
     unit = scene["halfEdgePc"] / (scene["sceneHalfPx"] or 160)
     cx, cy, cz = scene["centerPc"]
     box = page.locator(CANVAS).bounding_box()
@@ -164,7 +172,7 @@ def test_a_star_in_an_opened_sector_is_selectable(moving_page, base_url, sample_
     page.goto(f"{base_url}/galaxy?sector={code}&open=1", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
-    spots = _star_spots(page, base_url, sector_id, detail)
+    spots = _star_spots(page, site_app, sector_id)
     assert spots, "no star of the sector is on the map"
     name = _picks_a_star(page, spots)
     assert name, f"no click on a star of {len(spots)} picked one: {page.locator(INFO).inner_text()!r}"

@@ -30,7 +30,7 @@ from tests.test_web_browser_maps import (  # noqa: E402,F401 -- fixtures
     site_app,
     site_db,
 )
-from tests.test_web_browser_sector_open import _designation, _ready, _sector  # noqa: E402
+from tests.test_web_browser_sector_open import _designation, _ready, _scene, _sector  # noqa: E402
 
 CANVAS = "#galaxymap3d-canvas"
 
@@ -69,9 +69,10 @@ class _Scene:
 
     def __init__(self, page, base_url, site_app, sample_params):
         self.id = sample_params["sector_id"]
+        self.app = site_app
         detail = _sector(site_app, self.id)
         self.centre = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
-        scene = page.request.get(f"{base_url}/sector/{self.id}/scene").json()
+        scene = _scene(site_app, self.id)
         self.edge = scene["halfEdgePc"] * 2
         self.code = _designation(detail)
         self.requests = []
@@ -189,7 +190,7 @@ def _system_requests(page):
 
 def _star_point(page, base_url, reach):
     """A star of the sector with a system, in the map's frame (pc)."""
-    scene = page.request.get(f"{base_url}/sector/{reach.id}/scene").json()
+    scene = _scene(reach.app, reach.id)
     unit = scene["halfEdgePc"] / (scene["sceneHalfPx"] or 160)
     cx, cy, cz = scene["centerPc"]
     for star in scene["stars"]:
@@ -272,7 +273,7 @@ def _shift_nearest_to(page, base_url, reach, point, position):
     """A few pixels' shift from the star's spot (within the 14 px the wheel takes for a star) at which that star is still
     the one nearest to the pointer on the screen, by at least a pixel. The sector's stars are drawn from the database,
     so another star can lie nearer to a fixed shift than the star itself (TEST.231) and the wheel rightly takes it."""
-    scene = page.request.get(f"{base_url}/sector/{reach.id}/scene").json()
+    scene = _scene(reach.app, reach.id)
     unit = scene["halfEdgePc"] / (scene["sceneHalfPx"] or 160)
     cx, cy, cz = scene["centerPc"]
     others = []
