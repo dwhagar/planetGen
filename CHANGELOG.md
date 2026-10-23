@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1965] - 2026-10-23
+
+**Headline:** A short edit or estimate no longer waits behind a long neighbourhood job, because short and long jobs now have workers of their own.
+
+### Changed
+- **Short jobs have a reserved worker.** The workers for edits, estimates, wiki uploads and slow page answers (`queue.interactive_workers`, 1 by default) are no longer counted in the generation worker count, so a run on every core leaves them be, and they run at a higher priority (nice 5) than the generation workers (nice 10).
+- **Long jobs have a lane of their own.** An API job expected to take longer than `queue.long_job_seconds` (60 by default), such as a neighbourhood or a large settle, goes to the `planetgen-long` queue and its `queue.long_workers` workers (1 by default), so it can never hold the worker kept for short jobs. A job with no estimate counts as short.
+- **Pause and Resume on the Queue page now reach the workers.** Pause is a flag in Redis (`planetgen:queue:paused`): the workers of a run's units and of the maintenance work take no new job while it is set, a unit already running finishes, Resume releases them, and the two API lanes are never held. It no longer uses the work lease. `planetgen.cli.reset_jobs` clears the flag.
+- **A run no longer fails with "run X is running" when another generation run holds the machine.** A generation run (a Generate stage, a one-sector regenerate or a neighbourhood from the API) waits in line, first come first served, for up to `queue.wait_minutes` (60 by default; 0 does not wait), then fails naming the run it waited for. A waiting Generate job's bar and a waiting API job's status (`waiting` in `GET /api/jobs/<id>`) read "Waiting at position 1 for run ...". A maintenance run or a database check still gets "busy" as before.
+- The four new settings (`queue.interactive_workers`, `queue.long_workers`, `queue.long_job_seconds`, `queue.wait_minutes`) are on the settings page under "Speed and disk".
+
 ## [8.0.1964] - 2026-10-23
 
 **Headline:** A run can be told to go ahead without a missing data file, and a refusal now names every file to download.
