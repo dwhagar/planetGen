@@ -1034,7 +1034,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach | none | done, PR #1991 |
 | GEN.323 | The phenomena pass runs on the object-first sampler | none | done, PR #1992 |
 | GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | none | done, PR #1993 |
-| GEN.325 | Planet cull in dense components by the survival formula and the metallicity factor | none | open |
+| GEN.325 | Planet cull in dense components by the survival formula and the metallicity factor | none | done, PR #2624 |
 | GEN.326 | Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4 | none | open |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | none | open |
 | GEN.328 | Groups at fill in star-forming cores and OB regions | none | open |
@@ -2507,7 +2507,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.285 | test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug) | none | done, PR #2602 |
 | TEST.286 | test_quasar_physics_follows_from_mass_and_eddington_ratio fails by chance: it builds 50 quasars with no seed and a mass draw below 1e5 breaks its assertion (bug) | none | done, PR #2612 |
 | TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) | none | open |
-| TEST.288 | test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug) | none | open |
+| TEST.288 | test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug) | none | done, PR #2625 |
 | TEST.289 | Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug) | none | open |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) | none | open |
 | USR.1.1 | USR.2 |
