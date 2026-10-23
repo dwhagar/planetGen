@@ -4369,6 +4369,11 @@ SPECIES_EQUIPMENT_MIN_TECH = (0.0, 2.0, 2.5, 3.0, 4.0)
 (`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, environment suit, full life
 support with radiation hardening), for the "could live there with equipment" list. A planetGen default."""
 
+COLD_END_LABORATORY_CORRECTION = True
+"""bool: Whether the cold-end vapour pressures of nitrogen, carbon monoxide, methane, oxygen and ammonia are the 2026
+Grundy preprint's set (True), which multiplies the 2024 laboratory fits by 1.19 +/- 0.03, or the 2024 papers' (False)
+(`physics.saturation`, GEN.497). A switch until the preprint is read in print. A planetGen default."""
+
 ORBIT_UPDATE_ROW_CEILING = 10_000_000
 """int: The most rows one orbital-update run moves (PERF.103), counted across every table it moves. When more rows
 are due, the run moves this many (the oldest due of each table first, a share of it per table by how many are due),
