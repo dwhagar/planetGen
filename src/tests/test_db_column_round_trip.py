@@ -150,8 +150,7 @@ NEVER_READ = {
     **{("sectors", column): "read by the rebuild of a density override (DB.60 adds the columns only)"
        for column in ("density_multiplier_used", "override_id")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",
-    **{("sectors", column): "read in a query by the version check, not by a loader (DB.16)"
-       for column in ("generator_epoch", "run_id")},
+    ("sectors", "run_id"): "read in a query by the version check, not by a loader (DB.16)",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",

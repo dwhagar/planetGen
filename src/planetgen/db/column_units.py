@@ -261,7 +261,7 @@ TABLES = {
             "pitch_angle_rad", "spiral_reference_angle_rad", "bar_angle_rad", "spheroid_orientation_1_rad",
             "spheroid_orientation_2_rad", "spheroid_orientation_3_rad",
         ),
-        "index": ("outer_shell_index", "reach_shell_index"),
+        "index": ("outer_shell_index", "reach_shell_index", "generator_epoch", "fp_spec"),
         "Lsun": (
             "fill_luminosity_cap_sol", "core_min_luminosity_sol", "halo_min_luminosity_sol",
             "bright_star_min_luminosity_sol",
@@ -286,6 +286,7 @@ TABLES = {
     },
     "generation_runs": {
         "id": ("id",),
+        "index": ("generator_epoch",),
     },
     "id_blocks": {
         "id": ("next_id",),

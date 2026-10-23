@@ -18,6 +18,8 @@ import pytest
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
+from planetgen.generation import generator_battery
+from planetgen.util import fingerprint_encoding, generator_epoch
 from planetgen._version import __version__
 from tests.test_galaxy_gen import _mysql_argv, _seed_skeleton
 
@@ -87,7 +89,10 @@ def _maker(mysql_config):
 def test_a_new_galaxy_records_what_made_it_and_a_re_plan_keeps_it(mysql_config, monkeypatch):
     _seed_skeleton(mysql_config, galaxy_seed=SEED)
     made = _maker(mysql_config)
-    assert made == store.GalaxyMaker(**versionKey.current())
+    battery = generator_battery.running_digest()
+    assert made == store.GalaxyMaker(**versionKey.current(), generator_epoch=generator_epoch.generator_epoch(),
+                                     fp_spec=fingerprint_encoding.FP_SPEC, battery_digest=battery.overall,
+                                     battery_cases=generator_battery.cases_of(battery))
 
     monkeypatch.setattr(versionKey, "__version__", "99.0.0")
     _seed_skeleton(mysql_config)  # same seed kept

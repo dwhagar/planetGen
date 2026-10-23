@@ -1528,7 +1528,7 @@ def run_fingerprint(args):
             result = fingerprintTree.lines(conn, shells=args.shell, addresses=args.sector)
         else:
             result = fingerprint.region_fingerprint(conn, shells=args.shell, addresses=args.sector).lines()
-        warning = version_check.galaxy_warning(conn)
+        warning = version_check.galaxy_warning(conn, compute_battery=True)
     finally:
         conn.close()
     if warning:
