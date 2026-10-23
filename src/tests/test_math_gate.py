@@ -1,11 +1,10 @@
 # tests/test_math_gate.py
 
 """
-The math check in front of bulk generation (TEST.68): `planetgen
-check-math`, the gate every bulk command and the Sector page's
-neighbourhood generation pass first (refusing, naming the failed checks,
-and writing nothing), the Generate page's first job step, and the warning
-`update.sh` gives.
+The math check's command and its place in an update (TEST.68, PERF.170): `planetgen
+check-math`, the warning `update.sh` gives, and that generation does not run it (Boss,
+2026-10-23: the check runs at every update and from the admin page, not before every
+generation).
 """
 
 import os
@@ -75,65 +74,40 @@ def test_check_math_runs_from_the_command_line():
     assert "sun_luminosity" in result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("argv", [
-    ["galaxy", "--shell", "5"],
-    ["plan"],
-    ["population"],
-    ["sector", "--num-sectors", "3"],
-])
-def test_bulk_runs_refuse_and_write_nothing(broken_math, handlers, monkeypatch, capsys, argv):
-    ran, events = handlers
-    with pytest.raises(SystemExit) as exit_info:
-        _main(monkeypatch, *argv)
-    assert exit_info.value.code == 1
-    assert ran == [] and events == []
-    out = capsys.readouterr()
-    assert "snow_line_1_lsun" in out.out + out.err
-
-
 @pytest.mark.parametrize("argv, command", [
+    (["galaxy", "--shell", "5"], "galaxy"),
+    (["plan"], "plan"),
+    (["population"], "population"),
+    (["sector", "--num-sectors", "3"], "sector"),
     (["sector"], "sector"),
     (["system", "--output", "-"], "system"),
     (["phenomenon", "--type", "nebula"], "phenomenon"),
 ])
-def test_single_object_runs_are_not_gated(broken_math, handlers, monkeypatch, argv, command):
+def test_no_run_checks_the_math_first(broken_math, handlers, monkeypatch, argv, command):
+    """A failed math check does not stop any run: the check is not part of generating."""
     ran, _ = handlers
+    monkeypatch.setattr(mathCheck, "run_all", lambda *a, **k: pytest.fail("the math check ran"))
+    monkeypatch.setattr(run_galaxy, "require_datasets", lambda *a, **k: [])
     _main(monkeypatch, *argv)
     assert ran == [command]
 
 
-def test_bulk_runs_go_ahead_when_the_math_is_right(handlers, monkeypatch):
-    monkeypatch.setattr(mathCheck, "_STARTUP_RESULTS", [])
-    ran, _ = handlers
-    _main(monkeypatch, "galaxy", "--shell", "5")
-    assert ran == ["galaxy"]
-
-
-def test_neighborhood_generation_refuses_before_touching_the_database(broken_math, monkeypatch):
-    def no_database(*args, **kwargs):
-        raise AssertionError("the database was touched")
-
-    monkeypatch.setattr(store, "get_connection", no_database)
-    with pytest.raises(run_galaxy.MathCheckFailed, match="snow_line_1_lsun"):
-        run_galaxy.generate_sector_neighborhood(1)
-
-
-def test_neighborhood_estimate_is_not_gated(broken_math, monkeypatch):
-    """An estimate writes nothing, so it isn't refused (it gets as far as
-    the database)."""
+def test_the_neighborhood_run_does_not_check_the_math(broken_math, monkeypatch):
+    """It gets as far as the database."""
     class Reached(Exception):
         pass
 
     def reached(*args, **kwargs):
         raise Reached
 
+    monkeypatch.setattr(run_galaxy, "require_datasets", lambda *a, **k: [])
     monkeypatch.setattr(store, "get_connection", reached)
     with pytest.raises(Reached):
-        run_galaxy.generate_sector_neighborhood(1, estimate_only=True)
+        run_galaxy.generate_sector_neighborhood(1)
 
 
-def test_the_neighborhood_route_reports_the_failure(broken_math, monkeypatch):
-    """The Sector page's button gets a 409 naming the failed check."""
+def test_the_neighborhood_route_does_not_check_the_math(broken_math, monkeypatch):
+    """The Sector page's button is not refused for a failed math check."""
     from planetgen.api import routes
     from planetgen.web.app import create_app
     from planetgen.api.config import Config
@@ -141,16 +115,22 @@ def test_the_neighborhood_route_reports_the_failure(broken_math, monkeypatch):
     class _Config(Config):
         SECRET_KEY = "test-secret"
 
+    class Reached(Exception):
+        pass
+
+    def reached(*args, **kwargs):
+        raise Reached
+
     monkeypatch.setattr(routes, "_resolve_requested_write_db_config", lambda: None)
+    monkeypatch.setattr(run_galaxy, "require_datasets", lambda *a, **k: [])
+    monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood", reached)
     app = create_app(_Config)
     view = app.view_functions["api.generate_sector_neighborhood_route"]
     while hasattr(view, "__wrapped__"):  # past the admin and rate-limit wrappers
         view = view.__wrapped__
     with app.test_request_context("/api/sectors/1/generate-neighborhood", method="POST", json={}):
-        with pytest.raises(routes.ApiError) as error:
+        with pytest.raises(Reached):
             view(1)
-    assert error.value.status_code == 409
-    assert "snow_line_1_lsun" in str(error.value)
 
 
 def _deploy_common_shell(python, script):

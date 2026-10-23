@@ -24,7 +24,7 @@ planetgen backfill --since TIME # the bright-star backfill out from the sectors 
 planetgen settle --since TIME   # save the paths of the sectors saved since TIME and of those around them
 planetgen phenomenon [options]  # one exotic stellar phenomenon
 planetgen population [options]  # species, civilizations and territories
-planetgen check-math [-v]       # the math check bulk runs start with
+planetgen check-math [-v]       # the math check (update.sh runs it)
 planetgen fingerprint [options] # a digest of the generated content, to compare two builds
 planetgen check-db [options]    # look for damage in the database (writes nothing)
 planetgen versions              # the version keys the updates recorded
@@ -36,7 +36,7 @@ planetgen command-run KIND ARGS # one unit of one of them, alone
 
 Run `planetgen <command> --help` for that command's own full option list. `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` save what they generate to the database. `check-math`, `fingerprint`, `check-db` and `versions` write nothing, and `benchmark` writes only to scratch databases of its own. `system` and `sector` are runs of one command through the work queue (a Redis server must be running, as for `galaxy`): they appear on the Queue page like any other run, and a `system --output` run, which saves nothing, does not take the generation slot.
 
-**The math check comes first.** `check-math` runs `planetgen/physics/mathcheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check-runs-first)) and exits 1 if a check fails; `-v` / `--verbose` lists every check. Every bulk run (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1) runs it first and refuses to start if a check fails, naming the failed checks and writing nothing, not even the activity log line. So do the Generate page's jobs (their first step, "Check the math") and the Sector page's "generate the neighbourhood" button. The same runs also need the downloaded data files (second step, "Check the data"; see [datasets](#datasets)). One system, one sector or one phenomenon is not gated. `update.sh` runs it after updating and warn (and skip the population pass) if it fails.
+**The math check runs at every update.** `check-math` runs `planetgen/physics/mathcheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check)) and exits 1 if a check fails; `-v` / `--verbose` lists every check. A run does not repeat it (PERF.170, Boss 1:14 PM EDT 2026-10-23): `update.sh` runs it after updating and warns (and skips the population pass) if it fails, the website runs it once when it starts, and the admin page (`/admin`, "Check the math") runs it whenever an admin asks and shows the result. The bulk runs (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1), the Generate page's jobs and the Sector page's "generate the neighbourhood" button do need the downloaded data files (the Generate page's first step, "Check the data"; see [datasets](#datasets)) and refuse to start without them, writing nothing, not even the activity log line. One system, one sector or one phenomenon is not gated.
 
 To generate a new star system:
 

@@ -28,7 +28,6 @@ from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import nebula_blocks, query, region, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
-from planetgen.physics import mathcheck
 from planetgen.queue import commands, redisqueue, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -1696,28 +1695,6 @@ class GenerationRefused(RuntimeError):
     message says why and how much it needs."""
 
 
-class MathCheckFailed(RuntimeError):
-    """TEST.68: the math check (`planetgen.physics.mathcheck`) failed, so a
-    bulk generation was refused before writing anything; the message
-    names the failed checks."""
-
-
-def require_math_check():
-    """
-    The gate in front of every bulk generation (TEST.68): runs the math
-    check once per process (`mathcheck.startup_failures`, cached after
-    that) and raises if any check failed.
-
-    Raises:
-        MathCheckFailed: Naming the failed checks.
-    """
-    failed = mathcheck.startup_failures()
-    if failed:
-        raise MathCheckFailed(
-            f"the math check failed ({', '.join(r.name for r in failed)}), so nothing was generated. "
-            f"Run 'planetgen check-math' for details.")
-
-
 class DatasetsMissing(RuntimeError):
     """GEN.590: a file the generator reads was never downloaded (`planetgen.datasets`), so a bulk generation was refused
     before writing anything; the message names the datasets."""
@@ -1849,8 +1826,6 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         GenerationRefused: The database disk can't hold it (nothing was
                    written).
         RuntimeError: If the galaxy's skeleton has never been built.
-        MathCheckFailed: If the math check failed (a real run only);
-            nothing is written.
         DatasetsMissing: If a downloaded data file is missing (a real run only);
             nothing is written.
     """
@@ -1861,7 +1836,6 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     )
     config = config or store.DEFAULT_MYSQL_CONFIG
     if not estimate_only:
-        require_math_check()
         require_datasets()
 
     conn = store.get_connection(config)

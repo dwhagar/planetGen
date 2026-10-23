@@ -9,4 +9,4 @@ environment of a body: `activity` (stellar X-ray and flares), `magnetism`,
 `radiation`, `atmosphere`, `hydrosphere` and `rogue_surface`. Habitability
 (`docs/design/habitability-index.md`): `habitability`, `habitability_world`,
 `protection` (the one describer of the six categories), `protection_limits` and `species_limits`.
-`mathcheck` is the math check every bulk run starts with."""
+`mathcheck` is the math check every update runs (`update.sh`) and the admin page offers."""

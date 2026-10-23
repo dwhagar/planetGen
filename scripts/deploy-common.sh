@@ -595,14 +595,16 @@ record_version_key() {
 # real astronomy, identities and sampler distributions. A failure only
 # warns -- the update carries on and the site keeps serving -- but sets
 # MATH_CHECK_FAILED=1, so offer_population_pass skips the population pass
-# (which would refuse anyway) and the closing message repeats the warning.
+# and the closing message repeats the warning. Generation does not run
+# the check itself (PERF.170): this is where it runs, and the admin page
+# runs it on request.
 MATH_CHECK_FAILED=0
 check_math() {
     if run_cli generate check-math; then
         MATH_CHECK_FAILED=0
     else
         MATH_CHECK_FAILED=1
-        echo "warning: the math check failed (above). Bulk generation refuses to start until it passes;" >&2
+        echo "warning: the math check failed (above). Charted data may be wrong until it is fixed;" >&2
         echo "         run 'planetgen check-math -v' for every check." >&2
     fi
 }

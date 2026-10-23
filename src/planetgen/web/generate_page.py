@@ -166,9 +166,6 @@ BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 """str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
 Plan and Rebuild the bright stars."""
 
-MATH_CHECK_LABEL = "Check the math"
-"""str: Every generating job's first step (TEST.68): `planetgen
-check-math`. A failure stops the job there, before anything is written."""
 """str: The step that pre-places every bright star
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
@@ -176,7 +173,7 @@ DISREGARD_FLAG = "--disregard-missing-data"
 """str: The option a job's generating commands and its data check get when the form's "Disregard missing data files" box is ticked (GEN.599)."""
 
 DATA_CHECK_LABEL = "Check the data"
-"""str: Every generating job's second step (GEN.590): `python -m planetgen.cli.datasets
+"""str: Every generating job's first step (GEN.590): `python -m planetgen.cli.datasets
 status`, which exits 1 while a downloaded data file is missing. A failure stops the job
 there, before the reset or anything else is written."""
 
@@ -839,8 +836,7 @@ def plan_steps(generate, form):
 def build_job(action, form, database, edge_pc=None):
     """
     The job a form asks for (`edge_pc`: see `galaxy_argv`). Every job
-    that generates starts with the math check (`MATH_CHECK_LABEL`) and the
-    data check (`DATA_CHECK_LABEL`); a plain reset and a database check don't.
+    that generates starts with the data check (`DATA_CHECK_LABEL`); a plain reset and a database check don't.
 
     Returns:
         tuple: `(kind, title, steps)` for `jobs.start_job`.
@@ -860,8 +856,7 @@ def build_job(action, form, database, edge_pc=None):
             for step in steps:
                 if step["argv"][:len(generating)] == generating:
                     step["argv"] = step["argv"] + [DISREGARD_FLAG]
-        steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]},
-                 {"label": DATA_CHECK_LABEL,
+        steps = [{"label": DATA_CHECK_LABEL,
                   "argv": [python, *jobs.DATASETS_COMMAND, "status", *([DISREGARD_FLAG] if disregard else [])]}, *steps]
     for step in steps:
         step["stages"] = step_stages(step, form)
@@ -928,7 +923,7 @@ def stage_view(job):
 
 
 def _build_job_steps(action, form, edge_pc=None):
-    """`build_job`'s `(kind, title, steps)` before the math check step."""
+    """`build_job`'s `(kind, title, steps)` before the data check step."""
     python = jobs.python_executable()
     generate = [python, *jobs.GENERATE_COMMAND]
     reset_step = {"label": "Reset the galaxy", "argv": [python, *jobs.RESET_COMMAND, "--yes"]}

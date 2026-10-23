@@ -733,7 +733,7 @@ connectivity to that specific schema rather than the default one.
   missing dataset's labelled fallback; without it the answer is `409` naming
   every file to download with its URL (see [`cli.md`](cli.md#datasets)). Before anything is queued: `404` for an
   unknown or unplaced sector, `409` when the galaxy has never been planned
-  (`planetgen plan`) or the math check failed, `507` when the database
+  (`planetgen plan`) or a downloaded data file is missing, `507` when the database
   disk can't hold the run, `413` when the radius holds more than 2 million
   sectors (a web request lists no more). `503` when no Redis server answers. Every new
   sector also gets the bright stars (100 L_sun and up) within 100 ly of it

@@ -25,6 +25,7 @@ from planetgen.api.config import Config
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import store as _db  # noqa: E402
 from planetgen.admin import auth as adminAuth
+from planetgen.physics import mathcheck as mathCheck  # noqa: E402
 from planetgen.web import admin_pages, csrf  # noqa: E402
 
 DB = "planetgen_web_test"
@@ -703,6 +704,38 @@ def test_admin_unknown_action(client, fake, admin_token):
     resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "drop_tables"})
     assert resp.headers["Location"] == "/admin"
     assert "Unrecognized form action." in client.get("/admin").get_data(as_text=True)
+
+
+# --- The admin page's math check (PERF.170) -------------------------------------------------------
+
+def test_admin_page_offers_the_math_check(client, fake):
+    _logged_in(client, fake)
+    html = client.get("/admin").get_data(as_text=True)
+    assert 'id="math-check"' in html
+    assert 'name="action" value="check_math"' in html
+
+
+def test_admin_math_check_reports_a_pass(client, fake, admin_token):
+    _logged_in(client, fake)
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "check_math"})
+    assert resp.status_code == 303 and resp.headers["Location"] == "/admin#math-check"
+    html = client.get("/admin").get_data(as_text=True)
+    assert "Math check passed: all " in html and "Math check FAILED" not in html
+
+
+def test_admin_math_check_names_a_failure(client, fake, admin_token, monkeypatch):
+    bad = mathCheck.Check("bad_check", "invariant", "bad", lambda: 1.0, 0.0, 0.0, "test", mode="max")
+    monkeypatch.setattr(mathCheck, "all_checks", lambda: [bad])
+    _logged_in(client, fake)
+    client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "check_math"})
+    html = client.get("/admin").get_data(as_text=True)
+    assert "Math check FAILED: 1 of 1 checks failed (bad_check)" in html
+    assert 'class="error" role="alert">Math check FAILED' in html
+
+
+def test_admin_math_check_needs_an_admin(client, fake, token):
+    resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "check_math"})
+    assert resp.status_code == 302 and "/login" in resp.headers["Location"]
 
 
 # --- /admin/stats --------------------------------------------------------------------------
