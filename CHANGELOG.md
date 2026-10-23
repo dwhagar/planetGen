@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1980] - 2026-10-23
+
+**Headline:** The cache warm-up, the tile prefetch and the database check no longer wait behind a whole generation stage, because they have a queue and workers of their own.
+
+### Changed
+- **A maintenance lane.** The units of the cache warm-up and the database check, and the tile prefetch and rebuild jobs, now run on `planetgen-maintenance`, not on the generation queue. While a generation run is live that lane has `queue.maintenance_workers` workers (1 by default), taken out of the worker count: a generation worker finishes its unit and leaves when the lane needs its place, so the host's total does not grow, and the generation workers are back to the full count once the upkeep has drained. With no generation run live the lane may use the whole count (the warm-up and the check used to be held to one worker).
+- **The tile prefetch works during a generation run.** Its queue limit (`tile_cache.prefetch_max_queued`) used to be checked against the whole generation queue, which a stage fills with thousands of units, so no tile was prefetched while a run was going; it now counts the upkeep queue only.
+
 ## [8.0.1979] - 2026-10-23
 
 **Headline:** The photolysis lifetime of a molecule can be worked out for its star and its distance, species by species.
