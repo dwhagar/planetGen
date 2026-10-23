@@ -1070,3 +1070,4 @@ Baseline: PR #1817.
 | PERF.151 | 8.1 | Queue, caches and performance |
 | GEN.416 | 9.0 | Atmosphere colour |
 | TEST.283 | 8.1 | The headline closes |
+| UX.140 | 8.4 | Bulk composition |
