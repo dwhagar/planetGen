@@ -20611,98 +20611,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.270 check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake)**
-  Found by Core 1 (9:50 AM EDT 2026-10-22 as the lane reported, in the
-  GEN.598 gate), filed by the TODO thread. Kind: flake. Tests:
-  src/tests/test_db_check.py::test_the_command_exits_one_on_damage_and_zero_when_clean
-  and ::test_a_check_run_does_not_take_the_generation_slot. Failure
-  text: `check-db` printed "FAIL: revision" ("The database is DAMAGED"),
-  so the command exited 1 where the test expects 0 after `_heal_key`.
-  Fails on main: not checked; each passes alone in 10 s and both passed
-  on `--resume`. Frequency: 2 of 20,106 in one full `scripts/test.py
-  changed` gate (4 workers, 86 minutes), both on the first pass and on
-  the re-run pass. Reproducer: a full `changed` gate on a lane with one
-  MySQL server; not reproducible alone. Something else in the full run
-  (a concurrent migration or revision test on the same server) leaves
-  the revision check unhappy; that cause is not found. Do: find which
-  test or fixture changes the `alembic_version` row or the revision the
-  check reads while these two run, and give the check tests a database
-  of their own or make the other test restore it; no retry loop that
-  hides the cause. Done: the cause is on this item and the two tests
-  pass in 20 full-gate runs. Owner: Bug Hunt (proposed; a test-flake
-  finding of the TEST.265 family).
-  Second sighting (Core 3, relayed 10:43 AM EDT 2026-10-22): two
-  test_db_check tests failed in 1 of 2 full gates, only in the 4-worker
-  phase, and pass alone; the lane did not name which two or the text.
-  Third sighting (Blocker 2, relayed 12:12 PM EDT 2026-10-22 as the
-  lane's clock reads, in the GEN.311 and GEN.269 gate): the same two
-  tests, test_the_command_exits_one_on_damage_and_zero_when_clean and
-  test_a_check_run_does_not_take_the_generation_slot, failed twice in
-  the full gate and failed again on the `--resume` rerun, so it is not
-  only a first-pass failure; both pass alone and in a targeted run with
-  the same code.
-  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
-  clock reads, fixed inside #2441): test_db_check's CASCADE drift test
-  (`test_a_foreign_key_with_another_delete_rule_is_drift`) left a changed
-  `facilities` foreign key in the worker's shared database, because the
-  pool's reset compares constraint names only, so later check-db tests
-  on that worker failed with "remove_fk/add_fk facilities.fk_facilities_type"
-  depending on worker order; the test now restores the key in a
-  `finally`. This item stays open until Bug Hunt sees the two tests
-  green in 20 full-gate runs after #2441, or a gate shows it again.
-  Prerequisites: none. Related: TEST.265, TEST.262.
-
-- [ ] **TEST.271 test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug)**
-  Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, on a clean main
-  checkout), filed by the TODO thread. Kind: test fails on main. Test:
-  src/tests/test_drop_database_holders.py, the gentle_wait case. Failure
-  text: MySQL "Lock wait timeout exceeded". Fails on main: yes, run
-  alone on a clean main checkout in that environment. Frequency: every
-  run tried (3 of 3). Reproducer: `python3 -m pytest
-  src/tests/test_drop_database_holders.py -k gentle_wait` after
-  `planetgen-env-up`. It may be the same family as TEST.265 (a test
-  database drop meeting another connection's lock), or a
-  lane-environment difference (the lane's MySQL lock wait setting); that
-  is not checked. Do: read the failure with the lock holder named (`SHOW
-  ENGINE INNODB STATUS`), fix the cause or the test, no retry loop that
-  hides a real lock. Done: the test passes 20 runs in a row on a clean
-  checkout. Owner: Bug Hunt, after its current work (the coordinator,
-  relayed 10:45 AM EDT 2026-10-22).
-  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
-  clock reads, #2441): in a lane container `performance_schema` is OFF,
-  so the reader of another database is never found and the test fails
-  even alone on main (the earlier "passes alone" verdict was wrong); the
-  test now skips when `performance_schema` is not ON. Core 3's text was
-  a lock wait timeout, which may be the same cause or not. This item
-  stays open until Core 3's lane (or Bug Hunt's) is checked for
-  `performance_schema` and the test passes there with it ON.
-  Prerequisites: none. Related: TEST.265, TEST.270.
-
-- [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**
-  Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, in a full gate),
-  filed by the TODO thread. Kind: test fails on main, browser. Test: the
-  browser test test_a_star_in_an_opened_sector_is_selectable. Failure text (Core 3, relayed 11:18 AM EDT 2026-10-22 as the lane's
-  clock reads, from its GEN.370 gate on the #2460 head; the earlier note
-  that it came from the #2473 gate was wrong): worker gw0, fixture
-  moving_page, sector 1000000000, page loaded at
-  /galaxy?sector=1000000000&open=1; line 167 calls _star_spots (line 97),
-  `page.request.get(f"{base_url}/sector/{sector_id}/scene")` raises
-  `playwright._impl._errors.TimeoutError: APIRequestContext.get: Timeout
-  30000ms exceeded` on GET /sector/1000000000/scene. In one earlier run of
-  the same gate the test errored at setup instead. Passes alone in 29.4 s.
-  Frequency: 2 of 4 full gates, in the browser phase with 2 workers, never
-  alone. It looks like the /scene route taking over 30 s while another
-  browser test loads the site, a load timeout and not a selection bug.
-  Reproducer: a full `scripts/test.py changed` gate (the log is on Core 3's
-  lane at /tmp/claude-0/work/gate370h.log, lines 520 to 580). Do: capture the failure
-  text and the page state when it fails, find whether it is load-related
-  (browser tests under load are a known flake class) or a real selection
-  bug, and fix the cause. Done: the cause is on this item and the test
-  passes 20 runs in a row under load. Owner: Bug Hunt, after its current
-  work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
-  text is now recorded above.
-  Prerequisites: none. Related: TEST.262, TEST.270.
-
 - [ ] **TEST.273 test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake)**
   Found by Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock
   reads, in a full run for UX.144), filed by the TODO thread. Kind:
@@ -20764,6 +20672,16 @@ clears each one.
   Fourth sighting (Core 2, relayed 7:24 PM EDT 2026-10-22 as the lane's
   clock reads, when UX.129 merged as #2544): the case fails alone too,
   the call taking 1802 s.
+  Likely the same root as PERF.163 (the plan-numbers check, 8:48 PM EDT
+  2026-10-22): `system_mass.mean_system_mass_at_age_solar` has a cache
+  of 512 ages and `components.py` rounds ages to 1e-6 Gy so a plan asks
+  for about 14,000 distinct ones, each miss about 3 ms; the shape report
+  builds the same component field on a 1209 by 32 array. PERF.146's
+  speedups (#2559) touched the system-mass arithmetic, so first re-run
+  the case alone on current main with `-o timeout=90
+  --timeout-method=thread`; if it still hangs, the cache fix of PERF.163
+  (Performance thread) is the first thing to try, and the route should
+  still bound its work for a hostile dial value.
   Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
@@ -20800,36 +20718,6 @@ clears each one.
   TEST.275).
   Prerequisites: none. Related: PERF.144, TEST.265.
 
-- [ ] **TEST.280 Five tests are refused as Busy in a full gate because workers share the default Redis database (race)**
-  Found by Bug Hunt (relayed 7:03 PM EDT 2026-10-22 as the lane's clock
-  reads, from its full 'scripts/test.py changed' gate), filed by the
-  TODO thread. Kind: cross-worker race (a test that starts a real run or
-  queue worker on the machine's shared Redis). Tests:
-  src/tests/test_update_guard.py::test_the_command_begins_ends_and_reports,
-  src/tests/test_update_database_step.py::test_a_database_that_needs_migrating_is_migrated_and_keeps_its_data,
-  ::test_a_migration_leaves_the_real_maintenance_file_alone,
-  ::test_a_failed_migration_stops_the_step_and_keeps_the_version, and
-  src/tests/test_work_units.py::test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded.
-  Failure: all refused on worker gw2 at 8:14 PM and 9:45 PM EDT (the
-  lane's clock as reported) because another xdist worker's job or a real
-  queue worker was running on the machine's default Redis (database 0,
-  prefix planetgen, queue planetgen-bulk); stderr ends 'nothing was
-  cancelled. Run it again when the work has finished, or add
-  --cancel-running'. Fails on main: not run alone yet; they passed alone
-  in earlier gates, so it is a race between workers. Frequency: 5 of
-  21,430 tests in that gate; the same class as TEST.266. Reproducer: a
-  full gate with several xdist workers. Do: every xdist worker runs all
-  its tests, and the processes they start, on the Redis database
-  numbered after the worker (this generalises the TEST.266 fixture
-  tests/private_redis.py, which goes away); the other seven real_queue
-  modules named in the execution notes (test_api_jobs,
-  test_inline_queue, test_reset_jobs, test_rq_time_limits,
-  test_update_guard_work, test_wanted_workers_key and test_workers) then
-  need no fixture. Done: the five tests pass in 20 full-gate runs and no
-  test starts a process on database 0. Owner: Bug Hunt (fix in hand,
-  same branch as TEST.270 and TEST.272).
-  Prerequisites: none. Related: TEST.266, TEST.277.
-
 - [ ] **TEST.281 test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug)**
   Found by Core 2 (relayed 7:24 PM EDT 2026-10-22 as the lane's clock
   reads, when UX.129 merged as #2544), filed by the TODO thread. Kind:
@@ -20848,6 +20736,11 @@ clears each one.
   gate, and MAP.210 can close with it. Owner: Core 2 (MAP.210's owner;
   proposed by the TODO thread, because the lane named the area; the
   coordinator can move it).
+  The timeout side of the same test (TEST.272: the scene fetch timed out
+  under load) is fixed in #2573 (Bug Hunt, 10:11 PM EDT 2026-10-22 as
+  the lane reported: the sector_open and sector_reach browser tests read
+  the scene in the test process); what remains here is the selection
+  itself, which is MAP.210.
   Prerequisites: none. Related: MAP.210, MAP.209.
 
 ## USR: User accounts

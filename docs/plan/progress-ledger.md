@@ -1071,3 +1071,7 @@ Baseline: PR #1817.
 | GEN.416 | 9.0 | Atmosphere colour |
 | TEST.283 | 8.1 | The headline closes |
 | UX.140 | 8.4 | Bulk composition |
+| TEST.270 | 8.1 | Bugs and flaky tests |
+| TEST.272 | 8.1 | Bugs and flaky tests |
+| TEST.280 | 8.1 | Bugs and flaky tests |
+| TEST.271 | 8.1 | Bugs and flaky tests |

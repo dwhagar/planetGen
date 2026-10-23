@@ -2478,9 +2478,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.267 | test_object_list.py::test_a_walk_of_the_pages_visits_every_object_once_in_the_order_of_the_sort[False-mass] fails once with "the galaxy has too few planets for a page walk" on unseeded galaxy data (bug) | none | done, PR #2485 |
 | TEST.268 | Four test_galaxy_gen tests for an address outside the outline fail on main: generate exits with status 1 (bug) | none | done, PR #2502 |
 | TEST.269 | test_only_the_newest_archives_are_kept compares archive names as plain strings, so two saves in one second fail it (bug) | none | done, PR #2494 |
-| TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | open |
-| TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) | none | open |
-| TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) | none | open |
+| TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | done, PR #2573 |
+| TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) | none | done, PR #2441 |
+| TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) | none | done, PR #2573 |
 | TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) | none | open |
 | TEST.274 | test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it fails on main: _relative_circular_km was removed by #2481 (bug) | none | done, PR #2493 |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | open |
@@ -2489,7 +2489,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) | none | open |
 | TEST.278 | test_column_units fails on main: 36 columns of orbital_events and orbital_event_bodies are not declared in column_units.py (bug) | none | done, PR #2510 |
 | TEST.279 | Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug) | none | done, PR #2540 |
-| TEST.280 | Five tests are refused as Busy in a full gate because workers share the default Redis database (race) | none | open |
+| TEST.280 | Five tests are refused as Busy in a full gate because workers share the default Redis database (race) | none | done, PR #2573 |
 | TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) | none | open |
 | TEST.282 | test_precision imports calculate_hill_sphere from generation.star, where GEN.565d moved it away: ImportError on main (bug) | none | done, PR #2547 |
 | TEST.283 | Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups | none | done, audits run on main dd6d46d0 (9:57 PM EDT) |
