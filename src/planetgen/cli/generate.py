@@ -49,6 +49,7 @@ from planetgen.cli import checkdb as checkdb_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
 from planetgen.db import fingerprint, store
+from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
@@ -1215,6 +1216,9 @@ def add_fingerprint_arguments(parser):
                         help="Fingerprint every sector in this shell (repeatable).")
     parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('SHELL', 'BAND', 'WEDGE'),
                         help="Fingerprint the sector at this address (repeatable).")
+    parser.add_argument('--stored', action='store_true',
+                        help="Print the tree of digests stored at save time instead (a line a band and a shell, the "
+                             "galaxy root, and the region's digest with its sector count).")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1516,16 +1520,20 @@ def process_args():
 def run_fingerprint(args):
     """`planetgen fingerprint`: prints one line a sector (its address and
     digest), the plan's digest for the whole galaxy, and the region's
-    (`planetgen.db.fingerprint`, GEN.58)."""
+    (`planetgen.db.fingerprint`, GEN.58); with `--stored` the tree of digests
+    stored at save time (`planetgen.db.fingerprint_tree`, GEN.305)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        result = fingerprint.region_fingerprint(conn, shells=args.shell, addresses=args.sector)
+        if args.stored:
+            result = fingerprintTree.lines(conn, shells=args.shell, addresses=args.sector)
+        else:
+            result = fingerprint.region_fingerprint(conn, shells=args.shell, addresses=args.sector).lines()
         warning = version_check.galaxy_warning(conn)
     finally:
         conn.close()
     if warning:
         log.normal(f"Warning: {warning}")
-    for line in result.lines():
+    for line in result:
         print(line)
 
 
