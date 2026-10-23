@@ -15018,10 +15018,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
   Slice 1 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported): the link, backfill and settle commands (settle --since).
-  Slices 2 to 2c are next after TEST.283 (branch claude/core5-perf123b);
-  the random-start slice C still needs its generator epoch numbered at
-  merge (the epochs file must stay contiguous; 51 is taken by GEN.307,
-  #2595 and 52 by GEN.315 slice 1, #2605, so the next free number is 53), and slice D follows.
+  Slice 2 merged in #2665 (Core 5, 10:15 AM EDT 2026-10-23 as the lane
+  reported): `planetgen sectors` takes the plan's density like galaxy, and
+  the shell, band, span, course and neighborhood stages cut their own
+  sectors from the run's arguments (slices 2b and 2c went in with it).
+  Left: D1 (the galaxy command has no opt-outs, and link, backfill, settle
+  and population are root commands; built, in test), C (random starts
+  picked in the cut from the run seed; it needs the next free generator
+  epoch, numbered at merge, 60 on 10:15 AM EDT main), and D2 (the galaxy
+  as one wrapper run).
   Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
@@ -19631,6 +19636,24 @@ clears each one.
   at -n 4 under load and takes well under a minute alone. Owner: Bug
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
+
+- [ ] **TEST.295 test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw takes 5 minutes alone and hit the 900 s timeout in a loaded gate (bug)**
+  Found by Core 5 (relayed 10:15 AM EDT 2026-10-23 as the lane reported)
+  in a loaded 4-worker gate; filed by the TODO thread. Kind: slow flaky
+  test, the same family as TEST.293 (a draw at 1, 2 and 4 workers).
+  Test:
+  src/tests/test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw.
+  Failure: it hit the 900 s pytest-timeout at load 10; alone it passes
+  in about 5 minutes. Fails on main: unknown. Frequency: 1 in 1 loaded
+  gate. Reproducer: run it while another gate is running. Do: find what
+  the 5 minutes alone are spent on (building the galaxy, three draws),
+  cut the cost with a smaller fixture if the check keeps its meaning,
+  and check whether it forks a threaded process as the TEST.293 tests
+  did (TEST.293's fix made the four-worker draw tests spawn their
+  workers). Done: the test takes well under a minute alone and passes 20
+  times in a row at -n 4 under load. Owner: Bug Hunt (proposed by the
+  TODO thread).
+  Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
 
 ## USR: User accounts
 

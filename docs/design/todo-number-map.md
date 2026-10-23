@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.128 |
 | SEC | SEC.34 |
-| TEST | TEST.295 |
+| TEST | TEST.296 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.75 |
@@ -2521,6 +2521,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.292 | test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug) | none | open |
 | TEST.293 | test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers fails once under the gate load and passes alone (bug) | none | done, PR #2663 |
 | TEST.294 | full --check run on a main checkout has an empty change set and reports every failure as not selected (the dependency map itself selects test_validation.py::test_system_methods_still_delegate for the GEN.325 change) (bug) | none | done, PR #2663 |
+| TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw takes 5 minutes alone and hit the 900 s timeout in a loaded gate (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
