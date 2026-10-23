@@ -15095,6 +15095,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and no other 'habitable' test remains.
   Prerequisites: none. Related: GEN.639, MAP.143, MAP.220, UX.100,
   GEN.89.
+  Boss, 6:54 PM EDT 2026-10-23: habitable stays Blue or Green overall
+  for the counts, markers and lists; GEN.648 may, as an error condition
+  when it must, accept a Yellow overall provided Suitability is at least
+  Yellow (technically habitable); the predicate returns the grade so a
+  reader can tell the fallback.
 
 - [ ] **GEN.644 Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree**
   Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
@@ -15282,6 +15287,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   don't remember one' (bulk-composition.md decision 31 / F10 was a lane
   default, not Boss's rule; it does not block this item).
   Prerequisites: GEN.646, GEN.643. Related: GEN.643, GEN.646.
+  Error condition (Boss, 6:54 PM EDT 2026-10-23): the request aims for a
+  PHI-6 overall of Blue or Green; if it MUST, a Yellow overall is
+  accepted as technically habitable so long as the sustainability factor
+  (read as the Suitability domain: water within reach, food, shelter) is
+  at least Yellow. The rebuilds and restricted draws aim at Blue or
+  Green first; the Yellow fallback is taken only after the stated cap on
+  tries and the result is marked as a fallback in its description. Food
+  comes from the Flora and Fauna scores (GEN.653).
 
 - [ ] **GEN.649 The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
@@ -15309,6 +15322,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a table of examples per stage and condition, tests for 0 and 9 and
   monotone behaviour with conditions, determinism across worker counts.
   Prerequisites: none. Related: GEN.643, GEN.89, UX.101, UX.100.
+  Boss, 6:54 PM EDT 2026-10-23: the Flora and Fauna scores also give the
+  food of the Suitability domain (GEN.653): Flora is always good food,
+  both are better, Fauna includes all animal life.
 
 - [ ] **GEN.650 Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646)**
   Gap found by the pipeline report
@@ -15381,6 +15397,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MIST is the single main-sequence table and the piecewise laws are
   removed, no shim. Owner: Core 4, with GEN.553 and GEN.651 in one
   epoch.
+
+- [ ] **GEN.653 Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life**
+  Boss, 6:54 PM EDT 2026-10-23: 'Now as an error condition for the
+  habitable planet option, for this, while we aim for a Blue or Green if
+  we MUST we'll accept a Yellow as that is technically habitable so long
+  as the sustainability factor is at least yellow. Use the Flora and
+  Fauna scores to calculate food, Flora is always good food, both are
+  better. Fauna includes all animal life.' Reading recorded by the TODO
+  thread: 'the sustainability factor' is the Suitability domain of the
+  PHI-6 (water within reach, food, shelter,
+  docs/design/habitability-index.md); Boss to correct if he meant
+  another factor. Owner: Habitability lane D. Today the food rung reads
+  the latest milestone of the planet's evolutionary timeline (a full
+  biosphere of forests and animals 1, first plants and animals 0.85,
+  microbial mats and plankton 0.5, none 0.2; habitability-index.md
+  section on Suitability). Replace it with a function of the Flora and
+  Fauna scores of GEN.649 (0 to 9 each): Flora alone gives good food,
+  Flora and Fauna together give better, Fauna counts every kind of
+  animal life (not only land animals or large ones), Microbial alone is
+  not food for people. The rung's colours and the Suitability colour
+  follow from the new value. Changes stored values (the PHI-6 colours):
+  rides the epoch of GEN.649 (testing mode, Boss 5:42 PM EDT). Done: the
+  rung table with a case per Flora and Fauna pair, a test that Flora
+  alone beats none and both beat Flora alone, and the docs state it.
+  Prerequisites: GEN.649. Related: GEN.649, GEN.648, GEN.643.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

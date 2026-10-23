@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.153 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.653 |
+| GEN | GEN.654 |
 | PERF | PERF.174 |
 | DB | DB.92 |
 | API | API.33 |
@@ -1370,6 +1370,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.650 | Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646) | none | open |
 | GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | none | open |
 | GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | none | open |
+| GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
