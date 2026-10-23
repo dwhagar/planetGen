@@ -74,6 +74,7 @@
   "/api/galaxy/changes GET",
   "/api/galaxy/locate GET",
   "/api/galaxy/made GET",
+  "/api/galaxy/nebula-cover GET",
   "/api/galaxy/phenomena GET",
   "/api/galaxy/profile GET",
   "/api/galaxy/sectors GET",
