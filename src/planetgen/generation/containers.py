@@ -22,6 +22,9 @@ SUPERBUBBLE = "superbubble"
 KINDS = (GLOBULAR_CLUSTER, SUPERBUBBLE)
 """tuple: The kinds of container (the table's CHECK), in the order their IDs are ranked."""
 
+GLOBULAR_PROFILE = "king"
+"""str: The density profile of the `cluster` components that are globular clusters (the young open clusters are not)."""
+
 
 @dataclasses.dataclass(frozen=True)
 class Container:
@@ -50,7 +53,7 @@ class Container:
 
 
 def _is_globular(component):
-    return component.kind == "cluster" and component.profile == "king"
+    return component.kind == "cluster" and component.profile == GLOBULAR_PROFILE
 
 
 def _wanted(galaxy_seed, shape, reach_pc, components):

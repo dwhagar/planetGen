@@ -411,7 +411,7 @@ def _store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index):
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
-        components = store.get_galaxy_components(conn, kind="cluster")
+        components = store.get_galaxy_components(conn, kind="cluster", profile=generationContainers.GLOBULAR_PROFILE)
         made = generationContainers.build(galaxy_seed, skeleton.shape, edge_pc, (outer_shell_index + 1) * edge_pc,
                                           components)
         containersDb.replace(conn, made)

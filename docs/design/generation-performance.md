@@ -156,6 +156,37 @@ about 0.14 ms a row; (3) the plan's start (the `plan_shape` check run twice, the
 about 10 s of the 25 s. GEN.624 will cut the satellites' systems; the component field's cost depends on the number of
 components, not their size, so it will not shrink.
 
+## The plan's start and its storing (PERF.165)
+
+PERF.163 left three suspects: the 22,267-row component insert, `plan_shape` run twice, and the 2.5 s start-up math check.
+Measured on the 4-CPU test box (`plan --mass 4e9`, a machine with nothing else running):
+
+- **The insert is MySQL's work, not the driver's.** A profile of `replace_galaxy_components` puts 3.2 of 3.3 s in waiting for
+  the server. The driver already writes multi-row statements with its values formatted in Python (PERF.82), so batching
+  further gains nothing. The server cost is the stored `cell_key` expression, the three secondary indexes and the check
+  constraints: a fresh table takes 2.5 s with every index, 1.6 s with two of them dropped, and an `INSERT ... SELECT` of the
+  same rows inside the server 0.9 to 1.4 s. Dropping indexes is a DDL statement, which commits the open transaction, so the
+  store (which promises not to commit) does not do it. The insert stays as it is.
+- **`plan_shape` twice costs under a second.** The first call in a process is 0.57 s (the disc history and the cohort means
+  fill their caches), the second 0.04 s. The check runs in the command and the unit in a worker process, so the unit pays
+  the cold cost again, and sharing it would mean passing the shape between processes for about 0.6 s. Not done.
+- **The math check (2.5 s, 60 checks) is the gate in front of every bulk generation (TEST.68).** Making it skippable on a plan,
+  or stamping a pass on disk, is a policy change, so it is filed as a question rather than changed.
+
+What was wasted was another read. The containers step (`_store_containers`) read every stored `cluster` back, 37,402 rows at
+this size (the 157 globular clusters and the young open clusters), to keep the 157 the containers are made from. It now asks
+the database for the King-profile clusters only (`get_galaxy_components(..., profile=)`). The containers are the same (a test
+builds them from both reads and compares). The table of the unit, before and after, two runs each:
+
+| Step | Before | After |
+|---|---|---|
+| Storing the containers | 2.5 s and 3.1 s | 1.4 s and 1.6 s |
+| The unit in all | 16.4 s and 18.5 s | 12.4 s and 12.6 s |
+
+The unit's other rows moved with the machine's load between the runs (the component field 2.9 to 4.3 s), so only the
+containers row is the change; the rest of that drop is run-to-run noise. What remains in the containers step is the
+superbubble field (0.9 s, the gas tracer of 2,209 columns).
+
 ## What `medium` and `large` show (PERF.164)
 
 Same 4-CPU box, three workers, release 8.0.1973, seed `...BEEF`, one run each. The container restarted during the

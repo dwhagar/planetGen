@@ -88,6 +88,28 @@ def test_two_containers_born_in_one_sector_take_the_next_rank():
     assert sorted(ranks) == [0, 1]
 
 
+def test_the_profile_read_gives_the_king_clusters_of_the_full_read_in_the_same_order(mysql_config):
+    """PERF.165: the plan reads back only the King clusters, and the containers built from them are the ones built
+    from every stored cluster."""
+    drawn = _clusters(3)
+    open_ones = [dataclasses.replace(drawn[i % 3], profile="plummer", king_w0=None, name=f"Open cluster {i:05d}")
+                 for i in range(4)]
+    conn = store.get_connection(mysql_config)
+    try:
+        store.replace_galaxy_components(conn, drawn[:2] + open_ones[:2] + drawn[2:] + open_ones[2:], kind="cluster")
+        conn.commit()
+        everyone = store.get_galaxy_components(conn, kind="cluster")
+        kings = store.get_galaxy_components(conn, kind="cluster", profile=containers.GLOBULAR_PROFILE)
+        assert len(everyone) == 7 and len(kings) == 3
+        assert kings == [c for c in everyone if c.profile == containers.GLOBULAR_PROFILE]
+        assert store.get_galaxy_components(conn, profile="plummer") == [c for c in everyone if c.profile == "plummer"]
+        assert store.get_galaxy_components(conn, kind="satellite", profile=containers.GLOBULAR_PROFILE) == []
+        assert (containers.build(SEED, SHAPE, EDGE_PC, REACH_PC, kings)
+                == containers.build(SEED, SHAPE, EDGE_PC, REACH_PC, everyone))
+    finally:
+        conn.close()
+
+
 @pytest.fixture
 def galaxy(mysql_config):
     """Components and containers stored; one system at the first cluster's centre, one far off, one nebula."""
