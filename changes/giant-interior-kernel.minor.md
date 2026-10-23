@@ -1,6 +1,12 @@
-**Headline:** Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores.
+**Headline:** Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores, and any body can be asked whether it can have satellites.
 
 ### Added
+- **`planetgen.physics.hosting_gate` (GEN.579).** `can_host(host)` runs the three parts of the hosting gate in order (a 10 m
+  satellite must fit under the mass-ratio limit; a stable orbit must exist between the host's radius or fluid Roche limit and
+  0.4895 of its Hill radius, with the hierarchical stability screen for a comparable satellite; the body must reach the 1 km
+  size cut and its population and size must have a satellite share), names the first part that fails, and carries the gated
+  `satellite-share` table with every row's source state. A moon holds nothing until a sourced row exists, and
+  `tidal_survival_radius_m` is the submoon tidal gate of Kollmeier and Raymond 2019. Nothing calls it yet.
 - **`planetgen.physics.giant_interior` (GEN.642).** Places the layers of a gas giant (molecular and metallic hydrogen
   envelope, a helium-enriched zone and shell where helium has rained out of a cold giant, a dilute core, a compact core
   of rock and iron), an ice giant (molecular envelope over an ionic or superionic water, ammonia and methane mantle over a
