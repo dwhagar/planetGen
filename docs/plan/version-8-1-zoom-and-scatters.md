@@ -262,8 +262,7 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets |  | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
-| GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova |  | Split from GEN.274. |
-| GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | GEN.329 | Split from GEN.273. |
+| GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected |  | Split from GEN.273. |
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions |  | Split from GEN.275. |
 | GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | GEN.315, GEN.631 | Split from GEN.275. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets | GEN.331, GEN.332 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
@@ -323,7 +322,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 |---|---|---|---|
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table |  | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
-| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
+| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.270, GEN.271, GEN.272, GEN.275, GEN.327 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold |  | Spherical region query, stage C. Step 6. Quality. |
 
 ### Composition proofs
@@ -375,8 +374,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.326 | Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4 | GEN.161 | Split from GEN.162. |
 | GEN.162 | Planet cull and blue stragglers in clusters | GEN.326 | Globular-cluster chain. |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) |  | Globular-cluster chain. |
-| GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | GEN.329, GEN.163 | Split from GEN.274. |
-| GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | GEN.329, GEN.330 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
+| GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | GEN.163 | Split from GEN.274. |
+| GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | GEN.330 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
 | GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy |  | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
 | GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | GEN.369 | Finding from Core 3. |
 

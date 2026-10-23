@@ -1038,7 +1038,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.326 | Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4 | none | open |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | none | open |
 | GEN.328 | Groups at fill in star-forming cores and OB regions | none | open |
-| GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova | none | open |
+| GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova | none | done, PR #2634 |
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | none | open |
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions | none | open |
 | GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | none | open |
