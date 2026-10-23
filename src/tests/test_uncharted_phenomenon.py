@@ -105,8 +105,10 @@ def test_an_uncharted_hypervelocity_star_has_a_page_with_its_kind_of_star(db_app
 
 def test_an_uncharted_black_hole_page_names_its_class(db_app, mysql_config):
     scatter_id = _scatter(mysql_config, "black-hole", "stellar", mass=12.5)
-    html = db_app.test_client().get(f"/uncharted-phenomenon/{scatter_id}").get_data(as_text=True)
-    assert "Black Hole (Stellar)" in html and "Mass" in html
+    response = db_app.test_client().get(f"/uncharted-phenomenon/{scatter_id}")
+    html = response.get_data(as_text=True)
+    # TEST.284: it failed twice in a loaded gate with the class name missing and nothing to say why: name the answer.
+    assert "Black Hole (Stellar)" in html and "Mass" in html, (response.status_code, dict(response.headers), html[:1500])
     assert "Expected star" not in html                              # only a hypervelocity star will be a star
 
 
