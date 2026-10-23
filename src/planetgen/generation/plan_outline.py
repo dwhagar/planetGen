@@ -16,6 +16,7 @@ import time
 from planetgen import tuning as program_constants
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import dials
+from planetgen.galaxy import plan_figures as planFigures
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.galaxy.density import model_terms
 from planetgen.galaxy.skeleton import (
@@ -92,9 +93,10 @@ EMPTY_OUTLINE_REASON = (
 
 @dataclasses.dataclass
 class Report:
-    """What an outline says about its galaxy: `crest` (the thin disc's central density over the one-star density, the
-    density-limits report's D), `share` (the share of the stars in planned sectors, approximate), `shells`, `sectors`
-    (candidate sectors) and `radius_pc` of the outline, `empty` and the `warnings` (sentences)."""
+    """What an outline says about its galaxy: `crest` (the thin disc's expected systems per sector on an arm crest at
+    its centre, which is its central density over the one-star density, the density-limits report's D), `share` (the
+    share of the galaxy's systems in sectors that expect one, integrated from its density; approximate), `shells`,
+    `sectors` (candidate sectors) and `radius_pc` of the outline, `empty` and the `warnings` (sentences)."""
     crest: float
     share: float
     shells: int
@@ -115,14 +117,14 @@ class Report:
 def report(outline):
     """The `Report` of a built `outline`."""
     drawn = outline.drawn
-    sigma0 = shapeDraw.drawn_surface_density(drawn)
-    crest = dials.disc_crest(sigma0, drawn.disk_scale_height_pc)
+    crest = planFigures.crest(outline.shape, outline.e_value)
     empty = not outline.extents
     radius = 0.0 if empty else (outline.outer_shell_index + 1) * outline.edge_pc
+    share = 0.0 if empty else planFigures.planned_share(outline.shape, outline.e_value, radius)
     return Report(
-        crest=crest, share=0.0 if empty else dials.planned_share(crest), shells=len(outline.extents),
+        crest=crest, share=share, shells=len(outline.extents),
         sectors=shell_candidate_sector_count(outline.extents), radius_pc=radius, empty=empty,
-        warnings=dials.shape_warnings(sigma0, drawn.disk_scale_height_pc, drawn.bulge_scale_radius_pc))
+        warnings=dials.shape_warnings(crest, share, drawn.disk_scale_height_pc, drawn.bulge_scale_radius_pc))
 
 
 def _parser():

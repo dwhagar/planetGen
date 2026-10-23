@@ -493,12 +493,6 @@ def pins_of(args, disk_scale_length_pc=None):
             for name, value in given.items()}
 
 
-def drawn_surface_density(drawn):
-    """The thin disc's central surface density, solar masses per square parsec, of a drawn galaxy."""
-    return central_surface_density(drawn.chain.stellar_mass_solar, drawn.disk_scale_length_pc,
-                                   thin_disk_share(drawn.structure, drawn.bulge_to_total))
-
-
 def pinned_stellar_mass(args, drawn):
     """The stellar mass a plan stores for its galaxy (DB.81): the mass of `drawn` when the Scale levers fixed it, a
     pinned mass or the one a pinned size and density hold, else `None` (the seed's own draw, which a loaded shape draws

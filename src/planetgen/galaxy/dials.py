@@ -395,56 +395,25 @@ DERIVED_LIMITS = {
 scale height is the scale length over the flatness): a value outside it, pinned or solved, is refused with `check`."""
 
 
-OUTLINE_DENSITY_PER_HEIGHT = 0.01078
-"""float: The thin disc's central surface density, solar masses per square parsec, per parsec of scale height at which
-its crest just reaches the one-star density that plans a sector (the density-limits report's D = 1, with the arm
-crest 1.4 times the mean, measured with 0.4 solar masses per system and scaled to the 0.483 the generator derives for
-its populations: the density in systems falls as the mean system mass rises). A disc below it has no planned sector
-but its bulge's. Derived."""
-
 WARN_HEIGHT_PC, WARN_BULGE_PC, WARN_CREST = 8.0, 4.0, 20.0
 """float: The scale height and bulge radius (pc) and the crest density (in units of the one-star density) under which the
 4 pc grid represents the galaxy badly; a warning, not a refusal (the scale length floor is 28 pc, where the planned
 sectors run 4 to 15 percent high)."""
 
 
-PLANNED_SHARE_BY_CREST = ((1.0, 0.037), (2.0, 0.075), (3.0, 0.12), (5.0, 0.20), (10.0, 0.35), (20.0, 0.51), (50.0, 0.685),
-                          (100.0, 0.78), (300.0, 0.885), (1000.0, 0.94))
-"""tuple: `(crest, share)`: the share of a galaxy's stars that sit in planned sectors when the thin disc's crest is `crest`
-times the one-star density, the middle of the range the density-limits report measured on the Milky Way's structure
-(0.3 to 7 percent at 1, 49 to 53 at 20, 94 at 1000). Approximate; derived."""
-
-
-def planned_share(crest):
-    """The share of the stars in planned sectors for a disc crest `crest` times the one-star density, interpolated in
-    the log of the crest from `PLANNED_SHARE_BY_CREST` (0 under 1, the last value over 1000)."""
-    if crest < PLANNED_SHARE_BY_CREST[0][0]:
-        return 0.0
-    for (low, share_low), (high, share_high) in zip(PLANNED_SHARE_BY_CREST, PLANNED_SHARE_BY_CREST[1:]):
-        if crest <= high:
-            along = math.log(crest / low) / math.log(high / low)
-            return share_low + along * (share_high - share_low)
-    return PLANNED_SHARE_BY_CREST[-1][1]
-
-
-def disc_crest(sigma0, height_pc):
-    """The thin disc's central density in units of the one-star density (the density-limits report's D)."""
-    return sigma0 / (OUTLINE_DENSITY_PER_HEIGHT * height_pc)
-
-
-def shape_warnings(sigma0, height_pc, bulge_radius_pc):
+def shape_warnings(crest, share, height_pc, bulge_radius_pc):
     """The sentences for a shape the 4 pc grid represents badly (the planned sectors expect more systems than the
-    model holds), empty for a shape it holds well."""
+    model holds), empty for a shape it holds well. `crest` and `share` are the plan's figures for the galaxy
+    (`galaxy.plan_figures`)."""
     notes = []
     if height_pc < WARN_HEIGHT_PC:
         notes.append(f"a scale height of {height_pc:.3g} pc is under {WARN_HEIGHT_PC:g}: the disc is under two cells deep")
     if bulge_radius_pc < WARN_BULGE_PC:
         notes.append(f"a bulge radius of {bulge_radius_pc:.3g} pc is under {WARN_BULGE_PC:g}: its cell expects too many "
                      f"systems")
-    crest = disc_crest(sigma0, height_pc)
     if crest < WARN_CREST:
         notes.append(f"the disc's crest is {crest:.1f} times the one-star density (under {WARN_CREST:g}): about "
-                     f"{100 * planned_share(crest):.0f} percent of its stars sit in planned sectors (approximate)")
+                     f"{100 * share:.0f} percent of its stars sit in planned sectors (approximate)")
     return notes
 
 
