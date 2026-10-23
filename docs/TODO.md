@@ -17668,37 +17668,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.13).
   Prerequisites: API.8. Related: API.3.
 
-- [ ] **ADM.125 Generate: named recipes saved per admin in the control database**
-  Child of the admin control suite (Boss's 13 decision cards, tapped
-  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
-  design note docs/design/admin-control-suite.md, section 5, key G9).
-  Split out of ADM.115 (the admin redesign thread, 8:30 AM EDT
-  2026-10-22 as the lane reported: Run again is built, named recipes are
-  not, because they need a table in the control database and a
-  migration; the thread suggested filing them on their own once the
-  migration numbers settle). Boss's answer 11: a recipe is a named,
-  saved form, kept per admin. Do: a control-database table of recipes
-  (admin, name, the form as the job record stores it, created and
-  updated times) with its Alembic migration (the next free revision on
-  main at merge time; head is 0118, 0119 is free), a Save as recipe
-  action on the Review step, a recipe list on the Start screen that
-  fills the form, and rename and delete. Done: a recipe saves, lists,
-  runs and deletes per admin, one admin cannot see or run another's, the
-  migration upgrades and downgrades cleanly, and a browser test covers
-  save, run and delete. Owner: the admin redesign thread (Boss,
-  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
-  Settings first, then the shell and palette, then Generate).
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Correction (Core 2, relayed 3:19 AM EDT 2026-10-23 as the lane
-  reported, building it; in its gate): the control database has no
-  Alembic chain, so the table is `generate_recipes` in
-  src/planetgen/db/control_schema.sql at control schema version 17, not
-  a migration after the galaxy head (0130); the Do text above that names
-  an Alembic revision is wrong on that point.
-  Prerequisites: none. Related: ADM.99, ADM.108.
-
 - [ ] **ADM.126 Generate: a live 'how big' count while typing a command or filling the form**
   Deferred by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
   the lane's clock reads, when #2494 merged), filed by the TODO thread.
@@ -19685,6 +19654,10 @@ clears each one.
   600 px window) that the gate's load changes, and make the test wait
   for that state. Done: the test passes 50 times in a row at -n 4 under
   load. Owner: Bug Hunt (proposed by the TODO thread).
+  Second sighting (Core 2, relayed 7:42 AM EDT 2026-10-23 as the lane
+  reported, in its gate for ADM.125, #2646): failed once and passed alone;
+  the far sector holds only 1 star, so one missed click fails the test.
+  Frequency now 1 in 2 gates.
   Prerequisites: none. Related: TEST.281, TEST.284, TEST.287.
 
 - [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
@@ -19701,6 +19674,21 @@ clears each one.
   at -n 4 under load and takes well under a minute alone. Owner: Bug
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
+
+- [ ] **TEST.293 test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers fails once under the gate load and passes alone (bug)**
+  Found by Core 2 (relayed 7:42 AM EDT 2026-10-23 as the lane reported)
+  in an earlier gate for ADM.125 (#2646); filed by the TODO thread.
+  Kind: flaky test under load. Test:
+  src/tests/test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers.
+  Failure text: not given by the lane; it passed alone. Fails on main:
+  not seen. Frequency: once in one gate. Reproducer: none yet; run it 50
+  times at -n 4 beside a loaded machine. Do: capture the failure text,
+  then find what differs between the one-worker and four-worker draws
+  under load (worker start order, a shared time budget, a timeout) and
+  make the draw independent of it, or make the test wait for the state
+  it needs. Done: the test passes 50 times in a row at -n 4 under load.
+  Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.287, TEST.290, TEST.291.
 
 ## USR: User accounts
 
