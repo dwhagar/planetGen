@@ -6190,19 +6190,23 @@ def replace_galaxy_components(conn, found, kind=None):
           int(c.core_collapsed), c.seed) for c in found])
 
 
-def get_galaxy_components(conn, kind=None):
+def get_galaxy_components(conn, kind=None, profile=None):
     """
     The stored components, by id.
 
     Args:
         conn (Connection): The connection to read through.
         kind (str, optional): Only this kind.
+        profile (str, optional): Only this density profile (the containers' read wants the 157 King clusters among a
+            plan's tens of thousands of components, PERF.165).
 
     Returns:
         list[galaxy.components.Component]: Each with its `id`.
     """
     sql = f"SELECT id, {', '.join(GALAXY_COMPONENT_COLUMNS)} FROM galaxy_components"
-    rows = conn.execute(sql + (" WHERE kind = ?" if kind else "") + " ORDER BY id", (kind,) if kind else ()).fetchall()
+    tests = [(column, value) for column, value in (("kind", kind), ("profile", profile)) if value]
+    where = " WHERE " + " AND ".join(f"{column} = ?" for column, _ in tests) if tests else ""
+    rows = conn.execute(sql + where + " ORDER BY id", tuple(value for _, value in tests)).fetchall()
     return [galaxyComponents.Component(
         id=row["id"], kind=row["kind"], name=row["name"], catalogue_id=row["catalogue_id"], source=row["source"],
         parent_component_id=row["parent_component_id"],
