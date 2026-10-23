@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 6:42 PM EDT 2026-10-23: 745 of 1144 items finished (65.1 percent), 399 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 108, phase 2 40, phase 3 25, phase 4 14, phase 5 71, phase 6 35, phase 7 20, phase 8 6, phase 9 17, phase 10 2, phase 11 48, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 6:45 PM EDT 2026-10-23: 746 of 1145 items finished (65.2 percent), 399 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 108, phase 2 40, phase 3 25, phase 4 14, phase 5 71, phase 6 35, phase 7 20, phase 8 6, phase 9 17, phase 10 2, phase 11 48, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -128,7 +128,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) |  |  |
 | OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) |  |  |
-| OPS.63 | The setup script works on Ubuntu 24.04 and 26.04 LTS |  | Boss, 2:52 PM EDT 2026-10-23. |
+| TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
 | TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) |  |  |
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) |  |  |
@@ -192,7 +192,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
-| MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |
+| MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:45 PM EDT; Core 2 profiles first. |
 | MAP.258 | N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript |  |  |
 | MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena | MAP.258 |  |
 | MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | MAP.258, MAP.259 |  |

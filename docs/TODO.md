@@ -20733,6 +20733,31 @@ clears each one.
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
 
+- [ ] **TEST.302 benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug)**
+  Finding of the Setup script lane (2026-10-23, report
+  /mnt/project-files/reports/test-isolation-benchmark-suite-kills-workers-2026-10-23.md),
+  filed by the TODO thread. Kind: test isolation bug; fails on main when
+  the data sets are fetched; every scripts/test.py changed run (4
+  workers, 6 runs) on such a machine, on Python 3.12 and 3.14; each test
+  passes alone. Test:
+  src/tests/test_benchmark_suite.py::test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases
+  (real_queue, real_datasets, fresh_database; it skips when the data
+  sets are missing, so a machine without them never sees it). Cause:
+  planetgen.cli.benchmark_suite.stop_workers() SIGKILLs every process on
+  the machine whose command line contains planetgen.cli.worker, not only
+  the benchmark's own, so it kills the real queue workers other xdist
+  workers started. Symptom: AssertionError: assert -9 == 0 on
+  process.wait(60) or done.returncode. Fix (either): stop_workers()
+  kills only workers of the suite's own Redis database or process group,
+  or the benchmark test never runs beside queue tests (xdist_group or
+  serial). Reproducer: python3 -m planetgen.cli.datasets fetch, then
+  pytest -n 4 src/tests/test_benchmark_suite.py
+  src/tests/test_queue_pause.py src/tests/test_workers.py. Done: the
+  killer is scoped (preferred) with a test that a foreign worker
+  survives a benchmark run, and the four queue tests pass beside it.
+  Owner: none (pool); Bug Hunt proposed.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21464,30 +21489,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   lock file, so a fresh machine has every package main needs. Core 3 and
   Core 2 hit the same on 2026-10-23.
   Prerequisites: none. Related: TEST.254.
-
-- [ ] **OPS.63 The setup script works on Ubuntu 24.04 and 26.04 LTS**
-  Boss, 2:52 PM EDT 2026-10-23 (typed in the project chat, started as
-  its own thread): "Update and make sure the setup script works on
-  Ubuntu 24 and 26 LTS releases". Filed by the TODO thread from the
-  lane's first status (2:52 PM EDT as the lane reported: read update.sh
-  and the setup scripts, check each package and version against 24.04
-  and 26.04, fix the scripts, add a changes note, draft the cloud lane
-  environment script of OPS.62, gate, PR, merge). Background from
-  project memory, to verify against main: Boss's server is Ubuntu 26
-  LTS, with the venv at /usr/local/planetgen/venv (OPS.45); the minimum
-  Python is 3.12 and 24.04 ships it; numba is required with no fallback;
-  MySQL 8.0.19 or later is the minimum. Do: for each release, list what
-  the setup and update scripts install (packages, Python, MySQL, Redis,
-  chromium and the rest) and fix whatever is missing, renamed or
-  removed; install from the lock file so that every package main needs
-  (argon2-cffi since SEC.32) is present; keep REQUIREMENTS in
-  src/tests/test_install_python_deps.py in step. Done: the setup script
-  runs to the end on a clean Ubuntu 24.04 and a clean 26.04 (or the lane
-  says exactly which parts it could check and which not), a changes note
-  is written, and OPS.62 is closed by the same work or stays with its
-  own Done. Owner: the Setup script lane (started 2:52 PM EDT
-  2026-10-23).
-  Prerequisites: none. Related: OPS.62, OPS.45.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
   Asked for by Boss for 8.2. Today the version
