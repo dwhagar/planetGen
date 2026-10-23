@@ -721,13 +721,18 @@ class SectorCell:
         if radius <= tolerance:
             return True
         colat = math.atan2(math.sqrt(x * x + y * y), z)
-        if colat < self.colat_north - 1e-12 or colat > self.colat_south + 1e-12:
+        # Near a pole the colatitude of a point is only as good as its coordinates: their rounding (a few 1e-16 of the
+        # radius) over the distance from the axis, which at a far shell's cap is 1e-10 and more.
+        axis = max(math.sin(self.colat_north), math.sin(self.colat_south), 1e-300)
+        slack = 1e-12 + 1e-15 / axis
+        if colat < self.colat_north - slack or colat > self.colat_south + slack:
             return False
         if self.lon_end - self.lon_start >= TWO_PI - 1e-12 or math.sqrt(x * x + y * y) <= tolerance:
             return True
         theta = math.atan2(y, x) % TWO_PI
         return self.lon_start - 1e-12 <= theta <= self.lon_end + 1e-12 or (
-            self.lon_start <= 1e-12 and theta >= TWO_PI - 1e-12)
+            self.lon_start <= 1e-12 and theta >= TWO_PI - 1e-12) or (
+            self.lon_end >= TWO_PI - 1e-12 and theta <= 1e-12)    # the last wedge's end face reads back as longitude 0
 
     def sample(self, rng):
         """A uniformly random sector-local point inside the cell: cube root

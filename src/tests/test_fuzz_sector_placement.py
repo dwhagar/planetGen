@@ -299,11 +299,21 @@ class _EndpointRng:
 
 
 @given(address=addresses(), edge=st.floats(1e-3, 1e4), bits=st.lists(st.booleans(), min_size=3, max_size=3))
+@example(address=(1000000, 1570796, 0), edge=1.0, bits=[False, False, False])  # a far cap: colatitude 2.4e-11 off the face
 def test_cell_samples_on_every_face_are_inside(address, edge, bits):
     cell = SectorCell.for_address(*address, edge)
     point = cell.sample(_EndpointRng(bits))
     assert all(math.isfinite(c) for c in point)
     assert cell.contains(point), (address, edge, bits, point)
+
+
+def test_the_end_face_of_a_last_wedge_is_inside_though_its_longitude_reads_back_as_zero():
+    """Found by the deep fuzz profile: a point on a wedge's end face at longitude 2 pi reads back as 6e-16, past the
+    wedge's own end, and was taken for outside."""
+    cell = SectorCell.for_address(881, 0, wedge_count(881, 0) - 1, 4.0)
+    for bits in ([False, False, True], [True, True, True], [False, True, True]):
+        point = cell.sample(_EndpointRng(bits))
+        assert cell.contains(point), (bits, point)
 
 
 @given(address=addresses(), edge=st.floats(1e-3, 1e4), seed=SEEDS)
