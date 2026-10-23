@@ -193,9 +193,13 @@ def add_logging_arguments(parser):
     (GEN.599: not logging, but a run-wide switch every subcommand takes, so a
     command that reads no downloaded data accepts it and ignores it).
 
-    `--debug` alone enables debug-severity output to the console; giving it
-    a filename (`--debug FILE`) additionally mirrors that same output to
-    `FILE`. `--quiet`/`--silent` (two spellings of the same flag) restrict
+    `--debug` alone enables debug-severity output to the console (stdout), the
+    lines of the run's queue workers included; giving it a filename
+    (`--debug FILE`) additionally mirrors that same output to `FILE`.
+    Debug mode in `config.json` (or `PLANETGEN_DEBUG`) does the same for
+    every command, and also writes the debug log. `--debug-areas` limits
+    what is written (`planetgen.util.log.AREAS`); by default it is
+    everything. `--quiet`/`--silent` (two spellings of the same flag) restrict
     output to errors only. `validate_logging_args` enforces the one
     combination that doesn't make sense: `--quiet`/`--silent` together with
     a filename-less `--debug`, which would have nowhere to send debug
@@ -205,8 +209,13 @@ def add_logging_arguments(parser):
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     parser.add_argument('--debug', nargs='?', const='', default=None, metavar='FILE',
-                        help="Log every choice the generator makes, and why, with timestamps, to the "
-                             "console. If FILE is given, also mirror that output to FILE.")
+                        help="Log every decision the run makes, and why (every random draw, branch choice, stage, "
+                             "unit, SQL statement and cache hit, workers included), with ISO timestamps, to stdout. "
+                             "If FILE is given, also mirror that output to FILE. Debug mode in config.json does "
+                             "this for every command.")
+    parser.add_argument('--debug-areas', metavar='AREAS', default=None,
+                        help="Limit --debug to some kinds of output: " + ", ".join(log.AREAS) + " (comma "
+                             "separated; a leading - leaves one out, as in -draw). The default is all of them.")
     parser.add_argument('--quiet', '--silent', dest='quiet', action='store_true',
                         help="Suppress all output except errors.")
     parser.add_argument('--disregard-missing-data', action='store_true',
@@ -229,6 +238,11 @@ def validate_logging_args(args, parser):
     if args.quiet and args.debug is not None and not args.debug:
         parser.error("--debug requires a FILE argument when combined with --quiet/--silent "
                      "(there's nowhere else for debug output to go).")
+    if args.debug_areas is not None:
+        try:
+            log.parse_areas(args.debug_areas)
+        except ValueError as exc:
+            parser.error(f"--debug-areas: {exc}")
 
 
 _RING_LIMIT = f"{run_galaxy.LARGE_RUN_WARNING_THRESHOLD:,}"
@@ -1708,12 +1722,14 @@ def main():
 
     if args.quiet:
         level = log.SILENT
-    elif args.debug is not None:
-        level = log.DEBUG
+    elif args.debug is not None or log.config_debug():
+        level = log.DEBUG       # --debug, or debug mode in config.json: every command writes its decisions to stdout
     else:
         level = log.NORMAL
     try:
-        log.configure(level, debug_file=(args.debug or None))
+        # A command whose own result goes to stdout (`--output -`) keeps stdout for it; the debug lines go to stderr.
+        log.configure(level, debug_file=(args.debug or None), to_stderr=getattr(args, "output", None) == "-",
+                      areas=args.debug_areas)
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
     logged = not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
@@ -1807,7 +1823,7 @@ def _exit_on_sigterm():
 
 
 RUN_ARGV_WITHHELD = ("--mysql-host", "--mysql-port", "--mysql-user", "--mysql-password", "--mysql-database",
-                     "--debug")
+                     "--debug", "--debug-areas")
 """tuple: Options left out of the command line a run records in its job
 tree root (`_run_argv`): the database is the site's own when the admin
 page runs it again, and a password never goes in the control database."""

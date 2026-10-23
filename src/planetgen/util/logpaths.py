@@ -99,6 +99,26 @@ def debug_enabled(config=None):
     return bool(value)
 
 
+def debug_areas(config=None):
+    """
+    The areas debug output is limited to (`planetgen.util.log.parse_areas`): `PLANETGEN_DEBUG_AREAS` when set, else
+    `config.json`'s `"debug_areas"`, else empty, which is every area. Debug mode writes everything unless this
+    narrows it.
+
+    Raises:
+        TypeError: `"debug_areas"` is not text.
+    """
+    env = os.environ.get("PLANETGEN_DEBUG_AREAS")
+    if env is not None:
+        return env
+    if config is None:
+        config = read_config_file()
+    value = config.get("debug_areas")
+    if value is not None and not isinstance(value, str):
+        raise TypeError(f'"debug_areas" must be a string, not {type(value).__name__}')
+    return value or ""
+
+
 def log_file_path(config=None):
     """
     Where the debug log goes: `PLANETGEN_LOG_FILE` when set, else

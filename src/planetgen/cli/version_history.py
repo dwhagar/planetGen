@@ -21,6 +21,7 @@ import sys
 
 from planetgen.db import store
 from planetgen.galaxy import version_history
+from planetgen.util import log
 
 
 def _galaxy_databases(config):
@@ -81,7 +82,9 @@ def format_history(config):
 def main():
     parser = argparse.ArgumentParser(description="Record the version key each galaxy was updated under.")
     store.add_mysql_connection_args(parser)
+    log.add_debug_arguments(parser)
     args = parser.parse_args()
+    log.apply_debug_arguments(args, parser)
     config = store.mysql_config_from_args(args)
     try:
         recorded = record_all(config)

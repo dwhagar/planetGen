@@ -50,6 +50,7 @@ import tempfile
 import threading
 import time
 
+from planetgen.util import log
 from planetgen.web.lib import apiclient, singleflight, tilepack
 from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles, get_galaxy_window
 from planetgen.web.lib.privatedir import ensure_private_dir
@@ -619,6 +620,10 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
 
     cached_count = len(stored)
     missing = [key for key in tile_keys if key not in stored]
+    if log.debug_log_active():
+        log.trace(f"tile cache: {cached_count} of {len(tile_keys)} tile(s) found stored in database {db} "
+                  f"(generation {generation}); {len(missing)} to build" + (" (ahead of any visitor)" if ahead else ""),
+                  area="cache")
 
     if missing or not isinstance(meta, dict):
         # One build of each tile at a time (PERF.38): what another request

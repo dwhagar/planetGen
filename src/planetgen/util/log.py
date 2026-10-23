@@ -21,28 +21,54 @@ after argument parsing. Every other module just does
 `from planetgen.util import log` and calls `log.debug(...)`/`log.normal(...)`/
 `log.error(...)`.
 
+**Debug mode** is `--debug` on the command line, or `config.json`'s
+`"debug": true` (or `PLANETGEN_DEBUG=1`), which makes every `planetgen`
+command a debug run. A debug run writes every decision it makes to
+**stdout**, one line each, in one format:
+
+    2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] draw.random() ... | roll draw.random() -> 0.31
+
+(ISO time to the millisecond with the UTC offset, severity, the process
+and, for a thread other than the main one, its name, the logger, the
+source line that logged it, and the message). The lines of the worker
+processes that do a run's work reach the command's stdout too, as they
+are written: a unit that is running in a work-queue worker (whose own
+stdout goes nowhere) relays its lines through Redis (`relayed`,
+`read_relayed`) to the process that started the run, which prints them
+(`planetgen.queue.units`, `planetgen.queue.wrapper`). A debug run writes
+to stderr instead when the command's own result goes to stdout
+(`--output -`).
+
+What a debug run writes is split into areas (`AREAS`), so that a galaxy
+run's volume can be cut down: `--debug-areas draw,queue`, `"debug_areas"`
+in `config.json` or `PLANETGEN_DEBUG_AREAS` pick the areas shown, and a
+name with a leading `-` leaves one out (`-draw`). Errors and warnings
+are always shown, and so are the normal (INFO) lines.
+
 Separately from the console, `config.json`'s `"debug": true` (or
 `PLANETGEN_DEBUG=1`) turns on the **debug log**: every entry point --
 `planetgen`, the maintenance scripts, the `html/` CGI pages and the
 Flask API -- appends everything at DEBUG severity to `/var/log/
 planetgen.log` (`"log_file"`/`PLANETGEN_LOG_FILE` to move it), whatever
-the console's own level is. Each line carries a millisecond timestamp,
-the process (`planetgen[1234]`, `web/system.py[88]`, `api[77]`) and the
-source line that logged it. On top of the narrated decisions below, the
-debug log also gets:
+the console's own level is, in the same line format. Besides the
+narrated decisions, the debug log (and a debug run's stdout) gets:
 
   - every draw from `planetgen.util.draw` made by planetGen's own
     code (`_trace_random`): the call, its arguments (weights included),
     the result, and the source line that asked for it -- so a roll like
     `if draw.random() < FLAVOR_CHANCE_PLANET:` shows both the number
-    drawn and the probability it was compared against;
+    drawn and the probability it was compared against; draws on a
+    `draw.Stream` a generator holds are traced too, a bulk draw
+    (`random_array`, `randbits_list`) as one line;
   - every SQL statement `store.Connection` runs, with its timing;
+  - the run's events: stages, units, workers, the machine's lease;
+  - cache hits and misses;
   - uncaught exceptions (`sys.excepthook`/`threading.excepthook`),
     Python warnings, and anything other libraries log (Flask, urllib3, ...).
 
 The tracer only wraps calls, it never draws extra numbers, so a seeded run
-produces the same result with the debug log on or off. With debug off
-none of this is installed and nothing is written.
+produces the same result with debug on or off. With debug off none of this
+is installed and nothing is written.
 
 `set_console`/`reset_console` let a caller with a live `rich.progress.Progress`
 bar redirect this module's console output through `progress.console.print(...)`
@@ -75,16 +101,26 @@ _LEVELS = {
     DEBUG: logging.DEBUG,
 }
 
-_TIMESTAMPED_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
 _PLAIN_FORMAT = "%(message)s"
+
+AREAS = {
+    "decision": "narrated decisions and choices, stage timings",
+    "draw": "every random draw: the call, its arguments, the result, the source line and the probability it met",
+    "sql": "every SQL statement, with its timing",
+    "queue": "runs, stages, units, workers and the machine's lease",
+    "cache": "cache hits, misses and rebuilds",
+    "web": "web requests, API calls and authorization decisions",
+    "lib": "what other libraries log (Flask, RQ, Redis, urllib3)",
+}
+"""dict: The areas of debug output (`--debug-areas`), each with what it holds."""
 
 _logger = logging.getLogger("planetgen")
 _logger.propagate = False
 
-# High-volume detail (every random draw, every SQL statement) that belongs
-# in the debug log only -- never on the console, even under --debug.
+# High-volume detail (every random draw, every SQL statement). It goes to
+# the same places as everything else a debug run writes (stdout, the debug
+# log, a worker's relay); only its area (`draw`, `sql`, ...) tells it apart.
 _trace_logger = logging.getLogger("planetgen.trace")
-_trace_logger.propagate = False
 _trace_logger.setLevel(logging.DEBUG)
 
 _component = None
@@ -92,8 +128,62 @@ _component = None
 defaults to the running script's file name."""
 
 _debug_log_handler = None
+_relay_handler = None
+_console_debug = False
+_tracing = False
 _root_stderr_handler = None
 _warned_unwritable = set()
+
+_areas = None
+"""frozenset | None: The areas debug output is limited to (`set_areas`); `None` is every area."""
+
+_areas_spec = ""
+"""str: The text `_areas` came from, as `--debug-areas` takes it; empty is every area."""
+
+
+def parse_areas(spec):
+    """
+    The areas a `--debug-areas` text names: names separated by commas or spaces, `all` (or `*`) for every area, a
+    leading `-` to leave one out (`-draw`; with only exclusions, every other area is shown). Empty is every area.
+
+    Returns:
+        frozenset | None: The areas shown, or `None` for all of them.
+
+    Raises:
+        ValueError: A name that is not an area.
+    """
+    names = [part for part in re.split(r"[,\s]+", spec or "") if part]
+    chosen, left_out = set(), set()
+    for name in names:
+        if name in ("all", "*"):
+            chosen.update(AREAS)
+            continue
+        target = left_out if name.startswith("-") else chosen
+        bare = name.lstrip("-")
+        if bare not in AREAS:
+            raise ValueError(f"{bare!r} is not a debug area; the areas are {', '.join(AREAS)}")
+        target.add(bare)
+    if not names or (not chosen and not left_out):
+        return None
+    shown = (chosen or set(AREAS)) - left_out
+    return None if shown == set(AREAS) else frozenset(shown)
+
+
+def set_areas(spec):
+    """Limits a debug run's output to the areas `spec` names (`parse_areas`); empty shows them all."""
+    global _areas, _areas_spec
+    _areas = parse_areas(spec)
+    _areas_spec = (spec or "").strip()
+
+
+def areas_spec():
+    """The text of the areas in force (`""` for all), as `set_areas` takes it."""
+    return _areas_spec
+
+
+def area_enabled(area):
+    """Whether output of `area` is shown: lets a caller skip building a line nobody would see."""
+    return _areas is None or area in _areas
 
 
 def set_component(name):
@@ -120,6 +210,35 @@ class _OriginFilter(logging.Filter):
         return True
 
 
+_WEB_DIRS = tuple(os.sep + "planetgen" + os.sep + name + os.sep for name in ("web", "api"))
+_QUEUE_DIR = os.sep + "planetgen" + os.sep + "queue" + os.sep
+
+
+def _area_of(record):
+    """The area of a record that did not name one: another library's is `lib`; planetGen's own is `web`
+    or `queue` by the folder it was logged from, else `decision`."""
+    if not record.name.startswith("planetgen"):
+        return "lib"
+    if any(part in record.pathname for part in _WEB_DIRS):
+        return "web"
+    if _QUEUE_DIR in record.pathname:
+        return "queue"
+    return "decision"
+
+
+class _AreaFilter(logging.Filter):
+    """Stamps each record with its `area` and drops a DEBUG record of an area `--debug-areas` left out. Normal (INFO)
+    lines, warnings and errors always pass: a filter that hid an error would hide the one line that matters."""
+
+    def filter(self, record):
+        area = getattr(record, "area", None)
+        if area is None:
+            area = record.area = _area_of(record)
+        if record.levelno != logging.DEBUG:
+            return True
+        return _areas is None or area in _areas
+
+
 class _DebugLogFormatter(logging.Formatter):
     """Local time with milliseconds and UTC offset, e.g.
     `2026-09-24T02:57:37.123-0400`, so lines from several processes (and
@@ -133,37 +252,54 @@ class _DebugLogFormatter(logging.Formatter):
 
 _DEBUG_LOG_FORMAT = ("%(asctime)s %(levelname)-8s %(origin)s %(name)s "
                      "%(filename)s:%(lineno)d %(funcName)s | %(message)s")
+_origin_filter = _OriginFilter()
+_area_filter = _AreaFilter()
+
+
+def _debug_formatter():
+    return _DebugLogFormatter(_DEBUG_LOG_FORMAT)
 
 
 class _ConsoleHandler(logging.Handler):
     """
     Writes to stdout by default; `set_console`/`reset_console` retarget it
     to a `rich.Console` (a live `Progress`'s own `console`) so output stays
-    redraw-safe while a progress bar is on screen.
+    redraw-safe while a progress bar is on screen. A debug run's lines are
+    flushed as they are written, so they can be watched as they happen even
+    when stdout is a pipe.
     """
 
     def __init__(self):
         super().__init__()
         self._console = None
+        self.to_stderr = False
 
     def set_console(self, console):
         self._console = console
 
     def emit(self, record):
-        message = self.format(record)
+        self.write(self.format(record))
+
+    def write(self, message):
+        """One finished line to the console (a line a worker formatted comes through here too)."""
         if self._console is not None:
             # ADM.23: one line, wrapped by whatever shows it (a terminal,
             # the web job log), never hard-broken at the console's width
             # (80 when piped); and brackets are text, not rich markup.
             self._console.print(message, soft_wrap=True, markup=False)
         else:
-            print(message, file=sys.stdout)
+            stream = sys.stderr if self.to_stderr else sys.stdout
+            print(message, file=stream)
+        try:
+            (sys.stderr if self.to_stderr else sys.stdout).flush()
+        except (OSError, ValueError):
+            pass
 
 
 _console_handler = _ConsoleHandler()
 
 
-def configure(level=NORMAL, debug_file=None, console=True):
+def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None):
     """
     (Re)configures the shared logger for the given console severity `level`
     (`SILENT`/`NORMAL`/`DEBUG`). `debug_file`, if given, is opened as an
@@ -184,36 +320,115 @@ def configure(level=NORMAL, debug_file=None, console=True):
         console (bool): False leaves the console handler off -- for the
             web interface, where stdout is the HTTP response (CGI) or not
             ours to write to (mod_wsgi).
+        to_stderr (bool): Write the console's lines to stderr, for a command whose own result goes to stdout.
+        areas (str | None): The areas debug output is limited to (`parse_areas`); `None` takes `PLANETGEN_DEBUG_AREAS`,
+            then `config.json`'s `"debug_areas"`, then every area.
     """
+    global _console_debug
     for handler in list(_logger.handlers):
         _logger.removeHandler(handler)
-        if handler is not _console_handler and handler is not _debug_log_handler:
+        if (handler is not _console_handler and handler is not _debug_log_handler
+                and handler is not _relay_handler):
             handler.close()
 
+    set_areas(areas if areas is not None else _configured_areas())
     console_level = _LEVELS[level]
-    formatter = logging.Formatter(_TIMESTAMPED_FORMAT if level == DEBUG else _PLAIN_FORMAT)
+    formatter = _debug_formatter() if level == DEBUG else logging.Formatter(_PLAIN_FORMAT)
     _console_handler.setFormatter(formatter)
     _console_handler.setLevel(console_level)
+    _console_handler.to_stderr = to_stderr
+    _console_handler.filters.clear()
+    if level == DEBUG:
+        _console_handler.addFilter(_origin_filter)
+        _console_handler.addFilter(_area_filter)
     if console:
         _logger.addHandler(_console_handler)
     else:
         # Without any handler, logging's "last resort" would print errors
         # to stderr anyway; the web interface already reports its own.
         _logger.addHandler(logging.NullHandler())
+    _console_debug = bool(console and level == DEBUG)
 
     if debug_file:
         file_handler = logging.FileHandler(debug_file)
         file_handler.setFormatter(formatter)
         file_handler.setLevel(console_level)
+        if level == DEBUG:
+            file_handler.addFilter(_origin_filter)
+            file_handler.addFilter(_area_filter)
         _logger.addHandler(file_handler)
 
+    if _relay_handler is not None:
+        _logger.addHandler(_relay_handler)
     was_active = _debug_log_handler is not None
     debug_log = _configure_debug_log()
-    _logger.setLevel(logging.DEBUG if debug_log else console_level)
+    _logger.setLevel(logging.DEBUG if (debug_log or _relay_handler is not None) else console_level)
+    _sync_tracing()
     if debug_log and not was_active:
         _logger.debug("Debug log opened (planetGen %s, Python %s, argv=%r, cwd=%s, uid=%s)",
                       _package_version(), sys.version.split()[0], _redacted_argv(), os.getcwd(),
                       os.getuid() if hasattr(os, "getuid") else "n/a")
+
+
+def _configured_areas():
+    """The areas `PLANETGEN_DEBUG_AREAS` or `config.json` name; every area when neither does or the text is wrong
+    (one warning on stderr: logging must never stop the program)."""
+    try:
+        spec = logpaths.debug_areas()
+        parse_areas(spec)
+        return spec
+    except Exception as exc:  # noqa: BLE001
+        print(f"planetgen: debug_areas ignored, every area is shown: {exc}", file=sys.stderr)
+        return ""
+
+
+def config_debug():
+    """Whether debug mode is on in `config.json` or the environment (`False` when the file cannot be read)."""
+    try:
+        return logpaths.debug_enabled()
+    except Exception:  # noqa: BLE001 -- logging must never stop the program
+        return False
+
+
+def console_debug():
+    """Whether this process writes a debug run's lines to its console: what a run hands to its workers."""
+    return _console_debug
+
+
+def add_debug_arguments(parser):
+    """Adds `--debug` (and `--debug-areas`) to a standalone command's `parser` and to each of its subcommands, so
+    every command in the project takes it. Call it once the subcommands are added; `apply_debug_arguments` reads it."""
+    import argparse
+
+    def add(target, default):
+        target.add_argument("--debug", action="store_true", default=default,
+                            help="Write every decision, random draw, SQL statement and queue event, with ISO "
+                                 "timestamps, to stdout (and to the debug log when config.json turns debug on).")
+        target.add_argument("--debug-areas", metavar="AREAS", default=None if default is False else default,
+                            help="Limit --debug to some areas: " + ", ".join(AREAS) + " (a leading - leaves one out).")
+
+    add(parser, False)
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            for sub in action.choices.values():
+                add(sub, argparse.SUPPRESS)        # a value given before the subcommand is not reset by the subparser
+
+
+def apply_debug_arguments(args, parser=None):
+    """
+    Configures logging for a standalone command from the options `add_debug_arguments` added, and from debug mode in
+    `config.json`. Call it right after parsing. Debug output goes to stdout.
+    """
+    wanted = getattr(args, "debug", False) or config_debug()
+    areas = getattr(args, "debug_areas", None)
+    if areas is not None:
+        try:
+            parse_areas(areas)
+        except ValueError as exc:
+            if parser is None:
+                raise
+            parser.error(f"--debug-areas: {exc}")
+    configure(DEBUG if wanted else NORMAL, areas=areas)
 
 
 _SECRET_OPTIONS = ("--mysql-password",)
@@ -311,20 +526,19 @@ def _configure_debug_log():
                       f"run install.sh/update.sh as root to create it.", file=sys.stderr)
             return False
         handler.setLevel(logging.DEBUG)
-        handler.setFormatter(_DebugLogFormatter(_DEBUG_LOG_FORMAT))
-        handler.addFilter(_OriginFilter())
+        handler.setFormatter(_debug_formatter())
+        handler.addFilter(_origin_filter)
+        handler.addFilter(_area_filter)
         _debug_log_handler = handler
         _attach_extras(handler)
 
     _logger.addHandler(handler)
-    if handler not in _trace_logger.handlers:
-        _trace_logger.addHandler(handler)
     return True
 
 
 def _attach_extras(handler):
     """Routes other libraries' logging, uncaught exceptions and warnings to
-    the debug log, and starts tracing random draws."""
+    the debug log."""
     global _root_stderr_handler
     root = logging.getLogger()
     if not root.handlers:
@@ -339,7 +553,6 @@ def _attach_extras(handler):
     root.setLevel(logging.DEBUG)
     logging.captureWarnings(True)
     _install_excepthooks()
-    _trace_random(True)
 
 
 def _detach_debug_log():
@@ -348,7 +561,6 @@ def _detach_debug_log():
     if handler is None:
         return
     _logger.removeHandler(handler)
-    _trace_logger.removeHandler(handler)
     root = logging.getLogger()
     root.removeHandler(handler)
     if _root_stderr_handler is not None:
@@ -356,15 +568,23 @@ def _detach_debug_log():
         _root_stderr_handler = None
     root.setLevel(logging.WARNING)
     logging.captureWarnings(False)
-    _trace_random(False)
     handler.close()
     _debug_log_handler = None
 
 
 def debug_log_active():
-    """Whether the debug log is attached -- lets a caller skip building
-    expensive debug-only detail when nothing would record it."""
-    return _debug_log_handler is not None
+    """Whether anything records debug detail (the debug log, a debug run's console, a worker's relay) -- lets a
+    caller skip building expensive debug-only detail when nothing would record it."""
+    return _tracing
+
+
+def _sync_tracing():
+    """Starts tracing random draws while anything records debug detail, and stops when nothing does."""
+    global _tracing
+    _tracing = _debug_log_handler is not None or _console_debug or _relay_handler is not None
+    _trace_random(_tracing)
+    if _tracing:
+        _install_excepthooks()
 
 
 _previous_excepthook = None
@@ -381,7 +601,7 @@ def _install_excepthooks():
     _previous_excepthook = sys.excepthook
 
     def _excepthook(exc_type, exc, tb):
-        if _debug_log_handler is not None and not issubclass(exc_type, KeyboardInterrupt):
+        if _tracing and not issubclass(exc_type, KeyboardInterrupt):
             _logger.critical("Uncaught exception", exc_info=(exc_type, exc, tb))
         _previous_excepthook(exc_type, exc, tb)
 
@@ -391,7 +611,7 @@ def _install_excepthooks():
         _previous_threading_excepthook = threading.excepthook
 
         def _threading_excepthook(hook_args):
-            if _debug_log_handler is not None:
+            if _tracing:
                 _logger.critical("Uncaught exception in thread %s",
                                  getattr(hook_args.thread, "name", "?"),
                                  exc_info=(hook_args.exc_type, hook_args.exc_value, hook_args.exc_traceback))
@@ -480,19 +700,66 @@ def _referenced_values(frame, source):
     return found
 
 
+_STREAM_METHODS = ("random", "uniform", "randrange", "randint", "choice", "choices", "shuffle", "sample", "gauss",
+                   "normal", "gamma", "dirichlet", "getrandbits", "random_array", "randbits_list")
+"""tuple: Every draw a `draw.Stream` makes. The module-level functions (`draw.uniform`) pass straight to these, so
+tracing the class traces them, and the draws on a stream a generator holds itself, in one place."""
+
+_draw_state = threading.local()
+_DRAW_STEM = os.path.splitext(os.path.abspath(draw.__file__))[0]
+_SKIPPED_FILES = (_DRAW_STEM, os.path.join(os.path.dirname(os.path.abspath(__file__)), "random"))
+
+
+def _is_wrapper_frame(frame):
+    """Whether `frame` is the draw module or a sampling helper (`planetgen.util.random`) that draws for its caller:
+    the line worth showing is the one that called them."""
+    return os.path.splitext(os.path.abspath(frame.f_code.co_filename))[0] in _SKIPPED_FILES
+
+
+def _describe_result(value):
+    if hasattr(value, "shape") and hasattr(value, "tolist"):
+        size = getattr(value, "size", 0)
+        return f"<array shape={value.shape}: {_short_repr(value.ravel()[:3].tolist())}{' ...' if size > 3 else ''}>"
+    if isinstance(value, list) and len(value) > 12:
+        return f"<list of {len(value)}: {_short_repr(value[:3])[:-1]}, ...]>"
+    return _short_repr(value)
+
+
 def _make_tracer(name, original):
     @functools.wraps(original)
-    def traced(*args, **kwargs):
-        result = original(*args, **kwargs)
+    def traced(self, *args, **kwargs):
+        if getattr(_draw_state, "inside", False):
+            return original(self, *args, **kwargs)     # a draw built on other draws (choice on randrange): one line
+        _draw_state.inside = True
+        try:
+            result = original(self, *args, **kwargs)
+        finally:
+            _draw_state.inside = False
+        if _areas is not None and "draw" not in _areas:
+            return result
         frame = sys._getframe(1)
-        if _is_own_frame(frame):
-            arg_text = ", ".join([_short_repr(a) for a in args]
-                                 + [f"{k}={_short_repr(v)}" for k, v in kwargs.items()])
-            shown = args[0] if name == "shuffle" and args else result
-            source = linecache.getline(frame.f_code.co_filename, frame.f_lineno).strip()
-            values = _referenced_values(frame, source)
-            _trace_logger.debug("roll draw.%s(%s) -> %s  <- %s%s", name, arg_text, _short_repr(shown), source,
-                          f"  [{', '.join(values)}]" if values else "", stacklevel=2)
+        skipped, helpers = 0, []
+        while frame is not None and _is_wrapper_frame(frame):
+            if os.path.splitext(os.path.abspath(frame.f_code.co_filename))[0] != _DRAW_STEM:
+                helpers.append(frame.f_code.co_name)
+            frame, skipped = frame.f_back, skipped + 1
+        if frame is not None and _is_own_frame(frame):
+            if name == "__init__":
+                text = f"new stream seeded with {_short_repr(args[0] if args else kwargs.get('seed'))}"
+                source = ""
+            else:
+                arg_text = ", ".join([_short_repr(a) for a in args]
+                                     + [f"{k}={_short_repr(v)}" for k, v in kwargs.items()])
+                shown = args[0] if name == "shuffle" and args else result
+                text = f"roll draw.{name}({arg_text}) -> {_describe_result(shown)}"
+                source = None
+            if source is None:
+                source = linecache.getline(frame.f_code.co_filename, frame.f_lineno).strip()
+                values = _referenced_values(frame, source)
+                if helpers:
+                    text += f"  (via {', '.join(helpers)})"
+                text += f"  <- {source}" + (f"  [{', '.join(values)}]" if values else "")
+            _trace_logger.debug("%s", text, stacklevel=2 + skipped, extra={"area": "draw"})
         return result
 
     traced._planetgen_traced = True
@@ -501,24 +768,182 @@ def _make_tracer(name, original):
 
 def _trace_random(enable):
     """
-    Wraps (or unwraps) `planetgen.util.draw`'s functions so each call
-    from planetGen's own code is logged at DEBUG severity. Only the
-    module-level functions are wrapped: they're what every generator
-    module calls (`draw.uniform(...)`), while the `Stream` methods they
-    use stay untouched -- so nothing is logged twice and no extra numbers
-    are drawn. A `draw.Stream` a generator holds itself isn't traced.
+    Wraps (or unwraps) the draws of `planetgen.util.draw.Stream`, the one
+    place every random number comes from, so each draw from planetGen's own
+    code is logged at DEBUG severity in the `draw` area. A draw built on
+    others (`choice` on `randrange`, `gamma` on `gauss`) is one line, a
+    bulk draw (`random_array`) one line for all of it, and a draw made
+    through a sampling helper names the helper and the line that called
+    it. The wrappers only observe: no extra numbers are drawn, so a seeded
+    run is the same with tracing on or off.
     """
     if enable:
-        for name in _RANDOM_FUNCTIONS:
-            original = getattr(draw, name, None)
+        for name in ("__init__", *_STREAM_METHODS):
+            original = getattr(draw.Stream, name, None)
             if original is None or getattr(original, "_planetgen_traced", False):
                 continue
             _original_random_functions[name] = original
-            setattr(draw, name, _make_tracer(name, original))
+            setattr(draw.Stream, name, _make_tracer(name, original))
     else:
         for name, original in _original_random_functions.items():
-            setattr(draw, name, original)
+            setattr(draw.Stream, name, original)
         _original_random_functions.clear()
+
+
+# -- Worker lines to the starter's stdout -------------------------------------
+
+RELAY_MAXLEN = 200_000
+"""int: The most lines a run keeps in Redis for its starter to print (the oldest go first)."""
+
+RELAY_KEEP_SECONDS = 3600
+"""int: How long a run's relayed lines stay in Redis once nothing is adding to them."""
+
+_RELAY_BATCH = 500
+_RELAY_SECONDS = 0.2
+
+
+class _RelayHandler(logging.Handler):
+    """
+    Collects a unit's formatted lines and sends them to the run's stream in Redis (`XADD`, a batch at a time, at
+    least every `_RELAY_SECONDS`), where the process that started the run reads them (`read_relayed`) and prints
+    them as they come. A thread flushes on the clock, so the line before a long stretch of work is not held back
+    until the stretch ends.
+    """
+
+    def __init__(self, conn, key):
+        super().__init__(logging.DEBUG)
+        self.conn, self.key = conn, key
+        self._lines = []
+        self._guard = threading.Lock()
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, name="planetgen-relay", daemon=True)
+        self._thread.start()
+
+    def emit(self, record):
+        line = self.format(record)
+        with self._guard:
+            self._lines.append(line)
+            full = len(self._lines) >= _RELAY_BATCH
+        if full:
+            self.flush()
+
+    def _run(self):
+        while not self._stop.wait(_RELAY_SECONDS):
+            self.flush()
+
+    def flush(self):
+        with self._guard:
+            lines, self._lines = self._lines, []
+        if not lines:
+            return
+        try:
+            pipe = self.conn.pipeline(transaction=False)
+            for line in lines:
+                pipe.xadd(self.key, {"l": line}, maxlen=RELAY_MAXLEN, approximate=True)
+            pipe.expire(self.key, RELAY_KEEP_SECONDS)
+            pipe.execute()
+        except Exception:  # noqa: BLE001 -- debug output must never fail the unit it describes
+            pass
+
+    def close(self):
+        self._stop.set()
+        self._thread.join(timeout=2)
+        self.flush()
+        super().close()
+
+
+@contextmanager
+def relayed(conn, key, areas=""):
+    """
+    For a unit of work in a queue worker, whose own stdout goes nowhere: while the block runs, everything it logs at
+    DEBUG goes to the stream `key` in Redis (`conn`) for the run's starter to print (`read_relayed`), in the areas
+    `areas` names (`parse_areas`; empty is every area). A worker that already writes the debug log keeps doing so.
+    """
+    global _relay_handler, _areas, _areas_spec
+    handler = _RelayHandler(conn, key)
+    handler.setFormatter(_debug_formatter())
+    handler.addFilter(_origin_filter)
+    handler.addFilter(_area_filter)
+    before = (_areas, _areas_spec, _logger.level, _relay_handler)
+    set_areas(areas)
+    _relay_handler = handler
+    _logger.addHandler(handler)
+    _logger.setLevel(logging.DEBUG)
+    _sync_tracing()
+    try:
+        yield handler
+    finally:
+        _logger.removeHandler(handler)
+        handler.close()
+        _relay_handler = before[3]
+        _areas, _areas_spec = before[0], before[1]
+        _logger.setLevel(before[2])
+        _sync_tracing()
+
+
+def flush_relayed():
+    """Sends the lines a unit has written so far to the run's starter now (no-op outside `relayed`)."""
+    if _relay_handler is not None:
+        _relay_handler.flush()
+
+
+def read_relayed(conn, key, after="0", count=2000):
+    """The lines workers relayed to `key` after stream id `after`: `(lines, last id)`."""
+    rows = conn.xrange(key, min="(" + after if after != "0" else "-", max="+", count=count)
+    if not rows:
+        return [], after
+    text = lambda value: value.decode("utf-8", "replace") if isinstance(value, bytes) else value   # noqa: E731
+    return [text(fields.get(b"l", fields.get("l", ""))) for _entry, fields in rows], text(rows[-1][0])
+
+
+class RelayReader:
+    """
+    The starter's side of `relayed`: `drain()` prints, on this process's console (and in the `--debug FILE` it was
+    given), the lines the run's workers have relayed since the last call. A run calls it on every poll and once more
+    when it ends.
+    """
+
+    def __init__(self, conn, key):
+        self.conn, self.key, self.after = conn, key, "0"
+
+    def finish(self, quiet=0.4, limit=3.0):
+        """The run is over: prints what is left, and keeps looking until no line has come for `quiet` seconds (the
+        unit that ended the run is still writing its last ones), but no longer than `limit`."""
+        deadline = time.monotonic() + limit
+        last = time.monotonic()
+        while True:
+            if self.drain():
+                last = time.monotonic()
+            if time.monotonic() - last >= quiet or time.monotonic() >= deadline:
+                return
+            time.sleep(0.05)
+
+    def drain(self):
+        """Prints what is waiting; returns how many lines."""
+        total = 0
+        while True:
+            try:
+                lines, self.after = read_relayed(self.conn, self.key, self.after)
+            except Exception:  # noqa: BLE001 -- a lost line is not a reason to stop the run
+                return total
+            if not lines:
+                return total
+            for line in lines:
+                write_line(line)
+            total += len(lines)
+
+
+def write_line(text):
+    """Writes a line another process already formatted to the console and to the `--debug FILE` mirror."""
+    if _console_debug:
+        _console_handler.write(text)
+    for handler in _logger.handlers:
+        if isinstance(handler, logging.FileHandler) and handler is not _debug_log_handler:
+            try:
+                handler.stream.write(text + "\n")
+                handler.flush()
+            except (OSError, ValueError):
+                pass
 
 
 def set_console(console):
@@ -533,8 +958,12 @@ def reset_console():
 
 # stacklevel=2 on each wrapper so the debug log's file:line/function is the
 # caller's, not this module's.
-def debug(message, *args, **kwargs):
+def debug(message, *args, area=None, **kwargs):
+    """A decision, narrated. `area` (one of `AREAS`) files it where `--debug-areas` can pick it; the default is by
+    the folder of the module that logs it (`web`, `queue`, else `decision`)."""
     kwargs.setdefault("stacklevel", 2)
+    if area is not None:
+        kwargs["extra"] = {"area": area}
     _logger.debug(message, *args, **kwargs)
 
 
@@ -548,11 +977,13 @@ def error(message, *args, **kwargs):
     _logger.error(message, *args, **kwargs)
 
 
-def trace(message, *args, **kwargs):
-    """Debug-log-only detail (never shown on the console, even with
-    `--debug`); a no-op unless the debug log is on."""
-    if _debug_log_handler is not None:
+def trace(message, *args, area="decision", **kwargs):
+    """High-volume detail (an SQL statement, a cache hit), in `area` (one of `AREAS`). It goes where every other
+    debug line goes (stdout, the debug log, a worker's relay); a no-op unless one of them is on, so the caller
+    may build `message` only when `debug_log_active()` says something would record it."""
+    if _tracing:
         kwargs.setdefault("stacklevel", 2)
+        kwargs["extra"] = {"area": area}
         _trace_logger.debug(message, *args, **kwargs)
 
 

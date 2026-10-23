@@ -20,6 +20,7 @@ import sys
 
 from planetgen.admin import maintenance, updateguard
 from planetgen.db import store
+from planetgen.util import log
 
 
 def main(argv=None):
@@ -31,7 +32,9 @@ def main(argv=None):
     parser.add_argument("--failed", action="store_true", help="With end: the update failed.")
     parser.add_argument("--step", default=None, help="With end --failed: the step that failed.")
     store.add_mysql_connection_args(parser)
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     config = store.mysql_config_from_args(args)
 
     if args.command == "status":

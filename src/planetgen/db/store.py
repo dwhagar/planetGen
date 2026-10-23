@@ -913,11 +913,11 @@ class Connection:
                                    seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
             if traced:
                 log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: "
-                          f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", stacklevel=4)
+                          f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)
             raise
         if traced:
             log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
-                      f"{_sql_for_log(sql, params)}", stacklevel=4)
+                      f"{_sql_for_log(sql, params)}", area="sql", stacklevel=4)
         return _Cursor(cur)
 
     @contextlib.contextmanager
@@ -1046,7 +1046,7 @@ class Connection:
                 statements += 1
         if log.debug_log_active():
             log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
-                      f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", stacklevel=3)
+                      f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", area="sql", stacklevel=3)
 
     def executemany(self, sql, seq_of_params):
         """
@@ -1065,7 +1065,8 @@ class Connection:
         cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
             log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
-                      f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", stacklevel=3)
+                      f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
+                      stacklevel=3)
         return _Cursor(cur)
 
     def execute_literal(self, sql):
@@ -1079,7 +1080,7 @@ class Connection:
         cur.execute(sql)
         if log.debug_log_active():
             log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
-                      stacklevel=3)
+                      area="sql", stacklevel=3)
         return _Cursor(cur)
 
     def executescript(self, script):
@@ -1102,6 +1103,8 @@ class Connection:
         for statement in "\n".join(statements).split(";"):
             statement = statement.strip()
             if statement:
+                if log.debug_log_active():
+                    log.trace(f"SQL script statement: {statement[:200]}", area="sql")
                 self._conn.cursor().execute(statement)
         self._conn.commit()
 
@@ -1147,8 +1150,13 @@ class Connection:
         self.flush()
         self._conn.commit()
         self._release_txn_locks()
+        if log.debug_log_active():
+            log.trace("SQL commit", area="sql")
 
     def rollback(self):
+        if log.debug_log_active():
+            log.trace(f"SQL rollback ({sum(len(rows) for rows in self._batch.values()) if self._batch else 0} "
+                      f"held-back row(s) dropped)", area="sql")
         if self._batch:
             self._batch = {}
         try:
@@ -1269,6 +1277,11 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
     """
     config = config or DEFAULT_MYSQL_CONFIG
     conn = Connection(_get_pool(config, statement_timeout_s).connect(), config)
+    if log.debug_log_active():
+        log.trace(f"SQL connection from the pool: {config.database}@{config.host}:{config.port} as {config.user}"
+                  f"{'' if statement_timeout_s is None else f', statement limit {statement_timeout_s}s'}"
+                  f"{', schema checked' if ensure_schema and config._key() not in _schema_ensured else ''}",
+                  area="sql")
     if ensure_schema and config._key() not in _schema_ensured:
         try:
             _ensure_schema(conn)
@@ -8045,7 +8058,9 @@ def _component_field(conn, edge_pc, expected_at_density_1):
     if field is not None:
         with contextlib.suppress(KeyError):       # another thread dropped it meanwhile
             _FIELD_BY_SIGNATURE.move_to_end(key)
+        log.trace(f"component field: cache hit for {row['n']} stored components (database {row['db']})", area="cache")
         return field
+    log.trace(f"component field: cache miss, reading {row['n']} stored components (database {row['db']})", area="cache")
     found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
     if not found:
         return None

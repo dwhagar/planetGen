@@ -14,6 +14,7 @@ from planetgen._version import VersionAction, version_banner
 from planetgen.api import ids
 from planetgen.db.query import list_moons, list_planets, list_sectors, list_systems, open_readonly
 from planetgen.db import near
+from planetgen.util import log
 from planetgen.util.format import format_distance_km, format_distance_ly, format_distance_pc
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
 
@@ -74,7 +75,10 @@ def process_args():
     moons_parser.add_argument('--sector-id', help="Only moons whose system is in this sector.")
     moons_parser.add_argument('--system-id', help="Only moons in this one system.")
 
-    return parser.parse_args()
+    log.add_debug_arguments(parser)
+    args = parser.parse_args()
+    log.apply_debug_arguments(args, parser)
+    return args
 
 
 def _row(conn, kind, printed_id):

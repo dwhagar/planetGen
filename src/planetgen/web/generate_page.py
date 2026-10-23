@@ -165,6 +165,9 @@ Plan and Rebuild the bright stars."""
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
 DISREGARD_FLAG = "--disregard-missing-data"
+DEBUG_FLAG = "--debug"
+"""str: Added to every step of a job whose form has the Debug box ticked: each command logs every decision to stdout,
+which is the job log. Debug mode in `config.json` does the same for every job."""
 """str: The option a job's generating commands and its data check get when the form's "Disregard missing data files" box is ticked (GEN.599)."""
 
 DATA_CHECK_LABEL = "Check the data"
@@ -882,6 +885,9 @@ def build_job(action, form, database, edge_pc=None):
                     step["argv"] = step["argv"] + [DISREGARD_FLAG]
         steps = [{"label": DATA_CHECK_LABEL,
                   "argv": [python, *jobs.DATASETS_COMMAND, "status", *([DISREGARD_FLAG] if disregard else [])]}, *steps]
+    if form.get("debug"):
+        for step in steps:
+            step["argv"] = step["argv"] + [DEBUG_FLAG]
     for step in steps:
         step["stages"] = step_stages(step)
     return kind, title, steps

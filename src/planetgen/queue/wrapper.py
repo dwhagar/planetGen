@@ -168,11 +168,13 @@ def advance(conn, run_id, index):
     runrecord.finish_run(conn, run_id, "done")
 
 
-def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep):
+def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None):
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
     last_ensure = float("-inf")
     while True:
         runrecord.touch(conn, run_id)
+        if on_debug is not None:
+            on_debug()
         plan = runrecord.read_plan(conn, run_id, index)
         if plan is not None:
             return plan
@@ -260,26 +262,37 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
                               expected_seconds=expected_seconds(step, (rows or {}).get(step.key)),
                               row=(rows or {}).get(step.key)) for step in steps]
+    debug = (log.areas_spec() or "all") if log.console_debug() else ""     # a debug run: the workers relay their lines
     start = lambda: runrecord.start_run(       # noqa: E731
         conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
-        kind=kind, disregard_missing_data=fetch.disregarding_missing_data())
+        kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug)
     if kind == runrecord.GENERATION:
         run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
     else:
         run_id = start()
     ensure = lambda: workers.ensure_workers(queue_of(kind), conn, url, count=workers_count)  # noqa: E731
+    relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
+    on_debug = relay.drain if relay else None
+    log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
+              f"{workers_count or 'the default number of'} worker(s), kind {kind}, database {database}"
+              + (f", debug areas {debug}" if debug else ""), area="queue")
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
-            plan = _await_plan(conn, run_id, index, ensure)
+            plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
+            log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
+                      f"cost {plan['cost']}", area="queue")
             on_plan(index, plan)
             if plan["units"]:
                 units.follow_stage(
                     conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                    ensure)
+                    ensure, on_debug=on_debug)
         runrecord.finish_run(conn, run_id, "done")      # a stage of no units has no last unit to do it
+        log.trace(f"run {run_id} finished: done", area="queue")
+        if relay:
+            relay.finish()
     except BaseException as exc:
         stopped = isinstance(exc, KeyboardInterrupt) or (       # Ctrl+C, or a SIGTERM (`cli.generate._exit_on_sigterm`)
             isinstance(exc, SystemExit) and isinstance(exc.code, int) and exc.code >= 128)
@@ -291,6 +304,9 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             runrecord.finish_run(conn, run_id, "cancelled" if stopped else "failed", error=message)
         except redis.exceptions.RedisError:
             pass        # a full Redis refuses this write too; the original error is the one to show
+        log.trace(f"run {run_id} finished: {'cancelled' if stopped else 'failed'} ({message})", area="queue")
+        if relay:
+            relay.finish()
         if full:
             raise RuntimeError(message) from None
         raise
