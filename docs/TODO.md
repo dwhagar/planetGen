@@ -686,7 +686,7 @@ with `clamp()`.
   to be pushed to claude/project-thread-l8ulna rebased after UX.140
   merges. Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete).
-  Prerequisites: UX.140. Related: GEN.300, GEN.299.
+  Prerequisites: none. Related: GEN.300, GEN.299.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -861,35 +861,6 @@ with `clamp()`.
   a lane before use under the standing source rules, and any change to a
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
-
-- [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Owner: Core 3 (the coordinator, relayed 3:56 PM EDT 2026-10-22 as the
-  lane's clock reads; it takes UX.140 before UX.128; the earlier proposal
-  was Core 2). Do: generate
-  the registry to JS as `build_unit_ladders.py` does for the ladders,
-  with a test that fails when the committed file is stale (as
-  `test_unit_ladders.py`); remove the three `AU_KM = 149597870.7`
-  declarations (`orbitpositions.js`, `systemview3d.js`,
-  `galaxysystem.js`) and the `KM_PER_PC` of `galaxysystem.js`. Done:
-  Python and JS agree on every factor by test, and no browser file
-  declares one.
-  GEN.568 is merged as #2476 (relayed 11:07 AM EDT 2026-10-22), so this
-  item is unblocked.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note

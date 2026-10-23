@@ -2097,7 +2097,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | none | open |
 | UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | none | open |
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | done, PR #2490 |
-| UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | open |
+| UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | done, PR #2571 |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | done, PR #2408 |
 | UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |
 | UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
