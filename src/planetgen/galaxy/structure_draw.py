@@ -38,6 +38,10 @@ each other nor on the order they run in.
    zero metallicity, which `galaxy.remnant_density` turns into a rate per star at a place.
 6. **Bar** (GEN.533; sources and conflicts in `docs/design/gen533-bar-sources.md`): whether the galaxy has a bar, the
    bar's (or an unbarred bulge's) axis ratios and the bar's angle; see `draw_bar`.
+7. **Nuclear disc** (GEN.628): the barred galaxy's disc mass from its stellar mass, the centre log-uniform between the
+   two fits of Gadotti and de Sa-Freitas 2025 (arXiv:2509.14319, Eqs. 1 and 2), scattered by a placeholder 0.3 dex;
+   none for an unbarred galaxy or one under `dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`. It no longer follows the
+   nuclear cluster's mass.
 
 All the scatters are log-normal (normal in the log of the quantity), cut at 3 sigma so no seed draws a number the
 sources do not span.
@@ -94,6 +98,17 @@ NUCLEAR_CLUSTER_SLOPE_RANGE = (0.48, 1.36)
 1.0 late types, 1.36 early types), the two verified papers that disagree; both stay (Boss, gap plan decision 2, GX3)."""
 NUCLEAR_CLUSTER_SCATTER_DEX = 0.6
 """float: Its scatter, dex (Neumayer 2020, mostly intrinsic)."""
+NUCLEAR_DISC_MASS_AT_1E9 = ((7.62, 1.32), (7.99, 0.86))
+"""tuple: `(log10 of the nuclear disc's mass, solar masses, in a galaxy of 1e9 solar masses of stars, slope)` of the two
+fits of Gadotti and de Sa-Freitas 2025 (arXiv:2509.14319, to appear in MNRAS Letters, Eqs. 1 and 2, 16 TIMER barred
+galaxies, bootstrapped errors 0.44 and 0.25 on the intercept and slope): `log M_ND = 1.32 log(M* / 1e9) + 7.62` from the
+photometric decompositions and `0.86 log(M* / 1e9) + 7.99` from the spectroscopic star formation histories, which sit
+about 0.5 dex lower (the photometric masses may be biased high by the other components). Two verified fits that disagree:
+the centre is drawn log-uniform between them (the widest range, as for the thick disc), both kept. The Milky Way's own
+nuclear disc is not in either fit; they put it at 7e9 and 3e9 against the 1e9 to 1.5e9 measured."""
+NUCLEAR_DISC_SCATTER_DEX = 0.3
+"""PLACEHOLDER (gap plan 6): the scatter of a nuclear disc's mass about the fit, dex. The paper prints the parameters'
+bootstrapped errors but not the scatter of the 16 points, which a figure holds; replaced when it is read."""
 NUCLEATION_PEAK = 0.85
 NUCLEATION_PEAK_MASS_SOLAR = 1.0e9
 NUCLEATION_FALL_MASS_SOLAR = 1.0e11
@@ -168,6 +183,20 @@ def nuclear_cluster_mass_solar(stellar_mass_solar, slope, deviation):
                     + deviation * NUCLEAR_CLUSTER_SCATTER_DEX)
 
 
+def nuclear_disc_mass_bounds_solar(stellar_mass_solar):
+    """`(photometric, spectroscopic)`: the two fits' nuclear disc mass, solar masses, in a galaxy of `stellar_mass_solar`."""
+    return tuple(10.0 ** (intercept + slope * math.log10(stellar_mass_solar / 1.0e9))
+                 for intercept, slope in NUCLEAR_DISC_MASS_AT_1E9)
+
+
+def draw_nuclear_disc_mass_solar(galaxy_seed, stellar_mass_solar):
+    """A nuclear stellar disc's mass, solar masses, in a galaxy of `stellar_mass_solar`: the centre log-uniform between the
+    two fits (`NUCLEAR_DISC_MASS_AT_1E9`), scattered by `NUCLEAR_DISC_SCATTER_DEX`."""
+    low, high = sorted(nuclear_disc_mass_bounds_solar(stellar_mass_solar))
+    centre = _stream(galaxy_seed, "nuclear-disc-centre").uniform(math.log10(low), math.log10(high))
+    return 10.0 ** (centre + _scatter(_stream(galaxy_seed, "nuclear-disc"), NUCLEAR_DISC_SCATTER_DEX))
+
+
 def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
     """
     The structure the galaxy of `galaxy_seed` has: the same seed gives the same structure.
@@ -225,7 +254,10 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
     else:
         cluster = 0.0
     if not full:
-        cluster = 0.0      # and with it the nuclear disc, which is a multiple of the cluster
+        cluster = 0.0
+    # Nuclear discs are the bar's (every TIMER galaxy, the sample the law is fitted to, is barred; GEN.282's ring needs
+    # one too): a galaxy with no bar has none.
+    disc = draw_nuclear_disc_mass_solar(galaxy_seed, mass) if bar[0] else 0.0
     black_holes = draw_black_hole_shares(galaxy_seed)
     kick = _kick_inputs(galaxy_seed, stellar_mass_solar)
     return Structure(
@@ -235,7 +267,7 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         disc_gas_dispersion_kms=gas, disc_central_dispersion_kms=max(central, gas * 1.05), disc_age_exponent=exponent,
         bulge_dispersion_scatter_dex=bulge_scatter,
         stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
-        nuclear_cluster_mass_solar=cluster,
+        nuclear_cluster_mass_solar=cluster, nuclear_disc_mass_solar=disc,
         black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1],
         neutron_star_unbound_share=natal_kick.neutron_star_unbound_share(*kick),
         neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(*kick))

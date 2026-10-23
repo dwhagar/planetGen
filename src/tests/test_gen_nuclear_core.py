@@ -45,7 +45,7 @@ def test_the_masses_follow_the_bulge_and_the_amplitude():
     # (the cluster and the nuclear disc add 3% to the stars the stellar mass makes, so the solar masses come out so far under)
     assert terms["nuclear_cluster_mass"] * systems_per_unit * density.mean_system_mass_solar(shape) == pytest.approx(
         structure.nuclear_cluster_mass_solar, rel=0.05)
-    assert terms["nuclear_disc_mass"] == pytest.approx(tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO * terms["nuclear_cluster_mass"])
+    assert terms["nuclear_disc_mass"] == pytest.approx(structure.nuclear_disc_mass_solar * terms["mass_per_solar"])
     half = density.model_terms(_shape(nuclear=0.5))
     assert half["nuclear_cluster_mass"] == pytest.approx(0.5 * terms["nuclear_cluster_mass"])
     for amplitude in (0.0, -1.0):

@@ -1208,14 +1208,12 @@ REFERENCE_RADIUS_SCALE_LENGTHS = 8200.0 / 2600.0
 # none) scales the pair together. Calibrated on the default Milky Way-scale model, whose bulge holds 3.9e10 solar
 # masses at 0.4 solar masses a system (the real bulge's 1.5e10 is in the model's units 2.6 times that, as every
 # component's is; the totals are tuned to star counts, not to mass). The cluster's mass is drawn from the galaxy's
-# stellar mass (`galaxy.structure_draw`, GEN.402: Neumayer 2020 and Georgiev 2016, or none); the disc is a multiple of it.
+# stellar mass (`galaxy.structure_draw`, GEN.402: Neumayer 2020 and Georgiev 2016, or none); the disc's from the stellar mass
+# too (GEN.628: Gadotti and de Sa-Freitas 2025), 65% of an exponential disc of scale length 90 pc lying inside 200 pc.
 # The size ratios below are STAND-INS (gap plan 6) from the Milky Way's measured centre, kept until a size law is read.
 NUCLEAR_CLUSTER_SCALE_RATIO = 2.07 / 1580.0
 """float: The cluster's Hernquist scale radius over the bulge scale radius (2.07 pc against 1,580 pc: a half-mass
 radius of 5 pc, a projected half-light radius of 3.8 to 4.2 pc, against the observed 4.2)."""
-NUCLEAR_DISC_CLUSTER_MASS_RATIO = 61.0
-"""float: The nuclear disc's total mass over the cluster's (1.5e9 against 2.5e7). 65% of an exponential disc of
-scale length 90 pc lies inside 200 pc, which makes the 1.0e9 inside 200 pc the observations give (recalled)."""
 NUCLEAR_DISC_LENGTH_RATIO = 90.0 / 1580.0
 NUCLEAR_DISC_HEIGHT_RATIO = 35.0 / 1580.0
 """float: The nuclear disc's exponential scale length and `sech^2` scale height over the bulge scale radius (90 and

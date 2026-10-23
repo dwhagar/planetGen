@@ -255,6 +255,12 @@
       "epoch": 52,
       "first_release": "8.0.1991",
       "reason": "A scattered star's system is the tree its scatter row stored: a star with one companion star is that pair on the stored orbit (its second star from the stored seed and birth mass, the pair's separation, eccentricity, plane, phase and period the stored node's), and a scattered star draws no companion of its own, so a seed's pre-placed systems differ from before (GEN.315)"
+    },
+    {
+      "epoch": 53,
+      "first_release": null,
+      "pending": true,
+      "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of Gadotti and de Sa-Freitas 2025 (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)"
     }
   ]
 }

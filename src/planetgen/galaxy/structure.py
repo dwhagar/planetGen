@@ -56,6 +56,7 @@ Structure = namedtuple(
         "disc_gas_dispersion_kms", "disc_central_dispersion_kms", "disc_age_exponent",
         "bulge_dispersion_scatter_dex",
         "stellar_mass_solar", "classical_bulge", "black_hole_deviation", "nuclear_cluster_mass_solar",
+        "nuclear_disc_mass_solar",
         "black_hole_solar_share", "black_hole_metal_free_share", "neutron_star_unbound_share",
         "neutron_star_ejecta_speeds_kms",
     ],
@@ -72,7 +73,8 @@ exponent of its heating; `bulge_dispersion_scatter_dex` is the bulge's dispersio
 `stellar_mass_solar` is the galaxy's stellar mass; `classical_bulge` says whether its bulge is a classical one (the
 black hole follows the bulge's mass) or not (it follows the stellar mass); `black_hole_deviation` is the central black
 hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` is the nuclear star cluster's mass,
-zero for a galaxy that has none (GEN.402); the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
+zero for a galaxy that has none (GEN.402); `nuclear_disc_mass_solar` is the nuclear stellar disc's mass, drawn from the galaxy's stellar mass
+(GEN.628) and zero for a galaxy without a bar; the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
 at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`); `neutron_star_unbound_share` is the share of the
 neutron stars formed that the galaxy ejects (GEN.554, `galaxy.natal_kick`: the kick law against the escape speed), which the black hole
 shares' cap and the neutron stars' bound count both read; `neutron_star_ejecta_speeds_kms` are the equal-share quantiles of the speed
@@ -125,6 +127,7 @@ REFERENCE_STRUCTURE = Structure(
     disc_gas_dispersion_kms=6.5, disc_central_dispersion_kms=0.248 * 220.0, disc_age_exponent=0.441,
     bulge_dispersion_scatter_dex=0.0,
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
+    nuclear_disc_mass_solar=1.5e9,
     black_hole_solar_share=_MIDDLE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_MIDDLE_BLACK_HOLE_SHARES[1],
     neutron_star_unbound_share=_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE,
     neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC),

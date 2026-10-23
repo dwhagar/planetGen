@@ -82,13 +82,14 @@ def test_some_galaxies_have_no_nuclear_cluster_and_the_share_falls_with_mass():
     assert any(s.structure.nuclear_cluster_mass_solar > 0 for s in SHAPES)
 
 
-def test_a_galaxy_without_a_cluster_has_none_in_its_density_terms():
+def test_a_galaxy_without_a_cluster_or_a_disc_has_none_in_its_density_terms():
     base = density.build_galaxy_shape(
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
         arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, nuclear_amplitude=1.0)
-    bare = base._replace(structure=base.structure._replace(nuclear_cluster_mass_solar=0.0))
+    bare = base._replace(structure=base.structure._replace(nuclear_cluster_mass_solar=0.0, nuclear_disc_mass_solar=0.0))
     assert density.model_terms(bare)["nuclear_cluster_mass"] == 0
     assert density.model_terms(bare)["nuclear_disc_mass"] == 0
+    assert density.model_terms(base)["nuclear_disc_mass"] > 0
     assert density.model_terms(base)["nuclear_cluster_mass"] > 0
 
 
