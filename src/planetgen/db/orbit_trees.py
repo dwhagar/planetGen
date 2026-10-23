@@ -18,7 +18,7 @@ in the tree (`parent_node_id`, offset from the system's centre). `nodes_from_mem
 from collections import namedtuple
 
 from planetgen.generation import multistar
-from planetgen.physics import constants
+from planetgen.physics import constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
 
 AU_KM = constants.AU_TO_KM
@@ -111,18 +111,25 @@ def read_nodes(conn, star_system_id):
 
 def star_places(star_system):
     """
-    Where each star of a generated system sits in its tree, in `star_system.stars` order: `(parent_node_id, offset_au)`
-    with `parent_node_id` `None` and a zero offset for a single star, else the root node and the star's offset from the
-    pair's centre of mass (the stored binary position: the primary opposite the secondary in proportion to the masses).
+    Where each star of a system sits in its tree, in `star_system.stars` order: `(parent_node_id, offset_au, slot)`
+    with `parent_node_id` and `slot` `None` and a zero offset for a single star. A pair the fill generated hangs on the
+    root node, the primary in slot 0 and the secondary in slot 1, at the stored binary position (the primary opposite the
+    secondary in proportion to the masses). A system with `member_stars` (GEN.630) says where each star hangs in
+    `star_slots`, and every offset is the star's place in the whole tree at the nodes' epoch.
     """
+    slots = star_system.star_slots
+    if slots is not None:
+        offsets = system_tree.star_offsets_au([star.mass / SOLAR_MASS_KG for star in star_system.stars], slots,
+                                              star_system.orbit_nodes, star_system.orbit_nodes[0].epoch_unix)
+        return [(parent, offset, slot) for offset, (parent, slot) in zip(offsets, slots)]
     if star_system.binary_type is None:
-        return [(None, (0.0, 0.0, 0.0))]
+        return [(None, (0.0, 0.0, 0.0), None)]
     if star_system.binary_type == "close":
         pair = star_system.star
         return [(ROOT_NODE_NO, (pair.binary_primary_position_x, pair.binary_primary_position_y,
-                                pair.binary_primary_position_z)),
+                                pair.binary_primary_position_z), 0),
                 (ROOT_NODE_NO, (pair.binary_secondary_position_x, pair.binary_secondary_position_y,
-                                pair.binary_secondary_position_z))]
+                                pair.binary_secondary_position_z), 1)]
     pair = star_system.wide_binary
-    return [(ROOT_NODE_NO, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
-            (ROOT_NODE_NO, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au))]
+    return [(ROOT_NODE_NO, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au), 0),
+            (ROOT_NODE_NO, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au), 1)]

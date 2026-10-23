@@ -105,7 +105,7 @@ connectivity to that specific schema rather than the default one.
   `runaway_class`/`runaway_speed_kms`, `inside` (the nebula or supernova
   remnant around it, or `null`), `nearest` (its stored nearest systems,
   `{id, name, distance_ly}`), and `stars`, each
-  with `role`/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`),
+  with `role` (`single`, `primary`, `secondary`, or `member` for a star beyond the pair)/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`),
   `star_count`, `interstellar_debris_count` (an estimate of the
   interstellar comets and planetesimals drifting through it, far too many
   to store as rows), `neighbors` (every grid cell sharing a face with a

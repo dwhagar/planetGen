@@ -1851,8 +1851,8 @@ def sector_detail(conn, sector_id):
             `is_binary`, `binary_type`, `binary_separation_km`,
             `position_x_mpc`/`position_y_mpc`/
             `position_z_mpc`, `center_distance_ly` (`None` with no
-            position), and `stars` -- 1 entry (single) or 2
-            (primary then secondary), each `role`/`star_type`/
+            position), and `stars` -- 1 entry (single), 2
+            (primary then secondary) or more (then each `member`), each `role`/`star_type`/
             `temperature_k`/`radius_km`/`luminosity_w`), `phenomena`
             (see `phenomena_near_sector`), `neighbors` (see
             `sector_neighbors`, `[]` for a sector with no galaxy
@@ -1889,7 +1889,7 @@ def sector_detail(conn, sector_id):
         "SELECT st.star_system_id, st.role, st.name, st.star_type, st.temperature_k, st.radius_km, st.luminosity_w,"
         " st.metallicity_fe_h"
         " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?"
-        " ORDER BY st.star_system_id, CASE st.role WHEN 'secondary' THEN 1 ELSE 0 END, st.id",
+        " ORDER BY st.star_system_id, CASE st.role WHEN 'secondary' THEN 1 WHEN 'member' THEN 2 ELSE 0 END, st.id",
         (sector_id,),
     ).fetchall():
         star = dict(star)
@@ -2651,11 +2651,14 @@ def resolve_object(conn, kind, object_id):
             """
             SELECT s.role, ss.binary_primary_position_x_km AS px, ss.binary_primary_position_y_km AS py,
                    ss.binary_primary_position_z_km AS pz, ss.binary_secondary_position_x_km AS sx,
-                   ss.binary_secondary_position_y_km AS sy, ss.binary_secondary_position_z_km AS sz
+                   ss.binary_secondary_position_y_km AS sy, ss.binary_secondary_position_z_km AS sz,
+                   s.offset_x_au, s.offset_y_au, s.offset_z_au
             FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE s.id = ?
             """, (star_id,)).fetchone()
         if row is None:
             return [0.0, 0.0, 0.0]
+        if row["role"] == "member":    # GEN.630: a star beyond the pair has no column of the system's; its stored offset
+            return [(row[f"offset_{axis}_au"] or 0.0) * constants.AU_TO_KM for axis in "xyz"]
         values = (row["sx"], row["sy"], row["sz"]) if row["role"] == "secondary" else (row["px"], row["py"], row["pz"])
         return [v or 0.0 for v in values]
 
@@ -3266,7 +3269,7 @@ def system_detail(conn, system_id):
     stars = conn.execute(
         "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
         " FROM stars WHERE star_system_id = ?"
-        " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
+        " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),
     ).fetchall()
     # mass_kg (already selected above) is what lets planetgen/web/maps/systemmap.py
@@ -4754,7 +4757,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         FROM sectors sec FORCE INDEX (idx_sectors_center)
         JOIN star_systems ss ON ss.sector_id = sec.id
         JOIN stars st ON st.star_system_id = ss.id
-        LEFT JOIN bright_stars b ON b.star_system_id = ss.id AND st.role <> 'secondary'
+        LEFT JOIN bright_stars b ON b.star_system_id = ss.id AND st.role NOT IN ('secondary', 'member')
         WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
           AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
           AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
@@ -4780,7 +4783,7 @@ def _generated_star_entry(row):
     center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
     offset = [row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz"]
     point = local_to_galaxy_pc(center, offset)
-    if row["role"] == "secondary":
+    if row["role"] in ("secondary", "member"):
         shift = binary_companion_offset_pc(row["binary_separation_km"])
         point = tuple(point[i] + shift[i] for i in range(3))
     return {

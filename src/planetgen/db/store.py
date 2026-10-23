@@ -1543,6 +1543,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (133, _column_marker("stars", "slot")),
     (132, _column_marker("stars", "snow_line_km")),
     (131, _column_marker("generation_runs", "generator_epoch")),
     (130, _table_marker("galaxy_containers")),
@@ -2912,14 +2913,14 @@ STAR_FIELDS = (
     object_rows.each(activity.STAR_ACTIVITY_FIELDS), object_rows.optional("metallicity_fe_h"),
     object_rows.scaled("snow_line_km", "snow_line_au", _AU_KM),
     object_rows.each(pre_main_sequence.DISK_FIELDS),
-    object_rows.context("parent_node_id"),
+    object_rows.context("parent_node_id"), object_rows.context("slot"),
     object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
     object_rows.computed("flags", lambda star, context: context["flags"]),
 )
 """tuple: The `Field`s of a `stars` row (`object_rows`)."""
 
 
-def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0), flags=0) -> int:
+def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0), slot=None, flags=0) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
     `BinaryStarProxy` -- see `insert_star_system`).
@@ -2928,9 +2929,11 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
         conn (Connection): An open, schema-initialized connection.
         star: The `Star` instance.
         star_system_id (int): The owning `star_systems.id`.
-        role (str): `'primary'`, `'secondary'`, or `'single'`.
+        role (str): `'primary'`, `'secondary'`, `'member'` (a star beyond the pair of a system of more than two, GEN.630)
+            or `'single'`.
         parent_node_id (int, optional): The `orbit_nodes.node_no` the star is a child of; `None` for a single star.
         offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's centre of mass, AU (GEN.311).
+        slot (int, optional): Which child of its parent node the star is, 0 or 1; `None` for a single star (GEN.630).
         flags (int, optional): The star's member flag bits (`generation.multistar.MEMBER_FLAGS`); a runaway star's primary
             carries the bit of its origin (GEN.329); 0 for none.
 
@@ -2939,7 +2942,7 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
     """
     return object_rows.insert_row(conn, "stars", STAR_FIELDS, star, {
         "star_system_id": star_system_id, "role": role, "parent_node_id": parent_node_id, "offset_au": offset_au,
-        "flags": flags})
+        "slot": slot, "flags": flags})
 
 
 def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_visible):
@@ -4282,6 +4285,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             insert_black_hole(conn, star_system.star, star_id=primary_star_id)
         elif isinstance(star_system.star, NeutronStar):
             insert_neutron_star(conn, star_system.star, star_id=primary_star_id)
+
+    for member, place in zip(star_system.member_stars, places[2:]):
+        insert_star(conn, member, star_system_id, "member", *place)    # GEN.630: no planets of its own yet (GEN.332)
 
     for orbital_index, obj in enumerate(star_system.planets):
         if obj.body_type == "a":
@@ -7255,14 +7261,19 @@ def _body_slots(conn, system_id):
     `{(table, row id): slot}` for the bodies of a system: where each one sits in the system, which is what its ID
     follows when the system's content is drawn again (DB.75).
 
-    A slot is `(kind, host, index)`: a star's is its role (`primary`, `secondary`, `single`); a planet's or a belt's
+    A slot is `(kind, host, index)`: a star's is its role (`primary`, `secondary`, `single`, or `member` with its place
+    among the members); a planet's or a belt's
     is the role of the star it orbits (`system` for a circumbinary one) and its place in that star's list of orbits; a
     moon's is its planet's slot and its place among the planet's moons; a comet's is the star it belongs to and its
     rank among the system's comets.
     """
     roles = {row["id"]: row["role"] for row in conn.execute(
-        "SELECT id, role FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
-    slots = {("stars", star_id): ("star", role, 0) for star_id, role in roles.items()}
+        "SELECT id, role FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()}
+    seen = collections.Counter()
+    slots = {}
+    for star_id, role in roles.items():    # ordered by id: a role held by more than one star (`member`) numbers them
+        slots[("stars", star_id)] = ("star", role, seen[role])
+        seen[role] += 1
     planet_slots = {}
     for table, kind in (("planets", "planet"), ("asteroid_belts", "belt")):
         for row in conn.execute(f"SELECT id, star_id, orbital_index FROM {table} WHERE star_system_id = ?",
@@ -8827,6 +8838,17 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     else:
         system.primary_star = star
         system.stars = [star]
+
+    member_rows = conn.execute(
+        "SELECT * FROM stars WHERE star_system_id = ? AND role = 'member' ORDER BY id", (star_system_id,)).fetchall()
+    if member_rows:    # GEN.630: the stars beyond the pair, and where each hangs in the tree
+        members = [Star.from_dict(_star_row_to_dict(member_row, speed_kms), system_config) for member_row in member_rows]
+        for member, member_row in zip(members, member_rows):
+            member.db_id = member_row["id"]
+        system.member_stars = tuple(members)
+        system.stars = system.stars + members
+        system.star_slots = tuple((place["parent_node_id"], place["slot"])
+                                  for place in (primary_row, secondary_row, *member_rows))
 
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)

@@ -178,9 +178,10 @@ NEVER_READ = {
     # DB.55 and DB.53 columns nothing loads yet (the gravity sum, GEN.109 and the DB.53 chain read them).
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
-    **{("stars", column): "read by the DB.53 chain" for column in (
-        "decay_age_yr", "epoch_unix",
-        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "state")},
+    **{("stars", column): "read by the DB.53 chain" for column in ("decay_age_yr", "epoch_unix", "state")},
+    # GEN.630: only the system scene reads where a star hangs in the tree (node and slot) and a member's offset.
+    **{("stars", column): "read by the system scene (GEN.630)" for column in (
+        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "slot")},
     # GEN.329: read back only for a system saved as a runaway, which this galaxy may not hold.
     ("stars", "flags"): CHANCE,
 }

@@ -87,7 +87,7 @@ def star_host(stars, star_id, binary_configuration=None, binary_separation_km=No
 
     Args:
         stars (list[dict]): Every star in the system, each with `id`,
-            `mass_kg`, `radius_km` and `heliosphere_radius_km`.
+            `mass_kg`, `radius_km` and `heliosphere_radius_km` (and `role`, to tell a `member` from the pair).
         star_id (int): The host star.
         binary_configuration (str, optional): `'close'`, `'wide'` or None.
         binary_separation_km (float, optional): A close pair's separation.
@@ -96,8 +96,9 @@ def star_host(stars, star_id, binary_configuration=None, binary_separation_km=No
     """
     star = next(star for star in stars if star["id"] == star_id)
     if binary_configuration == "close":
-        mass = sum(other["mass_kg"] or 0.0 for other in stars)
-        radius = (binary_separation_km or 0.0) + max(other["radius_km"] or 0.0 for other in stars)
+        pair = [other for other in stars if other.get("role") != "member"]    # a further star (GEN.630) is not in the pair
+        mass = sum(other["mass_kg"] or 0.0 for other in pair)
+        radius = (binary_separation_km or 0.0) + max(other["radius_km"] or 0.0 for other in pair)
         return mass, radius, binary_heliosphere_km or star.get("heliosphere_radius_km")
     return star["mass_kg"], star["radius_km"], star.get("heliosphere_radius_km")
 

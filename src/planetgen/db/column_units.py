@@ -735,6 +735,7 @@ TABLES = {
     },
     "stars": {
         "id": ("id", "star_system_id", "parent_node_id", "cluster_id"),
+        "index": ("slot",),
         "kg": ("mass_kg",),
         "km": (
             "radius_km", "habitable_zone_inner_km", "habitable_zone_outer_km", "system_perimeter_km",
