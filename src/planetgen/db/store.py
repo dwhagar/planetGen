@@ -1371,6 +1371,22 @@ def list_databases(base_config=None, prefix=None, with_counts=False):
         conn.close()
 
 
+def _holds_galaxy(base_config, name):
+    """Whether schema `name` holds this project's galaxy tables (`sectors`). A schema that shares the prefix and holds
+    something else (the real `planetgen_control` on a server whose configured control schema has another name) is no
+    database to select: every route would answer 500 from its first missing table (API.32)."""
+    conn = get_connection(
+        MySQLConfig(host=base_config.host, port=base_config.port,
+                    user=base_config.user, password=base_config.password, database=""),
+        ensure_schema=False,
+    )
+    try:
+        return conn.execute("SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'sectors'"
+                            " LIMIT 1", (name,)).fetchone() is not None
+    finally:
+        conn.close()
+
+
 def _schema_counts(conn, name):
     """`list_databases`'s `sector_count`/`system_count` for schema `name`,
     both `None` when it can't be read (no such tables: mid-migration, or
@@ -1406,11 +1422,13 @@ def resolve_database(base_config, name, prefix=None):
         MySQLConfig: `base_config` with `database` set to `name`.
 
     Raises:
-        ValueError: If `name` is empty or doesn't match a listed schema.
+        ValueError: If `name` is empty, doesn't match a listed schema, or the schema holds no galaxy (API.32).
     """
     if not name:
         raise ValueError("No database specified.")
     if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
+        raise ValueError(f"No such database: {name!r}")
+    if not _holds_galaxy(base_config, name):
         raise ValueError(f"No such database: {name!r}")
     return MySQLConfig(
         host=base_config.host, port=base_config.port,
