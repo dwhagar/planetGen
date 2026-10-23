@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2001] - 2026-10-23
+
+**Headline:** A paused work queue node now lets go of the lease before it says it is paused.
+
+### Fixed
+- **A node on the admin queue page could read "paused" while it still held the lease (TEST.288).** On a pause the work queue (`WorkQueue._standby`) first set its node to `paused` and only then gave up the lease, two separate writes; a reader that looked between them (the queue page, or a run waiting for the lease) saw a paused node that still blocked the other runs. Under load the gap is long enough that `test_a_paused_queue_node_stands_by_until_resumed[2]` failed on it, about once in two gates. The lease is now released first, and a new test with a slowed release pins the order.
+
+TODO items resolved: TEST.288. Added: none.
+
 ## [8.0.2000] - 2026-10-23
 
 **Headline:** A planet or belt now keeps only the orbits its place's passing systems have not stripped, so a nuclear disc holds planets to a few AU, a dense core to a fraction of one, and the Sun's neighbourhood to a few hundred.
