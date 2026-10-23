@@ -92,7 +92,7 @@ Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity 
 
 The repair of the galaxy from an archive, the one page for check, repair and restore, and the end-to-end test, guide and umbrella (moved from 9.0).
 
-Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).
 
 ### Repair and proof
 

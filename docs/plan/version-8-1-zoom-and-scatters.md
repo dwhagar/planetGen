@@ -421,7 +421,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 The last audits and the headline: they test the component pass, the core and the halo, so they come after phases 4 and 5.
 
-Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).
 
 ### The headline closes
 
@@ -437,6 +437,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.157 | The warm-up reads 95.9 million rows for 1,044 deep tiles, about 92,000 rows a tile |  |  |
 | PERF.156 | The warm-up counts the search check answering 202 (a queued job) as a failure, so planetgen warm stops after phase 4 on a large galaxy (bug) |  |  |
 | PERF.155 | A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6) | PERF.146 |  |
-| TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | PERF.146 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
-| SEC.33 | Release gate: a full security code audit of the whole code base, done before every point release (8.1 first) | PERF.146 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
+| TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) | PERF.146 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
+| SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) | PERF.146 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.284, TEST.196, GEN.450, SEC.33, TEST.261 |  |

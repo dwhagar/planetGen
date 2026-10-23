@@ -676,6 +676,12 @@ with `clamp()`.
   (the browser copy), instead of GEN.299's.
   Owner: Core 3, after UX.140 (the coordinator, relayed 3:56 PM EDT
   2026-10-22 as the lane's clock reads).
+  Handoff (Core 3, relayed 7:57 PM EDT 2026-10-22 as the lane's clock
+  reads): built and committed, never gated; patch at
+  /mnt/project-files/handoffs/ux128-quantity-in-the-browser-core3-2026-10-22.patch,
+  to be pushed to claude/project-thread-l8ulna rebased after UX.140
+  merges. Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
+  2026-10-22: work outside 8.1 is paused until 8.1 is complete).
   Prerequisites: UX.140. Related: GEN.300, GEN.299.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
@@ -6200,13 +6206,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the grep test passes and no compatibility layer is left.
   Rescoped (relayed 10:45 AM EDT 2026-10-22): the sweep builds on
   GEN.569's Quantity, through GEN.348 and UX.128.
-  Boundary (Core 3, relayed 7:41 PM EDT 2026-10-22 as the lane's clock
-  reads): this item covers the API output and the stored-column readers
-  (db/query.py, web/maps/*, api/*, cli/*, about 40 sites). The generation
-  side (galaxy/*, admin/edits.py, db/edits.py, db/sector_paths.py, the
-  db/store.py loaders, population/model.py) belongs to GEN.571's sweep
-  and Core 4's serializer; the grep test ships with an explicit allowlist
-  of exactly those files, and GEN.571 shrinks it to empty.
+  Core 3 withdrew its boundary proposal for this item and GEN.571 (relayed
+  7:57 PM EDT 2026-10-22 as the lane's clock reads); the earlier
+  scoping stands. Core 3's survey is in
+  /mnt/project-files/handoffs/gen349-survey-core3-2026-10-22.md. Owner:
+  none for now, returned to the pool (Boss, 7:44 PM EDT 2026-10-22: work
+  outside 8.1 is paused until 8.1 is complete).
   Prerequisites: UX.128. Related: GEN.300.
 
 - [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
@@ -14336,11 +14341,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the copy of c in `position.py`) and `physics/units.py`, with no shim
   left. The two rounded factors are not changed here: GEN.572 does that
   as its own epoch-changing change. Done: no unit factor is declared
-  outside the registry (a test greps for it), and the grep test's
-  allowlist, which GEN.349 ships with exactly the generation-side files
-  (galaxy/*, admin/edits.py, db/edits.py, db/sector_paths.py, the
-  db/store.py loaders, population/model.py), is shrunk to empty (Core 3,
-  relayed 7:41 PM EDT 2026-10-22 as the lane's clock reads).
+  outside the registry (a test greps for it).
   Boss (12:04 AM EDT, 2026-10-18, as the coordinator relayed): the exact
   AU per light-year and light-year per parsec moved to GEN.572 in 8.1;
   this sweep keeps every other factor bit-identical and runs after
@@ -15470,6 +15471,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch. Done: Boss's answer is recorded here and, if it changes the
   model, a build item is filed. Owner: the TODO thread for the card; the
   build, if any, goes to a generator lane.
+  Card posted to Boss at 7:55 PM EDT 2026-10-22 (scale with galaxy mass,
+  keep all 11, or a satellites dial); recommended: scale with galaxy mass.
   Prerequisites: none. Related: PERF.146.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -18711,15 +18714,22 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT
   2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads). It adds the dependency
   `argon2-cffi`, which update.sh must install.
+  Finding (the coordinator, relayed 7:58 PM EDT 2026-10-22 as the lane's
+  clock reads, from the audit playbook): passwords use PBKDF2 with
+  600,000 iterations on main while the design doc plans Argon2id; this
+  item moves them to Argon2id. Owner stays Blocker 3.
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
 
-- [ ] **SEC.33 Release gate: a full security code audit of the whole code base, done before every point release (8.1 first)**
+- [ ] **SEC.33 Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full security code audit, and it MUST be done before every
-  single point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are
-  not point releases). One standing item: it stays open and is re-run
-  for each point release, never retired. Scope: every route, API
+  single major or minor version change (8.1, 8.2 and on to 9.0 and 10.0;
+  the 8.0.NNNN builds are exempt). One standing item: it stays open and
+  is re-run for each major or minor version change, never retired.
+  Confirmed and narrowed to this wording by Boss, 8:01 PM EDT
+  2026-10-22: required whenever the major or minor number changes, not
+  for build numbers. Scope: every route, API
   endpoint and form; sign-in, sessions, cookies, CSRF, rate limits and
   lockouts; authorization and every admin page; all SQL and any string
   built into a query; file, path and upload handling and the tile cache
@@ -18749,6 +18759,9 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   Owner: a new audit thread, started when PERF.146 closes (Boss, 7:44
   PM EDT 2026-10-22: all five cores on 8.1; this replaces any earlier
   owner line).
+  Method: follow /mnt/project-files/reports/audit-playbook-2026-10-22.md
+  (the coordinator, relayed 7:58 PM EDT 2026-10-22 as the lane's clock
+  reads).
   Prerequisites: PERF.146. Related: TEST.261.
 
 ## TEST: The test suite
@@ -20419,12 +20432,15 @@ clears each one.
   the item stays open.
   Prerequisites: none. Related: TEST.253.
 
-- [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
+- [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full bug hunt audit, and it MUST be done before every single
-  point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are not
-  point releases). One standing item: it stays open and is re-run for
-  each point release, never retired. Scope: the whole product as a user
+  major or minor version change (8.1, 8.2 and on to 9.0 and 10.0; the
+  8.0.NNNN builds are exempt). One standing item: it stays open and is
+  re-run for each major or minor version change, never retired.
+  Confirmed and narrowed to this wording by Boss, 8:01 PM EDT
+  2026-10-22: required whenever the major or minor number changes, not
+  for build numbers. Scope: the whole product as a user
   and an admin meets it, not only the diff. Every page and API route is
   driven on a freshly built galaxy and on a migrated database; every
   command and CLI path is run end to end (generate, plan, scatter, warm,
@@ -20456,6 +20472,9 @@ clears each one.
   Owner: a new audit thread, started when PERF.146 closes (Boss, 7:44
   PM EDT 2026-10-22: all five cores on 8.1; this replaces any earlier
   owner line).
+  Method: follow /mnt/project-files/reports/audit-playbook-2026-10-22.md
+  (the coordinator, relayed 7:58 PM EDT 2026-10-22 as the lane's clock
+  reads).
   Prerequisites: PERF.146. Related: SEC.33.
 
 - [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
