@@ -11,7 +11,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.cli.generate import add_plan_arguments
-from planetgen.galaxy import density, mass_chain, shape_draw
+from planetgen.galaxy import dials, density, mass_chain, plan_figures, shape_draw, skeleton
 from tests.wide_masses import wide_mass
 
 
@@ -25,6 +25,20 @@ SEEDS = range(1, 2001)
 @pytest.fixture(scope="module")
 def draws():
     return [shape_draw.draw_galaxy(_seed(number), stellar_mass_solar=wide_mass(_seed(number))) for number in SEEDS]
+
+
+@pytest.fixture(scope="module")
+def size_draws():
+    """The seed's own size draws: a pinned flatness leaves the all-Auto window (GEN.625) out of the size's way."""
+    return [shape_draw.draw_galaxy(_seed(number), stellar_mass_solar=wide_mass(_seed(number)),
+                                   flatness=shape_draw.KREGEL_Q) for number in SEEDS]
+
+
+@pytest.fixture(scope="module")
+def flatness_draws():
+    """The seed's own flatness draws: a pinned size leaves the all-Auto window out of the flatness's way."""
+    return [shape_draw.draw_galaxy(_seed(number), stellar_mass_solar=wide_mass(_seed(number)), compactness=0.0)
+            for number in SEEDS]
 
 
 def _spread(values):
@@ -44,13 +58,13 @@ def test_only_the_spiral_family_and_the_six_options_exist():
         shape_draw.draw_galaxy(_seed(1), bar_angle_deg=27.0)
 
 
-def test_the_disk_length_follows_the_size_mass_relation_of_shen_2003(draws):
+def test_the_disk_length_follows_the_size_mass_relation_of_shen_2003(size_draws):
     """`ln(R50 / median)` over its mass-dependent width is a standard normal; and 3.9 kpc at 5e10 solar masses."""
     assert shape_draw.size_median_kpc(5e10) == pytest.approx(3.9, abs=0.05)
     assert shape_draw.size_sigma_ln(1e8) == pytest.approx(0.47, abs=0.01)
     assert shape_draw.size_sigma_ln(1e12) == pytest.approx(0.34, abs=0.01)
     scores = []
-    for d in draws:
+    for d in size_draws:
         mass = d.chain.stellar_mass_solar
         r50 = d.disk_scale_length_pc * shape_draw.EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0
         scores.append(math.log(r50 / shape_draw.size_median_kpc(mass)) / shape_draw.size_sigma_ln(mass))
@@ -67,9 +81,9 @@ def test_heavier_galaxies_have_longer_disks(draws):
             > 1.3 * statistics.median(d.disk_scale_length_pc for d in light))
 
 
-def test_the_height_is_the_length_over_kregels_ratio(draws):
-    mean, spread = _spread([math.log10(d.disk_scale_length_pc / d.disk_scale_height_pc) for d in draws])
-    assert mean == pytest.approx(math.log10(shape_draw.KREGEL_Q), abs=4.0 * 0.13 / math.sqrt(len(draws)))
+def test_the_height_is_the_length_over_kregels_ratio(flatness_draws):
+    mean, spread = _spread([math.log10(d.disk_scale_length_pc / d.disk_scale_height_pc) for d in flatness_draws])
+    assert mean == pytest.approx(math.log10(shape_draw.KREGEL_Q), abs=4.0 * 0.13 / math.sqrt(len(flatness_draws)))
     assert spread == pytest.approx(shape_draw.KREGEL_SCATTER_DEX, rel=0.08)
 
 
@@ -246,10 +260,74 @@ def test_no_milky_way_shape_is_left_in_the_tuning():
         assert not hasattr(tuning, name)
 
 
-def test_a_galaxy_with_nothing_pinned_is_a_small_spiral():
+def test_a_galaxy_with_nothing_pinned_is_a_small_spiral(auto_draws):
     """GEN.603 (Boss, 10-21): the defaults give roughly half the size of a large spiral (2.6 kpc), the user pushes up."""
-    lengths = sorted(shape_draw.draw_galaxy(_seed(number)).disk_scale_length_pc for number in range(1, 401))
+    lengths = sorted(d.disk_scale_length_pc for d in auto_draws)
     assert 1100.0 < lengths[len(lengths) // 2] < 1700.0
     assert lengths[int(len(lengths) * 0.9)] < 2600.0 and lengths[0] > 28.0
     masses = [mass_chain.draw_mass_chain(_seed(number)).stellar_mass_solar for number in range(1, 401)]
     assert 3.0e9 <= min(masses) and max(masses) <= 6.0e9 * (1 + 1e-9)
+
+
+# --- The all-Auto window (GEN.625): a default galaxy is one the plan represents well --------------------------------
+
+MILKY_WAY_DISK_SCALE_LENGTH_PC = 2600.0
+"""float: A test-only yardstick for Boss's "no more than half as big as the Milky Way": the thin disc's scale length
+(Bland-Hawthorn and Gerhard 2016); no generator code reads it."""
+MILKY_WAY_STELLAR_MASS_SOLAR = 5.4e10
+"""float: The same yardstick for the stellar mass (Bland-Hawthorn and Gerhard 2016, test only)."""
+
+AUTO_SEEDS = range(10_001, 10_151)
+
+
+@pytest.fixture(scope="module")
+def auto_draws():
+    return [shape_draw.draw_galaxy(_seed(number)) for number in AUTO_SEEDS]
+
+
+def _plan_crest(seed):
+    """The crest the default plan of `seed` prints (`galaxy.plan_figures.crest` over the shape `plan_shape` builds)."""
+    parser = argparse.ArgumentParser()
+    add_plan_arguments(parser)
+    shape, drawn = shape_draw.plan_shape(parser.parse_args([]), seed)
+    return plan_figures.crest(shape, skeleton.expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)), drawn
+
+
+def test_no_all_auto_galaxy_raises_a_grid_warning():
+    """150 all-Auto plans: none has a crest under 20 (the warning of the Stage 4 plan), a scale height under 8 pc or a
+    bulge under 4 pc."""
+    for number in list(AUTO_SEEDS)[:60]:
+        crest, d = _plan_crest(_seed(number))
+        assert dials.shape_warnings(crest, 0.0, d.disk_scale_height_pc, d.bulge_scale_radius_pc) == [], number
+
+
+def test_the_average_all_auto_galaxy_is_at_most_half_the_milky_way(auto_draws):
+    assert statistics.mean(d.disk_scale_length_pc for d in auto_draws) <= 0.5 * MILKY_WAY_DISK_SCALE_LENGTH_PC
+    assert statistics.mean(d.chain.stellar_mass_solar for d in auto_draws) <= 0.5 * MILKY_WAY_STELLAR_MASS_SOLAR
+
+
+def test_the_window_keeps_every_draw_inside_the_dial_ranges(auto_draws):
+    for name, value in (("disk_scale_length", [d.disk_scale_length_pc for d in auto_draws]),
+                        ("mass", [d.chain.stellar_mass_solar for d in auto_draws])):
+        row = dials.lever(name)
+        assert all(row.minimum <= v <= row.maximum for v in value), name
+    flat = dials.lever("flatness")
+    assert all(flat.minimum <= _drawn_flatness(d) <= flat.maximum for d in auto_draws)
+    assert all(dials.check_derived("disk_scale_height_pc", d.disk_scale_height_pc) is None for d in auto_draws)
+    assert all(dials.check_derived("bulge_scale_radius_pc", d.bulge_scale_radius_pc) is None for d in auto_draws)
+
+
+def test_a_seed_whose_first_draw_is_fine_keeps_it(auto_draws):
+    """The window redraws only a shape that would warn: the others are the seed's own first draws."""
+    kept = 0
+    for number, d in zip(AUTO_SEEDS, auto_draws):
+        first = shape_draw.drawn_disk_scale_length_pc(_seed(number), d.chain.stellar_mass_solar)
+        kept += d.disk_scale_length_pc == first
+    assert 0.3 < kept / len(auto_draws) < 0.95  # most seeds' first draw does not warn
+
+
+def test_a_pinned_neighbour_takes_the_seeds_own_draws_without_the_window():
+    seed = _seed(10_002)
+    pinned = shape_draw.draw_galaxy(seed, flatness=3.5)
+    assert pinned.disk_scale_length_pc == shape_draw.drawn_disk_scale_length_pc(seed, pinned.chain.stellar_mass_solar)
+    assert pinned.disk_scale_length_pc / pinned.disk_scale_height_pc == pytest.approx(3.5)

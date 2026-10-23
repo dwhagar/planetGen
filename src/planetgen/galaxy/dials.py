@@ -258,7 +258,7 @@ LEVERS = (
         unit="sigma", minimum=-3.0, maximum=3.0, step=0.1,
         law="the size at the same mass, as standard deviations from the size-mass law: 0 is the median galaxy, a "
             "positive value a larger disc (the scale length is the law's median times e^(sigma x z))",
-        auto_text="drawn from the seed (a normal draw of the scatter, 0.20 dex falling to 0.15)",
+        auto_text="drawn from the seed (a normal draw of the scatter, 0.20 dex falling to 0.15), drawn again when the shape would raise a grid warning",
         help="How large the disc is for its mass, in standard deviations of the size-mass scatter (negative is more "
              "compact). Sets the same size as --disk-scale-length; give only one of them.",
         source="scatter of the late-type size-mass law, Shen et al. 2003 (read in the repository); three sigma is "
@@ -278,7 +278,7 @@ LEVERS = (
         kind="length", unit="pc", minimum=28.0, maximum=8250.0, step=0.1, advanced=True,
         units=(Unit("pc", 1.0), Unit("kpc", 1000.0)),
         law="the thin disk's scale length L; every other length of the galaxy is a ratio of it",
-        auto_text="drawn from the size-mass relation of the galaxy's stellar mass",
+        auto_text="drawn from the size-mass relation of the galaxy's stellar mass, drawn again (with the flatness) when the shape would raise a grid warning",
         help="Thin disk exponential scale length (the thick disk's is 0.77x).",
         source="Boss, 10-21 (7:04 PM to 8:08 PM EDT): floor 28 pc (Segue 1's half, 7.1 pc, is under the 4 pc cell grid's "
                "reach: a variable sector edge, a later item, would bring it back); ceiling 1.5 x Andromeda's 5.5 kpc "
@@ -289,7 +289,7 @@ LEVERS = (
         kind="float", unit="", minimum=3.0, maximum=20.0, step=0.1,
         law="the thin disk's thickness: its scale height is the scale length over this (the thick disk's is 3x); a "
             "ratio keeps its meaning when the scale length moves",
-        auto_text="drawn from the seed, median 7.3 with a 0.13 dex scatter (Kregel et al. 2002)",
+        auto_text="drawn from the seed, median 7.3 with a 0.13 dex scatter (Kregel et al. 2002), drawn again with the size when the shape would raise a grid warning",
         help="How flat the thin disk is: its scale length over its scale height. Larger is thinner.",
         source="median 7.3 and 0.13 dex read in Kregel, van der Kruit and de Grijs 2002 (shape_draw); the range 3 to "
                "20 is the proposal's suggestion (galaxy size levers, 10-21), not read in a source", status="bracket"),

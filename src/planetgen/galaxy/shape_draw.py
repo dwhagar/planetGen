@@ -75,6 +75,9 @@ EXPONENTIAL_HALF_LIGHT_OVER_SCALE = 1.678
 KREGEL_Q = 7.3
 KREGEL_SCATTER_DEX = 0.13
 
+AUTO_SIZE_ATTEMPTS = 32
+"""int: The most draws of size and flatness an all-Auto galaxy makes to find a shape the plan represents well."""
+
 # --- Row 6: stage, bulge, bar and arms ---------------------------------------------------------------------------
 
 KELVIN_MASS_BOUNDS = (9.0, 9.5, 10.0, 10.5, 11.0)
@@ -167,8 +170,68 @@ def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar, compactness=None
     Scale dial's pin, in standard deviations) replaces the draw of the scatter."""
     scatter = (_stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(stellar_mass_solar)) if compactness is None
                else size_sigma_ln(stellar_mass_solar) * compactness)
-    log_r50 = math.log(size_median_kpc(stellar_mass_solar)) + scatter
-    return math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
+    return _length_of_scatter(stellar_mass_solar, scatter)
+
+
+def _length_of_scatter(stellar_mass_solar, scatter):
+    """The thin disc's scale length, parsecs, at `scatter` (a draw of ln R50) from the size-mass relation's median."""
+    return (math.exp(math.log(size_median_kpc(stellar_mass_solar)) + scatter)
+            / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0)
+
+
+def _drawn_flatness(stream):
+    """The thin disc's flatness (scale length over scale height) from the next draw of `stream`: Kregel's median with
+    its scatter."""
+    return 10.0 ** (math.log10(KREGEL_Q) + stream.gauss(0.0, KREGEL_SCATTER_DEX))
+
+
+def _auto_size(galaxy_seed, stellar_mass_solar, bar_ratio, crest_of):
+    """
+    `(disk scale length pc, flatness)` of an all-Auto galaxy: the size and flatness draws of the seed, redrawn from the
+    same two streams (the next draw of each) until the shape raises none of the grid's warnings (`dials.shape_warnings`:
+    the thin disc's crest under 20 times the one-star density, a scale height under 8 pc, a bulge under 4 pc) and the
+    flatness is inside the Structure dial's range, so a default galaxy is one the 4 pc plan represents well (GEN.625).
+    The first draw is the one a pinned neighbour would see, so a seed whose first draw is fine keeps it; at most
+    `AUTO_SIZE_ATTEMPTS` draws are made, the best crest kept.
+
+    `crest_of(length, flatness)` is the plan's own crest for the galaxy those two make (`galaxy.plan_figures.crest`
+    over the shape built at the dials' Auto values), so what is tested is what the plan will print.
+    """
+    size, height = _stream(galaxy_seed, "size"), _stream(galaxy_seed, "height")
+    sigma = size_sigma_ln(stellar_mass_solar)
+    flat = dials.lever("flatness")
+    best = None
+    for _ in range(AUTO_SIZE_ATTEMPTS):
+        length = _length_of_scatter(stellar_mass_solar, size.gauss(0.0, sigma))
+        q = _drawn_flatness(height)
+        if not flat.minimum <= q <= flat.maximum:
+            continue
+        crest = crest_of(length, q)
+        if not dials.shape_warnings(crest, 0.0, length / q, length * bar_ratio / BAR_LENGTH_PER_SCALE_RADIUS):
+            return length, q
+        if best is None or crest > best[0]:
+            best = (crest, length, q)
+    if best is None:
+        return (_length_of_scatter(stellar_mass_solar, _stream(galaxy_seed, "size").gauss(0.0, sigma)),
+                _drawn_flatness(_stream(galaxy_seed, "height")))
+    return best[1], best[2]
+
+
+def _auto_crest(chain, structure, bulge_to_total, bar_ratio, arm_level, arms, pitch_deg, length, q):
+    """The plan's crest (`galaxy.plan_figures.crest`) of the galaxy of this chain and structure at disc scale length
+    `length` and flatness `q`, every dial at its Auto value and the plan's default sector edge: the figure
+    `_auto_size` tests against the grid's warning."""
+    from planetgen.galaxy import plan_figures, skeleton
+    height = length / q
+    bulge_radius = length * bar_ratio / BAR_LENGTH_PER_SCALE_RADIUS
+    shape = density.build_galaxy_shape(
+        disk_scale_length_pc=length, disk_scale_height_pc=height, bulge_scale_radius_pc=bulge_radius,
+        bulge_amplitude=bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level),
+        arm_count=arms, pitch_angle_rad=math.radians(pitch_deg), arm_amplitude=dials.lever("arm_contrast").auto_value,
+        arm_level=arm_level, nuclear_amplitude=dials.lever("nuclear_amplitude").auto_value,
+        masses=(chain.stellar_mass_solar, chain.halo_mass_solar), structure=structure,
+        systems_per_solar_mass=dials.lever("richness").auto_value)
+    return plan_figures.crest(shape, skeleton.expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY))
 
 
 def disk_masses(disk_scale_length_pc, disk_scale_height_pc, structure, arm_level=1.0):
@@ -233,6 +296,10 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
             given (not `None`) replaces the drawn one. A pinned mass reaches every law that reads it; a pinned
             `disk_scale_length_pc` wins over `compactness`.
 
+    A galaxy with the mass, size, flatness, bulge share and bulge size all on Auto takes its size and flatness from
+    `_auto_size`: the seed's draws, redrawn until the shape raises none of the grid's warnings (GEN.625). Pin any of
+    those five and the draws are the seed's own, as before.
+
     Returns:
         GalaxyDraw: The drawn values, with the fixed ones in place of theirs.
 
@@ -252,14 +319,6 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     if "halo_ratio" in fixed:
         chain = mass_chain.draw_mass_chain(galaxy_seed, mass, halo_mass_of(mass, fixed["halo_ratio"]))
 
-    length = fixed.get("disk_scale_length_pc")
-    if length is None:
-        length = drawn_disk_scale_length_pc(galaxy_seed, mass, fixed.get("compactness"))
-    q = fixed.get("flatness")
-    if q is None:
-        q = 10.0 ** (math.log10(KREGEL_Q) + _stream(galaxy_seed, "height").gauss(0.0, KREGEL_SCATTER_DEX))
-    height = length / q
-
     stage = stage_of(galaxy_seed, pinned_mass)
     late = stage == "late"
     structure = structure_draw.draw_structure(galaxy_seed, pinned_mass, fixed.get("stellar_halo_share"))
@@ -271,13 +330,6 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     mean, sigma = BAR_LENGTH_OVER_H_LATE if late else BAR_LENGTH_OVER_H_EARLY
     bar_ratio = _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
     bulge_size = fixed.get("bulge_size")
-    if bulge_size is None:
-        bar_length = length * bar_ratio
-        bulge_radius = bar_length / BAR_LENGTH_PER_SCALE_RADIUS
-    else:
-        bulge_radius = bulge_size * length
-        bar_length = bulge_radius * BAR_LENGTH_PER_SCALE_RADIUS
-    amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
 
     arms = fixed.get("arm_count")
     if arms is None:
@@ -289,6 +341,26 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     pitch = fixed.get("pitch_angle_deg")
     if pitch is None:
         pitch = _truncated(_stream(galaxy_seed, "pitch"), pitch_median_deg(mass), PITCH_SCATTER_DEG, *PITCH_RANGE_DEG)
+
+    length, q = fixed.get("disk_scale_length_pc"), fixed.get("flatness")
+    if all(name not in fixed for name in ("stellar_mass_solar", "disk_scale_length_pc", "compactness", "flatness",
+                                          "bulge_to_total", "bulge_size")):
+        length, q = _auto_size(galaxy_seed, mass, bar_ratio, functools.partial(
+            _auto_crest, chain, structure, bulge_to_total, bar_ratio, arm_level, arms, pitch))
+    if length is None:
+        length = drawn_disk_scale_length_pc(galaxy_seed, mass, fixed.get("compactness"))
+    if q is None:
+        q = _drawn_flatness(_stream(galaxy_seed, "height"))
+    height = length / q
+
+    if bulge_size is None:
+        bar_length = length * bar_ratio
+        bulge_radius = bar_length / BAR_LENGTH_PER_SCALE_RADIUS
+    else:
+        bulge_radius = bulge_size * length
+        bar_length = bulge_radius * BAR_LENGTH_PER_SCALE_RADIUS
+    amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
+
     compactness = (math.log(length * EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0 / size_median_kpc(mass))
                    / size_sigma_ln(mass))
     return GalaxyDraw(chain, stage, structure, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms,
