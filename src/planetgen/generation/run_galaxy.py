@@ -239,6 +239,11 @@ class _Pending:
             position_pc, suffix = self._place(address, extra)
             yield address, position_pc, self._density.resolve(self.args, address, position_pc), suffix
 
+    def located(self):
+        """Each address to generate with its suffix (`place`'s second answer), in order, its sector unresolved."""
+        for address, extra in self._eligible():
+            yield address, self._place(address, extra)[1]
+
     def addresses(self):
         """The addresses to generate, in order, unresolved (a run's cut needs no more than where its sectors are)."""
         for address, _extra in self._eligible():
@@ -1289,18 +1294,28 @@ def _sector_args_of(unit_args):
 
 def planned_items(params):
     """
-    The sectors a `planned` sector stage generates (PERF.123), flat `shell, band, wedge` triples, in the order to
-    generate them: the shell, band, span or course the stage's arguments name (`_address_plan`) less the sectors that
-    exist now, up to its `--limit`. The starter has counted, estimated and asked about them already (`_generate_addresses`).
+    The sectors a `planned` sector stage generates (PERF.123), as `(items, suffixes)`: `items` are flat `shell, band,
+    wedge` triples in the order to generate them, `suffixes` what the log says after each address (none for a stage
+    whose sectors need none). The stage's mode says where they are: "addresses", the shell, band, span or course the
+    arguments name (`_address_plan`); "neighborhood", the sectors within `--radius-pc` of `--center-sector` in the fill
+    order (`_neighborhood_candidates`). Either way, less the sectors that exist now, up to `--limit`. The starter has
+    counted, estimated and asked about them already.
     """
     args = _sector_args_of(params)
     edge_pc = params["edge_pc"]
-    batch_density = _BatchDensity(store.mysql_config_from_args(args))
+    config = store.mysql_config_from_args(args)
+    batch_density = _BatchDensity(config)
+    if params["planned"] == "neighborhood":
+        candidates, occupied, _outside = _neighborhood_candidates(
+            _neighborhood_center(args), args.radius_pc, edge_pc, config, batch_density.bounds)
+        pending = _Pending.of_candidates(args, candidates, occupied, batch_density, _neighborhood_suffix(args))
+        located = list(pending.located())
+        return [index for address, _suffix in located for index in address], [suffix for _address, suffix in located]
     plan = _address_plan(args, edge_pc, batch_density, say=_quiet)
     if plan is None:
-        return []
+        return [], []
     pending = _pending_of_plan(args, plan, edge_pc, batch_density)
-    return [index for address in pending.addresses() for index in address]
+    return [index for address in pending.addresses() for index in address], []
 
 
 def expand_generate_sectors(params):
@@ -1310,14 +1325,16 @@ def expand_generate_sectors(params):
     generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
     A unit's cost is its sectors.
     """
-    items = planned_items(params) if params.get("planned") else params["items"]
+    items, suffixes = planned_items(params) if params.get("planned") else (params["items"], [])
     count = len(items) // 3
     size = max(1, -(-count // SECTOR_UNITS_MAX))
     units = []
     for start in range(0, count, size):
         chunk = items[3 * start:3 * (start + size)]
-        units.append(({"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"],
-                       "items": chunk}, float(len(chunk) // 3)))
+        unit = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"], "items": chunk}
+        if suffixes:
+            unit["suffixes"] = suffixes[start:start + size]
+        units.append((unit, float(len(chunk) // 3)))
     return commands.Expansion(units, {"sectors": count})
 
 
@@ -1331,12 +1348,13 @@ def generate_sectors_unit(unit_args, report):
     Returns:
         dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there already),
             `sectors`, one entry per sector in order: `address`, `sector_id`, `name`, `systems`, `stars`, `density`,
-            `phenomena`, `summary` (`sector_generation_summary_lines`) and `seconds`.
+            `phenomena`, `summary` (`sector_generation_summary_lines`), `seconds` and `suffix` (what the log says after the address).
     """
     args = _sector_args_of(unit_args)
     edge_pc = unit_args["edge_pc"]
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
     items = unit_args["items"]
+    suffixes = unit_args.get("suffixes", [])
     done = []
     for place in range(0, len(items), 3):
         address = tuple(items[place:place + 3])
@@ -1348,7 +1366,7 @@ def generate_sectors_unit(unit_args, report):
             "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
             "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
             "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
-            "seconds": time.monotonic() - started})
+            "seconds": time.monotonic() - started, "suffix": suffixes[len(done)] if suffixes else ""})
         report(len(done), len(items) // 3)
     return {"sectors": done, "pid": os.getpid()}
 
@@ -1362,7 +1380,7 @@ def _log_saved(saved, address, suffix=""):
     run_sector._log_summary(saved["summary"])
 
 
-def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False, planned=False):
+def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False, planned=""):
     """
     Generates every `(address, position_pc, sector_args, suffix)` of `batch` on the new queue (PERF.107): the wrapper
     selects the stage's command (`generate-start-sector`, `generate-neighborhood` or `generate-sectors`, by the stage
@@ -1376,8 +1394,9 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_a
             (a single sector of `galaxy --wedge` is drawn from its profile with the defaults of `sector`).
         collect (bool): Whether to return what each sector reported instead of logging it, for a stage of few sectors
             whose caller says it in its own words.
-        planned (bool): Whether the stage's cut works the sectors out from the run's arguments (`planned_items`) rather
-            than from `batch`, which is then empty (`count` says how many there are).
+        planned (str): The way the stage's cut works the sectors out from the run's arguments (`planned_items`: "addresses"
+            or "neighborhood") instead of taking them from `batch`, which is then empty (`count` says how many there
+            are); empty when `batch` holds them.
 
     Returns:
         list: What each sector reported, in the order it was saved (`generate_sectors_unit`), when `collect`; else `[]`.
@@ -1419,7 +1438,7 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_a
             if collect:
                 reported.append(saved)
             else:
-                _log_saved(saved, address, suffix=suffixes.get(address, ""))
+                _log_saved(saved, address, suffix=saved.get("suffix") or suffixes.get(address, ""))
 
     try:
         wrapper.run(title, [step], lambda _index, plan: None, on_result, workers_count=workers,
@@ -1586,23 +1605,11 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
     return batch, pending.existed, pending.skipped
 
 
-def run_local_neighborhood(args, edge_pc, progress):
-    """
-    Local-neighborhood mode: generates every not-yet-generated
-    sector within `args.radius_pc` parsecs of `args.center_sector`'s own
-    stored center -- see `_BatchDensity.resolve` for how each sector's density is set.
-
-    Args:
-        args (argparse.Namespace): Parsed arguments;
-            `args.center_sector`/`args.radius_pc` must not be `None`.
-        edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
-        progress (rich.progress.Progress): `run_galaxy`'s shared progress
-            display (see `run_addresses`). `run_random_start` also calls
-            this directly after generating its own seed sector.
+def _neighborhood_center(args):
+    """The stored center, in parsecs, of `args.center_sector`.
 
     Raises:
-        SystemExit: If `args.center_sector` doesn't exist, or has never
-                   been placed in a galaxy.
+        SystemExit: The sector does not exist, or has never been placed in a galaxy.
     """
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
@@ -1622,10 +1629,33 @@ def run_local_neighborhood(args, edge_pc, progress):
             f"generate placed sectors from scratch instead."
         )
         raise SystemExit(1)
+    return (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
 
-    center = (
-        center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"],
-    )
+
+def _neighborhood_suffix(args):
+    """What the log says after a neighborhood sector's address; `{distance}` is its distance from the center, in pc."""
+    return f", {{distance:.2f}} pc from sector_id={args.center_sector}"
+
+
+def run_local_neighborhood(args, edge_pc, progress):
+    """
+    Local-neighborhood mode: generates every not-yet-generated
+    sector within `args.radius_pc` parsecs of `args.center_sector`'s own
+    stored center -- see `_BatchDensity.resolve` for how each sector's density is set.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments;
+            `args.center_sector`/`args.radius_pc` must not be `None`.
+        edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
+        progress (rich.progress.Progress): `run_galaxy`'s shared progress
+            display (see `run_addresses`). `run_random_start` also calls
+            this directly after generating its own seed sector.
+
+    Raises:
+        SystemExit: If `args.center_sector` doesn't exist, or has never
+                   been placed in a galaxy.
+    """
+    center = _neighborhood_center(args)
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     center_shell, center_band, _wedge = sector_address_at(center, edge_pc)
@@ -1642,15 +1672,14 @@ def run_local_neighborhood(args, edge_pc, progress):
         raise SystemExit(1) from exc
     region = _region_text(args)
 
-    pending = _Pending.of_candidates(args, candidates, occupied, batch_density,
-                                     f", {{distance:.2f}} pc from sector_id={args.center_sector}")
+    pending = _Pending.of_candidates(args, candidates, occupied, batch_density, _neighborhood_suffix(args))
     batch, estimate_args, total = _plan_pending(pending)
     already_existed, skipped = pending.existed, pending.skipped
     run_common._check_estimate(args, estimate_args,
                     f"the sectors {region} of sector {args.center_sector}", progress, total=total)
     with run_common.sector_bar(progress, args, "Sectors (local neighborhood)", pending.count) as bar:
-        _submit_batch(args, batch, f"Sectors ({region} of sector {args.center_sector})",
-                      edge_pc, progress, bar, count=pending.count)
+        _submit_batch(args, [], f"Sectors ({region} of sector {args.center_sector})",
+                      edge_pc, progress, bar, count=pending.count, planned="neighborhood")
     generated = pending.count
 
     skip_note = f", {skipped} skipped (beyond the grid's reach)" if skipped else ""
@@ -2275,7 +2304,7 @@ def _generate_addresses(args, plan, edge_pc, progress, batch_density):
 
     run_common._check_estimate(args, estimate_args, what, progress, total=sampled_total)
     with run_common.sector_bar(progress, args, f"Sectors ({what})", pending.count) as bar:
-        _submit_batch(args, [], f"Sectors ({what})", edge_pc, progress, bar, count=pending.count, planned=True)
+        _submit_batch(args, [], f"Sectors ({what})", edge_pc, progress, bar, count=pending.count, planned="addresses")
     generated = pending.count
     skip_note = f", {skipped} skipped (beyond the grid's reach)" if skipped else ""
     already = f"{total - generated - skipped} already existed" if limit is None else f"{existed} already existed"

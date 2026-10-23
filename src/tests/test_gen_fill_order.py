@@ -14,6 +14,7 @@ from planetgen import tuning
 from planetgen.galaxy.spherical import enumerate_sectors_within_radius
 from planetgen.generation import fill_order, run_galaxy
 from planetgen.physics.units import ly_to_pc
+from planetgen.queue import wrapper
 from planetgen.util import log
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -114,17 +115,23 @@ def test_a_local_neighborhood_generates_its_sectors_in_the_fill_order_and_says_h
     _run_cli(["--shell", "1", "--band", "0", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
     (seed,) = _all_sectors(mysql_config)
     center = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
-    batches = []
-    monkeypatch.setattr(run_galaxy, "_submit_batch", lambda args, batch, *rest, **kwargs: batches.append(list(batch)))
+    submitted = []
+    monkeypatch.setattr(run_galaxy, "_submit_batch",
+                        lambda args, batch, *rest, **kwargs: submitted.append((args, list(batch), kwargs)))
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     radius = 14.0
     _run_cli(["--center-sector", str(seed["id"]), "--radius-pc", str(radius), "--num-systems", "1"]
              + _mysql_argv(mysql_config))
-    (batch,) = batches
+    ((args, batch, options),) = submitted
     expected = [cell for cell in fill_order.fill_order(_cells(center, radius), center, EDGE_PC)
                 if cell[:3] != (seed["shell_index"], seed["band_index"], seed["wedge_index"])]
-    assert [item[0] for item in batch] == [cell[:3] for cell in expected]
+    assert batch == [] and options["planned"] == "neighborhood" and options["count"] == len(expected)
+    items, suffixes = run_galaxy.planned_items({
+        "database": wrapper.database_args(mysql_config), "args": run_galaxy._sector_args_json(args),
+        "edge_pc": EDGE_PC, "items": [], "planned": "neighborhood"})
+    assert [tuple(items[place:place + 3]) for place in range(0, len(items), 3)] == [cell[:3] for cell in expected]
+    assert len(suffixes) == len(expected) and suffixes[0].startswith(", ") and f"pc from sector_id={seed['id']}" in suffixes[0]
     (line,) = [m for m in messages if m.startswith("Fill order: ")]
     assert f"{len(expected) + 1:,} sector(s)" in line and "between neighbouring sectors" in line
     assert "jump(s)" in line
