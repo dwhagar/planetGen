@@ -78,7 +78,7 @@ def test_the_nav_section_is_current_on_both_of_its_pages(client):
 def test_the_page_walks_from_a_sector_to_a_system_to_a_distance(client, mysql_config):
     system = _first_system(mysql_config)
     html = client.get("/nearby").get_data(as_text=True)
-    assert f'<option value="{system["sector_pid"]}">' in html and "Or a point in space" in html
+    assert f'<sl-option value="{system["sector_pid"]}">' in html and "Or a point in space" in html
     html = client.get(f"/nearby?sector={system['sector_pid']}").get_data(as_text=True)
     assert f'value="system:{system["pid"]}"' in html
     html = client.get(f"/nearby?place=system:{system['pid']}").get_data(as_text=True)
