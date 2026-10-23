@@ -30,7 +30,7 @@ Evidence tags: [S] seen in a search result or a file fetched from raw.githubuser
 
 | Item | Status | Used here for |
 |---|---|---|
-| VIEW.5 `physics/light_travel.py` | done, PR #719 | `apparent_position(position_at, observer, now_s)` iterates the retarded time; `apparent_position_of(body, observer)` for a `SpatialPosition3D`. One body at a time; the sky needs the vectorised version in section 2 |
+| VIEW.5 `physics/light_travel.py` | done, PR #719 | `apparent_position(position_at, observer, now_s)` iterates the retarded time; `apparent_position_of(body, observer)` for a `SpatialPosition3D`. One body at a time; the sky needs the vectorised version in section 2. No production code calls it yet (only its tests); the callers are VIEW.12, VIEW.2 and VIEW.18 |
 | GEN.6 galactic motion | done, 7.37.0, PR #157 | stars and systems move along galactic orbits |
 | GEN.125 facility velocity | done, PR #782 | a stand-alone facility is an observer with a position and a velocity |
 | GEN.98 backfill from the farthest boundary outward | done, PR #795 | the tier machinery of section 3 |

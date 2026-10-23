@@ -205,7 +205,7 @@ The constants and the maths behind every generated body.
 | [`__init__.py`](../../src/planetgen/physics/__init__.py) | Physics: the constants and the maths behind every generated body. |
 | [`activity.py`](../../src/planetgen/physics/activity.py) | Stellar activity (GEN.86): each star's X-ray and XUV output, whether its corona is still saturated, how often it flares, and the XUV it has put out over its life. |
 | [`atmosphere.py`](../../src/planetgen/physics/atmosphere.py) | Mantle redox and atmosphere species for planets and moons (GEN.85). |
-| [`body_positions.py`](../../src/planetgen/physics/body_positions.py) | Where every body of a system is at any time (MAP.70), from the scene `GET /api/systems/<id>/scene` returns (`web/maps/systemscene.py`). |
+| [`body_positions.py`](../../src/planetgen/physics/body_positions.py) | Where every body of a system is at any time (MAP.70), from the scene `GET /api/systems/<id>/scene` returns (`web/maps/systemscene.py`). Built and tested, but no production Python calls it yet (only tests; the map runs on its browser twin `orbitpositions.js`); the callers are planned in MAP.253, NAV.6, GEN.212 and VIEW.14. |
 | [`constants.py`](../../src/planetgen/physics/constants.py) | Universal physical and mathematical constants and unit conversions. |
 | [`formation.py`](../../src/planetgen/physics/formation.py) | Protoplanetary disk physics: the snow line, the minimum-mass solar nebula's surface density, and the isolation mass a planet can grow to. |
 | [`habitability.py`](../../src/planetgen/physics/habitability.py) | The planetary habitability index (GEN.84): the reference maths of docs/design/habitability-index.md section 7, every constant with its source. |
@@ -214,7 +214,7 @@ The constants and the maths behind every generated body.
 | [`hydrosphere.py`](../../src/planetgen/physics/hydrosphere.py) | Water on planets, moons and rogue planets (GEN.88). |
 | [`insolation.py`](../../src/planetgen/physics/insolation.py) | Summed insolation of a planet in a multi-star system (GEN.148). |
 | [`kepler.py`](../../src/planetgen/physics/kepler.py) | Two-body Kepler and Barker propagation for eccentric and parabolic orbits. |
-| [`light_travel.py`](../../src/planetgen/physics/light_travel.py) | Light-travel positions (VIEW.5): where an object appears to be to an observer. |
+| [`light_travel.py`](../../src/planetgen/physics/light_travel.py) | Light-travel positions (VIEW.5): where an object appears to be to an observer. Built and tested, but no production Python calls it yet (only tests); the callers are planned in VIEW.12, VIEW.2 and VIEW.18. |
 | [`magnetism.py`](../../src/planetgen/physics/magnetism.py) | Planetary magnetic fields and the star's radiation at the planet (GEN.86). |
 | [`mathcheck.py`](../../src/planetgen/physics/mathcheck.py) | A fixed list of checks that the generator's math gives the right answers (TEST.63): pytest runs it first and stops the suite if it fails, and the website runs it once at startup. |
 | [`orbits.py`](../../src/planetgen/physics/orbits.py) | Orbital mechanics for generated systems: the habitable zone, Hill spheres and mutual Hill radii, the stability limit and orbital positions. |

@@ -2489,6 +2489,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (`tests/test_js_unit.py` checks them against each other). Done: the
   system map draws the same scene and the Python and JS positions agree
   by test.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: GEN.576, DB.78, GEN.577. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
@@ -2536,20 +2540,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the open question: per browser now (the same storage and menu as
   bookmarks), moved into the account when USR.7 lands. NAV.4 then does
   not wait for user accounts.
-
-  - [ ] **NAV.17 A saved course record with both forms**
-    Done: a saved course stores its two end references, a name, when it
-    was saved, both forms (the direct line's bearing, mark and distance;
-    the route's list of stop references and distance) and, with NAV.6,
-    the adjusted path. Opening it recomputes both from the current
-    galaxy and says if anything changed since it was saved (the
-    correlative update moves systems along their galactic orbits, and
-    a regenerated system can vanish).
-    Owner: Core 2 (confirmed by Core 2; relayed 5:00 PM EDT 2026-10-22 as
-    the lane's clock reads). Built after UX.129 merged as #2544:
-    `static/savedcourse.js` holds the record with both forms, the `course`
-    kind and the 'what changed' sentences, with 9 JS tests; its gate
-    started 7:25 PM EDT as the lane reported.
 
   - [ ] **NAV.18 Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store**
     Done: a Save course button on the NAV result; a Courses list
@@ -2763,6 +2753,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the course test at the three scales, using the keep-out table
     (NAV.54) and the planner (NAV.26); the keep-out radius for fields is
     NAV.54's.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
     Prerequisites: NAV.25, NAV.26, NAV.54.
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
@@ -4559,6 +4553,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.70 and MAP.62 are built), reuse the same non-iterative solver in
   `body_positions.py` and `orbitpositions.js` so the parity test stays
   simple (GEN.374 fixes the JavaScript solver's tolerance first).
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
@@ -5790,6 +5788,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first at every node (slot 0 = the heavier branch, as the tree builder
   writes it) and adds no fifth copy of the swap. No behaviour change, no
   epoch. Owner Core 3.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/planet_zones.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers (built by GEN.314). Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: none. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -5971,6 +5973,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator 2026-10-17, 11:29 PM EDT as relayed): its 'rogue planet
   pairs' are the pair builder with planets (GEN.555); it stays, as a row
   and a builder of the unified chain.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/planet_zones.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers (built by GEN.314). Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: GEN.315. Related: GEN.275.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -18762,6 +18768,11 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   Method: follow /mnt/project-files/reports/audit-playbook-2026-10-22.md
   (the coordinator, relayed 7:58 PM EDT 2026-10-22 as the lane's clock
   reads).
+  Gate rule (Boss, 8:04 PM EDT 2026-10-22): the
+  version is not stamped while a confirmed Critical or High finding is
+  open; Mediums are filed with owners; data loss, corruption or broken
+  seed reproducibility counts as High. This holds unless Boss
+  specifically authorizes an exception.
   Prerequisites: PERF.146. Related: TEST.261.
 
 ## TEST: The test suite
@@ -20475,6 +20486,17 @@ clears each one.
   Method: follow /mnt/project-files/reports/audit-playbook-2026-10-22.md
   (the coordinator, relayed 7:58 PM EDT 2026-10-22 as the lane's clock
   reads).
+  Gate rule (Boss, 8:04 PM EDT 2026-10-22): the
+  version is not stamped while a confirmed Critical or High finding is
+  open; Mediums are filed with owners; data loss, corruption or broken
+  seed reproducibility counts as High. This holds unless Boss
+  specifically authorizes an exception.
+  Dead-code pass (Boss, 8:04 PM EDT 2026-10-22): this audit includes
+  removing old code that nothing uses any more, in small PRs, one
+  area at a time. Code built for a pending feature stays (for example
+  physics/body_positions.py, light_travel.py and planet_zones.py, whose
+  callers are open items); keep anything tied to an open or planned
+  item, and say in each PR which item keeps what is left.
   Prerequisites: PERF.146. Related: SEC.33.
 
 - [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
@@ -22245,6 +22267,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     umbrella of the photometry library (a), the sky catalogue (b), the
     galactic band (c) and the orientation and horizon (d), cut along the
     stages of sky-view.md section 8.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/light_travel.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
     Prerequisites: VIEW.11, VIEW.12, VIEW.13, VIEW.14.
 
   - [ ] **VIEW.3 Render the view as a PNG, with constellations**
@@ -22393,6 +22419,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   read from a developer machine and not committed): a generated sky has
   about 9,000 stars at V <= 6.5. Pillow is not declared; revisit only if
   VIEW.3 adds burned-in text (the 2026-10-16 review).
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/light_travel.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: VIEW.11, VIEW.7. Related: VIEW.2.
 
 - [ ] **VIEW.13 Galactic band: the glow of the unresolved stars and dust along each line of sight**
@@ -22415,6 +22445,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   measured in the generated frame (VIEW.6). Done:
   `horizon_view(observer, time)` with tests for a pole, the equator and
   a tilted planet.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: VIEW.12, VIEW.13, VIEW.6, GEN.417, GEN.418. Related:
   VIEW.2.
 
@@ -22466,6 +22500,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Headline: 9.1 (the view from a planet: the sky from any planet or
   moon, with real constellations, rendered as a picture). A hand version
   bump needs Boss's word.
+  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
+  2026-10-22 as the lane's clock reads): `physics/light_travel.py` is built and
+  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
+  EDT): code built for a pending feature stays.
   Prerequisites: none. Related: VIEW.1, MAP.167, GEN.421.
 
 ## POP: Population and politics
