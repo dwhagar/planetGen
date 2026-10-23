@@ -1139,3 +1139,4 @@ Baseline: PR #1817.
 | MAP.174 | 8.1 | Nebula data foundations |
 | GEN.638 | 8.1 | The headline closes |
 | PERF.170 | 8.1 | The headline closes |
+| GEN.267 | 8.1 | Multi-star and compact systems |

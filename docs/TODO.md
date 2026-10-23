@@ -1038,11 +1038,11 @@ with `clamp()`.
   project chat): chemical names in HTML such as water (H2O) should
   properly use subscripts and superscripts in the output. Kind:
   formatting bug. Wanted: a formula in any page prints its counts as
-  subscripts (H2O as H<sub>2</sub>O), its ion charges as superscripts
-  (Na+ as Na<sup>+</sup>, SO4 2- as SO<sub>4</sub><sup>2-</sup>) and its
-  isotope mass numbers as superscripts before the symbol (the 14 in
-  14C). Do: one shared formatter, a Jinja filter and its plain-text twin
-  for the command line, that turns a formula string into marked-up HTML
+  subscripts (H2O with a subscript 2), its ion charges as superscripts
+  (the plus of Na+ and the 2- of sulfate raised) and its isotope mass
+  numbers as superscripts before the symbol (the 14 in 14C). Do: one
+  shared formatter, a Jinja filter and its plain-text twin for the
+  command line, that turns a formula string into marked-up HTML
   (escaping everything else), and use it in every template and generated
   text that prints a species, an atmosphere or ocean composition, a
   mineral or ice, or a gas, plus the help and design pages that quote
@@ -1052,7 +1052,7 @@ with `clamp()`.
   charges, isotopes, hydrates and brackets, and a test that no template
   prints a bare formula. Done: the formatter and its tests exist, every
   page that prints a chemical formula goes through it, and a browser or
-  HTML test shows the water entry as H<sub>2</sub>O. Owner: Bug Hunt
+  HTML test shows the water entry with a subscript 2. Owner: Bug Hunt
   (Boss, 5:30 PM EDT 2026-10-23).
   Prerequisites: none. Related: UX.148, DOC.13.
 
@@ -4845,54 +4845,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator relayed;
   docs/design/unified-system-barycentre.md): see the note on GEN.315
   (heaviest first at every node, no new copy of the swap).
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
-- [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
-  Step 11 (design note 11 item 11; small). `MAX_STARS` (default 12) and
-  a `--stars N` directive so a user may force N members or raise the
-  cap, and a prevalence knob for the N of 5 or more columns, as GEN.129
-  already has. Done: the setting and the directive exist and a forced N
-  is honoured or refused with the reason. Owner: Core (2026-10-15). Boss
-  (2026-10-15 5:51 PM EDT): stellar companions of stars and star-like
-  objects, including neutron star and black hole pairs, are generated at
-  scatter time because they matter for gravity; planets, moons and belts
-  stay at sector fill. Defaults taken (reversible): compact pairs
-  promoted to the scatter, black hole companion fraction 1.25%, cap 12
-  stars (7 before the 6:08 PM EDT catalogue), hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the default cap
-  is 12, not 7 (ten candidate systems with multiplicity up to 12; theory
-  allows several hundred; the 1.1e6 to 1.1e2 systems of N = 8 to 12 in
-  the default galaxy are in the tail table). A directive may still raise
-  it.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
-  after Core 3 merges UX.116 (Generate page)).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the owner stays Core
-  4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
-  owner lines are deleted.
-  Scope decision (TODO thread, 1:05 PM EDT 2026-10-23, from Core 4's
-  question relayed 1:10 PM EDT as the lane reported; reversible by
-  Boss): nothing in the generator calls multistar.draw_member_tree with
-  a user's config yet, because StarSystem builds only a single star or a
-  pair until GEN.630 (Core 3, the N-star StarSystem host) and GEN.631
-  (stages D and G call the tree) merge. So Core 4 builds the half that
-  does not touch StarSystem: the MAX_STARS setting, the --stars N
-  directive, the Generate page field, the prevalence knob for 5 or more
-  stars, and the refusals with their reasons ('N is above the cap of
-  12', 'N of 3 or more needs a tree, not --binary'), carried in the
-  config and the plan where the StarSystem host of GEN.630 will read
-  them. The 'honoured' half (a single-system generate building the
-  forced tree) lands with GEN.630 and GEN.631 and is checked when the
-  later of the two merges; Core 3 is told to read the forced N and the
-  cap from this config. Done for this item: the setting, the directive,
-  the field, the knob and the refusals exist and are tested; a forced N
-  is refused with the reason where it is invalid and passed to the
-  StarSystem host.
-  Prerequisites: none. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -14445,6 +14397,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   binaries about 0.75 and 0.60, mean 1.38 stars per system). Takes an
   epoch at merge. The deletion of the pair classes is the new item
   GEN.640 after GEN.332.
+  Note from GEN.267 (Core 4, merged as #2704, about 5:30 PM EDT
+  2026-10-23 as the lane reported, schema v134, no epoch): the
+  star-count settings now exist and StarSystem does not read them yet,
+  so the honoured half is this item's. SystemConfig.STARS and MAX_STARS
+  (default cap 12) are in the config JSON, the plan arguments and
+  system_configs (stars, max_stars, prevalence_multi_star); the refusals
+  are in the CLI (a count under 1, over the cap, over 64, --stars 1 with
+  +binary_system or +wide_binary, 2 or more stars with -binary_system).
+  The prevalence feature multi_star (usual share 0.45 percent of
+  systems) comes with prevalence.multi_star_scale(config), which this
+  item passes to draw_member_tree(prevalence=...). Open stand-ins for
+  the registry: the ceiling of 64 (tuning.MAX_STARS_CEILING) and the
+  0.45 percent usual share (remeasure from generated systems once the
+  host builds five stars).
   Prerequisites: none. Related: GEN.316, GEN.315, GEN.264, GEN.581.
 
 - [ ] **GEN.632 Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function**
@@ -17693,6 +17659,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.8. Related: API.3.
+
+- [ ] **ADM.128 The admin one-off system page and the API schema offer the star count and the cap (stars and max_stars)**
+  Follow-up to GEN.267 (Core 4, #2704, offered at 5:31 PM EDT 2026-10-23
+  as the lane reported; filed by the TODO thread): the star count
+  settings exist on the command line, in system files and on the
+  Generate page (a field for the cap), but the admin one-off system page
+  and the API schema do not offer stars or max_stars. Do: add the star
+  count and the cap to the one-off system page and to the API schema for
+  system generation, with the same refusals as the command line (a count
+  under 1, over the cap, over 64, one star with a binary feature, two or
+  more stars with binary_system off), and tests for each refusal. Done:
+  both surfaces accept stars and max_stars, refuse the same cases with
+  the same words, and a test covers each. Owner: Core 4 (it built the
+  settings; after GEN.631 reads them, so the page can be tried end to
+  end).
+  Prerequisites: GEN.631. Related: GEN.267, UX.125.
 
 ## SEC: Security
 
