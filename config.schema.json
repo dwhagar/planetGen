@@ -895,6 +895,27 @@
           "x-summary": "How many workers run long jobs, apart from the ones for short jobs.",
           "x-unit": "workers"
         },
+        "maintenance_workers": {
+          "default": 1,
+          "description": "How many workers run the cache warm-up, the tile prefetch and the database check while a generation run is live. They are taken out of the generation worker count (a generation worker finishes its unit and leaves when they are needed), so the host's total does not grow; with no generation run live they may use the whole count.",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Maintenance Workers",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Workers for upkeep during a run",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many workers keep the caches and checks going while a generation run is live.",
+          "x-unit": "workers"
+        },
         "wait_minutes": {
           "default": 60,
           "description": "How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait).",
@@ -1476,7 +1497,7 @@
         },
         "prefetch_max_queued": {
           "default": 8,
-          "description": "The background build queues nothing while this many of its jobs (16 tiles each) or other bulk work already wait.",
+          "description": "The background build queues nothing while this many of its jobs (16 tiles each) or other upkeep work already wait.",
           "minimum": 1,
           "title": "Prefetch Max Queued",
           "type": "integer",
@@ -2006,6 +2027,7 @@
         "interactive_workers": 1,
         "long_job_seconds": 60.0,
         "long_workers": 1,
+        "maintenance_workers": 1,
         "wait_minutes": 60.0
       }
     },
