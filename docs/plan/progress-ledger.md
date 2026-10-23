@@ -1116,3 +1116,4 @@ Baseline: PR #1817.
 | TEST.196 | 8.1 | The headline closes |
 | GEN.468 | 8.1 | Composition research and design |
 | GEN.465 | 8.1 | Composition research and design |
+| ADM.125 | 8.1 | Admin control suite |
