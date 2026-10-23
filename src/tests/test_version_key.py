@@ -214,7 +214,7 @@ def test_the_line_is_first_in_a_debug_file_too(mysql_config, monkeypatch, tmp_pa
     debug = tmp_path / "run.log"
     _generate(mysql_config, monkeypatch, *GALAXY_RUN, "--debug", str(debug))
     first = debug.read_text(encoding="utf-8").splitlines()[0]
-    assert first.endswith("[INFO] " + versionKey.run_line(SEED, " ".join(GALAXY_RUN)))
+    assert first.endswith("| " + versionKey.run_line(SEED, " ".join(GALAXY_RUN)))
 
 
 def test_a_web_job_log_starts_with_the_line(mysql_config, tmp_path):

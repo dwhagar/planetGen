@@ -1733,7 +1733,9 @@ def main():
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
     logged = not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
-    log.normal(version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:]))))
+    with log.untraced():    # the seed read must not put SQL lines in front of the run line
+        run_line = version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:])))
+    log.normal(run_line)
     log.debug("Command: %s, options: %s", args.command,
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
 

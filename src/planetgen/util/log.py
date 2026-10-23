@@ -591,6 +591,18 @@ def debug_log_active():
     return _tracing
 
 
+@contextmanager
+def untraced():
+    """Keeps the SQL and cache events of a short setup read out of the debug record, for a caller whose first line has
+    to come before them (the run line, which names the galaxy seed it reads from the database)."""
+    global _tracing
+    was, _tracing = _tracing, False
+    try:
+        yield
+    finally:
+        _tracing = was
+
+
 def _sync_tracing():
     """Starts tracing random draws while anything records debug detail, and stops when nothing does."""
     global _tracing
