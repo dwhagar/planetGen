@@ -260,6 +260,12 @@
       "epoch": 53,
       "first_release": "8.0.1998",
       "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of Gadotti and de Sa-Freitas 2025 (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)"
+    },
+    {
+      "epoch": 54,
+      "first_release": null,
+      "pending": true,
+      "reason": "A planet or belt is placed only inside the orbit where a place's passing systems have not stripped it over the star's age (at most 12 Gy): the largest axis with one expected ionising pass, from the place's systems per volume and dispersion, so a system in a dense core keeps close-in planets only and one in the Sun's neighbourhood loses planets beyond a few hundred AU (GEN.325)"
     }
   ]
 }

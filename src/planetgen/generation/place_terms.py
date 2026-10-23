@@ -2,9 +2,10 @@
 
 """
 What a place does to the stars drawn in it (GEN.103, docs/design/placement-by-population.md 3.1 and 3.3):
-the close-companion odds factor that follows a star's own [Fe/H] and the widest axis a wide pair can keep.
+the close-companion odds factor that follows a star's own [Fe/H], the widest axis a wide pair can keep and the widest
+orbit a planet keeps (GEN.325).
 
-Both are functions of numbers the sector profile already holds (the density, the populations' velocity
+All are functions of numbers the sector profile already holds (the density, the populations' velocity
 dispersions and the star's own [Fe/H] and age), so nothing here is a catalogue by place. `PlaceTerms` carries the
 profile's part to the system draw on `SystemConfig.PLACE_TERMS`; a system drawn with no galaxy placement uses
 `SOLAR_NEIGHBOURHOOD`.
@@ -16,7 +17,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import system_mass as galaxy_system_mass
 from planetgen.generation import system_mass
-from planetgen.physics import constants
+from planetgen.physics import constants, planet_survival
 
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
@@ -60,10 +61,19 @@ class PlaceTerms:
         dispersion_kms (float): The velocity dispersion of the field there, km/s.
         perturber_mass_solar (float): The mass-weighted mean mass, `<M^2> / <M>`, of the stars and remnants that pass a
             pair (`mass_weighted_perturber_mass_solar`); the default is the whole disk's star formation history.
+        mean_system_mass_solar (float): The mean mass of a system there (`galaxy.system_mass.mean_over_solar`), which
+            turns the mass density into the systems per volume that strip planets (`systems_per_pc3`); the default is
+            the whole disk's star formation history.
     """
     mass_density_solar_pc3: float
     dispersion_kms: float
     perturber_mass_solar: float = mass_weighted_perturber_mass_solar([(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)])
+    mean_system_mass_solar: float = system_mass.window_mean_system_mass_solar(*tuning.STAR_FORMATION_AGE_RANGE_GY)
+
+    @property
+    def systems_per_pc3(self):
+        """Systems per cubic parsec: the mass density over the mean system mass."""
+        return self.mass_density_solar_pc3 / self.mean_system_mass_solar
 
 
 SOLAR_NEIGHBOURHOOD = PlaceTerms(
@@ -85,8 +95,8 @@ def from_profile(profile):
     perturber = mass_weighted_perturber_mass_solar(
         (p.share, p.age_gy) for p in profile.populations.values() if p.share > 0.0)
     mean_mass = galaxy_system_mass.mean_over_solar({n: p.share for n, p in profile.populations.items()}, profile.shape)
-    return PlaceTerms(mass_density_solar_pc3=systems_per_pc3 * mean_mass,
-                      dispersion_kms=dispersion, perturber_mass_solar=perturber)
+    return PlaceTerms(mass_density_solar_pc3=systems_per_pc3 * mean_mass, dispersion_kms=dispersion,
+                      perturber_mass_solar=perturber, mean_system_mass_solar=mean_mass)
 
 
 def close_companion_factor(fe_h):
@@ -139,6 +149,17 @@ def encounter_limit_au(terms, total_mass_solar, age_gy):
     metres = (tuning.ENCOUNTER_LIMIT_COEFFICIENT * total_mass_solar * constants.SOLAR_MASS_TO_KG
               * RELATIVE_VELOCITY_FACTOR * terms.dispersion_kms * 1000.0) / (constants.G * rho2_si * seconds)
     return metres / constants.AU_M
+
+
+def planet_limit_au(terms, age_gy=None):
+    """
+    The largest semi-major axis at which a planet of a star of `age_gy` outlives the passing systems of the place
+    (`physics.planet_survival.planet_survival_limit_au` on the place's systems per volume and dispersion). A star
+    younger than `tuning.PLANET_SURVIVAL_AGE_GY` has been exposed to its own age only; one with no age (or an older
+    one) to that age. Infinite where nothing passes (GEN.325).
+    """
+    age = tuning.PLANET_SURVIVAL_AGE_GY if age_gy is None else min(age_gy, tuning.PLANET_SURVIVAL_AGE_GY)
+    return planet_survival.planet_survival_limit_au(terms.systems_per_pc3, terms.dispersion_kms, age)
 
 
 def tidal_limit_au(terms, total_mass_solar):

@@ -20,7 +20,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
-from planetgen.generation import validation
+from planetgen.generation import place_terms, validation
 from planetgen.generation.comet import Comet
 from planetgen.physics.orbits import hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
 from tests import render_support
@@ -167,7 +167,13 @@ def test_orbit_ceiling_falls_back_to_system_perimeter_without_a_crit(star_type):
     # single must not be left to chance here.
     system = StarSystem(system_config=make_config(star_type, PLANETS=False, BINARY_SYSTEM=False))
     assert system.star.a_crit_au is None
+    # A place where nothing passes cuts nothing (GEN.325 cuts at the survival limit of the place's passing systems;
+    # the default place is the Sun's neighbourhood, which does), so the ceiling is the perimeter alone.
+    system.system_config.PLACE_TERMS = place_terms.PlaceTerms(0.0, 30.0)
     assert system._orbit_ceiling_au(system.star) == system.star.system_perimeter
+    system.system_config.PLACE_TERMS = None
+    assert system._orbit_ceiling_au(system.star) == pytest.approx(
+        place_terms.planet_limit_au(place_terms.SOLAR_NEIGHBOURHOOD, system.star.age))
 
 
 def test_tight_a_crit_stops_placement_earlier_than_system_perimeter_alone_would():
