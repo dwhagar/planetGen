@@ -304,6 +304,28 @@ def catch_up(conn, edge_pc, on_progress=None):
     return added
 
 
+def covers(conn, m, cells=None):
+    """
+    The stored cover (the share of a block inside a nebula, 0 to 1) of the blocks `cells` (`(shell, band, wedge)`
+    each) of level `m`, or of every block of the level when `cells` is `None`: `{(shell, band, wedge): cover}`. A block
+    no nebula's sphere reaches is left out. The aggregates are made from the field and the stored nebulae, not from the
+    sectors, so a block no sector was generated in has its cover too.
+    """
+    if cells is None:
+        rows = conn.execute("SELECT shell_index, band_index, wedge_index, cover FROM nebula_block_stats"
+                            " WHERE m = ? AND cover > 0", (m,)).fetchall()
+    else:
+        cells = list(cells)
+        rows = []
+        for start in range(0, len(cells), KEY_BATCH):
+            part = cells[start:start + KEY_BATCH]
+            rows += conn.execute(
+                "SELECT shell_index, band_index, wedge_index, cover FROM nebula_block_stats WHERE m = ? AND cover > 0"
+                " AND (shell_index, band_index, wedge_index) IN (" + ", ".join("(?, ?, ?)" for _ in part) + ")",
+                [m] + [value for cell in part for value in cell]).fetchall()
+    return {(r["shell_index"], r["band_index"], r["wedge_index"]): float(r["cover"]) for r in rows}
+
+
 def read(conn, m, cells):
     """
     The stored aggregates of the blocks `cells` (`(shell, band, wedge)` each) of level `m`, in one statement:

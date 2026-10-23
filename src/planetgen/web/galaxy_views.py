@@ -360,6 +360,28 @@ def _prefetch_around(app, db, tile_keys, at=None):
 galaxy_tiles.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+def _with_nebula_cover(payload, db, at, g=None):
+    """
+    `payload` (a stage or a window) with the nebula cover of its cells (MAP.174): `nebula_cover`, a list of `[shell,
+    band, wedge, cover]` for every cell with a cover above zero, filled or not, and `stats.nebula_cover` (0 when
+    none) on each child that holds a generated sector. Cells of a sector have none, and their payload carries an empty
+    list. Read from the API on every request, never from the stage cache, because the aggregates change without a
+    sector changing. When the API cannot answer, `nebula_cover` is `null` and the map draws without it.
+    """
+    try:
+        found = apiclient.get_galaxy_nebula_cover(db, at, g)
+    except apiclient.ApiError as exc:
+        log.error(f"Galaxy Map: the nebula cover could not be read ({exc}).")
+        return {**payload, "nebula_cover": None}
+    cells = found.get("cells") or []
+    covers = {(cell[0], cell[1], cell[2]): cell[3] for cell in cells}
+    children = payload.get("children")
+    if children and found.get("child_m", 1) > 1:
+        children = [{**child, "stats": {**child["stats"], "nebula_cover": covers.get(
+            (child["shell"], child["band"], child["wedge"]), 0.0)}} for child in children]
+    return {**payload, **({"children": children} if children is not None else {}), "nebula_cover": cells}
+
+
 @bp.route("/galaxy/stage")
 @page_limit("galaxy_tiles")
 def galaxy_stage():
@@ -370,6 +392,7 @@ def galaxy_stage():
     """
     try:
         payload = fetch_stage(db_name(), request.args.get("at") or None)
+        payload = _with_nebula_cover(payload, db_name(), request.args.get("at") or None)
     except TileRequestError as exc:
         return _json_error(str(exc), 400)
     except apiclient.NotFoundError as exc:
@@ -397,6 +420,8 @@ def galaxy_window():
     """
     try:
         payload = fetch_window(db_name(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW)
+        payload = _with_nebula_cover(payload, db_name(), request.args.get("at") or "",
+                                     request.args.get("g") or DEFAULT_WINDOW)
     except TileRequestError as exc:
         return _json_error(str(exc), 400)
     except apiclient.NotFoundError as exc:

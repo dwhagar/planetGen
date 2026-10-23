@@ -61,6 +61,10 @@ class FakeData:
         self.fail_tiles = None
         self.stage_calls = []
         self.window_calls = []
+        self.cover_calls = []
+        self.cover_cells = [[2, 1, 0, 0.25]]
+        self.fail_cover = None
+        self.stage_children = []
         self.polity_total = 2
 
     def get_polities(self, db, limit=None, offset=None):
@@ -97,13 +101,23 @@ class FakeData:
     def get_galaxy_stage(self, db, at=None):
         self.dbs.add(db)
         self.stage_calls.append(at)
-        return {"at": at, "child_m": 243 if at is None else 27, "children": [], "sectors": None, "edge_pc": 3.526}
+        return {"at": at, "child_m": 243 if at is None else 27, "children": [dict(c, stats=dict(c["stats"]))
+                                                                             for c in self.stage_children],
+                "sectors": None, "edge_pc": 3.526}
 
     def get_galaxy_window(self, db, at, g):
         self.dbs.add(db)
         self.window_calls.append((at, g))
         return {"at": at, "g": g, "child_m": int(at.split(".")[0]), "cells": [[3, 5, 0]], "children": [],
                 "sectors": None}
+
+    def get_galaxy_nebula_cover(self, db, at=None, g=None):
+        self.dbs.add(db)
+        self.cover_calls.append((at, g))
+        if self.fail_cover:
+            raise self.fail_cover
+        child_m = 243 if not at else int(at.split(".")[0]) // (1 if g else 3)
+        return {"at": at, "child_m": child_m, "cells": [list(cell) for cell in self.cover_cells]}
 
     def auth_me(self, cookie_header):
         return None
@@ -112,7 +126,8 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     data = FakeData()
-    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "auth_me"):
+    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "auth_me",
+                 "get_galaxy_nebula_cover"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
@@ -360,6 +375,49 @@ def test_stage_endpoint_serves_and_caches(client, fake):
     client.get("/galaxy/stage")
     assert fake.stage_calls == ["243.2.1.0", None]
     assert fake.dbs == {DB}
+    # MAP.174: the stage is cached, the nebula cover is not (it changes without a sector changing).
+    assert fake.cover_calls == [("243.2.1.0", None), (None, None), ("243.2.1.0", None), (None, None)]
+    assert first.get_json()["nebula_cover"] == [[2, 1, 0, 0.25]]
+
+
+def _child(shell, band, wedge):
+    return {"shell": shell, "band": band, "wedge": wedge, "generated": 3,
+            "stats": {"systems": 4, "expected_systems": 5.0, "stars": 6, "mean_age_gy": 2.0, "luminosity_sol": 7.0}}
+
+
+def test_stage_carries_the_nebula_cover_of_filled_and_unfilled_cells(client, fake):
+    """MAP.174: a generated child has its share in `stats`; a cell that holds no sector is in `nebula_cover` alone."""
+    fake.stage_children = [_child(2, 1, 0), _child(5, 0, 1)]
+    fake.cover_cells = [[2, 1, 0, 0.25], [7, 0, 0, 0.5]]
+    payload = client.get("/galaxy/stage?at=243.2.1.0").get_json()
+    stats = {(c["shell"], c["band"], c["wedge"]): c["stats"] for c in payload["children"]}
+    assert stats[(2, 1, 0)]["nebula_cover"] == 0.25 and stats[(5, 0, 1)]["nebula_cover"] == 0.0
+    assert stats[(2, 1, 0)]["stars"] == 6
+    assert payload["nebula_cover"] == [[2, 1, 0, 0.25], [7, 0, 0, 0.5]]
+    again = client.get("/galaxy/stage?at=243.2.1.0").get_json()
+    assert again["nebula_cover"] == payload["nebula_cover"]
+    fake.cover_cells = []
+    assert client.get("/galaxy/stage?at=243.2.1.0").get_json()["nebula_cover"] == []
+
+
+def test_stage_draws_without_the_cover_when_the_api_cannot_give_it(client, fake):
+    fake.stage_children = [_child(2, 1, 0)]
+    fake.fail_cover = apiclient.ApiError("secret detail")
+    resp = client.get("/galaxy/stage?at=243.2.1.0")
+    assert resp.status_code == 200
+    payload = resp.get_json()
+    assert payload["nebula_cover"] is None and "nebula_cover" not in payload["children"][0]["stats"]
+    assert "secret detail" not in resp.get_data(as_text=True)
+
+
+def test_window_carries_the_nebula_cover_and_a_window_of_sectors_none(client, fake):
+    big = client.get("/galaxy/window?at=27.3.5.0&g=5").get_json()
+    assert big["nebula_cover"] == [[2, 1, 0, 0.25]]
+    assert fake.cover_calls[-1] == ("27.3.5.0", "5")
+    fake.cover_cells = []
+    resp = client.get("/galaxy/window?at=1.4.1.0&g=5")
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    assert resp.get_json()["nebula_cover"] == []
 
 
 def test_stage_endpoint_rejects_bad_keys(client, fake):

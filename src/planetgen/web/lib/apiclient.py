@@ -655,6 +655,14 @@ def get_galaxy_window(db, at, g):
     return _request("/galaxy/window", {"db": db, "at": at, "g": g})
 
 
+def get_galaxy_nebula_cover(db, at=None, g=None):
+    """Returns `GET /api/galaxy/nebula-cover`'s payload (`at`/`child_m`/`cells` -- see `db.query.galaxy_nebula_cover`):
+    the share of each cell of a stage (`at`) or window (`at` and `g`) inside a nebula. Read on every request, since
+    it changes without a sector changing."""
+    _require_db(db)
+    return _request("/galaxy/nebula-cover", {"db": db, "at": at, "g": g})
+
+
 def get_territories(db):
     """Returns `GET /api/territories`' payload (`points`: owned systems
     with galaxy-frame parsec positions and their polity's color;

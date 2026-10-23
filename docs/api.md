@@ -435,6 +435,13 @@ connectivity to that specific schema rather than the default one.
   (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
+- `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
+  or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
+  (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
+  stored aggregates of MAP.172 are made from the seed's nebula field and the stored nebulae, so they need no sector.
+  Answers `{"at", "child_m", "cells"}` with `cells` the `[shell, band, wedge, cover]` of every cell whose cover is
+  above zero (`cover` 0 to 1), sorted. The cells of a sector have none (the aggregates are of the blocks above a
+  sector), so their list is empty. `/galaxy/stage` and `/galaxy/window` add it to their payloads.
 - `GET /api/galaxy/stage?at=<block key>` and
   `GET /api/galaxy/window?at=<block key>&g=<n>` — the Galaxy Map's drill-down
   stage (`queryDb.galaxy_stage`) and data window (`queryDb.galaxy_window`,
