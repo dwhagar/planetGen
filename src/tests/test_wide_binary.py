@@ -17,6 +17,7 @@ import pytest
 
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
@@ -538,3 +539,15 @@ def test_wide_binaries_never_overlap():
         assert reach_p + reach_s < pair.periapsis_au
         assert not validation.check_star_system(system)
     assert wide
+
+
+@pytest.mark.parametrize("seed", [216, 420, 520, 738])
+def test_no_body_sits_past_the_ceiling_of_the_stars_final_age(seed):
+    # GEN.325: planets are placed under the star's provisional age, which `adjust_age_for_planets` only ever raises, and
+    # the place's survival limit falls with age, so a body placed past the final ceiling is trimmed once the age is
+    # settled. These four streams drew a planet or belt past it before (301 to 593 AU against 275 to 285 AU).
+    with draw.bound(draw.Stream(f"final-age-ceiling:{seed}")):
+        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
+    for star, planets in ((system.primary_star, system.planets), (system.secondary_star, system.secondary_planets)):
+        for body in planets:
+            assert _orbit_edge(body) <= system._orbit_ceiling_au(star) + 1e-6

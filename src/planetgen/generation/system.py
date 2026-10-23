@@ -457,15 +457,6 @@ class StarSystem:
                       f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                       f"required and found: {belt_satisfied})")
 
-        self.unmet_requirements = []
-        if not habitable_satisfied:
-            self.unmet_requirements.append("a habitable world")
-        if not belt_satisfied:
-            self.unmet_requirements.append("an asteroid belt")
-        if self.unmet_requirements:
-            log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
-                      f"without {' or '.join(self.unmet_requirements)}")
-
         if remnant_orbits.is_post_agb_pair(self.star):
             remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
 
@@ -475,6 +466,23 @@ class StarSystem:
             adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
         else:
             self.star.adjust_age_for_planets(self.planets)
+
+        # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
+        # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
+        # habitable world and belt on what is left.
+        self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
+        if self.binary_type == "wide":
+            self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
+        habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
+        belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+        self.unmet_requirements = []
+        if not habitable_satisfied:
+            self.unmet_requirements.append("a habitable world")
+        if not belt_satisfied:
+            self.unmet_requirements.append("an asteroid belt")
+        if self.unmet_requirements:
+            log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
+                      f"without {' or '.join(self.unmet_requirements)}")
 
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled
