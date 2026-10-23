@@ -1094,3 +1094,5 @@ Baseline: PR #1817.
 | ADM.127 | 8.1 | Admin control suite |
 | UX.146 | 8.1 | Admin control suite |
 | TEST.286 | 8.1 | Bugs and flaky tests |
+| GEN.305 | 8.1 | Reproducible galaxies |
+| GEN.136 | 8.1 | Reproducible galaxies |
