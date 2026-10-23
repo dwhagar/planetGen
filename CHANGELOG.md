@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2013] - 2026-10-23
+
+**Headline:** The generator's close-binary shares are now checked against the published ranges by primary mass and [Fe/H], and a bin outside its range fails the test run.
+
+### Added
+- **The close-binary check (TEST.196).** `tests/audit/close_binary.py` draws primaries of six masses at seven [Fe/H] with the generator's own companion draw and compares the share with a companion inside 10 AU with Moe, Kratter and Badenes 2019 (solar-type ratios to [Fe/H] 0), Moe and Di Stefano 2017 (mid B at least 16%, O between 23% and 78%) and the no-trend finding for O and early B stars, plus the outer share's flatness in [Fe/H]. Absolute levels are printed, only ratios fail. `tests/test_close_binary_check.py` runs it.
+
 ## [8.0.2012] - 2026-10-23
 
 **Headline:** The nucleus of a galaxy now keeps planets by the same survival rule as the rest, and the encounter limits no longer read the disc's, bulge's and halo's three-axis dispersion as a one-axis one.
