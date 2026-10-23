@@ -5060,54 +5060,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
-  Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
-  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
-  #1677. Done: planets in dense components use the survival formula and
-  a metallicity factor, not the hard cut at the Hill radius; the
-  survival table of the note is a test.
-  Scope after the review (2026-10-16 review): feed the nucleus' density
-  and dispersion (from GEN.280) into the one survival function that the
-  first child of GEN.162 builds, and add the survival table as a test;
-  no second cull.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.325 (Core 3). Core 4 takes it when it unblocks.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Core 4 (2026-10-16, 4:31 PM EDT, held until GEN.325 merges); the
-  early "Owner Core 3" text is superseded.
-  Finding folded in (Core 4, relayed 2:38 AM EDT 2026-10-23 as the lane
-  reported, found while preparing this item): place_terms.from_profile
-  (GEN.447, the wide-pair limit, and the GEN.325 planet limit) treats
-  each population's dispersion_kms as one-dimensional, but since GEN.532
-  the profile's disc, bulge and halo values are the three-axis total
-  (galaxy/structure.py disc_dispersion_kms, bulge_dispersion_kms and
-  halo_dispersion_kms; the profile._dispersion_kms docstring says so),
-  while the tuning constants for the cluster, satellite and nuclear
-  populations read as one-dimensional. So the encounter and survival
-  limits use a sigma too large by sqrt(3) for the disc, bulge and halo.
-  Reproducer: any sector profile of the old disc;
-  from_profile(...).dispersion_kms is about 1.7 times the
-  one-dimensional value. Frequency: every galaxy-placed system. Do (in
-  this item, with its epoch): settle the convention, one table with one
-  stated dimensionality (and its column or constant says which), convert
-  the three-axis values where a one-dimensional sigma is used, and
-  re-read the tuning constants of the cluster, satellite and nuclear
-  populations against the same convention. Done: a test that the
-  encounter limit of a disc system uses the one-dimensional sigma (the
-  three-axis total divided by sqrt(3)), and the docstrings agree.
-  Progress (Core 4, GEN.325 merged as #2624, relayed 4:20 AM EDT
-  2026-10-23 as the lane reported, release 8.0.2000): GEN.325 took
-  generator epoch 54 (value-changing: the Sun's neighbourhood keeps
-  planets to about 275 AU, a dense core to a fraction of an AU), so this
-  item is unblocked and Core 4 starts it now with the
-  dispersion-convention fix above. It takes the next free epoch at merge
-  (58 or later; 57 went to Bugfix 2's #2638).
-  Prerequisites: none. Related: GEN.158.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
 - [ ] **GEN.285 Nuclear mass components in the galactic potential for the orbital update**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, section 9; Boss's item,
@@ -5463,7 +5415,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.284, GEN.450, TEST.196,
+  Prerequisites: GEN.450, TEST.196,
   SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -19860,6 +19812,21 @@ clears each one.
   for that state. Done: the test passes 50 times in a row at -n 4 under
   load. Owner: Bug Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.281, TEST.284, TEST.287.
+
+- [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
+  Found by Core 4 (relayed 6:38 AM EDT 2026-10-23 as the lane reported)
+  in its gate for GEN.284; filed by the TODO thread. Kind: slow flaky
+  test, the same family as TEST.198. Test:
+  src/tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star.
+  Failure: at load 9.7 it ran 130 s and failed; alone it passes in 97 s
+  (the lane's figures; the failure text was not given). Fails on main:
+  unknown. Frequency: once in one gate. Do: capture the failure text,
+  then find what the 97 s alone is spent on (the camera flight, a fixed
+  wait, building the scene) and make the test wait for the state it
+  needs rather than a long time. Done: the test passes 50 times in a row
+  at -n 4 under load and takes well under a minute alone. Owner: Bug
+  Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
 
 ## USR: User accounts
 

@@ -1112,3 +1112,4 @@ Baseline: PR #1817.
 | GEN.369 | 8.1 | Components and wanderers |
 | GEN.624 | 8.1 | Components and wanderers |
 | GEN.403 | 8.1 | Galaxy laws build |
+| GEN.284 | 8.1 | Galactic core and halo |
