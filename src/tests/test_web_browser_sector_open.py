@@ -148,13 +148,17 @@ PICK_TRIES = 4
 """int: How many times a star is clicked, where it is drawn then, before the next star is tried."""
 
 
-def _steady_spot(page, point, samples=4):
-    """Where `point` falls on the page once it has held the same place for `samples` looks 150 ms apart (rounded to a
+def _steady_spot(page, point, samples=4, in_canvas=True):
+    """Where `point` falls on the page (inside the canvas and the window, unless `in_canvas` is false) once it has held the same place for `samples` looks 150 ms apart (rounded to a
     pixel), or its last place if it keeps moving: after the flight ends the map can still settle, and on a loaded
     machine a star moved 100 px between being worked out and being clicked (TEST.291)."""
     held, steady, spot = None, 0, None
     for _ in range(40):
-        spot = _spot(page, point)
+        if in_canvas:
+            spot = _spot(page, point)
+        else:
+            found = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+            spot = (found["x"], found["y"]) if found else None
         now = None if spot is None else (round(spot[0]), round(spot[1]))
         steady = steady + 1 if now is not None and now == held else 0
         held = now
@@ -204,12 +208,21 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     page.wait_for_selector(CANVAS, state="attached")
     _settled(page, point)
     page.evaluate("window.__panel.length = 0")
-    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
-    assert spot, "the sector's centre is not on the map"
-    page.mouse.move(spot["x"], spot["y"])
-    page.wait_for_timeout(200)
-    page.mouse.click(spot["x"], spot["y"])
-    page.wait_for_function("() => location.search.includes('open=1')", timeout=20000)
+    # A click on a map that is still easing is ignored, and on a loaded machine the centre has moved on between being
+    # worked out and being clicked (TEST.291, TEST.297): click where it holds still, again if the sector did not open.
+    for _ in range(PICK_TRIES):
+        spot = _steady_spot(page, point, in_canvas=False)
+        assert spot, "the sector's centre is not on the map"
+        page.mouse.move(spot[0], spot[1])
+        page.wait_for_timeout(200)
+        page.mouse.click(spot[0], spot[1])
+        try:
+            page.wait_for_function("() => location.search.includes('open=1')", timeout=PICK_WAIT_MS * 2)
+            break
+        except sync_api.TimeoutError:
+            continue
+    else:
+        raise AssertionError(f"{PICK_TRIES} clicks on the sector's centre did not open it: {page.url}")
     _settled(page, point)
     assert page.evaluate("window.__sameDocument") is True, "the page reloaded while the sector opened"
     assert page.url.endswith(f"?sector={code}&open=1"), page.url
