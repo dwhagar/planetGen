@@ -54,7 +54,7 @@ from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
-    stability)
+    stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -322,6 +322,18 @@ def bound_companion_share():
     17% that the 83% of non-interacting massive binaries unbound by the first collapse do not take
     (`unbound-by-collapse`); the unbound ones are not stored, the survivor is an ordinary row."""
     return 1.0 - system_types.SYSTEM_TYPE_RATES["unbound-by-collapse"].default
+
+
+def draw_white_dwarf_pollution(teff_k, key):
+    """
+    Whether a white dwarf is polluted by accreted rocky debris (GEN.253, the `white-dwarf-pollution` row): a cool one is at
+    the registry's default share (25 to 50 percent, the middle 0.375), a hot one never. The draw is the star's own
+    (`stellar_composition.key_draws(key).u_pollution`, `key` from `stellar_composition.abundance_key`), so nothing is stored
+    and the star's makeup (`star_makeup(...).detail["polluted"]`) says the same.
+    """
+    return stellar_composition.white_dwarf_polluted(
+        teff_k, stellar_composition.key_draws(key).u_pollution,
+        system_types.SYSTEM_TYPE_RATES["white-dwarf-pollution"].default)
 
 
 def draw_runaway_origin(initial_mass_sol, runaway_unit, origin_unit, bound_unit):

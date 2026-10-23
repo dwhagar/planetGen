@@ -57,7 +57,8 @@ def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     assert stream.random() == one.u_enhanced and stream.random() == one.u_carbon
     assert stream.gauss(0.0, 1.0) == one.eu_normal and stream.gauss(0.0, 1.0) == one.th_eu_normal
     assert stream.random() == one.u_atmosphere and stream.random() == one.u_wolf_rayet
-    assert stream.random() == one.u_crust_model, "the draw added last (GEN.590) moved none before it"
+    assert stream.random() == one.u_crust_model, "the draw added before the pollution one (GEN.590) moved none before it"
+    assert stream.random() == one.u_pollution, "the draw added last (GEN.253) moved none before it"
 
 
 def test_the_draws_are_a_stream_of_their_own():
@@ -334,3 +335,29 @@ def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_t
     expected_kinds = {sc.MAIN_SEQUENCE, sc.SUBGIANT, sc.RED_GIANT, sc.SUPERGIANT, sc.WHITE_DWARF, sc.NEUTRON_STAR,
                       sc.BLACK_HOLE, sc.BROWN_DWARF}
     assert expected_kinds <= seen, f"the sweep of {count} stars never made {sorted(expected_kinds - seen)}"
+
+
+def test_only_a_cool_white_dwarf_is_ever_polluted_and_the_share_is_the_middle_of_the_observed_range():
+    keys = [f"wd-pollution-{n}" for n in range(4000)]
+    cool = [sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.6, key, teff_k=6000.0).detail["polluted"] for key in keys]
+    hot = [sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.6, key, teff_k=40000.0).detail["polluted"] for key in keys]
+    assert not any(hot)
+    assert sum(cool) / len(cool) == pytest.approx(0.375, abs=0.03)
+    assert sc.POLLUTED_SHARE == 0.375 and 0.25 < sum(cool) / len(cool) < 0.50
+
+
+def test_the_pollution_draw_is_the_stars_own_and_the_generator_and_the_makeup_agree():
+    from planetgen.generation import multistar
+    for n in range(60):
+        key = f"wd-agree-{n}"
+        makeup = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.6, key, teff_k=8000.0)
+        assert multistar.draw_white_dwarf_pollution(8000.0, key) is makeup.detail["polluted"]
+        assert multistar.draw_white_dwarf_pollution(8000.0, key) == (sc.key_draws(key).u_pollution < 0.375)
+        assert multistar.draw_white_dwarf_pollution(30000.0, key) is False
+
+
+def test_the_cool_white_dwarfs_are_those_below_the_floor_of_the_hot_ones():
+    from planetgen.physics import constants
+    assert constants.COOL_WHITE_DWARF_BELOW_K == 10000
+    assert sc.white_dwarf_polluted(9999.0, 0.0) is True and sc.white_dwarf_polluted(10000.0, 0.0) is False
+    assert sc.white_dwarf_polluted(5000.0, 0.375) is False and sc.white_dwarf_polluted(5000.0, 0.374) is True

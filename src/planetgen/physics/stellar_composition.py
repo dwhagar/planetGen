@@ -30,8 +30,8 @@ red giant            the birth composition with the first dredge-up applied (`st
 agb, supergiant      the birth composition; the shifts are open (the dredge-up grid stops at 2.5 solar masses)
 wolf-rayet           the surface fractions of its subtype (hydrogen-free; carbon drawn within the subtype's range for WC)
 brown dwarf          the birth composition; the deuterium, lithium and hydrogen limits at its mass and Z; the radius (stand-in)
-white dwarf          the core type, an atmosphere draw (DA with probability 0.80), the radius and the layers from the
-                     Bedard et al. sequences at its temperature (downloaded)
+white dwarf          the core type, an atmosphere draw (DA with probability 0.80), the pollution flag of a cool one, the radius and
+                     the layers from the Bedard et al. sequences at its temperature (downloaded)
 neutron star         the outer-crust nuclei of one of 20 nuclear mass models (downloaded); no composition of its own
 black hole           none (no hair): mass, spin and the horizon quantities by formula
 =================== ===================================================================================================
@@ -54,7 +54,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import elements
+from planetgen.physics import constants, elements
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -83,6 +83,10 @@ SUPERGIANT_CLASSES = ("0", "IA+", "IA", "IAB", "IB")
 DA_SHARE = tuning.STELLAR_WD_DA_SHARE
 """float: The share of white dwarfs with a hydrogen atmosphere (DA), Xu, Rogers and Blouin 2024."""
 
+POLLUTED_SHARE = sum(tuning.STELLAR_WD_POLLUTED_SHARE) / 2.0
+"""float: The share of cool white dwarfs polluted by accreted rocky debris (GEN.253): the middle of the 25 to 50 percent the
+observations give (`tuning.STELLAR_WD_POLLUTED_SHARE`), which is also the registry's default for `white-dwarf-pollution`."""
+
 CARBON_STAR_MINIMUM_MASS_SOL = ((0.010, 1.4), (0.020, 1.5))
 """tuple: `(Z, least initial mass in solar masses)` for third dredge-up to make C/O above 1 (Karakas and Lugaro 2016, second-hand,
 Cristallo 2011); linear in Z between, 1.425 at Z 0.0125. Whether a given AGB star has run enough thermal pulses is the carbon-star
@@ -108,6 +112,7 @@ class StarDraws:
         u_atmosphere (float): Decides a white dwarf's atmosphere.
         u_wolf_rayet (float): Places a Wolf-Rayet star's carbon inside its subtype's range.
         u_crust_model (float): Picks the nuclear mass model of a neutron star's outer crust.
+        u_pollution (float): Decides whether a cool white dwarf is polluted (`white_dwarf_polluted`).
     """
 
     u_branch: float
@@ -119,6 +124,7 @@ class StarDraws:
     u_atmosphere: float
     u_wolf_rayet: float
     u_crust_model: float
+    u_pollution: float
 
 
 def abundance_key(uid=None, mass=None, age_gy=None, distance_ly=None, bright_seed=None, group=None):
@@ -153,7 +159,17 @@ def key_draws(key):
     u_branch = stream.random()
     normals = tuple(stream.gauss(0.0, 1.0) for _ in range(4))
     return StarDraws(u_branch, normals, stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
-                     stream.random(), stream.random(), stream.random())
+                     stream.random(), stream.random(), stream.random(), stream.random())
+
+
+def white_dwarf_polluted(teff_k, u_pollution, share=POLLUTED_SHARE):
+    """
+    Whether a white dwarf is polluted (GEN.253): `u_pollution` under `share` for a cool one (cooler than
+    `constants.COOL_WHITE_DWARF_BELOW_K`, the floor of the hot white dwarfs), never for a hot one, whose pollution the
+    observations do not give. The share is of the cool white dwarfs, so the same star gets the same answer whatever it is
+    drawn for.
+    """
+    return teff_k < constants.COOL_WHITE_DWARF_BELOW_K and u_pollution < share
 
 
 @dataclass(frozen=True)
@@ -322,6 +338,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
         detail["atmosphere"] = "DA" if draws.u_atmosphere < DA_SHARE else "non-DA"
         envelope = "thick" if detail["atmosphere"] == "DA" else "thin"
         detail["envelope"] = envelope
+        detail["polluted"] = white_dwarf_polluted(teff_k, draws.u_pollution)
         if fetch.locate(white_dwarf_models.DATASET).use_stand_in("the Chandrasekhar mass-radius table"):
             try:
                 detail["radius_solar"] = sa.white_dwarf_radius_solar(mass_sol)
