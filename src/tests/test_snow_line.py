@@ -3,6 +3,7 @@ constant is gone (`physics/formation.py`, `Star.snow_line_au`, `stars.snow_line_
 
 import math
 import concurrent.futures
+import multiprocessing
 import os
 import statistics
 
@@ -77,7 +78,7 @@ def test_a_system_gives_the_same_line_and_flags_from_its_seed_at_one_and_four_wo
     serial = [_facts(s) for s in seeds]
     assert serial == [_facts(s) for s in seeds]
     assert len({line for line, _ in serial}) == len(seeds), "stars differ"
-    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as pool:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=multiprocessing.get_context("spawn")) as pool:
         assert list(pool.map(_facts, seeds)) == serial
 
 

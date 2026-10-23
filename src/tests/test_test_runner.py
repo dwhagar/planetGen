@@ -149,6 +149,24 @@ def test_changed_selects_and_full_refreshes_the_map():
     assert runner.depmap_options("quick", "", False) == []
 
 
+def test_a_check_with_no_change_to_compare_is_refused_and_says_what_base_to_pass(monkeypatch, capsys):
+    """TEST.294: `full --check` on a checkout that is main compares it with itself, and called a failing test missed."""
+    from tests import depmap
+
+    ran = []
+    monkeypatch.setattr(runner, "run_phase", lambda *args, **kwargs: ran.append(args) or (0, {}))
+    monkeypatch.setattr(depmap, "changed_files", lambda base="": set())
+    assert runner.main(["full", "--check"]) == 2
+    said = capsys.readouterr().out
+    assert "--base" in said and "Nothing was run" in said and not ran
+    assert runner.check_without_changes("abc123").startswith("no file differs from abc123")
+
+    monkeypatch.setattr(depmap, "changed_files", lambda base="": {"src/planetgen/generation/system.py"})
+    assert runner.check_without_changes("") == ""
+    monkeypatch.setattr(depmap, "changed_files", lambda base="": None)   # git cannot say: pytest reports that itself
+    assert runner.check_without_changes("") == ""
+
+
 def test_changed_runs_the_same_two_phases_as_full():
     assert runner.build_phases("changed", [], 4, 2) == runner.build_phases("full", [], 4, 2)
 
