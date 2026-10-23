@@ -262,6 +262,7 @@ class NeighborhoodRequest(Body):
 
     radius_ly: Optional[Number] = Field(default=None, gt=0, le=generationLimits.MAX_GENERATE_RADIUS_LY)
     estimate_only: StrictBool = False
+    disregard_missing_data: StrictBool = False
 
 
 class FacilityRatings(Body):

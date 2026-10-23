@@ -718,7 +718,10 @@ connectivity to that specific schema rather than the default one.
   `candidates` and `outside_galaxy`, plus the size and time `estimate`
   (see [`cli.md`](cli.md#size-and-time-estimates)).
   `"estimate_only": true` answers `200` at once with the counts and
-  `estimate` and queues nothing. Before anything is queued: `404` for an
+  `estimate` and queues nothing. `"disregard_missing_data": true` (GEN.599)
+  starts the run although a downloaded data file is missing, with each
+  missing dataset's labelled fallback; without it the answer is `409` naming
+  every file to download with its URL (see [`cli.md`](cli.md#datasets)). Before anything is queued: `404` for an
   unknown or unplaced sector, `409` when the galaxy has never been planned
   (`planetgen plan`) or the math check failed, `507` when the database
   disk can't hold the run, `413` when the radius holds more than 2 million

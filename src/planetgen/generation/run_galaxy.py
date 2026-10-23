@@ -24,7 +24,7 @@ import time
 
 import pymysql
 
-from planetgen.datasets import catalogue as datasetCatalogue
+from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import nebula_blocks, query, region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
@@ -1510,21 +1510,44 @@ class DatasetsMissing(RuntimeError):
     before writing anything; the message names the datasets."""
 
 
-def require_datasets():
+def require_datasets(disregard=None):
     """
     The second gate in front of every bulk generation (GEN.590, Boss's "Require the data"): the data files star composition
     reads (isochrones, white-dwarf sequences, neutron-star tables) must be in the cache folder that setup fills. Nothing is
     downloaded here (setup does that); the files are looked at and hashed once per process.
 
+    A run told to disregard missing data (GEN.599) is not refused: the datasets that are missing are returned, so the run
+    can say that it takes each one's labelled fallback.
+
+    Args:
+        disregard (bool, optional): Whether the run was told to disregard missing data. Default: what this process was told
+            (`fetch.disregarding_missing_data`).
+
+    Returns:
+        list: The `fetch.Located` of each dataset that is missing and will be replaced by its fallback (empty when every
+            file is there).
+
     Raises:
-        DatasetsMissing: Naming each dataset that is missing and why.
+        DatasetsMissing: Naming each dataset that is missing and why, each file's URL and the setup command.
     """
+    disregard = fetch.disregarding_missing_data() if disregard is None else disregard
     missing = datasetCatalogue.missing()
-    if missing:
-        named = "; ".join(f"{located.dataset.key} ({located.dataset.fill}): {located.reason}" for located in missing)
-        raise DatasetsMissing(
-            f"the downloaded data is missing ({named}), so nothing was generated. Setup downloads it "
-            f"('python3 -m planetgen.cli.datasets status' says which files are missing).")
+    if not missing or (disregard and all(located.dataset.fallback for located in missing)):
+        return missing
+    raise DatasetsMissing(
+        "the downloaded data is missing, so nothing was generated: " + "; ".join(located.describe() for located in missing)
+        + ". Setup downloads it ('python3 -m planetgen.cli.datasets fetch'); to generate anyway with a labelled fallback "
+        "for each missing dataset, say so with --disregard-missing-data.")
+
+
+def disregard_notice(missing):
+    """The lines a run that disregards missing data prints at its start: that it does, and each missing dataset with
+    the fallback it takes (GEN.599). Empty when nothing is missing."""
+    if not missing:
+        return []
+    return (["Missing data is disregarded (--disregard-missing-data): a labelled fallback stands in for each missing dataset."]
+            + [f"  {located.dataset.key} ({located.dataset.fill}) is missing ({located.reason}); fallback: {located.dataset.fallback}"
+               for located in missing])
 
 
 def estimate_cell(density, systems, config=None):

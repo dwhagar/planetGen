@@ -38,7 +38,10 @@ so the open ones are found and replaced.
 """
 
 import bisect
+import functools
+import json
 import math
+import os
 from dataclasses import dataclass
 
 from planetgen import tuning
@@ -53,6 +56,8 @@ BRANCHES = (BRANCH_THIN, BRANCH_HIGH_ALPHA)
 
 RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si")
 """tuple: The elements that carry a correlated residual, in the order of `tuning.STELLAR_XFE_CORRELATION`."""
+
+DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 VERIFIED = pt.VERIFIED
 PARTLY_VERIFIED = pt.PARTLY_VERIFIED
@@ -112,6 +117,9 @@ RELATIONS = (
     Relation("white dwarf radius against mass and temperature", "Bedard et al. 2020 cooling sequences, downloaded at setup (SC2, "
              "datasets.white_dwarf_models)", PARTLY_VERIFIED,
              "carbon-oxygen cores, 0.20 to 1.30 solar masses; a helium-core or oxygen-neon white dwarf takes the same sequences"),
+    Relation("white dwarf radius without the downloaded sequences", "Chandrasekhar equation of state integrated by "
+             "scripts/build_white_dwarf_table.py; Sirius B (Joyce et al. 2018)", STAND_IN,
+             "taken only by a run told to disregard missing data; no Coulomb or temperature correction: 3 to 5 percent"),
     Relation("white dwarf core type by mass", "Althaus et al. 2010 (oxygen-neon above 1.05 solar masses)", PARTLY_VERIFIED,
              "the helium-core limit of 0.45 is recalled; the carbon-oxygen split and the layer masses are open"),
     Relation("white dwarf atmosphere shares and pollution", "Xu, Rogers and Blouin 2024", VERIFIED),
@@ -122,6 +130,8 @@ RELATIONS = (
     Relation("neutron star outer crust sequence", "Servais and Chamel 2026, 20 nuclear mass models, downloaded at setup (SC3, "
              "datasets.neutron_star_matter); it replaced Chamel and Haensel 2008 Table 2", PARTLY_VERIFIED,
              "one mass model is drawn per star; the unmagnetised files only"),
+    Relation("neutron star outer crust without the downloaded tables", "Chamel and Haensel 2008 Table 2", STAND_IN,
+             "taken only by a run told to disregard missing data; one sequence instead of 20 nuclear mass models"),
     Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
              OPEN, "the tables are on disk and nothing integrates them yet: a star's radius comes from the measured band (physics/neutron_star.py)"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
@@ -498,6 +508,34 @@ def birth_radiogenic(star, branch, eu_normal=0.0, th_eu_normal=0.0):
 
 # --- White dwarfs ------------------------------------------------------------------------------------------------------
 
+@functools.cache
+def _white_dwarf_table():
+    path = os.path.join(DATA_DIRECTORY, "white_dwarf_mass_radius.json")
+    with open(path, encoding="utf-8") as handle:
+        data = json.load(handle)
+    for field in ("sources", "licence", "retrieved", "title", "rows", "limiting_mass_solar"):
+        if not data.get(field):
+            raise StellarAbundanceError(f"white_dwarf_mass_radius.json states no {field}")
+    rows = data["rows"]
+    return tuple(row[1] for row in rows), tuple(row[2] for row in rows)
+
+
+def white_dwarf_radius_solar(mass_sol):
+    """The radius (solar radii) of a zero-temperature white dwarf of `mass_sol` solar masses, interpolated in the integrated table
+    (Chandrasekhar equation of state, mu_e = 2): 0.0127 at 0.6, 0.0082 at 1.0, 0.0080 at Sirius B's 1.018. The stand-in a run
+    that disregards missing data (GEN.599) takes in place of the downloaded sequences' radius; it has no temperature, so a real
+    star is a few percent larger.
+
+    Raises:
+        StellarAbundanceError: The mass is outside the table (0.11 to 1.41 solar masses).
+    """
+    masses, radii = _white_dwarf_table()
+    if not masses[0] <= mass_sol <= masses[-1]:
+        raise StellarAbundanceError(f"a {mass_sol} solar mass white dwarf is outside the table "
+                                    f"({masses[0]:.2f} to {masses[-1]:.2f})")
+    return _interpolate(masses, radii, mass_sol)
+
+
 def white_dwarf_core(mass_sol):
     """The core type of a white dwarf: "helium" below `tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL` (recalled, open), "oxygen-neon"
     above `tuning.STELLAR_WD_ONE_CORE_MIN_SOL` (Althaus et al. 2010), "carbon-oxygen" between. The downloaded sequences are
@@ -511,6 +549,16 @@ def white_dwarf_core(mass_sol):
 
 # --- Neutron stars -----------------------------------------------------------------------------------------------------
 # The outer crust and the equations of state come from the downloaded tables (`stellar_composition`).
+
+NEUTRON_STAR_OUTER_CRUST = (
+    ("Fe-56", 8.02e6), ("Ni-62", 2.71e8), ("Ni-64", 1.33e9), ("Ni-66", 1.50e9), ("Kr-86", 3.09e9), ("Se-84", 1.06e10),
+    ("Ge-82", 2.79e10), ("Zn-80", 6.07e10), ("Zn-82", 8.46e10), ("Pd-128", 9.67e10), ("Ru-126", 1.47e11), ("Mo-124", 2.11e11),
+    ("Zr-122", 2.89e11), ("Sr-120", 3.97e11), ("Kr-118", 4.27e11))
+"""tuple: `(nucleus, density at which it stops being the ground state, g/cm3)` from the surface inward (Chamel and Haensel 2008
+Table 2, Ruster et al. data and BSk8). The stand-in a run that disregards missing data (GEN.599) takes in place of the 20
+downloaded nuclear mass models; neutron drip follows at about 4e11 g/cm3."""
+
+NEUTRON_DRIP_DENSITY_G_CM3 = 4.0e11
 
 NUCLEAR_SATURATION_DENSITY_G_CM3 = (2.7e14, 2.8e14)
 

@@ -32,6 +32,7 @@ import time
 import rq
 from rq.job import Callback
 
+from planetgen.datasets import fetch
 from planetgen.db import store
 from planetgen.queue import commands, redisqueue, runrecord
 
@@ -161,8 +162,10 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         dict: `seconds` the unit took, or `skipped`.
     """
     conn = rq.get_current_job().connection
-    if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
+    state, disregard = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data")
+    if runrecord._s(state) != "running":
         return {"skipped": True}
+    fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))      # GEN.599: the run's own switch, in every worker
     started = time.monotonic()
     result = commands.unit_function(kind)(args, _Reporter(conn, run_id, stage, unit))
     seconds = time.monotonic() - started

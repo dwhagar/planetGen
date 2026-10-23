@@ -2,6 +2,7 @@
     The estimate page it replaces is the same facts. Run posts the task's fields to /admin/generate; Back posts them to
     the task's page, which fills the form again. -#}
 {% extends "generate_base.html" %}
+{% from "partials/generate_fields.html" import disregard_data with context %}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
 <section class="panel generate-review" id="review" aria-labelledby="review-heading">
@@ -48,6 +49,9 @@
       {%- for name, value in review.fields %}
       <input type="hidden" name="{{ name }}" value="{{ value }}">
       {%- endfor %}
+      {%- if task.key not in ("check", "wipe") and not review.fields|selectattr(0, "equalto", "disregard_missing_data")|list %}
+      {{ disregard_data("review-disregard-data") }}
+      {%- endif %}
       <input type="hidden" name="{{ estimate_confirm_field }}" value="1">
       {%- if review.estimate and review.estimate.refused %}
       <input type="hidden" name="{{ generate_anyway_field }}" value="1">

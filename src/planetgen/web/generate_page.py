@@ -172,6 +172,9 @@ check-math`. A failure stops the job there, before anything is written."""
 """str: The step that pre-places every bright star
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
+DISREGARD_FLAG = "--disregard-missing-data"
+"""str: The option a job's generating commands and its data check get when the form's "Disregard missing data files" box is ticked (GEN.599)."""
+
 DATA_CHECK_LABEL = "Check the data"
 """str: Every generating job's second step (GEN.590): `python -m planetgen.cli.datasets
 status`, which exits 1 while a downloaded data file is missing. A failure stops the job
@@ -852,8 +855,15 @@ def build_job(action, form, database, edge_pc=None):
         kind, title, steps = _build_job_steps(action, form, edge_pc)
     if kind not in ("reset", "check_db"):
         python = jobs.python_executable()
+        disregard = bool(form.get("disregard_missing_data"))
+        if disregard:       # GEN.599: every generating command of the job is told, the data check only reports
+            generating = [python, *jobs.GENERATE_COMMAND]
+            for step in steps:
+                if step["argv"][:len(generating)] == generating:
+                    step["argv"] = step["argv"] + [DISREGARD_FLAG]
         steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]},
-                 {"label": DATA_CHECK_LABEL, "argv": [python, *jobs.DATASETS_COMMAND, "status"]}, *steps]
+                 {"label": DATA_CHECK_LABEL,
+                  "argv": [python, *jobs.DATASETS_COMMAND, "status", *([DISREGARD_FLAG] if disregard else [])]}, *steps]
     for step in steps:
         step["stages"] = step_stages(step, form)
     return kind, title, steps

@@ -293,10 +293,14 @@ def settle_sectors(sector_ids, config):
         conn.close()
 
 
-def generate_neighborhood(sector_id, radius_ly, config):
+def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=False):
     """The queued body of `POST /api/sectors/<id>/generate-neighborhood`
-    (a module-level function so a worker can import it by name)."""
+    (a module-level function so a worker can import it by name).
+    `disregard_missing_data` is the request's GEN.599 switch: a missing
+    downloaded data file then takes its labelled fallback."""
+    from planetgen.datasets import fetch
     from planetgen.generation import run_galaxy
+    fetch.set_disregard_missing_data(disregard_missing_data)
     return run_galaxy.generate_sector_neighborhood(sector_id, radius_ly=radius_ly, config=config)
 
 

@@ -25,6 +25,7 @@ PERF.128 give it units.
 import json
 import time
 
+from planetgen.datasets import fetch
 from planetgen.queue import commands, redisqueue, runrecord, units, workers
 
 
@@ -223,7 +224,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         conn, title, [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
                                       expected_seconds=expected_seconds(step, (rows or {}).get(step.key)),
                                       row=(rows or {}).get(step.key)) for step in steps],
-        who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded], kind=kind)
+        who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded], kind=kind,
+        disregard_missing_data=fetch.disregarding_missing_data())
     ensure = lambda: workers.ensure_workers(redisqueue.BULK_QUEUE, conn, url, count=workers_count)  # noqa: E731
     try:
         advance(conn, run_id, 0)

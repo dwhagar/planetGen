@@ -67,6 +67,7 @@ DATASET = fetch.Dataset(
             for n, (sha, size) in _EOS_SHA.items()),
     replaces="the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note",
     fill="SC3",
+    fallback="the one outer-crust sequence of Chamel and Haensel 2008 Table 2, in place of the 20 nuclear mass models",
 )
 
 _AMU_G = 1.66053906660e-24
