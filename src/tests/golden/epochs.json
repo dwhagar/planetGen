@@ -263,8 +263,7 @@
     },
     {
       "epoch": 54,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2000",
       "reason": "A planet or belt is placed only inside the orbit where a place's passing systems have not stripped it over the star's age (at most 12 Gy): the largest axis with one expected ionising pass, from the place's systems per volume and dispersion, so a system in a dense core keeps close-in planets only and one in the Sun's neighbourhood loses planets beyond a few hundred AU (GEN.325)"
     }
   ]
