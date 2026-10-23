@@ -1269,6 +1269,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
+  Progress (the TODO thread, 3:10 AM EDT 2026-10-23, answering Core 2's
+  question): every sub-item named in this item is done (MAP.147 to
+  MAP.155, MAP.225 to MAP.228 and MAP.245 are all merged), so nothing is
+  left open under the umbrella. Core 2 checks the Done text against the
+  map on main, closes the umbrella in a PR that retires it, or files
+  what is missing as new items. MAP.249, MAP.209 and MAP.210 are
+  related, not prerequisites; they wait on Boss's browser retest.
   Prerequisites: none.
   Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
@@ -1810,6 +1817,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   console (F12) when it happens, and whether it still happens on the
   rebuilt database (his ran code from before migration 0093 and
   MAP.208).
+  Status (Core 2, relayed 3:08 AM EDT 2026-10-23 as the lane reported):
+  not a product defect on current main. With real mouse events on every
+  star of the opened sector in 12 fresh test databases (near the core, a
+  sector 8,000 pc out, and under CPU load) every click picked.
+  TEST.281's red was the test clicking before the camera stopped
+  (clickAt ignores clicks during a flight) and clicking stars drawn
+  below the 600 px window; fixed in #2619. The item stays open for Boss:
+  retest on a rebuilt database on current main (his 10-15 server
+  predated migration 0093 and MAP.208) and, if it still fails, send the
+  browser, device, sector name and console errors.
   Prerequisites: none. Related: MAP.210, MAP.66, MAP.208, TEST.163.
 
 - [ ] **MAP.210 Nothing on the map can be selected, even in sector view (bug)**
@@ -1836,6 +1853,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_a_star_in_an_opened_sector_is_selectable fails alone on main (no
   click on a star of 5 picks one; the panel shows the uncharted sector or
   a star '(uncharted)'); filed as TEST.281.
+  Status (Core 2, relayed 3:08 AM EDT 2026-10-23 as the lane reported):
+  TEST.281 merged as #2619 (test-only; release 8.0.1997): the star
+  selection test waits for the camera, re-reads star positions at the
+  click, and a new test covers a star in a far sector (8,000 pc out).
+  Not a product defect on current main (see MAP.209's note). The Done
+  clause about a star in the Galaxy Map's own tiles conflicts with
+  MAP.101 (tile stars never take the click,
+  test_galaxy_map_stars_never_take_the_click), so it was not tested and
+  is not required until Boss says which wins. The item stays open for
+  Boss's retest on a rebuilt database.
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163, TEST.281.
 
 - [ ] **MAP.212 A region selection tool on the Galaxy Map and the Sector Map, for admin actions**
@@ -3234,7 +3261,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     repair therefore replays the edit log rather than the seed.
     Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
     chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: GEN.306, GEN.307, TEST.181. Two independent
+    when its subitems are: GEN.306, GEN.307, TEST.181, GEN.633. Two independent
     code changes in different modules (population seeds in
     population/model.py; the object-ID collision counter in db/store.py)
     and the test that proves both, all under one blocker of TEST.77,
@@ -3253,7 +3280,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: TEST.181.
+    Backfill case (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane reported): the rule "a sector's contents come out the same whichever sectors were generated before it" still fails for the backfill, which adds its dimmer bright stars only to sectors not yet generated; filed as GEN.633, which is now a subitem and a prerequisite until Boss decides whether it is needed before 8.1.
+  Prerequisites: TEST.181, GEN.633.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -5792,9 +5820,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner line).
   Progress (Core 4, relayed 2:13 AM EDT 2026-10-23 as the lane
   reported): rebased on main and taking generator epoch 53 (51 and 52
-  are on main), gate started 2:12 AM EDT. GEN.329 (Core 3) plans 53 too;
-  whichever merges first takes 53 and the other renumbers to 54,
-  numbered at merge.
+  are on main), gate started 2:12 AM EDT. Update (3:09 AM EDT 2026-10-23): GEN.628 merged first as #2620 and took 53, so this item now takes 54 or 55: GEN.329 (Core 3) plans the same; whichever merges first takes 54 and the other renumbers to 55, numbered at merge.
   Prerequisites: none. Related: GEN.162.
 
 - [ ] **GEN.326 Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4**
@@ -14956,7 +14982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change generated values, so this needs a generator epoch; GEN.307 took
   51 (#2595, 11:57 PM EDT 2026-10-22 as the lane reported) and GEN.315
   slice 1 took 52 (#2605, 1:25 AM EDT 2026-10-23 as the lane reported),
-  so 53 is the next free number and the epochs file must stay
+  so 53 was the next free number (GEN.628 took it, #2620, 3:08 AM EDT 2026-10-23 as the lane reported; 54 is next) and the epochs file must stay
   contiguous: the first of this item and PERF.123 slice C to merge
   takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Claimants as of 2:13 AM EDT 2026-10-23: GEN.325 (Core 4, gate started 2:12 AM EDT as the lane reported) and GEN.329 (Core 3, gating) both plan 53; whichever merges first takes it, the other renumbers to 54, and this item and PERF.123 slice C follow. Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
@@ -14972,7 +14998,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.37. The coordinator told Core 1 to start this item; GEN.628 (the
   nuclear disc law) is still open and the retune should see its final
   thin-disc share before this item merges.
-  Prerequisites: GEN.628 (the retune must see the corrected crest and the final thin-disc share; the plan-numbers check of 8:48 PM EDT 2026-10-22, reports/plan-numbers-check-2026-10-22.md, shows the crest line is wrong, the nuclear disc is fixed Milky Way content, and satellites and clusters are not yet scaled, so the 1,000-seed sweep is re-run after GEN.624 and GEN.403 land). Related: GEN.624, GEN.613, GEN.619.
+  Progress (the coordinator, relayed 3:08 AM EDT 2026-10-23 as the lane
+  reported): GEN.628 merged as #2620 and took generator epoch 53, so
+  this item is cleared to merge; Core 1 rebases and takes the next free
+  epoch at merge (54 if it merges first of GEN.325, GEN.329 and this
+  item, otherwise the next after theirs). Core 1's gate numbers (as the
+  lane reported, 2:40 AM EDT): the warn rate 20 percent to 0 over 1,000
+  seeds, mean mass 4.3e9, mean disc scale length 1,200 pc; re-run them
+  on the rebased code.
+  Prerequisites: none (GEN.628 merged as #2620; the retune sees the corrected crest and the final thin-disc share; the plan-numbers check of 8:48 PM EDT 2026-10-22, reports/plan-numbers-check-2026-10-22.md, shows the crest line is wrong, the nuclear disc is fixed Milky Way content, and satellites and clusters are not yet scaled, so the 1,000-seed sweep is re-run after GEN.624 and GEN.403 land). Related: GEN.624, GEN.613, GEN.619.
 
 - [ ] **GEN.627 The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug)**
   Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
@@ -15005,34 +15039,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bugs and their prerequisites go to a second bugfix lane; this replaces
   any earlier owner line).
   Prerequisites: none. Related: GEN.624, GEN.403, GEN.625.
-
-- [ ] **GEN.628 The nuclear disc is a fixed 61 times the nuclear cluster, 21 percent of a small galaxy's stars against about 3 percent for the Milky Way: draw it from a law (bug, needs a generator epoch)**
-  Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
-  of Boss's Stage 4 plan run, PlanetGen 8.0.1961, seed
-  2139DD5841E680B009A3D17A6319B2AA). Boss's live observations are bugs
-  (8:44 PM EDT 2026-10-22). The nuclear disc is a fixed 61 times the
-  nuclear cluster (`tuning.py:1216`, `galaxy/density.py:266`; the tuning
-  comment itself calls the ratio a Milky Way stand-in, recalled). In
-  Boss's galaxy the cluster is 1.75e7 solar masses (0.43 percent of the
-  host) so the disc is 8.4e8, 21 percent of all the galaxy's stars in a
-  disc of 27 pc scale length, against about 3 percent for the Milky Way;
-  it is also what makes the thin disc only 23 percent of the galaxy.
-  This is fixed Milky Way content, which the rule of no fixed content
-  forbids. Do: draw the nuclear disc mass from a stated law of the
-  galaxy's bulge and stellar mass with its natural scatter from the seed
-  (source named in the code and the doc; verified wins, widest range
-  when two are in question), and remove the constant 61 in the same
-  change. Done: over many seeds the nuclear disc share follows the
-  stated law with its scatter and a Milky Way mass galaxy lands near 3
-  percent; no constant ratio remains; same seed same disc. Needs a
-  generator epoch, numbered at merge. Owner: Core 1, before GEN.625
-  because the retune depends on the final thin-disc share (the
-  coordinator, relayed 8:48 PM EDT 2026-10-22).
-  Owner: Bugfix 2 (second; GEN.625's retune needs the final thin-disc
-  share; Boss, 8:52 PM EDT 2026-10-22: the plan-number bugs and their
-  prerequisites go to a second bugfix lane; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: GEN.625, GEN.626, GEN.387.
 
 - [ ] **GEN.629 The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together**
   Finding of Blocker 3 in GEN.495 (relayed 11:56 PM EDT 2026-10-22 as
@@ -15112,6 +15118,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item that merges it. Owner: none for now, in the pool (8.4 work is
   paused until 8.1 is complete, Boss, 7:44 PM EDT 2026-10-22).
   Prerequisites: GEN.452. Related: GEN.452, GEN.470, GEN.497.
+
+- [ ] **GEN.633 The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug)**
+  Found by Core 1 (relayed 3:07 AM EDT 2026-10-23 as the lane reported)
+  while building TEST.181. Kind: order dependence. Fails on main: yes,
+  every time (not a flake). Reproducer: plan a wide toy galaxy
+  (tests.test_galaxy_gen._plan_wide_galaxy with seed
+  0123456789ABCDEF0011223344556677), then run `planetgen galaxy --shells
+  S --bands B --wedges W --num-systems 4 --workers 1` once per sector
+  (default `--backfill-from edge`) for (1,0,0), (1,0,5), (1,0,11),
+  (1,1,0) in that order, and again in the reverse order. Result: sector
+  (1,0,0) holds 4 systems when generated first and 8 when generated
+  last, (1,0,5) holds 6 and 11, (1,1,0) holds 6 and 4, and (1,0,11) is
+  the same in both orders. Cause: the backfill after a run places the
+  dimmer bright stars only in cells that are not yet generated, so a
+  sector generated before the backfill reaches its cell never gets those
+  stars, while a sector the backfill reached first is built around them
+  (4 bright stars plus the 4 requested). So GEN.57's sentence that a
+  sector's contents come out the same whichever sectors were generated
+  before it still fails for the backfill, and GEN.306, GEN.307 and
+  TEST.181 do not close it. This is a design question and TEST.181 does
+  not decide it. Candidates (Core 1's): (a) fill an already-generated
+  sector with the stars when the backfill reaches it; (b) make the first
+  fill take the deeper floor, so no later pass adds stars. Boss decides
+  whether it is needed before 8.1 (the TODO thread puts a card to him); until he answers it is a prerequisite
+  of GEN.57 and so of TEST.77. Do: Boss picks (a) or (b) or a narrowed
+  rule; then build it with a test that the four sectors above hold the
+  same systems in both orders. Done: that test passes and TEST.181 gains
+  the backfill case. Owner: not assigned (Core 1 will not start it
+  before Boss answers).
+  Prerequisites: none. Related: GEN.57, GEN.44, GEN.42, GEN.309,
+  TEST.181.
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19052,6 +19090,11 @@ clears each one.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Progress (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane
+  reported): building it, the test covers what holds: sectors reached by
+  an earlier run's backfill in either order, 1 against 4 workers, and
+  the shared ID cell. The backfill case that does not hold is filed as
+  GEN.633 and is not decided here.
   Prerequisites: none. Related: GEN.57.
 
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
@@ -20104,31 +20147,6 @@ clears each one.
   Hunt.
   Prerequisites: none. Related: PERF.121, PERF.122, TEST.265.
 
-- [ ] **TEST.281 test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug)**
-  Found by Core 2 (relayed 7:24 PM EDT 2026-10-22 as the lane's clock
-  reads, when UX.129 merged as #2544), filed by the TODO thread. Kind:
-  bug (a browser test that fails on main). Test:
-  src/tests/test_web_browser_sector_open.py::test_a_star_in_an_opened_sector_is_selectable.
-  Failure: it fails alone; no click on a star of 5 picks one, and the
-  panel shows the uncharted sector or a star '(uncharted)'. Fails on
-  main: yes, also at 736f8e7, so it is older than Core 2's merges.
-  Frequency: every run. Reproducer: python3 -m pytest -q
-  src/tests/test_web_browser_sector_open.py. This is probably the test
-  form of Boss's MAP.210 (no star can be picked in sector view,
-  2026-10-15). Do: find whether the star's projected position, the
-  picker (mappick.js) or the opened sector's data has changed since the
-  test passed (a git bisect between #1776 and 736f8e7 narrows it), and
-  fix the cause, not the test. Done: the test passes alone and in a
-  gate, and MAP.210 can close with it. Owner: Core 2 (MAP.210's owner;
-  proposed by the TODO thread, because the lane named the area; the
-  coordinator can move it).
-  The timeout side of the same test (TEST.272: the scene fetch timed out
-  under load) is fixed in #2573 (Bug Hunt, 10:11 PM EDT 2026-10-22 as
-  the lane reported: the sector_open and sector_reach browser tests read
-  the scene in the test process); what remains here is the selection
-  itself, which is MAP.210.
-  Prerequisites: none. Related: MAP.210, MAP.209.
-
 - [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug)**
   Found by the Performance lane (relayed 10:25 PM EDT 2026-10-22 as the
   lane reported) while re-running the ten failures it had seen, on
@@ -20224,6 +20242,24 @@ clears each one.
   test. Done: the test passes 50 times in a row at -n 4. Owner: Bug Hunt
   (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.280, TEST.284.
+
+- [ ] **TEST.289 Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug)**
+  Found by Bugfix 2 (relayed 3:08 AM EDT 2026-10-23 as the lane
+  reported) in its gate for GEN.628; the diff does not touch them. Kind:
+  flaky test. Tests:
+  src/tests/test_api_job_runs.py::test_a_neighborhood_job_runs_its_sectors_through_the_wrapper
+  and
+  src/tests/test_api_jobs.py::test_a_quick_edit_answers_in_the_same_response.
+  Failure text: not given by the lane (it failed once under the gate
+  load with the gate's 4 workers and passed alone and in the rerun).
+  Fails on main: unknown. Frequency: 1 in 2 gates on that lane.
+  Reproducer: none yet. Do: run both at -n 4 beside a loaded machine 50
+  times, capture the first failure text, find what they wait on (a job
+  that finishes inside a fixed wait, or a Redis or queue key shared
+  between workers), and make the test wait for that state or scope the
+  key. Done: both pass 50 times in a row at -n 4. Owner: Bug Hunt
+  (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.284, TEST.288, TEST.280.
 
 ## USR: User accounts
 
