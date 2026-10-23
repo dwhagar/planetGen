@@ -14968,38 +14968,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not merged until Bugfix 2 lands GEN.626 and GEN.628 (the coordinator,
   relayed Boss's 8:52 PM EDT 2026-10-22 note; this replaces any earlier
   owner line).
-  Prerequisites: GEN.626, GEN.628 (the retune must see the corrected crest and the final thin-disc share; the plan-numbers check of 8:48 PM EDT 2026-10-22, reports/plan-numbers-check-2026-10-22.md, shows the crest line is wrong, the nuclear disc is fixed Milky Way content, and satellites and clusters are not yet scaled, so the 1,000-seed sweep is re-run after GEN.624 and GEN.403 land). Related: GEN.624, GEN.613, GEN.619.
-
-- [ ] **GEN.626 The plan's crest line and planned-share figure are wrong: print them from the built density, not a table and a fixed system mass (bug)**
-  Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
-  of Boss's Stage 4 plan run, PlanetGen 8.0.1961, seed
-  2139DD5841E680B009A3D17A6319B2AA). Boss's live observations are bugs
-  (8:44 PM EDT 2026-10-22). The plan prints a crest of 11.5 times the
-  one-star density; the model's own thin-disc crest on an arm crest is
-  8.76 (31 percent lower), and with `--richness 1.0` the line still says
-  11.5 while the model gives 4.37, because the line
-  (`galaxy/dials.py:398`, `:430-432`) uses a fixed 0.483 solar masses a
-  system, a thin-disc share that forgets the nuclear cluster and disc
-  (`galaxy/shape_draw.py:320-324`), and no Census dial input. The "38
-  percent of its stars sit in planned sectors" figure is a table keyed
-  on the thin crest alone and measured on the Milky Way's structure
-  (`galaxy/dials.py:411-427`); the model's own integral gives 59
-  percent. Do: print the crest from the built shape (`k_norm x arm_level
-  x (1 + arm_amplitude) x E`, the number the outline walks on), and
-  print the planned share from one integral of the built density over
-  radius and height (about a second); drop the lookup table; the warning
-  threshold of 20 and the text stay. Done: tests that the printed crest
-  equals the outline's own peak expected-systems-per-cell for a galaxy
-  with a nuclear disc and for richness 1.0 and 3.0, and that the printed
-  planned share equals an independent integral to within 2 percent; the
-  lookup table and the fixed 0.483 are gone. No generator epoch: only
-  the printed figures change. Owner: Core 1, first in its queue, before
-  GEN.625 (the coordinator, relayed 8:48 PM EDT 2026-10-22).
-  Owner: Bugfix 2 (first on its queue; Core 1's GEN.625 waits for it;
-  Boss, 8:52 PM EDT 2026-10-22: the plan-number bugs and their
-  prerequisites go to a second bugfix lane; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: GEN.625, GEN.607.
+  Progress (the coordinator, relayed 12:20 AM EDT 2026-10-23): GEN.626
+  merged as #2598, so the crest and the planned share now come from the
+  built density: on Boss's seed the crest goes from 11.5 to 8.76 and the
+  planned share from 38 to 59 percent, and at richness 1.0 the crest is
+  4.37. The coordinator told Core 1 to start this item; GEN.628 (the
+  nuclear disc law) is still open and the retune should see its final
+  thin-disc share before this item merges.
+  Prerequisites: GEN.628 (the retune must see the corrected crest and the final thin-disc share; the plan-numbers check of 8:48 PM EDT 2026-10-22, reports/plan-numbers-check-2026-10-22.md, shows the crest line is wrong, the nuclear disc is fixed Milky Way content, and satellites and clusters are not yet scaled, so the 1,000-seed sweep is re-run after GEN.624 and GEN.403 land). Related: GEN.624, GEN.613, GEN.619.
 
 - [ ] **GEN.627 The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug)**
   Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
