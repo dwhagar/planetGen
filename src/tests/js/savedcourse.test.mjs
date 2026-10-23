@@ -78,10 +78,10 @@ test("opening a course says what moved", () => {
   });
   const changes = C.changesSince(record, moved);
   assert.deepEqual(changes, [
-    "The direct course is now 15 ly (it was 12.35 ly).",
-    "The direct course heads 050 mark 012 (it was 045 mark 012).",
+    "The direct course is now 4.6 pc (15 ly), it was 3.78 pc (12.3 ly).",
+    "The direct course heads 050 mark 012, it was 045 mark 012.",
     "The route now passes through different systems (still 3 stops).",
-    "The route is now 17.25 ly (it was 13.5 ly).",
+    "The route is now 5.29 pc (17.3 ly), it was 4.14 pc (13.5 ly).",
   ]);
 });
 
@@ -95,7 +95,7 @@ test("opening a course says when the route appears or goes", () => {
   const record = C.recordOf(answer(), "Home run", WHEN);
   assert.deepEqual(C.changesSince(record, answer({ route: null })), ["The route through known space is gone: no route is found now."]);
   const direct = C.recordOf(answer({ route: null }), "Direct only", WHEN);
-  assert.deepEqual(C.changesSince(direct, answer()), ["A route through known space exists now (3 stops, 13.5 ly)."]);
+  assert.deepEqual(C.changesSince(direct, answer()), ["A route through known space exists now: 3 stops, 4.14 pc (13.5 ly)."]);
 });
 
 test("a course whose end is gone says it can no longer be planned", () => {

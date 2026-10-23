@@ -21,6 +21,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createStore, localBackend } = await import(`./savedlist.js${VERSION_QUERY}`);
+const { formatDistanceLy } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 export const COURSE_KIND = "course";
 export const MAX_COURSES = 100;
@@ -83,10 +84,6 @@ function formatCourse(course) {
   return pad(course.bearing_deg) + " mark " + pad(course.mark_deg);
 }
 
-function formatLy(distance) {
-  return (Math.round(distance * 100) / 100).toLocaleString("en-US") + " ly";
-}
-
 function differs(a, b, epsilon) {
   if (a === null || b === null) return a !== b;
   return Math.abs(a - b) > epsilon;
@@ -96,10 +93,10 @@ function legChanges(label, was, now) {
   if (!was || !now) return [];
   const changes = [];
   if (differs(was.distance_ly, now.distance_ly, DISTANCE_EPSILON_LY)) {
-    changes.push(label + " is now " + formatLy(now.distance_ly) + " (it was " + formatLy(was.distance_ly) + ").");
+    changes.push(label + " is now " + formatDistanceLy(now.distance_ly) + ", it was " + formatDistanceLy(was.distance_ly) + ".");
   }
   if (differs(was.bearing_deg, now.bearing_deg, ANGLE_EPSILON_DEG) || differs(was.mark_deg, now.mark_deg, ANGLE_EPSILON_DEG)) {
-    changes.push(label + " heads " + formatCourse(now) + " (it was " + formatCourse(was) + ").");
+    changes.push(label + " heads " + formatCourse(now) + ", it was " + formatCourse(was) + ".");
   }
   return changes;
 }
@@ -113,7 +110,7 @@ export function changesSince(record, result) {
   if (record.route && !now.route) {
     changes.push("The route through known space is gone: no route is found now.");
   } else if (!record.route && now.route) {
-    changes.push("A route through known space exists now (" + now.route.path.length + " stops, " + formatLy(now.route.distance_ly) + ").");
+    changes.push("A route through known space exists now: " + now.route.path.length + " stops, " + formatDistanceLy(now.route.distance_ly) + ".");
   } else if (record.route && now.route) {
     const was = record.route.path.join(" ");
     if (was !== now.route.path.join(" ")) {
@@ -123,7 +120,7 @@ export function changesSince(record, result) {
       changes.push("The route now passes through different systems (" + stops + ").");
     }
     if (differs(record.route.distance_ly, now.route.distance_ly, DISTANCE_EPSILON_LY)) {
-      changes.push("The route is now " + formatLy(now.route.distance_ly) + " (it was " + formatLy(record.route.distance_ly) + ").");
+      changes.push("The route is now " + formatDistanceLy(now.route.distance_ly) + ", it was " + formatDistanceLy(record.route.distance_ly) + ".");
     }
   }
   if (record.adjusted !== null && now.adjusted !== null
