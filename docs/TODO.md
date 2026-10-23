@@ -5785,6 +5785,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22 as the lane's clock reads): `physics/planet_zones.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers (built by GEN.314). Boss (8:04 PM
   EDT): code built for a pending feature stays.
+  Scope (Core 3, relayed 10:16 PM EDT 2026-10-22 as the lane reported):
+  the stored trees run to 12 members with brown dwarf, neutron star and
+  black hole members, but BinaryStarProxy and WideBinaryPair hold
+  exactly two Star objects and stars.role only allows primary, secondary
+  and single, so building every tree needs the N-star host that GEN.316
+  retires them for, and a stars.role 'member' migration (numbered at
+  merge; 0130 is held by DB.85 and 0131 by GEN.412). The design doc says
+  to move N=2 through the tree tables first, so GEN.315 is done as slice
+  1: pre-placed star rows (stage A and the uncharted-system route) build
+  from their stored members when the tree is one or two ordinary stars,
+  the pair classes take the stored node (separation, eccentricity,
+  plane, phase, period), orbit_nodes gets the stored node, the child
+  rows are deleted at build, and a scattered star never draws its own
+  companion. Trees the pair classes cannot hold (3 or more members,
+  compact or brown-dwarf members) build the placed object alone for now
+  with their child rows kept for GEN.316. This item stays open for that
+  remainder (N of 3 or more, compact and brown-dwarf members, phenomenon
+  rows in stage B).
   Prerequisites: none. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
