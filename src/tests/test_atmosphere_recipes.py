@@ -9,7 +9,7 @@ research; the open rows listed with their research item; the draws, deterministi
 import copy
 import json
 import math
-import multiprocessing
+import concurrent.futures
 import os
 import sys
 
@@ -470,8 +470,8 @@ def test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers():
     serial = [_worker_draw(seed) for seed in seeds]
     assert serial == [_worker_draw(seed) for seed in seeds]
     assert serial[0] != serial[1]
-    with multiprocessing.get_context("fork").Pool(4) as pool:
-        assert pool.map(_worker_draw, seeds) == serial
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as pool:
+        assert list(pool.map(_worker_draw, seeds)) == serial
 
 
 # --- the loader's refusals ----------------------------------------------------------------------------------------------

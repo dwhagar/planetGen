@@ -114,11 +114,20 @@ DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 # hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
 # scales with the same star-dependent quantity that sets where solids can
 # even condense in the first place: the snow line
-# (`physical_constants.SNOW_LINE_AU_AT_1_LSUN`/`formation.snow_line_au`) --
+# (`formation.snow_line_au`, drawn per star and stored: `Star.snow_line_au`) --
 # our own Solar System's own giant-planet/Kuiper-belt region extends to
-# roughly this same multiple (~18x) of its own 2.7 AU snow line. See
+# roughly this same multiple (~18x) of its own ~2.7 AU snow line. See
 # `StarSystem._estimate_max_objects_from_disk_physics`.
 DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
+
+# The scatter of a star's own snow line around the blackbody position for its
+# luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
+# 0.4 dex scatter of accretion rates carried through the steady-disc snow-line
+# law (Mulders et al. 2015, arXiv:1505.03516). The draw is cut at
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way, inside the
+# factor 2 to 3 the observed lines move.
+SNOW_LINE_SCATTER_DEX = 0.2
+SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 
 # The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
 # `physics.planet_zones`): a protoplanetary disk around a star or a pair is

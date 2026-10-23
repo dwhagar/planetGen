@@ -1525,6 +1525,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (132, _column_marker("stars", "snow_line_km")),
     (131, _column_marker("generation_runs", "generator_epoch")),
     (130, _table_marker("galaxy_containers")),
     (129, _table_marker("vessels")),
@@ -2891,6 +2892,7 @@ STAR_FIELDS = (
     object_rows.scaled("reflex_offset_z_km", "reflex_offset_z", _AU_KM, null=0.0, nullable=True),
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(activity.STAR_ACTIVITY_FIELDS), object_rows.optional("metallicity_fe_h"),
+    object_rows.scaled("snow_line_km", "snow_line_au", _AU_KM),
     object_rows.each(pre_main_sequence.DISK_FIELDS),
     object_rows.context("parent_node_id"),
     object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
@@ -2975,6 +2977,8 @@ BODY_FIELDS = (
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
+    object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
+                         lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
 )
 """tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
 them in place, `_planet_or_moon_row_to_dict` reads them back)."""

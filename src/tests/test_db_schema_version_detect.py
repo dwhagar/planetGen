@@ -41,6 +41,9 @@ def _make_older_than_the_baseline(config):
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN generator_epoch, DROP COLUMN fp_spec, DROP COLUMN battery_digest,"
                      " DROP COLUMN battery_cases")  # v131
         conn.execute("ALTER TABLE generation_runs DROP COLUMN generator_epoch")  # v131
+        conn.execute("ALTER TABLE stars DROP COLUMN snow_line_km, ALGORITHM=COPY")  # v132
+        for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN born_beyond_snow_line, ALGORITHM=COPY")  # v132
         conn.execute("DROP TABLE galaxy_containers")  # v130
         conn.execute("DROP TABLE vessels")  # v129
         conn.execute("DROP TABLE constellations")  # v128

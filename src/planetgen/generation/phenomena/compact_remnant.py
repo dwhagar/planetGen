@@ -42,7 +42,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, neutron_star, remnant_mass, spin
+from planetgen.physics import activity, constants, formation, neutron_star, remnant_mass, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -172,6 +172,9 @@ class CompactRemnant(StellarObject):
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
         self.heliosphere_radius = 0.0
         self.set_galactic_motion(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
+        # GEN.458: this remnant's own snow line, from its own stream like a star's.
+        self.snow_line_au = formation.draw_snow_line_au(
+            self.luminosity, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
         # GEN.104: the spin axis, a Rayleigh tilt from the galactic pole.
         self.rotation_period_hours = self._rotation_period_hours()
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())

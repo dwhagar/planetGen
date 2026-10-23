@@ -54,7 +54,7 @@ class StellarObject(LazySaladName, MassObject):
         "heliosphere_radius": "au", **GALACTIC_MOTION_UNITS,
         "a_crit_au": "au", "reflex_offset_x": "au", "reflex_offset_y": "au", "reflex_offset_z": "au",
         "rotation_period_hours": "h", **spin.SPIN_UNITS, **activity.STAR_ACTIVITY_UNITS, "metallicity_fe_h": "dex",
-        **pre_main_sequence.DISK_UNITS,
+        "snow_line_au": "au", **pre_main_sequence.DISK_UNITS,
     }
     """
     Every attribute set by `__init__`/`generate_star`, excluding `system_config` (a shared back-reference threaded
@@ -67,6 +67,11 @@ class StellarObject(LazySaladName, MassObject):
 
     metallicity_fe_h = None
     """float or None: [Fe/H] in dex (GEN.158); class-level default for the same reason as `a_crit_au`."""
+
+    snow_line_au = None
+    """float: This star's own snow line in AU (GEN.458), drawn once around the blackbody position for its luminosity
+    (`formation.draw_snow_line_au`) and stored; the water share, the small-body zones and the moons read it. Set by
+    the end of every star's and compact remnant's `__init__`; None only before that."""
 
     disk_kind = None
     disk_mass_solar = None
