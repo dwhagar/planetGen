@@ -1782,6 +1782,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_galaxy_map_stars_never_take_the_click), so it was not tested and
   is not required until Boss says which wins. The item stays open for
   Boss's retest on a rebuilt database.
+  Observation (Bug Hunt, relayed 10:26 AM EDT 2026-10-23 as the lane
+  reported, from TEST.291's fix, #2669): on a loaded machine the camera
+  settled by the scale-bar and centre checks, yet a star in a sector 8
+  kpc out moved about 120 px afterwards, so a late camera drift may
+  exist. Not a separate bug yet; it is evidence for Boss's retest of this
+  item.
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163, TEST.281.
 
 - [ ] **MAP.212 A region selection tool on the Galaxy Map and the Sector Map, for admin actions**
@@ -19576,29 +19582,6 @@ clears each one.
   load at -n 2. The item stays open for a sighting that comes with the
   failure text.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
-
-- [ ] **TEST.291 test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug)**
-  Found by Bug Hunt (relayed 5:49 AM EDT 2026-10-23 as the lane
-  reported) in its gate for #2630; filed by the TODO thread. Kind: flaky
-  test. Test:
-  src/tests/test_web_browser_sector_open.py::test_a_star_in_a_sector_far_from_the_core_is_selectable,
-  the far-sector test that TEST.281 (#2619) added after the
-  click-before-the-camera-stopped fix. Failure text: not given by the
-  lane; it passed alone. Fails on main: unknown. Frequency: once in one
-  gate. Reproducer: none yet; run it 50 times at -n 4 beside a loaded
-  machine. Do: capture the failure text, then find what the click waits
-  on (the camera flight, the star positions re-read at the click, the
-  600 px window) that the gate's load changes, and make the test wait
-  for that state. Done: the test passes 50 times in a row at -n 4 under
-  load. Owner: Bug Hunt (proposed by the TODO thread).
-  Second sighting (Core 2, relayed 7:42 AM EDT 2026-10-23 as the lane
-  reported, in its gate for ADM.125, #2646): failed once and passed alone;
-  the far sector holds only 1 star, so one missed click fails the test.
-  Frequency now 1 in 2 gates.
-  Third sighting (Bug Hunt, relayed 9:37 AM EDT 2026-10-23 as the lane
-  reported, in its gate for #2663, load 5.2): it now fails alone as well,
-  so it is a real failure and not only load. Bug Hunt takes it next.
-  Prerequisites: none. Related: TEST.281, TEST.284, TEST.287.
 
 - [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
   Found by Core 4 (relayed 6:38 AM EDT 2026-10-23 as the lane reported)
