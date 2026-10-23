@@ -1065,3 +1065,6 @@ Baseline: PR #1817.
 | NAV.17 | 8.5 | Saved courses |
 | PERF.146 | 8.1 | The headline closes |
 | GEN.599 | 8.1 | Queue, caches and performance |
+| PERF.153 | 8.1 | Queue, caches and performance |
+| PERF.152 | 8.1 | Queue, caches and performance |
+| PERF.151 | 8.1 | Queue, caches and performance |
