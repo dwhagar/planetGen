@@ -65,6 +65,16 @@ def _first_system(mysql_config):
         conn.close()
 
 
+def test_the_nav_section_is_current_on_both_of_its_pages(client):
+    """UX.146: the Nav button in the bar is current on Plot Course and on Nearby Search, and the menu marks which."""
+    for path, entry in (("/nav", "Plot Course"), ("/nearby", "Nearby Search")):
+        html = client.get(path).get_data(as_text=True)
+        bar = re.search(r'<nav class="site-sections" aria-label="Main">.*?</nav>', html, re.S).group(0)
+        assert re.search(r'class="site-nav-trigger"[^>]*aria-current="page"|aria-current="page"[^>]*class="site-nav-trigger"',
+                         bar), path
+        assert re.findall(r'<sl-menu-item data-href="[^"]*" aria-current="page">([^<]*)<', bar) == [entry], path
+
+
 def test_the_page_walks_from_a_sector_to_a_system_to_a_distance(client, mysql_config):
     system = _first_system(mysql_config)
     html = client.get("/nearby").get_data(as_text=True)

@@ -8,40 +8,75 @@ csrf_field().
 Blocks a page may fill: content (required), head (extra <link>/<script>
 tags, e.g. a map module), heading (to replace the default <h1>),
 subhead (badges or actions under the <h1>). -#}
-{%- macro section_links(label) -%}
+{#- The section links. Nav (UX.146) is a group: a menu button in the bar
+    (`menu` true), which opens Plot Course then Nearby Search, or, inside the
+    narrow Menu panel (a dropdown cannot hold another), a label over the two
+    links. Nav is current on both of its pages. -#}
+{%- macro section_links(label, menu=false) -%}
 <nav class="site-sections" aria-label="{{ label }}">
   <ul>
     {%- for name, text in sections() %}
+    {%- if name == 'nav' %}
+    {%- set in_nav = section in nav_menu | map('first') %}
+    {%- if menu %}
+    <li class="site-nav-group"><span class="site-nav-label">{{ text }}</span>
+      <ul>
+        {%- for page, page_text in nav_menu %}
+        <li><a href="{{ page_url(page) }}"{% if page == section %} aria-current="page"{% endif %}>{{ page_text }}</a></li>
+        {%- endfor %}
+      </ul>
+    </li>
+    {%- else %}
+    <li>
+      <sl-dropdown class="site-nav-menu" placement="bottom-start" distance="6">
+        <button slot="trigger" type="button" class="site-nav-trigger" aria-haspopup="menu"{% if in_nav %} aria-current="page"{% endif %}>{{ text }}</button>
+        <sl-menu aria-label="{{ text }}">
+          {%- for page, page_text in nav_menu %}
+          <sl-menu-item data-href="{{ page_url(page) }}"{% if page == section %} aria-current="page"{% endif %}>{{ page_text }}</sl-menu-item>
+          {%- endfor %}
+        </sl-menu>
+      </sl-dropdown>
+    </li>
+    {%- endif %}
+    {%- else %}
     <li><a href="{{ page_url(name) }}"{% if name == section %} aria-current="page"{% endif %}>{{ text }}</a></li>
+    {%- endif %}
     {%- endfor %}
   </ul>
 </nav>
 {%- endmacro -%}
-{#- Not on the Search page itself, which has its own Name box (UX.54). -#}
-{%- macro search_form(id) -%}
+{#- The search control (UX.146): one icon-only button that drops the search
+    box down and puts the cursor in it (static/headersearch.js). Not on the
+    Search page itself, which has its own Name box (UX.54). -#}
+{%- macro search_menu() -%}
 {%- if request.endpoint != 'web.search' -%}
-<form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
-  <label class="sr-only" for="{{ id }}">Search by name</label>
-  <input id="{{ id }}" type="search" name="q" placeholder="Search names" autocomplete="off" enterkeyhint="search">
-  <button type="submit">Search</button>
-</form>
+<sl-dropdown class="site-search-menu" placement="bottom-end" distance="6">
+  <sl-icon-button slot="trigger" name="search" label="Search" title="Search"></sl-icon-button>
+  <div class="site-search-panel">
+    <form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
+      <label class="sr-only" for="site-search">Search by name</label>
+      <input id="site-search" type="search" name="q" placeholder="Search names" autocomplete="off" enterkeyhint="search">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+</sl-dropdown>
 {%- endif -%}
 {%- endmacro -%}
 {% from "partials/admin_jobstrip.html" import admin_jobstrip with context %}
 {%- macro gear_link(name, text, current, href=None) -%}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
 {%- endmacro -%}
-{#- The settings gear (UX.72): search (for when the bar has no room for it),
-    the theme switch, and either Account, Admin and Logout or Login. The
-    admin's other pages are one level down, behind Admin and its tab row. -#}
+{#- The settings gear (UX.72): Lists (UX.146), the theme switch, and either
+    Account, Admin and Logout or Login. The admin's other pages are one level
+    down, behind Admin and its tab row. -#}
 {%- macro gear_menu() -%}
 {%- set admin = current_admin() -%}
 <sl-dropdown class="site-gear" placement="bottom-end" distance="6">
   <sl-icon-button slot="trigger" name="gear" label="Settings" title="Settings"></sl-icon-button>
   <div class="site-gear-panel">
-    {{ search_form("site-search-gear") }}
     <nav class="site-account" aria-label="Settings">
     <ul>
+      {{ gear_link('lists', 'Lists', 'lists') }}
       <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
       <li><button type="button" class="theme-toggle" data-units-toggle hidden>Units: Automatic</button></li>
       {%- if admin %}
@@ -110,9 +145,8 @@ subhead (badges or actions under the <h1>). -#}
 <body class="app">
 <a class="skip-link" href="#main">Skip to content</a>
 {#- The top bar: the sections as buttons while they fit, else a Menu; the
-    search box while its text entry is at least twice the button's width;
-    everything else under the gear. Container queries in style.css pick
-    the layout, so it needs no script. -#}
+    search button; everything else under the gear. Container queries in
+    style.css pick the layout, so it needs no script. -#}
 <header class="site-header">
   <div class="site-header-inner">
     <a class="site-name" href="{{ url_for('web.index') }}"{% if request.endpoint == 'web.index' %} aria-current="page"{% endif %}>{{ site_name }}</a>
@@ -122,10 +156,10 @@ subhead (badges or actions under the <h1>). -#}
     <sl-dropdown class="site-menu" placement="bottom-start" distance="6">
       <sl-button slot="trigger" caret>Menu</sl-button>
       <div class="site-menu-panel">
-        {{ section_links("Main menu") }}
+        {{ section_links("Main menu", menu=true) }}
       </div>
     </sl-dropdown>
-    {{ search_form("site-search-wide") }}
+    {{ search_menu() }}
     {{ gear_menu() }}
   </div>
 </header>

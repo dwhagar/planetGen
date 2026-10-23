@@ -121,6 +121,21 @@ def _section_link(html, label):
     return link
 
 
+def _main_nav(html):
+    return re.search(r'<nav class="site-sections" aria-label="Main">.*?</nav>', html, re.S).group(0)
+
+
+def _nav_trigger(html):
+    """The Nav section's button in the bar (UX.146)."""
+    return re.search(r'<button slot="trigger"[^>]*class="site-nav-trigger"[^>]*>Nav</button>', _main_nav(html)).group(0)
+
+
+def _nav_menu_items(html):
+    """The entries of the Nav menu, in order, as (data-href, label) strings."""
+    return [f"{href}|{label}" for href, label in re.findall(
+        r'<sl-menu-item data-href="([^"]*)"[^>]*>([^<]*)</sl-menu-item>', _main_nav(html))]
+
+
 # --- Rendering ------------------------------------------------------------------
 
 def test_home_renders_the_front_door_and_shell(client, fake):
@@ -191,9 +206,10 @@ def test_static_scripts_get_the_page_csp(client):
 def test_section_pages_mark_current_section_and_breadcrumbs(client, fake, path, label):
     html = client.get(path).get_data(as_text=True)
     assert _section_link(html, label).group(1) == ' aria-current="page"'
-    for other in ("Galaxy", "Phenomena", "Nav", "Sectors", "Systems"):
+    for other in ("Galaxy", "Phenomena", "Sectors", "Systems"):
         if other != label:
             assert _section_link(html, other).group(1) is None
+    assert "aria-current" not in _nav_trigger(html)
     crumbs = re.search(r'<nav class="breadcrumbs" aria-label="Breadcrumb">(.*?)</nav>', html, re.S).group(1)
     assert '<li><a href="/">Home</a></li>' in crumbs
     assert f'<li><span aria-current="page">{label}</span></li>' in crumbs
@@ -204,7 +220,39 @@ def test_sections_link_to_moved_and_legacy_pages(client, fake):
     assert _section_link(html, "Sectors").group(0).startswith('<a href="/sectors"')
     assert _section_link(html, "Systems").group(0).startswith('<a href="/systems"')
     assert _section_link(html, "Galaxy").group(0).startswith('<a href="/galaxy"')
-    assert _section_link(html, "Nav").group(0).startswith('<a href="/nav"')
+    assert "/nav" in _nav_menu_items(html)[0]
+
+
+def test_the_bar_has_no_lists_or_nearby_link_and_nav_opens_a_two_entry_menu(client, fake):
+    """UX.146: Lists moved under the gear, Nearby under Nav (Plot Course, then Nearby Search)."""
+    html = client.get("/").get_data(as_text=True)
+    bar = _main_nav(html)
+    assert ' href="/lists"' not in bar and ' href="/nearby"' not in bar and ' href="/nav"' not in bar
+    assert ">Lists<" not in bar and ">Nearby<" not in bar
+    assert _nav_menu_items(html) == ["/nav|Plot Course", "/nearby|Nearby Search"]
+    assert 'aria-haspopup="menu"' in _nav_trigger(html)
+    # Folded into the narrow Menu, Nav is a label over the same two links, in the same order.
+    panel = re.search(r'<div class="site-menu-panel">.*?</nav>', html, re.S).group(0)
+    assert re.findall(r'<a href="([^"]*)"[^>]*>([^<]*)</a>', panel)[-4:] == [
+        ("/phenomena", "Phenomena"), ("/nav", "Plot Course"), ("/nearby", "Nearby Search"), ("/classes", "Classes")]
+    assert 'class="site-nav-label">Nav<' in panel
+
+
+def test_the_gear_menu_lists_lists(client, fake):
+    html = client.get("/").get_data(as_text=True)
+    gear = re.search(r'<div class="site-gear-panel">.*?</sl-dropdown>', html, re.S).group(0)
+    assert '<li><a href="/lists">Lists</a></li>' in gear
+    assert gear.index('href="/lists"') < gear.index("data-theme-toggle")
+    assert 'class="site-search"' not in gear
+
+
+def test_the_search_control_is_an_icon_button_with_a_name(client, fake):
+    html = client.get("/").get_data(as_text=True)
+    control = re.search(r'<sl-dropdown class="site-search-menu".*?</sl-dropdown>', html, re.S).group(0)
+    assert '<sl-icon-button slot="trigger" name="search" label="Search"' in control
+    # No text beside the icon: the trigger holds nothing but the icon.
+    assert re.search(r'<sl-icon-button[^>]*></sl-icon-button>', control)
+    assert html.count('class="site-search"') == 1
 
 
 def test_database_comes_from_config_never_the_url(client, fake):

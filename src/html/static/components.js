@@ -25,3 +25,4 @@ await Promise.all([
 ].map((name) => import(`./vendor/shoelace/components/${name}.js${VERSION_QUERY}`)));
 
 await import(`./dialogmenus.js${VERSION_QUERY}`);
+await import(`./headersearch.js${VERSION_QUERY}`);
