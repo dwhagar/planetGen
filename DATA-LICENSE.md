@@ -101,6 +101,16 @@ Fitted numbers only (logistic coefficients, the host magnitude model and per-cla
 | NASA Exoplanet Archive, tables `pscomppars` and `spectra` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
 | Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671) | Published paper; the two formulas and the scale factors of its Table 1 only |
 
+## The Kepler recovery curve (`src/planetgen/physics/data/kepler_recovery.json`, GEN.504)
+
+Fitted numbers only (the recovery curve, the effective-depth law, the noise lines, the quantiles of the Kepler magnitude and a table of observed against predicted recovery); the injection and stellar rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| NASA Exoplanet Archive, Kepler DR25 flux-level transit injections, group INJ1 (https://exoplanetarchive.ipac.caltech.edu/docs/KeplerSimulated.html), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
+| NASA Exoplanet Archive, table `keplerstellar` (delivery q1_q17_dr25_stellar), retrieved 2026-10-23 | Same |
+| Burke and Catanzarite 2017, Kepler Science Document KSCI-19083 | Published document; the form of the recovery curve only |
+
 ## The comets with a measured composition (`src/planetgen/physics/data/comet_admission.json`, GEN.507)
 
 Fitted numbers only (counts of known and measured comets by group and perihelion bin, and two regression lines and their scatter); the database's rows are not kept.

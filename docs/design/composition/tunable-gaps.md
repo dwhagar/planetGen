@@ -180,6 +180,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.507, lane M, 2026-10-23):** the selection model `comet-admission` (`planetgen/physics/comet_admission.py`, `docs/design/comet-admission.md`): the chance a known comet has a published coma composition by group and perihelion distance (93 of 2,422 comets, Robinson et al. 2024 joined to the JPL orbits, `scripts/fit_comet_admission.py`) and the heliocentric distance at which it is measured, truncated at its perihelion. It conditions on a known comet; nucleus size and activity are not inputs.
 
+**Built (GEN.504, lane M, 2026-10-23):** the selection model `kepler-recovery` (`planetgen/physics/kepler_recovery.py`, `docs/design/kepler-recovery.md`): the chance the Kepler pipeline would have recovered a transiting planet, from the geometry of a circular orbit, the multiple event statistic against the host's noise (the host's Kepler magnitude and radius give a noise level) and a recovery curve fitted to the 146,257 DR25 on-target injections (`scripts/fit_kepler_recovery.py`). It reproduces the injections' recovered count to 0.02 percent with the stars' own noise and to 5.4 percent with a modelled noise level. It is the detection step only (no vetting) and holds for periods 0.5 to 500 days.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

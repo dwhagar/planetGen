@@ -355,6 +355,7 @@ SELECTION_MODELS = {}
 SELECTION_MODEL_MODULES = {
     "comet-admission": "planetgen.physics.comet_admission",
     "jwst-target-selection": "planetgen.physics.jwst_selection",
+    "kepler-recovery": "planetgen.physics.kepler_recovery",
     "mass-radius-sample": "planetgen.physics.mass_radius_sample",
     "wd-pollution-detection": "planetgen.physics.wd_pollution",
 }
