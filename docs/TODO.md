@@ -2584,9 +2584,213 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: none. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.263, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
+  cards): 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
+  default). Split (design report sections 5.2 and 8) into MAP.258 to
+  MAP.262 (N1 to N5, the node layer, then the cube tiles retire), then
+  MAP.263 to MAP.268 (S1 to S6: the camera is the only state, nothing
+  clipped, cells as a tool, the glow, one star buffer with MAP.240
+  folded in, labels and selection), all 8.1 phase 2. Owners: the lane
+  Map nodes takes N1 to N5, S4 and S5; Core 2 takes S1, S2, S3 and S6
+  (it owns galaxymap3d.js and galaxystageview.js). S1 to S3 do not
+  depend on the nodes and may run beside N1 to N3. Per the design report
+  these are replaced or changed once the slices land: MAP.121, MAP.141,
+  MAP.156 (becomes a section-plane tool), MAP.189 and MAP.190 (a
+  fly-to), MAP.209 and MAP.210 (verify after S1), MAP.249, MAP.195,
+  MAP.237, MAP.212; each is decided when its slice merges. This umbrella
+  closes with its subitems.
+- [ ] **MAP.258 N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Extend
+  the ladder (drill.py) with levels above 243 (729, 2,187, 6,561,
+  19,683, 59,049) until the root is a handful of blocks, write the
+  JavaScript twin drillChildren beside the count rules in
+  galaxyprisms.js, keep the Python and JavaScript twins equal under the
+  existing sweep tests, and add galaxy_block_stats rows at the new
+  levels (one Alembic revision and a rebuild; testing mode, new database
+  versions are fine). Ships nothing visible: the hierarchy exists. Size
+  M. Done: blocks exist from a sector up to a root of a few blocks, the
+  twin sweep tests pass for every level, and the stats rows are built.
+  Owner: lane Map nodes (the coordinator's new lane, 5:53 PM EDT as the
+  lane reported), with Core 2 as owner of galaxymap3d.js and
+  galaxystageview.js (rebase on its merges and tell it before each PR).
+  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
 
+- [ ] **MAP.259 N2: node aggregates for the pre-placed bright stars and scattered phenomena**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Bright
+  stars and phenomenon scatter points are not in galaxy_block_stats and
+  are most of the light outside charted space. Add per block: count,
+  summed luminosity and flux-weighted centre sums for them, kept current
+  as they are written and rebuilt by a grouped SQL pass at the end of a
+  batch (resumable, one unit under the PERF.155 ceiling). Ships the data
+  for the glow, no page change. Size L. Done: the aggregates match a
+  brute-force sum on a seeded galaxy, the rebuild step exists, and its
+  cost on a large galaxy is measured on the item. Owner: lane Map nodes
+  (the coordinator's new lane, 5:53 PM EDT as the lane reported), with
+  Core 2 as owner of galaxymap3d.js and galaxystageview.js (rebase on
+  its merges and tell it before each PR).
+  Prerequisites: MAP.258. Related: MAP.257, MAP.146, MAP.249.
 
+- [ ] **MAP.260 N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Return
+  each node's K brightest objects (the existing ranking, MAP.154 with
+  MAP.250 and MAP.251) plus its aggregate, packed with tilepack; settle
+  address columns against bounding boxes with an EXPLAIN on a big galaxy
+  first; cache by node key and stamp; the change feed names changed
+  nodes through drill_chain_of; planetgen warm (PERF.130 to PERF.132,
+  PERF.157) retargets to nodes. Ships an API and a cache. Size L. Done:
+  the stars a node lists are the stars the tiles list for the same box
+  within the budget (a test compares them), the cache and the feed work
+  by node key, and the warm-up fills nodes. Owner: lane Map nodes (the
+  coordinator's new lane, 5:53 PM EDT as the lane reported), with Core 2
+  as owner of galaxymap3d.js and galaxystageview.js (rebase on its
+  merges and tell it before each PR).
+  Prerequisites: MAP.258, MAP.259. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.261 N4: the node cut on the page: galaxynodecut.js replaces the tile cut**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Projected
+  size and hand-over weights decide the nodes needed, with prefetch at
+  the lower half of the band; the star share and zoom opacity read the
+  weights (starfade.js). Ships the same map fed by nodes, with no tile
+  request any more. Size L. Done: the map draws from nodes only and a
+  browser test flies from the galaxy to a sector with no tile request.
+  Owner: lane Map nodes (the coordinator's new lane, 5:53 PM EDT as the
+  lane reported), with Core 2 as owner of galaxymap3d.js and
+  galaxystageview.js (rebase on its merges and tell it before each PR).
+  Prerequisites: MAP.260. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.262 N5: retire the cube tiles**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Delete
+  /galaxy/tiles, viewport.distance_cut_tiles, the tile cut twin, the
+  tile-keyed cache files and the stamp history of tiles; no shim. Size
+  M. Done: no tile code, route or cache file remains and the suite
+  passes. Owner: lane Map nodes (the coordinator's new lane, 5:53 PM EDT
+  as the lane reported), with Core 2 as owner of galaxymap3d.js and
+  galaxystageview.js (rebase on its merges and tell it before each PR).
+  Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.263 S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Remove
+  the across gate, the preset flights, the per-stage zoom range and the
+  pan clamp in galaxystageview.js and galaxystages.js; blocks cross-fade
+  by camera distance with hysteresis; the turn and the zoom are never
+  reset; view.zoom and the fit bookkeeping are replaced by distance.
+  Independent of the nodes (client only); rewrites the stage browser
+  tests (test_web_browser_*maps*). Size L. Done: one wheel scroll from
+  the galaxy to a sector with no stop and no swoop, and the rewritten
+  browser tests pass. Owner: Core 2 (maps).
+  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.264 S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. The
+  visibility law and the sector and system hand-offs already decide what
+  is drawn. Client only. Size S. Done: the surroundings stay in view
+  when you zoom, and a browser test finds a neighbouring star after
+  zooming into a sector. Owner: Core 2 (maps).
+  Prerequisites: MAP.263. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.265 S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Replace
+  the window meshes with the hover and selected sector outline (a sector
+  is the only cell the user sees) plus the optional grid tool (Boss card
+  2); pick the cell under the ray in closed form; the charted tint
+  stays; block prisms are no longer drawn; the window stops being a
+  display source (/galaxy/window stays as an admin read). Size M. Done:
+  no translucent prisms, any sector is selectable from any distance, and
+  a browser test selects a sector from the galaxy view. Owner: Core 2
+  (maps).
+  Prerequisites: MAP.263. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Draw N2's
+  aggregate through N4's cut as a soft blob with the flux-conserving
+  hand-over to resolved stars so nothing pops (Boss card 3: yes,
+  switchable). The look needs a tone curve tuned by eye. Size M. Done:
+  the galaxy has a soft light that resolves into stars on zooming in
+  without a pop, the layers menu switches it off, and a browser test
+  checks the toggle. Owner: lane Map nodes (the coordinator's new lane,
+  5:53 PM EDT as the lane reported), with Core 2 as owner of
+  galaxymap3d.js and galaxystageview.js (rebase on its merges and tell
+  it before each PR).
+  Prerequisites: MAP.259, MAP.261, MAP.265. Related: MAP.257, MAP.146,
+  MAP.249.
+
+- [ ] **MAP.267 S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in)**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Replace
+  setStars rebuilds with node-by-node fills and the relative-to-eye
+  shader (each position as a high and a low float32); the other buffers
+  follow, which is MAP.240 (retire it when this is done). Test on the
+  devices Boss uses; the fallback is a per-chunk origin. Size M. Done:
+  no hitch when a node lands and precision to about 0.2 AU, measured on
+  the item. Owner: lane Map nodes (the coordinator's new lane, 5:53 PM
+  EDT as the lane reported), with Core 2 as owner of galaxymap3d.js and
+  galaxystageview.js (rebase on its merges and tell it before each PR).
+  Prerequisites: MAP.261, MAP.263. Related: MAP.257, MAP.146, MAP.249.
+
+- [ ] **MAP.268 S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales**
+  Zoom design (reports in
+  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
+  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
+  cards: 1 the full single space, 2 only a sector plus an optional grid
+  tool, 3 a soft glow switchable in the layers menu, 4 move to
+  sector-block nodes FIRST (not the default). Part of MAP.257. Build the
+  map labels (MAP.229 to MAP.233) against the cut's projected-size
+  query, not against stages, and select by object ID at any scale. Size
+  M. Done: labels and selection work from the galaxy to a planet with no
+  stage, and a browser test covers both. Owner: Core 2 (maps).
+  Prerequisites: MAP.263, MAP.264, MAP.265. Related: MAP.257, MAP.146,
+  MAP.249.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -8064,7 +8268,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.557. Related: GEN.429,
+  Prerequisites: none. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -8187,6 +8391,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane I (the spine, to be started).
+  Order change (lane I, 5:52 PM EDT 2026-10-23, recorded by the TODO
+  thread): GEN.428, GEN.429 and GEN.411 take a plain subject and do not
+  depend on GEN.565 or GEN.557 (GEN.557 also waits on GEN.553 and
+  DB.73), so lane I builds them first: PR1 contracts and accessors (no
+  epoch), PR2 GEN.429 kernels, PR3 GEN.428 with DB.69, PR4 GEN.452 part
+  2 with GEN.411, DB.71 and GEN.424, then GEN.565 PlanetaryObject and
+  GEN.557. Contracts:
+  /mnt/project-files/reports/composition-spine-contracts-2026-10-23.md.
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -15752,6 +15964,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before at 1 and 4 workers, and the estimate shows the whole list.
   Owner: Core 5 (proposed, after PERF.125).
   Prerequisites: PERF.124, PERF.125. Related: PERF.123.
+
+- [ ] **PERF.173 A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug)**
+  Boss's live observation (relayed 5:18 PM EDT 2026-10-23 by a fix
+  thread: 'Recent generate log crashed, investigate, report, and fix';
+  filed by the TODO thread). Kind: crash. A new-galaxy Generate run died
+  in stage 5 with ValueError: Execution ... not found in Redis after
+  saving 5 of 104 sectors. Cause (the fix thread's report,
+  /mnt/project-files/reports/generate-redis-crash-2026-10-23.md):
+  PERF.146's worker warm ran after RQ created the unit's execution
+  record (90 s expiry, first renewal 30 s after the fork), so a warm of
+  over a minute on a loaded host left finished units without a record
+  and RQ failed them on cleanup, which failed the run. Also found:
+  units.unit_failed says RQ calls on_failure only after the retry, which
+  is wrong (every failure), so Retry(max=1) only applies to killed
+  workers. Fix in progress on branch claude/project-thread-bb2equ
+  (cli/worker.py, queue/units.py, tests). Fails on main: yes.
+  Reproducer: a new-galaxy run on a loaded host with a worker warm over
+  60 s. Do: keep the execution record alive during the warm (renew
+  before the warm or warm before the record is created), correct the
+  on_failure comment, and add a test that a long warm does not fail a
+  unit. Done: a unit whose worker warm takes longer than the record's
+  expiry finishes and the run completes, and the test passes. Owner: the
+  fix thread (Boss, 5:18 PM EDT 2026-10-23).
+  Prerequisites: none. Related: PERF.146, PERF.171.
 
 ## DB: Database and schema
 
