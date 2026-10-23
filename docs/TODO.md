@@ -20063,62 +20063,6 @@ clears each one.
   (proposed; a test-flake finding of the TEST.265 family).
   Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
 
-- [ ] **TEST.275 test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug)**
-  Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
-  the lane's clock reads, when #2494 merged), filed by the TODO thread.
-  Kind: test over its time limit, fails on main. Test:
-  src/tests/test_fuzz_web_routes.py::test_admin_pages_survive_hostile_query_when_logged_in[GET
-  /admin/generate/shape-report], the route GEN.617 added. It runs past
-  the 900 s pytest timeout on plain main, every run; alone it takes
-  about 25 minutes. Fails on main: yes. Reproducer: that test id alone.
-  It means the route does a very large piece of work for a hostile query
-  string (a huge or odd dial value) instead of rejecting it. Do: find
-  which hostile value makes the shape report slow, and make the route
-  validate its inputs and answer quickly (a clear 4xx for a bad value,
-  bounded work for a big one), the way the other fuzzed routes do; no
-  timeout bump and no exemption that hides a slow route. Done: the test
-  passes alone in under a minute and in a full gate. Owner: Bug Hunt
-  (proposed by the coordinator, relayed 2:55 PM EDT 2026-10-22 as the
-  lane's clock reads, because the Galaxy dials lane that wrote GEN.617's
-  route is retired; after its current queue: TEST.268, TEST.270,
-  TEST.271, TEST.272), urgent because the test also blocks any lane that
-  runs test_fuzz_web_routes.
-  Second sighting (Blocker 2, relayed 3:30 PM EDT 2026-10-22 as the
-  lane's clock reads, when #2508 merged): the same test timed out in two
-  of its gates under 4-worker load (one call took 1787 s at load 7.5) and
-  passes alone, so it is slow per hostile query, not wrong. Cause named
-  by the lane: the route runs `plan_outline.preview`, which calls
-  `system_mass.mean_system_mass_at_age_solar` on a 1209 by 32 array
-  through `component_field`; bound that work for a hostile dial value.
-  Third sighting (Core 2, relayed 5:00 PM EDT 2026-10-22 as the lane's
-  clock reads, when MAP.254's remainder merged as #2514): the case hangs
-  past 900 s alone (18 minutes or more at 98 percent CPU) in numpy at
-  `system_mass.py` line 169 (`companion_fractions`), reached from
-  `generate_page.generate_shape_report`, `plan_outline.preview` and
-  `build`, `ComponentField`, `components.mean_system_mass_solar` (GEN.545,
-  commit 19bbab5). Hypothesis reports it as a FlakyFailure (the first call
-  hangs, a later one does not). Calling
-  `system_mass.mean_system_mass_at_age_solar` directly is instant for ages
-  1e-4 to 1e16 and nan, so the cause is in what the route passes (a
-  no-lever query on the fuzz fixture). Reproducer: that test with
-  `-k shape-report -o timeout=90 --timeout-method=thread`. Core 2 names
-  Core 1 (GEN.545, ADM.118) as the likely owner; the owner line stays Bug
-  Hunt unless the coordinator moves it.
-  Fourth sighting (Core 2, relayed 7:24 PM EDT 2026-10-22 as the lane's
-  clock reads, when UX.129 merged as #2544): the case fails alone too,
-  the call taking 1802 s.
-  Likely the same root as PERF.163 (the plan-numbers check, 8:48 PM EDT
-  2026-10-22): `system_mass.mean_system_mass_at_age_solar` has a cache
-  of 512 ages and `components.py` rounds ages to 1e-6 Gy so a plan asks
-  for about 14,000 distinct ones, each miss about 3 ms; the shape report
-  builds the same component field on a 1209 by 32 array. PERF.146's
-  speedups (#2559) touched the system-mass arithmetic, so first re-run
-  the case alone on current main with `-o timeout=90
-  --timeout-method=thread`; if it still hangs, the cache fix of PERF.163
-  (Performance thread) is the first thing to try, and the route should
-  still bound its work for a hostile dial value.
-  Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
-
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
   Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
   the lane's clock reads), filed by the TODO thread. Kind: flake. Test:
@@ -20135,23 +20079,6 @@ clears each one.
   full-gate runs. Owner: Core 5 (proposed; it wrote the test) or Bug
   Hunt.
   Prerequisites: none. Related: PERF.121, PERF.122, TEST.265.
-
-- [ ] **TEST.277 test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake)**
-  Found by Blocker 2 (relayed 3:30 PM EDT 2026-10-22 as the lane's clock
-  reads, when GEN.410's third slice merged as #2508), filed by the TODO
-  thread. Kind: flake (a test over its time limit under load). Test:
-  src/tests/test_work_queue_failures.py::test_a_dead_worker_never_hangs_the_run[1]
-  and [2]. Failure: each hit its 60 s call limit once under load (load
-  14 to 20 on the lane machine); both pass alone. Fails on main: not
-  checked. Frequency: one sighting each, in Blocker 2's gates.
-  Reproducer: a full `scripts/test.py changed` gate on a loaded machine;
-  not reproducible alone. Do: find what the test waits on (a worker
-  process that takes longer than the limit to start or die under load)
-  and make the wait follow the event it needs, not a fixed time; no
-  timeout bump and no retry loop. Done: the cause is on this item and
-  the test passes in 20 full-gate runs. Owner: Bug Hunt (proposed, after
-  TEST.275).
-  Prerequisites: none. Related: PERF.144, TEST.265.
 
 - [ ] **TEST.281 test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug)**
   Found by Core 2 (relayed 7:24 PM EDT 2026-10-22 as the lane's clock
@@ -20197,6 +20124,17 @@ clears each one.
   (test_update_database_step: Access denied for planetgen@127.0.0.1 on
   the test database) and pass alone (test_count_cache, test_slow_route),
   so they are not filed.
+  Not reproduced (Bug Hunt, relayed 12:41 AM EDT 2026-10-23 as the lane
+  reported): on main at a56c434a plus #2600 (release 8.0.1986) the file
+  test_uncharted_phenomenon.py gives 9 passed, and the same test passed
+  in the lane's last three full gates; the test body asserts that 'Black
+  Hole (Stellar)' and 'Mass' are on the page and has no count of 2
+  against 3, so the failure text above is a paraphrase. Parked until the
+  Performance lane sends: the full pytest failure output (assert line
+  and traceback), `git rev-parse HEAD` and `git status --short`, whether
+  Apache or another web server answers on its machine (TEST.279 was an
+  unfaked HTTP call answered by Apache with a 404), and its MySQL
+  version (8.0 is the minimum).
   Prerequisites: none. Related: TEST.275.
 
 - [ ] **TEST.285 test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug)**
@@ -20222,6 +20160,10 @@ clears each one.
   test passes or skips with that message on a machine without the
   datasets, and passes with them. Owner: Bug Hunt (proposed by the TODO
   thread, after TEST.275).
+  Confirmed (Bug Hunt, relayed 12:38 AM EDT 2026-10-23 as the lane
+  reported): it fails on the Bug Hunt lane too, in the gate of #2600,
+  because that machine has no static downloads; every other test in the
+  gate was green.
   Prerequisites: none. Related: TEST.275, TEST.284, GEN.599.
 
 ## USR: User accounts
