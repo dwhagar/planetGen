@@ -674,6 +674,24 @@ def _tracked_scripts():
     return [p for p in tracked if p in ("install.sh", "update.sh") or p.startswith(("scripts/", "examples/"))]
 
 
+def test_tracked_shell_scripts_are_executable_in_git():
+    """A fresh `git clone` gives the mode git tracks, and INSTALL.md says `sudo ./install.sh`: with
+    install.sh tracked as 100644 that fails with "Permission denied" on a new server (the executable
+    bit only survives a clone if git has it)."""
+    listing = subprocess.run(["git", "ls-files", "-s", "*.sh"], cwd=REPO_DIR, capture_output=True,
+                             text=True, check=False).stdout.splitlines()
+    if not listing:
+        pytest.skip("not a git checkout")
+    not_executable = []
+    for line in listing:
+        mode, _sha, _stage, path = line.replace("\t", " ").split(None, 3)
+        with open(os.path.join(REPO_DIR, path), encoding="utf-8") as f:
+            runnable = f.readline().startswith("#!")
+        if runnable and mode != "100755":
+            not_executable.append(f"{path} is tracked as {mode}")
+    assert not not_executable, "\n".join(not_executable)
+
+
 def test_scripts_only_name_repo_paths_that_exist():
     """Any `src/...`, `scripts/...`, `examples/...`, `db/...` file a deploy script names, and any
     os.path.join(..., "src", "planetgen", ...) it builds, must exist in the checkout (a moved or

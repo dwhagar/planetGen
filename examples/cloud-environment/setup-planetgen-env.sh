@@ -1,13 +1,16 @@
 #!/bin/bash
 #
 # setup-planetgen-env.sh -- paste this whole file into the "Setup script" field
-# of a Claude Code cloud environment (Ubuntu 24.04, runs as root, before Claude
-# starts). It installs everything planetGen's code and test suite need:
+# of a Claude Code cloud environment (Ubuntu 24.04 or 26.04 LTS, runs as root,
+# before Claude starts). It installs everything planetGen's code and test suite
+# need:
 #
-#   MySQL 8 server + client   (NOT MariaDB; root gets a throwaway password)
+#   MySQL 8 server + client   (Ubuntu's own: 8.0 on 24.04, 8.4 on 26.04; NOT MariaDB;
+#                              root gets a throwaway password)
 #   Apache 2 + mod_wsgi       (installed and configtest-checked, not serving the app)
-#   Redis 7                   (preinstalled in the image; installed if missing)
-#   Python dependencies       (requirements-server.lock, then the test/api/browser extras)
+#   Redis                     (7 on 24.04, 8 on 26.04; preinstalled in the image if present)
+#   Python dependencies       (the system Python, 3.12 on 24.04 and 3.14 on 26.04: the
+#                              requirements-server.lock, then the test/api/browser extras)
 #   NLTK 'words' corpus       (/usr/local/share/nltk_data)
 #   Playwright, pinned to the Chromium the image already carries (never downloads one)
 #
@@ -46,7 +49,7 @@ LOG=/var/log/planetgen-setup.log
 START=$(date +%s)
 
 export DEBIAN_FRONTEND=noninteractive
-export PIP_BREAK_SYSTEM_PACKAGES=1      # Ubuntu 24.04 marks its Python "externally managed"
+export PIP_BREAK_SYSTEM_PACKAGES=1      # Ubuntu 24.04 and 26.04 mark their Python "externally managed"
 export PIP_DISABLE_PIP_VERSION_CHECK=1
 export NLTK_ALLOW_PROXIED_URLOPEN=1     # the agent proxy otherwise blocks NLTK's download
 
@@ -56,7 +59,10 @@ trap 'echo "SETUP FAILED at line $LINENO (exit $?): $BASH_COMMAND" >&2; echo "Fu
 
 [ "$(id -u)" = 0 ] || { echo "must run as root" >&2; exit 1; }
 . /etc/os-release
-[ "${ID:-}" = ubuntu ] || echo "warning: written for Ubuntu 24.04, this is ${PRETTY_NAME:-unknown}" >&2
+case "${ID:-}-${VERSION_ID:-}" in
+    ubuntu-24.04|ubuntu-26.04) ;;
+    *) echo "warning: written for Ubuntu 24.04 and 26.04 LTS, this is ${PRETTY_NAME:-unknown}" >&2 ;;
+esac
 PY="$(command -v python3)"
 "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' \
     || { echo "planetGen needs Python 3.12 or newer, found $($PY -V)" >&2; exit 1; }
@@ -85,6 +91,7 @@ printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/pol
 trap 'rm -f /usr/sbin/policy-rc.d' EXIT
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends \
+    python3-pip \
     mysql-server mysql-client \
     apache2 libapache2-mod-wsgi-py3 \
     redis-server redis-tools \
@@ -257,9 +264,9 @@ wait "$PIP_PID" || { echo "Python install failed; its log:" >&2; cat /tmp/planet
 cat /tmp/planetgen-pip.log
 say "Verifying"
 "$PY" - <<'PYEOF'
-import flask, pymysql, redis, rq, numba, scipy, skimage, markdown, pytest, xdist, hypothesis, playwright, nltk
+import flask, pymysql, redis, rq, numba, scipy, skimage, argon2, sqlalchemy, alembic, pydantic, cryptography, pytest, xdist, hypothesis, playwright, nltk
 from importlib.metadata import version
-print("flask", flask.__version__, "| numba", numba.__version__, "| markdown", version("markdown"),
+print("flask", flask.__version__, "| numba", numba.__version__, "| argon2-cffi", version("argon2-cffi"),
       "| playwright", version("playwright"), "| pymysql", pymysql.__version__)
 PYEOF
 mysqld --version

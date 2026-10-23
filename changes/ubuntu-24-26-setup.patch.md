@@ -1,0 +1,6 @@
+**Headline:** The installers and the cloud setup script are checked on Ubuntu 24.04 and 26.04 LTS.
+
+### Changed
+- **Ubuntu 24.04 and 26.04 LTS are both supported and tested.** `install.sh` and `update.sh` were run against each release's own packages (Python 3.12 or 3.14, MySQL 8.0 or 8.4, Apache with the matching mod_wsgi, Redis 7 or 8). INSTALL.md now lists the one `apt install` line and what each release ships, and notes that MySQL 8.4 has no `mysql_native_password`.
+- **A venv whose Python is gone is made again.** After an in-place release upgrade the venv's `python` is a dangling link to the Python the upgrade removed, and `python3 -m venv` left it as it was; `install-python-deps.sh` now removes that venv and makes it from the new `python3`, so `sudo ./update.sh` after an upgrade from 24.04 to 26.04 repairs the site.
+- **The cloud environment setup script (`examples/cloud-environment/setup-planetgen-env.sh`) runs on both releases.** It installs `python3-pip` (a minimal 26.04 image has none), no longer imports `markdown` (not a dependency, so its final check failed the whole setup), and checks `argon2`, `sqlalchemy`, `alembic`, `pydantic` and `cryptography` instead.
