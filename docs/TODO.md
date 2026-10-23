@@ -20218,6 +20218,27 @@ clears each one.
   Performance lane's next two gates.
   Prerequisites: none. Related: TEST.275.
 
+- [ ] **TEST.286 test_quasar_physics_follows_from_mass_and_eddington_ratio fails by chance: it builds 50 quasars with no seed and a mass draw below 1e5 breaks its assertion (bug)**
+  Found by Blocker 3 (relayed 1:29 AM EDT 2026-10-23 as the lane
+  reported) in the gate of GEN.458, which failed once in 21,525 tests at
+  about 12:55 AM EDT as the lane reported. Kind: flaky test. Test:
+  src/tests/test_quasar.py::test_quasar_physics_follows_from_mass_and_eddington_ratio.
+  Failure text: assert 80504.37 >= 0.1 *
+  BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR (1e5). Fails on main: not
+  reproduced (5 of 5 passes alone, on main and on the lane's branch).
+  Frequency: 1 in the 21,525-test gate. Cause (the lane's reading): the
+  test builds 50 Quasar(SystemConfig()) with no seed, so a mass draw
+  below 1e5 solar masses fails the assertion by chance. Reproducer: loop
+  the test 200 or more times, or bind a seed and scan for a quasar mass
+  under 1e5. Do: bind a seed in the loop, or assert against the
+  distribution's actual lower bound (the assertion states what the mass
+  draw guarantees); fix the test, not the draw, unless the draw is
+  allowed to go below the supermassive minimum, in which case that is a
+  bug in the draw. Done: the test passes for 10,000 draws or states the
+  bound the draw really keeps. Owner: Bug Hunt (proposed by the TODO
+  thread, after its stable-code hunt starts).
+  Prerequisites: none. Related: TEST.284.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
