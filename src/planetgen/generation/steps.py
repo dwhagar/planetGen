@@ -77,6 +77,8 @@ def _active_progress():
 
 STEP_KINDS = {
     "sector": "Sector fill",
+    "generate-unplaced-sector": "Unplaced sector fill",
+    "generate-system": "System generation",
     "scatter-mass": "Massive-star layer",
     "scatter-bright": "Bright-star layer",
     "phenomena": "Phenomena layer",

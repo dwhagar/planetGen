@@ -12,9 +12,12 @@ also what the galaxy command runs per sector.
 """
 
 import copy
+import hashlib
 import math
+import os
 import re
 import sys
+import time
 from collections import Counter
 
 from planetgen.db import store
@@ -49,6 +52,7 @@ from planetgen.generation import run_common
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_population
 from planetgen.generation import run_system
+from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 
 
 SECTOR_PHENOMENON_KINDS = tuple(
@@ -967,6 +971,11 @@ def run_sector(args):
     context (see the `galaxy` subcommand for that), so every sector it
     produces is "unplaced", regardless of `--num-sectors`.
 
+    The run is one command through the wrapper (PERF.119, `generate-unplaced-sector`): the wrapper cuts the sectors
+    into units, a worker generates and saves each, and this process logs each as it is saved. Each sector draws from
+    a stream of its own, seeded from the run's and the sector's number, so the sectors are the same at any worker
+    count.
+
     Each sector is saved to the database; only a short status line and
     summary per saved sector is printed, so a large `--num-sectors` run
     doesn't flood the console with rendered text nobody asked to see.
@@ -982,31 +991,90 @@ def run_sector(args):
         run_common._print_estimate(exc)
         return
 
-    def saved(result, seconds, _weight):
-        if queue.parallel:
-            run_common.RUN_COUNTS["sectors"] += 1
-            run_common.RUN_COUNTS["systems"] += result["systems"]
-            run_common.RUN_COUNTS["phenomena"] += result["phenomena"]
-        run_common._record_sector(args, result, seconds)
-        phenomena_note = f", {result['phenomena']} phenomena" if result["phenomena"] else ""
-        log.normal(
-            f"Saved sector '{result['name']}' to the database (sector_id={result['sector_id']}, "
-            f"{result['systems']} systems{phenomena_note}, "
-            f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
-        )
-        _log_summary(result["summary"])
+    workers = run_common._worker_count(args)
+    args.database = wrapper.database_args(mysql_config)
+    args.run_seed = draw.getrandbits(128)
+    steps = wrapper.steps_for("sector", args)
+
+    def on_result(_index, _unit, result):
+        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
+        for saved in result["sectors"]:
+            if elsewhere:
+                run_common.RUN_COUNTS["sectors"] += 1
+                run_common.RUN_COUNTS["systems"] += saved["systems"]
+                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
+            run_common._record_sector(args, saved, saved["seconds"])
+            phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
+            log.normal(
+                f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "
+                f"{saved['systems']} systems{phenomena_note}, "
+                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
+            )
+            _log_summary(saved["summary"])
 
     try:
-        with run_common._work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
-            queue.expect(args.num_sectors)
-            for index in range(args.num_sectors):
-                queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
+        wrapper.run(steps[0].label, steps, lambda _index, plan: None, on_result, workers_count=workers,
+                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None))
+    except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+        log.error(f"error: the sectors could not be generated: {exc}")
+        raise SystemExit(1) from exc
     finally:
         run_common._finish_stats(args)
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
     run_population.run_population_after(args)
+
+
+UNPLACED_UNITS_MAX = 256
+"""int: The most units a `sector` run is cut into: its sectors in static chunks of consecutive numbers, the same at any
+worker count."""
+
+
+def expand_unplaced_sectors(params):
+    """
+    The cut of a `sector` run (PERF.119; `generate-unplaced-sector`): `params["count"]` sectors numbered from 0, in about
+    `UNPLACED_UNITS_MAX` static chunks of consecutive numbers. A unit's cost is its sectors.
+    """
+    count = params["count"]
+    size = max(1, -(-count // UNPLACED_UNITS_MAX))
+    units = []
+    for start in range(0, count, size):
+        numbers = list(range(start, min(start + size, count)))
+        units.append(({"database": params["database"], "args": params["args"], "run_seed": params["run_seed"],
+                       "numbers": numbers}, float(len(numbers))))
+    return commands.Expansion(units, {"sectors": count})
+
+
+def _task_seed(run_seed, number):
+    """The seed of unplaced sector `number` of a run: the run's seed and the number, hashed, so it does not depend on the
+    worker count or the order the units finish in."""
+    digest = hashlib.sha256(f"{run_seed}:unplaced-{number}".encode("utf-8")).digest()
+    return int.from_bytes(digest[:16], "big")
+
+
+def unplaced_sectors_unit(unit_args, report):
+    """
+    The unit of a `sector` run: generates and saves each sector of the chunk (`_unplaced_sector_task`), each on its
+    own stream (`_task_seed`).
+
+    Returns:
+        dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there
+            already) and `sectors`, one entry per sector in order: `number`, `sector_id`, `name`, `systems`, `stars`,
+            `density`, `phenomena`, `summary` and `seconds`.
+    """
+    from planetgen.generation import run_galaxy
+    args = run_galaxy._sector_args_of(unit_args)
+    numbers = unit_args["numbers"]
+    done = []
+    for number in numbers:
+        started = time.monotonic()
+        with draw.bound(_task_seed(unit_args["run_seed"], number)):
+            saved = _unplaced_sector_task(args)
+        saved.update(number=number, seconds=time.monotonic() - started)
+        done.append(saved)
+        report(len(done), len(numbers))
+    return {"sectors": done, "pid": os.getpid()}
 
 
 def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):

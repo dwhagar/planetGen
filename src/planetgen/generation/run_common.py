@@ -282,35 +282,6 @@ def _edge_pc():
     return float(program_constants.DEFAULT_SECTOR_EDGE_PC)
 
 
-def _log_level(args):
-    """The console severity `main` configured from `--quiet`/`--debug`,
-    for the work queue's workers."""
-    if getattr(args, "quiet", False):
-        return log.SILENT
-    if getattr(args, "debug", None) is not None:
-        return log.DEBUG
-    return log.NORMAL
-
-
-def _work_queue(args, title):
-    """
-    The `workQueue.WorkQueue` a run hands its sectors to (PERF.8):
-    `--workers` (or `PLANETGEN_WORKERS`) worker processes, by default 80%
-    of the cores less one when MySQL runs on this machine, with the
-    control database's lease so only one run's workers use the machine
-    at a time. One worker generates every sector right here, in order
-    (still recorded in the job tree, ADM.12, without the lease).
-    """
-    mysql_config = store.mysql_config_from_args(args)
-    workers = _worker_count(args)
-    log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
-    return workQueue.WorkQueue(
-        title, workers=workers,
-        control_config=store.control_mysql_config(mysql_config),
-        log_level=_log_level(args), debug_file=getattr(args, "debug", None) or None,
-    )
-
-
 def _worker_count(args):
     """The worker processes a run uses (`workQueue.worker_count`)."""
     return workQueue.worker_count(getattr(args, "workers", None), store.mysql_config_from_args(args).host)
