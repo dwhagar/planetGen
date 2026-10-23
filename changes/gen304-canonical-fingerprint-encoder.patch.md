@@ -1,0 +1,8 @@
+**Headline:** One canonical encoder, nine significant digits, now writes every galaxy fingerprint, so a last-place difference in a float no longer shows as a different galaxy.
+
+### Changed
+- **The canonical fingerprint encoder (GEN.304).** `planetgen/util/fingerprint_encoding.py` writes any tree of dictionaries, lists, strings, integers, floats, decimals and bytes as one text: keys sorted, lists in generation order, floats as `format(x, ".8e")` (nine significant digits, -0.0 as 0.0, NaN and the infinities named), integers exact (hexadecimal above 2^53), strings quoted with every non-ASCII character escaped (no Unicode normalisation), and a `pgfp1` format tag hashed into every digest. Each value has a full digest, a structural digest (every float written `~`) and a float digest (the float tokens alone), so a comparison says whether the shape or a number changed. The same value gives the same digest on Python 3.12 and 3.13.
+- `db/fingerprint.py` hashes through it: a row is a value, a sector's digest is over its rows in canonical order (a row's last-place float noise no longer changes the digest), `sector_sections` gives the three digests of a sector's named sections (`SECTIONS`: sector, system, star, planet, moon, belt, comet, phenomenon, population, plan), and `region_fingerprint(plain_names=True)` compares names without their collision decoration until GEN.57. Every digest printed by `planetgen fingerprint` changes once, with the format.
+- The GEN.39 stand-in `tests/galaxy_fingerprint.py` is deleted; `tests/test_parallel_generation.py` compares the real fingerprint, and a failure names the sectors that differ. Its value tests moved to `tests/test_fingerprint_encoding.py`.
+
+TODO items resolved: GEN.304. Added: none.

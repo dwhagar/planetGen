@@ -26,24 +26,26 @@ blocks, name registries).
 A foreign key would carry a row id, so it is replaced by what it points
 at: a sector by its address, an object by its unique ID (`uid`, GEN.170), a
 system configuration by the digest of its content. Each row becomes one
-line of canonical JSON (keys sorted, floats in Python's shortest
-round-trip form, -0.0 as 0.0, bytes in hex), and a sector's digest is the
-SHA-256 of its lines sorted, so the order rows were saved in doesn't
-count. A region's digest is the SHA-256 of its sectors' lines, in address
-order, with the plan's (the `galaxy_*` tables) first for the whole galaxy.
+value (a table name and its columns) that `util.fingerprint_encoding` writes
+canonically (GEN.304: keys sorted, floats to nine significant digits, -0.0
+as 0.0, integers exact, bytes in hex), and a sector's digest is the SHA-256
+of its rows in the order that module gives them, so the order rows were
+saved in doesn't count. A region's digest is the SHA-256 of its sectors'
+digests, in address order, with the plan's (the `galaxy_*` tables) first for
+the whole galaxy. `sector_sections` gives the digests of a sector's named
+sections (`SECTIONS`) in their structural, float and full forms, to
+localise a difference.
 
 This is the galaxy as stored now. Replaying the settings file's edits and
 regenerations onto a rebuild before comparing (GEN.59) comes later; the
 same functions back GEN.57's order test, TEST.77 and OPS.12.
 """
 
-import decimal
-import hashlib
-import json
-import math
 from dataclasses import dataclass
 
 from planetgen.db import kind_tables
+from planetgen.names import uniqueness
+from planetgen.util import fingerprint_encoding
 
 SECTOR_TABLES = kind_tables.tables("sector_filed")
 """tuple: Tables whose rows are filed in a sector by `sector_id`."""
@@ -79,6 +81,23 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
                            + tuple(table for table, _fk, _parent in CHILD_TABLES) + ("sectors",))
 """frozenset: Every table a fingerprint reads."""
 
+SECTIONS = {
+    "sector": ("sectors",),
+    "system": ("star_systems", "orbit_nodes"),
+    "star": ("stars", "black_holes", "neutron_stars"),
+    "planet": ("planets", "planet_reflection_spectrum", "rogue_planets"),
+    "moon": ("moons", "moon_reflection_spectrum"),
+    "belt": ("asteroid_belts", "asteroid_belt_composition", "asteroid_fields", "asteroid_field_composition"),
+    "comet": ("comets", "comet_composition", "interstellar_comets", "interstellar_comet_composition"),
+    "phenomenon": ("nebulae", "nebula_shape_balls", "supernova_remnants", "quasars", "bright_stars",
+                   "phenomenon_scatter"),
+    "population": ("facilities",),
+    "plan": PLAN_TABLES,
+}
+"""dict: The named sections the digests are kept over: each content table is in exactly one."""
+
+_SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tables}
+
 LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs",
@@ -104,29 +123,8 @@ _TIME_TYPES = frozenset({"datetime", "timestamp", "date", "time"})
 _IN_BATCH = 1000
 
 
-def canonical_value(value):
-    """`value` as a JSON-safe canonical form: floats in shortest round-trip
-    form (with -0.0 as 0.0, and NaN and the infinities as strings),
-    decimals as their normalized text, bytes in hex."""
-    if isinstance(value, float):
-        if math.isnan(value):
-            return "nan"
-        if math.isinf(value):
-            return "inf" if value > 0 else "-inf"
-        return 0.0 if value == 0 else value
-    if isinstance(value, decimal.Decimal):
-        return format(value.normalize(), "f")
-    if isinstance(value, (bytes, bytearray, memoryview)):
-        return "0x" + bytes(value).hex()
-    return value
-
-
-def _line(table, row):
-    return json.dumps([table, row], sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-
-
 def _digest(lines):
-    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+    return fingerprint_encoding.text_digest("full", "\n".join(lines))
 
 
 @dataclass
@@ -152,8 +150,9 @@ class _Reader:
     """Reads and canonicalizes rows of one database, caching the schema's
     columns and foreign keys and the keys of the rows they point at."""
 
-    def __init__(self, conn):
+    def __init__(self, conn, plain_names=False):
         self.conn = conn
+        self.plain_names = plain_names
         self._columns = {}
         self._foreign = None
         self._keys = {}
@@ -203,9 +202,9 @@ class _Reader:
             rows.extend(self.select(table, f"`{column}` IN ({', '.join('?' * len(chunk))})", chunk))
         return rows
 
-    def line(self, table, row):
-        """`row` of `table` as its canonical line, foreign keys replaced by
-        the keys of what they point at."""
+    def row_value(self, table, row):
+        """`row` of `table` as the value the encoder writes, foreign keys
+        replaced by the keys of what they point at."""
         foreign = self.foreign_keys(table)
         canon = {}
         for column in self.columns(table):
@@ -214,8 +213,10 @@ class _Reader:
                 value = None if value is None else self.key(foreign[column], value)
             elif column == "parent_id" and "parent_type" in row.keys():
                 value = None if value is None else self.key(_PARENT_TABLES[row["parent_type"]], value)
-            canon[column] = canonical_value(value)
-        return _line(table, canon)
+            elif self.plain_names and isinstance(value, str) and column.endswith("name"):
+                value = uniqueness.strip_decoration(value)
+            canon[column] = value
+        return {"table": table, "row": canon}
 
     def key(self, table, row_id):
         """A stable key for row `row_id` of `table`: never its id."""
@@ -247,10 +248,10 @@ class _Reader:
             self._keys[(table, row["id"])] = f"{table}:{_uid_text(row['uid'])}"
 
     def _config_digest(self, config_id):
-        lines = [self.line("system_configs", row) for row in self.select("system_configs", "id = ?", (config_id,))]
-        lines += [self.line("system_config_slots", row)
-                  for row in self.select("system_config_slots", "config_id = ?", (config_id,))]
-        return _digest(sorted(lines))
+        rows = [self.row_value("system_configs", row) for row in self.select("system_configs", "id = ?", (config_id,))]
+        rows += [self.row_value("system_config_slots", row)
+                 for row in self.select("system_config_slots", "config_id = ?", (config_id,))]
+        return fingerprint_encoding.row_set_digests(rows).full
 
 
 def _uid_text(uid):
@@ -267,8 +268,8 @@ def _sector_label(row):
     return f"{row['shell_index']} {row['band_index']} {row['wedge_index']}"
 
 
-def _sector_lines(reader, sector_id, address):
-    """The canonical lines of one sector's content: `sector_id` its row's
+def _sector_rows(reader, sector_id, address):
+    """The encoder values of one sector's content, `(table, value)`: `sector_id` its row's
     id (or `None` for a cell with only address-keyed rows), `address`
     `(shell, band, wedge)` (or `None` when unplaced)."""
     owned = {}
@@ -297,17 +298,16 @@ def _sector_lines(reader, sector_id, address):
     if address is not None:
         for table in ADDRESS_TABLES:
             keep(table, reader.select(table, "shell_index = ? AND band_index = ? AND wedge_index = ?", address))
-    return sorted(reader.line(table, row) for table, rows in owned.items() for row in rows.values())
+    return [(table, reader.row_value(table, row)) for table, rows in owned.items() for row in rows.values()]
 
 
-def sector_digest(conn, sector_id=None, address=None):
-    """
-    The fingerprint of one sector: its row `sector_id`, or the cell at
-    `address` `(shell, band, wedge)` (with its sector row, if there is one).
+def _rows_digest(rows):
+    """The digest of a sector's `(table, value)` rows: the SHA-256 of the values in canonical order."""
+    return fingerprint_encoding.row_set_digests([value for _table, value in rows]).full
 
-    Returns:
-        str: The hex SHA-256 of the sector's sorted canonical lines.
-    """
+
+def _resolve_sector(conn, sector_id, address):
+    """`(sector id or None, address or None)`, each filled from the other when the sector has a row."""
     if sector_id is None and address is None:
         raise ValueError("give a sector id or an address")
     if sector_id is None:
@@ -319,14 +319,42 @@ def sector_digest(conn, sector_id=None, address=None):
                            (sector_id,)).fetchone()
         if row is not None and row["shell_index"] is not None:
             address = (row["shell_index"], row["band_index"], row["wedge_index"])
-    return _digest(_sector_lines(_Reader(conn), sector_id, address))
+    return sector_id, address
+
+
+def sector_digest(conn, sector_id=None, address=None):
+    """
+    The fingerprint of one sector: its row `sector_id`, or the cell at
+    `address` `(shell, band, wedge)` (with its sector row, if there is one).
+
+    Returns:
+        str: The hex SHA-256 of the sector's rows in canonical order.
+    """
+    sector_id, address = _resolve_sector(conn, sector_id, address)
+    return _rows_digest(_sector_rows(_Reader(conn), sector_id, address))
+
+
+def sector_sections(conn, sector_id=None, address=None):
+    """
+    The digests of one sector's named sections (`SECTIONS`, the plan excepted), to localise a difference between two
+    sectors: the section whose structural digest differs changed shape, the section whose float digest differs only
+    changed a number.
+
+    Returns:
+        dict: Section name -> `fingerprint_encoding.Digests`, for the sections the sector has rows in.
+    """
+    sector_id, address = _resolve_sector(conn, sector_id, address)
+    grouped = {}
+    for table, value in _sector_rows(_Reader(conn), sector_id, address):
+        grouped.setdefault(_SECTION_OF[table], []).append(value)
+    return {section: fingerprint_encoding.row_set_digests(rows) for section, rows in grouped.items()}
 
 
 def plan_digest(conn):
     """The fingerprint of the galaxy's plan (`PLAN_TABLES`)."""
     reader = _Reader(conn)
-    lines = [reader.line(table, row) for table in PLAN_TABLES for row in reader.select(table, "1 = 1")]
-    return _digest(sorted(lines))
+    rows = [reader.row_value(table, row) for table in PLAN_TABLES for row in reader.select(table, "1 = 1")]
+    return fingerprint_encoding.row_set_digests(rows).full
 
 
 def _cells(conn, shells=None, addresses=None):
@@ -356,7 +384,7 @@ def _cells(conn, shells=None, addresses=None):
     return chosen
 
 
-def region_fingerprint(conn, shells=None, addresses=None, on_progress=None):
+def region_fingerprint(conn, shells=None, addresses=None, on_progress=None, plain_names=False):
     """
     The fingerprint of a region: the sectors on `shells` and at `addresses`
     (`(shell, band, wedge)` tuples), or with neither the whole galaxy, plan
@@ -368,17 +396,21 @@ def region_fingerprint(conn, shells=None, addresses=None, on_progress=None):
         addresses (iterable of tuple, optional): Single sectors to include.
         on_progress (callable, optional): `on_progress(label, done, total)`
             after each sector.
+        plain_names (bool): Compare names without their collision
+            decoration, which depends on which of two colliding systems
+            saved first (until GEN.57 makes a sector's content independent
+            of order).
 
     Returns:
         Fingerprint: The per-sector digests, the plan's and the region's.
     """
     shells = None if shells is None else set(shells)
     addresses = None if addresses is None else {tuple(a) for a in addresses}
-    reader = _Reader(conn)
+    reader = _Reader(conn, plain_names)
     cells = _cells(conn, shells, addresses)
     sectors = []
     for done, (label, sector_id, address) in enumerate(cells, start=1):
-        sectors.append((label, _digest(_sector_lines(reader, sector_id, address))))
+        sectors.append((label, _rows_digest(_sector_rows(reader, sector_id, address))))
         if on_progress is not None:
             on_progress("sectors", done, len(cells))
     plan = plan_digest(conn) if shells is None and addresses is None else None
