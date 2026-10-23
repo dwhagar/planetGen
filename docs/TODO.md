@@ -6507,6 +6507,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): its species list reads the gas table of GEN.410.
   Prerequisites: none. Related: GEN.91.
+  Pipeline report 6:33 PM EDT 2026-10-23: the atmosphere retention in
+  use is a linear placeholder; this module is an input of the
+  condition-based classes (GEN.645, GEN.647), which use the placeholder
+  labelled as a stand-in until this lands.
 
 - [ ] **GEN.356 Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed**
   Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -10099,6 +10103,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the mass cut) need a rescatter. Where this item says it "joins the one
   rescatter of 8.4", this wins.
   Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
+  Pipeline report 6:33 PM EDT 2026-10-23
+  (planet-generation-pipeline-2026-10-23.md, conflict G): the item has
+  no clear owner and disk_surface_density_scale still uses 10^[Fe/H], so
+  the planet count and the disc mass disagree with the composition the
+  planets get until this merges; Z/Z0 differs by 1.7 to 3 times in
+  metal-poor high-alpha stars. It wires to the [Fe/H] item GEN.651.
+  Owner: none (pool); the class cut-over needs it.
 
 - [ ] **GEN.466 Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -15190,8 +15201,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker counts, and the galaxy statistics test shows the mix of
   conditions is unchanged within the stated bands or the change is
   explained.
-  Prerequisites: GEN.645, GEN.428, GEN.429, GEN.411, GEN.412, GEN.442,
-  GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
+  Prerequisites: GEN.645, GEN.650, GEN.428, GEN.429, GEN.411, GEN.412,
+  GEN.442, GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
   GEN.428, GEN.90.
   Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
   the TODO thread): the Condition-based planet classes lane builds this
@@ -15200,6 +15211,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
+  Added prerequisite GEN.650 (the planet mass law without a class;
+  pipeline report 6:33 PM EDT).
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -15283,6 +15296,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a table of examples per stage and condition, tests for 0 and 9 and
   monotone behaviour with conditions, determinism across worker counts.
   Prerequisites: none. Related: GEN.643, GEN.89, UX.101, UX.100.
+
+- [ ] **GEN.650 Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646)**
+  Gap found by the pipeline report
+  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
+  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
+  2026-10-23). Section 3.2 and conflict C of the report: nothing says
+  how a planet's mass is drawn without the class; bulk-composition.md
+  decision 28 (Boss, 2:10 PM EDT 2026-10-17) keeps the class mass ranges
+  as a flagged stand-in, then formation.isolation_mass_kg when GEN.509
+  can tune it. Write the law (mass against the snow line, the host mass
+  and metallicity, the disc, the gas giant and ice giant cases, moons
+  separately in GEN.466) as a design note in docs/design with its
+  sources labelled, its stand-ins registered in the gap plan, and the
+  draw order. Boss's question on the mass law is with him via the
+  coordinator; defaults stand until he answers. Owner: the
+  Condition-based planet classes lane with Habitability lane I (the bulk
+  contract), not started. Done: the note, the rule with test cases, and
+  GEN.646 lists it as a prerequisite.
+  Prerequisites: GEN.645. Related: GEN.646, GEN.509, GEN.510, GEN.428.
+
+- [ ] **GEN.651 Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag**
+  Gap found by the pipeline report
+  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
+  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
+  2026-10-23). Section 1.1 and conflict G of the report: evolve_star
+  runs without [Fe/H], so ms_lifetime (GEN.467) and giant_branch
+  (GEN.502), which take an [Fe/H] argument, run at solar; star_makeup
+  (GEN.440) is read only by the white dwarf flag; GEN.553 would reorder
+  the draw ([Fe/H] at birth, before the state) but has no owner. Do:
+  draw [Fe/H] at birth (GEN.553 order), pass it to evolve_star and so to
+  GEN.467 and GEN.502, and let the planets and disc read the composition
+  (GEN.464). Changes stored values: a generator epoch and a refill
+  (testing mode, Boss 5:42 PM EDT). Boss's question 1 (GEN.553 order,
+  one main-sequence source) is with him via the coordinator; option 1 is
+  the recommended full reorder, option 2 only passes [Fe/H] to the
+  existing laws. Owner: none (pool) until Boss answers; then Core 4
+  proposed with GEN.553. Done: stars of different [Fe/H] have different
+  lifetimes and giant branches, a determinism test, and the epoch.
+  Prerequisites: GEN.553. Related: GEN.553, GEN.467, GEN.502, GEN.440,
+  GEN.464.
+
+- [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
+  Gap found by the pipeline report
+  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
+  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
+  2026-10-23). Conflict A of the report:
+  tuning.MS_MASS_LUMINOSITY_PIECES (radius exponents 0.8 and 0.57,
+  Hurley-Pols-Tout lifetimes) against the MIST isochrones star_makeup
+  reads (luminosity, temperature, radius, lifetime against mass, age and
+  [Fe/H]); for one star the two can disagree and no item makes one the
+  source of the other; the stellar-composition note leaves the Z
+  dependence "open; Z-independent as a stand-in". Decide with the [Fe/H]
+  wiring item (Boss question 1: option 1 replaces the piecewise laws
+  with MIST) and remove the other table, no shim. Owner: none (pool),
+  with the item before. Done: one main-sequence source, a test that a
+  star's stored and composition luminosity agree, the old table gone.
+  Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -22105,6 +22175,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane E. Done: the help (DOC.75) and the design and schema
   docs state it and no text names human operability as a score.
   Prerequisites: GEN.649, UX.152. Related: DOC.75, GEN.649.
+
+- [ ] **DOC.78 One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule**
+  Gap found by the pipeline report
+  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
+  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
+  2026-10-23). Section 5.2 of the report is a synthesis nobody has
+  signed off: per star (origin, birth, state, composition key, motion,
+  snow line, disc), per body (formation, mass, bulk, derived,
+  radiogenic, atmosphere, albedo and greenhouse, fixed point,
+  hydrosphere and the rest, moons, after: classify, PHI-6 and the life
+  scores). Lane I confirms or amends it and adds it to
+  /mnt/project-files/reports/composition-spine-contracts-2026-10-23.md,
+  then it moves to docs/design. Owner: Habitability lane I. Done: the
+  table is signed by lanes I, J, K and L in the file and a test or note
+  says what changes seeds when a block moves.
+  Prerequisites: none. Related: GEN.428, GEN.646.
 
 ## VIEW: The view from a planet
 
