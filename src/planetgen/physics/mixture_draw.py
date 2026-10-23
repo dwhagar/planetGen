@@ -12,7 +12,7 @@ and pressure of its layer and the oxygen fugacity of its mantle go into the equi
 over the NASA Glenn thermodynamics of `physics/species_thermo.py`), and the gas that comes out is the mixture. A class letter
 is never an input to the chemistry: it only gates which rows of the recipe tables apply.
 
-    draw = draw_mixture(Subject("M", {... the quantities atmosphere_recipes.INPUTS names ...}))
+    draw = outgassed_mixture(Subject("A", {... the quantities required_inputs("A") names ...}))
     draw.mole_fractions       # {"H2O": 0.78, "CO2": 0.16, ...}, gas-table formulas, sums to 1
     draw.drawn                # {"a": "a6", "b": "b2", "c": "c3", ...}
     draw.redox_diw            # log10 fO2 above the iron-wuestite buffer (Hirschmann 2021 scale), None for a giant
@@ -22,7 +22,7 @@ of what the surface temperature condenses and the sum of the partial pressures a
 clouds and hazes (GEN.414) and the ozone (GEN.413). Every draw goes through `util/draw.py`, in a fixed order of its own, after
 the recipe draw: a change of the order changes every body and is a generator-epoch change.
 
-Rocky bodies (this slice)
+Rocky bodies (this slice; the giant, brown-dwarf, hot-Jupiter, envelope and lava-world families join with GEN.454 and GEN.499)
 -------------------------
 
 The outgassed mixture is the gas in equilibrium with a mantle of a given oxygen fugacity (Schaefer and Fegley 2010; Gaillard and
