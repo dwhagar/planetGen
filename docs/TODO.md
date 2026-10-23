@@ -271,7 +271,7 @@ with `clamp()`.
   fields.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.124, UX.125, UX.126. About 170 form controls
+  when its subitems are: UX.125, UX.126 (UX.124 done, #2716). About 170 form controls
   in 19 templates (generate.html 27, admin_facility_types.html 26,
   system.html 22, account.html 15, generate_system.html 12 and others),
   both themes and phone width, plus three cross-cutting pieces (a common
@@ -281,7 +281,7 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   UX.125 and UX.126 moved out of this item (Boss, 2026-10-21, 6:01 PM EDT: the admin pages and the Generate suite are redesigned in their own thread; the Generate page conversion rides ADM.99 and the admin pages ADM.56 and ADM.93), so this item converts the public pages and closes with UX.124.
-  Prerequisites: UX.124.
+  Prerequisites: none.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
@@ -604,25 +604,6 @@ with `clamp()`.
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: UX.121. Related: UX.102.
 
-- [ ] **UX.124 One form-field look and error slot, piloted on the search, nearby and list-filter fields**
-  Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Set `--sl-input-border-color` (and
-  the select and checkbox equivalents) from the new `--line` token (3:1
-  contrast), and add one Jinja macro that renders a labelled `sl-input`,
-  `sl-select` or `sl-checkbox` with its name, required flag and an error
-  slot for the server's validation error (ADM.21). Hidden, submit,
-  password and one-time-code fields stay native (decided). Pilot on
-  `search.html`, `nearby.html`, `nav_chart.html` and the datatable
-  filters. Done: the macro and token, the pilot forms converted, values
-  posted by name as before, a test that a validation error appears on
-  the right field, a no-JS check that each pilot form still posts, and a
-  browser test that fills and submits one form of each kind in light and
-  dark and at phone width.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: UX.49.
-
 - [ ] **UX.125 The Generate page and the one-off system page on the field macro**
   Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Convert the controls of
@@ -648,7 +629,7 @@ with `clamp()`.
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: UX.124. Related: UX.49.
+  Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
   Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -676,7 +657,7 @@ with `clamp()`.
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: UX.124. Related: UX.49.
+  Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -12983,6 +12964,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane A (symbols).
+  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
+  stars become composition-first: this item's order, [Fe/H] drawn at
+  birth, one main-sequence source (MIST, replacing the piecewise laws),
+  lifetimes and the giant branch reading the star's Z; one epoch and a
+  rescatter of every star; GEN.651 and GEN.652 ride it. Owner: Core 4
+  (from the TODO thread's hand-out, 6:40 PM EDT 2026-10-23), after its
+  current queue; replaces 'Owner: none' above.
+
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
@@ -15213,6 +15202,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   'Habitability lane D' above for the build.
   Added prerequisite GEN.650 (the planet mass law without a class;
   pipeline report 6:33 PM EDT).
+  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 2, option 1): the
+  spine ships class-first now and this item is the class cut-over as a
+  later, second epoch; each lane merges on its own schedule. Card 5
+  (provisional, option 1): a planet is a snapshot at the star's present
+  age plus the history terms already built or designed (engulfment,
+  white dwarf expansion, the star's XUV history, GEN.639 runaway,
+  cumulative XUV loss, isotope decay), with no host luminosity history.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -15247,7 +15243,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   also reads size and surface gravity; the class code carries a size
   tier (S and V become tiers, not letters, as the class lane reported).
 
-- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green**
+- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) restricts the random parameters at each generation stage so the result is a habitable world (PHI-6 overall Blue or Green), with no rebuild loop**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
   doing compositions, let's leave out the class designation until planet
@@ -15260,14 +15256,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
   (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
   (the habitable rule). Owner: Habitability lane D unless stated.
-  Replace the class-list steering (LIFE_PLANET_CLASSES) with a
-  conditions search over the ecosphere rocky planet: the draw is
-  repeated within physical ranges until GEN.643 holds, with a bounded
-  number of tries and an honest refusal if the system cannot give one.
-  Done: a forced request is met by a Blue or Green world, measured over
-  120 forced systems (the proposal measured 7 of 120 before), and the
-  request fails with a message rather than returning a non-habitable
-  world.
+  Replace the class-list steering (LIFE_PLANET_CLASSES). Boss's design
+  (6:39 PM EDT 2026-10-23, card 3 of the pipeline questions): control the
+  random generation parameters at each stage so that the generation
+  possibilities are restricted at each phase and the end result is always
+  a habitable world. When a habitable world is requested, each stage
+  (formation distance, mass, bulk composition, atmosphere, temperature,
+  water, life) draws from the part of its distribution that can still
+  lead to a PHI-6 overall of Blue or Green, chosen from the physics of
+  the stages that come after it, so there is no rebuild-until-it-fits
+  loop and no retry cap. A request that no stage can satisfy fails with a
+  message naming the stage. Done: a forced request is met by a Blue or
+  Green world in every one of 120 forced systems that has an ecosphere
+  (the proposal measured 7 of 120 before), the restricted draws are
+  deterministic across worker counts, and a request that cannot be met
+  names the stage.
+  Decided (Boss, 6:39 PM EDT 2026-10-23, relayed by the coordinator):
+  'there is no recalculation never redraws composition rule, at least I
+  don't remember one' (bulk-composition.md decision 31 / F10 was a lane
+  default, not Boss's rule; it does not block this item).
   Prerequisites: GEN.646, GEN.643. Related: GEN.643, GEN.646.
 
 - [ ] **GEN.649 The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed**
@@ -15315,6 +15322,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   contract), not started. Done: the note, the rule with test cases, and
   GEN.646 lists it as a prerequisite.
   Prerequisites: GEN.645. Related: GEN.646, GEN.509, GEN.510, GEN.428.
+  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 1, option 1,
+  relayed by the coordinator): the mass is the isolation mass at the
+  formation distance and the disc's solids, with a scatter and the giant
+  core-accretion rule, tuned against the observed occurrence by the
+  GEN.503 harness (builders GEN.509 and GEN.510); the isolation law is
+  checked above a few Earth masses. The class mass ranges of decision 28
+  are not kept as a hidden stand-in beyond the spine's class-first
+  epoch.
 
 - [ ] **GEN.651 Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag**
   Gap found by the pipeline report
@@ -15336,6 +15351,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lifetimes and giant branches, a determinism test, and the epoch.
   Prerequisites: GEN.553. Related: GEN.553, GEN.467, GEN.502, GEN.440,
   GEN.464.
+  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1:
+  composition-first stars). Owner: Core 4, built with GEN.553 in one
+  epoch (a rescatter of every star).
 
 - [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
   Gap found by the pipeline report
@@ -15353,6 +15371,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the item before. Done: one main-sequence source, a test that a
   star's stored and composition luminosity agree, the old table gone.
   Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
+  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
+  MIST is the single main-sequence table and the piecewise laws are
+  removed, no shim. Owner: Core 4, with GEN.553 and GEN.651 in one
+  epoch.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
