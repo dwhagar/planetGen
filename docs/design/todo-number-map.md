@@ -1134,7 +1134,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | open |
 | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | done, PR #1957 |
 | GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | none | done, PR #2063 |
-| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | open |
+| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | done, PR #2580 |
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | open |
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | none | open |
 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | open |

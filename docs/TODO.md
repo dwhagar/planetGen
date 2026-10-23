@@ -8351,161 +8351,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
-- [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. A constants module for iron and its
-  alloys, the silicates, water in its ice phases and as liquid, the
-  other ices (methane, ammonia, carbon dioxide), hydrogen and helium,
-  each with density and the equation-of-state constants of the chosen
-  model (GEN.426) and the source of every number; the compounds are the
-  same ones as the gas table of GEN.410 where they overlap. Done: a test
-  fails when a material named in a description or in the class tables is
-  missing from it; every number has a source.
-  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; thread Blocker 3, session cse_01AzAXhWBKruPR6CCLL1SxFB). This replaces the earlier proposal of Core 4.
-  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
-  GEN.428 reads it; the design is GEN.437's and the molar masses come
-  from GEN.438.
-  Sources check (GEN.425): the report's section 3.1 lists the constants
-  to take (Seager 2007 Table 1: epsilon iron 8.30, 156.2, 6.08 Vinet;
-  alpha iron for small bodies; MgSiO3 perovskite and enstatite;
-  (Mg,Fe)SiO3; MgO with the 177 or 161.4 GPa choice cited; FeS; ice VII
-  with two parameter sets that are not interchangeable; graphite and
-  SiC), the validity ranges (BM only to about 2.8e13 Pa,
-  Thomas-Fermi-Dirac above) and what is missing: the low-pressure ices
-  (Ih, III, V, VI), methane, ammonia and carbon dioxide ice densities,
-  porosity, and olivine and enstatite bulk densities for small bodies,
-  which are Boss's to research (GEN.432 surveys them).
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). The base is part E's
-  materials table (44 rows, section 2.10: formula, molar mass, density,
-  specific heat, conductivity, melting or sublimation point, latent
-  heat, albedo by band, attenuation, tags, with a labels column kept),
-  plus part B's EOS rows (Seager Table 1, the Stixrude and
-  Lithgow-Bertelloni mantle table read through burnman, 2ND-HAND; MgO
-  bulk modulus 161.4 GPa chosen over 177 and cited), part C's ice and
-  water phases (Ih to X, Journaux, the VII and X curve to 1 TPa, a 300 K
-  isotherm) and volatile ices (condensation curves of eight species,
-  densities of CO2, N2 and CO measured, CH4, NH3 and H2S pending), part
-  D's meteorite groups, taxa, comet volatiles, grain densities and
-  radiogenic rates, and part E's crust oxide and heat-producer
-  reservoirs (tables 2.3 and 2.8b) and band albedos (2.6). Radius
-  reference level 1 bar and the Asplund 2021 reference scale are Decided
-  (Boss, 2026-10-17, 1:24 AM EDT, cards "1 bar" and "Asplund 2021"). One
-  loader; a test fails when a labels entry names no column.
-  Part F of the Body composition research lane
-  (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F5: every data file the loader
-  reads (NIST, PubChem and USGS public domain; published compilations
-  with a citation) states its source and licence, and the loader refuses
-  a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
-  EDT: every acquired paper and dataset is usable; was master
-  section 6 item 13 of docs/design/atmosphere-composition.md).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the material table carries the supported-classes gate
-  on each row (iron and its alloys, the silicates, the ices by pressure
-  phase, the envelopes) with the source and licence column of the F5
-  rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
-  draw only among the materials a class can hold.
-  Prerequisites: none. Related:
-  GEN.410,
-  GEN.428.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind. This
-  table is that shared table: the rows the belt and field draw used to
-  hold as a separate list of 84 names (GEN.477) are rows of it, each
-  with a class gate that says which kinds can hold it, and a planet's or
-  moon's bulk and surface draws (GEN.428, GEN.441) read the same rows;
-  the exotic minerals are accessory rows gated by the chemistry of the
-  body and not by its kind.
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: one components table holds every element,
-  mineral, ice, organic and alloy any body can contain, each row with
-  its formula, density, equation-of-state constants and the other
-  material properties; the 84 names of `ASTEROID_COMPONENTS`, the family
-  lists of `ASTEROID_FIELD_COMPOSITIONS`, the class composition strings
-  of planets and moons and the comet component list all become views of
-  it, and names that exist only as text today (anthracite, sulfides,
-  mineral dust, hydrocarbons) get rows or are mapped to rows, so this
-  item includes the one loader and the name mapping. Accessory minerals
-  (rare-earth, platinum-group, uranium and thorium, gemstones,
-  polycyclic aromatic hydrocarbons) are rows that enter any body at
-  trace level from its bulk composition and a ppm threshold, never at
-  equal weight.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
-  (see GEN.410) for the licence column.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
-  public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
-  Bremen and Karkoschka state none; the licence column is mandatory (it
-  takes 'open' where none is found) and the audit (GEN.500) was removed by
-  Boss (2:35 PM EDT).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in
-  words; bulk-composition.md approve item 10, composition-model.md
-  section 3): this item is a table in 8.1 phase 2 and bumps nothing; the
-  one epoch bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
-  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
-  GEN.500 removed): every paper and dataset Boss acquired was obtained
-  legally and is usable, so no licence audit gates this table and no
-  permission list is needed. The raw papers and downloaded datasets stay
-  out of the public repository and are never redistributed or sold; the
-  research results and the values derived from them are fine to publish,
-  and the program stays free forever. The source and licence column
-  stays as a record; write 'open' where none is found (the loader of
-  GEN.472 already accepts that).
-  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
-  bulk materials' molar masses should come from
-  `physics.elements.molar_mass`; `habitability_world.MOLAR_KG` (SO2 and
-  CH4) is about 1.9e-4 above the element sums and is left for the table
-  items (see GEN.410).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the NIST
-  line "NIST, PubChem and USGS public domain" is corrected by the later
-  check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
-  needed), PubChem and USGS are public domain. The licence column is a
-  record only (Boss, 2:35 PM EDT).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
-  lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in DATA-LICENSE.md. This
-  overrides every line of this item that calls the licence column
-  mandatory; GEN.623 does the removal.
-
-
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8584,7 +8429,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.427, GEN.458, GEN.557. Related: GEN.429,
+  Prerequisites: GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -10042,7 +9887,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.427, GEN.428. Related: GEN.427, GEN.428, GEN.429,
+  Prerequisites: GEN.428. Related: GEN.427, GEN.428, GEN.429,
   GEN.252, GEN.454, DB.69.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -10463,7 +10308,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   IAPWS values within 0.1 percent, that out-of-range calls are flagged,
   and that no other module holds a vapour-pressure constant. Owner: Core
   4 (proposed, with the composition chain).
-  Prerequisites: GEN.427. Related: GEN.410, GEN.427, GEN.452,
+  Prerequisites: none. Related: GEN.410, GEN.427, GEN.452,
   GEN.422, GEN.442, GEN.461.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
@@ -10558,7 +10403,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.461, GEN.427. Related: GEN.427, GEN.441, GEN.461,
+  Prerequisites: GEN.461. Related: GEN.427, GEN.441, GEN.461,
   GEN.466, GEN.456.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
@@ -11841,7 +11686,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.427. Related: GEN.456, GEN.451, GEN.441,
+  Prerequisites: none. Related: GEN.456, GEN.451, GEN.441,
   GEN.478.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -15419,6 +15264,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration. Owner: Blocker 3 (Boss, via the Blocker 3 thread, 4:42 PM
   EDT as the lane's clock reads; it does this before the table items so
   the new tables are built without the column).
+  Progress (Blocker 3, relayed 10:38 PM EDT 2026-10-22 as the lane
+  reported, in GEN.427's PR #2580): the licence key is gone from
+  `pt.Row`, the gas, element, isotope, decay-series and white dwarf
+  files and the dataset catalogue, and DATA-LICENSE.md exists in the
+  repo root. Other lanes' unmerged code that passes `licence=` to
+  `pt.Row` or `fetch.Dataset` fails on rebase. Left to confirm and
+  finish: the README pointer to DATA-LICENSE.md, the design notes that
+  call the licence column mandatory
+  (docs/design/atmosphere-composition.md, GEN.438, GEN.472), the licence
+  assertions in TEST.214 and the table tests, and a grep for `licence`
+  in the table modules; Blocker 3 confirms which of these #2580 already
+  did.
   Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
   GEN.472, TEST.214.
 
@@ -19988,7 +19845,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.427. Related: TEST.211,
+  Prerequisites: none. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture

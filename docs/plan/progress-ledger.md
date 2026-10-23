@@ -1077,3 +1077,4 @@ Baseline: PR #1817.
 | TEST.271 | 8.1 | Bugs and flaky tests |
 | PERF.163 | 8.1 | The headline closes |
 | GEN.304 | 8.1 | Reproducible galaxies |
+| GEN.427 | 8.1 | Composition tables |
