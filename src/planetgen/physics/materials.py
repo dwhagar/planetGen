@@ -437,7 +437,7 @@ def _row_for_table(row):
 
 TABLE = pt.REGISTRY.register(pt.Table(
     pt.SHARED_COMPONENTS, 1, [_row_for_table(row) for row in MATERIALS],
-    description="The shared materials and components table (GEN.427): every element, mineral, ice, organic and alloy a body can "
+    description="The shared materials and components table: every element, mineral, ice, organic and alloy a body can "
                 "contain, with the class gate, the source of each row. A constants table: its weights are 1 and are not "
                 "drawn from."))
 """Table: The rows as a possibility table, registered as `materials` so the fractions of other tables refer to them."""
