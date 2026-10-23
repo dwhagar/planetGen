@@ -982,42 +982,6 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
-- [ ] **UX.147 The Generate page has no clear way to generate only a galaxy plan, with no scatter, to see the sector layout on the galaxy screen and add sectors by hand (bug)**
-  Boss's live observation (relayed 5:13 PM EDT 2026-10-23, typed in the
-  project chat while testing the interface to generate a new galaxy):
-  there is no easily reached option on the web interface to just
-  generate a new galaxy plan without adding any scatter, only to see the
-  sector layout on the galaxy screen and add sectors manually later.
-  Kind: missing clear option. What the code has today (read by the TODO
-  thread, not run): the Generate page builds a job from an action name
-  (_build_job_steps in web/generate_page.py); the new_galaxy action
-  resets the galaxy, plans it and then generates sectors around a random
-  start (scatter only when skip_scatters is not set), and a separate
-  plan action (Plan the galaxy) runs only the plan step; whether the
-  Start screen shows that plan action as a clear card, and whether the
-  galaxy screen can show a plan with no stored sectors, is for Bug Hunt
-  to find out. Reproducer: open the Generate page, look for a choice
-  that makes a plan and nothing else. Do: add a clear Plan only choice
-  to the Generate page that resets the galaxy and runs only the plan (no
-  sectors, no scatter), so the galaxy screen shows the planned sector
-  layout, and check that sectors can then be added one at a time by hand
-  (visit-time generation or the one-sector command); say what it does in
-  the card text and in the help page. Done: a new galaxy plan can be
-  made from the Generate page in one choice with no scatter and no
-  generated sectors, the galaxy screen shows its sector layout, a sector
-  can then be added by hand, and a browser test covers it. Owner: Bug
-  Hunt (Boss, 5:13 PM EDT 2026-10-23).
-  Finding (Bug Hunt, 5:25 PM EDT 2026-10-23 as the lane reported): a
-  plan-only path exists but is buried. It is the Plan the galaxy again
-  and scatter radio inside the Change what is scattered across the
-  galaxy card, with a Skip all scatters tick, and on a galaxy that has
-  sectors the plan will not replace the seed. Start a new galaxy always
-  resets and generates a first neighborhood. Bug Hunt's fix: a new Start
-  card, Plan a new galaxy and stop (reset, plan, no sectors, no scatter,
-  typed confirmation). Bug Hunt takes UX.147 and UX.148 first, then
-  TEST.298 and TEST.299.
-  Prerequisites: none. Related: UX.134, UX.125, PERF.149.
-
 - [ ] **UX.148 Log output from Generate is no longer in a fixed-width font (bug)**
   Boss's live observation (relayed 5:14 PM EDT 2026-10-23, typed in the
   project chat): the log output from generate is no longer in a
