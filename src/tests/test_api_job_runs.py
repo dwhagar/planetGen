@@ -1,6 +1,8 @@
 """PERF.119 (F3): the API's jobs that generate sectors (neighborhood, regenerate, settle) start runs through the wrapper: each
 stage is a run on the run record."""
 
+import itertools
+
 import pytest
 
 from planetgen.db import store
@@ -12,7 +14,10 @@ pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
 
 
 @pytest.fixture
-def conn(redis_server):
+def conn(redis_server, monkeypatch):
+    """The Redis connection; run ids count up, because ids made in the same second sort by their random tail."""
+    numbers = itertools.count()
+    monkeypatch.setattr(runrecord, "new_run_id", lambda now=None: f"20261022-000000-{next(numbers):08x}")
     return redisqueue.connect(redis_server)
 
 
