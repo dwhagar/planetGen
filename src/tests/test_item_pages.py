@@ -32,7 +32,8 @@ def _document():
 @pytest.fixture
 def client(monkeypatch):
     objects = {
-        PLANET: {"ref": PLANET, "name": "Kepler b", "parents": [
+        PLANET: {"ref": PLANET, "name": "Kepler b", "phi4": 0.8, "tier_pressure": 0, "tier_temperature": 1, "tier_air": 2,
+                 "tier_water": 0, "tier_radiation": 3, "tier_suitability": 1, "parents": [
             {"ref": "galaxy", "kind": "galaxy"},
             {"ref": "sector:4", "kind": "sector", "name": "Sector 004"},
             {"ref": "system:9", "kind": "system", "name": "Kepler"}]},
@@ -74,6 +75,15 @@ def test_a_planet_has_a_page_with_its_facts_places_and_members(client):
     assert 'href="/system/9"' in page
     assert f"/object/{MOON}" in page            # the bodies that belong to it, on pages of their own
     assert "#planet-FE81000A2B-0000005-001" in page   # back to its row in the system's list
+
+
+def test_a_scored_planet_shows_its_symbols_under_the_title_and_other_kinds_do_not(client):
+    """UX.100: the item page of a scored planet or moon carries the seven PHI-6 symbols; a star or unscored body none."""
+    body = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert body.count("hab-symbol ") == 7 and 'aria-label="Radiation: Red"' in body
+    assert body.index("hab-symbols") < body.index("About Kepler b")
+    assert "hab-symbol" not in client.get(f"/object/{MOON}").get_data(as_text=True)  # the fake moon was not scored
+    assert "hab-symbol" not in client.get("/object/star:FE81000A2B-0000005-000").get_data(as_text=True)
 
 
 def test_a_moon_names_the_planet_it_circles(client):
