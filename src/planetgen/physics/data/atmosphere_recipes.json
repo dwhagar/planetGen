@@ -1,0 +1,4652 @@
+{
+ "title": "The atmosphere possibility tables (GEN.478): 16 categories, 104 rows",
+ "retrieved": "2026-10-18",
+ "part": "docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md",
+ "version": 1,
+ "categories": {
+  "a": "Mantle redox (magma-ocean stage, later upper mantle)",
+  "b": "Delivered volatile inventory (dry / low / high) and water mass fraction, with snow-line dependence",
+  "c": "Outgassed atmosphere regime for rocky bodies (L2 under the redox class)",
+  "d": "Atmospheric retention regime (airless, exosphere, thin, moderate, dense) and primary H/He",
+  "e": "Sub-Neptune / super-Earth envelope (L1 regime, L2 metallicity)",
+  "f": "Giant planets: temperature regime, metallicity bins, C/O bins, carbon carrier",
+  "g": "Brown dwarf spectral-type sequence (BD; free-floating, 13 to 80 MJ)",
+  "h": "Hot and ultra-hot Jupiters",
+  "i": "Lava-world vapour regimes",
+  "j": "Frost-equilibrium and evolved atmospheres (Titan-, Pluto-, Venus-, Mars-like)",
+  "k": "Comet and KBO coma volatile classes (ratios to water)",
+  "l": "White-dwarf and pulsar planet options",
+  "m": "Trace and minor gas presence (binary rows: present with probability w, absent with 1-w)",
+  "n": "Clouds, hazes and dust by temperature window and class",
+  "o": "Ground radioisotope abundance regimes by host (part 07)",
+  "p": "Host-star UV regime (ozone and photochemistry)"
+ },
+ "constants": {
+  "pi": 3.141592653589793,
+  "G": 6.6743e-11,
+  "K_B": 1.380649e-23,
+  "AMU_KG": 1.6605390666e-27,
+  "R_EARTH_M": 6371000.0,
+  "M_EARTH_KG": 5.972e+24
+ },
+ "research": {
+  "R1": "GEN.480",
+  "R2": "GEN.481",
+  "R3": "GEN.482",
+  "R4": "GEN.483",
+  "R5": "GEN.484",
+  "R6": "GEN.485",
+  "R7": "GEN.486",
+  "R8": "GEN.487",
+  "R9": "GEN.488",
+  "R10": "GEN.489",
+  "R11": "GEN.490",
+  "R12": "GEN.491",
+  "R13": "GEN.492",
+  "R14": "GEN.493",
+  "R15": "GEN.494"
+ },
+ "groups": {
+  "a": {
+   "rows": [
+    "a5",
+    "a6",
+    "a7"
+   ],
+   "fallback": null,
+   "constants": {}
+  },
+  "b": {
+   "rows": [
+    "b1",
+    "b2",
+    "b3",
+    "b4"
+   ],
+   "fallback": null,
+   "constants": {
+    "c_b4": [
+     0.05,
+     0.4,
+     "log"
+    ]
+   }
+  },
+  "c": {
+   "rows": [
+    "c1",
+    "c2",
+    "c3",
+    "c4"
+   ],
+   "fallback": null,
+   "constants": {}
+  },
+  "c-after": {
+   "rows": [
+    "c5",
+    "c6"
+   ],
+   "fallback": "c6",
+   "constants": {}
+  },
+  "d": {
+   "rows": [
+    "d1",
+    "d2",
+    "d3",
+    "d4",
+    "d5"
+   ],
+   "fallback": "d1",
+   "constants": {}
+  },
+  "e": {
+   "rows": [
+    "e1",
+    "e2",
+    "e3",
+    "e4"
+   ],
+   "fallback": "e1",
+   "constants": {
+    "f_env0": [
+     0.005,
+     0.1,
+     "log"
+    ],
+    "eta": [
+     0.1,
+     0.5,
+     "log"
+    ]
+   }
+  },
+  "f": {
+   "rows": [
+    "f1",
+    "f2",
+    "f3",
+    "f4"
+   ],
+   "fallback": null,
+   "constants": {}
+  },
+  "g": {
+   "rows": [
+    "g1",
+    "g2",
+    "g3",
+    "g4",
+    "g5"
+   ],
+   "fallback": null,
+   "constants": {}
+  },
+  "h": {
+   "rows": [
+    "h1",
+    "h2",
+    "h3"
+   ],
+   "fallback": null,
+   "constants": {}
+  },
+  "i": {
+   "rows": [
+    "i1",
+    "i2",
+    "i3",
+    "i4",
+    "i5"
+   ],
+   "fallback": null,
+   "constants": {}
+  },
+  "j": {
+   "rows": [
+    "j1",
+    "j2",
+    "j3",
+    "j4",
+    "j5"
+   ],
+   "fallback": "none",
+   "constants": {
+    "c_j1": [
+     0.1,
+     1.0,
+     "log"
+    ],
+    "c_j5": [
+     0.05,
+     0.5,
+     "log"
+    ]
+   }
+  },
+  "k": {
+   "rows": [
+    "k1",
+    "k2",
+    "k3"
+   ],
+   "fallback": "none",
+   "constants": {}
+  },
+  "l": {
+   "rows": [
+    "l1",
+    "l2",
+    "l3"
+   ],
+   "fallback": "l2",
+   "constants": {
+    "c_l3": [
+     0.0,
+     0.1,
+     "uniform"
+    ]
+   }
+  },
+  "p": {
+   "rows": [
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5"
+   ],
+   "fallback": null,
+   "constants": {}
+  }
+ },
+ "entries": [
+  {
+   "id": "a1",
+   "category": "a",
+   "kind": "param",
+   "option": "Magma-ocean-stage fO2 (PARAM)",
+   "gate_text": "ROCKY, MOON, ROGUE rocky; M>=0.01",
+   "weight_text": "dIW ~ N(mu, 0.5); mu = clamp(-2+1.25(log10 M+2), -2, 0.5); floor on sigma 0.22 = 4 log10(1+0.005/0.037)",
+   "source": "anchors Sossi 2020 via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R3"
+   ],
+   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.482"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "minimum": 0.01
+    }
+   ],
+   "sets": "redox_diw",
+   "dist": {
+    "kind": "normal",
+    "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5)",
+    "sigma": 0.5
+   }
+  },
+  {
+   "id": "a2",
+   "category": "a",
+   "kind": "param",
+   "option": "Later upper mantle (PARAM)",
+   "gate_text": "ROCKY with air; tectonic or long-lived",
+   "weight_text": "dIW ~ N(3.5+2 log10 M, 1.0), clip [-6,6]",
+   "source": "repo `atmosphere.py` REDOX_* ([D] fitted by eye to Moon, Mars, Earth)",
+   "status": "DESIGN",
+   "research": [
+    "R3"
+   ],
+   "notes": "far above meteoritic building blocks (part 05 s3.2) A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482.",
+   "replacement": "GEN.482",
+   "labels": [],
+   "state": "stand-in",
+   "limit": "",
+   "items": [
+    "GEN.482"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "long_lived_geology",
+     "equals": true
+    }
+   ],
+   "sets": "redox_diw_later",
+   "dist": {
+    "kind": "normal",
+    "mu": "3.5 + 2*log10(mass_earth)",
+    "sigma": 1.0,
+    "range": [
+     -6,
+     6
+    ]
+   }
+  },
+  {
+   "id": "a3",
+   "category": "a",
+   "kind": "param",
+   "option": "Building-block redox (PARAM)",
+   "gate_text": "AST, C, D, small bodies",
+   "weight_text": "dIW ~ U[-1.4, 0]",
+   "source": "22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, via docs/design/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
+   "status": "DESIGN",
+   "research": [
+    "R3"
+   ],
+   "notes": "bracket sourced, shape not Corrected 2026-10-18 (tunable-gaps 3.2): the uniform U[-1.4, 0] has its mean 0.55 dex above the white dwarf ensemble; the core-formation scale differs from the surface magma-ocean scale of a1.",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.482"
+   ],
+   "classes": [
+    "asteroid",
+    "C",
+    "D"
+   ],
+   "conditions": [],
+   "sets": "redox_diw",
+   "dist": {
+    "kind": "normal",
+    "mu": -1.26,
+    "sigma": 0.45
+   }
+  },
+  {
+   "id": "a4",
+   "category": "a",
+   "kind": "param",
+   "option": "White-dwarf debris (PARAM)",
+   "gate_text": "host WD, rocky",
+   "weight_text": "dIW ~ N(-1, 0.5), bracket [-1.37, -0.6]",
+   "source": "22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 (Doyle 2020, Doyle 2023; READ, COMPUTED)",
+   "status": "DESIGN",
+   "research": [
+    "R10"
+   ],
+   "notes": "Corrected 2026-10-18 (tunable-gaps 3.2): the centre -1.0 came from the first six stars; the 22-value mean is -1.25 +/- 0.10 and the bracket [-1.37, -0.6] of six stars is dropped.",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.489"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "equals": "WD"
+    }
+   ],
+   "sets": "redox_diw",
+   "dist": {
+    "kind": "normal",
+    "mu": -1.25,
+    "sigma": 0.45
+   }
+  },
+  {
+   "id": "a5",
+   "category": "a",
+   "kind": "option",
+   "option": "Redox class R (reduced)",
+   "gate_text": "ROCKY, any dIW",
+   "weight_text": "Phi((0-dIW)/0.5)",
+   "source": "cut 0: Liggins 2022 classes (READ) and part 05 s3.4 crossovers (COMPUTED); width 0.5 DESIGN",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "parent of c1, c2",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "a",
+   "weight": "phi((0 - redox_diw)/0.5)"
+  },
+  {
+   "id": "a6",
+   "category": "a",
+   "kind": "option",
+   "option": "Redox class I (intermediate)",
+   "gate_text": "same",
+   "weight_text": "1 - w[a5] - w[a7]",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "parent of c3",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "a",
+   "weight": "1 - w('a5') - w('a7')"
+  },
+  {
+   "id": "a7",
+   "category": "a",
+   "kind": "option",
+   "option": "Redox class O (oxidised)",
+   "gate_text": "same",
+   "weight_text": "Phi((dIW-2.5)/0.5)",
+   "source": "cut 2.5: H2S/SO2 crossover near +3 at 1200 K (COMPUTED, part 05 s3.4); equals repo REDOX_OXIDIZED_DELTA_IW",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "parent of c4",
+   "labels": [
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "a",
+   "weight": "phi((redox_diw - 2.5)/0.5)"
+  },
+  {
+   "id": "b1",
+   "category": "b",
+   "kind": "option",
+   "option": "Dry delivery (H2O 0, CO2 0.6 wt%)",
+   "gate_text": "ROCKY, MOON, ROGUE; x known",
+   "weight_text": "(1-s)^2; s = 1/(1+exp(-ln(x)/0.4)); x = a_form/a_snow; a_snow = sqrt(L_form/Lsun) (278.6/T_snow)^2 AU, T_snow=170 K gives 2.69 AU",
+   "source": "classes and wt%: Ortenzi 2020 Table 1 (READ); two-reservoir mixing and width 0.4 DESIGN; T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)",
+   "status": "DESIGN",
+   "research": [
+    "R2"
+   ],
+   "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.481"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "b",
+   "weight": "(1 - s)**2",
+   "lets": {
+    "s": "1/(1 + exp(-log(snow_ratio)/0.4))"
+   }
+  },
+  {
+   "id": "b2",
+   "category": "b",
+   "kind": "option",
+   "option": "Low delivery (H2O 0.05, CO2 0.01 wt%)",
+   "gate_text": "same",
+   "weight_text": "2 s (1-s)",
+   "source": "Ortenzi 2020 Table 1 (READ); weight DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R2"
+   ],
+   "notes": "stored in mantle 0.015 and 0.0022 wt%",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.481"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "b",
+   "weight": "2*s*(1 - s)",
+   "lets": {
+    "s": "1/(1 + exp(-log(snow_ratio)/0.4))"
+   }
+  },
+  {
+   "id": "b3",
+   "category": "b",
+   "kind": "option",
+   "option": "High delivery (H2O 0.5, CO2 0.1 wt%)",
+   "gate_text": "same",
+   "weight_text": "s^2",
+   "source": "Ortenzi 2020 Table 1 (READ); weight DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R2"
+   ],
+   "notes": "stored 0.045 and 0.005 wt%; D_H2O 0.01",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.481"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "b",
+   "weight": "s**2",
+   "lets": {
+    "s": "1/(1 + exp(-log(snow_ratio)/0.4))"
+   }
+  },
+  {
+   "id": "b4",
+   "category": "b",
+   "kind": "option",
+   "option": "Water-rich, ocean world (>=10 wt% water)",
+   "gate_text": "ROCKY, S, V, or sub-Neptune (I, R[P]) with x>1",
+   "weight_text": "c[0.05,0.4] s^3",
+   "source": "hycean needs >=10 wt% water (Madhusudhan 2021 READ); refractories >50 wt% of solids caps water+ices at 50 wt% (Thiabaud 2014 READ); c DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R2",
+    "R1"
+   ],
+   "notes": "feeds e3, e4",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.481",
+    "GEN.480"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "I"
+   ],
+   "conditions": [
+    {
+     "quantity": "snow_ratio",
+     "minimum": 1.0
+    }
+   ],
+   "group": "b",
+   "weight": "c_b4*s**3",
+   "lets": {
+    "s": "1/(1 + exp(-log(snow_ratio)/0.4))"
+   }
+  },
+  {
+   "id": "b5",
+   "category": "b",
+   "kind": "param",
+   "option": "Continuous H2O fraction given b2 or b3 (PARAM)",
+   "gate_text": "b2 or b3 won",
+   "weight_text": "log10 W_H2O ~ U[log10 5e-4, log10 5e-3]",
+   "source": "part 05 s3.1 rule between Ortenzi cases (READ values, rule DESIGN)",
+   "status": "DESIGN",
+   "research": [
+    "R2"
+   ],
+   "notes": "bins low/high 50/50",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.481"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.b",
+     "one_of": [
+      "b2",
+      "b3"
+     ]
+    }
+   ],
+   "dist": {
+    "kind": "loguniform",
+    "lo": 0.0005,
+    "hi": 0.005
+   }
+  },
+  {
+   "id": "b6",
+   "category": "b",
+   "kind": "binary",
+   "option": "Ejected rogue, water-rich",
+   "gate_text": "ROGUE",
+   "weight_text": "chance 0.35 (terrestrial), 0.8 (sub-Neptune); fraction LU[1e-4, 0.1]",
+   "source": "repo `tuning.py` ROGUE_WATER_* ([D] defaults)",
+   "status": "DESIGN",
+   "research": [
+    "R2"
+   ],
+   "notes": "Earth oceans 2.3e-4",
+   "labels": [],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.481"
+   ],
+   "classes": [
+    "C",
+    "D",
+    "S",
+    "I"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "r"
+    }
+   ],
+   "weight": "0.8 if body_class == 'I' else 0.35",
+   "dist": {
+    "kind": "loguniform",
+    "lo": 0.0001,
+    "hi": 0.1
+   }
+  },
+  {
+   "id": "c1",
+   "category": "c",
+   "kind": "option",
+   "option": "R, hot: H2-H2O-CO (CO2, H2S)",
+   "gate_text": "L2, parent=a5; T>=950 K (s 50)",
+   "weight_text": "1",
+   "source": "speciation at 1200 K, 1 bar, dIW 0: H2 .48 H2O .30 CO .11 CO2 .051 H2S .033 (part 05 s3.4, COMPUTED)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "CH4 1.7e-5 there",
+   "labels": [
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.a",
+     "equals": "a5"
+    }
+   ],
+   "group": "c",
+   "weight": "phi((ts_k - 950)/50)"
+  },
+  {
+   "id": "c2",
+   "category": "c",
+   "kind": "option",
+   "option": "R, cool and dense: CH4-H2O-NH3-H2",
+   "gate_text": "L2, parent=a5; T<=1100 K (s 50); P>=10",
+   "weight_text": "1",
+   "source": "CH4 about 0.24 at 1000 K 100 bar; NH3 .015 to .02 at 800 K 100 bar (part 05 s3.4, COMPUTED)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "Ar_40 rule in c5",
+   "labels": [
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.a",
+     "equals": "a5"
+    },
+    {
+     "quantity": "pressure_bar",
+     "minimum": 10
+    }
+   ],
+   "group": "c",
+   "weight": "phi((1100 - ts_k)/50)"
+  },
+  {
+   "id": "c3",
+   "category": "c",
+   "kind": "option",
+   "option": "I: H2O-CO2 (CO, N2)",
+   "gate_text": "L2, parent=a6",
+   "weight_text": "1",
+   "source": "Schaefer 2012 Table 3: H2O 49 to 80 %, CO2 12 to 42 %, 1000 K, 100 bar and 2000 K (part 05 s3.4, READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "crust gives HF, HCl (m5, m6)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.a",
+     "equals": "a6"
+    }
+   ],
+   "group": "c",
+   "weight": 1
+  },
+  {
+   "id": "c4",
+   "category": "c",
+   "kind": "option",
+   "option": "O: H2O-CO2-SO2",
+   "gate_text": "L2, parent=a7",
+   "weight_text": "1",
+   "source": "BSE 62 % H2O, 20 % SO2, 12 % CO2 (Schaefer 2012, READ); dIW+4 at 1200 K 1 bar: H2O .78 CO2 .16 SO2 .021 (COMPUTED)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.a",
+     "equals": "a7"
+    }
+   ],
+   "group": "c",
+   "weight": 1
+  },
+  {
+   "id": "c5",
+   "category": "c",
+   "kind": "option",
+   "option": "After cooling: H2O condensed, CO2-N2 residual",
+   "gate_text": "after c1 to c4; Ts<647 K (RECALLED T_crit of water) and ocean mass",
+   "weight_text": "1",
+   "source": "Sossi 2020: CO-rich gas then CO2-N2 near 97:3 once H2O condenses; about 99 % of H2O and 35 % of CO2 dissolve in the melt, N2 about 0 % (part 08 s2, READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "Ar_40 rule: n = f_degas f_Ar K40 (exp(lam t)-1), f_degas LU[0.05,0.7] (part 05 s3.6; DESIGN R3)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.c",
+     "one_of": [
+      "c1",
+      "c2",
+      "c3",
+      "c4"
+     ]
+    },
+    {
+     "quantity": "ts_k",
+     "maximum": 647
+    },
+    {
+     "quantity": "ocean_present",
+     "equals": true
+    }
+   ],
+   "group": "c-after",
+   "weight": 1
+  },
+  {
+   "id": "c6",
+   "category": "c",
+   "kind": "option",
+   "option": "Steam atmosphere kept",
+   "gate_text": "Ts>=647 K",
+   "weight_text": "1 - w[c5]",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "fallback row The gate Ts >= 647 K is the complement of c5's gate, so c6 is gated by its weight 1 - w[c5] and wins wherever c5 does not: it is the table's fallback row.",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "group": "c-after",
+   "weight": "1 - w('c5')"
+  },
+  {
+   "id": "d1",
+   "category": "d",
+   "kind": "option",
+   "option": "Airless",
+   "gate_text": "ROCKY, MOON, AST",
+   "weight_text": "P_K(r>30)",
+   "source": "Berta-Thompson, Wachiraphan and Murray 2025 (arXiv:2507.02136): the logistic shoreline P(atmosphere) = 1/(1 + 10^(delta/w)), log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex, 917 labelled planets (READ); the Meni-Gallardo and Palle 2025 line, slope 5.77, agrees (READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "fallback row Corrected 2026-10-18 (tunable-gaps 3.3): the K window LU[3.0e-4, 6.6e-4] with slope 4 rests on 13 Solar System bodies and is contradicted by 55 Cnc e and TOI-561 b; the two-class probability of an atmosphere now follows the published logistic, and the K window is no longer used.",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "d",
+   "weight": "1 - p_atm",
+   "lets": {
+    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "p_atm": "1/(1 + 10**(delta/0.247))"
+   }
+  },
+  {
+   "id": "d2",
+   "category": "d",
+   "kind": "option",
+   "option": "Trace or exosphere (outgassed only)",
+   "gate_text": "same",
+   "weight_text": "P_K(2.5<r<=30)",
+   "source": "share of P(atmosphere) (Berta-Thompson 2025, READ) by distance below the shoreline; the edges -0.3, -0.8, -1.4 dex and the width 0.247 are DESIGN",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "The five-way split of the atmosphere cases is constrained by no measurement (tunable-gaps 3.3); the four windows add up to 1, so together they carry P(atmosphere).",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "d",
+   "lets": {
+    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "p_atm": "1/(1 + 10**(delta/0.247))"
+   },
+   "weight": "p_atm*window(delta, -0.3, None, 0.247)"
+  },
+  {
+   "id": "d3",
+   "category": "d",
+   "kind": "option",
+   "option": "Tenuous",
+   "gate_text": "same",
+   "weight_text": "P_K(1<r<=2.5)",
+   "source": "same as d2",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "d",
+   "lets": {
+    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "p_atm": "1/(1 + 10**(delta/0.247))"
+   },
+   "weight": "p_atm*window(delta, -0.8, -0.3, 0.247)"
+  },
+  {
+   "id": "d4",
+   "category": "d",
+   "kind": "option",
+   "option": "Moderate",
+   "gate_text": "same",
+   "weight_text": "P_K(0.7<r<=1)",
+   "source": "same as d2",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "d",
+   "lets": {
+    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "p_atm": "1/(1 + 10**(delta/0.247))"
+   },
+   "weight": "p_atm*window(delta, -1.4, -0.8, 0.247)"
+  },
+  {
+   "id": "d5",
+   "category": "d",
+   "kind": "option",
+   "option": "Dense",
+   "gate_text": "same",
+   "weight_text": "P_K(r<=0.7)",
+   "source": "same as d2",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "d",
+   "lets": {
+    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "p_atm": "1/(1 + 10**(delta/0.247))"
+   },
+   "weight": "p_atm*window(delta, None, -1.4, 0.247)"
+  },
+  {
+   "id": "d6",
+   "category": "d",
+   "kind": "derived",
+   "option": "Pressure cap of the winning row (PARAM)",
+   "gate_text": "d1 to d5",
+   "weight_text": "P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapour)",
+   "source": "smooth caps suggested in the project doc s3.6 (values DESIGN)",
+   "status": "DESIGN",
+   "research": [
+    "R4"
+   ],
+   "notes": "",
+   "labels": [
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.483"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V",
+    "asteroid"
+   ],
+   "conditions": [],
+   "table_of": "d",
+   "table": {
+    "d1": 0.0,
+    "d2": 1e-05,
+    "d3": 0.01,
+    "d4": 0.1,
+    "d5": null
+   }
+  },
+  {
+   "id": "d7",
+   "category": "d",
+   "kind": "flag",
+   "option": "Primary H/He kept (flag outside the d1 to d5 draw)",
+   "gate_text": "M 1 to 30, lambda_H2=2.016 amu v_esc^2/(2 k T_exo)>=30 (T_exo = Teq + min(1500, 750 sqrt(F_xuv_rel)) K)",
+   "weight_text": "goes to table e (e1 or e2)",
+   "source": "same doc s3.2 and s3.4 ([C])",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "gate only",
+   "labels": [
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "minimum": 1,
+     "maximum": 30
+    }
+   ],
+   "weight": "1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"
+  },
+  {
+   "id": "e1",
+   "category": "e",
+   "kind": "option",
+   "option": "Bare rock (envelope stripped)",
+   "gate_text": "S, V, I, T, R[P]; M 1 to 30; not d1-only",
+   "weight_text": "(1-p[b4]) min(1, f_lost/f_env0); f_lost = eps pi R^3 E_cum S / (G M^2), eps 0.1 (0.05 to 0.2), E_cum=3.1e16 J/m2 at S=1 over 4.5 Gyr; f_env0=c[0.005,0.10]",
+   "source": "energy-limited form: Lopez and Fortney 2013 (READ); eps range (2ND-HAND); E_cum and f_env0 from the project doc ([C])",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "envelope fraction 0.5 to 10 % of mass",
+   "labels": [
+    "READ",
+    "2ND-HAND"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "minimum": 1,
+     "maximum": 30
+    }
+   ],
+   "group": "e",
+   "weight": "(1 - p('b4'))*min(1, f_lost/f_env0)",
+   "lets": {
+    "f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
+   }
+  },
+  {
+   "id": "e2",
+   "category": "e",
+   "kind": "option",
+   "option": "H/He envelope retained",
+   "gate_text": "same",
+   "weight_text": "(1-p[b4]) (1 - min(1, f_lost/f_env0))",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "goes to e5, e6",
+   "labels": [
+    "READ",
+    "2ND-HAND"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "minimum": 1,
+     "maximum": 30
+    }
+   ],
+   "group": "e",
+   "weight": "(1 - p('b4'))*(1 - min(1, f_lost/f_env0))",
+   "lets": {
+    "f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
+   }
+  },
+  {
+   "id": "e3",
+   "category": "e",
+   "kind": "option",
+   "option": "Water world, steam/ocean, no H2 envelope",
+   "gate_text": "same, p[b4]>0",
+   "weight_text": "p[b4] (1-eta), eta=c[0.1,0.5]",
+   "source": "TEST: GJ 9827 d H2O>31 % (READ)",
+   "status": "DESIGN",
+   "research": [
+    "R1"
+   ],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.480"
+   ],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "minimum": 1,
+     "maximum": 30
+    }
+   ],
+   "group": "e",
+   "weight": "p('b4')*(1 - eta)"
+  },
+  {
+   "id": "e4",
+   "category": "e",
+   "kind": "option",
+   "option": "Hycean (H2 <=0.1 wt%, water >=10 wt%, bottom 300 to 400 K)",
+   "gate_text": "same",
+   "weight_text": "p[b4] eta",
+   "source": "Madhusudhan 2021 (READ)",
+   "status": "DESIGN",
+   "research": [
+    "R1"
+   ],
+   "notes": "radii up to 2.6 R_E at 10 M_E",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.480"
+   ],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "minimum": 1,
+     "maximum": 30
+    }
+   ],
+   "group": "e",
+   "weight": "p('b4')*eta"
+  },
+  {
+   "id": "e5",
+   "category": "e",
+   "kind": "param",
+   "option": "Envelope metal mass fraction Z (BINS)",
+   "gate_text": "L2, parent=e2",
+   "weight_text": "LU[0.01, 0.6]: bins 0.01-0.03, 0.03-0.1, 0.1-0.3, 0.3-0.6",
+   "source": "bracket from TEST planets: GJ 1214b >100x solar, TOI-270 d 58 wt%, K2-18b near solar to tens of x (READ); occurrence-weighted distribution NOT REACHED",
+   "status": "DESIGN",
+   "research": [
+    "R1"
+   ],
+   "notes": "mean molecular weight mu = 2.4 + 3.1 log10(Z/0.01)/log10(58) (matches 2.4 and 5.5, part 05 s5)",
+   "labels": [
+    "READ",
+    "NOT REACHED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.480"
+   ],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.e",
+     "equals": "e2"
+    }
+   ],
+   "dist": {
+    "kind": "loguniform",
+    "lo": 0.01,
+    "hi": 0.6
+   },
+   "bins": [
+    0.01,
+    0.03,
+    0.1,
+    0.3,
+    0.6
+   ],
+   "values": {
+    "mean_molecular_weight": "2.4 + 3.1*log10(value/0.01)/log10(58)"
+   }
+  },
+  {
+   "id": "e6",
+   "category": "e",
+   "kind": "binary",
+   "option": "L2 carbon carrier CH4 vs CO2/CO",
+   "gate_text": "parent=e2",
+   "weight_text": "CH4: Phi((500-Teq)/100)",
+   "source": "CH4 to CO near 500 K (400 to 600) for planets, Zahnle and Marley 2014 (READ); width = quoted half-range",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "N as N2; NH3 not seen (K2-18b)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "S",
+    "V",
+    "I",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.e",
+     "equals": "e2"
+    }
+   ],
+   "weight": "phi((500 - teq_k)/100)"
+  },
+  {
+   "id": "f1",
+   "category": "f",
+   "kind": "option",
+   "option": "Cold giant, ice-giant envelope (H2O, NH3, H2S cloud-depleted; CH4 5e-4 m)",
+   "gate_text": "GIANT; Teq<200 K",
+   "weight_text": "Phi-window (s 100 K)",
+   "source": "boundaries 200, 700, 1300 from part 05 s7.4 (COMPUTED/design) and Burrows and Sharp 1999: NH3 clouds about 200 K, water cloud about 350 K, N2 to NH3 about 700 K (READ); width DESIGN",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [],
+   "group": "f",
+   "weight": "window(teq_k, None, 200, 100)"
+  },
+  {
+   "id": "f2",
+   "category": "f",
+   "kind": "option",
+   "option": "Warm giant, 200 to 700 K (CO quench-set 1e-9 to 1e-5)",
+   "gate_text": "GIANT",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [],
+   "group": "f",
+   "weight": "window(teq_k, 200, 700, 100)"
+  },
+  {
+   "id": "f3",
+   "category": "f",
+   "kind": "option",
+   "option": "T-like, 700 to 1300 K (CH4, NH3 1.2e-4 m, Na, K gas above clouds)",
+   "gate_text": "GIANT, BD",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "group": "f",
+   "weight": "window(teq_k, 700, 1300, 100)"
+  },
+  {
+   "id": "f4",
+   "category": "f",
+   "kind": "option",
+   "option": "Hot, Teq>=1300 K (go to table h; BD to table g)",
+   "gate_text": "GIANT zone h",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "f",
+   "weight": "window(teq_k, 1300, None, 100)"
+  },
+  {
+   "id": "f5",
+   "category": "f",
+   "kind": "param",
+   "option": "Metallicity m (PARAM)",
+   "gate_text": "GIANT",
+   "weight_text": "log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0]",
+   "source": "centre: Thorngren 2016 Zpl/Zstar relation (READ); 0.26 dex scatter of the Mz fit (READ) is the bracket for 0.3 (0.3 RECALLED design)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "Chachan 2025 gives lower Z for sub-Saturns",
+   "labels": [
+    "READ",
+    "RECALLED"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is RECALLED (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [],
+   "sets": "metallicity",
+   "dist": {
+    "kind": "normal",
+    "log10": true,
+    "mu": "log10(9.7*mass_jupiter**-0.45)",
+    "sigma": 0.3,
+    "range": [
+     -0.5,
+     2.0
+    ]
+   }
+  },
+  {
+   "id": "f6",
+   "category": "f",
+   "kind": "bins",
+   "option": "Metallicity bins of f5 (BINS)",
+   "gate_text": "same",
+   "weight_text": "edges log10 m = -0.5, 0, 0.5, 1.0, 1.5, 2.0",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "RECALLED"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is RECALLED (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [],
+   "of": "f5",
+   "bins": [
+    "10**-0.5",
+    1,
+    "10**0.5",
+    10,
+    "10**1.5",
+    100
+   ]
+  },
+  {
+   "id": "f7",
+   "category": "f",
+   "kind": "param",
+   "option": "C/O (PARAM, mixture)",
+   "gate_text": "GIANT, BD",
+   "weight_text": "(1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03",
+   "source": "stellar C/O median 0.47 with no star above 0.8 (N=849); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.15 dex (Line 2021 WASP-77Ab 0.59 +/- 0.08, READ; Asplund 2021 solar 0.589)",
+   "status": "DESIGN",
+   "research": [
+    "R5"
+   ],
+   "notes": "bins <0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, >1.0 Corrected 2026-10-18 (tunable-gaps 3.4): the tail share LU[0.0013, 0.34] is outside the data (planet tail 0.043 to 0.087) and the core centre is 0.57. Part 05's recipe 0.55*10^N(0, 0.15) truncated to [0.2, 1.5] put 13.9 percent of giants above C/O 0.8, where about 2 to 5 percent was intended: the core stops at 0.8 and the tail is explicit.",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.484"
+   ],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "sets": "c_to_o",
+   "constants": {
+    "f_tail": [
+     0.043,
+     0.087,
+     "log"
+    ]
+   },
+   "dist": {
+    "kind": "mixture",
+    "weight": "f_tail",
+    "core": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.57)",
+     "sigma": 0.15,
+     "range": [
+      "log10(0.2)",
+      "log10(0.8)"
+     ]
+    },
+    "tail": {
+     "kind": "uniform",
+     "lo": 0.8,
+     "hi": 1.5
+    }
+   },
+   "bins": [
+    0.2,
+    0.35,
+    0.7,
+    0.8,
+    1.0,
+    1.5
+   ]
+  },
+  {
+   "id": "f8",
+   "category": "f",
+   "kind": "binary",
+   "option": "Carbon carrier CH4 vs CO",
+   "gate_text": "GIANT, BD",
+   "weight_text": "CH4: Phi((T_trans-T)/100); T_trans 500 (planets), 1100 (BD)",
+   "source": "Zahnle and Marley 2014 (READ); generator should evaluate the quench formula t_q with its own g, m, Kzz instead",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "HCN, C2H2 appear at C/O>=1 (Madhusudhan 2012 READ)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "weight": "phi((1100 - teff_k)/100) if body_class == 'brown-dwarf' else phi((500 - teq_k)/100)"
+  },
+  {
+   "id": "g1",
+   "category": "g",
+   "kind": "option",
+   "option": "Young hot, late-M-like",
+   "gate_text": "BD; Teff 2200 to 2800 K",
+   "weight_text": "Phi-window (s 100 K)",
+   "source": "cap 2800 K = repo ROGUE_MAX_EFFECTIVE_TEMPERATURE_K; lower edge DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R15"
+   ],
+   "notes": "",
+   "labels": [
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.494"
+   ],
+   "classes": [
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "group": "g",
+   "weight": "window(teff_k, 2200, 2800, 100)"
+  },
+  {
+   "id": "g2",
+   "category": "g",
+   "kind": "option",
+   "option": "L dwarf: H2O, CO (5e-4 m), Na, K, FeH, CrH; Fe and silicate clouds",
+   "gate_text": "BD; 1300 to 2200 K",
+   "weight_text": "Phi-window",
+   "source": "part 05 s7.4 (COMPUTED); Burrows and Sharp 1999 (READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "group": "g",
+   "weight": "window(teff_k, 1300, 2200, 100)"
+  },
+  {
+   "id": "g3",
+   "category": "g",
+   "kind": "option",
+   "option": "T dwarf: CH4, H2O, NH3, Na, K; sulfide and salt clouds",
+   "gate_text": "BD; 700 to 1300 K",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "group": "g",
+   "weight": "window(teff_k, 700, 1300, 100)"
+  },
+  {
+   "id": "g4",
+   "category": "g",
+   "kind": "option",
+   "option": "T/Y transition (500 to 700 K): NH3-rich, water cloud near 350 K deeper",
+   "gate_text": "BD; 500 to 700 K",
+   "weight_text": "Phi-window",
+   "source": "gap in part 05 s7.4 (T and Y rows leave 500 to 700 K uncovered); Burrows and Sharp 1999 (READ)",
+   "status": "DESIGN",
+   "research": [
+    "R15"
+   ],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.494"
+   ],
+   "classes": [
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "group": "g",
+   "weight": "window(teff_k, 500, 700, 100)"
+  },
+  {
+   "id": "g5",
+   "category": "g",
+   "kind": "option",
+   "option": "Y dwarf: CH4, water cloud",
+   "gate_text": "BD; Teff<500 K",
+   "weight_text": "Phi-window",
+   "source": "part 05 s7.4",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "group": "g",
+   "weight": "window(teff_k, None, 500, 100)"
+  },
+  {
+   "id": "g6",
+   "category": "g",
+   "kind": "binary",
+   "option": "Carbon carrier CH4 vs CO",
+   "gate_text": "BD",
+   "weight_text": "CH4: Phi((1100-Teff)/100)",
+   "source": "Zahnle and Marley 2014 1100+-100 K (READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "weight": "phi((1100 - teff_k)/100)"
+  },
+  {
+   "id": "h1",
+   "category": "h",
+   "kind": "option",
+   "option": "Warm-like, quench-enhanced CH4, NH3, HCN",
+   "gate_text": "GIANT zone h; Tday<1500 K",
+   "weight_text": "Phi-window (s 100 K)",
+   "source": "part 05 s8 recipe; Moses 2011 (READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "h",
+   "weight": "window(tday_k, None, 1500, 100)"
+  },
+  {
+   "id": "h2",
+   "category": "h",
+   "kind": "option",
+   "option": "CO + H2O + H2; CO2 rises with m",
+   "gate_text": "Tday 1500 to 2200 K",
+   "weight_text": "Phi-window",
+   "source": "part 05 s8 (design edges)",
+   "status": "DESIGN",
+   "research": [
+    "R6"
+   ],
+   "notes": "",
+   "labels": [],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.485"
+   ],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "h",
+   "weight": "window(tday_k, 1500, 2200, 100)"
+  },
+  {
+   "id": "h3",
+   "category": "h",
+   "kind": "option",
+   "option": "Thermally dissociated: H, OH, H-, Na, K, Fe, Mg, SiO, ions",
+   "gate_text": "Tday>2200 K",
+   "weight_text": "Phi-window",
+   "source": "Arcangeli 2018 WASP-18b (READ); edge DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R6"
+   ],
+   "notes": "no mole fractions without FastChem or GGchem",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.485"
+   ],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "h",
+   "weight": "window(tday_k, 2200, None, 100)"
+  },
+  {
+   "id": "h4",
+   "category": "h",
+   "kind": "binary",
+   "option": "TiO/VO gas kept (leaky cold trap)",
+   "gate_text": "h2 or h3; grain radius a (um)",
+   "weight_text": "P(log Kzz >= Kmin(a)); Kzz ~ LU[1e7, 1e11]; log Kmin = 7.48 + 3.52 (log10 a + 1)/2",
+   "source": "Spiegel 2009: few 1e7 for 0.1 um to 1e11 for 10 um grains (READ); Kzz prior DESIGN (TEST: WASP-107b 10^11.6, READ)",
+   "status": "DESIGN",
+   "research": [
+    "R6"
+   ],
+   "notes": "TiO above 2000 to 2300 K, VO above 1700 to 1900 K",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.485"
+   ],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    },
+    {
+     "quantity": "drawn.h",
+     "one_of": [
+      "h2",
+      "h3"
+     ]
+    }
+   ],
+   "weight": "clamp((11 - (7.48 + 3.52*(log10(grain_um) + 1)/2))/4, 0, 1)"
+  },
+  {
+   "id": "h5",
+   "category": "h",
+   "kind": "binary",
+   "option": "C/O>=1 branch (HCN, C2H2; TiO, VO depleted)",
+   "gate_text": "all h",
+   "weight_text": "p[f7 bins >=1.0]",
+   "source": "Madhusudhan 2012 (READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "weight": "pdist('f7', 1.0, None)"
+  },
+  {
+   "id": "i1",
+   "category": "i",
+   "kind": "option",
+   "option": "Type I: Na, O2, O, Fe",
+   "gate_text": "ROCKY zone h (A, B, S, C); Tp<2033 K (s 60)",
+   "weight_text": "Phi-window",
+   "source": "Miguel 2011 text boundaries (READ); s covers the caption list, which differs by 2 to 155 K",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "prior if Tp undrawn: 189 of 193 Kepler candidates (0.979)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "i",
+   "weight": "window(tp_k, None, 2033, 60)"
+  },
+  {
+   "id": "i2",
+   "category": "i",
+   "kind": "option",
+   "option": "Type II: + SiO, Mg",
+   "gate_text": "2033 to 2588 K",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "3 of 193 (0.016)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "i",
+   "weight": "window(tp_k, 2033, 2588, 60)"
+  },
+  {
+   "id": "i3",
+   "category": "i",
+   "kind": "option",
+   "option": "Type III: O2, O, SiO columns equal",
+   "gate_text": "2588 to 2890 K",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "0 of 193",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "i",
+   "weight": "window(tp_k, 2588, 2890, 60)"
+  },
+  {
+   "id": "i4",
+   "category": "i",
+   "kind": "option",
+   "option": "Type IV: SiO > O2",
+   "gate_text": "2890 to 3168 K",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "1 of 193 (0.005)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "i",
+   "weight": "window(tp_k, 2890, 3168, 60)"
+  },
+  {
+   "id": "i5",
+   "category": "i",
+   "kind": "option",
+   "option": "Type V: SiO, O, O2, Na",
+   "gate_text": "Tp>3168 K",
+   "weight_text": "Phi-window",
+   "source": "same",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "0 of 193",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    }
+   ],
+   "group": "i",
+   "weight": "window(tp_k, 3168, None, 60)"
+  },
+  {
+   "id": "i6",
+   "category": "i",
+   "kind": "binary",
+   "option": "Bare silicate vapour (volatile-free melt) vs volatile-bearing CO2/CO",
+   "gate_text": "ROCKY zone h, 1<=M<=10",
+   "weight_text": "volatile-bearing c[0.1,0.9], bare 1-c",
+   "source": "TEST 55 Cnc e CO2/CO, 0.01 to 100 bar (Hu 2024 READ); weight DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R7"
+   ],
+   "notes": "P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 (Kite 2016, 1400 to 2800 K, READ)",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.486"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "zone",
+     "equals": "h"
+    },
+    {
+     "quantity": "mass_earth",
+     "minimum": 1,
+     "maximum": 10
+    }
+   ],
+   "constants": {
+    "c_i6": [
+     0.1,
+     0.9,
+     "log"
+    ]
+   },
+   "weight": "c_i6",
+   "values": {
+    "p_eq_bar": "10**(-34.7*exp(-0.00112*tp_k))"
+   }
+  },
+  {
+   "id": "j1",
+   "category": "j",
+   "kind": "option",
+   "option": "Venus-like dense CO2-N2 (97:3), SO2 trace",
+   "gate_text": "N, V, A, S[with air]; S_eff above the runaway limit (1.04 to 1.11 for a Sun-like star); dIW>=1; water lost",
+   "weight_text": "c[0.1,1]",
+   "source": "CO2-N2 ratio: Sossi 2020 (part 08 s2, READ); runaway limit Kopparapu 2013/2014 ([R] in project doc); prior DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R8"
+   ],
+   "notes": "S_eff limit depends on Teff (Kopparapu polynomial)",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.487"
+   ],
+   "classes": [
+    "N",
+    "V",
+    "A",
+    "S"
+   ],
+   "conditions": [
+    {
+     "quantity": "redox_diw",
+     "minimum": 1
+    },
+    {
+     "quantity": "water_lost",
+     "equals": true
+    },
+    {
+     "quantity": "runaway_ratio",
+     "minimum": 1.0
+    }
+   ],
+   "group": "j",
+   "weight": "c_j1"
+  },
+  {
+   "id": "j2",
+   "category": "j",
+   "kind": "option",
+   "option": "Mars-like thin CO2-N2-Ar",
+   "gate_text": "K, L, U[P]; M<0.5; 1<r<=2.5 (d3); 190<=Ts<=270 K",
+   "weight_text": "c[0.1,1]",
+   "source": "same CO2-N2 ratio at lower pressure (Sossi, READ); TEST Mars CO2 .96 N2 .019 Ar .019 (Mahaffy 2013, READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "Decided (Boss, 2026-10-18, fork 7): the Mars-, Titan- and Pluto-like occurrence is an output of the escape and retention physics, not a design flag; the gate carries it and the weight is 1.",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "K",
+    "L",
+    "U"
+   ],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "maximum": 0.5
+    },
+    {
+     "quantity": "drawn.d",
+     "equals": "d3"
+    },
+    {
+     "quantity": "ts_k",
+     "minimum": 190,
+     "maximum": 270
+    }
+   ],
+   "group": "j",
+   "weight": 1
+  },
+  {
+   "id": "j3",
+   "category": "j",
+   "kind": "option",
+   "option": "Titan-like N2-CH4 (N2 0.5 to 2 bar)",
+   "gate_text": "Y[P], MOON; 57<=Ts<=125 K (s 5), r<0.7, S<=0.02, R 1500 to 4000 km",
+   "weight_text": "c[0.1,1]",
+   "source": "T window: N2 ice p_sat 30.6 to 62.2 K for 1e-7 to 0.1 bar (part 06 s2.4, 2ND-HAND); TEST Titan CH4 1.5 to 5.7 % (Niemann 2010, READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it.",
+   "labels": [
+    "READ",
+    "2ND-HAND"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "Y"
+   ],
+   "conditions": [
+    {
+     "quantity": "is_moon",
+     "equals": true
+    },
+    {
+     "quantity": "radius_km",
+     "minimum": 1500,
+     "maximum": 4000
+    },
+    {
+     "quantity": "insolation",
+     "maximum": 0.02
+    },
+    {
+     "quantity": "drawn.d",
+     "equals": "d5"
+    }
+   ],
+   "group": "j",
+   "weight": "window(ts_k, 57, 125, 5)"
+  },
+  {
+   "id": "j4",
+   "category": "j",
+   "kind": "option",
+   "option": "Pluto/Triton-like frost equilibrium: N2 >99 %, CH4 0.3 %, CO 0.05 %",
+   "gate_text": "D, C, U[P]; 30<=Ts<=67 K (s 5), r<1",
+   "weight_text": "c[0.1,1]",
+   "source": "p_i = chi_i p_sat,i(Ts) (Raoult); TEST values (Mousis and Anderson 2024 2ND-HAND); N2/CO/CH4 vapour-pressure relations not reached",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "CO column vs near-surface ratio differ 8x Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it.",
+   "labels": [
+    "2ND-HAND"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "C",
+    "D",
+    "U"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.d",
+     "one_of": [
+      "d4",
+      "d5"
+     ]
+    }
+   ],
+   "group": "j",
+   "weight": "window(ts_k, 30, 67, 5)"
+  },
+  {
+   "id": "j5",
+   "category": "j",
+   "kind": "option",
+   "option": "Abiotic O2 world (10 to 100+ bar O2, or CO build-up)",
+   "gate_text": "Z[P]; host M dwarf, age>1 Gyr, HZ, 0.3<=M<=5",
+   "weight_text": "c[0.05,0.5]",
+   "source": "Luger and Barnes 2015 via Meadows 2018 (2ND-HAND): 240 bar O2 per ocean; Gao 2015 cap 50 % CO2 loss (READ)",
+   "status": "DESIGN",
+   "research": [
+    "R8"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "2ND-HAND"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.487"
+   ],
+   "classes": [
+    "Z"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "equals": "M"
+    },
+    {
+     "quantity": "age_gy",
+     "minimum": 1
+    },
+    {
+     "quantity": "mass_earth",
+     "minimum": 0.3,
+     "maximum": 5
+    },
+    {
+     "quantity": "zone",
+     "equals": "e"
+    }
+   ],
+   "group": "j",
+   "weight": "c_j5"
+  },
+  {
+   "id": "k1",
+   "category": "k",
+   "kind": "option",
+   "option": "CO2-dominated coma",
+   "gate_text": "COMET active (perihelion<3 AU, repo threshold), icy AST",
+   "weight_text": "0.5",
+   "source": "25-comet sample, about half CO2-dominated (Harrington Pinto 2022, SNIPPET)",
+   "status": "DESIGN",
+   "research": [
+    "R9"
+   ],
+   "notes": "",
+   "labels": [
+    "SNIPPET"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.488"
+   ],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "k",
+   "weight": "0.5 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+  },
+  {
+   "id": "k2",
+   "category": "k",
+   "kind": "option",
+   "option": "CO-dominated coma",
+   "gate_text": "same",
+   "weight_text": "1/3",
+   "source": "same (SNIPPET)",
+   "status": "DESIGN",
+   "research": [
+    "R9"
+   ],
+   "notes": "Hale-Bopp CO 23 %, Hyakutake 18.2 % of H2O (READ)",
+   "labels": [
+    "SNIPPET"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.488"
+   ],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "k",
+   "weight": "1/3 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+  },
+  {
+   "id": "k3",
+   "category": "k",
+   "kind": "option",
+   "option": "Comparable CO2 and CO",
+   "gate_text": "same",
+   "weight_text": "0.1",
+   "source": "same (SNIPPET)",
+   "status": "DESIGN",
+   "research": [
+    "R9"
+   ],
+   "notes": "the three weights sum to 0.93; normalised",
+   "labels": [
+    "SNIPPET"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.488"
+   ],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "group": "k",
+   "weight": "0.1 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+  },
+  {
+   "id": "k4",
+   "category": "k",
+   "kind": "param",
+   "option": "CO2/H2O (PARAM)",
+   "gate_text": "all k",
+   "weight_text": "LN(0.12, 0.5 dex)",
+   "source": "median about 12 % (SNIPPET); TEST 67P 4.7+-1.4 % (Rubin 2019 READ); sigma by eye",
+   "status": "DESIGN",
+   "research": [
+    "R9"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "SNIPPET"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.488"
+   ],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "bins": [
+    0.03,
+    0.1,
+    0.3
+   ],
+   "dist": {
+    "kind": "normal",
+    "log10": true,
+    "mu": "log10(0.12)",
+    "sigma": 0.5
+   }
+  },
+  {
+   "id": "k5",
+   "category": "k",
+   "kind": "param",
+   "option": "CO/H2O (PARAM)",
+   "gate_text": "all k",
+   "weight_text": "LN(0.03, 0.6 dex), range 0.005 to 0.23",
+   "source": "Willacy 2025 Tables 2, 3 range 0.5 to 23 % (READ); median SNIPPET; TEST 67P 3.1+-0.9 %",
+   "status": "DESIGN",
+   "research": [
+    "R9"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "SNIPPET"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.488"
+   ],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "dist": {
+    "kind": "normal",
+    "log10": true,
+    "mu": "log10(0.03)",
+    "sigma": 0.6,
+    "range": [
+     "log10(0.005)",
+     "log10(0.23)"
+    ]
+   }
+  },
+  {
+   "id": "k6",
+   "category": "k",
+   "kind": "param",
+   "option": "CH3OH, NH3, HCN to H2O (PARAM)",
+   "gate_text": "all k",
+   "weight_text": "LU[0.002, 0.026], LU[0.001, 0.0073], LU[0.0009, 0.0029]",
+   "source": "Willacy 2025 cross-comet ranges (READ)",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "log-uniform shape DESIGN",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "dists": {
+    "CH3OH": {
+     "kind": "loguniform",
+     "lo": 0.002,
+     "hi": 0.026
+    },
+    "NH3": {
+     "kind": "loguniform",
+     "lo": 0.001,
+     "hi": 0.0073
+    },
+    "HCN": {
+     "kind": "loguniform",
+     "lo": 0.0009,
+     "hi": 0.0029
+    }
+   }
+  },
+  {
+   "id": "k7",
+   "category": "k",
+   "kind": "param",
+   "option": "Single-comet species: CH4 3.4e-3, C2H6 2.9e-3, H2CO 3.2e-3, H2S 1.1e-2, N2 8.9e-4, O2 3.1e-2, OCS 4.1e-4, SO2 1.3e-3, Ar 5.8e-6, Kr 4.9e-7, Xe 2.4e-7, Ne <5e-8",
+   "gate_text": "all k",
+   "weight_text": "LN(67P value, 0.6 dex)",
+   "source": "Rubin 2019 (READ), one comet only; 0.6 dex = spread of CO",
+   "status": "DESIGN",
+   "research": [
+    "R9"
+   ],
+   "notes": "O2 presence probability unsourced Built from one measured comet (67P, Rubin 2019): a flagged stand-in until GEN.488. Ne is only an upper limit (below 5e-8) and is not drawn.",
+   "replacement": "GEN.488",
+   "labels": [
+    "READ"
+   ],
+   "state": "stand-in",
+   "limit": "",
+   "items": [
+    "GEN.488"
+   ],
+   "classes": [
+    "comet",
+    "asteroid"
+   ],
+   "conditions": [],
+   "dists": {
+    "CH4": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.0034)",
+     "sigma": 0.6
+    },
+    "C2H6": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.0029)",
+     "sigma": 0.6
+    },
+    "H2CO": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.0032)",
+     "sigma": 0.6
+    },
+    "H2S": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.011)",
+     "sigma": 0.6
+    },
+    "N2": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.00089)",
+     "sigma": 0.6
+    },
+    "O2": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.031)",
+     "sigma": 0.6
+    },
+    "OCS": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.00041)",
+     "sigma": 0.6
+    },
+    "SO2": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(0.0013)",
+     "sigma": 0.6
+    },
+    "Ar": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(5.8e-06)",
+     "sigma": 0.6
+    },
+    "Kr": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(4.9e-07)",
+     "sigma": 0.6
+    },
+    "Xe": {
+     "kind": "normal",
+     "log10": true,
+     "mu": "log10(2.4e-07)",
+     "sigma": 0.6
+    }
+   }
+  },
+  {
+   "id": "l1",
+   "category": "l",
+   "kind": "option",
+   "option": "Rocky body with silicate-vapour exosphere (Na, SiO, Mg, Fe)",
+   "gate_text": "host WD or PSR; rocky",
+   "weight_text": "Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula",
+   "source": "Kite 2016 (READ); threshold 1e-6 bar and width DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R10"
+   ],
+   "notes": "composition via a4",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.489"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "one_of": [
+      "WD",
+      "PSR"
+     ]
+    }
+   ],
+   "group": "l",
+   "weight": "phi((-34.7*exp(-0.00112*ts_k) + 6)/0.5)",
+   "values": {
+    "p_eq_bar": "10**(-34.7*exp(-0.00112*ts_k))"
+   }
+  },
+  {
+   "id": "l2",
+   "category": "l",
+   "kind": "option",
+   "option": "Airless",
+   "gate_text": "same",
+   "weight_text": "1 - w[l1]",
+   "source": "complement of l1",
+   "status": "DESIGN",
+   "research": [
+    "R10"
+   ],
+   "notes": "fallback row",
+   "labels": [],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.489"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "one_of": [
+      "WD",
+      "PSR"
+     ]
+    }
+   ],
+   "group": "l",
+   "weight": "1 - w('l1')"
+  },
+  {
+   "id": "l3",
+   "category": "l",
+   "kind": "option",
+   "option": "Surviving H/He giant",
+   "gate_text": "host WD, GIANT",
+   "weight_text": "c[0,0.1]",
+   "source": "fate of planets: Veras 2016 NOT REACHED",
+   "status": "DESIGN",
+   "research": [
+    "R10"
+   ],
+   "notes": "composition via tables f and g",
+   "labels": [
+    "NOT REACHED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.489"
+   ],
+   "classes": [
+    "I",
+    "J",
+    "T"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "equals": "WD"
+    }
+   ],
+   "group": "l",
+   "weight": "c_l3"
+  },
+  {
+   "id": "m1",
+   "category": "m",
+   "kind": "binary",
+   "option": "O3, O2-supported",
+   "gate_text": "O2>=1e-3 PAL (any host)",
+   "weight_text": "1",
+   "source": "column LU[192, 279] DU at 100 % PAL, Sun (Kozakis fit via project doc 2ND-HAND; Cooke 2022, READ); 18 DU at 0.1 % PAL",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "M-dwarf columns larger (Segura 2005)",
+   "labels": [
+    "READ",
+    "2ND-HAND"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "o2_pal",
+     "minimum": 0.001
+    }
+   ],
+   "weight": 1,
+   "dist": {
+    "kind": "loguniform",
+    "lo": 192,
+    "hi": 279
+   }
+  },
+  {
+   "id": "m2",
+   "category": "m",
+   "kind": "binary",
+   "option": "O3, abiotic without O2",
+   "gate_text": "O2<1e-3 PAL; CO2-rich, H2-poor, M or K host",
+   "weight_text": "c[0.1,0.6]",
+   "source": "O3 about 10 % of Earth column (Domagal-Goldman 2014, 2ND-HAND); O3>1 ppm (Gao 2015, READ)",
+   "status": "DESIGN",
+   "research": [
+    "R11"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "2ND-HAND"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.490"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "o2_pal",
+     "maximum": 0.001
+    }
+   ],
+   "constants": {
+    "c_m2": [
+     0.1,
+     0.6,
+     "log"
+    ]
+   },
+   "weight": "c_m2 if (co2_rich and h2_poor and host_type in ('M', 'K')) else 0"
+  },
+  {
+   "id": "m3",
+   "category": "m",
+   "kind": "binary",
+   "option": "N2O",
+   "gate_text": "HAB with life_chemical, or SEP-driven weakly reducing air",
+   "weight_text": "c[0.05,0.5]",
+   "source": "TEST ~400 ppbv (Airapetian 2020 READ); presence unsourced",
+   "status": "DESIGN",
+   "research": [
+    "R11"
+   ],
+   "notes": "longer lifetime around M dwarfs",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.490"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [],
+   "constants": {
+    "c_m3": [
+     0.05,
+     0.5,
+     "log"
+    ]
+   },
+   "weight": "c_m3 if (life_chemical or sep_reducing) else 0"
+  },
+  {
+   "id": "m4",
+   "category": "m",
+   "kind": "binary",
+   "option": "PH3",
+   "gate_text": "ROCKY with air",
+   "weight_text": "c[0,0.05]",
+   "source": "TEST 20 ppb Venus claim (Greaves 2020 READ); lifetime hours (Sousa-Silva 2020, READ)",
+   "status": "DESIGN",
+   "research": [
+    "R11"
+   ],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.490"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [],
+   "constants": {
+    "c_m4": [
+     0.0,
+     0.05,
+     "uniform"
+    ]
+   },
+   "weight": "c_m4"
+  },
+  {
+   "id": "m5",
+   "category": "m",
+   "kind": "binary",
+   "option": "HCl",
+   "gate_text": "c1 to c4; crust-like inventory",
+   "weight_text": "c[0.1,0.5]",
+   "source": "1.4 % at 1000 K 100 bar, crust composition (Schaefer 2012 READ)",
+   "status": "DESIGN",
+   "research": [
+    "R11"
+   ],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.490"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.c",
+     "one_of": [
+      "c1",
+      "c2",
+      "c3",
+      "c4"
+     ]
+    }
+   ],
+   "constants": {
+    "c_m5": [
+     0.1,
+     0.5,
+     "log"
+    ]
+   },
+   "weight": "c_m5"
+  },
+  {
+   "id": "m6",
+   "category": "m",
+   "kind": "binary",
+   "option": "HF",
+   "gate_text": "same",
+   "weight_text": "c[0.1,0.5]",
+   "source": "4.5 % at 1000 K 1e-6 bar, crust composition (READ)",
+   "status": "DESIGN",
+   "research": [
+    "R11"
+   ],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.490"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.c",
+     "one_of": [
+      "c1",
+      "c2",
+      "c3",
+      "c4"
+     ]
+    }
+   ],
+   "constants": {
+    "c_m6": [
+     0.1,
+     0.5,
+     "log"
+    ]
+   },
+   "weight": "c_m6"
+  },
+  {
+   "id": "m7",
+   "category": "m",
+   "kind": "binary",
+   "option": "Na gas",
+   "gate_text": "f2, f3, h, i, BD; T in the 0.1-1 bar layer",
+   "weight_text": "Phi((T-962)/33)",
+   "source": "Na2S T_cond 929 to 996 K at 0.1 to 1 bar (part 06 s2.6, COMPUTED from READ fit); Na 1.66e-6 per H times m",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf",
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [],
+   "weight": "phi((t_layer_k - 962)/33)"
+  },
+  {
+   "id": "m8",
+   "category": "m",
+   "kind": "binary",
+   "option": "K gas",
+   "gate_text": "same",
+   "weight_text": "Phi((T-775)/26)",
+   "source": "KCl T_cond 749 to 801 K (part 06 s2.6); K 1.17e-7 per H times m",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf",
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [],
+   "weight": "phi((t_layer_k - 775)/26)"
+  },
+  {
+   "id": "m9",
+   "category": "m",
+   "kind": "derived",
+   "option": "OCS (COS)",
+   "gate_text": "gas has CO and H2S",
+   "weight_text": "log10 K = -1.477 + 4/T (CO+H2S=COS+H2)",
+   "source": "part 05 s3.3 (COMPUTED from NASA polynomials)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "formation equilibrium, not a probability",
+   "labels": [
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V",
+    "I",
+    "J",
+    "T",
+    "brown-dwarf"
+   ],
+   "conditions": [
+    {
+     "quantity": "gas_has_co_h2s",
+     "equals": true
+    }
+   ],
+   "values": {
+    "log10_k_eq": "-1.477 + 4/t_layer_k",
+    "k_eq": "10**(-1.477 + 4/t_layer_k)"
+   }
+  },
+  {
+   "id": "m10",
+   "category": "m",
+   "kind": "binary",
+   "option": "Radon-222",
+   "gate_text": "ROCKY with air and solid ground",
+   "weight_text": "1",
+   "source": "flux J = C_Ra f rho_b sqrt(lam D_e), f 0.05 to 0.7 (UNSCEAR 2008, READ); D_e unsourced",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "has_solid_ground",
+     "equals": true
+    }
+   ],
+   "weight": 1
+  },
+  {
+   "id": "m11",
+   "category": "m",
+   "kind": "binary",
+   "option": "NO2, CH3Cl",
+   "gate_text": "HAB with life, or lightning",
+   "weight_text": "c[0,0.3]",
+   "source": "NOT REACHED (Harman 2018)",
+   "status": "DESIGN",
+   "research": [
+    "R11"
+   ],
+   "notes": "",
+   "labels": [
+    "NOT REACHED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.490"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [],
+   "constants": {
+    "c_m11": [
+     0.0,
+     0.3,
+     "uniform"
+    ]
+   },
+   "weight": "c_m11 if (life_chemical or lightning) else 0"
+  },
+  {
+   "id": "n1",
+   "category": "n",
+   "kind": "windows",
+   "option": "Oxide, silicate, iron clouds: Al-Ti oxides 1850-2000 K; Fe 1690-1840; forsterite 1597-1698; enstatite 1513-1597; Cr 1416-1521; MnS 1271-1343",
+   "gate_text": "GIANT, BD, i-types; profile crosses window",
+   "weight_text": "1",
+   "source": "T_cond fits Visscher 2010 (READ), part 06 s2.6 (COMPUTED)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "10^4/T_cond = 5.44-0.48 logP-0.48[Fe/H] (Fe)",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf",
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [],
+   "windows": [
+    [
+     "Al-Ti oxides",
+     1850,
+     2000
+    ],
+    [
+     "Fe",
+     1690,
+     1840
+    ],
+    [
+     "forsterite",
+     1597,
+     1698
+    ],
+    [
+     "enstatite",
+     1513,
+     1597
+    ],
+    [
+     "Cr",
+     1416,
+     1521
+    ],
+    [
+     "MnS",
+     1271,
+     1343
+    ]
+   ]
+  },
+  {
+   "id": "n2",
+   "category": "n",
+   "kind": "windows",
+   "option": "Na2S 929-996 K; KCl/ZnS 749-801 K",
+   "gate_text": "same",
+   "weight_text": "1",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf",
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [],
+   "windows": [
+    [
+     "Na2S",
+     929,
+     996
+    ],
+    [
+     "KCl/ZnS",
+     749,
+     801
+    ]
+   ]
+  },
+  {
+   "id": "n3",
+   "category": "n",
+   "kind": "windows",
+   "option": "NH4SH 189-223 K (0.1-10 bar); H2S ice 105-128 K only if NH3 absent",
+   "gate_text": "GIANT, BD, f1, f2",
+   "weight_text": "1",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf"
+   ],
+   "conditions": [],
+   "windows": [
+    [
+     "NH4SH",
+     189,
+     223
+    ],
+    [
+     "H2S ice",
+     105,
+     128
+    ]
+   ]
+  },
+  {
+   "id": "n4",
+   "category": "n",
+   "kind": "windows",
+   "option": "Water cloud or ice 161-253 K (pp 1e-9 to 1e-3 bar)",
+   "gate_text": "any with H2O",
+   "weight_text": "1",
+   "source": "same",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "h2o_present",
+     "equals": true
+    }
+   ],
+   "windows": [
+    [
+     "water cloud or ice",
+     161,
+     253
+    ]
+   ]
+  },
+  {
+   "id": "n5",
+   "category": "n",
+   "kind": "windows",
+   "option": "CO2 ice 114-195 K; NH3 ice 135-179 K; CH4 ice 53-90 K; N2 ice 31-62 K, CO ice 34-66 K",
+   "gate_text": "cold GIANT, K, Y[P], D, comets",
+   "weight_text": "1",
+   "source": "part 06 s2.4, s2.6 (2ND-HAND ice curves)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "2ND-HAND"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "K",
+    "Y",
+    "D",
+    "comet"
+   ],
+   "conditions": [],
+   "windows": [
+    [
+     "CO2 ice",
+     114,
+     195
+    ],
+    [
+     "NH3 ice",
+     135,
+     179
+    ],
+    [
+     "CH4 ice",
+     53,
+     90
+    ],
+    [
+     "N2 ice",
+     31,
+     62
+    ],
+    [
+     "CO ice",
+     34,
+     66
+    ]
+   ]
+  },
+  {
+   "id": "n6",
+   "category": "n",
+   "kind": "binary",
+   "option": "Silicate-dominated aerosol",
+   "gate_text": "GIANT, BD, hot rocky",
+   "weight_text": "Phi((Teq-950)/100)",
+   "source": "crossover Teq about 950 K, Gao 2020 (READ); width DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R12"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.491"
+   ],
+   "classes": [
+    "I",
+    "J",
+    "T",
+    "brown-dwarf",
+    "A",
+    "B",
+    "C",
+    "S"
+   ],
+   "conditions": [],
+   "weight": "phi((teq_k - 950)/100)"
+  },
+  {
+   "id": "n7",
+   "category": "n",
+   "kind": "binary",
+   "option": "Photochemical haze (tholin, soot)",
+   "gate_text": "carbon-bearing air",
+   "weight_text": "(1 - w[n6]) * y; yield y = LU[0.01, 1]; monomer 1 to 50 nm, 1.0 g/cm3",
+   "source": "lab rates span 250x (Horst 2018 READ); haze threshold CH4/CO2 0.1 to 0.2 (Arney 2016 READ)",
+   "status": "DESIGN",
+   "research": [
+    "R12"
+   ],
+   "notes": "near zero for carbon-free gas, lower in H2 gas",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.491"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V",
+    "I",
+    "J",
+    "T",
+    "brown-dwarf"
+   ],
+   "conditions": [
+    {
+     "quantity": "carbon_bearing",
+     "equals": true
+    }
+   ],
+   "constants": {
+    "y": [
+     0.01,
+     1.0,
+     "log"
+    ]
+   },
+   "weight": "(1 - w('n6'))*y"
+  },
+  {
+   "id": "n8",
+   "category": "n",
+   "kind": "binary",
+   "option": "Mineral dust (Mars-type, r_eff 1 to 2 um)",
+   "gate_text": "ROCKY with air and surface wind u*>u*_t",
+   "weight_text": "1 if u*>u*_t",
+   "source": "threshold from Shao-Lu and Iversen-White formulas (READ, COMPUTED to 1.6x of Kok 2012)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [],
+   "weight": "1 if u_star > u_star_threshold else 0"
+  },
+  {
+   "id": "n9",
+   "category": "n",
+   "kind": "binary",
+   "option": "S8 / H2SO4 aerosol",
+   "gate_text": "outgassing S flux >=100x Earth volcanic (N2, CO2 air); Earth flux in H2 air",
+   "weight_text": "1",
+   "source": "Hu 2013 (READ); H2SO4-H2O vapour curve NOT REACHED",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ",
+    "NOT REACHED"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is NOT REACHED (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "conditions": [],
+   "weight": "1 if sulfur_flux_earth >= (1 if h2_air else 100) else 0"
+  },
+  {
+   "id": "o1",
+   "category": "o",
+   "kind": "param",
+   "option": "Thorium (and U) scale, thin-disc Sun-like host (PARAM)",
+   "gate_text": "host thin disc, FGK; rocky",
+   "weight_text": "log10 f_Th ~ N(0.08, 0.058), f relative to BSE",
+   "source": "Botelho 2019: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ)",
+   "status": "SOURCED",
+   "research": [],
+   "notes": "BSE: U 0.020, Th 0.077, K 280 ppm (McDonough 2020 READ)",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "thin_disc_fgk",
+     "equals": true
+    }
+   ],
+   "bins": [
+    0.7,
+    1.4
+   ],
+   "dist": {
+    "kind": "normal",
+    "log10": true,
+    "mu": 0.08,
+    "sigma": 0.058
+   }
+  },
+  {
+   "id": "o2",
+   "category": "o",
+   "kind": "param",
+   "option": "Other populations (thick disc, halo, young, M host)",
+   "gate_text": "not o1",
+   "weight_text": "log10 f ~ U[-0.23, +0.40]",
+   "source": "Unterborn 2015: 59 to 251 % of solar (READ); shape DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R13"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.492"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "thin_disc_fgk",
+     "equals": false
+    }
+   ],
+   "dist": {
+    "kind": "loguniform",
+    "lo": "10**-0.23",
+    "hi": "10**0.40"
+   }
+  },
+  {
+   "id": "o3",
+   "category": "o",
+   "kind": "param",
+   "option": "K/U (mass)",
+   "gate_text": "ROCKY",
+   "weight_text": "LU[8.9e3, 1.4e4]",
+   "source": "crust 8900 to 11800, BSE 1.4e4 (McDonough 2020, Wipperfurth 2020, READ); volatile-depleted bodies lower, NOT REACHED",
+   "status": "DESIGN",
+   "research": [
+    "R13"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "NOT REACHED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.492"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "dist": {
+    "kind": "loguniform",
+    "lo": 8900.0,
+    "hi": 14000.0
+   }
+  },
+  {
+   "id": "o4",
+   "category": "o",
+   "kind": "param",
+   "option": "Th/U",
+   "gate_text": "ROCKY",
+   "weight_text": "U[3.8, 4.5]",
+   "source": "BSE 3.77, crust 4.0 to 4.5 (READ); stellar Th/U vs cosmic age NOT REACHED",
+   "status": "DESIGN",
+   "research": [
+    "R13"
+   ],
+   "notes": "",
+   "labels": [
+    "READ",
+    "NOT REACHED"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.492"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "dist": {
+    "kind": "uniform",
+    "lo": 3.8,
+    "hi": 4.5
+   }
+  },
+  {
+   "id": "o5",
+   "category": "o",
+   "kind": "derived",
+   "option": "Heating vs age",
+   "gate_text": "ROCKY",
+   "weight_text": "h(t)/h(4.5 Gyr) = sum s_i exp(lam_i (4.5 - t)), shares U238 .384, U235 .016, Th .402, K40 .193",
+   "source": "McDonough 2020 shares and half-lives (READ); COMPUTED",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "Al-26 adds 4.2e-7 W/kg for the first 20 Myr (RECALLED Al)",
+   "labels": [
+    "READ",
+    "COMPUTED"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [],
+   "values": {
+    "heating_ratio": "0.384*exp(0.693147/4.468*(4.5 - age_gy)) + 0.016*exp(0.693147/0.7038*(4.5 - age_gy)) + 0.402*exp(0.693147/14.05*(4.5 - age_gy)) + 0.193*exp(0.693147/1.248*(4.5 - age_gy))"
+   }
+  },
+  {
+   "id": "o6",
+   "category": "o",
+   "kind": "binary",
+   "option": "Al-26 early heating present",
+   "gate_text": "planetesimals formed within a few Myr",
+   "weight_text": "c[0.1,1]",
+   "source": "26Al/27Al 5.25e-5 (McDonough 2020 READ); presence in a given system unsourced",
+   "status": "DESIGN",
+   "research": [
+    "R13"
+   ],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.492"
+   ],
+   "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "S",
+    "V"
+   ],
+   "conditions": [
+    {
+     "quantity": "planetesimals_early",
+     "equals": true
+    }
+   ],
+   "constants": {
+    "c_o6": [
+     0.1,
+     1.0,
+     "log"
+    ]
+   },
+   "weight": "c_o6"
+  },
+  {
+   "id": "p1",
+   "category": "p",
+   "kind": "option",
+   "option": "F/G, quiescent: strong NUV, FUV/NUV(280-400 nm) about 1e-3",
+   "gate_text": "host F, G; age>tau_sat",
+   "weight_text": "1",
+   "source": "band fluxes at S=1 (part 04 s2.3, COMPUTED from MUSCLES-type DATA); Sun FUV/NUV 9.8e-4; F-star FUV NOT REACHED",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "DATA",
+    "COMPUTED",
+    "NOT REACHED"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is NOT REACHED (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "one_of": [
+      "F",
+      "G"
+     ]
+    },
+    {
+     "quantity": "age_gy",
+     "minimum": 0.1
+    }
+   ],
+   "group": "p",
+   "weight": 1
+  },
+  {
+   "id": "p2",
+   "category": "p",
+   "kind": "option",
+   "option": "K, quiescent",
+   "gate_text": "host K",
+   "weight_text": "1",
+   "source": "K2V 1.9e-3 (same)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "equals": "K"
+    },
+    {
+     "quantity": "age_gy",
+     "minimum": 0.1
+    }
+   ],
+   "group": "p",
+   "weight": 1
+  },
+  {
+   "id": "p3",
+   "category": "p",
+   "kind": "option",
+   "option": "M, post-saturation: FUV and Ly-alpha dominated",
+   "gate_text": "host M; age>tau_sat",
+   "weight_text": "1",
+   "source": "M1.5 1.2e-2, M2.5 1.6e-2, M4 2.7e-2 to 3.6e-2, TRAPPIST-1 (M8) 0.60 (same); O3 lifetime 0.8 to 2 h vs 124 s for the Sun",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "long CH4, N2O, CH3Cl lifetimes (Segura 2005 READ)",
+   "labels": [],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "equals": "M"
+    },
+    {
+     "quantity": "age_gy",
+     "minimum": 0.1
+    }
+   ],
+   "group": "p",
+   "weight": "1 - phi((log10(loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3)) - log10(age_gy))/0.25)"
+  },
+  {
+   "id": "p4",
+   "category": "p",
+   "kind": "option",
+   "option": "M, saturated and flaring (L_X/L_bol 10^-3.14 for early M)",
+   "gate_text": "host M; age<tau_sat; tau_sat = LU[0.162, 2] Gyr",
+   "weight_text": "1",
+   "source": "saturation 10^-3.14 and time 0.162 Gyr for early M (Jackson 2012 Table 2, READ); 0.6 +/- 0.3 Gyr for 0.2 to 0.3 and 2.3 +/- 1.3 Gyr for 0.1 to 0.2 solar masses (Medina 2022, READ); the width of 0.25 dex on log tau is DESIGN",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "proton ozone loss only if no magnetosphere (Segura 2010 READ) Corrected 2026-10-18 (tunable-gaps 3.3): tau_sat depends on stellar mass (0.16 Gyr at 0.5 to 0.6 solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces LU[0.162, 2].",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "host_type",
+     "equals": "M"
+    }
+   ],
+   "group": "p",
+   "weight": "phi((log10(loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3)) - log10(age_gy))/0.25)",
+   "values": {
+    "tau_sat_gy": "loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3)",
+    "lx_over_lbol": "10**-3.14*(age_gy/loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3))**-1.18"
+   }
+  },
+  {
+   "id": "p5",
+   "category": "p",
+   "kind": "option",
+   "option": "Young star (any type), age<0.1 Gyr",
+   "gate_text": "age<0.1 Gyr",
+   "weight_text": "1",
+   "source": "1-1180 A flux 110x the 4.57 Gyr value at 0.1 Gyr (Ribas 2005, READ)",
+   "status": "DERIVED",
+   "research": [],
+   "notes": "",
+   "labels": [
+    "READ"
+   ],
+   "state": "verified",
+   "limit": "",
+   "replacement": "",
+   "items": [],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "age_gy",
+     "maximum": 0.1
+    }
+   ],
+   "group": "p",
+   "weight": 1
+  },
+  {
+   "id": "p6",
+   "category": "p",
+   "kind": "choice",
+   "option": "Rotation track (L2 on p4, p5, solar mass): slow / median / fast",
+   "gate_text": "any",
+   "weight_text": "0.25 / 0.5 / 0.25",
+   "source": "Tu 2015 percentile tracks 10th, 50th, 90th, t_sat 5.7, 23, 226 Myr (READ); weights DESIGN",
+   "status": "DESIGN",
+   "research": [
+    "R14"
+   ],
+   "notes": "L_X at 100 Myr differs 200x",
+   "labels": [
+    "READ",
+    "DESIGN"
+   ],
+   "state": "open",
+   "limit": "",
+   "replacement": "",
+   "items": [
+    "GEN.493"
+   ],
+   "classes": [
+    "*"
+   ],
+   "conditions": [
+    {
+     "quantity": "drawn.p",
+     "one_of": [
+      "p4",
+      "p5"
+     ]
+    }
+   ],
+   "options": {
+    "slow": {
+     "weight": 0.25,
+     "percentile": 10,
+     "t_sat_myr": 5.7
+    },
+    "median": {
+     "weight": 0.5,
+     "percentile": 50,
+     "t_sat_myr": 23
+    },
+    "fast": {
+     "weight": 0.25,
+     "percentile": 90,
+     "t_sat_myr": 226
+    }
+   }
+  }
+ ]
+}

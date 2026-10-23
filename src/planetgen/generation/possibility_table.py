@@ -126,17 +126,21 @@ class Subject:
 class Condition:
     """
     A predicate of a row's gate on one stored quantity: it holds when `minimum <= value <= maximum` (a missing bound is
-    open) and, when `equals` is given, the value is equal to it. A quantity the subject lacks is an error and never a pass.
+    open), when `equals` is given the value is equal to it, and when `one_of` is given the value is one of its members.
+    A quantity the subject lacks is an error and never a pass.
     """
 
     quantity: str
     minimum: float | None = None
     maximum: float | None = None
     equals: object = None
+    one_of: tuple | None = None
 
     def holds(self, subject):
         value = subject[self.quantity]
         if self.equals is not None and value != self.equals:
+            return False
+        if self.one_of is not None and value not in self.one_of:
             return False
         if self.minimum is not None and value < self.minimum:
             return False
@@ -391,7 +395,8 @@ class Table:
                 weight = f"fn:{getattr(weight, '__module__', '')}.{getattr(weight, '__qualname__', repr(weight))}"
             parts["rows"].append({
                 "name": row.name, "classes": list(row.classes), "weight": weight, "state": row.state,
-                "conditions": [[c.quantity, c.minimum, c.maximum, c.equals] for c in row.conditions],
+                "conditions": [[c.quantity, c.minimum, c.maximum, c.equals] + ([list(c.one_of)] if c.one_of is not None else [])
+                               for c in row.conditions],
                 "fractions": sorted(row.fractions.items()), "concentration": row.concentration})
         text = json.dumps(parts, sort_keys=True, default=str)
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
