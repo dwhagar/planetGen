@@ -1073,6 +1073,27 @@ with `clamp()`.
   (Boss, 5:30 PM EDT 2026-10-23).
   Prerequisites: none. Related: UX.148, DOC.13.
 
+- [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated. The
+  derived class (DB column from the item before) replaces the stored
+  letter in the planet and moon pages, lists (UX.100), search, the map
+  marker classes (MAP.220), the API field and the descriptions
+  (GEN.430). Old letter filters map or go, no shim. Owner: Habitability
+  lane B with lane D. Done: every reader shows the same class, a browser
+  test filters by class and by colour.
+  Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3366,6 +3387,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   letter except Q, S, V, so a Titan-like moon has no letter before Y.
   The atmosphere recipes of GEN.478 use regimes and conditions, not
   letters, so these items are free to change the letters.
+  Decided (Boss, 6:09 PM EDT 2026-10-23, GEN.644 option 3): classes
+  become conditions-based and are assigned after generation (GEN.645 to
+  GEN.648). GEN.645 says which sub-items of this one stand, which the
+  new rules replace and which become inputs; do not build new letters
+  before it lands. The reason Boss gave for the current lettering: he
+  did not know how to get the compositions right.
 
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
@@ -3832,6 +3859,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   letters, so these items are free to change the letters.
     Prerequisites: GEN.350, GEN.351, GEN.352, GEN.353.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
+  Decided (Boss, 6:09 PM EDT 2026-10-23, GEN.644 option 3): classes
+  become conditions-based and are assigned after generation (GEN.645 to
+  GEN.648). GEN.645 says which sub-items of this one stand, which the
+  new rules replace and which become inputs; do not build new letters
+  before it lands. The reason Boss gave for the current lettering: he
+  did not know how to get the compositions right.
 
 - [ ] **GEN.93 Nebula conditions in planet generation**
   Boss (2026-10-03 05:38Z): "Account for nebula temperature and
@@ -15037,6 +15070,123 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   database version, tests, docs) are filed after Boss answers. Done: the
   note and the card exist and Boss has answered it.
   Prerequisites: GEN.643. Related: GEN.643, GEN.89, GEN.27, GEN.350.
+  Decided (Boss, 6:09 PM EDT 2026-10-23, option 3, 'A then D'): leave
+  the class designation out of generation; assign classes after the body
+  is complete from the atmosphere composition and pressure (even none),
+  the average surface temperature, the terrestrial composition and the
+  gas composition, for moons too. Options A, B, C of the proposal are
+  retired. The build items: GEN.645 (design), GEN.646 (class leaves
+  generation), GEN.647 (classify after), DB.90 (store), GEN.648
+  (+habitable_world by conditions), UX.150, TEST.301, DOC.76. This
+  proposal item is done when GEN.645 is filed as the design (close it
+  with GEN.645).
+
+- [ ] **GEN.645 Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated. Write
+  the design note (docs/design) and the rule table: a class is a
+  function of the finished body, never an input to its draw. Inputs: the
+  atmosphere (composition from the stored mixture, and pressure,
+  including no atmosphere at all), the average surface temperature, the
+  terrestrial composition (the rocky fractions and the surface
+  composition), the gas composition for giants and ice giants (GEN.642
+  layers, GEN.454 mixture), the same for moons; plus mass and the PHI-6
+  overall colour (GEN.643) as a separate label, not a class. Settle: the
+  class names and boundaries from physics (no Solar System shape as a
+  law), what the legacy letters become (kept as names where a rule
+  reproduces them, dropped otherwise, no shim), how a class changes when
+  conditions change (it follows, never the reverse), the sub-items of
+  GEN.90 (GEN.91, GEN.28, GEN.350 class R and the retirement of T,
+  GEN.355, GEN.356, GEN.27): which stand, which the new rules replace,
+  which become inputs (the retention module GEN.355 is an input). Done:
+  the note, the rule table with test cases per rule, and a list of
+  replaced items with Boss's card if any is not obvious.
+  Prerequisites: GEN.644, GEN.643. Related: GEN.644, GEN.643, GEN.90,
+  GEN.28, GEN.350, GEN.355, GEN.356.
+
+- [ ] **GEN.646 Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated. Remove
+  the class as the first draw (tuning.PLANET_CLASSES and
+  PLANET_CLASS_PROBABILITIES decide radius, mass, albedo, greenhouse,
+  atmosphere template, water range and life chemistry today). The same
+  quantities come from the composition chain (GEN.428, GEN.429, GEN.442,
+  GEN.466), the albedo and greenhouse draws (GEN.411, GEN.412), the
+  atmosphere mixture (GEN.454, GEN.479) and the hydrosphere (GEN.461); a
+  body is complete when its conditions are stored. No fallback class, no
+  shim. Changes stored values: a new generator epoch (testing mode, Boss
+  5:42 PM EDT). Done: no draw reads a class, a determinism test across
+  worker counts, and the galaxy statistics test shows the mix of
+  conditions is unchanged within the stated bands or the change is
+  explained.
+  Prerequisites: GEN.645, GEN.428, GEN.429, GEN.411, GEN.412, GEN.442,
+  GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
+  GEN.428, GEN.90.
+
+- [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated.
+  Implement the rule table of the design item as one pure function over
+  the stored conditions (including no atmosphere), used at generation
+  end, after an edit, and by the maps and search. Done: every planet and
+  moon gets a class from its stored conditions, a test per rule, a sweep
+  over a seeded galaxy that checks every body has exactly one class and
+  the class agrees with its conditions, and the result is identical at
+  any worker count.
+  Prerequisites: GEN.646. Related: GEN.645, GEN.646, GEN.643.
+
+- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated.
+  Replace the class-list steering (LIFE_PLANET_CLASSES) with a
+  conditions search over the ecosphere rocky planet: the draw is
+  repeated within physical ranges until GEN.643 holds, with a bounded
+  number of tries and an honest refusal if the system cannot give one.
+  Done: a forced request is met by a Blue or Green world, measured over
+  120 forced systems (the proposal measured 7 of 120 before), and the
+  request fails with a message rather than returning a non-habitable
+  world.
+  Prerequisites: GEN.646, GEN.643. Related: GEN.643, GEN.646.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17032,6 +17182,26 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   field. Done: a save and load round trip returns the layers unchanged,
   the migration test passes, and the schema docs list the columns.
   Prerequisites: GEN.642. Related: GEN.642, DB.69, DB.74.
+
+- [ ] **DB.90 Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated. One
+  column set with its Alembic revision and schema version (testing mode
+  allows it), declared with the other columns, a rebuild for rows under
+  an older epoch, and the edit path (ADM and map editing, 8.6) calls
+  classify again. Done: round trip, migration test, and an edited body
+  changes class when its conditions cross a rule.
+  Prerequisites: GEN.647. Related: GEN.647, DB.69, DB.70.
 
 ## API: The JSON API
 
@@ -20317,6 +20487,27 @@ clears each one.
   2026-10-23).
   Prerequisites: UX.100, MAP.143, MAP.220. Related: UX.100, MAP.143, MAP.220.
 
+- [ ] **TEST.301 Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated. One
+  sweep over a seeded galaxy and the rule table cases: no body without a
+  class, no class that its own conditions contradict, +habitable_world
+  requests, edits that cross a rule, a legacy-letter reference test.
+  Owner: Habitability lane D with Bug Hunt review. Done: it runs in the
+  changed gate and in full --check.
+  Prerequisites: GEN.647, DB.90, GEN.648. Related: GEN.647, TEST.209,
+  TEST.210.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21744,6 +21935,25 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane E (Boss, 5:38 PM EDT 2026-10-23).
   Prerequisites: UX.100, MAP.143, MAP.220, GEN.639. Related: UX.101,
   DOC.13.
+
+- [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
+  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
+  then D', relayed by the coordinator): 'Let's go with 3, since we're
+  doing compositions, let's leave out the class designation until planet
+  generation is completed, then fill in the classes based on the
+  atmosphere (even no atmosphere) composition / pressure, average
+  surface temperature, terrestrial composition (i.e. a rocky planet
+  composition), gas composition (for gas giants), same for moons. The
+  reason I did classes the way they are now is because I didn't know how
+  to get the compositions correct.' Proposal and options:
+  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
+  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
+  (the habitable rule). Owner: Habitability lane D unless stated.
+  docs/design (the class pages and the habitability index), the user
+  help (DOC.75 area) and the database schema document. Done: the docs
+  state the rules, the derived class column and the PHI-6 relation, and
+  the old letter tables are gone.
+  Prerequisites: GEN.645, DB.90. Related: GEN.645, DOC.75.
 
 ## VIEW: The view from a planet
 

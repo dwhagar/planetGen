@@ -6,7 +6,7 @@ shows the table, the stamp and the merged line as written here. Times are the la
 Boss ordered every lane retired and restarted at 12:56 PM EDT 2026-10-21; the rows below are the new threads'
 reports (Core 5 as last reported before its restart).
 
-Updated: 2026-10-23 6:06 PM EDT
+Updated: 2026-10-23 6:12 PM EDT
 
 Messaging rule (Boss, 5:59 PM EDT 2026-10-23): lanes message only to report merges, errors, and bugs or new items that need filing, and batch them (one message with several items). Interfaces, item lists and status go in files (this board, /mnt/project-files/reports/). The platform allows 60 messages an hour to other threads in total.
 
@@ -24,7 +24,7 @@ Messaging rule (Boss, 5:59 PM EDT 2026-10-23): lanes message only to report merg
 | Habitability A, symbols (started 2026-10-23, Boss 5:38 PM EDT) | UX.101: the PHI-6 habitability symbols as vector shapes, one shared helper for every page | not started | then GEN.553 (feeds the spine) |
 | Habitability B, planet and moon lists (started 2026-10-23) | UX.100: lists show the symbols; the related pages (system, body, search, API fields) are filed as sub-items | not started | after UX.101's helper interface; then DB.73 (feeds the spine) |
 | Habitability C, map (started 2026-10-23) | MAP.143 sector colouring by habitable locations, MAP.219 the marker layer, MAP.220 habitable-world markers | not started | MAP.132 stays in 9.3 |
-| Habitability D, model (started 2026-10-23) | GEN.639 planet-mass habitable zone limits and the early-star runaway history (takes an epoch); checks the done model items GEN.83 to GEN.89, GEN.148, GEN.177, GEN.178, GEN.207, GEN.208, GEN.213 | not started | files gaps to the TODO thread; then GEN.643 (habitable = PHI-6 Blue or Green, Boss 6:02 PM EDT), GEN.644 (the PHI-6 in the planet classes: proposal and card first), then GEN.412 (feeds the spine) |
+| Habitability D, model (started 2026-10-23) | GEN.639 planet-mass habitable zone limits and the early-star runaway history (takes an epoch); checks the done model items GEN.83 to GEN.89, GEN.148, GEN.177, GEN.178, GEN.207, GEN.208, GEN.213 | not started | files gaps to the TODO thread; then GEN.643 (habitable = PHI-6 Blue or Green, Boss 6:02 PM EDT), GEN.644 (decided, Boss 6:09 PM EDT: conditions-based classes after generation) and its build items GEN.645 (design now), then GEN.646 to GEN.648, DB.90, TEST.301, DOC.76 once lanes I, J, K, L land, then GEN.412 (feeds the spine) |
 | Habitability E, radiation link, help and tests (started 2026-10-23) | GEN.445 (habitability reads the derived radiation), DOC.75 help text, TEST.300 browser tests | not started | waits on lanes F, G and H for GEN.444 |
 | Habitability F, radiation constants and ozone (started 5:43 PM EDT 2026-10-23) | GEN.453 now; then GEN.413 (ozone) after GEN.411 | not started | builds interfaces ahead on a branch; the spine unblocks GEN.413 |
 | Habitability G, bands (started 5:43 PM EDT 2026-10-23) | GEN.417 (Rayleigh depth), GEN.414 (haze, dust, cloud) and GEN.443 (band transmission, greenhouse) | not started | needs GEN.411, GEN.412, GEN.413 |
