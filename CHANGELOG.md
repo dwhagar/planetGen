@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1978] - 2026-10-23
+
+**Headline:** The generator now has one oxygen-fugacity scale, so a delta-IW means the same thing everywhere.
+
+### Changed
+- **One oxygen-fugacity scale (GEN.498).** The new `physics/oxygen_fugacity.py` fixes the reference as the Hirschmann 2021 iron-wustite buffer; every stored delta-IW, the mantle redox of a planet included, is on it. It converts the Frost 1991 buffers (QFM stands 3.1 to 3.6 above IW at 1 bar from 2200 to 1500 K) and the Sossi 2020 scale (his IW+0.5 for Earth is +0.0 on the reference) to it, gives the CO2/CO and H2O/H2 gas ratios at any delta-IW from the NASA Glenn fits of the five gases (CO2 equals CO at IW+1.37 and H2O equals H2 at IW-0.06 at 2173 K), and Sossi's melt Fe3+ law both ways. The reference fit's coefficients, the NASA Glenn fits and Sossi's law were checked against the papers; the Frost FMQ and NNO constants stay labelled stand-ins in the module's source rows. No stored value changes.
+
+generation-output: unchanged
+
 ## [8.0.1977] - 2026-10-23
 
 **Headline:** Globular clusters and superbubbles are stored as containers, so a star can say which one it is inside.
