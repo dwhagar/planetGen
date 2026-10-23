@@ -19578,7 +19578,7 @@ clears each one.
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
 
-- [ ] **TEST.295 test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw takes 5 minutes alone and hit the 900 s timeout in a loaded gate (bug)**
+- [ ] **TEST.295 test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug)**
   Found by Core 5 (relayed 10:15 AM EDT 2026-10-23 as the lane reported)
   in a loaded 4-worker gate; filed by the TODO thread. Kind: slow flaky
   test, the same family as TEST.293 (a draw at 1, 2 and 4 workers).
@@ -19594,6 +19594,18 @@ clears each one.
   workers). Done: the test takes well under a minute alone and passes 20
   times in a row at -n 4 under load. Owner: Bug Hunt (proposed by the
   TODO thread).
+  Finding (Bug Hunt, relayed 10:40 AM EDT 2026-10-23 as the lane reported):
+  7 s alone on its machine (the three runs of the queue take 0 s, 4 s and
+  4.6 s); it does not fork, the workers are subprocesses
+  (`redisqueue.RQExecutor` uses subprocess.Popen), so it is not TEST.293's
+  family. Stack at the timeout (Core 5, relayed 10:45 AM EDT as the lane
+  reported): the second `_run_queue(2)` was leaving its WorkQueue block,
+  work.py `__exit__` -> `drain` -> `_collect(block=True)` ->
+  `RQExecutor.wait` (redisqueue.py:411) in `time.sleep(POLL_SECONDS)`,
+  waiting for its 2 futures, not on a Redis call; Redis was
+  redis://127.0.0.1:6379/0, flushed before the gate, no stale keys; 4
+  cores at load about 10 (4 xdist workers, a second 2-worker scan on
+  Redis port 6390, headless Chromium at 100 to 150 percent CPU).
   Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
 
 ## USR: User accounts
