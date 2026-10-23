@@ -17433,6 +17433,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
+  First part merged as #2568 (Core 1, 9:50 PM EDT 2026-10-22 as the lane
+  reported; regenerate now keeps the slot's ID). The item stays open for
+  a body that changes parent, which waits on the shared parent link of
+  the 8.4 revision. GEN.564 is an 8.4 item: it stays in the pool, paused
+  until 8.1 is complete (the coordinator, 9:46 PM EDT 2026-10-22).
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
 
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
