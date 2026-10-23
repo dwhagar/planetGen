@@ -1133,3 +1133,4 @@ Baseline: PR #1817.
 | ADM.126 | 8.1 | Admin control suite |
 | PERF.167 | 8.1 | The headline closes |
 | GEN.253 | 8.1 | Multi-star and compact systems |
+| GEN.146 | 8.4 | Planet classes |
