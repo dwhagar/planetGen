@@ -12,26 +12,57 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import constants as physical_constants
+from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
 
 @finite_domain()
 def snow_line_au(luminosity_w):
     """
-    The snow line (ice condensation point, ~170K) for a star of a given
-    luminosity, in AU -- real protoplanetary disk temperature falls off
-    with stellar flux, i.e. with distance^-2, the same physical reasoning
+    The snow line's blackbody position (where the starlight alone warms a
+    blackbody to `SNOW_LINE_TEMPERATURE_K`, the ~170 K ice condensation
+    point), in AU -- real protoplanetary disk temperature falls off with
+    stellar flux, i.e. with distance^-2, the same physical reasoning
     `calculate_habitable_zone` already uses for its own sqrt(luminosity)
-    boundaries (see `physical_constants.SNOW_LINE_AU_AT_1_LSUN`).
+    boundaries. This is the centre of the scatter a star draws its own
+    line from (`draw_snow_line_au`), not the star's line.
 
     Args:
         luminosity_w (float): The star's luminosity, in Watts.
 
     Returns:
-        float: The snow line's distance from the star, in AU.
+        float: The blackbody snow line's distance from the star, in AU.
     """
-    solar_lum = luminosity_w / physical_constants.SOLAR_LUMINOSITY
-    return physical_constants.SNOW_LINE_AU_AT_1_LSUN * math.sqrt(solar_lum)
+    distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) \
+        / physical_constants.SNOW_LINE_TEMPERATURE_K ** 2
+    return distance_m / physical_constants.AU_M
+
+
+def draw_snow_line_au(luminosity_w, stream=None):
+    """
+    One star's own snow line, in AU (GEN.458): the blackbody position
+    (`snow_line_au`) times 10 to a normal draw of `tuning.SNOW_LINE_SCATTER_DEX`
+    dex, redrawn while it lies beyond `tuning.SNOW_LINE_SCATTER_MAX_SIGMA`
+    sigma (a factor of 4 either way), which keeps it inside the factor 2 to 3
+    that real lines move with the accretion history and the dust (Mulders et
+    al. 2015). Drawn once for a star and stored with it.
+
+    Args:
+        luminosity_w (float): The star's luminosity, in Watts.
+        stream (draw.Stream or None): The star's own stream to draw from;
+            `None` draws from the stream bound now.
+
+    Returns:
+        float: The star's snow line, in AU.
+    """
+    centre = snow_line_au(luminosity_w)
+    scatter = tuning.SNOW_LINE_SCATTER_DEX
+    limit = tuning.SNOW_LINE_SCATTER_MAX_SIGMA
+    source = stream or draw
+    while True:
+        z = source.gauss(0.0, 1.0)
+        if abs(z) <= limit:
+            return centre * 10.0 ** (scatter * z)
 
 
 @finite_domain()

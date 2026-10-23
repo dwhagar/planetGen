@@ -1415,6 +1415,8 @@
 --
 -- v131 (OPS.58): `galaxy_shape` also keeps the generator epoch, the fingerprint format and the generator battery digest (with its cases) of the code that planned the galaxy, and `generation_runs`
 --   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
+-- v132 (GEN.458): `stars.snow_line_km`, the star's own snow line (drawn once, 0.2 dex around the 170 K blackbody position, then stored), and `planets.born_beyond_snow_line`
+--   and `moons.born_beyond_snow_line`, whether the body formed beyond its star's line (a moon takes its planet's). The fixed 2.7 AU constant is gone from the generator.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2054,6 +2056,7 @@ CREATE TABLE IF NOT EXISTS stars (
     disk_inner_au               DOUBLE NULL,  -- v104 (DB.53)
     disk_outer_au               DOUBLE NULL,  -- v104 (DB.53)
     cluster_id                  BIGINT UNSIGNED NULL,  -- v127 (DB.61)
+    snow_line_km                DOUBLE NOT NULL,  -- v132 (GEN.458): this star's own snow line, drawn once around the 170 K blackbody position
 
     UNIQUE KEY uq_stars_uid (uid),
     CONSTRAINT fk_stars_star_system
@@ -2230,6 +2233,7 @@ CREATE TABLE IF NOT EXISTS planets (
     parent_id                   BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
     host_node_id                SMALLINT NULL,  -- v104 (DB.53): the orbit node the planet orbits (NULL: its star)
+    born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): formed beyond its star's snow line, NULL when the host has none to compare
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2410,6 +2414,7 @@ CREATE TABLE IF NOT EXISTS moons (
     parent_type                 VARCHAR(8) NOT NULL DEFAULT 'planet',  -- v102 (DB.55)
     parent_id                   BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
+    born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): the parent planet's flag
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

@@ -57,7 +57,8 @@ def _max_objects(star_type):
 
 def test_snow_line_scales_with_sqrt_luminosity():
     solar = snow_line_au(constants.SOLAR_LUMINOSITY)
-    assert solar == pytest.approx(constants.SNOW_LINE_AU_AT_1_LSUN)
+    # the 170 K blackbody position, (278.3 K / 170 K)^2 AU for the Sun (bulk-composition-sources-check.md)
+    assert solar == pytest.approx(2.68, abs=0.005)
     quadruple_lum = snow_line_au(4 * constants.SOLAR_LUMINOSITY)
     # L -> 4L should push the snow line out by sqrt(4) = 2x.
     assert quadruple_lum == pytest.approx(2 * solar)

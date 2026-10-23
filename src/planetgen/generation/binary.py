@@ -19,7 +19,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 from planetgen.util.serialization import fields_from_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
@@ -132,6 +132,9 @@ class BinaryStarProxy(StellarObject):
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
         # Both formed in one cloud: the pair's disk is the primary's (the planet cull and the solids read it).
         self.metallicity_fe_h = self._primary.metallicity_fe_h
+        # GEN.458: the two stars' lights add (luminosity, so the squares of their snow lines do: the line follows
+        # the square root of the luminosity), each with the scatter it drew.
+        self.snow_line_au = detmath.hypot(self._primary.snow_line_au, self._secondary.snow_line_au)
 
         self.stars = [self._primary, self._secondary]
 
@@ -353,6 +356,7 @@ class BinaryStarProxy(StellarObject):
         proxy._secondary = secondary
         proxy.stars = [primary, secondary]
         fields_from_dict(proxy, data, cls.SERIALIZABLE_FIELDS)
+        proxy.snow_line_au = detmath.hypot(primary.snow_line_au, secondary.snow_line_au)  # derived from the stored pair, as in `__init__`
         proxy.habitable_zone = tuple(data["habitable_zone"])
         proxy.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
         return proxy

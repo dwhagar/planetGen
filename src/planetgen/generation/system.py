@@ -38,7 +38,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics.formation import (
-    disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2, snow_line_au,
+    disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2,
 )
 from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -520,6 +520,14 @@ class StarSystem:
         # age rather than its provisional pre-adjustment one. Flavor text is decided
         # in the same pass (after life data, since it reads evolutionary_data) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
+        with log.timed_phase("snow line pass"):
+            for obj in self.planets + self.secondary_planets:
+                if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
+                    continue
+                obj.born_beyond_snow_line = obj.distance >= obj.star.snow_line_au
+                for moon in obj.moons:
+                    moon.born_beyond_snow_line = obj.born_beyond_snow_line
+
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
             for obj in self.planets + self.secondary_planets:
@@ -827,7 +835,7 @@ class StarSystem:
         (`_orbit_floor_au`) no longer describes its disk, so it gets no
         edge.
         """
-        edge_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au(star.luminosity)
+        edge_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
         return edge_au if edge_au > self._orbit_floor_au(star) else math.inf
 
     def _orbit_floor_au(self, star):
@@ -1919,7 +1927,7 @@ class StarSystem:
         """
         star_mass_kg = star.mass
         star_factor = star_mass_kg / constants.SOLAR_MASS_TO_KG
-        snow_line = snow_line_au(star.luminosity)
+        snow_line = star.snow_line_au
         density_scale = disk_surface_density_scale(star_mass_kg, star.metallicity_fe_h or 0.0)
         outer_edge_au = min(
             tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,

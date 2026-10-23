@@ -22,7 +22,7 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, metallicity, ms_lifetime, pre_main_sequence, spin
+from planetgen.physics import activity, formation, metallicity, ms_lifetime, pre_main_sequence, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -612,6 +612,10 @@ class Star(StellarObject):
                 else self.galactic_center_dist_ly,
                 draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"),
                 peaks=getattr(self.system_config, "FE_H_PEAKS", None))
+        # GEN.458: this star's own snow line, drawn once around the blackbody position and stored; its stream is its
+        # own, like the [Fe/H] above, so no older draw moves.
+        self.snow_line_au = formation.draw_snow_line_au(
+            self.luminosity, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(

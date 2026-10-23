@@ -208,6 +208,7 @@ class Planet(MassObject):
         *radiation.BODY_FIELDS,
         *habitability_world.BODY_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
+        "born_beyond_snow_line",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -295,6 +296,9 @@ class Planet(MassObject):
         # concept on the star side.
         self.reflex_offset_x = self.reflex_offset_y = self.reflex_offset_z = 0.0
         self.zone = None
+        # GEN.458: whether it formed beyond its star's snow line; `StarSystem` sets it once the orbits are final
+        # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
+        self.born_beyond_snow_line = None
         self.description = None
         self.atm_molar_density = None
         self.gravity = None
