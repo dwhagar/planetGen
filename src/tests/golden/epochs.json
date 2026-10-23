@@ -298,8 +298,7 @@
     },
     {
       "epoch": 61,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2038",
       "reason": "A planet or belt past the survival ceiling of its star's final age is trimmed after the age is settled (about 1 system in 250), so those systems lose their outermost body (GEN.325)"
     }
   ]
