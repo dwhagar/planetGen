@@ -63,10 +63,31 @@ def _a_generator(payload):
     return (n for n in range(payload))
 
 
+_BOOKKEEPING_ERRORS = []
+"""list: The bookkeeping the queue could not write in the running test (`WorkQueue._book` carries on past it and only
+debug-logs it), so a missing row can say why (TEST.297)."""
+
+
+@pytest.fixture(autouse=True)
+def _bookkeeping_errors_are_kept(monkeypatch):
+    _BOOKKEEPING_ERRORS.clear()
+    real = workQueue.log.debug
+
+    def keep(message, *args, **kwargs):
+        if isinstance(message, str) and message.startswith("Work queue: could not"):
+            _BOOKKEEPING_ERRORS.append(message)
+        return real(message, *args, **kwargs)
+
+    monkeypatch.setattr(workQueue.log, "debug", keep)
+
+
 def _ended_cleanly(config, job_id, state):
     """The run's row ended in `state`, none of its tasks still claims to
     run, and the lease is free."""
-    job = _rows(config, "SELECT state, finished_at FROM work_jobs WHERE id = ?", (job_id,))[0]
+    found = _rows(config, "SELECT state, finished_at FROM work_jobs WHERE id = ?", (job_id,))
+    assert found, (f"no work_jobs row for job {job_id}; it has {_rows(config, 'SELECT id, state FROM work_jobs')}; the "
+                   f"bookkeeping the queue could not write: {_BOOKKEEPING_ERRORS}")
+    job = found[0]
     assert job["state"] == state and job["finished_at"] is not None
     running = _rows(config, "SELECT COUNT(*) AS n FROM work_tasks WHERE job_id = ?"
                             " AND state IN ('queued', 'running')", (job_id,))[0]["n"]
@@ -75,12 +96,13 @@ def _ended_cleanly(config, job_id, state):
     assert not lease or lease[0]["holder"] is None
 
 
-def _run_ends(finished, config, idle_seconds=60):
+def _run_ends(finished, config, idle_seconds=180):
     """
     Waits for `finished` (the run's thread) and says whether it came, giving up only when the run has stood still: the
     run's record (how many tasks are in each state) has not changed for `idle_seconds`. A fixed limit on the whole run
     also fails one that is merely slow, as a loaded machine makes the start of a worker process (TEST.277); a hung one
-    stops changing its record, and the pytest limit still ends a run that keeps changing it for ever.
+    stops changing its record, and the pytest limit still ends a run that keeps changing it for ever. The window is 180 s:
+    at a load of 6 to 8 a replacement worker took longer than 60 s to start and the run was taken for hung (TEST.297).
     """
     last, since = None, time.monotonic()
     while not finished.wait(1):
@@ -130,7 +152,7 @@ def test_a_dead_worker_never_hangs_the_run(control_config, attempt):
 
     thread = threading.Thread(target=run, daemon=True)
     thread.start()
-    assert _run_ends(finished, control_config), "the run hung after a worker died: its record stood still for 60 s"
+    assert _run_ends(finished, control_config), "the run hung after a worker died: its record stood still for 180 s"
     assert isinstance(outcome.get("raised"), redisqueue.WorkerDied)
 
 
