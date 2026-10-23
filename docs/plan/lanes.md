@@ -6,9 +6,11 @@ shows the table, the stamp and the merged line as written here. Times are the la
 Boss ordered every lane retired and restarted at 12:56 PM EDT 2026-10-21; the rows below are the new threads'
 reports (Core 5 as last reported before its restart).
 
-Updated: 2026-10-23 6:55 PM EDT
+Updated: 2026-10-23 6:59 PM EDT
 
 Messaging rule (Boss, 5:59 PM EDT 2026-10-23): lanes message only to report merges, errors, and bugs or new items that need filing, and batch them (one message with several items). Interfaces, item lists and status go in files (this board, /mnt/project-files/reports/). The platform allows 60 messages an hour to other threads in total.
+
+Retirement rule (Boss, 6:58 PM EDT 2026-10-23): every lane except the core lanes (Cores 1 to 5) and the TODO thread retires when its queue ends. When a non-core lane posts its handoff after its last merge, the TODO thread runs the progress update and the coordinator resolves the thread.
 
 | Lane | Doing now | Gate | Next |
 |---|---|---|---|
