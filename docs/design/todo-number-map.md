@@ -962,7 +962,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | done, PR #1700 |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | none | done, PR #1815 |
 | GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | none | done, PR #2164 |
-| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | none | open |
+| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | none | done, PR #2681 |
 | GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) | none | done, PR #1814 |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | none | open |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | none | open |

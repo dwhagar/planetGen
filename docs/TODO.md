@@ -4627,40 +4627,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.270.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.253 White-dwarf pollution flag and cool white dwarf presets**
-  Step 6 of the phenomena train (catalogue section 8 item 6). 25% to 50%
-  of cool white dwarfs are polluted by accreted rocky debris [S]; add
-  the flag and the presets, part of the white-dwarf row of GEN.130.
-  Done: a cool white dwarf shows a pollution flag at that share and its
-  system presets are the cool-white-dwarf ones. Later. Owner: Core,
-  later (2026-10-15).
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the white dwarf
-  rows of section 13.3 (close double white dwarfs, post-common-envelope
-  pairs, cataclysmic variables, AM CVn, symbiotic and barium stars) are
-  built by GEN.271, which extends this item.
-  Moved to phase 3 of 8.1, before GEN.271, which extends it (the
-  white-dwarf pollution flag and cool white-dwarf presets); it is small:
-  a flag and presets in the white-dwarf row of GEN.130 (2026-10-16
-  review).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.318 merged, #2307). Core 4 asks Core 3
-  before touching stellar evolution constants in tuning.py. A line here
-  that named Core 3 or Core 4 earlier is replaced by this one.
-  Note (TODO thread, 8:29 AM EDT 2026-10-23, on Core 4's question): the
-  word "presets" is not defined in this item, the catalogue (section 8
-  item 6) or multi-star-systems.md. Core 4 reads it as the polluted flag
-  (drawn from the star's own stream, share 0.25 to 0.50, nothing stored)
-  plus "cool white dwarf" and "cool white dwarf, polluted" as forced
-  types in the Generate options, and says so in the PR; Boss can correct
-  the reading.
-  Prerequisites: none.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
   Split from GEN.114 (catalogue section 8 item 7). GEN.104 gave every
   rotating object a spin axis; draw the jets of protostars in class Q
@@ -4818,6 +4784,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): the owner stays Core
   4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
   owner lines are deleted.
+  Scope decision (TODO thread, 1:05 PM EDT 2026-10-23, from Core 4's
+  question relayed 1:10 PM EDT as the lane reported; reversible by
+  Boss): nothing in the generator calls multistar.draw_member_tree with
+  a user's config yet, because StarSystem builds only a single star or a
+  pair until GEN.630 (Core 3, the N-star StarSystem host) and GEN.631
+  (stages D and G call the tree) merge. So Core 4 builds the half that
+  does not touch StarSystem: the MAX_STARS setting, the --stars N
+  directive, the Generate page field, the prevalence knob for 5 or more
+  stars, and the refusals with their reasons ('N is above the cap of
+  12', 'N of 3 or more needs a tree, not --binary'), carried in the
+  config and the plan where the StarSystem host of GEN.630 will read
+  them. The 'honoured' half (a single-system generate building the
+  forced tree) lands with GEN.630 and GEN.631 and is checked when the
+  later of the two merges; Core 3 is told to read the forced N and the
+  cap from this config. Done for this item: the setting, the directive,
+  the field, the knob and the refusals exist and are tested; a forced N
+  is refused with the reason where it is invalid and passed to the
+  StarSystem host.
   Prerequisites: none. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -8686,6 +8670,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC): option 1, a
   Schmidt index that rises at low gas density. Core 4 builds it; the
   observed gradient stays a test target, never an input.
+  Progress (Core 4, relayed 1:03 PM EDT 2026-10-23 as the lane
+  reported): built to Boss's option 1 and waiting for the gate machine;
+  the fall beyond the peak is -0.27 dex per kpc (was -0.23), 91 percent
+  of the star formation lies inside the solar circle (was 86, observed
+  84) and 0.4 percent beyond 13.5 kpc (was 1.3, observed 1); it takes a
+  generator epoch (60 as a placeholder) and re-records
+  tests/fixtures/density_identity.json. Open stand-ins, labelled in the
+  note and the design doc: the steeper index 2.1 (middle of 1.5 to 2.7)
+  and the saturation at 9 solar masses per square parsec, because no
+  source gives them for one galaxy.
   Prerequisites: none. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 - [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
@@ -14342,6 +14336,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars are covered by a test that fails on a three-member system, and
   any new numeric column is declared in db/column_units.py in the same
   PR. Owner: Core 3 (starts after GEN.329 merges).
+  Reads GEN.267's config (TODO thread, 1:05 PM EDT 2026-10-23): the
+  StarSystem host takes the forced star count and the cap (MAX_STARS)
+  from the config that GEN.267 (Core 4) adds, so a single-system
+  generate with --stars N builds the forced tree once this item and
+  GEN.631 are in. Core 4 carries the setting; Core 3 consumes it.
   Prerequisites: none. Related: GEN.316, GEN.315, GEN.264.
 
 - [ ] **GEN.631 GEN.316 part (b): stages D and G call draw_member_tree, and BinaryStarProxy, WideBinaryPair and the two-star probability table are deleted**
