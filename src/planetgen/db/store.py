@@ -6182,9 +6182,14 @@ PHENOMENON_SCATTER_COLUMNS = (
 PHENOMENON_SCATTER_INDEXES = {
     "idx_phenomenon_scatter_address": "shell_index, band_index, wedge_index",
     "idx_phenomenon_scatter_class": "kind, subtype, mass_solar",
+    "idx_phenomenon_scatter_cell": "cell_key, position_x_mpc, position_y_mpc, position_z_mpc",
+    "idx_phenomenon_scatter_next_update_due": "next_update_due",
 }
 """dict: The secondary indexes of `phenomenon_scatter` (as `schema.sql` has them) that a scatter drops while it
-writes and builds again at the end, one at a time, each sorted (PERF.73, PERF.101)."""
+writes and builds again at the end, one at a time, each sorted (PERF.73, PERF.101). The cell index and the due-time
+index are in it since PERF.167: a row lands at a random place in each, so once they outgrow the buffer pool every
+insert is a page read. Over 4.2 million rows the writes took 266 s with them kept and 145 s without, and building both
+afterwards takes 22 s; the gap grows with the table."""
 
 
 GALAXY_COMPONENT_COLUMNS = (
