@@ -200,6 +200,31 @@ count of the candidate sectors, which adds up the wedges of every band of all 1,
 shell count: an inlined sum is twice as fast and gives the same totals for shells 2 to 1,500, and it is the next step if
 the large galaxy's plan shows it. It duplicates the wedge rule, so it is left until it matters.
 
+## The large galaxy's phenomenon scatter (PERF.167)
+
+After GEN.624 and GEN.369 (release 8.0.2015, the satellites drawn from the halo) the large galaxy (5e10 solar masses, 9,407
+components) holds 63.0 million phenomena, all but 25,000 of them stellar black holes of 14 to 20 solar masses, so the count is the
+galaxy's, not a fault of the scatter. At that release the step did not finish in the suite's 90 minutes: when it was stopped
+the table held all 63.0 million rows and all five secondary indexes, so it was in the last steps (the index build and the stamp). Three findings:
+
+- **Drawing is nothing.** A shell's rows are drawn at 3.8 us a row, and the companions and the statement text come to about 40
+  us. A worker's wall time per row is about 250 us; the rest is waiting on MySQL.
+- **Two indexes were kept while the rows went in.** The scatter dropped the address and class indexes (PERF.73) and kept the
+  cell index (`cell_key` and the three position columns) and the due-time index. A row lands at a random place in each, so once
+  they outgrow the buffer pool (128 MB here, the default) every insert reads pages. Over 4.2 million rows into the table, one
+  connection, the writes took 266 s with them kept and 145 s without (4.3 s per 100,000 rows rising to 8.5 s, against a flat 3.4 s),
+  and building both afterwards takes 22 s. The gap grows with the table.
+- **Fix, value-neutral.** Both are now dropped with the other two and built after the last row, one at a time (the cell index
+  13.5 s and the due-time index 8 s per 4.2 million rows, so about 5 minutes for the 63 million). The rows and their ids are
+  those of before; only the indexes' building moves.
+
+Result on the same large galaxy, same seed, same box, 3 workers: 72.7 minutes from start to finished, the indexes included, against
+over 90 minutes (stopped at the cap in its last steps). The write count fell from 13.9 million to 6.4
+million InnoDB data writes for the same 66.7 million rows inserted. The galaxy's other steps are as in the table above.
+What is left is MySQL's work per row: the stored `cell_key` expression and the primary key, about 30 us a row with every
+secondary index off, which the three workers and the server share four cores for. The same trick would help the bright-star
+scatter (its due-time and cell indexes), not measured.
+
 ## What `medium` and `large` show (PERF.164)
 
 Same 4-CPU box, three workers, release 8.0.1973, seed `...BEEF`, one run each. The container restarted during the
@@ -212,7 +237,7 @@ spread to read these by. The medium numbers below are from the complete pass of 
 | Plan | 17.7 s, 327 components | 29 s, 22,267 components | 43 s, 9,306 components |
 | Massive stars | 2.0 min, 24,558 stars | 3.6 min, 68,499 stars | 4.0 min, 69,407 stars |
 | Bright stars | 2.8 min, 14,037 stars | 8.8 min, 899,474 stars | 11.2 min, 1,307,239 stars |
-| Phenomena | 4.3 min, 3.1 million | 14.1 min, 6.7 million | over 60 min: stopped at the cap with 66.0 million rows stored |
+| Phenomena | 4.3 min, 3.1 million | 14.1 min, 6.7 million | 72.7 min, 63.0 million (PERF.167; at 8.0.2015 before it, over 90 min) |
 | Nebula field | 40 s, 1,338 clouds | 4.0 min, 8,166 clouds | not run |
 | Dimmer band | 5.2 min, 486,761 stars | 10.5 min, 800,953 stars | not run |
 | Block totals | 4.3 s | 18 s, 153,815 blocks | not run |
