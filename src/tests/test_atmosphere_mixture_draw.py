@@ -106,3 +106,28 @@ def test_a_sweep_from_a_cold_giant_to_an_ultra_hot_one_never_refuses():
                 result = md.draw_mixture(Subject("J", {**JUPITER, **changes}))
             assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
             assert result.mole_fractions["H2"] + result.mole_fractions.get("H", 0.0) > 0.5
+
+
+def test_a_random_body_of_any_rocky_class_gets_a_mixture_from_the_inputs_the_function_names():
+    import random
+    rng = random.Random(7)
+    base = dict(EARTH)
+    families = set()
+    for index in range(150):
+        body_class = rng.choice("ABCDEFGHKLMNOPQSVUYZ")
+        mass, temperature = 10 ** rng.uniform(-3, 1.3), 10 ** rng.uniform(1.4, 3.5)
+        quantities = dict(base, mass_earth=mass, ts_k=temperature, tp_k=temperature * rng.uniform(1.0, 1.3),
+                          pressure_bar=10 ** rng.uniform(-6, 2), age_gy=rng.uniform(0.1, 10), long_lived_geology=rng.random() < 0.5,
+                          ocean_present=rng.random() < 0.3, snow_ratio=rng.uniform(0.2, 3), zone=rng.choice("hecr"),
+                          host_type=rng.choice(["G", "K", "M", "F", "WD", "PSR"]), is_moon=rng.random() < 0.2,
+                          insolation=10 ** rng.uniform(-4, 3), luminosity_solar=10 ** rng.uniform(-3, 1), water_lost=rng.random() < 0.2,
+                          runaway_ratio=rng.uniform(0.2, 2), teq_k=temperature * 0.8, xuv_index=10 ** rng.uniform(-1, 2),
+                          v_esc_kms=10 ** rng.uniform(0, 1.6), radius_km=10 ** rng.uniform(2.5, 4.3), t_layer_k=temperature * 0.9)
+        wanted = set(md.required_inputs(body_class))
+        subject = Subject(body_class, {name: value for name, value in quantities.items() if name in wanted})
+        with draw.bound(index):
+            result = md.draw_mixture(subject)
+        families.add(result.family)
+        assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12) or result.family == "airless"
+        assert all(gases.has(formula) for formula in result.mole_fractions)
+    assert {"rocky", "airless", "lava"} <= families

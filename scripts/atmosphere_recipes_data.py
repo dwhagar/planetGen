@@ -76,7 +76,9 @@ _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
 MACHINE = {
     # ---- a. mantle redox ----
-    "a1": dict(state="stand-in", replacement="GEN.513", kind="param", classes=ROCKY, when=[c("mass_earth", minimum=0.01)], sets="redox_diw",
+    "a1": dict(state="stand-in", replacement="GEN.513", kind="param", classes=ROCKY, sets="redox_diw",
+               correction="Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to "
+                          "1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
                dist={"kind": "normal", "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5)", "sigma": 0.5}),
     "a2": dict(kind="param", classes=AIR, when=[c("long_lived_geology", equals=True)], sets="redox_diw_later",
                state="stand-in", replacement="GEN.513",

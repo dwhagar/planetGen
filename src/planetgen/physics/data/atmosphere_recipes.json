@@ -227,14 +227,14 @@
    "category": "a",
    "kind": "param",
    "option": "Magma-ocean-stage fO2 (PARAM)",
-   "gate_text": "ROCKY, MOON, ROGUE rocky; M>=0.01",
+   "gate_text": "ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01)",
    "weight_text": "dIW ~ N(mu, 0.5); mu = clamp(-2+1.25(log10 M+2), -2, 0.5); floor on sigma 0.22 = 4 log10(1+0.005/0.037)",
    "source": "anchors Sossi 2020 via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN",
    "status": "DESIGN",
    "research": [
     "R3"
    ],
-   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005",
+   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005 Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to 1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
    "replacement": "GEN.513",
    "labels": [
     "READ",
@@ -268,12 +268,7 @@
     "Y",
     "Z"
    ],
-   "conditions": [
-    {
-     "quantity": "mass_earth",
-     "minimum": 0.01
-    }
-   ],
+   "conditions": [],
    "sets": "redox_diw",
    "dist": {
     "kind": "normal",
