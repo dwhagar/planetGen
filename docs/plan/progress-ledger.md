@@ -1081,3 +1081,4 @@ Baseline: PR #1817.
 | DB.85 | 8.2 | Viewers and object pages |
 | GEN.498 | 8.1 | Composition tables |
 | GEN.496 | 8.1 | Composition tables |
+| PERF.150 | 8.1 | Queue, caches and performance |

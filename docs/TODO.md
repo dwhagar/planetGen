@@ -16152,42 +16152,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.119. Related: PERF.98, PERF.119, PERF.123,
   PERF.124, PERF.125, MAP.146.
 
-- [ ] **PERF.150 Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1)**
-  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
-  (design report
-  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
-  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
-  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
-  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
-  and shows its position; the run line holds up to 8 runs, a setting;
-  jobs expected over 60 s go to a long lane; the wait bound defaults to
-  60 minutes, a setting). No Alembic revision and no generator epoch;
-  the same seed must still give the same sectors at 1 and 4 workers.
-  Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/cli.md`. F1, size M. Move
-  the cache warm-up, the tile prefetch and rebuild and the database
-  check to the queue `planetgen-maintenance`, with a worker cap of its
-  own, a guaranteed minimum and a lend rule (a bulk worker finishes its
-  unit and exits when the maintenance lane needs it). Files:
-  `redisqueue.py` (queue constants, JSON prefixes, `QUEUES`),
-  `workers.py` (`ensure_workers` takes the lane's cap), `runrecord.py`
-  (store the queue), `wrapper.py` (`run` passes it), `tileprefetch.py`,
-  `cli/warm.py`, `cli/checkdb.py`. Done: a maintenance unit queued
-  behind 200 bulk units starts within one unit; after the maintenance
-  lane drains the pool is back to `wanted` workers (a bulk worker told
-  to exit leaves it one short until the next `ensure_workers` call).
-  Collision: Core 5 owns `wrapper.py` and `runrecord.py` (PERF.119,
-  PERF.123 to PERF.125); F1 touches `wrapper.run` and `runrecord` by a
-  line or two each, so it waits for Core 5's next merge or goes to Core
-  5 as a subitem; Core 2 owns `tileprefetch.py`. Owner: the Fair
-  scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM EDT
-  2026-10-22 as the lane's clock reads, by the coordinator; it takes
-  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
-  share `workers.py` and `cli/worker.py`). Order: after F2 and F3, once Core 5 has merged its current
-  wrapper change.
-  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
-  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
   (design report
@@ -16211,6 +16175,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whichever position it ran from. Collision: needs PERF.119, PERF.123
   and PERF.99 merged first, and touches the same files as Core 5. Owner:
   Core 5 (proposed; it owns those files), last in the order.
+  Progress (the coordinator, relayed 11:13 PM EDT 2026-10-22): PERF.150
+  (the maintenance lane) merged as #2588 and the Fair scheduling lane is
+  retired. PERF.150 left an interim wait in queue/runwait.py; this item
+  lands with Core 5 and removes that file when the waiting list
+  replaces it.
   Prerequisites: PERF.119, PERF.123, PERF.99. Related: PERF.98, PERF.99,
   PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
@@ -16233,8 +16202,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lend wait of F1 and the cancel wait. The number is chosen from the
   unit lengths PERF.146 measures. Done: a test fails when a registered
   stage has a unit expected over the ceiling; the splits keep the same
-  stored rows for the same seed. Owner: the Performance thread
-  (proposed; it holds the PERF.146 data), after PERF.146.
+  stored rows for the same seed. Owner: none for now, returned to the
+  pool (the coordinator, relayed 11:13 PM EDT 2026-10-22, when the Fair
+  scheduling lane retired; this replaces the earlier proposal of the
+  Performance thread). Its prerequisite PERF.146 has merged (#2559).
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
