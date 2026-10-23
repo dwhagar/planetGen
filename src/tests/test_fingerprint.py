@@ -32,13 +32,10 @@ def test_every_table_is_compared_or_left_out_on_purpose():
     assert tables == fingerprint.CONTENT_TABLES | fingerprint.LEFT_OUT_TABLES
 
 
-def test_values_have_one_canonical_form():
-    import decimal
-    assert fingerprint.canonical_value(-0.0) == 0.0 and str(fingerprint.canonical_value(-0.0)) == "0.0"
-    assert fingerprint.canonical_value(0.1 + 0.2) == 0.30000000000000004
-    assert fingerprint.canonical_value(float("nan")) == "nan"
-    assert fingerprint.canonical_value(decimal.Decimal("1.500")) == "1.5"
-    assert fingerprint.canonical_value(b"\x01\xff") == "0x01ff"
+def test_every_content_table_is_in_one_section():
+    assert set(fingerprint.SECTIONS["plan"]) == set(fingerprint.PLAN_TABLES)
+    tables = [table for tables in fingerprint.SECTIONS.values() for table in tables]
+    assert len(tables) == len(set(tables)) and set(tables) == fingerprint.CONTENT_TABLES
 
 
 def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False):
@@ -138,3 +135,27 @@ def test_a_change_moves_only_its_own_sectors_digest(make_database, monkeypatch):
     one = _region(config, addresses=[(planet["shell_index"], planet["band_index"], planet["wedge_index"])])
     assert one.plan is None and one.sectors == [(changed[0], dict(after.sectors)[changed[0]])]
     assert _print(config, "--sector", *changed[0].split())[0] == f"{changed[0]} {dict(after.sectors)[changed[0]]}"
+
+
+def test_a_changed_number_moves_only_its_sections_float_digest(make_database, monkeypatch):
+    """GEN.304: the structural digest of a section holds when a number changes; the float digest moves."""
+    config = make_database()
+    _generate(config, monkeypatch)
+    conn = store.get_connection(config)
+    try:
+        planet = conn.execute(
+            "SELECT p.id, s.id AS sector_id FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id"
+            " JOIN sectors s ON s.id = ss.sector_id ORDER BY p.id LIMIT 1").fetchone()
+        before = fingerprint.sector_sections(conn, sector_id=planet["sector_id"])
+        conn.execute("UPDATE planets SET mass_kg = mass_kg * 1.000001 WHERE id = ?", (planet["id"],))
+        conn.commit()
+        after = fingerprint.sector_sections(conn, sector_id=planet["sector_id"])
+        assert {name for name in before if before[name] != after[name]} == {"planet"}
+        assert before["planet"].structural == after["planet"].structural
+        assert before["planet"].floats != after["planet"].floats and before["planet"].full != after["planet"].full
+        conn.execute("UPDATE planets SET name = 'Renamed' WHERE id = ?", (planet["id"],))
+        conn.commit()
+        renamed = fingerprint.sector_sections(conn, sector_id=planet["sector_id"])
+        assert renamed["planet"].structural != after["planet"].structural
+    finally:
+        conn.close()

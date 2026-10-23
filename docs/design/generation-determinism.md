@@ -122,7 +122,7 @@ Sector addresses have a total order: `geometry.provisional_sector_designation` a
 - **Levels:** sector leaf, (shell, band) node, shell node, galaxy root (cylindrical until 2026-10-15: (ring, layer) node, ring node). A region is any shell or band range or list of sectors; its digest covers the leaves or nodes it spans plus their count, so two regions with different sector sets never coincide. An ungenerated sector is absent and the count says so.
 - **Cost** [C]: a flat digest over 1,000,000 stored leaves took 1.0 s in Python (the loop, not the hash). With a stored node table, changing one sector rehashes one 1,000-child group and the 1,000-entry top in 0.55 ms. Compute the leaf at save time from the in-memory sector, which does not depend on the database float round trip; keep a `sector_digest_nodes` table keyed by (shell, band) marked dirty on save or edit; compute shell and galaxy roots on demand. At 12 billion sectors a full-galaxy digest is a batch job; a region of up to about 10^6 sectors is interactive.
 
-`tests/galaxy_fingerprint.py` is a GEN.39 stand-in using `repr` of full-precision floats and decorated names; GEN.58 replaces it. `tests/reproducible_sector_probe.py` compares runs under one interpreter only, which is why it could not see cross-version drift until it was run under five.
+The GEN.39 stand-in `tests/galaxy_fingerprint.py` (`repr` of full-precision floats) is gone: the tests compare `planetgen.db.fingerprint` (GEN.58), which hashes through `util/fingerprint_encoding.py` (GEN.304, nine significant digits). `tests/reproducible_sector_probe.py` compares runs under one interpreter only, which is why it could not see cross-version drift until it was run under five.
 
 ## 5. Version key, epoch and battery digest
 

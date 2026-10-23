@@ -279,14 +279,21 @@ full key text living on the `generation_runs` row. Detail:
   location text, sector paths and stats, and population data are left
   out. It reads the galaxy as stored; the settings-file layer waits for
   GEN.59.
-  Not built, recommended in
-  [generation-determinism.md](generation-determinism.md) section 4: round
-  floats to 9 significant digits before hashing, so 1-ulp differences in
-  `exp`, `sin` and `atan2` between machines do not show; add separate
-  structural and float digests over named sections to localise a failure;
-  save a leaf digest per sector with a (ring, layer) node table and ring
-  and galaxy roots (DB.9). The built encoder hashes floats exactly, so run
-  TEST.77 on every CI leg before deciding whether rounding is needed.
+  Built (GEN.304, `planetgen/util/fingerprint_encoding.py`): the one
+  canonical encoder. Floats are written `format(x, ".8e")` (nine
+  significant digits, -0.0 as 0.0), integers exact (hexadecimal above
+  2^53), strings JSON-quoted with every non-ASCII character escaped (no
+  Unicode normalisation), keys sorted, lists in generation order, a
+  `pgfp1` tag hashed into every digest. Each value has three digests:
+  full, structural (every float written `~`) and floats (the float
+  tokens alone), and `db/fingerprint.sector_sections` gives them per
+  named section (`SECTIONS`: sector, system, star, planet, moon, belt,
+  comet, phenomenon, population, plan), so a failure reads as "the shape
+  changed" or "a number changed", in a section. A float within an ulp of
+  a ninth-digit rounding boundary can still flip its token (a few in
+  a hundred million), so TEST.77 reads the value when one float differs.
+  The row-by-row leaf digest at save time and the tree of region digests
+  (GEN.305, DB.9) are not built.
 - **Golden test (TEST.77).** A fixed seed builds a small galaxy (plan, a
   few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
   Python leg, and its fingerprint must match the one pinned in
