@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2028] - 2026-10-23
+
+**Headline:** The protostar shortfall in giant molecular clouds is recorded as accepted for the first release.
+
+### Changed
+
+- `docs/design/phenomena-catalogue-and-fill.md`: item 8 and the giant-molecular-cloud row now say the 5.4 times shortfall (2.6e5 protostars against 1.4e6 expected) is accepted and the embedded Q-type groups of GEN.258 are not built, with the size of what building them would cost and where a later item would change it (GEN.258).
+
 ## [8.0.2027] - 2026-10-23
 
 **Headline:** The vapour pressures of the coldest ices now follow the laboratory measurements, and solid carbon dioxide follows Span and Wagner.
