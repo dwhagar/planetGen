@@ -10,6 +10,7 @@ or as the installed `planetgen` command):
 
     planetgen system [options]      -- one star system
     planetgen sector [options]      -- one or more independent sectors
+    planetgen sectors [options]     -- sectors of the planned galaxy, in one of the modes
     planetgen galaxy [options]      -- many sectors placed as one galaxy
     planetgen plan [options]        -- the galaxy's density skeleton
     planetgen link --since TIME     -- link the sectors saved since TIME to their neighbours
@@ -506,7 +507,7 @@ def validate_shared_generation_args(args, parser):
         # to the flat default there is harmless, since
         # `ensure_sector_generated` immediately overwrites both fields
         # right after with its own already-computed density anyway.
-        if getattr(args, 'command', None) != 'galaxy':
+        if getattr(args, 'command', None) not in ('galaxy', 'sectors'):
             args.num_systems = 10
 
     if args.num_systems is not None:
@@ -586,14 +587,13 @@ def validate_sector_args(args, parser):
     args.name = None
 
 
-def add_galaxy_arguments(parser):
+def add_sectors_arguments(parser):
     """
-    Adds the `galaxy` subcommand's own mode/placement options -- on top
-    of whatever `add_shared_generation_options` already added -- to
-    `parser`: the `--shell`/`--block`/`--center-sector` mode-selection
-    group, `--band`, `--wedge`, the `--shells`/`--bands`/`--wedges` span,
-    `--limit`, `--yes`, `--radius-pc`, `--max-shell`,
-    `--min-start-density`, and the MySQL connection args.
+    Adds the options of the commands that generate sectors in one of the modes (`sectors`, and `galaxy`, which adds the
+    stages after them) -- on top of whatever `add_shared_generation_options` already added -- to `parser`: the
+    `--shell`/`--block`/`--center-sector` mode-selection group, `--band`, `--wedge`, the `--shells`/`--bands`/`--wedges`
+    span, the course, `--limit`, `--yes`, `--radius-pc`, `--max-shell`, `--min-start-density`, the random starts and the
+    MySQL connection args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -665,8 +665,7 @@ def add_galaxy_arguments(parser):
                              "neighborhood within this radius. With "
                              "neither --shell nor --center-sector (random-start mode): overrides the "
                              "default 12 pc neighborhood radius around the randomly chosen starting "
-                             "sector. Once every sector is generated, the bright stars within 100 ly "
-                             "of the run's edge are backfilled (see --backfill-from).")
+                             "sector.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -693,6 +692,19 @@ def add_galaxy_arguments(parser):
                              "sector that is already generated, so every neighborhood grows in empty space. "
                              "Logs how many candidate centres qualified. Without it, a neighborhood may "
                              "overlap filled space (the sectors already there are kept, not redone).")
+    store.add_mysql_connection_args(parser)
+
+
+def add_galaxy_arguments(parser):
+    """
+    Adds the `galaxy` subcommand's own options -- on top of whatever `add_shared_generation_options` already added
+    -- to `parser`: the sector options (`add_sectors_arguments`) and the options of the stages after the sectors
+    (`--no-settle`, the backfill and the scatters).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    add_sectors_arguments(parser)
     parser.add_argument('--no-settle', action='store_true',
                         help="Skip the last step of the run, which saves the path every star system, "
                              "rogue planet and comet takes through its sector (for the sectors the run "
@@ -721,7 +733,6 @@ def add_galaxy_arguments(parser):
                                      f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
     backfill_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
                                 help="With --then-scatter: " + COMPACT_MIN_MASS_HELP)
-    store.add_mysql_connection_args(parser)
 
 
 def validate_galaxy_args(args, parser):
@@ -744,6 +755,15 @@ def validate_galaxy_args(args, parser):
             args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
         except ValueError as exc:
             parser.error(f"--bright-star-min-luminosity: {exc}")
+    validate_sectors_args(args, parser)
+
+
+def validate_sectors_args(args, parser):
+    """
+    Validates `add_sectors_arguments`'s options (the modes and what goes with each), calling `parser.error` on the first
+    problem found, then shapes `args` into the namespace `generate_sector()`/`build_sector_configs()` expect. Doesn't
+    include `add_shared_generation_options`'s own validation (`validate_shared_generation_args`).
+    """
     if getattr(args, "block", None) is not None:
         parser.error("--block: the Galaxy Map's blocks are being rebuilt on shells; until then fill "
                      "a --shell, a --shell --band, or a span (--shells/--bands/--wedges).")
@@ -1281,6 +1301,15 @@ def build_parser():
     add_shared_generation_options(sector_parser)
     add_sector_arguments(sector_parser)
 
+    sectors_parser = subparsers.add_parser(
+        'sectors', prefix_chars='-+',
+        description="Generate sectors of the planned galaxy, in one of the modes: a shell, a band, one address, a span, "
+                    "a course, the neighborhood of a sector or a random start. Only the sectors: 'planetgen link', "
+                    "'backfill' and 'settle' (with --since, the start time the run says) do the stages after them.",
+        help="Generate sectors of the planned galaxy (no link, scatter, backfill or settle).")
+    add_shared_generation_options(sectors_parser)
+    add_sectors_arguments(sectors_parser)
+
     galaxy_parser = subparsers.add_parser(
         'galaxy', prefix_chars='-+',
         description="Galaxy Generation Options",
@@ -1455,6 +1484,7 @@ def build_parser():
         'benchmark': benchmark_parser,
         'system': system_parser,
         'sector': sector_parser,
+        'sectors': sectors_parser,
         'galaxy': galaxy_parser,
         'plan': plan_parser,
         'scatter': scatter_parser,
@@ -1502,6 +1532,9 @@ def process_args():
     elif args.command == 'galaxy':
         validate_shared_generation_args(args, command_parser)
         validate_galaxy_args(args, command_parser)
+    elif args.command == 'sectors':
+        validate_shared_generation_args(args, command_parser)
+        validate_sectors_args(args, command_parser)
     elif args.command == 'plan':
         validate_plan_args(args, command_parser)
     elif args.command == 'scatter':
@@ -1608,6 +1641,7 @@ _COMMAND_HANDLERS = {
     'fingerprint': run_fingerprint,
     'system': run_system.run_system,
     'sector': run_sector.run_sector,
+    'sectors': run_galaxy.run_sectors,
     'galaxy': run_galaxy.run_galaxy,
     'plan': run_plan.run_plan,
     'scatter': run_plan.run_scatter,

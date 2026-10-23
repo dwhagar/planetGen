@@ -196,7 +196,7 @@ Reading the table:
 Code read: `src/planetgen/galaxy/geometry.py` (the TODO items call it
 `galaxyGeometry.py`), `src/planetgen/generation/run_galaxy.py`
 (`_neighborhood_candidates`, `_neighborhood_batch`, `_generate_addresses`,
-`run_shell`).
+`run_addresses`).
 
 ### 2.1 How irregular the neighbours are
 

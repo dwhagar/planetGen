@@ -216,7 +216,7 @@ def test_charting_a_course_generates_its_uncharted_sectors(galaxy):
     args = _galaxy_args(galaxy, ["--course", *refs, "--workers", "1"])
     args.num_systems = 2
     with run_common._generation_progress(disable=True) as progress:
-        run_galaxy.run_course(args, EDGE_PC, progress)
+        run_galaxy.run_addresses(args, EDGE_PC, progress)
 
     conn = store.get_connection(galaxy)
     try:
@@ -240,7 +240,7 @@ def test_a_course_past_the_confirmation_size_needs_yes(galaxy, monkeypatch):
     monkeypatch.setattr(tuning, "NAV_CHART_CONFIRM_SECTORS", 1)
     args = _galaxy_args(galaxy, ["--course", *refs])
     with run_common._generation_progress(disable=True) as progress, pytest.raises(SystemExit):
-        run_galaxy.run_course(args, EDGE_PC, progress)
+        run_galaxy.run_addresses(args, EDGE_PC, progress)
     conn = store.get_connection(galaxy)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"] == 2   # nothing was generated

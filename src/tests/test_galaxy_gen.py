@@ -203,7 +203,7 @@ def _run_sector_gen_cli(argv):
 def _all_sectors(mysql_config):
     """Returns every `sectors` row. `get_connection`'s own `_ensure_schema`
     creates the table if a rejected run never got as far as calling it
-    (`run_shell`'s `LARGE_RUN_WARNING_THRESHOLD` guard raises
+    (`run_addresses`'s `LARGE_RUN_WARNING_THRESHOLD` guard raises
     before ever calling `_db.get_connection`), so this never errors on a
     fresh, empty database -- it just returns an empty list."""
     conn = _db.get_connection(mysql_config)

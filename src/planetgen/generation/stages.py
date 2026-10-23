@@ -67,15 +67,18 @@ def _random_start(args):
     return not any(getattr(args, name, None) not in (None, False) for name in SECTOR_MODES)
 
 
+def sectors_stages(args):
+    """The stages of one `planetgen sectors` run, in order: the sectors, and nothing else (PERF.123)."""
+    if _random_start(args):
+        return [Stage("start", "Generate the starting sector"), Stage("neighborhood", "Generate the neighborhood")]
+    return [Stage("sectors", "Generate the sectors")]
+
+
 def galaxy_stages(args):
     """The stages of one `planetgen galaxy` run, in order."""
     then_scatter = getattr(args, "then_scatter", False)
     no_scatter = None if then_scatter else "the star and phenomena scatter was not asked for"
-    if _random_start(args):
-        sectors = [Stage("start", "Generate the starting sector"), Stage("neighborhood", "Generate the neighborhood")]
-    else:
-        sectors = [Stage("sectors", "Generate the sectors")]
-    return sectors + [
+    return sectors_stages(args) + [
         Stage("link", "Link the neighbours"),
         Stage("mass", "Scatter the massive stars", no_scatter),
         Stage("luminosity", "Scatter the bright stars", no_scatter),
@@ -162,6 +165,8 @@ def for_command(command, args):
     parsed `args`, `[]` for any other."""
     if command == "galaxy":
         return galaxy_stages(args)
+    if command == "sectors":
+        return sectors_stages(args)
     if command == "plan":
         return plan_stages(args)
     if command == "scatter":
