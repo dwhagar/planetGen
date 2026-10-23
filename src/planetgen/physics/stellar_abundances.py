@@ -513,7 +513,7 @@ def _white_dwarf_table():
     path = os.path.join(DATA_DIRECTORY, "white_dwarf_mass_radius.json")
     with open(path, encoding="utf-8") as handle:
         data = json.load(handle)
-    for field in ("sources", "licence", "retrieved", "title", "rows", "limiting_mass_solar"):
+    for field in ("sources", "retrieved", "title", "rows", "limiting_mass_solar"):
         if not data.get(field):
             raise StellarAbundanceError(f"white_dwarf_mass_radius.json states no {field}")
     rows = data["rows"]

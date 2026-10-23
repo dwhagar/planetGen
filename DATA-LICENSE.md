@@ -54,3 +54,4 @@ composition part G4); PubChem and USGS data are public domain. The sources are l
 | `isochrones` (MIST v1.2) | Open; cite Choi et al. 2016 and Dotter 2016 |
 | `neutron_star_matter` | CC BY 4.0 |
 | `white_dwarf_models` | Open; cite Bedard et al. 2020 |
+| `white_dwarf_mass_radius.json` | Computed here from physical constants; no third-party data |
