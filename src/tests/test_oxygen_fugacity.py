@@ -128,3 +128,22 @@ def test_an_unknown_scale_or_temperature_raises():
         fo2.iw_log_fo2(-1.0)
     with pytest.raises(ValueError):
         fo2.log_k("co2_co", 50.0)
+
+
+def test_every_constant_set_has_a_source_row_and_the_unchecked_ones_say_stand_in():
+    assert all(len(row) == 4 and all(row) for row in fo2.SOURCES)
+    assert {row[2] for row in fo2.SOURCES} <= {"VERIFIED", "DERIVED", "CROSS-CHECKED", "STAND-IN"}
+    assert [row[0] for row in fo2.SOURCES if row[2] == "STAND-IN"] == ["Frost 1991 FMQ and NNO constants"]
+
+
+def test_nno_stands_only_a_few_tenths_above_fmq_at_one_gigapascal():
+    # Anenburg 2026: "at 1 GPa, NNO is only 0.3 log units above FMQ"; at 1 bar the gap is about 0.7 to 0.8.
+    for temperature in (1000.0, 1273.0, 1473.0, 1873.0):
+        gap_1gpa = fo2.frost_log_fo2("NNO", temperature, 1e4) - fo2.frost_log_fo2("FMQ", temperature, 1e4)
+        gap_1bar = fo2.frost_log_fo2("NNO", temperature) - fo2.frost_log_fo2("FMQ", temperature)
+        assert 0.1 <= gap_1gpa <= 0.4
+        assert 0.7 <= gap_1bar <= 0.8
+
+
+def test_the_fit_statistics_are_the_papers():
+    assert fo2.IW_FIT_RMS == 0.00647 and fo2.IW_FIT_MAX_MISMATCH == 0.0283

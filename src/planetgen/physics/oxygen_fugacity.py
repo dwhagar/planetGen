@@ -8,14 +8,24 @@ Earth's magma ocean at IW+0.5, and the same gas ratios are IW+0.0 on the iron-wu
 (2021); the Frost (1991) formula is 0.003 to 0.024 log units from it at 1 bar; QFM stands 3.1 to 3.6 log units above
 IW. Mixing values from different papers without converting shifts the gas ratios by a factor of three.
 
-* **The reference is the Hirschmann (2021, Geochim. Cosmochim. Acta 313, 74) iron-wustite buffer** (`iw_log_fo2`,
-  1000 to 3000 K, 1e-4 to 100 GPa, root mean square 0.0065 log units). `delta_iw` everywhere in the generator, the
-  stored `mantle_delta_iw` included, is `log10 fO2 - iw_log_fo2(T, P)` on it. The coefficients' magnitudes were read
-  in the paper's Table 1; their signs are those of the atmodeller 1.0.2 code [RECALLED from a second hand: the signs
-  could not be checked against the paper, but the result agrees with Frost's formula to 0.024 at 1 bar].
+* **The reference is the Hirschmann (2021, Geochim. Cosmochim. Acta 313, 74-84, doi 10.1016/j.gca.2021.08.039)
+  iron-wustite buffer** (`iw_log_fo2`, 1000 to 3000 K, 1e-4 to 100 GPa, root mean square 0.00647 log units, largest
+  mismatch 0.0283). `delta_iw` everywhere in the generator, the stored `mantle_delta_iw` included, is
+  `log10 fO2 - iw_log_fo2(T, P)` on it. Every coefficient and its sign, and the iron-phase boundary, were checked
+  against the paper's Table 1.
 * **Other buffers** are converted by `buffer_offset` (Frost 1991 fits of FMQ and NNO, whose own iron-wustite is
   `frost_log_fo2("IW", ...)`) and other authors' scales by `convert_delta_iw`; the `sossi2020` scale is the
-  reference minus a constant 0.5 at 2173 K, 1 bar, where the gas ratios of that paper were computed.
+  reference minus a constant 0.5 at 2173 K, 1 bar, where the gas ratios of that paper were computed. Sossi's IW rests
+  on the NIST-JANAF free energy of FeO, which Hirschmann shows puts IW 0.2 to 1.1 log units too reducing (0.4 to 0.7
+  at 2000 K): the offset is consistent with that, and its constant is derived from the gas ratios, not read.
+* **What is verified** is in `SOURCES`: Hirschmann's Table 1, the NASA Glenn coefficients and Sossi's equation 4
+  against the papers' text; the Frost IW against Hirschmann (0.003 to 0.024 log units at 1 bar from 1500 to 2200 K).
+  **Stand-ins:** the Frost FMQ and NNO constants (the Frost 1991 text is not available; the form
+  `log fO2 = A/T + B + C (P - 1)/T` is confirmed by Anenburg 2026, equation 4, which also finds the FMQ fit offset from
+  the thermodynamic value with a wrong pressure slope, and the NNO one good at 1 bar). The constants are the
+  high-temperature set (above 846 K) of the PetroBuffer code, checked only by the gap they leave between NNO and FMQ
+  at 1 GPa (0.15 to 0.37 over 1000 to 1873 K against Anenburg's "only 0.3"). Above about 1 GPa the FMQ and NNO
+  offsets are not reliable; the Hirschmann IW is.
 * **Gas ratios** (`co2_to_co`, `h2o_to_h2`) follow from the oxygen fugacity and the reactions
   `CO + 1/2 O2 = CO2` and `H2 + 1/2 O2 = H2O` (ideal gas, 1 bar standard state, the NASA Glenn fits of
   `data/nasa_glenn_redox_gases.json`): `log10(f_CO2/f_CO) = log K1 + 0.5 log10 fO2`. At 2173 K the CO2/CO ratio of 1
@@ -71,7 +81,22 @@ FROST_BUFFERS = {
     "FMQ": (-25096.3, 8.735, 0.110),
     "NNO": (-24930.0, 9.360, 0.046),
 }
-"""dict: Frost (1991, Rev. Mineral. 25) buffers, `log10 fO2 = A/T + B + C (P - 1)/T` with P in bar. FMQ is the quartz-fayalite-magnetite buffer above 846 K (the same as QFM). Constants second hand, from PetroBuffer 0.0.1."""
+"""dict: Frost (1991, Rev. Mineral. 25) buffers, `log10 fO2 = A/T + B + C (P - 1)/T` with P in bar. FMQ is the quartz-fayalite-magnetite buffer above 846 K (the same as QFM; Frost gives another set below). Constants second hand, from PetroBuffer 0.0.1; IW is cross-checked against Hirschmann, FMQ and NNO are stand-ins (`SOURCES`)."""
+
+IW_FIT_RMS = 0.00647
+IW_FIT_MAX_MISMATCH = 0.0283
+"""float: Hirschmann (2021) Table 1 footnote: the fit's root mean square and largest mismatch against the thermodynamic calculation, log units."""
+
+SOURCES = (
+    ("hirschmann2021 IW fit: coefficients, signs, phase boundary, range", "Hirschmann 2021 Table 1", "VERIFIED", "the paper's text"),
+    ("NASA Glenn fits of CO, CO2, H2, H2O, O2", "McBride, Zehe and Gordon 2002, NASA/TP-2002-211556, Appendix D", "VERIFIED", "the report's text, every interval and coefficient"),
+    ("Sossi 2020 equation 4: melt Fe3+/Fe2+ against delta-IW at 2173 K, 1 bar", "Sossi et al. 2020, Sci. Adv. 6, eabd1387", "VERIFIED", "the paper's text"),
+    ("Sossi 2020 gas ratios at his IW+0.5 (H2O/H2 1.05, CO2/CO 0.21)", "Sossi et al. 2020", "VERIFIED", "the paper's text; the NASA fits at reference IW+0.0 give 4 percent and 2 percent from them"),
+    ("Sossi scale 0.5 below the reference", "derived from the gas ratios above", "DERIVED", "consistent with the JANAF offset of Hirschmann 2021 (0.4 to 0.7 at 2000 K); Sossi's own IW formula is in his Supplementary Materials, not read"),
+    ("Frost 1991 IW constants", "Frost 1991, Rev. Mineral. 25 (text not available); second hand from PetroBuffer", "CROSS-CHECKED", "agrees with the Hirschmann IW to 0.003 to 0.024 log units at 1 bar, 1500 to 2200 K"),
+    ("Frost 1991 FMQ and NNO constants", "Frost 1991 (text not available); second hand from PetroBuffer", "STAND-IN", "the form is Anenburg 2026 equation 4; NNO minus FMQ at 1 GPa is 0.15 to 0.37 against Anenburg's 0.3; the absolute values are not checked"),
+)
+"""tuple: One row per constant set: what it is, where it comes from, how far it is checked, and against what."""
 
 SCALES = (REFERENCE_SCALE, "frost1991", "sossi2020")
 """tuple: The scales `convert_delta_iw` knows."""
