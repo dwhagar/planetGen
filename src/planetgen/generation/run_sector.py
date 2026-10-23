@@ -52,7 +52,7 @@ from planetgen.generation import run_common
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_population
 from planetgen.generation import run_system
-from planetgen.queue import commands, wrapper
+from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 
 
 SECTOR_PHENOMENON_KINDS = tuple(
@@ -1015,6 +1015,9 @@ def run_sector(args):
     try:
         wrapper.run(steps[0].label, steps, lambda _index, plan: None, on_result, workers_count=workers,
                     who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None))
+    except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+        log.error(f"error: the sectors could not be generated: {exc}")
+        raise SystemExit(1) from exc
     finally:
         run_common._finish_stats(args)
 
