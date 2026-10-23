@@ -20,8 +20,7 @@ The composition fractions that drive density, mass and gravity, stored and descr
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes |  | Body composition research lane finding F8, cluster 3; generator epoch bump. Core 4 proposed. |
-| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | GEN.458, GEN.557 | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
+| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | GEN.557 | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID |  |  |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 |  |  |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | DB.73, GEN.565 |  |
@@ -58,7 +57,7 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | GEN.428 | Boss 11:49 PM EDT; the atmosphere chain reads this gravity. Core 4 proposed. |
 | GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | GEN.428 | Body composition research lane findings F1 and F2, cluster 4; generator epoch bump. Core 4 proposed. |
 | GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | GEN.428 | Body composition research lane finding F7, cluster 6 (parts A and C); generator epoch bump. Core 4 proposed. |
-| DB.69 | Planets and moons store the composition fractions | GEN.429, GEN.458, GEN.459, GEN.460 | Boss 11:49 PM EDT; migration revision after DB.67. Core 4 proposed. |
+| DB.69 | Planets and moons store the composition fractions | GEN.429, GEN.459, GEN.460 | Boss 11:49 PM EDT; migration revision after DB.67. Core 4 proposed. |
 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions | GEN.428, GEN.429 | Boss 11:49 PM EDT; the description side. Core 4 proposed. |
 
 ### Albedo and greenhouse records
@@ -80,11 +79,11 @@ The ground's composition and the small bodies' composition from the bulk model, 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | GEN.428, GEN.429, GEN.458 | Body composition research lane finding F4, cluster 8 (parts C, D, E); generator epoch bump. Core 4 proposed. |
+| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | GEN.428, GEN.429 | Body composition research lane finding F4, cluster 8 (parts C, D, E); generator epoch bump. Core 4 proposed. |
 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | GEN.428, GEN.429, GEN.459, GEN.461 | Boss 11:58 PM EDT; the ground's composition; generator epoch bump. |
 | GEN.629 | The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together |  | Pool; rides the 8.4 epoch |
-| GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | GEN.428, GEN.429, GEN.458, GEN.459 | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
-| GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | GEN.428, GEN.429, GEN.442, GEN.458 | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
+| GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | GEN.428, GEN.429, GEN.459 | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
+| GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | GEN.428, GEN.429, GEN.442 | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
 | GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | GEN.557, GEN.442 |  |
 | GEN.558 | Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone | GEN.556, GEN.557, GEN.466 |  |
 | GEN.556 | `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed | GEN.315, GEN.555, GEN.565, GEN.581 |  |
@@ -139,7 +138,7 @@ The ozone figures and the scatterers that the colour needs, each its own thread,
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | GEN.441, GEN.442, GEN.461, GEN.462, GEN.466 | Boss 11:58 PM EDT; migration revision, in merge order. |
-| GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | GEN.442, GEN.458, DB.70 | Body composition research lane finding F11 (tables E1 to E4): belt and field composition drawn from the star, distance and belt mass; generator epoch bump. Core 4 proposed. |
+| GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | GEN.442, DB.70 | Body composition research lane finding F11 (tables E1 to E4): belt and field composition drawn from the star, distance and belt mass; generator epoch bump. Core 4 proposed. |
 | GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K | GEN.461 | Body composition research lane part F item F4 (later); generator epoch bump. Core 4 proposed. |
 | GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once | GEN.441, GEN.442 | Body composition research lane cluster 9 (part E sections 2.6 and 2.7, part D taxon albedo); generator epoch bump. Core 4 proposed. |
 
@@ -154,7 +153,7 @@ The columns for ozone and the aerosols, the atmosphere text written from the mix
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | GEN.413, GEN.414, DB.67 | Boss 11:24 PM EDT; migration only. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | GEN.411, GEN.413 | Boss 11:24 PM EDT; the description side of consistency. Core 4 proposed (Boss, 11:41 PM EDT). |
 | TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67, DB.68, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; the proof. |
-| TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442, DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466 | Boss 11:49 PM EDT; the proof. |
+| TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442, DB.70, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466 | Boss 11:49 PM EDT; the proof. |
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | GEN.565, DB.74 |  |
 | PERF.136 | Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default | GEN.558, GEN.559 |  |
 | TEST.239 | Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares | GEN.554, GEN.558, GEN.559 |  |
