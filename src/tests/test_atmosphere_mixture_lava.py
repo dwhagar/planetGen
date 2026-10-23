@@ -103,3 +103,12 @@ def test_a_surface_that_is_not_molten_is_refused():
     with draw.bound(1):
         with pytest.raises(ml.MixtureError):
             ml.vapour_mixture(Subject("A", {**HOT, "tp_k": 900.0}), md.RECIPES.draw_all(Subject("A", HOT), categories=md.CATEGORIES))
+
+
+def test_a_stored_melt_composition_replaces_the_drawn_one():
+    constants = {}
+    fractions = ml.melt_composition(constants, {"SiO2": 50.0, "MgO": 30.0, "FeO": 20.0})
+    assert sum(fractions.values()) == pytest.approx(1.0)
+    assert fractions["Na2O"] < 1e-9 and fractions["FeO"] > fractions["Al2O3"]
+    # no draw was made for it: the same call twice agrees without a seed
+    assert ml.melt_composition({}, {"SiO2": 50.0, "MgO": 30.0, "FeO": 20.0}) == fractions

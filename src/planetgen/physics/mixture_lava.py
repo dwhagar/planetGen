@@ -66,11 +66,21 @@ VOLATILE_BEARING_PER_CARBON = 1.0
 """float: Moles of carbon the volatile-bearing gas is computed for (only its CO2 to CO ratio matters)."""
 
 
-def melt_composition(constants):
-    """The oxides' mole fractions of the melt: the bulk silicate Earth's weight shares scattered by `COMPOSITION_SCATTER` dex."""
+def melt_composition(constants, oxides_wt_percent=None):
+    """
+    The oxides' mole fractions of the melt.
+
+    Args:
+        constants (dict): Receives `melt_mole_fractions`.
+        oxides_wt_percent (dict, optional): The stored surface composition, oxide -> weight percent (any of `OXIDES`, the rest are
+            zero); without it the bulk silicate Earth's weight shares scattered by `COMPOSITION_SCATTER` dex are drawn.
+    """
     moles = {}
     for oxide, (weight_percent, metal, atoms, oxygen) in OXIDES.items():
         mass = atoms * elements.element(metal).atomic_weight + oxygen * elements.element("O").atomic_weight
+        if oxides_wt_percent is not None:
+            moles[oxide] = max(oxides_wt_percent.get(oxide, 0.0), 1e-12) / mass
+            continue
         scatter = 10.0 ** draw.gauss(0.0, COMPOSITION_SCATTER)
         moles[oxide] = weight_percent * scatter / mass
     total = sum(moles.values())
@@ -114,7 +124,7 @@ def vapour_pressures(potentials, temperature_k):
     return pressures
 
 
-def vapour_mixture(subject, recipe, *, temperature_name="tp_k"):
+def vapour_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percent=None):
     """
     The vapour over `subject`'s molten surface.
 
@@ -123,6 +133,7 @@ def vapour_mixture(subject, recipe, *, temperature_name="tp_k"):
             volatile-bearing branch, `pressure_bar`.
         recipe (RecipeDraw): With the redox (`a1` or `a4`) and the lava rows drawn.
         temperature_name (str): The quantity the temperature is read from.
+        oxides_wt_percent (dict, optional): The melt's stored oxide composition (see `melt_composition`).
 
     Raises:
         MixtureError: The surface is colder than `MELT_MIN_K`, or the redox is missing.
@@ -137,7 +148,7 @@ def vapour_mixture(subject, recipe, *, temperature_name="tp_k"):
     redox = recipe.values.get("a4", recipe.values.get("a1"))
     if redox is None:
         raise MixtureError("no redox row applies to the melt")
-    fractions = melt_composition(constants)
+    fractions = melt_composition(constants, oxides_wt_percent)
     gamma = bracket(constants, "alkali_activity_coefficient", ALKALI_ACTIVITY_COEFFICIENT)
     activities = {oxide: value * (gamma if oxide in ("Na2O", "K2O") else 1.0) for oxide, value in fractions.items()}
     potentials = element_potentials(activities, temperature, redox)
