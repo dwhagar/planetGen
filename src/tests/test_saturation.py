@@ -138,12 +138,15 @@ def test_each_floor_is_where_the_polynomial_turns_over():
 def test_status_follows_the_temperature():
     assert saturation.saturation("N2", 40.0).status == saturation.COLD_UNVERIFIED
     assert saturation.saturation("N2", 55.0).status == saturation.OK
-    assert saturation.saturation("N2", 70.0).status == saturation.ABOVE_TRIPLE
+    assert saturation.saturation("N2", 70.0).status == saturation.OK
+    assert saturation.saturation("N2", 70.0).phase == saturation.LIQUID
     assert saturation.saturation("N2", 5.0).status == saturation.BELOW_FIT
     assert saturation.saturation("CO2", 150.0).status == saturation.OK
-    assert saturation.saturation("CO2", 230.0).status == saturation.ABOVE_TRIPLE
+    assert saturation.saturation("CO2", 230.0).phase == saturation.LIQUID
+    assert saturation.saturation("C2H2", 200.0).status == saturation.ABOVE_TRIPLE
+    assert saturation.saturation("C2H2", 200.0).phase == saturation.SOLID
     assert saturation.saturation("H2O", 273.16).status == saturation.OK
-    assert saturation.saturation("H2O", 300.0).status == saturation.ABOVE_TRIPLE
+    assert saturation.saturation("H2O", 300.0).status == saturation.OK
     assert saturation.saturation("H2O", 40.0).status == saturation.COLD_UNVERIFIED
     assert saturation.saturation("N2", 40.0).status in saturation.STATUSES
 
@@ -156,8 +159,8 @@ def test_the_cold_limit_is_fifty_kelvin():
 
 def test_an_unknown_species_and_a_bad_temperature_are_refused():
     with pytest.raises(saturation.UnknownSpecies):
-        saturation.saturation("H2", 20.0)
-    assert not saturation.has("H2")
+        saturation.saturation("He", 3.0)
+    assert not saturation.has("He")
     for bad in (0.0, -3.0):
         with pytest.raises(ValueError):
             saturation.saturation("N2", bad)
@@ -174,3 +177,81 @@ def test_the_data_file_labels_its_stand_ins_and_the_unread_paper():
 
 def test_pressure_is_in_pascals_not_bar():
     assert saturation.pressure_pa("CO2", 194.7) == pytest.approx(1.01e5, rel=0.03)
+
+
+LIQUID_FORMULAS = sorted(f for f in saturation.formulas() if saturation.species(f).liquid is not None)
+
+# solid pressure over liquid pressure at the triple point, the "Err at Tt" of part 01 section 7.1 (the pieces do not meet)
+JOINS = {"N2": 0.9726, "CH4": 1.0165, "H2S": 1.0165, "NH3": 1.0190, "SO2": 1.0381, "HCN": 1.0333, "C6H6": 1.0707}
+
+
+def test_every_species_but_acetylene_has_a_liquid_branch():
+    assert set(saturation.formulas()) - set(LIQUID_FORMULAS) == {"C2H2"}
+    assert saturation.species("HCN").liquid.form == "dippr101"
+
+
+@pytest.mark.parametrize("formula", LIQUID_FORMULAS)
+def test_the_liquid_boils_at_the_gas_tables_boiling_point(formula):
+    row = gases.gas(formula)
+    if row.boiling_point_is_sublimation:
+        pytest.skip("the boiling point of the gas table is a sublimation point")
+    assert saturation.pressure_pa(formula, row.boiling_point_k) == pytest.approx(101325.0, rel=0.01)
+    assert saturation.saturation(formula, row.boiling_point_k).phase == saturation.LIQUID
+
+
+@pytest.mark.parametrize("formula", [f for f in LIQUID_FORMULAS if f != "HCN"])
+def test_the_critical_point_is_the_gas_tables(formula):
+    liquid = saturation.species(formula).liquid
+    row = gases.gas(formula)
+    assert liquid.t_max_k == pytest.approx(row.critical_temperature_k, abs=0.02)
+    assert saturation._liquid_pa(liquid, liquid.t_max_k * (1 - 1e-12)) == pytest.approx(liquid.pc_pa, rel=1e-6)
+    assert liquid.pc_pa == pytest.approx(row.critical_pressure_pa, rel=0.005)
+
+
+def test_water_liquid_is_the_steam_table():
+    assert saturation.pressure_pa("H2O", 300.0) == pytest.approx(3536.8, rel=0.003)
+    assert saturation.pressure_pa("H2O", 373.124) == pytest.approx(101325.0, rel=0.003)
+
+
+@pytest.mark.parametrize("formula", LIQUID_FORMULAS)
+def test_the_two_branches_meet_within_the_published_spread(formula):
+    tt = saturation.triple_point_k(formula)
+    below = saturation.saturation(formula, tt)
+    above = saturation.saturation(formula, tt + 1e-6)
+    assert (below.phase, above.phase) == (saturation.SOLID, saturation.LIQUID)
+    ratio = below.pressure_pa / above.pressure_pa
+    assert ratio == pytest.approx(JOINS.get(formula, 1.0), abs=0.005 if formula in JOINS else 0.01)
+
+
+@pytest.mark.parametrize("formula", LIQUID_FORMULAS)
+def test_the_liquid_rises_to_the_critical_point_and_then_there_is_no_saturation(formula):
+    liquid = saturation.species(formula).liquid
+    tt = saturation.triple_point_k(formula)
+    previous = 0.0
+    t = tt + 0.5
+    while t < liquid.t_max_k:
+        value = saturation.pressure_pa(formula, t)
+        assert value > previous, (formula, t)
+        previous = value
+        t += (liquid.t_max_k - tt) / 100.0
+    hot = saturation.saturation(formula, liquid.t_max_k + 1.0)
+    assert hot.status == saturation.ABOVE_CRITICAL
+    assert math.isinf(hot.pressure_pa)
+
+
+def test_hydrogen_is_a_clausius_clapeyron_solid_below_its_triple_point():
+    row = gases.gas("H2")
+    assert saturation.pressure_pa("H2", row.triple_point_k) == pytest.approx(row.triple_point_pa, rel=1e-9)
+    assert saturation.saturation("H2", 10.0).status == saturation.COLD_UNVERIFIED
+    assert saturation.pressure_pa("H2", 10.0) < 0.2 * row.triple_point_pa
+    assert saturation.saturation("H2", 10.0).curve_id == "H2-CC"
+
+
+def test_solid_carbon_dioxide_is_as_cold_as_its_latent_heat_allows():
+    # 1e-9 bar from 194.7 K at 1 bar with the sublimation heat of 25.2 to 27.2 kJ/mol (gas table): 83.5 to 87.2 K
+    low, high = gases.gas("CO2").latent_heat_sublimation_kj_mol
+    for heat, expected in ((low, 83.5), (high, 87.2)):
+        slope = heat * 1000.0 / saturation.GAS_CONSTANT_J_MOL_K
+        t = 1.0 / (1.0 / 194.7 + math.log(1e9) / slope)
+        assert t == pytest.approx(expected, abs=0.1)
+    assert 83.0 < _invert("CO2", 1e-9 * 1e5) < 88.0
