@@ -92,6 +92,15 @@ Fitted numbers only (two regression lines and their scatter per sub-sample, and 
 | NASA Exoplanet Archive, table `pscomppars` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
 | Luque and Palle 2022, Science 377, 1211 | Published paper; the two cuts (mass better than 25 percent, radius better than 8 percent) only |
 
+## The planets with a JWST spectrum (`src/planetgen/physics/data/jwst_selection.json`, GEN.506)
+
+Fitted numbers only (logistic coefficients, the host magnitude model and per-class counts); the archive's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| NASA Exoplanet Archive, tables `pscomppars` and `spectra` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
+| Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671) | Published paper; the two formulas and the scale factors of its Table 1 only |
+
 ## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and

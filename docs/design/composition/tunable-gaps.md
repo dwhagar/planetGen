@@ -176,6 +176,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.505, lane M, 2026-10-23):** the selection model `mass-radius-sample` (`planetgen/physics/mass_radius_sample.py`, `docs/design/mass-radius-sample.md`): the chance a transiting planet with a published mass passes the cut of mass better than 25 percent and radius better than 8 percent, from an error model fitted to the NASA Exoplanet Archive (`scripts/fit_mass_radius_sample.py`). The cut is a weak filter (the relative error is nearly independent of the signal) and conditions on a published mass; detection is GEN.504.
 
+**Built (GEN.506, lane M, 2026-10-23):** the selection model `jwst-target-selection` (`planetgen/physics/jwst_selection.py`, `docs/design/jwst-selection.md`): the chance a transiting planet has a published JWST spectrum, a logistic regression on the Kempton et al. 2018 transmission and emission metrics and a radius-class offset, fitted to the NASA Exoplanet Archive (`scripts/fit_jwst_selection.py`; 78 of 4,618 planets). It reproduces the count in each radius class and gives host magnitudes to a generated planet from the found hosts' distribution.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.
