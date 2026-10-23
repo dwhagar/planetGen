@@ -119,7 +119,7 @@ NULL_IN_THIS_GALAXY = {
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
-        "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix", "flags",
+        "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix",
         "state", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
 }
@@ -180,8 +180,10 @@ NEVER_READ = {
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "read by the DB.53 chain" for column in (
-        "decay_age_yr", "epoch_unix", "flags",
+        "decay_age_yr", "epoch_unix",
         "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "state")},
+    # GEN.329: read back only for a system saved as a runaway, which this galaxy may not hold.
+    ("stars", "flags"): CHANCE,
 }
 """`(table, column)` the loaders and detail endpoints don't read, with why."""
 

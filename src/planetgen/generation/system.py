@@ -80,7 +80,10 @@ it leaves the heliosphere below this share of its open-space size."""
 # Bumped 3 -> 4 to add `orbit_nodes` (GEN.311): the stored tree of orbits the stars hang in, a list of dicts, one per node
 # (`physics.system_tree.OrbitNode`); `[]` for a single star or a system that was never saved. A pre-v4 save has no key and
 # reads as no nodes.
-SERIALIZATION_SCHEMA_VERSION = 4
+#
+# Bumped 4 -> 5 to add `runaway_origin` (GEN.329): how a runaway star came to move so fast, `"supernova"` or `"dynamical"`
+# (`None` for a system that is not a runaway). A pre-v5 save has no key and reads as `None`.
+SERIALIZATION_SCHEMA_VERSION = 5
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -160,6 +163,15 @@ class StarSystem:
 
     runaway_speed_kms = None
     """float or None: That speed, km/s; `None` unless `runaway_class`."""
+
+    runaway_decided = False
+    """bool: A pre-placed O or B star whose seed already decided whether it is a runaway (GEN.329): the fill's field roll
+    (`run_sector.flag_fast_stars`) leaves it alone."""
+
+    runaway_origin = None
+    """str or None: How a `"runaway"` star came to move so fast (GEN.329): `"supernova"` (its companion exploded) or
+    `"dynamical"` (an encounter in a young group), recorded in the flags of its `stars` row. `None` for any other system;
+    a hypervelocity star has none (the Hills mechanism)."""
 
     runaway_direction = None
     """tuple or None: The unit vector, galactic axes, it moves along beyond
@@ -1342,6 +1354,7 @@ class StarSystem:
             "binary_planetary_wobble_z": self.binary_planetary_wobble_z,
             "runaway_class": self.runaway_class,
             "runaway_speed_kms": self.runaway_speed_kms,
+            "runaway_origin": self.runaway_origin,
             "runaway_direction": list(self.runaway_direction) if self.runaway_direction is not None else None,
             "orbit_nodes": [dataclasses.asdict(node) for node in self.orbit_nodes],
         }
@@ -1457,6 +1470,7 @@ class StarSystem:
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
+        system.runaway_origin = data.get("runaway_origin")
         direction = data.get("runaway_direction")
         system.runaway_direction = tuple(direction) if direction is not None else None
         # Absent from an export written before names/bodies.py -- the star's

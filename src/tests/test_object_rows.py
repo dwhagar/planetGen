@@ -101,7 +101,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
 
-_STAR_CONTEXT = {"star_system_id": 1, "role": "single", "parent_node_id": None, "offset_au": (0.0, 0.0, 0.0)}
+_STAR_CONTEXT = {"star_system_id": 1, "role": "single", "parent_node_id": None, "offset_au": (0.0, 0.0, 0.0), "flags": 0}
 
 
 def _stored(fields, obj, context):
