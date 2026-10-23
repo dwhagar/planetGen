@@ -508,10 +508,19 @@ class Pipeline:
         for step in self.steps:
             record = self.run_step(step)
             records.append(record)
+            print(progress_line(record), flush=True)
             if record.get("failed") or record["timed_out"]:
                 break
         self.admin.close()
         return records
+
+
+def progress_line(record):
+    """The line printed when a step ends, so a run that is stopped before its report keeps what finished."""
+    state = "NOT FINISHED" if record["timed_out"] else "FAILED" if record.get("failed") or record["exit_code"] else "done"
+    made = record["made"]
+    return (f"  {state}: {record['label']} in {_seconds(record['wall_seconds'])}"
+            f" ({made['count']:,} {made['noun']}, client CPU {_seconds(record['cpu_seconds'])})")
 
 
 def summarize(runs):

@@ -134,6 +134,14 @@ def test_the_report_lists_each_step_its_stages_the_counters_and_the_ranking():
     assert ranked.index("90.0%") < ranked.index("10.0%")
 
 
+def test_a_step_that_ends_prints_a_line_a_stopped_run_keeps():
+    line = benchmark_suite.progress_line(_record("scatter-mass", 90.0, made=24558))
+    assert line == "  done: Scatter the massive stars in 90.0 s (24,558 stars, client CPU 3.0 min)"
+    assert benchmark_suite.progress_line(_record("plan", 5400.0, timed_out=True, exit_code=None)).startswith(
+        "  NOT FINISHED: Plan the galaxy")
+    assert benchmark_suite.progress_line(_record("plan", 3.0, exit_code=1)).startswith("  FAILED: ")
+
+
 def test_the_machine_cpu_is_a_growing_number_on_linux():
     first = benchmark_suite.machine_cpu_seconds()
     if first is None:
