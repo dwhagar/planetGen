@@ -1051,6 +1051,36 @@ with `clamp()`.
   Prerequisites: UX.151, DB.91, GEN.649. Related: UX.151, UX.100,
   TEST.300.
 
+- [ ] **UX.153 Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none**
+  Section 11 item 3 of the design draft. Do: the single Equipment a
+  Human Needs search facet becomes a Needs tick per item (garment,
+  thermal suit, sealed suit, pressure suit, armoured suit, vehicle,
+  shielded garment, storm vest, hardened suit, dust, gas filter, CO2
+  scrubber, gas-mix mask, sealed supply, shielded shelter, hardened
+  habitat) in db/query.py and web/searchpage.py; the levels page (UX.90)
+  is rewritten from the same limit rows; the describer sentences come
+  from the needs list. Done: no page or sentence lists an item that is
+  not needed, and the wording test agrees with the index. Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: GEN.655, DB.93. Related: UX.90, GEN.216, GEN.218.
+
+- [ ] **UX.154 Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended**
+  Section 11 item 4 of the design draft. Do: chips for the Body, Filter,
+  Supply and Shelter lists on the planet and moon lists and the system
+  page, solid for required and outlined for recommended, in the symbols
+  and icons of UX.101 and the score display of UX.152, with a browser
+  test. Done: a world that needs nothing shows no equipment line, and
+  the chips read the stored columns. Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: GEN.655, DB.93, UX.153. Related: UX.101, UX.152,
+  UX.100.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -15256,6 +15286,70 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   determinism across worker counts, and the design doc states it.
   Prerequisites: GEN.649. Related: GEN.648, GEN.649, GEN.653.
 
+- [ ] **GEN.655 Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements**
+  Section 11 item 1 of the design draft. Do: physics/equipment.py with
+  the needs list and severity, the levels of Body Protection, Air Filter
+  or Scrubber, Air Supply and Radiation Protection (shielded garment,
+  storm vest, hardened suit, shielded shelter, hardened habitat), the
+  new limit rows in physics/protection_limits.py (severity bands, the
+  five radiation steps with their shielding and the 2,000-hour working
+  year, the toxic table), the radiation ladder computed with the dose
+  functions of physics/radiation.py, the two derived lists and the short
+  code, the consistency test with its declared exceptions, the draft
+  copied into docs/design as the equipment design with
+  habitability-index.md sections 2, 7.3, 8, 9 and 10 updated, and the
+  removal of habitability.equipment and the tier constants with no shim.
+  Done: the physics decides the gear everywhere (Boss, B), a world that
+  needs nothing lists nothing (Boss, E), and the sample of the draft
+  (160 systems) reproduces its counts. Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: none. Related: GEN.208, GEN.216, GEN.218, GEN.148,
+  GEN.207, GEN.89.
+
+- [ ] **GEN.656 Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text**
+  Section 11 item 5 of the design draft. Do: the module that estimates
+  the four regional annual means and the day and night swing from the
+  stored row (the columns arrive with DB.93); the score and the required
+  gear read the average, the detail text names any region or hour that
+  needs more and lists the heavier gear as recommended (Boss, C); tests
+  against Earth, the Moon, Mars and Mercury. Done: the regional values
+  agree with the observed ones within the stated tolerance. Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: GEN.655. Related: DB.93.
+
+- [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
+  Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,
+  NH3, Cl2, SO2, HCN and the rest of the table) read from the gas rows
+  stored by GEN.424, the RECALLED limits of the draft section 12
+  verified against the NIOSH and ACGIH sources before use under the
+  standing source rules, and a test that the filter grade follows the
+  physics (Boss, B). Done: every toxic row cites a verified source and
+  the filter grade of a sample of worlds matches the draft. Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: GEN.424, GEN.655. Related: GEN.424, DB.71.
+
+- [ ] **GEN.658 Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs**
+  Section 11 item 7 of the design draft. Do: a dust loading and dust
+  toxicity input read from the stored haze and dust columns (GEN.414)
+  and the surface composition of lane K, and the dust filter or seals
+  level (0 to 2) that follows. Done: Mars reads dust-tight seals
+  required, an airless fine-regolith world likewise, and a clean-air
+  world nothing. Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: GEN.414, GEN.655. Related: GEN.414.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17261,6 +17355,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   older rows. Done: round trip, migration test, the schema document
   lists the columns.
   Prerequisites: GEN.654. Related: GEN.654, DB.91.
+
+- [ ] **DB.93 Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object**
+  Section 11 item 2 of the design draft. Do: one Alembic migration (next
+  free number at merge) that adds the columns of section 7 of the draft
+  to planets and moons, backfills them by running the new function over
+  every row, and drops equipment_tier; the columns in db/column_units.py
+  in the same PR; the API object (required, recommended, code, items,
+  regions) on planets, moons and the system document, with
+  equipment_tier removed and no compatibility layer. Done: the
+  backfilled rows equal the function's output, and no generated value
+  changes (no generator epoch). Design:
+  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
+  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
+  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
+  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Prerequisites: GEN.655.
 
 ## API: The JSON API
 
@@ -22476,4 +22586,18 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Moved to phase 2 with the shell as its prerequisite, so it is built on
   the shared table, form and confirmation and is not missed by the audit
   and the conversion (2026-10-16 review).
+
+- [ ] **POP.15 A per-item technology level table for the species fit: which equipment item a species can field at which tech level**
+  Section 11 item 8 of the design draft. Do: the table of the minimum
+  tech level for each equipment item (replacing
+  tuning.SPECIES_EQUIPMENT_MIN_TECH), read by physics/species_limits.py
+  and db/species_fit.py so a species fit assesses the needs list instead
+  of the old tier. Done: the fit of a species to a world names the items
+  it cannot field, and the tests of the species limits pass on the needs
+  list. Design: design-drafts/survival-equipment-fields-2026-10-23.md,
+  approved by Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this
+  is approved, build it'; decisions A to F of 7:37 and 7:46 PM EDT in
+  its section 2). Owner: Survival equipment lane (thread 'Survival
+  equipment fields').
+  Prerequisites: GEN.655. Related: POP.13, POP.14.
 
