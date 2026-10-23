@@ -20,13 +20,12 @@ The saved course record and its list, open and rename.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.17 | A saved course record with both forms |  |  |
-| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | NAV.17 | Sibling of bookmarks.js. |
-| NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
+| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store |  | Sibling of bookmarks.js. |
+| NAV.4 | Save a course | NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
 | NAV.21 | Fit the view to the whole course |  | Same fit as MAP.53, exempt from any zoom limit (MAP.58 was superseded by MAP.125). |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
-| NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
+| NAV.39 | Saved courses remember their unknown-space jumps and check them again |  | With NAV.17. |
 
 ### Halo and intergalactic switch
 
@@ -77,6 +76,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122, NAV.17 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
+| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
 | NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | NAV.49, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). |
 | NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.49, NAV.58, NAV.4, NAV.23 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |

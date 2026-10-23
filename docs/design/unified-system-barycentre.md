@@ -41,7 +41,7 @@ Four conventions for the origin **[M]**:
 | Case | Where the origin is | Where it is set |
 |---|---|---|
 | Single star with planets | the star's centre; its motion is a separate `reflex_offset_x/y/z_km` on `stars` and `planets` (schema v20), computed by `orbits.calculate_reflex_offset` (pairwise pulls summed) and mirrored in SQL by `store.advance_orbital_phases` | `generation/system.py:432-452` |
-| Close binary | the pair's barycentre; stars at `binary_primary_position_*` and `binary_secondary_position_*` (km) | `physics/body_positions.py` via `web/maps/systemscene._star_around` |
+| Close binary | the pair's barycentre; stars at `binary_primary_position_*` and `binary_secondary_position_*` (km) | `physics/body_positions.py` (built; `web/maps/systemscene._star_around` does not call it yet, MAP.253 wires it) |
 | Wide binary | the first star; the second at `binary_mutual_position_*` | `systemscene._stars` |
 | Scattered multi-star tree | the barycentre of each node; children either side in proportion to the other's mass; nodes nest | `physics/system_tree.py` (144 lines), scatter rows only |
 

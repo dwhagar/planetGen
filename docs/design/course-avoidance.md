@@ -32,7 +32,7 @@ Prototype and test scripts are in the research scratchpad (`nav05/`: planner `av
 | `asteroid_fields.radius_ly` | Bounding sphere, 0.001 to 1 ly (63 AU to 63,000 AU), `tuning.ASTEROID_FIELD_RADIUS_RANGE_LY` | No number density stored, only `density` = sparse, typical or dense |
 | `nebulae.radius_ly`, `nebula_shape.NebulaShape.contains` | Bounding radius 0.1 to 200 ly; irregular metaball shape | A containment test exists, so a chord length can be measured |
 | `supernova_remnants.radius_ly` | `0.35 ly * age^0.4` (`SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY`) | Coefficient reviewed in [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-classes.md) |
-| `physics/body_positions.positions_at(scene, years)` | Every body of a system at any time | Built (MAP.70); NAV.27 uses it as is |
+| `physics/body_positions.positions_at(scene, years)` | Every body of a system at any time | Built (MAP.70) with no production caller yet (tests and the browser twin only); NAV.27 will use it as is |
 | `galaxy/geometry.sectors_along_segment` (NAV.38) | Sectors a straight segment crosses | Starting point for NAV.25's broad phase |
 | `web/nav_page.galaxy_course` | Course for the Galaxy Map: `points` `[{name, url, role, x, y, z}]` in parsecs, `direct`, `readout` | The extension point for the adjusted form |
 

@@ -1602,7 +1602,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | done, PR #697 |
-| NAV.17 | A saved course record with both forms | none | open |
+| NAV.17 | A saved course record with both forms | none | done, PR #2553 |
 | NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | open |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
 | NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
