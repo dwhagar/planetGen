@@ -33,6 +33,7 @@ import urllib.parse
 import urllib.request
 
 from planetgen.util import log
+from planetgen.util.user_agent import user_agent
 from planetgen.util.settings import get_settings
 
 from planetgen.web.lib import pagecache, slowpages
@@ -170,7 +171,8 @@ def _cache_db(params):
 
 def _http_transport(method, target, data, headers, timeout):
     """The default transport: a real HTTP request to `API_BASE_URL`."""
-    request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers=headers, method=method)
+    request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
+                                     method=method)
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return TransportResponse(
