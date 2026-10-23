@@ -1130,3 +1130,4 @@ Baseline: PR #1817.
 | TEST.291 | 8.1 | Bugs and flaky tests |
 | GEN.497 | 8.1 | Composition tables |
 | GEN.258 | 8.1 | Nebula and young stars |
+| ADM.126 | 8.1 | Admin control suite |
