@@ -3417,7 +3417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: GEN.304, OPS.57, GEN.57.
+    Prerequisites: OPS.57, GEN.57.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -4095,7 +4095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.304, GEN.305.
+  Prerequisites: GEN.305.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
@@ -5618,29 +5618,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
 
-- [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
-  Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Replace the exact-float encoding
-  of `planetgen/db/fingerprint.py` (GEN.58) and the
-  `tests/galaxy_fingerprint.py` stand-in with one canonical encoder as a
-  library: floats as `format(x, ".8e")`, integers exact (hex above
-  2^53), no Unicode normalisation, sorted keys, generation order for
-  lists, no ids or timestamps, a `pgfp1` format tag, SHA-256; separate
-  structural and float digests over named sections (system, star,
-  planet, moon, belt, comet, phenomenon, population). Why: OPS.28's
-  battery digest, TEST.77's tiers and GEN.57's order test all hash
-  generated values and must hash them one way, and a 1-ulp difference in
-  exp or sin between machines must not show. Done: the encoder with
-  golden-vector tests (the same value gives the same string on Python
-  3.12 and 3.13; a 1-ulp change in a float leaves the digest unchanged
-  and a change in the 9th digit changes it; the structural digest
-  ignores float noise); `db/fingerprint.py` uses it; the stand-in is
-  deleted and its tests moved.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.136.
-
 - [ ] **GEN.305 Store a leaf digest at save time and build the tree: roots and region digests**
   Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Compute the leaf digest at save
@@ -5656,7 +5633,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.304. Related: GEN.136.
+  Prerequisites: none. Related: GEN.136.
 
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
   Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -21549,7 +21526,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the
   fingerprint encoder is GEN.304's (split from GEN.136, 2026-10-16), not
   GEN.136's.
-  Prerequisites: GEN.304. Related: OPS.28.
+  Prerequisites: none. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
