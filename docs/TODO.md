@@ -5635,7 +5635,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `generation/wide_binary.py:119-121`, `generation/binary.py`), leaving
   only the tree's copy in `multistar._Builder.place`, which becomes a
   caller of `primary_first` (GEN.581) later. No new copy is added.
-  Prerequisites: GEN.315, GEN.630, GEN.631. Related: GEN.264, GEN.332.
+  Re-cut (Core 3, relayed 2:20 PM EDT 2026-10-23 as the lane reported):
+  the umbrella is now done when GEN.630, the narrowed GEN.631, GEN.332
+  and GEN.640 (the pair classes deleted) are done.
+  Prerequisites: GEN.315, GEN.631, GEN.332, GEN.640. Related: GEN.264.
 
 - [ ] **GEN.326 Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5760,6 +5763,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22 as the lane's clock reads): `physics/planet_zones.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers (built by GEN.314). Boss (8:04 PM
   EDT): code built for a pending feature stays.
+  Order after the GEN.631 re-cut (TODO thread, 2:20 PM EDT 2026-10-23):
+  this item still waits on the narrowed GEN.631 and now gives
+  circumbinary and S-type planets to any tree, including the pair that
+  BinaryStarProxy and WideBinaryPair host today; GEN.640 deletes those
+  classes afterwards.
   Prerequisites: GEN.315, GEN.631. Related: GEN.275, GEN.316.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -14301,31 +14309,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.495, GEN.442, GEN.455, GEN.457,
   TEST.214.
 
-- [ ] **GEN.630 GEN.316 part (a): the N-star StarSystem host and the stars.role 'member' migration, still building only the pairs, with readers and loaders updated**
-  Split of GEN.316 proposed by Core 3 (relayed 1:21 AM EDT 2026-10-23 as
-  the lane reported) after GEN.315 slice 1 (#2605): GEN.316 is much
-  larger than its line says. It needs an N-star host on StarSystem, a
-  stars.role 'member' migration and touches about 12 files
-  (generation/system.py, db/store.py, query.py, the system map, the
-  loaders) before BinaryStarProxy, WideBinaryPair and the two-star
-  probability table can retire. This part is the foundation: StarSystem
-  holds N stars, the stars.role column allows 'member' (the migration is
-  numbered at merge: check main's head; 0131 went to OPS.58, #2654, so GEN.458 takes 0132), and every
-  reader and loader handles N stars, while the fill still builds only
-  the pairs it builds today. Done: the same seed gives bit-identical
-  sectors before and after (no generator epoch), a system with three
-  members round-trips through save and load, readers that assumed two
-  stars are covered by a test that fails on a three-member system, and
-  any new numeric column is declared in db/column_units.py in the same
-  PR. Owner: Core 3 (starts after GEN.329 merges).
-  Reads GEN.267's config (TODO thread, 1:05 PM EDT 2026-10-23): the
-  StarSystem host takes the forced star count and the cap (MAX_STARS)
-  from the config that GEN.267 (Core 4) adds, so a single-system
-  generate with --stars N builds the forced tree once this item and
-  GEN.631 are in. Core 4 carries the setting; Core 3 consumes it.
-  Prerequisites: none. Related: GEN.316, GEN.315, GEN.264.
-
-- [ ] **GEN.631 GEN.316 part (b): stages D and G call draw_member_tree, and BinaryStarProxy, WideBinaryPair and the two-star probability table are deleted**
+- [ ] **GEN.631 GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted**
   Split of GEN.316 proposed by Core 3 (relayed 1:21 AM EDT 2026-10-23 as
   the lane reported), the original scope of GEN.316 on top of part (a):
   a system made at fill (stage D, the cell's other systems; stage G,
@@ -14339,7 +14323,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table's odds, no code path uses the old two-star draw, and the census
   of stars per system matches the table (B and A binaries about 0.75 and
   0.60, mean 1.38 stars per system). Owner: Core 3, after part (a).
-  Prerequisites: GEN.630. Related: GEN.316, GEN.315, GEN.264, GEN.581.
+  Re-cut (Core 3, relayed 2:20 PM EDT 2026-10-23 as the lane reported;
+  the TODO thread agreed): deleting BinaryStarProxy and WideBinaryPair
+  would remove the only code that hosts planets around a two-star
+  system, and giving those planets back is GEN.332's content, so this
+  item no longer deletes the classes. It now is: stage D and G systems
+  and the uncharted route draw their members from draw_member_tree at
+  the table's odds; a tree of 3 or more stars builds all its stars as
+  member_stars on the GEN.630 host (no planets of their own yet); a
+  two-star tree still builds through the pair classes; the old companion
+  draw and BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS are deleted.
+  Done: members come from the tree at the table's odds, the old
+  companion draw is gone, and the census matches the table (B and A
+  binaries about 0.75 and 0.60, mean 1.38 stars per system). Takes an
+  epoch at merge. The deletion of the pair classes is the new item
+  GEN.640 after GEN.332.
+  Prerequisites: none. Related: GEN.316, GEN.315, GEN.264, GEN.581.
 
 - [ ] **GEN.632 Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function**
   Finding of Blocker 2 in GEN.452 (relayed 2:01 AM EDT 2026-10-23 as the
@@ -14489,6 +14488,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   both parts are built and tested, or the design note says why not.
   Owner: none (pool; after 8.1 unless Boss wants it sooner).
   Prerequisites: none. Related: GEN.146, GEN.29.
+
+- [ ] **GEN.640 GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree**
+  Split from GEN.631 (Core 3's re-cut, relayed 2:20 PM EDT 2026-10-23 as
+  the lane reported; TODO thread agreed). BinaryStarProxy and
+  WideBinaryPair are the only code that hosts planets around a two-star
+  system today (the circumbinary floor, each star's stability ceiling,
+  the secondary's own planet list, the barycentre wobble). Giving those
+  planets back through physics/planet_zones.py is GEN.332's content, so
+  the classes can go only after GEN.332. Do: delete BinaryStarProxy,
+  WideBinaryPair and the writers of the binary_* columns (no shim), so
+  that the heavier-star swap keeps one copy in multistar._Builder.place.
+  Done: no code path uses the pair classes, the binary_* columns have no
+  writer, and the output is unchanged (no epoch) or the PR names the
+  epoch it takes. Owner: Core 3, after GEN.332.
+  Prerequisites: GEN.332. Related: GEN.316, GEN.631.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
