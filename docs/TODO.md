@@ -15485,50 +15485,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.170 The math check (the TEST.68 gate) runs at every update and from the admin suite, and no longer before every generation**
-  Found by the Performance lane in PERF.165 (relayed 6:27 AM EDT
-  2026-10-23 as the lane reported); filed by the TODO thread as an open
-  question. Every bulk run (plan, scatter, fill) starts with the TEST.68
-  math check, 60 checks, 2.5 s, before any work. Making it skippable (a
-  flag) or stamping a pass on disk (so a machine that already passed for
-  this release and platform does not repeat it) is a policy call, not a
-  speed fix: the check is the gate that proves the machine's math
-  matches the reference. Default (Performance's, kept here): leave it as
-  it is; 2.5 s is under 1 percent of a plan and nothing else depends on
-  it. Decided default (the TODO-thread rule that an open question's
-  default stands until Boss says otherwise): leave it. Do: nothing
-  unless Boss says to change it. Done: Boss answers, or the default
-  stands. Owner: none.
-  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
-  coordinator)): skip the math check, option 3, so this is now a build
-  item and not an open question. Do: add a flag to the bulk commands
-  (plan, scatter, fill and the other bulk runs) that skips the TEST.68
-  check, say in the run log when it was skipped, and leave the check on
-  by default; no stamp on disk. Done: the flag exists on every bulk run
-  that starts the check, a test covers the skipped and the default path,
-  and the log line names the skip. Owner: Performance (named by the
-  coordinator, 12:27 PM EDT).
-  Progress (Performance, relayed 12:54 PM EDT 2026-10-23 as the lane
-  reported): being built as --skip-math-check on every command plus a
-  'Skip the math check' box on the Generate page; the check still runs
-  by default; its gate was running (about 2 hours).
-  Superseded by Boss, 1:14 PM EDT 2026-10-23 (typed in the project chat,
-  relayed by the coordinator): "No longer do the math check before every
-  generation. Instead do the math check at every update and a math check
-  can be performed from the admin suite." This replaces the skip flag
-  and the Generate page box above, which Performance had in build
-  (--skip-math-check, 12:54 PM EDT as the lane reported). Do: (a) remove
-  the TEST.68 check from the start of every bulk run and every generate
-  command (plan, scatter, fill and the rest), with no flag and no stamp
-  on disk; (b) run it at every update (`./update.sh` runs it and stops
-  with the failing checks named); (c) add an admin suite action that
-  runs it on demand and shows the result. Done: no generate or bulk
-  command runs the check; `./update.sh` runs it; the admin suite has a
-  button that runs it and shows each failing check; tests cover each of
-  the three; the docs that say a run starts with the check are
-  corrected. Owner: Performance (named by the coordinator).
-  Prerequisites: none. Related: PERF.165, PERF.41.
-
 - [ ] **PERF.171 The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter**
   Candidate follow-up from the Performance lane (relayed 12:54 PM EDT
   2026-10-23 as the lane reported, PERF.167 merged as #2679, not
