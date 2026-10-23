@@ -19045,6 +19045,19 @@ clears each one.
   the first `_still_spot` read can take seconds; the next sighting
   should keep the assertion text. Frequency: 2 failures in 2 runs at
   load 9.7, 0 in 5 at load 3.
+  Mitigation (Core 2, merged as #2699, 080f7e4, release 8.0.2040, about
+  4:12 PM EDT 2026-10-23 as the lane reported; test only): the cause is
+  read from the code, not from an observed failure. The test read the
+  star's screen spot, then spent seconds choosing a pixel shift before
+  asking the wheel's anchor at the old spot plus the shift; if the star
+  moved on screen in between, the pointer missed the 14 px reach and the
+  anchor fell back to the focus plane, which matches Core 3's reading
+  (0.02996, -0.02996, 0). The test now does the spot read and the anchor
+  call in one browser call and re-reads the spot before the zoom steps,
+  and a failure prints both spots and the camera. The Done line (30 of
+  30 at load 10) is not met: Core 2 could not reproduce the failure (10
+  of 10 solo and 3 of 3 parallel runs passed at load up to about 9).
+  Stays open for a sighting, like TEST.297; a new failure now says why.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
