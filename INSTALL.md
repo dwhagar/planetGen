@@ -41,12 +41,45 @@ Supported platforms:
 platforms in more detail. Windows: see [docs/WINDOWS.md](docs/WINDOWS.md).
 
 > Do not install planetGen with `pip install .`. The installers put its
-> libraries where the web server can use them: from apt first on Linux,
-> or in a virtual environment built from a hash-checked lock file on
-> macOS. They then install the checkout itself as an
+> libraries in a virtual environment (`/usr/local/planetgen/venv`) built
+> from a hash-checked lock file, where the web server can use them and the
+> system Python stays untouched. They then install the checkout itself as an
 > editable package (`pip install -e`), so the site and the command line
 > run the checkout's code and a `git pull` takes effect without a
 > reinstall.
+
+### Ubuntu 24.04 and 26.04 LTS
+
+Both releases are supported, with Ubuntu's own packages. One line installs
+everything the installers expect to find (they add `mod_wsgi` and Redis
+themselves when missing, but not MySQL or Apache):
+
+```bash
+sudo apt update
+sudo apt install git python3 python3-venv mysql-server apache2 libapache2-mod-wsgi-py3 redis-server
+```
+
+Leave out `mysql-server` when MySQL runs on another machine. What each
+release ships:
+
+| | Ubuntu 24.04 LTS | Ubuntu 26.04 LTS |
+|---|---|---|
+| Python (the venv is made from it) | 3.12 | 3.14 |
+| MySQL | 8.0 | 8.4 |
+| Apache / mod_wsgi | 2.4.58 / 5.0.0 (Python 3.12) | 2.4.66 / 5.0.2 (Python 3.14) |
+| Redis | 7.0 | 8.0 |
+
+- **MySQL 8.4 does not load `mysql_native_password`.** The account in step 2
+  uses the default login (`caching_sha2_password`), which both versions
+  support; do not add `IDENTIFIED WITH mysql_native_password`.
+- **mod_wsgi and the venv must be the same Python.** The installers make the
+  venv from the system `python3`, which is what Ubuntu builds `mod_wsgi`
+  for, so they match; `update.sh` warns when they do not.
+- **Upgrading from 24.04 to 26.04 in place:** run `sudo ./update.sh` after
+  the upgrade. The old venv's Python (3.12) is gone, so `update.sh` makes the
+  venv again from the new `python3` (3.14) and reinstalls the locked
+  libraries; nothing else changes. Check that `apache2ctl configtest` passes
+  and that your vhost still has `python-home=/usr/local/planetgen/venv`.
 
 ## 1. Get the code
 

@@ -11,6 +11,7 @@ files, which are required (no fallback); these tests serve the real download ste
 
 import concurrent.futures
 import math
+import multiprocessing
 
 import pytest
 
@@ -70,7 +71,8 @@ def test_the_draws_are_a_stream_of_their_own():
 def test_the_same_star_gets_the_same_composition_at_one_and_four_workers():
     stars = [(-1.5 + 0.1 * n, 1.0 + n, 0.5 + 0.05 * n, f"bright:{n}") for n in range(24)]
     serial = [sc.star_makeup(sc.MAIN_SEQUENCE, fe_h, age, mass, key) for fe_h, age, mass, key in stars]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as pool:
+    # Forked, so the workers keep the test's stand-in for the downloaded data check (Python 3.14 made forkserver the default).
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=multiprocessing.get_context("fork")) as pool:
         parallel = list(pool.map(_main_sequence_makeup, stars))
     assert parallel == serial
 

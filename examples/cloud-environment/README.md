@@ -2,7 +2,7 @@
 
 This folder (`examples/cloud-environment/`) holds `setup-planetgen-env.sh` and this README.
 
-`setup-planetgen-env.sh` gives every new Claude cloud session a ready PlanetGen test machine: MySQL 8, Apache 2 with mod_wsgi, Redis, Flask and every other Python dependency, the NLTK words corpus, and a Playwright that matches the Chromium already in the image.
+`setup-planetgen-env.sh` gives every new Claude cloud session a ready PlanetGen test machine: MySQL 8, Apache 2 with mod_wsgi, Redis, Flask and every other Python dependency, the NLTK words corpus, and a Playwright that matches the Chromium already in the image. It runs on Ubuntu 24.04 and 26.04 LTS; on 26.04 the packages are Ubuntu's own newer ones (Python 3.14, MySQL 8.4, Redis 8, Apache 2.4.66), and the same script works on both.
 
 ## Where to paste it
 
@@ -25,7 +25,7 @@ PIP_BREAK_SYSTEM_PACKAGES=1
 
 ## How the cloud runs a setup script (from the environment docs)
 
-- It runs once, as root on Ubuntu 24.04, before Claude starts, then the **filesystem is snapshotted** and later sessions start from that snapshot without running the script again. It reruns when you edit the script or the network settings, and after about 7 days.
+- It runs once, as root on Ubuntu 24.04 or 26.04, before Claude starts, then the **filesystem is snapshotted** and later sessions start from that snapshot without running the script again. It reruns when you edit the script or the network settings, and after about 7 days.
 - It must exit 0 and finish in about 5 minutes, or the snapshot is not kept (this one takes about 70 seconds on a fresh machine).
 - **Running processes are not kept.** MySQL, Redis and Apache therefore cannot be "already running" in a new session. The script installs and configures them, shuts MySQL down cleanly so the snapshot is tidy, and leaves one command for each session: `planetgen-env-up` (about 3 seconds).
 - A script that fails stops the session from starting. The script exits non-zero on any error and prints the failing line; the full log is `/var/log/planetgen-setup.log`.
@@ -40,7 +40,7 @@ The script also tries to make this automatic two ways, neither of which I could 
 
 | Part | What it installs or does |
 | --- | --- |
-| apt | `mysql-server` (Ubuntu's MySQL 8.0, not MariaDB), `apache2`, `libapache2-mod-wsgi-py3`, `redis-server`. A temporary `policy-rc.d` stops apt starting services during the build. |
+| apt | `python3-pip` (not in a minimal 26.04 image), `mysql-server` (Ubuntu's MySQL 8.0 on 24.04 and 8.4 on 26.04, not MariaDB), `apache2`, `libapache2-mod-wsgi-py3`, `redis-server`. A temporary `policy-rc.d` stops apt starting services during the build. |
 | MySQL | `zz-planetgen-test.cnf` (no binary log, no performance schema, relaxed flushing, 500 connections) for a fast throwaway server. Root gets a password with `caching_sha2_password`, MySQL 8's default login, so tests exercise the same path as your real server. A `planetgen` user with an empty password (localhost only) is also created, which is what the test suite falls back to if no `PLANETGEN_TEST_MYSQL_*` variables are set. |
 | Apache | `headers`, `deflate` and `wsgi` modules enabled, config checked with `apache2ctl configtest`. It is installed and runs, but it does not serve PlanetGen; your site config stays on your real server. |
 | Redis | Preinstalled in the image; installed only if missing. Started per session with no persistence. |
@@ -56,4 +56,4 @@ The script reads `requirements-server.lock` and `setup.py` from a checkout if it
 
 - Only what the repo's tests need. It does not run `install.sh` or `update.sh`, does not create a PlanetGen database or `config.json`, and never touches your real server.
 - Wiki.js and MediaWiki integration tests stay skipped (they need external servers).
-- Python is the image's system Python (3.13 at the time of writing; PlanetGen needs 3.12 or newer, the script checks). `mod_wsgi` from Ubuntu is built for Ubuntu's 3.12, so it is not used to serve the app here.
+- Python is the image's system Python (PlanetGen needs 3.12 or newer, the script checks). `mod_wsgi` from Ubuntu is built for Ubuntu's own `python3` (3.12 on 24.04, 3.14 on 26.04), so it is not used to serve the app here.
