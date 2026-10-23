@@ -41,6 +41,7 @@ def main(argv=None):
         revoked = auth.revoke_devices(conn, row["id"])
         activity_log.event("DB", "devices.revoke", user=activity_log.login_name(), target=f"user:{args.user}",
                            revoked=revoked)
+        activity_log.console_call("cli/forget-devices", target=f"user:{args.user}")
         print(f"Revoked {revoked} trusted device{'' if revoked == 1 else 's'} of {args.user}.")
         return 0
     finally:

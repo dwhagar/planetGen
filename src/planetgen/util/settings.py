@@ -194,6 +194,14 @@ class RateLimit(_Section):
     pages: RatePages = RatePages()
 
 
+class ApiLog(_Section):
+    internal: Literal["all", "off"] = opt(
+        "all", "Whether the calls the web pages make to the API in-process (about six for each page view) are written "
+        "to the activity log as API lines: all, or off.", group="housekeeping",
+        label="Log the pages' own API calls",
+        summary="All API calls are logged by default; off leaves out the ones the web pages make to themselves.")
+
+
 class ProxyFix(_Section):
     @field_validator("x_for", "x_proto", "x_host", mode="before")
     @classmethod
@@ -784,6 +792,7 @@ class Settings(_Section):
     redis: Redis = Redis()
     queue: Queue = Queue()
     ratelimit: RateLimit = RateLimit()
+    api_log: ApiLog = ApiLog()
     login_allowlist: List[str] = opt(
         [], "Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. "
         "Environment: comma- or space-separated.", env="PLANETGEN_LOGIN_ALLOWLIST", restart=True, role="owner",

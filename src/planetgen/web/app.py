@@ -25,7 +25,7 @@ from planetgen.api.auth import bp as auth_bp
 from planetgen.api.common import ApiError, close_control_db
 from planetgen.api.config import Config
 from planetgen.api.edits import bp as edits_bp
-from planetgen.api import ids, naming
+from planetgen.api import calllog, ids, naming
 from planetgen.api.limiter import limiter
 from planetgen.api.population import bp as population_bp
 from planetgen.api.facility_types import bp as facility_types_bp
@@ -55,6 +55,7 @@ def create_app(config_object=Config):
     app = Flask("planetgen_app", root_path=os.path.dirname(os.path.abspath(__file__)),
                 static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
+    calllog.install(app)   # API.15: first, so every `/api` answer has a start time and a request id
     naming.install(app)
     if not app.config.get("WARMUP"):   # the cache warm-up (PERF.104) visits the pages while the site is closed
         maintenance_gate.install(app)  # UX.112: first, so a refused visitor reaches nothing behind it
