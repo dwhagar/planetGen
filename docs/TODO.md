@@ -3199,13 +3199,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Backfill case (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane reported): the rule "a sector's contents come out the same whichever sectors were generated before it" still fails for the backfill, which adds its dimmer bright stars only to sectors not yet generated; filed as GEN.633, which is now a subitem and a prerequisite until Boss decides whether it is needed before 8.1.
+    Backfill case (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane reported): the rule "a sector's contents come out the same whichever sectors were generated before it" still fails for the backfill, which adds its dimmer bright stars only to sectors not yet generated; filed as GEN.633, a subitem and a prerequisite; Boss decided at 8:29 AM EDT 2026-10-23 that it is fixed before 8.1 (the first fill goes deeper).
   Progress (Core 1, OPS.57 and TEST.181 merged together as #2628,
   relayed 4:52 AM EDT 2026-10-23 as the lane reported; releases 8.0.2003
   and 8.0.2004): TEST.181 is done and covers the cases that hold
   (sectors reached by an earlier run's backfill in either order, 1
   against 4 workers, the shared ID cell). GEN.633 is the only subitem
-  left, and this item stays open on it until Boss decides on his card.
+  left, and this item stays open on it; Boss chose at 8:29 AM EDT 2026-10-23 to fix it before 8.1.
   Prerequisites: GEN.633.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
@@ -4645,6 +4645,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.318 merged, #2307). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
+  Note (TODO thread, 8:29 AM EDT 2026-10-23, on Core 4's question): the
+  word "presets" is not defined in this item, the catalogue (section 8
+  item 6) or multi-star-systems.md. Core 4 reads it as the polluted flag
+  (drawn from the star's own stream, share 0.25 to 0.50, nothing stored)
+  plus "cool white dwarf" and "cool white dwarf, polluted" as forced
+  types in the Generate options, and says so in the PR; Boss can correct
+  the reading.
   Prerequisites: none.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -14505,12 +14512,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not decide it. Candidates (Core 1's): (a) fill an already-generated
   sector with the stars when the backfill reaches it; (b) make the first
   fill take the deeper floor, so no later pass adds stars. Boss decides
-  whether it is needed before 8.1 (the TODO thread puts a card to him); until he answers it is a prerequisite
-  of GEN.57 and so of TEST.77. Do: Boss picks (a) or (b) or a narrowed
-  rule; then build it with a test that the four sectors above hold the
-  same systems in both orders. Done: that test passes and TEST.181 gains
-  the backfill case. Owner: not assigned (Core 1 will not start it
-  before Boss answers).
+  whether it is needed before 8.1 (the TODO thread put a card to him); it is a prerequisite
+  of GEN.57 and so of TEST.77.
+  Decided (Boss, card tap, 8:29 AM EDT 2026-10-23, option A "Yes, before
+  8.1; first fill goes deeper"): candidate (b). The first fill takes the
+  deeper floor, so no later pass adds stars to a sector. Do: build (b)
+  with a test that the four sectors above hold the same systems in both
+  orders. Done: that test passes and TEST.181 gains the backfill case.
+  Owner: Core 1 (it found the bug, owns GEN.57 and GEN.55, and the item is
+  in 8.1; 8.1 queue, Boss's card answer 8:29 AM EDT 2026-10-23).
   Prerequisites: none. Related: GEN.57, GEN.44, GEN.42, GEN.309,
   TEST.181.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
