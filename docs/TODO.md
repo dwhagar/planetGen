@@ -19669,6 +19669,18 @@ clears each one.
   selects the tests of every file that names the method. Done: the #2624
   diff selects test_validation.py, and the full-check comparison reports
   0 not selected on main. Owner: Bug Hunt (proposed by the TODO thread).
+  Finding (Bug Hunt, relayed 9:01 AM EDT 2026-10-23 as the lane reported):
+  the map does not miss. With the #2624 file list the map selects the
+  test, and a fresh recording of it at the commit before #2624 lists
+  generation/system.py, alone and in a 4-worker run. Suspect: the
+  `full --check` base. It defaults to the merge-base of origin/main and
+  HEAD, and on a checkout that already is main that is HEAD, so the
+  changed set is empty and every failure reads as "not selected" (1
+  failure, 1 of 1). Bugfix 2 ran its `full --check` on merged main
+  (9ba9996) and its handoff gives no command or base; that lane is
+  retired, so the cause cannot be confirmed from it. Do (revised): make
+  `full --check` refuse an empty change set and say "pass --base <commit
+  before the change>"; the title stays until that is confirmed.
   Prerequisites: none. Related: GEN.325.
 
 ## USR: User accounts
