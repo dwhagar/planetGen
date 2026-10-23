@@ -1,6 +1,7 @@
 {#- planetgen/web/templates/generate_review.html -- the Review step (ADM.108): what will run, what it costs, then Run.
     The estimate page it replaces is the same facts. Run posts the task's fields to /admin/generate; Back posts them to
-    the task's page, which fills the form again. -#}
+    the task's page, which fills the form again. A job that can be run again can also be kept under a name (ADM.125),
+    posted to the recipes route, which keeps the same fields. -#}
 {% extends "generate_base.html" %}
 {% from "partials/generate_fields.html" import disregard_data with context %}
 {% block generate_body %}
@@ -67,5 +68,21 @@
       <button type="submit" class="btn">Back</button>
     </form>
   </div>
+  {%- if review.can_save_recipe %}
+  <form method="post" action="{{ url_for('web.generate_recipe_save') }}" class="table-form generate-recipe-save" aria-labelledby="recipe-save-heading">
+    {{ csrf_field() }}
+    {%- for name, value in review.fields %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <h3 id="recipe-save-heading">Save as recipe</h3>
+    <p class="hint">Keeps these settings under a name on the Generate page, to open here again later. Nothing runs when you open one.</p>
+    {%- if review.recipe_error %}
+    <p class="error" role="alert" id="recipe-error">{{ review.recipe_error }}</p>
+    {%- endif %}
+    <label for="recipe-name">Recipe name</label>
+    <input type="text" id="recipe-name" name="recipe_name" maxlength="80" required value="{{ review.recipe_name }}"{% if review.recipe_error %} aria-describedby="recipe-error" aria-invalid="true"{% endif %}>
+    <button type="submit" class="btn">Save as recipe</button>
+  </form>
+  {%- endif %}
 </section>
 {% endblock %}

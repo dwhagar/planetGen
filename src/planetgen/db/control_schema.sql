@@ -541,3 +541,19 @@ CREATE TABLE IF NOT EXISTS upload_id_ranges (
     CONSTRAINT chk_upload_id_ranges_order CHECK (last_id >= first_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- v17 (ADM.125): Generate recipes, a named and saved Generate form kept per
+-- admin. `draft` is the form as `[name, value]` pairs, the same draft "Run
+-- again" keeps for a job (its `action` field says which task). An admin's
+-- names are unique, and the recipes go with the account.
+CREATE TABLE IF NOT EXISTS generate_recipes (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    admin_id      BIGINT UNSIGNED NOT NULL,
+    name          VARCHAR(80) NOT NULL,
+    draft         JSON NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_generate_recipes_name (admin_id, name),
+    CONSTRAINT fk_generate_recipes_admin
+        FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
