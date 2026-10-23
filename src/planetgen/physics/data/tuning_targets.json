@@ -1,0 +1,71 @@
+{
+ "title": "The tuning-target table (GEN.503): the published statistics the tunable draws are tuned to",
+ "version": 1,
+ "note": "One entry per published statistic. A tunable row of the possibility tables must have a target here (TargetTable.require). A value measured only in the Solar System is a test-point with the solar_system flag, never a target. Labels: READ, DATA, COMPUTED, 2ND-HAND may be tuned to; SNIPPET, RECALLED and NOT REACHED are listed and never tuned to. Source: docs/design/tunable-gaps.md.",
+ "targets": [
+  {
+   "id": "a3-mean",
+   "row": "atmosphere-a:a3",
+   "statistic": "mean of log10 fO2 above the iron-wuestite buffer (dIW) of the rocky material that polluted white dwarfs, 22 values",
+   "kind": "mean",
+   "value": -1.25,
+   "sigma": 0.1,
+   "n": 22,
+   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4 (22 values, 2 upper limits left out): mean -1.25, standard error 0.10 (tunable-gaps.md section 3.2, group3-redox-wd-radio.md; the worker computed it and the tunable-gaps lane re-ran it)",
+   "label": "COMPUTED",
+   "validity": {
+    "host_type": "WD"
+   },
+   "fill_id": "GEN.482",
+   "falsifier": "a mean of the drawn dIW more than 2 sigma from -1.25 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+  },
+  {
+   "id": "a3-sd",
+   "row": "atmosphere-a:a3",
+   "statistic": "sample standard deviation of dIW over the same 22 polluted white dwarfs",
+   "kind": "sd",
+   "value": 0.45,
+   "sigma": 0.069,
+   "n": 22,
+   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4: sample sd 0.45 (intrinsic about 0.22 from 13 well-constrained stars); sigma = 0.45 / sqrt(2 x 21), computed here",
+   "label": "COMPUTED",
+   "validity": {
+    "host_type": "WD"
+   },
+   "fill_id": "GEN.482",
+   "falsifier": "a sample sd of the drawn dIW more than 2 sigma from 0.45 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+  },
+  {
+   "id": "a4-mean",
+   "row": "atmosphere-a:a4",
+   "statistic": "mean of dIW of the debris of polluted white dwarfs, 22 values",
+   "kind": "mean",
+   "value": -1.25,
+   "sigma": 0.1,
+   "n": 22,
+   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4: mean -1.25, standard error 0.10 (tunable-gaps.md section 3.2)",
+   "label": "COMPUTED",
+   "validity": {
+    "host_type": "WD"
+   },
+   "fill_id": "GEN.489",
+   "falsifier": "a mean of the drawn dIW more than 2 sigma from -1.25 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+  },
+  {
+   "id": "a4-sd",
+   "row": "atmosphere-a:a4",
+   "statistic": "sample standard deviation of dIW over the same 22 polluted white dwarfs",
+   "kind": "sd",
+   "value": 0.45,
+   "sigma": 0.069,
+   "n": 22,
+   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4: sample sd 0.45; sigma = 0.45 / sqrt(2 x 21), computed here",
+   "label": "COMPUTED",
+   "validity": {
+    "host_type": "WD"
+   },
+   "fill_id": "GEN.489",
+   "falsifier": "a sample sd of the drawn dIW more than 2 sigma from 0.45 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+  }
+ ]
+}

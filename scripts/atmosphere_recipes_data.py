@@ -82,14 +82,14 @@ MACHINE = {
                state="stand-in", replacement="GEN.482",
                dist={"kind": "normal", "mu": "3.5 + 2*log10(mass_earth)", "sigma": 1.0, "range": [-6, 6]},
                correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482."),
-    "a3": dict(kind="param", classes=["asteroid", "C", "D"], sets="redox_diw",
+    "a3": dict(kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.26, "sigma": 0.45},
                source="22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, "
                       "via docs/design/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic "
                       "bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the uniform U[-1.4, 0] has its mean 0.55 dex above the "
                           "white dwarf ensemble; the core-formation scale differs from the surface magma-ocean scale of a1."),
-    "a4": dict(kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw",
+    "a4": dict(kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.45},
                source="22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 (Doyle 2020, "
                       "Doyle 2023; READ, COMPUTED)",
