@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, constants
+from planetgen.physics import atmosphere, constants, gases, saturation
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -36,12 +36,23 @@ def test_redox_rises_with_mass():
     assert atmosphere.redox_class(3.5) == "oxidized"
 
 
-def test_vapour_pressure_matches_the_design_table():
-    # atmospheres-retention-and-classes.md 3.3: CO2 at 0.6 kPa freezes near
-    # 148 K (Mars's polar frost point); water boils at 373 K.
+def test_vapour_pressure_is_the_saturation_curve():
+    # CO2 at 0.6 kPa freezes near 148 K (Mars's polar frost point); water boils at 373 K; N2 at 37 K is Pluto's air
+    # (about 1 Pa; the old two-point table gave 10 Pa)
     assert atmosphere.vapour_pressure_kpa("co2", 148.0) == pytest.approx(0.6, rel=0.25)
-    assert atmosphere.vapour_pressure_kpa("h2o", 373.0) == pytest.approx(100.0)
-    assert atmosphere.vapour_pressure_kpa("n2", 37.0) == pytest.approx(0.01, rel=0.2)
+    assert atmosphere.vapour_pressure_kpa("h2o", 373.124) == pytest.approx(101.325, rel=0.003)
+    assert atmosphere.vapour_pressure_kpa("n2", 37.0) == pytest.approx(0.0012, rel=0.1)
+    assert atmosphere.vapour_pressure_kpa("n2", 300.0) == math.inf
+    for gas in atmosphere.SPECIES:
+        assert atmosphere.vapour_pressure_kpa(gas, 100.0) == saturation.pressure_pa(gases.stored(gas).formula, 100.0) / 1000.0
+
+
+def test_the_two_point_condensation_table_is_gone_and_hydrogen_sulphide_has_its_own_curve():
+    assert not hasattr(atmosphere, "CONDENSATION_K")
+    # H2S boils near 213 K at 100 kPa, SO2 near 263 K (the old table gave H2S the SO2 row)
+    assert atmosphere.vapour_pressure_kpa("h2s", 213.0) == pytest.approx(100.0, rel=0.03)
+    assert atmosphere.vapour_pressure_kpa("so2", 263.0) == pytest.approx(100.0, rel=0.03)
+    assert atmosphere.vapour_pressure_kpa("h2s", 150.0) > 5 * atmosphere.vapour_pressure_kpa("so2", 150.0)
 
 
 def test_class_mixes_sum_to_one():
