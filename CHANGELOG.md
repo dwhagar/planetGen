@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2037] - 2026-10-23
+
+**Headline:** The Galaxy Map's stage and window data now say how much of each cell lies inside a nebula, generated or not.
+
+### Added
+- **Nebula cover in the stage-view cell statistics (MAP.174).** `/galaxy/stage` and `/galaxy/window` carry `nebula_cover`, the `[shell, band, wedge, cover]` of every cell whose share inside a nebula is above zero, for cells that hold a generated sector and cells that do not, and `stats.nebula_cover` on each generated child. The figures are MAP.172's stored block aggregates, made from the seed's nebula field and the stored nebulae. They are read on every request and not kept with the cached stages, which only change when a sector does. The Color by choice that draws them is MAP.177.
+- **`GET /api/galaxy/nebula-cover?at=...[&g=...]`** returns that cover for a stage or a window.
+
 ## [8.0.2036] - 2026-10-23
 
 **Headline:** The work queue failure tests wait 180 s before calling a run hung and name any bookkeeping the queue could not write; the sector-open test clicks again where the map holds still.
