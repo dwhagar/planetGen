@@ -19612,6 +19612,9 @@ clears each one.
   reported, in its gate for ADM.125, #2646): failed once and passed alone;
   the far sector holds only 1 star, so one missed click fails the test.
   Frequency now 1 in 2 gates.
+  Third sighting (Bug Hunt, relayed 9:37 AM EDT 2026-10-23 as the lane
+  reported, in its gate for #2663, load 5.2): it now fails alone as well,
+  so it is a real failure and not only load. Bug Hunt takes it next.
   Prerequisites: none. Related: TEST.281, TEST.284, TEST.287.
 
 - [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
@@ -19628,60 +19631,6 @@ clears each one.
   at -n 4 under load and takes well under a minute alone. Owner: Bug
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
-
-- [ ] **TEST.293 test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers fails once under the gate load and passes alone (bug)**
-  Found by Core 2 (relayed 7:42 AM EDT 2026-10-23 as the lane reported)
-  in an earlier gate for ADM.125 (#2646); filed by the TODO thread.
-  Kind: flaky test under load. Test:
-  src/tests/test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers.
-  Failure text: not given by the lane; it passed alone. Fails on main:
-  not seen. Frequency: once in one gate. Reproducer: none yet; run it 50
-  times at -n 4 beside a loaded machine. Do: capture the failure text,
-  then find what differs between the one-worker and four-worker draws
-  under load (worker start order, a shared time budget, a timeout) and
-  make the draw independent of it, or make the test wait for the state
-  it needs. Done: the test passes 50 times in a row at -n 4 under load.
-  Owner: Bug Hunt (proposed by the TODO thread).
-  Second sighting, worse (Performance, relayed 7:47 AM EDT 2026-10-23 as
-  the lane reported, in its gate for PERF.169, #2648): the test hit the
-  900 s pytest-timeout with 4 xdist workers at load 5 to 6, with a
-  warning about fork in a multithreaded process; alone it passes in
-  0.8 s. So the failure is a hang, probably the four-worker draw forking
-  a pool from a threaded process. Do: reproduce it with the fork warning
-  on, find the thread or lock the forked child inherits, and start the
-  workers in a way that cannot deadlock (spawn, or fork before threads).
-  Prerequisites: none. Related: TEST.287, TEST.290, TEST.291.
-
-- [ ] **TEST.294 The dependency map missed test_validation.py::test_system_methods_still_delegate when GEN.325 changed StarSystem._orbit_ceiling_au, so the changed gate let a failing test reach main (bug)**
-  Found by Bugfix 2 (relayed 7:56 AM EDT 2026-10-23 as the lane
-  reported) in the same `full --check`; filed by the TODO thread. Kind:
-  dependency map miss. After GEN.325 (#2624) changed
-  StarSystem._orbit_ceiling_au in generation/system.py, `scripts/test.py
-  changed` would not have selected
-  src/tests/test_validation.py::test_system_methods_still_delegate,
-  which calls that method; the check reports 1 of 1 not selected. So the
-  change gate let a failing test reach main. Reproducer: on a checkout
-  of the commit before #2624, apply the #2624 diff and run `python3
-  scripts/test.py changed --dry-run` (or the depmap `--changed` command)
-  and look for test_validation.py. Do: find why the map misses the edge
-  (a method called through an instance returned by a helper, a name the
-  static scan cannot resolve) and add the edge or a fallback that
-  selects the tests of every file that names the method. Done: the #2624
-  diff selects test_validation.py, and the full-check comparison reports
-  0 not selected on main. Owner: Bug Hunt (proposed by the TODO thread).
-  Finding (Bug Hunt, relayed 9:01 AM EDT 2026-10-23 as the lane reported):
-  the map does not miss. With the #2624 file list the map selects the
-  test, and a fresh recording of it at the commit before #2624 lists
-  generation/system.py, alone and in a 4-worker run. Suspect: the
-  `full --check` base. It defaults to the merge-base of origin/main and
-  HEAD, and on a checkout that already is main that is HEAD, so the
-  changed set is empty and every failure reads as "not selected" (1
-  failure, 1 of 1). Bugfix 2 ran its `full --check` on merged main
-  (9ba9996) and its handoff gives no command or base; that lane is
-  retired, so the cause cannot be confirmed from it. Do (revised): make
-  `full --check` refuse an empty change set and say "pass --base <commit
-  before the change>"; the title stays until that is confirmed.
-  Prerequisites: none. Related: GEN.325.
 
 ## USR: User accounts
 
