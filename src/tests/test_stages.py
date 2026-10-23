@@ -109,7 +109,7 @@ def test_a_stage_key_the_run_does_not_have_is_ignored():
     stages.finish()
 
 
-FORM = {"confirm": "db", "max_ring": "", "skip_bright_stars": ""}
+FORM = {"confirm": "db", "max_ring": "", "skip_scatters": ""}
 
 
 def _steps(action, form):
@@ -126,7 +126,7 @@ def test_the_new_galaxy_job_counts_every_stage_of_every_step():
 
 
 def test_ticking_skip_the_scatter_lists_those_stages_as_skipped_with_that_reason():
-    found = jobs.job_stages(_steps("new_galaxy", {"confirm": "db", "skip_bright_stars": "on"}))
+    found = jobs.job_stages(_steps("new_galaxy", {"confirm": "db", "skip_scatters": "on"}))
     scatter = [s for s in found if s["label"].startswith("Scatter") and "neighborhood" not in s["label"]]
     assert len(scatter) == 3 and all("box is ticked" in s["skipped"] for s in scatter)
 

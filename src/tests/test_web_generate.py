@@ -745,12 +745,13 @@ def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
 
 
 @pytest.mark.parametrize("action", ["plan", "new_galaxy"])
-def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
-    assert _post(client, action=action, confirm=DB, skip_bright_stars="1").status_code == 303
+def test_skip_all_scatters(site, client, no_spawn, action):
+    assert _post(client, action=action, confirm=DB, skip_scatters="1").status_code == 303
     (job,) = no_spawn
     labels = [step["label"] for step in _work_steps(job)]
     assert generate_page.SCATTER_LABEL not in labels and generate_page.PHENOMENA_LABEL not in labels
     assert all("--then-scatter" not in step["argv"] for step in job["steps"])
+    assert not any("scatter" in word for step in job["steps"] for word in step["argv"]), "no scatter of any kind runs"
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[0] == "plan" and "--no-bright-stars" not in _argv(plan)
     if action == "plan":
@@ -815,8 +816,8 @@ def test_scatter_flags_exist_in_generate_py():
 
 def test_page_offers_the_scatter_checkbox(site, client):
     html = _forms_html(client)
-    assert html.count('name="skip_bright_stars"') == 2  # New galaxy and Plan
-    assert "Skip the bright-star scatter" in html
+    assert html.count('name="skip_scatters"') == 2  # New galaxy and Plan
+    assert "Skip all scatters" in html
     assert 'name="bright_force"' not in html  # GEN.30: filled sectors are always left out
 
 
@@ -1707,7 +1708,7 @@ def test_redo_scatters_needs_at_least_one_scatter_ticked(site, client, no_spawn)
 # --- The lever table's form (GEN.601) ---------------------------------------------
 
 def test_the_form_turns_each_field_into_its_flag(site):
-    form = {"shape": "spiral", "disk_scale_length": "2.6", "disk_scale_length_unit": "kpc", "arm_count": "3",
+    form = {"shape": "spiral", "disk_scale_length": "2.6kpc", "arm_count": "3",
             "pitch_angle_deg": "-12.5"}
     argv = generate_page.plan_argv(form)
     pairs = {argv[i]: argv[i + 1] for i in range(len(argv) - 1) if argv[i].startswith("--") and not argv[i + 1].startswith("--")}
@@ -1722,7 +1723,7 @@ def test_a_blank_form_field_is_auto_and_adds_no_flag(site):
 
 
 def test_the_form_refuses_a_value_outside_the_range_naming_it(site):
-    for form in ({"arm_count": "11"}, {"disk_scale_length": "9", "disk_scale_length_unit": "kpc"},
+    for form in ({"arm_count": "11"}, {"disk_scale_length": "9kpc"},
                  {"pitch_angle_deg": "0"}, {"shape": "elliptical"}):
         with pytest.raises(generate_page.FormError) as excinfo:
             with generate_page.collecting_problems():
@@ -1735,14 +1736,48 @@ def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site
     for row in dials.LEVERS:
         assert f'name="{row.name}"' in html, row.name
         assert f'data-lever="{row.name}"' in html, row.name
-        if row.kind != "enum":
+        if row.kind == "length":
+            # ADM.127: one text box for the number and its unit, the units explained under it.
+            assert re.search(rf'<input type="text" name="{row.name}"[^>]*data-lever="{row.name}"', html), row.name
+            assert f'name="{row.name}_unit"' not in html and row.units_text() in html, row.name
+        elif row.kind != "enum":
             assert re.search(rf'data-lever="{row.name}" data-step="{re.escape(str(row.step))}"', html), row.name
             assert f'min="{row.minimum}" max="{row.maximum}"' in html, row.name
         else:
             assert all(choice.capitalize() in html for choice in row.choices)
-        if row.kind == "length":
-            assert f'name="{row.name}_unit"' in html
     assert "Spiral" in html
+
+
+def test_a_lever_row_names_its_unit_once(site, client):
+    """ADM.127: the arm pitch angle said degrees twice (its label and the unit the page adds after it)."""
+    html = _task_html(client, "new-galaxy")
+    for row in dials.LEVERS:
+        if row.kind != "length" and row.unit:
+            assert row.unit not in row.label, row.name
+    assert html.count("Arm pitch angle (degrees)") == 1 and "Arm pitch angle (degrees) (degrees)" not in html
+
+
+def test_the_edge_is_typed_with_its_unit(site, client):
+    """ADM.127: `12L`, `2600pc` and `20kpc` all go to the plan as typed; a number alone is refused naming the units."""
+    for text in ("12L", "2600pc", "20kpc", " 0.1Mpc "):
+        with generate_page.collecting_problems():
+            assert generate_page.lever_argv({"edge": text}) == ["--edge", text.strip()], text
+    with pytest.raises(generate_page.FormError, match="needs its unit"):
+        with generate_page.collecting_problems():
+            generate_page.lever_argv({"edge": "2600"})
+
+
+def test_the_scatter_limits_the_neutron_star_options_and_the_skip_box_share_one_row(site, client):
+    """ADM.127: the new-galaxy form's star brightness section is one grid: the two limit sliders, the neutron star
+    and black hole options and the box that skips every scatter, each slider above its number box."""
+    html = _task_html(client, "new-galaxy")
+    row = re.search(r'<div class="search-fields scatter-limits">(.*?)\n</div>\n<div class="scatter-segments">', html, re.S)
+    assert row, "no scatter limits row"
+    inside = row.group(1)
+    assert inside.count("data-limit-slider") == 2 and "data-compact-limit" in inside
+    assert 'name="skip_scatters"' in inside and "Skip all scatters" in inside
+    assert inside.index('type="range"') < inside.index('type="number" class="range-value"')
+    assert html.count('name="skip_scatters"') == 1, "the new galaxy form has the one box"
 
 
 def test_the_mass_field_carries_the_halo_thresholds_the_script_turns_the_halo_options_off_at(site, client):
@@ -1761,7 +1796,7 @@ def test_the_page_carries_the_line_under_the_dials_and_the_script_that_fills_it(
 
 def test_the_shape_report_is_the_line_the_plan_prints(site, client):
     from planetgen.generation import plan_outline
-    query = "mass=1e8&disk_scale_length=2000&disk_scale_length_unit=pc&flatness=20&bulge_share=0.001"
+    query = "mass=1e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001"
     answer = client.get(f"/admin/generate/shape-report?{query}").get_json()
     made, refusal = plan_outline.preview(["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20",
                                           "--bulge-share", "0.001"])
@@ -1770,7 +1805,7 @@ def test_the_shape_report_is_the_line_the_plan_prints(site, client):
 
 
 def test_the_shape_report_refuses_an_empty_outline_and_a_value_out_of_range(site, client):
-    empty = client.get("/admin/generate/shape-report?mass=3e5&disk_scale_length=500&disk_scale_length_unit=pc")
+    empty = client.get("/admin/generate/shape-report?mass=3e5&disk_scale_length=500pc")
     assert empty.status_code == 200 and "one-star-per-sector density" in empty.get_json()["refusal"]
     assert empty.get_json()["line"].startswith("Outline: empty")
     bad = client.get("/admin/generate/shape-report?mass=1")
