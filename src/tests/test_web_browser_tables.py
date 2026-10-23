@@ -165,12 +165,22 @@ def _fake_sector(db, sector_id):
 
 
 def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
-    offset = (offsets or {}).get("sectors", 0)
+    offsets = offsets or {}
+    offset = offsets.get("sectors", 0)
     rows = [{"id": i, "name": f"Found {i:03d}", "edge_mpc": 3.07} for i in range(120)]
     panel = {"rows": rows[offset:offset + limit], "total": 120, "total_capped": False, "limit": limit,
              "offset": offset, "truncated": False}
     results = {name: None for name in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     results["sectors"] = panel
+    if texts.get("planet_q"):
+        tiers = {f"tier_{d}": i % 4 for i, d in enumerate(("pressure", "temperature", "air", "water", "radiation",
+                                                           "suitability"))}
+        planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_chemical": None,
+                    "radius_km": 6371.0, "star_system_id": 7, "system_name": "Kepler-42", "sector_id": None,
+                    "equipment_tier": 1, "phi4": 0.5, **tiers} for i in range(120)]
+        results = {name: None for name in results}
+        results["planets"] = {"rows": planets[offsets.get("planets", 0):][:limit], "total": 120, "total_capped": False,
+                              "limit": limit, "offset": offsets.get("planets", 0), "truncated": False}
     return {"facets": {}, "autocomplete": {"sectors": [], "systems": [], "stars": [], "planets": [], "moons": []},
             "facet_labels": {}, "results": results}
 
@@ -633,6 +643,22 @@ def test_search_results_scroll_through_every_match(page, table_site):
     page.locator("#search-sectors .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
     page.locator("#search-sectors tbody tr[data-index]", has_text="Found 119").wait_for(state="attached", timeout=10000)
     assert page.url.endswith("sector_q=Found")
+
+
+def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts(page, table_site):
+    """UX.100: the first rows come from the page, the rest from `datatable.js`; both draw seven symbols from the sprite."""
+    assert page.goto(f"{table_site}/search?planet_q=World", wait_until="load").status == 200
+    page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    first = page.locator("#search-planets tbody tr", has_text="World 000").first
+    assert first.locator("svg.hab-symbol").count() == 7
+    page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    last = page.locator("#search-planets tbody tr[data-index]", has_text="World 119")
+    last.wait_for(state="attached", timeout=10000)
+    assert last.locator("svg.hab-symbol").count() == 7
+    labels = last.locator("svg.hab-symbol").evaluate_all("els => els.map(e => e.getAttribute('aria-label'))")
+    assert labels[0].startswith("Overall habitability: ") and "Pressure: Blue" in labels
+    assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
+    assert last.locator("svg.hab-symbol.tier-red").count() >= 1
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------

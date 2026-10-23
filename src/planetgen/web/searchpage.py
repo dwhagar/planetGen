@@ -29,11 +29,11 @@ from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
-from planetgen.physics.habitability_world import EQUIPMENT_LABELS, TIER_NAMES
+from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS, TIER_NAMES
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
-from planetgen.web.lib.habitability_symbols import LABELS, SYMBOL_NAMES, overall_tier
+from planetgen.web.lib.habitability_symbols import LABELS, OVERALL, overall_tier
 from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
 from . import tables
@@ -375,7 +375,7 @@ def _habitability_cell(row):
     overall = overall_tier(row)
     if overall is None:
         return {"text": "—", "muted": True}
-    symbols = [{"name": name, "tier": overall if name == "overall" else row[f"tier_{name}"]} for name in SYMBOL_NAMES]
+    symbols = [{"name": OVERALL, "tier": overall}] + [{"name": name, "tier": row[f"tier_{name}"]} for name in DOMAINS]
     for symbol in symbols:
         symbol["label"] = f"{LABELS[symbol['name']]}: {TIER_NAMES[symbol['tier']]}"
     return {"text": ", ".join(symbol["label"] for symbol in symbols), "symbols": symbols}
