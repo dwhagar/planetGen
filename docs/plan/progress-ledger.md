@@ -1063,3 +1063,4 @@ Baseline: PR #1817.
 | DB.88 | 8.2 | Viewers and object pages |
 | TEST.282 | 8.1 | Bugs and flaky tests |
 | NAV.17 | 8.5 | Saved courses |
+| PERF.146 | 8.1 | The headline closes |
