@@ -1,19 +1,20 @@
 # tests/private_redis.py
 
 """
-A Redis database of the test worker's own for a test that starts a process of the machine's runs (TEST.266).
+A Redis database of the test worker's own, for every test it runs (TEST.266, TEST.280).
 
-A test that starts `planetgen` as a process runs it on the machine's Redis with the default key prefix, which names the
-one live run of the machine (`planetgen:run:active`); the in-process tests get a prefix of their own (`inline_queue`),
-but a process cannot be given one. Two such tests on different xdist workers then refused each other as "Busy". Each
-worker takes the Redis database numbered after it, so their runs never meet.
+A test that starts `planetgen` as a process, or real queue workers, runs it on the machine's Redis with the default
+key prefix, which names the one live run of the machine (`planetgen:run:active`) and the queues the update guard looks
+at (`planetgen-bulk`); the in-process tests get a prefix of their own (`inline_queue`), but a process cannot be given
+one. Two such tests on different xdist workers then refused each other as "Busy", and `update_guard` and the update
+step refused to begin because another worker's job was running. Each worker takes the Redis database numbered after
+it (`tests/conftest.py` points `PLANETGEN_REDIS_URL` at it before any test runs and empties it before and after the
+session), so their runs never meet.
 """
 
 import os
 import re
 from urllib.parse import urlsplit, urlunsplit
-
-import pytest
 
 DATABASES = 16
 """int: How many databases a stock Redis server has (`databases 16`); worker numbers wrap around it."""
@@ -38,23 +39,11 @@ def url_for_worker(url, worker=None):
     return urlunsplit(parts._replace(path=f"/{database}"))
 
 
-@pytest.fixture
-def private_redis(monkeypatch):
-    """
-    The test, and any process it starts, uses a Redis database of the worker's own, emptied before the test and after
-    it. Does nothing without a Redis server. Import it into the test module to use it.
-    """
-    url = os.environ.get("PLANETGEN_REDIS_URL")
-    if not url:
-        yield None
-        return
-    import redis
-
-    private = url_for_worker(url)
-    client = redis.Redis.from_url(private)
-    client.flushdb()
-    monkeypatch.setenv("PLANETGEN_REDIS_URL", private)
+def flush(url):
+    """Empties the database `url` names; nothing happens without a server that answers."""
     try:
-        yield private
-    finally:
-        client.flushdb()
+        import redis
+
+        redis.Redis.from_url(url, socket_timeout=5, socket_connect_timeout=5).flushdb()
+    except Exception:  # noqa: BLE001 -- no redis package or no server: the tests that need one skip
+        pass

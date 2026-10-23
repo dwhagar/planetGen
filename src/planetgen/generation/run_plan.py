@@ -19,9 +19,10 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import nebula_blocks, query, store
+from planetgen.db import containers as containersDb, nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
+from planetgen.generation import containers as generationContainers
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
@@ -36,6 +37,7 @@ from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.util import step_timer as stepTimer
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy import scatter_limits, spherical
 from planetgen.galaxy.spherical import sector_position_pc
@@ -279,8 +281,10 @@ def plan_skeleton_unit(params, report):
     Raises:
         ValueError: `reach_shells` is out of range, or a different seed is asked for in a galaxy that has sectors.
     """
+    unit_started = time.perf_counter()
     lines = []
     say = lines.append
+    timer = stepTimer.StepTimer()
     edge_pc = run_common._edge_pc()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
     threshold_rho = 1.0 / e_value
@@ -302,9 +306,10 @@ def plan_skeleton_unit(params, report):
                              f"a different --seed needs a wiped galaxy.")
         # A new outline invalidates every pre-placed bright star (schema v43) and with it the phenomena and the nebula
         # field drawn on the old one: a plan alone leaves them to the scatters, which draw them again (PERF.121).
-        store.clear_bright_stars(conn)
-        store.clear_phenomenon_scatter(conn)
-        store.clear_nebula_field(conn)
+        with timer.step("clearing the scatters the old outline drew"):
+            store.clear_bright_stars(conn)
+            store.clear_phenomenon_scatter(conn)
+            store.clear_nebula_field(conn)
         # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
@@ -320,40 +325,48 @@ def plan_skeleton_unit(params, report):
             f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
         )
         say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")
-        halo_line, halo_warning = shapeDraw.halo_report(drawn)
+        with timer.step("the report lines (pins, halo, outline)"):
+            halo_line, halo_warning = shapeDraw.halo_report(drawn)
+            made = planOutline.report(built)
         say(f"{halo_line}.")
         if halo_warning:
             say(f"WARNING: {halo_warning}")
-        made = planOutline.report(built)
         say(f"{made.line()}.")
         for note in made.warnings:
             say(f"WARNING: {note}")
         if made.empty:
             raise ValueError(planOutline.EMPTY_OUTLINE_REASON)
-        store.replace_galaxy_components(conn, found + young, kind="cluster")
-        store.replace_galaxy_components(conn, dwarfs, kind="satellite")
-        conn.commit()
+        timer.steps.extend(built.timer.steps)
+        with timer.step("storing the clusters and satellites"):
+            store.replace_galaxy_components(conn, found + young, kind="cluster")
+            store.replace_galaxy_components(conn, dwarfs, kind="satellite")
+            conn.commit()
     finally:
         conn.close()
-    say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
-        f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
-        f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
+    with timer.step("the system counts of the 'Drew' line"):
+        say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
+            f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
+            f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
 
     extents, outer_shell_index, edge_confirmed = built.extents, built.outer_shell_index, built.edge_confirmed
     elapsed = built.elapsed_s
 
-    store.replace_galaxy_shells(extents, config=mysql_config)
-    galaxy_seed = store.save_galaxy_shape(
-        shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
-        expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=galaxy_seed,
-        reach_shell_index=reach_shell_index, cell_star_ceiling=params.get("cell_star_ceiling"),
-        fill_luminosity_cap_sol=params.get("fill_luminosity_cap"),
-        core_min_luminosity_sol=params.get("core_min_luminosity"),
-        core_mass_limit_sol=params.get("core_mass_limit"),
-        halo_min_luminosity_sol=params.get("halo_min_luminosity"),
-        pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(shape_args, drawn),
-        pins=shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc),
-    )
+    with timer.step("storing the shells"):
+        store.replace_galaxy_shells(extents, config=mysql_config)
+    with timer.step("storing the shape"):
+        galaxy_seed = store.save_galaxy_shape(
+            shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
+            expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=galaxy_seed,
+            reach_shell_index=reach_shell_index, cell_star_ceiling=params.get("cell_star_ceiling"),
+            fill_luminosity_cap_sol=params.get("fill_luminosity_cap"),
+            core_min_luminosity_sol=params.get("core_min_luminosity"),
+            core_mass_limit_sol=params.get("core_mass_limit"),
+            halo_min_luminosity_sol=params.get("halo_min_luminosity"),
+            pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(shape_args, drawn),
+            pins=shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc),
+        )
+    with timer.step("storing the containers"):
+        say(_store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index))
     core_floor = params.get("core_min_luminosity")
     core_mass = params.get("core_mass_limit")
     halo_floor = params.get("halo_min_luminosity")
@@ -361,11 +374,12 @@ def plan_skeleton_unit(params, report):
         shape, edge_pc, outer_shell_index, e_value, None, core_min_luminosity_sol=core_floor,
         core_mass_limit_sol=core_mass,
         halo_min_luminosity_sol=program_constants.HALO_MIN_LUMINOSITY_SOL if halo_floor is None else halo_floor)
-    say(
-        f"Scatter limits by place: core luminosity floor {scatter_limits.core_min_luminosity_sol(limits, None):,.0f} "
-        f"L_sun{'' if core_floor is not None else ' (the baseline plus a tenth)'}, core mass limit "
-        f"{scatter_limits.core_mass_limit_sol(limits, None):g} M_sun{'' if core_mass is not None else ' (the baseline plus a tenth)'}, "
-        f"halo luminosity floor {scatter_limits.halo_min_luminosity_sol(limits):,.0f} L_sun.")
+    with timer.step("the scatter limits line"):
+        say(
+            f"Scatter limits by place: core luminosity floor {scatter_limits.core_min_luminosity_sol(limits, None):,.0f} "
+            f"L_sun{'' if core_floor is not None else ' (the baseline plus a tenth)'}, core mass limit "
+            f"{scatter_limits.core_mass_limit_sol(limits, None):g} M_sun{'' if core_mass is not None else ' (the baseline plus a tenth)'}, "
+            f"halo luminosity floor {scatter_limits.halo_min_luminosity_sol(limits):,.0f} L_sun.")
     if requested_seed is not None:
         source = "from --seed"
     elif stored_seed is not None:
@@ -373,7 +387,11 @@ def plan_skeleton_unit(params, report):
     else:
         source = "drawn at random"
     say(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
-    say(_draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed))
+    with timer.step("the naming key"):
+        say(_draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed))
+    timer.steps.append(("the rest of the unit (the checks, the report, the limits)",
+                        max(0.0, time.perf_counter() - unit_started - timer.total())))
+    lines.extend(timer.lines("Where the plan's time went"))
 
     return {"summary": {
         "outer_shell_index": outer_shell_index,
@@ -383,6 +401,25 @@ def plan_skeleton_unit(params, report):
         "elapsed_s": elapsed,
         "edge_confirmed": edge_confirmed,
     }, "lines": lines}
+
+
+def _store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index):
+    """
+    Writes the galaxy's containers (DB.85): each globular cluster and each superbubble, drawn from the stored shape and
+    seed (the shape as the API reads it back, so the stored bubbles are the ones it draws). Returns the line to report.
+    """
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        components = store.get_galaxy_components(conn, kind="cluster")
+        made = generationContainers.build(galaxy_seed, skeleton.shape, edge_pc, (outer_shell_index + 1) * edge_pc,
+                                          components)
+        containersDb.replace(conn, made)
+        conn.commit()
+    finally:
+        conn.close()
+    clusters = sum(1 for c in made if c.kind == generationContainers.GLOBULAR_CLUSTER)
+    return f"Stored {clusters:,} globular clusters and {len(made) - clusters:,} superbubbles as containers."
 
 
 def _skeleton_on_queue(args):

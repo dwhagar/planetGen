@@ -8,7 +8,8 @@ section 4 (rows 1 and 2) and docs/design/atmospheres-retention-and-classes.md
 section 3.3 (the cold side).
 
 1. **Mantle redox.** The upper mantle's oxygen fugacity, in log units above
-   the iron-wustite buffer (`delta_iw`), rises with mass: a big rocky planet
+   the iron-wustite buffer (`delta_iw`, on the one scale of
+   `physics/oxygen_fugacity.py`, the Hirschmann 2021 buffer), rises with mass: a big rocky planet
    disproportionates ferrous iron in its lower mantle and sinks the metal,
    leaving an oxidized upper mantle (Earth sits near QFM, about IW+3.5),
    while a small one stays near or below IW (the Moon about IW-1). The mean

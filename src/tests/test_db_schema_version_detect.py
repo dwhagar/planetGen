@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE galaxy_containers")  # v130
         conn.execute("DROP TABLE vessels")  # v129
         conn.execute("DROP TABLE constellations")  # v128
         for table in ("stars", "bright_stars"):

@@ -31,8 +31,7 @@ import time
 import rq
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, workers
-from planetgen.util import draw
+from planetgen.queue import redisqueue, wrapper, workers
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
@@ -323,18 +322,17 @@ def _made_window(job):
 
 def settle_sectors(sector_ids, config):
     """The queued body of a settle (GEN.126): saves the sector paths of
-    `sector_ids` and the sectors around them. Returns `{"saved": n}`."""
-    from planetgen.db import sector_paths, store
-    conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
-    try:
-        return {"saved": sector_paths.settle_sectors(conn, sector_ids)}
-    finally:
-        conn.close()
+    `sector_ids` and the sectors around them as a run of `settle-sector-paths` (PERF.119).
+    Returns `{"saved": n}`."""
+    from planetgen.db import store
+    from planetgen.generation import run_galaxy
+    return {"saved": run_galaxy.settle_named_sectors(sector_ids, config or store.DEFAULT_MYSQL_CONFIG)}
 
 
 def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=False):
     """The queued body of `POST /api/sectors/<id>/generate-neighborhood`
-    (a module-level function so a worker can import it by name).
+    (a module-level function so a worker can import it by name): the sectors, the backfill and
+    the settle as runs through the wrapper (PERF.119), the job waiting in line for the machine (PERF.153).
     `disregard_missing_data` is the request's GEN.599 switch: a missing
     downloaded data file then takes its labelled fallback."""
     from planetgen.datasets import fetch
@@ -346,7 +344,8 @@ def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=F
 def regenerate_sector(sector_id, config):
     """The queued body of `POST /api/sectors/<id>/regenerate`: deletes the
     galaxy-placed sector with everything in it, then generates its cell
-    again.
+    again, as runs through the wrapper (PERF.119: the sector and its backfill, then the settle of
+    the new sector and the old neighbours), the job waiting in line for the machine (PERF.153).
 
     Returns:
         dict: `deleted` (the row counts), `sector_id` and `sector_name` of
@@ -362,17 +361,12 @@ def regenerate_sector(sector_id, config):
             counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:
         conn.close()
-    with draw.bound(secrets.randbits(128)):
-        result = run_galaxy.ensure_sector_generated(*address, config=config, settle=False)
+    result = run_galaxy.regenerate_sector_cell(address, config)
     # GEN.126: the new sector's masses and the old neighbours' paths, now the neighbour set is final.
-    conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
-    try:
-        wanted = set(around)
-        if result["sector_id"] is not None:
-            wanted.add(result["sector_id"])
-        sector_paths.settle_sectors(conn, wanted, expand=False)
-    finally:
-        conn.close()
+    wanted = set(around)
+    if result["sector_id"] is not None:
+        wanted.add(result["sector_id"])
+    run_galaxy.settle_named_sectors(wanted, config or store.DEFAULT_MYSQL_CONFIG, expand=False)
     return {"deleted": counts, "sector_id": result["sector_id"], "sector_name": result["sector_name"]}
 
 

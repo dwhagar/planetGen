@@ -165,6 +165,12 @@ section 0).
   alone, so the ID does not depend on save order and the birth sector
   need not exist yet. Nebulae and remnants a sector generates itself
   keep a generated serial in that sector.
+- A container (DB.85: a globular cluster or a superbubble, a row of
+  `galaxy_containers`) is born in the sector holding its centre and has a
+  region serial (kind 11): its rank among the containers born in that
+  sector, counted in a fixed order (clusters by name and seed, then
+  bubbles by column and draw; `generation/containers.build`), worked out
+  from the galaxy seed alone.
 
 ### What the codec guarantees (GEN.120)
 

@@ -33,9 +33,10 @@ const { createOrbitClock } = await import(`./orbitclock.js${VERSION_QUERY}`);
 const { relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 
-const KM_PER_PC = 3.0856775814913673e13;
-const AU_KM = 149597870.7;
+const KM_PER_PC = convert(1, "pc", "km");
+const AU_KM = convert(1, "au", "km");
 const PICK_REACH_PX = 16;
 // How far the compressed layout reaches (its outer orbit), at least, in units.
 const MIN_EXTENT_KM = 5 * AU_KM;

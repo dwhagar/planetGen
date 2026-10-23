@@ -74,3 +74,21 @@ def test_the_plan_refuses_an_empty_outline_and_stores_nothing(control_database):
         assert store.get_galaxy_shape(conn) is None
     finally:
         conn.close()
+
+
+@pytest.mark.fresh_database
+def test_the_plan_says_where_its_time_went_step_by_step(control_database):  # noqa: F811
+    """PERF.163: a table of the unit's steps, the costliest first, whose seconds add up to the total it names."""
+    args = _skeleton_args(control_database, "--seed", SEED_HEX)
+    params = json.loads(json.dumps(run_plan.skeleton_params(args, control_database)))
+    result = commands.run_alone("plan-skeleton", params)
+    start = next(i for i, line in enumerate(result["lines"]) if line.startswith("Where the plan's time went ("))
+    rows = result["lines"][start + 1:]
+    seconds = [float(row.split("s ", 1)[0]) for row in rows]
+    assert seconds == sorted(seconds, reverse=True) and len(rows) >= 8
+    named = float(result["lines"][start].split("(")[1].split("s)")[0])
+    assert sum(seconds) == pytest.approx(named, abs=0.01 * len(rows))
+    text = "\n".join(rows)
+    for step in ("the globular clusters", "the satellite galaxies", "the component field", "storing the shells",
+                 "storing the clusters and satellites", "the outline"):
+        assert step in text

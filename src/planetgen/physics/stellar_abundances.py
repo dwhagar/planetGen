@@ -200,12 +200,12 @@ def _thin_weight(subject):
 BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
     "stellar-abundance-branch", 1,
     (pt.Row("high-alpha sequence", (pt.ANY_CLASS,), _high_alpha_weight,
-            "Bensby, Feltzing and Oey 2014 (logistic in [Fe/H]); Haywood et al. 2013 (age gate)", "open",
+            "Bensby, Feltzing and Oey 2014 (logistic in [Fe/H]); Haywood et al. 2013 (age gate)",
             state=pt.PARTLY_VERIFIED, limit="the Bensby fit is part A 2.6's; the age gate is uncertain by 1 to 1.5 Gy",
             conditions=(pt.Condition("age_gy", minimum=tuning.STELLAR_THICK_START_GY),),
             notes="alpha-rich: thick disc and halo stars"),
      pt.Row("thin sequence", (pt.ANY_CLASS,), _thin_weight,
-            "Bensby, Feltzing and Oey 2014 (logistic in [Fe/H]); Haywood et al. 2013 (age gate)", "open",
+            "Bensby, Feltzing and Oey 2014 (logistic in [Fe/H]); Haywood et al. 2013 (age gate)",
             state=pt.PARTLY_VERIFIED, limit="the Bensby fit is part A 2.6's; the age gate is uncertain by 1 to 1.5 Gy",
             notes="every star younger than the age gate, and the old ones the logistic leaves")),
     description="Which abundance sequence a star belongs to (stellar-composition.md section 3 step 2). The high-alpha row comes "
@@ -513,7 +513,7 @@ def _white_dwarf_table():
     path = os.path.join(DATA_DIRECTORY, "white_dwarf_mass_radius.json")
     with open(path, encoding="utf-8") as handle:
         data = json.load(handle)
-    for field in ("sources", "licence", "retrieved", "title", "rows", "limiting_mass_solar"):
+    for field in ("sources", "retrieved", "title", "rows", "limiting_mass_solar"):
         if not data.get(field):
             raise StellarAbundanceError(f"white_dwarf_mass_radius.json states no {field}")
     rows = data["rows"]

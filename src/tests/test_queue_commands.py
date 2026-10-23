@@ -75,7 +75,7 @@ def test_only_a_registered_command_with_units_can_be_queued_and_every_command_ha
         assert command.kind == kind and command.summary
         assert (command.unit is None) == (command.expand is None), "a command has both its unit and its cut, or neither"
     with pytest.raises(ValueError):
-        commands.build_steps("sector", _args(["galaxy"]))
+        commands.build_steps("phenomenon", _args(["galaxy"]))
     with pytest.raises(ValueError, match="cannot be cut"):
         commands.expand_function("run-population")
 

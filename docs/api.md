@@ -543,6 +543,9 @@ connectivity to that specific schema rather than the default one.
   (`system`, `nebula`, `asteroid_field`, `rogue_planet`, `interstellar_comet`, `black_hole`, `neutron_star`), `total`, and
   up to `limit` (default 100, at most 500) `items` (`{kind, id, name}`, by kind then name). A type that cannot contain
   anything, or an id that is no row, is a 404 (`db.cloudcontents`). A system's own compact remnant is not counted.
+- `GET /api/containers[?kind=globular_cluster|superbubble]` (DB.85) — the stored containers, a globular cluster inside its tidal radius or a superbubble inside its cavity, by kind then id: `{"containers": [{id, uid, kind, name, component_id, center_pc, extent_pc, region: {shell, band, wedge}, bubble?}]}`. `uid` is the printed object ID (the container kind of the layout); `bubble` (`[column i, column j, draw]`) is set on a superbubble only. Another kind is a 400 (`db.containers`).
+- `GET /api/containers/at?x=&y=&z=[&kind=]` — the containers holding a galaxy-frame point, parsecs, deepest first, each with `depth` (distance from the centre over the extent) and `distance_pc`. A missing or non-numeric coordinate is a 400.
+- `GET /api/containers/<object ID>` and `GET /api/containers/<object ID>/contents[?limit=]` — one container, and what sits inside it (`counts` by kind, `total`, up to `limit` `items`, as the phenomenon contents above). An ID that is no container is a 404.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

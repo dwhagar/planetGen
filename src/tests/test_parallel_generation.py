@@ -28,12 +28,11 @@ from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import wedge_count
 from planetgen.generation import run_common
 from planetgen.queue import work
-from planetgen.db import store
+from planetgen.db import fingerprint, store
 from planetgen.names import uniqueness
 from planetgen.db.store import MySQLConfig
 
 from tests.conftest import _test_server_kwargs
-from tests.galaxy_fingerprint import galaxy_rows
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 
 
@@ -159,6 +158,25 @@ def _systems_per_sector(config):
 GALAXY_SEED = bytes.fromhex("0123456789ABCDEF0011223344556677")
 
 
+def _galaxy_fingerprint(config):
+    """The galaxy's fingerprint (GEN.58, GEN.304), without name decorations: which of two colliding names keeps the
+    plain one depends on what else is filled (GEN.57, phase 1)."""
+    conn = store.get_connection(config)
+    try:
+        return fingerprint.region_fingerprint(conn, plain_names=True)
+    finally:
+        conn.close()
+
+
+def _assert_same_galaxy(first, second):
+    """The two fingerprints agree, and a failure names the sectors that differ."""
+    assert first.plan == second.plan, "the plan differs"
+    left, right = dict(first.sectors), dict(second.sectors)
+    assert left.keys() == right.keys(), f"sectors only in one: {sorted(left.keys() ^ right.keys())}"
+    assert [label for label in left if left[label] != right[label]] == []
+    assert first == second
+
+
 def _seeded_galaxy(make_database, seed=GALAXY_SEED):
     config = make_database()
     _plan_wide_galaxy(config, galaxy_seed=seed)
@@ -177,10 +195,11 @@ def test_one_galaxy_seed_makes_the_same_sectors_at_any_worker_count(make_databas
                       config, monkeypatch)
         assert counts["sectors"] == len(_systems_per_sector(config)) == spherical.cell_count(1)
         assert counts["systems"] == sum(_systems_per_sector(config).values())
-        results[count] = galaxy_rows(config)
-    assert results[1]["star_systems"] and results[1]["planets"]
-    assert results[1]["sector_paths"] and results[1]["sector_path_knots"]  # GEN.126: saved at the end of the run
-    assert results[1] == results[workers]
+        results[count] = _galaxy_fingerprint(config)
+        assert _table_count(config, "star_systems") and _table_count(config, "planets")
+        # GEN.126: saved at the end of the run
+        assert _table_count(config, "sector_paths") and _table_count(config, "sector_path_knots")
+    _assert_same_galaxy(results[1], results[workers])
 
 
 def test_galaxy_seeds_differing_only_in_their_high_64_bits_make_different_sectors(make_database, monkeypatch):
@@ -191,8 +210,8 @@ def test_galaxy_seeds_differing_only_in_their_high_64_bits_make_different_sector
     for seed in (GALAXY_SEED, other):
         config = _seeded_galaxy(make_database, seed)
         _run("galaxy", ["--shell", "1", "--num-systems", "4", "--workers", "1"], config, monkeypatch)
-        results.append(galaxy_rows(config))
-    assert results[0]["star_systems"] != results[1]["star_systems"]
+        results.append(_galaxy_fingerprint(config))
+    assert results[0].region != results[1].region
 
 
 def _systems_by_sector(config):

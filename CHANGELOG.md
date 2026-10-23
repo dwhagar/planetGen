@@ -2,6 +2,152 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1979] - 2026-10-23
+
+**Headline:** The photolysis lifetime of a molecule can be worked out for its star and its distance, species by species.
+
+### Changed
+- **The photolysis lifetime table (GEN.496).** The new `physics/photolysis.py` and `physics/data/photolysis_lifetimes.json` hold, for H2O, CO, CO2, CH4, C2H6, NH3, HCN, CH3OH, CH2O, H2S and N2, the lifetime at 1 AU from the quiet Sun, the range the sources give, the active-Sun factor where one was read (H2O 1.68, CO2 2.35, NH3 1.075) and the rate ratio around a 4000 K and a 10000 K star to the Sun's at equal ultraviolet flux. The rate follows the flux and, species by species, the star's spectrum: around a 4000 K star CO photolyses 3.5e-4 as fast as around the Sun and N2 2.9e-5, while NH3 hardly changes, so one scalar for "stellar UV" would be wrong by orders of magnitude. NH3 is the quiet-Sun 6.7e3 s, not the 5.6e3 s mean of quiet and active Sun. Stars outside 4000 to 10000 K take the end template and are flagged; shielding is not included. Nothing is stored and no generated value changes.
+
+generation-output: unchanged
+
+## [8.0.1978] - 2026-10-23
+
+**Headline:** The generator now has one oxygen-fugacity scale, so a delta-IW means the same thing everywhere.
+
+### Changed
+- **One oxygen-fugacity scale (GEN.498).** The new `physics/oxygen_fugacity.py` fixes the reference as the Hirschmann 2021 iron-wustite buffer; every stored delta-IW, the mantle redox of a planet included, is on it. It converts the Frost 1991 buffers (QFM stands 3.1 to 3.6 above IW at 1 bar from 2200 to 1500 K) and the Sossi 2020 scale (his IW+0.5 for Earth is +0.0 on the reference) to it, gives the CO2/CO and H2O/H2 gas ratios at any delta-IW from the NASA Glenn fits of the five gases (CO2 equals CO at IW+1.37 and H2O equals H2 at IW-0.06 at 2173 K), and Sossi's melt Fe3+ law both ways. The reference fit's coefficients, the NASA Glenn fits and Sossi's law were checked against the papers; the Frost FMQ and NNO constants stay labelled stand-ins in the module's source rows. No stored value changes.
+
+generation-output: unchanged
+
+## [8.0.1977] - 2026-10-23
+
+**Headline:** Globular clusters and superbubbles are stored as containers, so a star can say which one it is inside.
+
+### Changed
+- **`galaxy_containers` (DB.85, schema v130).** Each globular cluster and each superbubble is a row with an object ID, its centre and extent and the sector it is born in; the plan writes them from the galaxy seed, and `db/containers.py` says which containers hold a point and what a container holds.
+
+TODO items resolved / Added: DB.85 / Added: none
+
+## [8.0.1976] - 2026-10-23
+
+**Headline:** One shared table now holds every material a body can be made of, with its density, phase points and equation-of-state constants and the source of each number.
+
+### Added
+- **The shared materials table (GEN.427).** `physics/materials.py` loads `physics/data/materials.json`: 158 rows, from part E's materials table, part B's SLB 2024 mantle phases and iron rows, part C's ice phases and the numbers read from Seager et al. 2007 (Tables 1 to 3), the Handbook of Mineralogy and PubChem. Every number carries its source and a read, computed, second-hand or not-reached code; a value with no source is empty, and part E's recalled cells are dropped. Each row has a class gate (`any`, or `planetary` for the high-pressure phases and the envelopes), a source and a verification state, and the rows are registered as the one shared `materials` table that other tables' fractions refer to. The 84 asteroid components, the field families, the comet list and the planet class composition texts all resolve to rows, and a test fails when one does not. Nothing reads it yet, so no draw changes.
+
+### Changed
+- **The licence is no longer a column.** The gas, element, isotope and decay-series files, the possibility-table row format, the dataset catalogue and the new materials table lose their licence field (Boss, 2026-10-22); the licence and source notes are in `DATA-LICENSE.md` in the repository root.
+
+generation-output: unchanged
+
+## [8.0.1975] - 2026-10-23
+
+**Headline:** One canonical encoder, nine significant digits, now writes every galaxy fingerprint, so a last-place difference in a float no longer shows as a different galaxy.
+
+### Changed
+- **The canonical fingerprint encoder (GEN.304).** `planetgen/util/fingerprint_encoding.py` writes any tree of dictionaries, lists, strings, integers, floats, decimals and bytes as one text: keys sorted, lists in generation order, floats as `format(x, ".8e")` (nine significant digits, -0.0 as 0.0, NaN and the infinities named), integers exact (hexadecimal above 2^53), strings quoted with every non-ASCII character escaped (no Unicode normalisation), and a `pgfp1` format tag hashed into every digest. Each value has a full digest, a structural digest (every float written `~`) and a float digest (the float tokens alone), so a comparison says whether the shape or a number changed. The same value gives the same digest on Python 3.12 and 3.13.
+- `db/fingerprint.py` hashes through it: a row is a value, a sector's digest is over its rows in canonical order (a row's last-place float noise no longer changes the digest), `sector_sections` gives the three digests of a sector's named sections (`SECTIONS`: sector, system, star, planet, moon, belt, comet, phenomenon, population, plan), and `region_fingerprint(plain_names=True)` compares names without their collision decoration until GEN.57. Every digest printed by `planetgen fingerprint` changes once, with the format.
+- The GEN.39 stand-in `tests/galaxy_fingerprint.py` is deleted; `tests/test_parallel_generation.py` compares the real fingerprint, and a failure names the sectors that differ. Its value tests moved to `tests/test_fingerprint_encoding.py`.
+
+TODO items resolved: GEN.304. Added: none.
+
+## [8.0.1974] - 2026-10-23
+
+**Headline:** The plan prints where its time went, and the plan of a default-size galaxy takes about a fifth of what it did.
+
+### Added
+- **The plan log ends with a table of where the plan's time went**, costliest step first: the galaxy's shape, the globular clusters, the satellites, the young open clusters, the component field, the outline, storing the components, the shells and the shape.
+
+### Changed
+- **The plan no longer works out the clusters' system counts twice.** The cache of the mean system mass at an age held 512 ages while a plan asks for about 22,000, so the line that prints the counts paid the whole cost again; it now holds 65,536. The search for the mass of a given lifetime also reads the metallicity's terms once. No drawn value changes.
+
+## [8.0.1973] - 2026-10-23
+
+**Headline:** A star-selection browser test no longer times out on a loaded machine, and the test databases' reset notices a foreign key given another rule.
+
+### Fixed
+- **A browser test of selecting a star in an opened sector timed out at 30 s (TEST.272).** `test_a_star_in_an_opened_sector_is_selectable` fetched the sector's scene JSON through the served site, a request that waited behind the page's own work while two browsers drew with the software renderer. The sector browser tests now ask the app for the scene in the test process, like the sector designation already is (TEST.195).
+- **A test that gave a foreign key another delete rule left the next test a damaged schema (TEST.270).** The key kept its name and its table's creation time, so the worker's database reset took the schema for unchanged. The structure signature now includes every foreign key's update and delete rule, and the database is thrown away when one differs.
+
+TODO items resolved: TEST.270, TEST.272. Added: none.
+
+## [8.0.1972] - 2026-10-23
+
+**Headline:** The test workers no longer meet on the machine's one Redis database, which failed five tests of a full run.
+
+### Fixed
+- **Five tests failed in one full run because another worker's job was running (TEST.280).** `test_update_guard.py::test_the_command_begins_ends_and_reports`, three tests of `test_update_database_step.py` and `test_work_units.py::test_the_skeleton_is_one_unit...` start `planetgen` processes (or ask the update guard) on the machine's Redis with the default key prefix, which holds the one live-run lock and the `planetgen-bulk` queue. A real worker or run another xdist worker had started at that moment made them answer "work is running" and refuse. TEST.266 gave one test a database of its own; every worker now runs all its tests, and the processes they start, on the Redis database numbered after it, empty when the session starts and when it ends, so no worker sees another's runs or workers. `tests/private_redis.py` loses its fixture (the one test that took it needs nothing), the worker database reset forgets the stored counts in that database, and `PLANETGEN_TEST_REDIS_URL` still names the server whose database 0 `scripts/test.py` cleans.
+
+TODO items resolved: TEST.280. Added: none.
+
+## [8.0.1971] - 2026-10-23
+
+**Headline:** The browser reads its unit factors from one generated copy of the unit registry.
+
+### Added
+- **The unit registry in the browser** (UX.140). `scripts/build_unit_registry.py` writes `html/static/unitregistry.js` from the Python registry: every unit's kind, symbol, names, factor and offset, every kind's base unit and bounds, and `convert`, `toBase` and `fromBase` with the same arithmetic. A test fails when the file is stale, compares every conversion with Python through Node, and fails when a script declares a unit factor.
+
+### Changed
+- `orbitpositions.js`, `systemview3d.js`, `galaxysystem.js`, `orbitclock.js` and `systemreach.js` no longer declare `AU_KM`, `KM_PER_PC` or the seconds in a year, and the nominal 50 AU system of the map uses the exact AU per parsec instead of the rounded 206264.806.
+
+## [8.0.1970] - 2026-10-23
+
+**Headline:** `planetgen link`, `backfill` and `settle` run the last stages of a galaxy run on their own.
+
+### Changed
+- **Three stages of `galaxy` are commands (PERF.123, first slice).** `planetgen link --since TIME` links the sectors saved since `TIME` to their neighbours, `planetgen backfill --since TIME` draws the bright stars out from them, and `planetgen settle --since TIME` saves their paths and those of the sectors around them. Each is one run on the work queue and does nothing when no sector was saved since `TIME`. A `galaxy` run now says its start time on the database's clock, the value these commands take. `galaxy` itself is unchanged for now.
+
+TODO items resolved: none (PERF.123 slice 1 of 4). Added: none.
+
+## [8.0.1969] - 2026-10-23
+
+**Headline:** `planetgen sector` and `planetgen system` run through the work queue like every other generation command, so they show on the Queue page and take their turn.
+
+### Changed
+- **`sector` and `system` are runs of one command (PERF.119, first slice).** Each builds its step list from what was asked and hands it to the wrapper: the sectors of a `sector` run are cut into units that workers generate and save (each sector draws from its own seed, so a run gives the same sectors at any worker count), and a `system` run is one unit. A `system --output` run saves nothing, so it is a maintenance run and does not hold up generation. The old in-process pool for these two commands is gone; both now need Redis, as the other generation commands do.
+
+TODO items resolved: none (PERF.119 slice 1 of 3). Added: none.
+
+## [8.0.1968] - 2026-10-23
+
+**Headline:** The API's generate-neighborhood, regenerate-sector and settle jobs run through the work queue's run record, so they show on the Queue page and wait their turn.
+
+### Changed
+- **The API's sector jobs are runs (PERF.119, second slice).** Generating a neighborhood, regenerating a sector and saving sector paths each start runs through the wrapper (the sectors, the bright-star backfill around the requested sector, and the paths), like the stages of `planetgen galaxy`, instead of generating inside the job's own process. A job that finds another generation run going waits in line for its turn, as every generation run does. The job's id and `GET /api/jobs/<id>` answer as before.
+
+TODO items resolved: none (PERF.119 slice 2 of 3). Added: none.
+
+## [8.0.1967] - 2026-10-23
+
+**Headline:** Drawing a system's content again keeps the ID of every star, planet, moon, belt and comet that keeps its place.
+
+### Changed
+- **A body's ID follows its slot, not its row (DB.75).** `replace_star_system_content` (the regenerate of `PATCH /api/systems/<id>`) used to delete a system's bodies and number the new ones from the system's counter, so every body got a new ID and a planet's public URL died with the redraw. A body now has a slot: a star's is its role, a planet's or belt's is the star it orbits and its place in that star's orbit list, a moon's is its planet's slot and its place among that planet's moons, a comet's is its star and its rank. The new body of a slot that the old content held takes that body's ID; a slot that is new takes the system's next body number; a slot that is gone leaves its number used for good (the counter is brought past every old body before the delete). Editing a system in place (`save_system_edits`) already kept every ID.
+- `tests/test_stable_body_ids.py` redraws a system with fewer, then more, orbits and checks that every slot present before and after keeps its number, that a new slot takes a number no earlier body held, and that a fresh system still numbers its bodies 1, 2, 3 in the order it always did.
+
+TODO items resolved: none (DB.75 stays open for a body that changes parent, which the shared parent link of the 8.4 revision gives: its ID is in its row and the parent is a column). Added: none.
+
+## [8.0.1966] - 2026-10-23
+
+**Headline:** A star's colour can be worked out from its temperature, the first part of the photometry library.
+
+### Changed
+- **Blackbody colour of a star (GEN.416).** The new `physics/photometry.py` takes a spectrum to a colour: the CIE 1931 curves (the Wyman, Sloan and Shirley fit), linear sRGB (D65) with the brightest channel 1, the sRGB curve, the 8-bit colour and the hex. `star_colour(temperature_k)` gives a star's colour: a Planck spectrum from 4500 K up, and for cooler stars the BT-Settl offset from the blackbody's chromaticity with a seeded spread the caller draws. It matches the table of the gas-optics design to 0.001 in chromaticity from 3000 K up. Nothing is stored and no generated value changes; the atmosphere colour work (GEN.418, GEN.419) and the view from a planet (VIEW.11) build on it.
+
+generation-output: unchanged
+
+## [8.0.1965] - 2026-10-23
+
+**Headline:** A short edit or estimate no longer waits behind a long neighbourhood job, because short and long jobs now have workers of their own.
+
+### Changed
+- **Short jobs have a reserved worker.** The workers for edits, estimates, wiki uploads and slow page answers (`queue.interactive_workers`, 1 by default) are no longer counted in the generation worker count, so a run on every core leaves them be, and they run at a higher priority (nice 5) than the generation workers (nice 10).
+- **Long jobs have a lane of their own.** An API job expected to take longer than `queue.long_job_seconds` (60 by default), such as a neighbourhood or a large settle, goes to the `planetgen-long` queue and its `queue.long_workers` workers (1 by default), so it can never hold the worker kept for short jobs. A job with no estimate counts as short.
+- **Pause and Resume on the Queue page now reach the workers.** Pause is a flag in Redis (`planetgen:queue:paused`): the workers of a run's units and of the maintenance work take no new job while it is set, a unit already running finishes, Resume releases them, and the two API lanes are never held. It no longer uses the work lease. `planetgen.cli.reset_jobs` clears the flag.
+- **A run no longer fails with "run X is running" when another generation run holds the machine.** A generation run (a Generate stage, a one-sector regenerate or a neighbourhood from the API) waits in line, first come first served, for up to `queue.wait_minutes` (60 by default; 0 does not wait), then fails naming the run it waited for. A waiting Generate job's bar and a waiting API job's status (`waiting` in `GET /api/jobs/<id>`) read "Waiting at position 1 for run ...". A maintenance run or a database check still gets "busy" as before.
+- The four new settings (`queue.interactive_workers`, `queue.long_workers`, `queue.long_job_seconds`, `queue.wait_minutes`) are on the settings page under "Speed and disk".
+
 ## [8.0.1964] - 2026-10-23
 
 **Headline:** A run can be told to go ahead without a missing data file, and a refusal now names every file to download.

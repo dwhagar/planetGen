@@ -24,7 +24,9 @@ cell beyond shell 1,303.
   another's state: `SERIAL_GENERATED` (the object's rank in generation order
   in its birth sector), `SERIAL_RUNTIME` (added after generation: an admin's
   addition, an ejection, a facility) and `SERIAL_FIELD` (an object stored by
-  a sector other than the one holding its centre, such as a nebula).
+  a sector other than the one holding its centre, such as a nebula) and `SERIAL_REGION` (a region of space stored on its
+  own, a globular cluster's or a superbubble's container, DB.85: its rank among the regions whose centre lies in the
+  birth sector).
 * The body number is 0 for the top-level object (a system, a rogue planet, a
   nebula, a facility) and 1 and up for the stars, planets, moons, belts and
   comets born in that system, on one counter.
@@ -51,9 +53,10 @@ SERIAL_KIND_BITS = 2
 SERIAL_GENERATED = 0
 SERIAL_RUNTIME = 1
 SERIAL_FIELD = 2
+SERIAL_REGION = 3
 """int: The serial kinds (the value of the serial's top two bits)."""
 
-SERIAL_KINDS = (SERIAL_GENERATED, SERIAL_RUNTIME, SERIAL_FIELD)
+SERIAL_KINDS = (SERIAL_GENERATED, SERIAL_RUNTIME, SERIAL_FIELD, SERIAL_REGION)
 
 _TEXT_RE = re.compile(r"^[0-9A-F]+(-[0-9A-F]+){2}$")
 

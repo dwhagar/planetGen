@@ -96,8 +96,8 @@ def test_deleting_a_sector_settles_the_neighbours(mysql_config, monkeypatch):
 
 def test_regenerating_a_sector_settles_the_neighbours(mysql_config, monkeypatch):
     a_id, b_id = _two_sectors(mysql_config, monkeypatch)
-    monkeypatch.setattr(run_galaxy, "ensure_sector_generated",
-                        lambda *address, config=None, settle=True: {"sector_id": None, "sector_name": None})
+    monkeypatch.setattr(run_galaxy, "regenerate_sector_cell",
+                        lambda address, config: {"sector_id": None, "sector_name": None})
     result = api_jobs.regenerate_sector(a_id, mysql_config)
     assert result["deleted"]["systems"] == 1
     assert _marked(mysql_config, b_id) == 0

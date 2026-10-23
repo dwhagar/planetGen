@@ -1065,3 +1065,19 @@ Baseline: PR #1817.
 | NAV.17 | 8.5 | Saved courses |
 | PERF.146 | 8.1 | The headline closes |
 | GEN.599 | 8.1 | Queue, caches and performance |
+| PERF.153 | 8.1 | Queue, caches and performance |
+| PERF.152 | 8.1 | Queue, caches and performance |
+| PERF.151 | 8.1 | Queue, caches and performance |
+| GEN.416 | 9.0 | Atmosphere colour |
+| TEST.283 | 8.1 | The headline closes |
+| UX.140 | 8.4 | Bulk composition |
+| TEST.270 | 8.1 | Bugs and flaky tests |
+| TEST.272 | 8.1 | Bugs and flaky tests |
+| TEST.280 | 8.1 | Bugs and flaky tests |
+| TEST.271 | 8.1 | Bugs and flaky tests |
+| PERF.163 | 8.1 | The headline closes |
+| GEN.304 | 8.1 | Reproducible galaxies |
+| GEN.427 | 8.1 | Composition tables |
+| DB.85 | 8.2 | Viewers and object pages |
+| GEN.498 | 8.1 | Composition tables |
+| GEN.496 | 8.1 | Composition tables |

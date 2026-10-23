@@ -144,6 +144,12 @@ REGISTRY = _commands(
     CommandSpec("link-neighbours", "Link the neighbours: one unit",
                 unit=("planetgen.generation.run_galaxy", "link_neighbours_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_link_neighbours")),
+    CommandSpec("generate-unplaced-sector", "Generate the unplaced sectors of a `sector` run: one unit per run of sectors",
+                unit=("planetgen.generation.run_sector", "unplaced_sectors_unit"),
+                expand=("planetgen.generation.run_sector", "expand_unplaced_sectors")),
+    CommandSpec("generate-system", "Generate one system (`planetgen system`): one unit",
+                unit=("planetgen.generation.run_system", "system_unit"),
+                expand=("planetgen.generation.run_system", "expand_system")),
     CommandSpec("run-population", "Run the population pass"),
     CommandSpec("settle-sector-paths", "Save the sector paths: one unit",
                 unit=("planetgen.generation.run_galaxy", "save_sector_paths_unit"),
@@ -300,13 +306,13 @@ def expand_function(kind):
 
 
 STAGED_COMMANDS = ("galaxy", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
-                   "clean-nebula-field")
+                   "clean-nebula-field", "link", "backfill", "settle")
 """tuple: The commands whose stages (`generation/stages.py`) the wrapper turns into steps."""
 
 
 def build_steps(command, args):
     """
-    The steps a `planetgen galaxy`, `plan`, `warm` or `check-db` run with the parsed `args` will take, in order:
+    The steps a `planetgen galaxy`, `plan`, `warm`, `check-db`, `sector` or `system` run with the parsed `args` will take, in order:
     exactly the commands the request selects (the stages of `generation.stages`, the cache families of
     `web/warmup`, or the checks of `db/check`), each with the settings that shape it. A pure function of the
     arguments.
@@ -319,11 +325,32 @@ def build_steps(command, args):
         return _warm_steps(args)
     if command == "check-db":
         return _check_steps(args)
+    if command in ONE_COMMAND_RUNS:
+        return [_one_command_step(command, args)]
     from planetgen.generation import stages
     if command not in STAGED_COMMANDS:
-        raise ValueError(f"the wrapper builds steps for {', '.join(STAGED_COMMANDS)}, warm and check-db, not {command!r}")
+        raise ValueError(f"the wrapper builds steps for {', '.join(STAGED_COMMANDS + ONE_COMMAND_RUNS)}, warm and check-db, not {command!r}")
     return [Step(stage.key, KIND_OF_STAGE[stage.key], stage.label, stages.stage_settings(stage.key, args))
             for stage in stages.for_command(command, args) if stage.skip is None]
+
+
+ONE_COMMAND_RUNS = ("sector", "system")
+"""tuple: The commands that are a run of one command (PERF.119): `planetgen sector` and `planetgen system`."""
+
+
+def _one_command_step(command, args):
+    """
+    The one step of a `planetgen sector` or `planetgen system` run: the generation arguments as plain JSON
+    (`run_galaxy._sector_args_json`), the database (`args.database`, `wrapper.database_args`) and the seed the run's
+    draws come from (`args.run_seed`, drawn by the starter, which keeps this function pure).
+    """
+    from planetgen.generation import run_galaxy
+    params = {"database": args.database, "args": run_galaxy._sector_args_json(args), "run_seed": args.run_seed}
+    if command == "sector":
+        count = getattr(args, "num_sectors", None) or 1
+        params["count"] = count
+        return Step("unplaced", "generate-unplaced-sector", f"Sectors ({count} unplaced)", params)
+    return Step("system", "generate-system", "Generate a system", params)
 
 
 def _check_steps(args):

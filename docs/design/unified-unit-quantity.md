@@ -162,7 +162,7 @@ class StellarObject(MassObject):
 | stars, scatter members | 2.7 m | AU column at 10,000 AU |
 | comets | 620 m | km column at the stability ceiling (62 m); a comet inside 10,000 AU is placed as well as a planet |
 | bright stars, the phenomenon scatter | 9,200 km | mpc column in a galaxy frame at the largest Edge |
-| star systems, free bodies (black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants, quasars, facilities, vessels), nebula block centroids, sector path knots | 9,000 km | pc column in a galaxy frame at the largest Edge (the spacing at 8 kpc is 33 m, at 1 kpc 4 m) |
+| star systems, free bodies (black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants, quasars, facilities, vessels), nebula block centroids, sector path knots, container centres | 9,000 km | pc column in a galaxy frame at the largest Edge (the spacing at 8 kpc is 33 m, at 1 kpc 4 m) |
 
 So the 10 m floor body holds where it is parent-relative inside 10,000 AU (a test, `REQUIRED_FLOOR_M`, fails when a planet or moon column cannot place one), and a body stored free in a galaxy frame is placed to a tenth of its size only above the table's figure: a rogue 10 m rock is a point to the kilometre at 1 kpc, to tens of kilometres at the Edge. The way out is the one the decision names, a parent-relative state in a wider frame for a body that joins a system (the 8.4 revision) and a lower declared precision for a wanderer; the table makes the cost a number instead of an assumption. `tests/test_precision.py` pins the figures, so moving a column to another unit or changing a reach shows up as a failing test and an edit of this table.
 
@@ -325,3 +325,14 @@ Left for later: `dose` has no registry kind, so `describe/quantity.py` still wri
 unit they print, so they convert nothing.
 
 The column registry (`db/column_units.py`) no longer has its own `light-day`: `broad_line_region_light_days` is declared in the registry's `ld`, so a unit lives in one place.
+
+## Built: the registry in the browser (UX.140)
+
+`scripts/build_unit_registry.py` writes the registry to `html/static/unitregistry.js` (every unit with its kind, symbol, names,
+factor and offset, every kind with its base unit, dimension and bounds, and `unit`, `toBase`, `fromBase`, `scale` and `convert`,
+the same arithmetic as `unit_registry.py`). `tests/test_unit_registry_js.py` fails when the file is stale, checks every
+unit's numbers and every conversion between the units of a kind (all pairs, 14 values each) against Python through Node for exact
+equality, and fails when a browser script declares a unit factor. `orbitpositions.js`, `systemview3d.js`, `galaxysystem.js`,
+`orbitclock.js` and `systemreach.js` read `AU_KM`, `KM_PER_PC`, `SECONDS_PER_YEAR` and the 50 AU of the nominal system from it
+(the last one was the rounded 206264.806 AU per parsec; it is the exact factor now, a 1e-9 relative change in a pixel-size
+estimate). The browser sweep of the other conversions and the JavaScript `Quantity` are UX.128.

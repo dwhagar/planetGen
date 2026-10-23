@@ -686,7 +686,7 @@ with `clamp()`.
   to be pushed to claude/project-thread-l8ulna rebased after UX.140
   merges. Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete).
-  Prerequisites: UX.140. Related: GEN.300, GEN.299.
+  Prerequisites: none. Related: GEN.300, GEN.299.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -862,35 +862,6 @@ with `clamp()`.
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
 
-- [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Owner: Core 3 (the coordinator, relayed 3:56 PM EDT 2026-10-22 as the
-  lane's clock reads; it takes UX.140 before UX.128; the earlier proposal
-  was Core 2). Do: generate
-  the registry to JS as `build_unit_ladders.py` does for the ladders,
-  with a test that fails when the committed file is stale (as
-  `test_unit_ladders.py`); remove the three `AU_KM = 149597870.7`
-  declarations (`orbitpositions.js`, `systemview3d.js`,
-  `galaxysystem.js`) and the `KM_PER_PC` of `galaxysystem.js`. Done:
-  Python and JS agree on every factor by test, and no browser file
-  declares one.
-  GEN.568 is merged as #2476 (relayed 11:07 AM EDT 2026-10-22), so this
-  item is unblocked.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
   Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
   for 8.2): "we need to scale and size the viewing windows for the
@@ -989,19 +960,22 @@ with `clamp()`.
   item, system and phenomenon pages, nebula and remnant pages listing
   what is inside them, and the new API `GET
   /api/phenomena/<type>/<id>/contents`. The cluster and region part
-  waits on DB.85 (globular clusters and superbubbles are not stored as
-  containers).
+  waits on DB.85, which has since merged (#2582: globular clusters and
+  superbubbles are stored as containers), so it is unblocked.
   Progress (Core 2, UX.144 merged in part as #2485, 12:52 PM EDT
   2026-10-22 as the lane reported): the Location block is on item, system
   and phenomenon pages (the chain from the galaxy down, each a link), nebula and remnant
   pages list what is inside them, through the new API `GET
   /api/phenomena/<type>/<id>/contents`. Still open here: the 'Inside:'
-  line naming a containing globular cluster or superbubble, which waits
-  on DB.85 (no such records are stored as containers).
+  line naming a containing globular cluster or superbubble. DB.85
+  merged as #2582 (10:39 PM EDT 2026-10-22 as the coordinator relayed:
+  globular clusters and superbubbles are now stored as containers,
+  schema v130), so this remainder is unblocked and waits only for an
+  owner.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
   held it before; this replaces any earlier owner line).
-  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
+  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 - [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug)**
   Boss (8:20 PM EDT 2026-10-22), testing the top menu bar, filed by the
@@ -3446,7 +3420,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: GEN.304, OPS.57, GEN.57.
+    Prerequisites: OPS.57, GEN.57.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -4124,7 +4098,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.304, GEN.305.
+  Prerequisites: GEN.305.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
@@ -5647,29 +5621,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
 
-- [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
-  Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Replace the exact-float encoding
-  of `planetgen/db/fingerprint.py` (GEN.58) and the
-  `tests/galaxy_fingerprint.py` stand-in with one canonical encoder as a
-  library: floats as `format(x, ".8e")`, integers exact (hex above
-  2^53), no Unicode normalisation, sorted keys, generation order for
-  lists, no ids or timestamps, a `pgfp1` format tag, SHA-256; separate
-  structural and float digests over named sections (system, star,
-  planet, moon, belt, comet, phenomenon, population). Why: OPS.28's
-  battery digest, TEST.77's tiers and GEN.57's order test all hash
-  generated values and must hash them one way, and a 1-ulp difference in
-  exp or sin between machines must not show. Done: the encoder with
-  golden-vector tests (the same value gives the same string on Python
-  3.12 and 3.13; a 1-ulp change in a float leaves the digest unchanged
-  and a change in the 9th digit changes it; the structural digest
-  ignores float noise); `db/fingerprint.py` uses it; the stand-in is
-  deleted and its tests moved.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.136.
-
 - [ ] **GEN.305 Store a leaf digest at save time and build the tree: roots and region digests**
   Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Compute the leaf digest at save
@@ -5685,7 +5636,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.304. Related: GEN.136.
+  Prerequisites: none. Related: GEN.136.
 
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
   Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -5814,6 +5765,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22 as the lane's clock reads): `physics/planet_zones.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers (built by GEN.314). Boss (8:04 PM
   EDT): code built for a pending feature stays.
+  Scope (Core 3, relayed 10:16 PM EDT 2026-10-22 as the lane reported):
+  the stored trees run to 12 members with brown dwarf, neutron star and
+  black hole members, but BinaryStarProxy and WideBinaryPair hold
+  exactly two Star objects and stars.role only allows primary, secondary
+  and single, so building every tree needs the N-star host that GEN.316
+  retires them for, and a stars.role 'member' migration (numbered at
+  merge; 0130 is held by DB.85 and 0131 by GEN.412). The design doc says
+  to move N=2 through the tree tables first, so GEN.315 is done as slice
+  1: pre-placed star rows (stage A and the uncharted-system route) build
+  from their stored members when the tree is one or two ordinary stars,
+  the pair classes take the stored node (separation, eccentricity,
+  plane, phase, period), orbit_nodes gets the stored node, the child
+  rows are deleted at build, and a scattered star never draws its own
+  companion. Trees the pair classes cannot hold (3 or more members,
+  compact or brown-dwarf members) build the placed object alone for now
+  with their child rows kept for GEN.316. This item stays open for that
+  remainder (N of 3 or more, compact and brown-dwarf members, phenomenon
+  rows in stage B).
   Prerequisites: none. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -7940,21 +7909,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
 
-- [ ] **GEN.416 Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/sky-colour-analysis.md): The star's light colour is a
-  blackbody at the star's temperature weighted by the CIE curves (the
-  Wyman, Sloan and Shirley 2013 fit already validated in
-  `docs/design/sky-view.md`), encoded to sRGB, in
-  `planetgen/physics/photometry.py`. This is only the colour part of
-  VIEW.11; the apparent magnitude, bolometric correction and extinction
-  law stay there and extend this module. Done: 5,772 K gives a
-  white-yellow, 3,300 K an orange-cream and 10,000 K a blue-white within
-  a stated tolerance of the published colours, and the module has no
-  database access.
-  Prerequisites: none. Related: VIEW.11, GEN.417.
-  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, first of GEN.416, GEN.498, GEN.496).
-
 - [ ] **GEN.417 Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): `planetgen/physics/sky.py`:
@@ -8038,7 +7992,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-cyan with an orange sun, a 9 MPa CO2 world is white;
   deterministic and free of NaN for every class; the label says when
   aerosols dominate the answer.
-  Prerequisites: GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68,
+  Prerequisites: GEN.417, GEN.413, GEN.414, DB.67, DB.68,
   GEN.441, GEN.462.
   The ground's bounce reads the surface composition of GEN.441 (the
   ground's colour and reflectance) where it is stored.
@@ -8400,161 +8354,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
-- [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. A constants module for iron and its
-  alloys, the silicates, water in its ice phases and as liquid, the
-  other ices (methane, ammonia, carbon dioxide), hydrogen and helium,
-  each with density and the equation-of-state constants of the chosen
-  model (GEN.426) and the source of every number; the compounds are the
-  same ones as the gas table of GEN.410 where they overlap. Done: a test
-  fails when a material named in a description or in the class tables is
-  missing from it; every number has a source.
-  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; thread Blocker 3, session cse_01AzAXhWBKruPR6CCLL1SxFB). This replaces the earlier proposal of Core 4.
-  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
-  GEN.428 reads it; the design is GEN.437's and the molar masses come
-  from GEN.438.
-  Sources check (GEN.425): the report's section 3.1 lists the constants
-  to take (Seager 2007 Table 1: epsilon iron 8.30, 156.2, 6.08 Vinet;
-  alpha iron for small bodies; MgSiO3 perovskite and enstatite;
-  (Mg,Fe)SiO3; MgO with the 177 or 161.4 GPa choice cited; FeS; ice VII
-  with two parameter sets that are not interchangeable; graphite and
-  SiC), the validity ranges (BM only to about 2.8e13 Pa,
-  Thomas-Fermi-Dirac above) and what is missing: the low-pressure ices
-  (Ih, III, V, VI), methane, ammonia and carbon dioxide ice densities,
-  porosity, and olivine and enstatite bulk densities for small bodies,
-  which are Boss's to research (GEN.432 surveys them).
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). The base is part E's
-  materials table (44 rows, section 2.10: formula, molar mass, density,
-  specific heat, conductivity, melting or sublimation point, latent
-  heat, albedo by band, attenuation, tags, with a labels column kept),
-  plus part B's EOS rows (Seager Table 1, the Stixrude and
-  Lithgow-Bertelloni mantle table read through burnman, 2ND-HAND; MgO
-  bulk modulus 161.4 GPa chosen over 177 and cited), part C's ice and
-  water phases (Ih to X, Journaux, the VII and X curve to 1 TPa, a 300 K
-  isotherm) and volatile ices (condensation curves of eight species,
-  densities of CO2, N2 and CO measured, CH4, NH3 and H2S pending), part
-  D's meteorite groups, taxa, comet volatiles, grain densities and
-  radiogenic rates, and part E's crust oxide and heat-producer
-  reservoirs (tables 2.3 and 2.8b) and band albedos (2.6). Radius
-  reference level 1 bar and the Asplund 2021 reference scale are Decided
-  (Boss, 2026-10-17, 1:24 AM EDT, cards "1 bar" and "Asplund 2021"). One
-  loader; a test fails when a labels entry names no column.
-  Part F of the Body composition research lane
-  (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F5: every data file the loader
-  reads (NIST, PubChem and USGS public domain; published compilations
-  with a citation) states its source and licence, and the loader refuses
-  a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
-  EDT: every acquired paper and dataset is usable; was master
-  section 6 item 13 of docs/design/atmosphere-composition.md).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the material table carries the supported-classes gate
-  on each row (iron and its alloys, the silicates, the ices by pressure
-  phase, the envelopes) with the source and licence column of the F5
-  rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
-  draw only among the materials a class can hold.
-  Prerequisites: none. Related:
-  GEN.410,
-  GEN.428.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind. This
-  table is that shared table: the rows the belt and field draw used to
-  hold as a separate list of 84 names (GEN.477) are rows of it, each
-  with a class gate that says which kinds can hold it, and a planet's or
-  moon's bulk and surface draws (GEN.428, GEN.441) read the same rows;
-  the exotic minerals are accessory rows gated by the chemistry of the
-  body and not by its kind.
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: one components table holds every element,
-  mineral, ice, organic and alloy any body can contain, each row with
-  its formula, density, equation-of-state constants and the other
-  material properties; the 84 names of `ASTEROID_COMPONENTS`, the family
-  lists of `ASTEROID_FIELD_COMPOSITIONS`, the class composition strings
-  of planets and moons and the comet component list all become views of
-  it, and names that exist only as text today (anthracite, sulfides,
-  mineral dust, hydrocarbons) get rows or are mapped to rows, so this
-  item includes the one loader and the name mapping. Accessory minerals
-  (rare-earth, platinum-group, uranium and thorium, gemstones,
-  polycyclic aromatic hydrocarbons) are rows that enter any body at
-  trace level from its bulk composition and a ppm threshold, never at
-  equal weight.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
-  (see GEN.410) for the licence column.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
-  public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
-  Bremen and Karkoschka state none; the licence column is mandatory (it
-  takes 'open' where none is found) and the audit (GEN.500) was removed by
-  Boss (2:35 PM EDT).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in
-  words; bulk-composition.md approve item 10, composition-model.md
-  section 3): this item is a table in 8.1 phase 2 and bumps nothing; the
-  one epoch bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
-  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
-  GEN.500 removed): every paper and dataset Boss acquired was obtained
-  legally and is usable, so no licence audit gates this table and no
-  permission list is needed. The raw papers and downloaded datasets stay
-  out of the public repository and are never redistributed or sold; the
-  research results and the values derived from them are fine to publish,
-  and the program stays free forever. The source and licence column
-  stays as a record; write 'open' where none is found (the loader of
-  GEN.472 already accepts that).
-  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
-  bulk materials' molar masses should come from
-  `physics.elements.molar_mass`; `habitability_world.MOLAR_KG` (SO2 and
-  CH4) is about 1.9e-4 above the element sums and is left for the table
-  items (see GEN.410).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the NIST
-  line "NIST, PubChem and USGS public domain" is corrected by the later
-  check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
-  needed), PubChem and USGS are public domain. The licence column is a
-  record only (Boss, 2:35 PM EDT).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
-  lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in DATA-LICENSE.md. This
-  overrides every line of this item that calls the licence column
-  mandatory; GEN.623 does the removal.
-
-
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8633,7 +8432,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.427, GEN.458, GEN.557. Related: GEN.429,
+  Prerequisites: GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9366,7 +9165,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.478, GEN.498. Related: GEN.409,
+  Prerequisites: GEN.428, GEN.478. Related: GEN.409,
   GEN.411,
   GEN.422,
   GEN.428.
@@ -10091,7 +9890,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.427, GEN.428. Related: GEN.427, GEN.428, GEN.429,
+  Prerequisites: GEN.428. Related: GEN.427, GEN.428, GEN.429,
   GEN.252, GEN.454, DB.69.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -10512,7 +10311,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   IAPWS values within 0.1 percent, that out-of-range calls are flagged,
   and that no other module holds a vapour-pressure constant. Owner: Core
   4 (proposed, with the composition chain).
-  Prerequisites: GEN.427. Related: GEN.410, GEN.427, GEN.452,
+  Prerequisites: none. Related: GEN.410, GEN.427, GEN.452,
   GEN.422, GEN.442, GEN.461.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
@@ -10607,7 +10406,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.461, GEN.427. Related: GEN.427, GEN.441, GEN.461,
+  Prerequisites: GEN.461. Related: GEN.427, GEN.441, GEN.461,
   GEN.466, GEN.456.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
@@ -11729,49 +11528,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unsupported); one comet: rule M, the widest. Gas trapped in amorphous
   ice by deposition temperature is the nearest law.
 
-- [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-2 (part G1). The note's lifetimes are one value per
-  species (NH3 2.5e4 s); the lane read and recomputed them: NH3 about
-  6.7e3 s (5.4e3 to 7.7e3), quiet-Sun values, the active Sun shortening
-  H2O by 1.7 and CO2 by 2.35, and the scaling with the star's
-  ultraviolet is species-specific and not one scalar (for a cool star CO
-  falls by 3.5e-4, CH4 by about 80 and NH3 barely). Do: a table of the
-  species' photolysis lifetime at 1 AU for the quiet Sun, with the
-  active-Sun factors and the species-specific stellar-spectrum ratios,
-  as constants of the species table (GEN.410, not stored per body), read
-  by the coma and exosphere draws (GEN.455), the photochemical lifetimes
-  of the atmosphere (GEN.413 and GEN.409) and the trace-gas rows. Done:
-  a test checks each lifetime against the part's computed value and that
-  no module holds a lifetime constant of its own. Owner: Core 4
-  (proposed, with the composition chain).
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): reconciled by the Body composition lane (3:00 AM EDT as the lane reported; section 15.1 of body-composition-research.md): not a conflict. 6.7e3 s (1.5e-4 per s; Heays 2017 with the Liang 2007 cross section, reproduced to four digits by the Atmosphere lane; Biver 2007 agrees) is the default and 5.6e3 s (1.8e-4 per s; Huebner 1992 and Huebner and Mukherjee 2015, called quiet Sun by two sources and a quiet and active mean by Drozdovskaya 2023, inputs not reached) the other end of the published range 5.4e3 to 7.7e3 s. Settled by the two lanes (Atmosphere lane about 3:25 AM EDT as the lane reported, part 10E): the table stores the quiet-Sun rate and an NH3 activity factor of 1.05 to 1.10 (NH3 absorbs mainly at 170 to 217 nm, so active over quiet is small; the lane's own recomputation gives quiet 1.28 to 1.54e-4 and active 1.35 to 1.70e-4 per s), and a hard 200 nm cut would be wrong by a factor 2 because 200 to 226 nm supplies half of the rate. The Huebner and Mukherjee tables stay on the research item GEN.501 to replace the bracket.
-  The NH3 activity factor is the research item GEN.501.
-  Prerequisites: none. Related: GEN.410, GEN.455, GEN.413, GEN.472,
-  GEN.501.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
-  JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
-  stay meanwhile.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
-  al. 2020) is on Boss's list.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD8: still open. JPL Evaluation 19
-  was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
-  numbers; it prints 2019 for the evaluation the plan calls 2020, so
-  check the year on the item's citation.
-  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, third of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
   (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
@@ -11814,54 +11570,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays.
   Prerequisites: GEN.470. Related: GEN.470, GEN.452, GEN.410, GEN.427.
 
-- [ ] **GEN.498 One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-4 (part G3, extends part F item F2). Sossi 2020
-  puts Earth's magma ocean at delta-IW +0.5 on its own scale; the same
-  gas ratios are delta-IW 0.0 on the Hirschmann 2021 scale, so the
-  generator must fix one reference. QFM is IW + 3.1 to 3.6 (1 bar, 2200
-  to 1500 K) and +3.4 to 4.0 (1 GPa); the CO2 > CO crossover is IW + 1.0
-  to 1.4, so the +2 boundary the note calls QFM is right but is not QFM.
-  No per-planet delta-IW distribution is published: part G3 F8 gives a
-  labelled parametrisation built from Doyle 2019, Deng 2020, Guimond
-  2023 and the Rubie to Siebert range, with the stored quantities it
-  needs. Do: fix the Hirschmann 2021 scale as the one reference, store
-  delta-IW on it (DB.69), convert the Sossi and Frost buffers, and keep
-  +0.5 as a Sossi-scale calibration target only. Done: a test checks
-  that the CO2/CO and H2O/H2 ratios reproduce Sossi's equation 4 on the
-  stored scale, and that no constant is on another scale. Owner: Core 4
-  (proposed, with the composition chain).
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/tunable-gaps.md): decision D3: the white-dwarf delta-IW is
-  the core-formation scale and rows a1 and a2 are the surface
-  magma-ocean scale; add the conversion test between them to this item's
-  tests.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
-  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
-  Sossi 2020 is already read.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AT.a1 and a2: Gaillard and Scaillet
-  2014 (equations 1 to 11 without coefficients; its text claims
-  convergence to FMQ-2 +-0.5 at 10 to 0.01 bar while its own Figure 2
-  shows about FMQ-2.75 with 0.7 dex spread at 0.01 bar) and Pahlevan,
-  Schaefer and Hirschmann (Earth only, last magma-ocean equilibration
-  above IW+1, H2/H2O below 0.3; its Figure 5 top axis contradicts its
-  Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
-  oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
-  and 2022 are not uploaded.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Prerequisites: none. Related: GEN.451, DB.69, GEN.422, GEN.456.
-  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, second of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
   Body composition research lane check of Boss's second research note
   (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
@@ -11882,7 +11590,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.427. Related: GEN.456, GEN.451, GEN.441,
+  Prerequisites: none. Related: GEN.456, GEN.451, GEN.441,
   GEN.478.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -15460,6 +15168,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration. Owner: Blocker 3 (Boss, via the Blocker 3 thread, 4:42 PM
   EDT as the lane's clock reads; it does this before the table items so
   the new tables are built without the column).
+  Progress (Blocker 3, relayed 10:38 PM EDT 2026-10-22 as the lane
+  reported, in GEN.427's PR #2580): the licence key is gone from
+  `pt.Row`, the gas, element, isotope, decay-series and white dwarf
+  files and the dataset catalogue, and DATA-LICENSE.md exists in the
+  repo root. Other lanes' unmerged code that passes `licence=` to
+  `pt.Row` or `fetch.Dataset` fails on rebase. Left to confirm and
+  finish: the README pointer to DATA-LICENSE.md, the design notes that
+  call the licence column mandatory
+  (docs/design/atmosphere-composition.md, GEN.438, GEN.472), the licence
+  assertions in TEST.214 and the table tests, and a grep for `licence`
+  in the table modules; Blocker 3 confirms which of these #2580 already
+  did.
   Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
   GEN.472, TEST.214.
 
@@ -15528,8 +15248,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/galaxy-size-levers.md states the new Auto draws. Generator epoch: the draws
   change generated values, so this needs a generator epoch; 51 is the
   next free number and the epochs file must stay contiguous, so the
-  first of this item, DB.85 and PERF.123 slice C to merge takes 51, the
-  next 52 and so on, numbered at merge. Owner: Core 1, first in its
+  first of this item and PERF.123 slice C to merge takes 51, the
+  next 52 and so on, numbered at merge (DB.85 merged as #2582 without
+  an epoch). Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
   Owner: Core 1, holds this item only from the plan-number bugs; it is
@@ -16073,6 +15794,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one-unit registry commands. F3: each API job is a small run of its own.
   F4: `planetgen sector` and `planetgen system` go through the wrapper
   (each a one-command run).
+  F3 and F4 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported, main dd6d46d0): `planetgen sector`, `planetgen
+  system` and each API job now run through the wrapper as runs of their
+  own. Core 5's own wait-for-turn for API jobs was removed, because
+  PERF.153 (#2562) makes every run wait in line. Still open here: F1 and
+  F2 and the Generate page, reset, check-math and data-check parts,
+  which remain with PERF.123 to PERF.125.
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
@@ -16117,6 +15844,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill, population, settle) and prints it with `--estimate-only`;
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
+  Slice 1 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported): the link, backfill and settle commands (settle --since).
+  Slices 2 to 2c are next after TEST.283 (branch claude/core5-perf123b);
+  the random-start slice C still needs its generator epoch numbered at
+  merge (the epochs file must stay contiguous), and slice D follows.
   Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
@@ -16457,91 +16188,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
   PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
-- [ ] **PERF.151 A reserved interactive worker outside `wanted` at nice 5, and a long-job lane (cap 1) for API jobs expected to run over 60 seconds (F2)**
-  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
-  (design report
-  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
-  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
-  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
-  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
-  and shows its position; the run line holds up to 8 runs, a setting;
-  jobs expected over 60 s go to a long lane; the wait bound defaults to
-  60 minutes, a setting). No Alembic revision and no generator epoch;
-  the same seed must still give the same sectors at 1 and 4 workers.
-  Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/cli.md`. F2, size S to M.
-  One interactive worker is reserved outside the `wanted` count and runs
-  at nice 5; API jobs expected to run over 60 s (Boss's answer) go to a
-  long lane with a cap of 1. Files: `api_jobs.submit`, `workers.py`,
-  `cli/worker.py` (nice per lane), the settings (the reserve and the
-  long-lane cap) and `config.schema.json`. Done: with `wanted` 1 and a
-  long job running, a short job starts within seconds; Ludicrous Speed
-  keeps its share of the cores for bulk and leaves the reserve. Owner: the
-  Fair scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM
-  EDT 2026-10-22 as the lane's clock reads, by the coordinator; it takes
-  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
-  share `workers.py` and `cli/worker.py`). Order: first.
-  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
-  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
-- [ ] **PERF.152 Pause and resume reach the worker queues: a Redis flag the workers honour, written by the Queue page (F3)**
-  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
-  (design report
-  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
-  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
-  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
-  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
-  and shows its position; the run line holds up to 8 runs, a setting;
-  jobs expected over 60 s go to a long lane; the wait bound defaults to
-  60 minutes, a setting). No Alembic revision and no generator epoch;
-  the same seed must still give the same sectors at 1 and 4 workers.
-  Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/cli.md`. F3, size S.
-  Workers honour Pause and Resume through a Redis flag (the WarmWorker
-  in `cli/worker.py` waits while it is set); the Queue page buttons
-  write it. It must not use `work_lease`, which PERF.100 drops.
-  Coordinate with PERF.99 (the Queue page reads Redis) and sequence with
-  Core 5's Queue page changes. Done: a paused queue starts no new unit,
-  a resume releases it, and a test shows both. Owner: the Fair
-  scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM EDT
-  2026-10-22 as the lane's clock reads, by the coordinator; it takes
-  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
-  share `workers.py` and `cli/worker.py`). Order: second.
-  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
-  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
-- [ ] **PERF.153 An API job that finds a live generation run waits (a bounded retry, shown as waiting for run X) instead of failing Busy, and a Generate stage waits for an API job holding the key (F4)**
-  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
-  (design report
-  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
-  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
-  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
-  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
-  and shows its position; the run line holds up to 8 runs, a setting;
-  jobs expected over 60 s go to a long lane; the wait bound defaults to
-  60 minutes, a setting). No Alembic revision and no generator epoch;
-  the same seed must still give the same sectors at 1 and 4 workers.
-  Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/cli.md`. F4, size S; an
-  interim fix until F5. A regenerate or neighbourhood job that finds a
-  live GENERATION run waits for it, and a Generate job's stage that
-  finds the key taken by an API job waits for it, instead of failing
-  with Busy. The wait is a bounded retry; the job shows as "waiting for
-  run X". Bound decided (Boss, 5:10 PM EDT 2026-10-22): a default of 60
-  minutes, then fail with the run named, and it is a setting. A
-  one-sector regenerate waits in line and shows its position (Boss, 5:08
-  to 5:10 PM EDT). Files: `api_jobs.submit` and the Generate stage
-  start. Done: both waits are tested, the failure after the bound names
-  the run, and F5 removes this interim code. PERF.147's progress bar
-  needs a "waiting at position n" state; use the same wording. Owner: the
-  Fair scheduling lane (session cse_016f88QCH7oP9ZBusPcb8Vcx, started 5:22 PM
-  EDT 2026-10-22 as the lane's clock reads, by the coordinator; it takes
-  PERF.151, PERF.152, PERF.153, then PERF.150, in one lane because they
-  share `workers.py` and `cli/worker.py`). Order: third (after F2, which also
-  edits `api_jobs.submit`).
-  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100, PERF.119,
-  PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
   (design report
@@ -16697,42 +16343,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
-- [ ] **PERF.163 The Stage 4 plan takes 264 s against a 3.71 s skeleton: find where the other time goes (bug)**
-  The Stage 4 plan of a default-size galaxy with the default dials
-  (PlanetGen 8.0.1961, Boss's run, 8:23 PM EDT 2026-10-22) took 264 s
-  while the skeleton took 3.71 s. The log does not show where the other
-  260 s went; the research thread
-  (reports/plan-warning-explained-2026-10-22.md) suspects cluster and
-  satellite drawing, storing the shells and the bright stars, but did
-  not check. Why: the plan stage is the first thing a person runs, and
-  PERF.146 profiles generation options and scatters but not this stage
-  by name. Do: profile the plan stage on a default galaxy, with a
-  per-step timing table in the plan log (skeleton, outline, shell
-  storage, bright stars, clusters, satellites, globular clusters), find
-  where the 260 s goes and either fix it or file the ranked fixes. Note
-  that the satellites hold about 6.4e9 systems against about 8.4e9 for
-  the host (see GEN.624, decided: they scale with the host's mass), so
-  their share of this time falls once GEN.624 lands; measure before and
-  after. Done: the plan log prints the step timings, a report names the
-  top cost, and a repeatable benchmark command runs it. Owner: the
-  performance thread, as part of or beside PERF.146.
-  From the plan-numbers check (8:48 PM EDT 2026-10-22): most of the time
-  is a cache bug, not the skeleton (3.71 s is 1.4 percent of the stage).
-  `mean_system_mass_at_age_solar` (`generation/system_mass.py:171-172`)
-  caches 512 ages while a plan asks for 13,995 distinct ones
-  (`galaxy/components.py:87-91` rounds to 1e-6 Gy, so every open cluster
-  is its own key); each miss costs about 3 ms, the component field pays
-  it once (`galaxy/component_field.py:107-108`) and
-  `run_plan.py:338-340` pays it again for the printed sums: about 76 s
-  on the checker's machine, about 180 s on Boss's, of the 264 s. Fix:
-  round ages to the population's quarter-decade edges (each cluster
-  already sits in a quarter-decade population) or size the cache to the
-  component count, and compute the three sums from the field instead of
-  a second pass. The other 80 s (database writes of 13,987 components
-  and 1,578 shell rows, queue start-up, naming key) is unmeasured and
-  needs a MySQL run.
-  Prerequisites: none. Related: PERF.146, GEN.624.
-
 - [ ] **PERF.164 The generation performance report holds only the small size: measure medium and large after PERF.163 and re-rank**
   Follow-up to PERF.146 (merged as #2559, about 9:10 PM EDT 2026-10-22
   as the Performance lane reported; the benchmark suite `planetgen
@@ -16747,7 +16357,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the ranked list is checked against them. Owner: the Performance
   thread, after PERF.163 (the Performance lane, relayed 9:04 PM EDT
   2026-10-22).
-  Prerequisites: PERF.163. Related: PERF.146, PERF.163.
+  Prerequisites: none. Related: PERF.146, PERF.163.
+
+- [ ] **PERF.165 The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug)**
+  Found by the Performance lane in PERF.163 (merged as #2576, relayed
+  10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
+  of the 264 s plan stage, so a bug. PERF.163 raised the
+  mean-system-mass cache from 512 to 65,536 ages (a plan asks for about
+  22,000); `plan --mass 4e9` fell from about 2 minutes (8.0.1960) to
+  about 30 s after PERF.146 and about 25 s now, and the plan log ends
+  with a step table. What is left that changes no generated value: (1)
+  the 22,267 components are stored row by row (3.1 s of a 12.3 s unit);
+  store them in batches; (2) about 10 s of start-up outside the unit:
+  plan_shape runs twice, the math check takes 2 s, the queue workers
+  start. Do: batch the component insert and run the shape once, and make
+  the math check cheap or skippable on a plan; keep every value the
+  same. Done: the plan step table shows the storing and start-up rows
+  smaller, the golden outputs are unchanged, and `plan --mass 4e9` is
+  measured again. Owner: the Performance thread, after PERF.164 (the
+  Performance lane, relayed 10:25 PM EDT 2026-10-22).
+  Prerequisites: none. Related: PERF.163, PERF.164, PERF.146.
+
+- [ ] **PERF.166 The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug)**
+  Found by the Performance lane in PERF.163 (merged as #2576, relayed
+  10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
+  of the 264 s plan stage, so a bug. PERF.163 raised the
+  mean-system-mass cache from 512 to 65,536 ages (a plan asks for about
+  22,000); `plan --mass 4e9` fell from about 2 minutes (8.0.1960) to
+  about 30 s after PERF.146 and about 25 s now, and the plan log ends
+  with a step table. The per-age bisection in the mean-system-mass
+  lookup costs 0.2 ms per age and 22,000 ages are asked for; replacing
+  it with a closed form or an interpolation table would change the last
+  bits of the result, so it changes generated values and needs a
+  generator epoch (numbered at merge) and Boss's word, and goes to a
+  later version unless he says otherwise. Do: measure what the bisection
+  costs now (the lane's table says it is small after the cache fix), and
+  only if it is worth it, design the replacement with the error bound
+  stated and the golden outputs re-baselined. Done: either the measured
+  cost is on this item and Boss agrees to leave it, or the replacement
+  is merged with its epoch. Owner: none for now (needs Boss's word;
+  pool).
+  Prerequisites: none. Related: PERF.163, PERF.165.
 
 ## DB: Database and schema
 
@@ -17155,7 +16805,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460, GEN.498. Related:
+  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460. Related:
   DB.67,
   DB.68.
   Part F of the Body composition research lane
@@ -17525,6 +17175,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
+  First part merged as #2568 (Core 1, 9:50 PM EDT 2026-10-22 as the lane
+  reported; regenerate now keeps the slot's ID). The item stays open for
+  a body that changes parent, which waits on the shared parent link of
+  the 8.4 revision. GEN.564 is an 8.4 item: it stays in the pool, paused
+  until 8.1 is complete (the coordinator, 9:46 PM EDT 2026-10-22).
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
 
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
@@ -17616,25 +17271,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   open item that adds a `sectors` column is checked against it. Owner:
   not assigned (the DB items chain lane after its listed order).
   Prerequisites: none. Related: DB.18, DB.44.
-
-- [ ] **DB.85 Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds**
-  Found by Core 2 (relayed 9:33 AM EDT 2026-10-22, while building UX.144
-  and MAP.254), filed by the TODO thread. Globular clusters and
-  superbubbles are not stored as containers, so nothing can say 'this
-  star is inside cluster X' or list what is inside one, and the Location
-  block of UX.144 and the 'Inside:' line cannot name them. Do: store
-  each globular cluster and each superbubble as a container (a row with
-  its Object ID, kind, centre, extent and the region it belongs to) and
-  a way to ask which containers hold a point and what a container holds,
-  as the nebula and remnant pages already do for their contents (`GET
-  /api/phenomena/<type>/<id>/contents`). Done: for a star inside a
-  globular cluster and a star inside a superbubble, the query names the
-  container; a container lists what it holds; the stored rows come from
-  the generator with no fixed content. Owner: the DB items chain lane, started after DB.58 and DB.62 merged (the
-  coordinator, relayed 7:03 PM EDT 2026-10-22 as the lane's clock reads;
-  Core 2 asked for it). Numbers: revision 0130 and generator epoch 51,
-  given to the lane at 7:06 PM EDT.
-  Prerequisites: none. Related: UX.144, MAP.254, UX.143.
 
 - [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
   Found by Core 1 (relayed 1:03 PM EDT 2026-10-22 as the lane's clock
@@ -20095,7 +19731,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.427. Related: TEST.211,
+  Prerequisites: none. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
@@ -20717,98 +20353,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.270 check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake)**
-  Found by Core 1 (9:50 AM EDT 2026-10-22 as the lane reported, in the
-  GEN.598 gate), filed by the TODO thread. Kind: flake. Tests:
-  src/tests/test_db_check.py::test_the_command_exits_one_on_damage_and_zero_when_clean
-  and ::test_a_check_run_does_not_take_the_generation_slot. Failure
-  text: `check-db` printed "FAIL: revision" ("The database is DAMAGED"),
-  so the command exited 1 where the test expects 0 after `_heal_key`.
-  Fails on main: not checked; each passes alone in 10 s and both passed
-  on `--resume`. Frequency: 2 of 20,106 in one full `scripts/test.py
-  changed` gate (4 workers, 86 minutes), both on the first pass and on
-  the re-run pass. Reproducer: a full `changed` gate on a lane with one
-  MySQL server; not reproducible alone. Something else in the full run
-  (a concurrent migration or revision test on the same server) leaves
-  the revision check unhappy; that cause is not found. Do: find which
-  test or fixture changes the `alembic_version` row or the revision the
-  check reads while these two run, and give the check tests a database
-  of their own or make the other test restore it; no retry loop that
-  hides the cause. Done: the cause is on this item and the two tests
-  pass in 20 full-gate runs. Owner: Bug Hunt (proposed; a test-flake
-  finding of the TEST.265 family).
-  Second sighting (Core 3, relayed 10:43 AM EDT 2026-10-22): two
-  test_db_check tests failed in 1 of 2 full gates, only in the 4-worker
-  phase, and pass alone; the lane did not name which two or the text.
-  Third sighting (Blocker 2, relayed 12:12 PM EDT 2026-10-22 as the
-  lane's clock reads, in the GEN.311 and GEN.269 gate): the same two
-  tests, test_the_command_exits_one_on_damage_and_zero_when_clean and
-  test_a_check_run_does_not_take_the_generation_slot, failed twice in
-  the full gate and failed again on the `--resume` rerun, so it is not
-  only a first-pass failure; both pass alone and in a targeted run with
-  the same code.
-  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
-  clock reads, fixed inside #2441): test_db_check's CASCADE drift test
-  (`test_a_foreign_key_with_another_delete_rule_is_drift`) left a changed
-  `facilities` foreign key in the worker's shared database, because the
-  pool's reset compares constraint names only, so later check-db tests
-  on that worker failed with "remove_fk/add_fk facilities.fk_facilities_type"
-  depending on worker order; the test now restores the key in a
-  `finally`. This item stays open until Bug Hunt sees the two tests
-  green in 20 full-gate runs after #2441, or a gate shows it again.
-  Prerequisites: none. Related: TEST.265, TEST.262.
-
-- [ ] **TEST.271 test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug)**
-  Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, on a clean main
-  checkout), filed by the TODO thread. Kind: test fails on main. Test:
-  src/tests/test_drop_database_holders.py, the gentle_wait case. Failure
-  text: MySQL "Lock wait timeout exceeded". Fails on main: yes, run
-  alone on a clean main checkout in that environment. Frequency: every
-  run tried (3 of 3). Reproducer: `python3 -m pytest
-  src/tests/test_drop_database_holders.py -k gentle_wait` after
-  `planetgen-env-up`. It may be the same family as TEST.265 (a test
-  database drop meeting another connection's lock), or a
-  lane-environment difference (the lane's MySQL lock wait setting); that
-  is not checked. Do: read the failure with the lock holder named (`SHOW
-  ENGINE INNODB STATUS`), fix the cause or the test, no retry loop that
-  hides a real lock. Done: the test passes 20 runs in a row on a clean
-  checkout. Owner: Bug Hunt, after its current work (the coordinator,
-  relayed 10:45 AM EDT 2026-10-22).
-  Probable cause (Core 5, relayed 12:29 PM EDT 2026-10-22 as the lane's
-  clock reads, #2441): in a lane container `performance_schema` is OFF,
-  so the reader of another database is never found and the test fails
-  even alone on main (the earlier "passes alone" verdict was wrong); the
-  test now skips when `performance_schema` is not ON. Core 3's text was
-  a lock wait timeout, which may be the same cause or not. This item
-  stays open until Core 3's lane (or Bug Hunt's) is checked for
-  `performance_schema` and the test passes there with it ON.
-  Prerequisites: none. Related: TEST.265, TEST.270.
-
-- [ ] **TEST.272 test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug)**
-  Found by Core 3 (relayed 10:43 AM EDT 2026-10-22, in a full gate),
-  filed by the TODO thread. Kind: test fails on main, browser. Test: the
-  browser test test_a_star_in_an_opened_sector_is_selectable. Failure text (Core 3, relayed 11:18 AM EDT 2026-10-22 as the lane's
-  clock reads, from its GEN.370 gate on the #2460 head; the earlier note
-  that it came from the #2473 gate was wrong): worker gw0, fixture
-  moving_page, sector 1000000000, page loaded at
-  /galaxy?sector=1000000000&open=1; line 167 calls _star_spots (line 97),
-  `page.request.get(f"{base_url}/sector/{sector_id}/scene")` raises
-  `playwright._impl._errors.TimeoutError: APIRequestContext.get: Timeout
-  30000ms exceeded` on GET /sector/1000000000/scene. In one earlier run of
-  the same gate the test errored at setup instead. Passes alone in 29.4 s.
-  Frequency: 2 of 4 full gates, in the browser phase with 2 workers, never
-  alone. It looks like the /scene route taking over 30 s while another
-  browser test loads the site, a load timeout and not a selection bug.
-  Reproducer: a full `scripts/test.py changed` gate (the log is on Core 3's
-  lane at /tmp/claude-0/work/gate370h.log, lines 520 to 580). Do: capture the failure
-  text and the page state when it fails, find whether it is load-related
-  (browser tests under load are a known flake class) or a real selection
-  bug, and fix the cause. Done: the cause is on this item and the test
-  passes 20 runs in a row under load. Owner: Bug Hunt, after its current
-  work (the coordinator, relayed 10:45 AM EDT 2026-10-22); the failure
-  text is now recorded above.
-  Prerequisites: none. Related: TEST.262, TEST.270.
-
 - [ ] **TEST.273 test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake)**
   Found by Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock
   reads, in a full run for UX.144), filed by the TODO thread. Kind:
@@ -20870,6 +20414,16 @@ clears each one.
   Fourth sighting (Core 2, relayed 7:24 PM EDT 2026-10-22 as the lane's
   clock reads, when UX.129 merged as #2544): the case fails alone too,
   the call taking 1802 s.
+  Likely the same root as PERF.163 (the plan-numbers check, 8:48 PM EDT
+  2026-10-22): `system_mass.mean_system_mass_at_age_solar` has a cache
+  of 512 ages and `components.py` rounds ages to 1e-6 Gy so a plan asks
+  for about 14,000 distinct ones, each miss about 3 ms; the shape report
+  builds the same component field on a 1209 by 32 array. PERF.146's
+  speedups (#2559) touched the system-mass arithmetic, so first re-run
+  the case alone on current main with `-o timeout=90
+  --timeout-method=thread`; if it still hangs, the cache fix of PERF.163
+  (Performance thread) is the first thing to try, and the route should
+  still bound its work for a hostile dial value.
   Prerequisites: none. Related: GEN.617, ADM.124, TEST.265.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
@@ -20906,36 +20460,6 @@ clears each one.
   TEST.275).
   Prerequisites: none. Related: PERF.144, TEST.265.
 
-- [ ] **TEST.280 Five tests are refused as Busy in a full gate because workers share the default Redis database (race)**
-  Found by Bug Hunt (relayed 7:03 PM EDT 2026-10-22 as the lane's clock
-  reads, from its full 'scripts/test.py changed' gate), filed by the
-  TODO thread. Kind: cross-worker race (a test that starts a real run or
-  queue worker on the machine's shared Redis). Tests:
-  src/tests/test_update_guard.py::test_the_command_begins_ends_and_reports,
-  src/tests/test_update_database_step.py::test_a_database_that_needs_migrating_is_migrated_and_keeps_its_data,
-  ::test_a_migration_leaves_the_real_maintenance_file_alone,
-  ::test_a_failed_migration_stops_the_step_and_keeps_the_version, and
-  src/tests/test_work_units.py::test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded.
-  Failure: all refused on worker gw2 at 8:14 PM and 9:45 PM EDT (the
-  lane's clock as reported) because another xdist worker's job or a real
-  queue worker was running on the machine's default Redis (database 0,
-  prefix planetgen, queue planetgen-bulk); stderr ends 'nothing was
-  cancelled. Run it again when the work has finished, or add
-  --cancel-running'. Fails on main: not run alone yet; they passed alone
-  in earlier gates, so it is a race between workers. Frequency: 5 of
-  21,430 tests in that gate; the same class as TEST.266. Reproducer: a
-  full gate with several xdist workers. Do: every xdist worker runs all
-  its tests, and the processes they start, on the Redis database
-  numbered after the worker (this generalises the TEST.266 fixture
-  tests/private_redis.py, which goes away); the other seven real_queue
-  modules named in the execution notes (test_api_jobs,
-  test_inline_queue, test_reset_jobs, test_rq_time_limits,
-  test_update_guard_work, test_wanted_workers_key and test_workers) then
-  need no fixture. Done: the five tests pass in 20 full-gate runs and no
-  test starts a process on database 0. Owner: Bug Hunt (fix in hand,
-  same branch as TEST.270 and TEST.272).
-  Prerequisites: none. Related: TEST.266, TEST.277.
-
 - [ ] **TEST.281 test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug)**
   Found by Core 2 (relayed 7:24 PM EDT 2026-10-22 as the lane's clock
   reads, when UX.129 merged as #2544), filed by the TODO thread. Kind:
@@ -20954,24 +20478,33 @@ clears each one.
   gate, and MAP.210 can close with it. Owner: Core 2 (MAP.210's owner;
   proposed by the TODO thread, because the lane named the area; the
   coordinator can move it).
+  The timeout side of the same test (TEST.272: the scene fetch timed out
+  under load) is fixed in #2573 (Bug Hunt, 10:11 PM EDT 2026-10-22 as
+  the lane reported: the sector_open and sector_reach browser tests read
+  the scene in the test process); what remains here is the selection
+  itself, which is MAP.210.
   Prerequisites: none. Related: MAP.210, MAP.209.
 
-- [ ] **TEST.283 Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups**
-  PERF.146 (merged as #2559) changed generation code with value-neutral
-  speedups (scatter once-per-worker setup, bright-star tier lookups,
-  system-mass arithmetic), bit-identical and without an epoch. The goal
-  of PERF.146 says the closing audits are re-run when an optimization
-  touches generation code. Do: re-run the whole-sphere audits TEST.185,
-  TEST.184, TEST.159 and TEST.160 on main as it stands after #2559 and
-  file any finding; any audit that fails on main files its finding to
-  the TODO thread (kind, test, text, fails-on-main, frequency,
-  reproducer). Done: the four audits pass on main after #2559, or each
-  failure is filed with its owner. Owner: Core 5 after its current gate
-  (the coordinator, relayed 9:05 PM EDT 2026-10-22). Related to the
-  release gates: SEC.33 and TEST.261 run on final code and do not wait
-  for this.
-  Prerequisites: none. Related: PERF.146, TEST.159, TEST.160, TEST.184,
-  TEST.185.
+- [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails on main: 2 uncharted where 3 are expected (bug)**
+  Found by the Performance lane (relayed 10:25 PM EDT 2026-10-22 as the
+  lane reported) while re-running the ten failures it had seen, on
+  current main with the control database present. Kind: test fails on
+  main. Test:
+  src/tests/test_uncharted_phenomenon.py::test_an_uncharted_black_hole_page_names_its_class.
+  Failure text: the page shows 2 uncharted where the test expects 3.
+  Fails on main: yes on the Performance lane's clean checkout; not yet
+  confirmed on another lane. Frequency: every run on that lane.
+  Reproducer: python3 -m pytest -q
+  src/tests/test_uncharted_phenomenon.py::test_an_uncharted_black_hole_page_names_its_class.
+  Do: confirm it on another lane's main (Bug Hunt), find the cause (a
+  recent change to uncharted counting or to black hole classification),
+  and fix the cause, not the test. Done: the test passes alone and in a
+  gate. Owner: Bug Hunt (proposed by the TODO thread, after TEST.275).
+  Two other failures the lane saw are its own machine's grants
+  (test_update_database_step: Access denied for planetgen@127.0.0.1 on
+  the test database) and pass alone (test_count_cache, test_slow_route),
+  so they are not filed.
+  Prerequisites: none. Related: TEST.275.
 
 ## USR: User accounts
 
@@ -21736,7 +21269,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the
   fingerprint encoder is GEN.304's (split from GEN.136, 2026-10-16), not
   GEN.136's.
-  Prerequisites: GEN.304. Related: OPS.28.
+  Prerequisites: none. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -22600,7 +22133,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the HYG
   calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
   2026-10-16, 11:58 PM EDT), not VIEW.10's.
-  Prerequisites: VIEW.1, VIEW.9, GEN.416. Related: VIEW.2.
+  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for

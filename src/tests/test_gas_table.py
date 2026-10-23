@@ -19,10 +19,10 @@ TOXICITY_NOTE = os.path.join(REPO, "docs", "design", "Atmospheric Toxicity.md")
 
 # --- The file states where each row comes from -----------------------------------------------------------------
 
-def test_every_row_has_a_source_a_licence_and_a_state():
+def test_every_row_has_a_source_and_a_state():
     assert len(gases.GASES) >= 72
     for row in gases.GASES:
-        assert row.source and row.licence and row.state in ("verified", "partly verified", "open", "stand-in"), row.formula
+        assert row.source and row.state in ("verified", "partly verified", "open", "stand-in"), row.formula
         if row.state != "verified":
             assert row.limit, f"{row.formula} is {row.state} and names no limit"
         if row.rayleigh and row.rayleigh.state != "verified":
@@ -353,14 +353,14 @@ def broken(tmp_path, monkeypatch):
     return edit
 
 
-@pytest.mark.parametrize("field", ["sources", "licence", "retrieved", "title"])
-def test_the_loader_refuses_a_file_that_states_no_source_or_licence(broken, field):
+@pytest.mark.parametrize("field", ["sources", "retrieved", "title"])
+def test_the_loader_refuses_a_file_that_states_no_source(broken, field):
     with pytest.raises(DataError, match=field):
         broken(lambda data: data.pop(field))()
 
 
-@pytest.mark.parametrize("field", ["source", "licence", "state"])
-def test_the_loader_refuses_a_row_without_a_source_licence_or_state(broken, field):
+@pytest.mark.parametrize("field", ["source", "state"])
+def test_the_loader_refuses_a_row_without_a_source_or_state(broken, field):
     with pytest.raises(DataError, match=field):
         broken(lambda data: data["gases"][3].pop(field))()
 

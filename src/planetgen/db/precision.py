@@ -150,6 +150,8 @@ _OTHER_POSITIONS = {
     ("nebula_block_stats", "centroid_z_pc"): "galaxy",
     ("orbital_event_bodies", "x_pc"): "galaxy", ("orbital_event_bodies", "y_pc"): "galaxy",
     ("orbital_event_bodies", "z_pc"): "galaxy",
+    ("galaxy_containers", "center_x_pc"): "galaxy", ("galaxy_containers", "center_y_pc"): "galaxy",
+    ("galaxy_containers", "center_z_pc"): "galaxy",
 }
 """dict: (table, column) -> frame, the positions that are not a table's point (`point_columns.LAYOUTS`)."""
 
