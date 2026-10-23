@@ -450,37 +450,6 @@ with `clamp()`.
   (Microbial, Flora, Fauna, Sentient, 0 to 9) in a cluster next to the
   symbols; UX.152 does it, human operability is removed (GEN.649).
 
-- [ ] **UX.101 The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating**
-  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
-  (Boss, 2026-10-11 03:24Z), which supersedes the symbols of #1217.
-  Symbols: Radiation, a small central circle with three radial arcs 120
-  degrees apart; Temperature, an upright equilateral triangle bisected
-  by a vertical line; Pressure, a central square flanked by two opposing
-  inward-pointing equilateral triangles; Air Chemistry, an upright
-  regular hexagon enclosing three horizontal lines; Water Chemistry, a
-  downward-pointing equilateral triangle enclosing a centred circle;
-  Suitability, a circle enclosing a nested diamond with a centre dot;
-  Overall Habitability, a solid circle inside an equilateral triangle,
-  inside an outer ring. Each symbol takes the colour of its rating
-  (Blue, Green, Yellow, Red) so the list reads at a glance. Done: the
-  six symbols and the overall symbol as vector shapes in the icon
-  library, drawn on both themes with enough contrast, used in the planet
-  and moon lists, and a test checks every rating colour. Needs the PHI-6
-  model.
-  Builds the six symbols and the overall symbol as vector shapes, both
-  themes, one colour per rating (Blue, Green, Yellow, Red), with a test
-  of every rating colour; it comes first and no longer needs UX.100, so
-  no interim shapes are built and thrown away (2026-10-16 review).
-  Prerequisites: none. Related: UX.100, GEN.207 (done, PR #1429).
-  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
-  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
-  right now to build it, I want the habitability system finished before
-  8.1 is ready'; this overrides the 8.1-only pause for it and any
-  earlier owner line. Owner: Habitability lane A (symbols).
-  Boss, 6:14 PM EDT 2026-10-23: the library also gets four life icons
-  with a 0 to 9 digit in a cluster next to these symbols: UX.151
-  (Habitability lane A); the scores are GEN.649, displayed by UX.152.
-
 - [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
   (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
   output logs, timestamps, same formatting, same style, dividers, step

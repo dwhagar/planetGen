@@ -1149,3 +1149,4 @@ Baseline: PR #1817.
 | PERF.158 | 8.1 | The headline closes |
 | PERF.157 | 8.1 | The headline closes |
 | PERF.156 | 8.1 | The headline closes |
+| UX.101 | 8.1 | Habitability system |

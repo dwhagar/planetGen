@@ -2124,7 +2124,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | done, PR #1369 |
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | done, PR #1355 |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
-| UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating | none | open |
+| UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating | none | done, PR #2706 |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
 | UX.103 | Design note for the description layer | none | done, PR #1496 |
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
