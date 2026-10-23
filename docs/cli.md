@@ -486,8 +486,10 @@ A galaxy whose halo would weigh under 1e+10 solar masses (a stellar mass under a
 <!-- dials:end -->
 
 Before it stores anything, `planetgen plan` prints one line about the galaxy it has drawn: how dense the thin disc's
-crest is as a multiple of the one-star-per-sector density (D), about what share of the stars sit in planned sectors
-(from the density-limits report's table, approximate), and how many shells and candidate sectors the outline holds. A
+crest is as a multiple of the one-star-per-sector density (D: the systems the thin disc expects per sector on an arm
+crest at its centre, from the built shape, so it follows the Census dial), about what share of the galaxy's systems sit
+in sectors that expect one (one integral of the built density over radius, height and azimuth, approximate), and how
+many shells and candidate sectors the outline holds. A
 crest under 20 times the one-star density adds a warning, and an outline with no sector in it is refused with the reason
 (raise the mass or the density, or lower the scale length or the height). The Generate page shows the same line under the
 shape dials; it asks `/admin/generate/shape-report`, which works the numbers out with the same code

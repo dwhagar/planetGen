@@ -176,11 +176,9 @@ def test_a_bulge_under_half_a_cell_is_refused():
 
 
 def test_the_warnings_name_a_shape_the_grid_holds_badly():
-    notes = dials.shape_warnings(sigma0=0.5, height_pc=5.0, bulge_radius_pc=3.0)
-    assert len(notes) == 3 and "percent of its stars sit in planned sectors" in notes[-1]
-    assert dials.shape_warnings(sigma0=500.0, height_pc=180.0, bulge_radius_pc=400.0) == []
-    assert dials.planned_share(0.5) == 0.0 and dials.planned_share(20.0) == pytest.approx(0.51)
-    assert 0.2 < dials.planned_share(7.0) < 0.35 and dials.planned_share(1e6) == 0.94
+    notes = dials.shape_warnings(crest=0.5, share=0.02, height_pc=5.0, bulge_radius_pc=3.0)
+    assert len(notes) == 3 and "2 percent of its stars sit in planned sectors" in notes[-1]
+    assert dials.shape_warnings(crest=500.0, share=0.9, height_pc=180.0, bulge_radius_pc=400.0) == []
 
 
 def test_the_pitch_angle_is_refused_within_a_degree_of_flat():
