@@ -26,7 +26,9 @@ from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation import companion_classes, life as planetLife, multistar, place_terms, prevalence, validation
+from planetgen.generation import (
+    companion_classes, life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
+)
 from planetgen.physics import constants, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
@@ -143,7 +145,13 @@ class StarSystem:
     orbit_nodes = ()
     """tuple of `physics.system_tree.OrbitNode`: The tree of orbits the stars hang in (GEN.311). Empty until the system is
     saved (a generated binary's one node is made from its pair then, `db.orbit_trees.binary_nodes`) or for a single star;
-    a loaded system has the tree that was stored."""
+    a loaded system has the tree that was stored. A system built from a stored tree (`member_tree`) has the stored node
+    from the start."""
+
+    tree_built = False
+    """bool: The system was built from the tree its scatter row stored and holds every member of it (GEN.315): the
+    save deletes the row's stored members and nodes. False for a system generated whole and for a stored tree the
+    build could not hold (3 or more members, a compact or brown-dwarf member)."""
 
     runaway_class = None
     """str or None: `"runaway"` or `"hypervelocity"` when the system moves
@@ -166,7 +174,7 @@ class StarSystem:
     (`generate.run_system`, GEN.49)."""
 
     def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None, compact_remnant=None,
-                 primary_star_params=None):
+                 primary_star_params=None, member_tree=None):
         """
         Initializes a StarSystem object, generating a star and its planets.
 
@@ -229,6 +237,12 @@ class StarSystem:
                 stellar population (`star_population`). Everything else
                 (companion, planets, moons, belts, comets) is generated as
                 usual around it.
+            member_tree (stored_trees.StoredPlan, optional): The tree a scattered row stored (GEN.315), with
+                `primary_star_params`: the system takes its second star and the orbit between the two from the
+                tree and draws no companion of its own (`BINARY_SYSTEM` and `WIDE_BINARY` are not read). The second
+                star is built from its stored seed, birth mass and the primary's age. A plan that is not
+                `complete` (a tree the pair classes cannot hold) builds the primary alone. `None`: the system draws
+                its own companion as before.
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         # A run's prevalences (GEN.52) decide the measured features' flags
@@ -263,8 +277,15 @@ class StarSystem:
         self.surrounding_cloud = None
         self.stars = [self.primary_star] # Keep track of individual stars
 
-        companion, mass_ratio, companion_reason = (None, None, None) if compact_remnant is not None \
-            else self._companion()
+        self.tree_built = member_tree is not None and member_tree.complete
+        stored_secondary = None
+        if member_tree is not None:
+            companion, mass_ratio, companion_reason = self._stored_companion(
+                member_tree, galactic_center_dist_ly, galactic_orbital_phase_deg)
+            stored_secondary = self._stored_secondary
+        else:
+            companion, mass_ratio, companion_reason = (None, None, None) if compact_remnant is not None \
+                else self._companion()
         if companion is not None:
             # The secondary star must not be biased toward a large star the
             # same way the primary can be, so LARGE_STAR is forced off for
@@ -274,24 +295,27 @@ class StarSystem:
             original_large_star = self.system_config.LARGE_STAR
             self.system_config.LARGE_STAR = False
 
-            # The secondary is born with the primary (same age, GEN.53) at a
-            # mass ratio q of its initial mass, and evolves by the population
-            # model -- so its class, luminosity and temperature follow from
-            # its own mass (GEN.54). A specified-type primary has no model
-            # initial mass; its present mass stands in for it.
-            primary_initial_mass_sol = self.primary_star.initial_mass_sol
-            if primary_initial_mass_sol is None:
-                primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
-            # GEN.158: born from the same gas, the pair shares one [Fe/H].
-            star_kwargs = {"initial_mass_sol": primary_initial_mass_sol * mass_ratio,
-                           "age_gy": self.primary_star.age,
-                           "metallicity_fe_h": getattr(self.primary_star, "metallicity_fe_h", None)}
-            with log.timed_phase("secondary star generation"):
-                # Named properly by assign_names below, once the pair's star words exist.
-                self.secondary_star = Star(self.system_config, name=self.primary_star.name,
-                                            galactic_center_dist_ly=galactic_center_dist_ly,
-                                            galactic_orbital_phase_deg=galactic_orbital_phase_deg,
-                                            **star_kwargs)
+            if stored_secondary is not None:
+                self.secondary_star = stored_secondary
+            else:
+                # The secondary is born with the primary (same age, GEN.53) at a
+                # mass ratio q of its initial mass, and evolves by the population
+                # model -- so its class, luminosity and temperature follow from
+                # its own mass (GEN.54). A specified-type primary has no model
+                # initial mass; its present mass stands in for it.
+                primary_initial_mass_sol = self.primary_star.initial_mass_sol
+                if primary_initial_mass_sol is None:
+                    primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
+                # GEN.158: born from the same gas, the pair shares one [Fe/H].
+                star_kwargs = {"initial_mass_sol": primary_initial_mass_sol * mass_ratio,
+                               "age_gy": self.primary_star.age,
+                               "metallicity_fe_h": getattr(self.primary_star, "metallicity_fe_h", None)}
+                with log.timed_phase("secondary star generation"):
+                    # Named properly by assign_names below, once the pair's star words exist.
+                    self.secondary_star = Star(self.system_config, name=self.primary_star.name,
+                                                galactic_center_dist_ly=galactic_center_dist_ly,
+                                                galactic_orbital_phase_deg=galactic_orbital_phase_deg,
+                                                **star_kwargs)
             self.system_config.LARGE_STAR = original_large_star
             # The primary may already be a white dwarf lighter than its
             # companion, so the secondary can come out heavier. The primary
@@ -315,12 +339,14 @@ class StarSystem:
             if self.binary_type == "close":
                 self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
                                              galactic_center_dist_ly=galactic_center_dist_ly,
-                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
+                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg,
+                                             orbit=None if member_tree is None else member_tree.node) # self.star now points to the proxy
                 # A close pair whose whole habitable zone lies inside its
                 # circumbinary stability limit can't host a habitable world;
                 # when one is required and the binary type wasn't forced,
                 # make the pair wide instead.
-                if (self.system_config.HABITABLE_WORLD is True and self.system_config.WIDE_BINARY is None
+                if (member_tree is None and self.system_config.HABITABLE_WORLD is True
+                        and self.system_config.WIDE_BINARY is None
                         and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1]):
                     log.choice("Binary type", "wide", "HABITABLE_WORLD is required and this close pair's habitable "
                                "zone lies inside its circumbinary stability limit")
@@ -334,7 +360,8 @@ class StarSystem:
                 # secondary_star.a_crit_au directly on the two Star
                 # instances (see Star.a_crit_au's own docstring).
                 self.wide_binary = WideBinaryPair(self.system_config, self.primary_star, self.secondary_star,
-                                                  inner_boost=self._wide_inner_boost)
+                                                  inner_boost=self._wide_inner_boost,
+                                                  orbit=None if member_tree is None else member_tree.node)
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         # `validate_system`'s orbital-overlap correction can, in rare cases,
@@ -655,6 +682,40 @@ class StarSystem:
             list: `(mass_kg, x_au, y_au, z_au)` tuples, one per real planet.
         """
         return [(p.mass, p.position_x, p.position_y, p.position_z) for p in planets if p.body_type != 'a']
+
+    def _stored_companion(self, plan, galactic_center_dist_ly, galactic_orbital_phase_deg):
+        """
+        The companion a scattered row stored, in the shape `_companion` returns (GEN.315): the kind of the pair
+        (`close` or `wide`, the stored node's), no mass ratio (the star is built here, `self._stored_secondary`, from
+        the member's seed, its birth mass and the primary's age and [Fe/H]), and the words for the log. A plan with no
+        companion gives none. A built star that is not the stored member (its mass differs: the tree records a change
+        a birth mass and an age do not give) leaves the primary alone and the plan unspent (`tree_built` false).
+
+        Sets `orbit_nodes` to the stored node when the pair is built.
+        """
+        self._wide_inner_boost = 1.0
+        self._stored_secondary = None
+        if plan.companion is None:
+            return None, None, None
+        config = self.system_config
+        original_large_star = config.LARGE_STAR
+        config.LARGE_STAR = False  # the secondary is not biased toward a large star (see __init__)
+        try:
+            with log.timed_phase("stored secondary star generation"), draw.bound(plan.companion.seed):
+                secondary = Star(config, name=self.primary_star.name, galactic_center_dist_ly=galactic_center_dist_ly,
+                                 galactic_orbital_phase_deg=galactic_orbital_phase_deg,
+                                 initial_mass_sol=plan.companion.initial_mass_solar, age_gy=self.primary_star.age,
+                                 metallicity_fe_h=getattr(self.primary_star, "metallicity_fe_h", None))
+        finally:
+            config.LARGE_STAR = original_large_star
+        if not stored_trees.matches(secondary, plan.companion):
+            log.choice("Stored companion", "left out", f"a star of its birth mass {plan.companion.initial_mass_solar:.4g}"
+                       f" Msun at {self.primary_star.age:.4g} Gy is not the stored {plan.companion.mass_solar:.4g} Msun")
+            self.tree_built = False
+            return None, None, None
+        self._stored_secondary = secondary
+        self.orbit_nodes = (plan.node,)
+        return plan.node.kind, None, f"the {plan.node.kind} node its scatter row stored"
 
     def _companion(self):
         """

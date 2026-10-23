@@ -701,14 +701,16 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
     """Builds a full system around each of the sector's pre-placed bright
     stars (`fill.bright_rows`) and places it first, at its stored point.
     Each one's companion, planets and moons come from its own stored
-    `seed`, without disturbing the sector's draw stream."""
+    `seed`, without disturbing the sector's draw stream. A row with members is built from the tree it stored
+    (`fill.stored_plan`, GEN.315), a row without is one star: neither draws a companion of its own."""
     for row in fill.bright_rows:
         cfg = run_system.build_system_config(args)
         cfg.POPULATION = row["population"]
         cfg.PLACE_TERMS = fill.place_terms
         with draw.bound(row["seed"]):
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly,
-                                primary_star_params=brightStars.star_params(row))
+                                primary_star_params=brightStars.star_params(row),
+                                member_tree=fill.stored_plan(row["id"]))
         entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
                                             system_config=cfg)
         entry.bright_star_id = row["id"]

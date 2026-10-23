@@ -12,8 +12,13 @@ was drawn at (`epoch_unix`, GEN.337): when its offset and velocity, where it has
 
 `store_member_tree` writes a drawn tree (`generation.multistar.MemberTree`) under a row, `delete_member_tree` takes it
 away again (the build of a row does that in its own transaction), `read_member_tree` reads it back, and
-`member_positions_pc` returns where each member is, in the galaxy frame.
+`member_positions_pc` returns where each member is, in the galaxy frame. A fill that builds the rows reads whole trees
+with `read_stored_trees` (every column of the member and node rows, GEN.315) and removes the built rows' children with
+`delete_member_trees`.
 """
+
+import collections
+import dataclasses
 
 from planetgen.physics import constants
 from planetgen.physics.system_tree import OrbitNode, TreeMember, member_offsets_au
@@ -24,6 +29,8 @@ SOURCES = {"bright_stars": 1, "phenomenon_scatter": 2}
 _MEMBER_COLUMNS = (
     "source", "source_id", "member_no", "parent_node_no", "slot", "kind", "state", "flags", "mass_solar",
     "initial_mass_solar", "seed", "epoch_unix")
+_READ_ROWS = 1000
+_ORBIT_NODE_FIELDS = tuple(field.name for field in dataclasses.fields(OrbitNode))
 _NODE_COLUMNS = (
     "source", "source_id", "node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "eccentricity",
     "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "epoch_unix", "period_years",
@@ -129,6 +136,55 @@ def store_member_trees(conn, table, items, epoch_unix, batch_rows=2000):
             flush()
     flush()
     return stored
+
+
+StoredMember = collections.namedtuple(
+    "StoredMember", "member_no parent_node_no slot kind state flags mass_solar initial_mass_solar seed epoch_unix")
+StoredMember.__doc__ = """One stored member with the columns a build needs: its kind and state, flag bits, present and birth
+mass, and the seed its star is built from (`generation.multistar.Member` less the extent, which is not stored)."""
+
+StoredTree = collections.namedtuple("StoredTree", "members nodes")
+StoredTree.__doc__ = """A row's stored tree: `members` (`StoredMember`s by member number, the placed object first) and
+`nodes` (`OrbitNode`s by node number, with their interaction and flags), both empty for a single object."""
+
+
+def read_stored_trees(conn, table, row_ids):
+    """
+    The stored trees of the rows `row_ids` of `table` as `{row_id: StoredTree}`, one per row that has members (a row
+    with none is absent). The members and nodes are read with two queries however many rows there are.
+    """
+    source = _source(table)
+    ids = sorted(set(row_ids))
+    members = collections.defaultdict(list)
+    nodes = collections.defaultdict(list)
+    for start in range(0, len(ids), _READ_ROWS):
+        chunk = ids[start:start + _READ_ROWS]
+        marks = ", ".join("?" * len(chunk))
+        for r in conn.execute(
+                "SELECT source_id, member_no, parent_node_no, slot, kind, state, flags, mass_solar, initial_mass_solar,"
+                f" seed, epoch_unix FROM scatter_members WHERE source = ? AND source_id IN ({marks})"
+                " ORDER BY source_id, member_no", (source, *chunk)).fetchall():
+            members[r["source_id"]].append(StoredMember(
+                r["member_no"], r["parent_node_no"], r["slot"], r["kind"], r["state"], r["flags"], r["mass_solar"],
+                r["initial_mass_solar"], r["seed"], r["epoch_unix"]))
+        for r in conn.execute(
+                "SELECT source_id, node_no, parent_node_no, slot, mass_solar, separation_km, eccentricity,"
+                " inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years,"
+                f" kind, interaction, flags FROM scatter_nodes WHERE source = ? AND source_id IN ({marks})"
+                " ORDER BY source_id, node_no", (source, *chunk)).fetchall():
+            nodes[r["source_id"]].append(OrbitNode(**{name: r[name] for name in _ORBIT_NODE_FIELDS}))
+    return {row_id: StoredTree(tuple(found), tuple(nodes[row_id])) for row_id, found in members.items()}
+
+
+def delete_member_trees(conn, table, row_ids):
+    """Removes the members and nodes of the rows `row_ids` of `table` (the rows a fill has just built)."""
+    source = _source(table)
+    ids = sorted(set(row_ids))
+    for start in range(0, len(ids), _READ_ROWS):
+        chunk = ids[start:start + _READ_ROWS]
+        for child in ("scatter_members", "scatter_nodes"):
+            conn.execute(f"DELETE FROM {child} WHERE source = ? AND source_id IN ({', '.join('?' * len(chunk))})",
+                         (source, *chunk))
 
 
 def delete_all_member_trees(conn, table):

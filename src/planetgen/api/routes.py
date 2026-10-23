@@ -95,8 +95,8 @@ from planetgen.db.query import (
 from planetgen.db import near as near_search
 from planetgen.db import cloudcontents, containers as containersDb, objectlist
 from planetgen.db import stats as dbStats
-from planetgen.db import store
-from planetgen.generation import bright_stars as brightStars, limits as generationLimits
+from planetgen.db import scatter_systems, store
+from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_suggest, facility_types
 from planetgen.galaxy import objectref as object_ref, scatter_limits, superbubble_field, version_check
@@ -1326,12 +1326,17 @@ def generate_uncharted_system_job(config, bright_star_id):
             system_config = SystemConfig()
             system_config.POPULATION = row["population"]
             x, y, z = (row[f"position_{axis}_mpc"] / brightStars.MPC_PER_PC for axis in "xyz")
+            # GEN.315: the system is the tree the row stored, and draws no companion of its own
+            plan = stored_trees.plan(scatter_systems.read_stored_trees(conn, "bright_stars", [bright_star_id])
+                                     .get(bright_star_id), store.get_orbit_epoch_unix(conn))
             with draw.bound(row["seed"]):
                 system = _generate_system(system_config, pc_to_ly(math.sqrt(x * x + y * y + z * z)),
-                                          primary_star_params=brightStars.star_params(row))
+                                          primary_star_params=brightStars.star_params(row), member_tree=plan)
             system_id = store.insert_star_system(conn, system, system_config)
             store.assign_uids(conn, system_ids=[system_id])
             store.mark_bright_star_filled(conn, bright_star_id, system_id)
+            if system.tree_built:
+                scatter_systems.delete_member_trees(conn, "bright_stars", [bright_star_id])
     finally:
         conn.close()
     return {"id": system_id}
