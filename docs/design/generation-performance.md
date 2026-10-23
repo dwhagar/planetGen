@@ -156,9 +156,40 @@ about 0.14 ms a row; (3) the plan's start (the `plan_shape` check run twice, the
 about 10 s of the 25 s. GEN.624 will cut the satellites' systems; the component field's cost depends on the number of
 components, not their size, so it will not shrink.
 
-## What `medium` and `large` show
+## What `medium` and `large` show (PERF.164)
 
-See the section at the end of this note once those runs finish (the numbers are added with the run date).
+Same 4-CPU box, three workers, release 8.0.1973, seed `...BEEF`, one run each. The container restarted during the
+medium run, so it ran in three pieces over the same scratch databases (`--resume`); the steps that were run twice
+differ by 10% to 30% between the two runs (the plan 29 s and 35 s, the band scatter 10.5 and 14.3 min), which is the
+spread to read these by. The medium numbers below are from the complete pass of each step.
+
+| Step | `small` (3e7) | `medium` (4e9) | `large` (5e10) |
+|---|---|---|---|
+| Plan | 17.7 s, 327 components | 29 s, 22,267 components | 43 s, 9,306 components |
+| Massive stars | 2.0 min, 24,558 stars | 3.6 min, 68,499 stars | 4.0 min, 69,407 stars |
+| Bright stars | 2.8 min, 14,037 stars | 8.8 min, 899,474 stars | 11.2 min, 1,307,239 stars |
+| Phenomena | 4.3 min, 3.1 million | 14.1 min, 6.7 million | not run |
+| Nebula field | 40 s, 1,338 clouds | 4.0 min, 8,166 clouds | not run |
+| Dimmer band | 5.2 min, 486,761 stars | 10.5 min, 800,953 stars | not run |
+| Block totals | 4.3 s | 18 s, 153,815 blocks | not run |
+| Fill (6 sectors at small, 12 at medium) | 46 s | 75 s, 36 systems | not run |
+| Population, re-score | 19 s | 15 s | not run |
+| Fill the map luminosity | 76 s | 2.6 min | not run |
+| Warm the caches | 8.0 min, fails | 27.8 min, fails | not run |
+| **Total without the warm-up** | **17.7 min** | **46 min** | |
+| **Total with the warm-up** | 25.7 min | 74 min | |
+
+A galaxy 130 times heavier (small to medium) takes under 3 times as long: the cost is the count of things drawn
+(components, shells, phenomena), and the clusters and satellites exist at every mass. Medium to large (12 times the
+mass) adds 11% to 48% to the first three steps (the plan 29 to 43 s, the massive stars 3.6 to 4.0 min, the bright
+stars 8.8 to 11.2 min). The per-star times therefore do not carry from one size to another: the
+massive-star scatter costs 4.95 ms a star at small and 3.1 ms at medium, the band 0.64 ms and 0.79 ms. A real
+default-size run is the `medium` column; its steps in a real run are the same commands, so these times are what a
+real run takes on this box, plus the whole sector fill (the benchmark fills only 6 or 12 sectors).
+
+The warm-up is the largest single cost at both sizes and still fails: at medium its deep-tiles phase builds 1,665
+tiles in 948 s, and the `/search` check answers `202` again (see the ranked list, item 1). The large run was stopped
+after the first three steps; the rest of the large steps were not run in this pass.
 
 ## Findings sent to the TODO thread
 
