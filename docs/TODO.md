@@ -16057,23 +16057,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
 
-- [ ] **PERF.168 test_sql_portability fails on main: benchmark_suite.py runs SHOW DATABASES, a reserved word on MySQL 8.0 and 8.4 (bug)**
-  Found by Bugfix 2 (relayed 6:11 AM EDT 2026-10-23 as the lane
-  reported) and reproduced by the TODO thread on origin/main 8c0b691;
-  filed by the TODO thread. Kind: bug, introduced by PERF.164 (#2623,
-  the `--resume` change). Test:
-  src/tests/test_sql_portability.py::test_no_reserved_word_is_an_unquoted_identifier.
-  Failure text: planetgen/cli/benchmark_suite.py:595: 'DATABASES'
-  (reserved on MySQL 8.0, MySQL 8.4) in: SHOW DATABASES LIKE __expr__.
-  Fails on main: yes, every run. Reproducer: `python -m pytest
-  src/tests/test_sql_portability.py`. Do: ask
-  information_schema.SCHEMATA for the scratch database (`SELECT
-  SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = %s`)
-  instead of SHOW DATABASES; do not widen the test's scanner. Done: the
-  portability test passes and `benchmark --suite --resume` still finds
-  its scratch database. Owner: Performance (it came in with PERF.164).
-  Prerequisites: none. Related: PERF.164, PERF.167.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -17457,26 +17440,33 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owner line).
   Prerequisites: none. Related: API.5, API.15, API.30.
 
-- [ ] **API.32 GET /api/containers answers 500 to a hostile query string (bug)**
+- [ ] **test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug)**
   Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
-  lane reported) in its gate for PERF.164, a change that touches only
-  the benchmark suite and docs; filed by the TODO thread. Kind: bug.
-  Test:
-  src/tests/test_fuzz_web_routes.py::test_get_routes_survive_hostile_query[GET
-  /api/containers]. Failure: the route gets a 500 from /api/containers;
-  the test fails alone too. Reproducer: `pytest
-  src/tests/test_fuzz_web_routes.py -k containers`. Fails on main: very
-  likely (the lane's diff does not touch the route; not yet checked on a
-  clean main). Frequency: every run. The route was added by DB.85 (`GET
-  /api/containers[?kind=globular_cluster|superbubble]` in
-  src/planetgen/api/routes.py). Do: find which hostile value reaches the
-  handler unvalidated (the kind filter is the likely one), answer 400
-  with the error body the other routes use, and add the value to the
-  route's own test. Done: the fuzz test passes for /api/containers, the
-  route answers 400 for an unknown kind, and the other container routes
-  (`/api/containers/at`, `/<id>`, `/<id>/contents`) pass the same fuzz.
-  Owner: Bug Hunt (proposed by the TODO thread).
-  Prerequisites: none. Related: DB.85.
+  lane reported) in its gate for PERF.164 as a failure of
+  test_get_routes_survive_hostile_query[GET /api/containers]; filed by
+  the TODO thread under the first reading (a route that answers 500 to a
+  hostile query), and corrected by Performance (relayed 6:13 AM EDT
+  2026-10-23 as the lane reported): it is not an app bug. That lane's
+  MySQL held a real database named planetgen_control (its plan and suite
+  runs create it). The fuzz test sends db=planetgen_control on purpose
+  (security #47), and under the test fixtures the configured control
+  database has a different name, so the real planetgen_control resolves
+  as an ordinary galaxy schema and every galaxy route answers 500 with
+  (1146, "Table 'planetgen_control.galaxy_containers' doesn't exist").
+  That was 39 failures in its PERF.165 gate: every GET route in
+  test_fuzz_web_routes.py and test_api_bad_input_is_a_clean_4xx for
+  /api/sectors?db=planetgen_control. With the database dropped the file
+  passes in full (1992 passed with the other two files). Bug Hunt could
+  not reproduce it because its machine has no planetgen_control. Kind:
+  test depends on the machine (flaky by environment). Frequency: every
+  run on a machine that has that database. Do: make the fixture make the
+  real control name unresolvable as a galaxy (or have the test create
+  and exclude it), so the test no longer depends on the machine lacking
+  that name. Done: test_fuzz_web_routes.py and
+  test_api_bad_input_is_a_clean_4xx pass on a machine that holds a
+  database named planetgen_control. Owner: Bug Hunt (proposed by the
+  TODO thread).
+  Prerequisites: none. Related: DB.85, TEST.290.
 
 ## ADM: Admin tools
 
@@ -20180,6 +20170,12 @@ clears each one.
   another worker (a Redis key, a control-database row or a galaxy name),
   and scope it per test. Done: both pass 50 times in a row at -n 4.
   Owner: Bug Hunt (proposed by the TODO thread).
+  Progress (Performance, relayed 6:13 AM EDT 2026-10-23 as the lane
+  reported): the two tests failed with call times of 25 s and 20 s on a
+  base newer than TEST.280 (4 workers, load 5 to 6) and pass alone, so
+  they are load-sensitive, not collisions between workers. Bug Hunt saw
+  no failure in 4 runs of both beside CPU load, so the item stays open
+  and the first step is to read both for fixed waits.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
 - [ ] **TEST.291 test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug)**

@@ -135,7 +135,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.289 | Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug) |  |  |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) |  |  |
 | TEST.291 | test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug) |  |  |
-| API.32 | GET /api/containers answers 500 to a hostile query string (bug) |  |  |
+| API.32 | test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug) |  |  |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
@@ -420,7 +420,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.166 | The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug) |  |  |
 | PERF.165 | The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug) |  |  |
 | PERF.167 | The phenomenon scatter on a large galaxy runs over an hour and stores over 66 million rows without finishing |  |  |
-| PERF.168 | test_sql_portability fails on main: benchmark_suite.py runs SHOW DATABASES, a reserved word on MySQL 8.0 and 8.4 (bug) |  |  |
 | PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word |  |  |
 | PERF.161 | bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass |  |  |
 | PERF.160 | fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client |  |  |
