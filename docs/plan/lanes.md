@@ -6,7 +6,7 @@ shows the table, the stamp and the merged line as written here. Times are the la
 Boss ordered every lane retired and restarted at 12:56 PM EDT 2026-10-21; the rows below are the new threads'
 reports (Core 5 as last reported before its restart).
 
-Updated: 2026-10-23 5:58 PM EDT
+Updated: 2026-10-23 6:06 PM EDT
 
 Messaging rule (Boss, 5:59 PM EDT 2026-10-23): lanes message only to report merges, errors, and bugs or new items that need filing, and batch them (one message with several items). Interfaces, item lists and status go in files (this board, /mnt/project-files/reports/). The platform allows 60 messages an hour to other threads in total.
 
@@ -24,13 +24,13 @@ Messaging rule (Boss, 5:59 PM EDT 2026-10-23): lanes message only to report merg
 | Habitability A, symbols (started 2026-10-23, Boss 5:38 PM EDT) | UX.101: the PHI-6 habitability symbols as vector shapes, one shared helper for every page | not started | then GEN.553 (feeds the spine) |
 | Habitability B, planet and moon lists (started 2026-10-23) | UX.100: lists show the symbols; the related pages (system, body, search, API fields) are filed as sub-items | not started | after UX.101's helper interface; then DB.73 (feeds the spine) |
 | Habitability C, map (started 2026-10-23) | MAP.143 sector colouring by habitable locations, MAP.219 the marker layer, MAP.220 habitable-world markers | not started | MAP.132 stays in 9.3 |
-| Habitability D, model (started 2026-10-23) | GEN.639 planet-mass habitable zone limits and the early-star runaway history (takes an epoch); checks the done model items GEN.83 to GEN.89, GEN.148, GEN.177, GEN.178, GEN.207, GEN.208, GEN.213 | not started | files gaps to the TODO thread; then GEN.412 (feeds the spine) |
+| Habitability D, model (started 2026-10-23) | GEN.639 planet-mass habitable zone limits and the early-star runaway history (takes an epoch); checks the done model items GEN.83 to GEN.89, GEN.148, GEN.177, GEN.178, GEN.207, GEN.208, GEN.213 | not started | files gaps to the TODO thread; then GEN.643 (habitable = PHI-6 Blue or Green, Boss 6:02 PM EDT), GEN.644 (the PHI-6 in the planet classes: proposal and card first), then GEN.412 (feeds the spine) |
 | Habitability E, radiation link, help and tests (started 2026-10-23) | GEN.445 (habitability reads the derived radiation), DOC.75 help text, TEST.300 browser tests | not started | waits on lanes F, G and H for GEN.444 |
 | Habitability F, radiation constants and ozone (started 5:43 PM EDT 2026-10-23) | GEN.453 now; then GEN.413 (ozone) after GEN.411 | not started | builds interfaces ahead on a branch; the spine unblocks GEN.413 |
 | Habitability G, bands (started 5:43 PM EDT 2026-10-23) | GEN.417 (Rayleigh depth), GEN.414 (haze, dust, cloud) and GEN.443 (band transmission, greenhouse) | not started | needs GEN.411, GEN.412, GEN.413 |
 | Habitability H, surface dose (started 5:43 PM EDT 2026-10-23) | GEN.459 (radiogenic heat) first, then GEN.423, GEN.461, GEN.441, GEN.444 (surface dose) | not started | needs GEN.428 and GEN.429 for most |
 | Habitability I, the spine (started 5:51 PM EDT 2026-10-23) | GEN.428, GEN.429, GEN.452 part 2, GEN.411 first (PR1 contracts, PR2 GEN.429, PR3 GEN.428 with DB.69, PR4 GEN.452 and GEN.411 with DB.71 and GEN.424), then GEN.565 and GEN.557 | contracts report written | critical path; GEN.553 (lane A), DB.73 (lane B), GEN.412 (lane D) feed it |
-| Composition J, bulk composition and the object model (started 5:48 PM EDT 2026-10-23) | phase 6 of 8.1 (34 items: units registry sweeps, the system rule, object IDs, DB.74, GEN.460, GEN.430, and the quantity call-site sweep) | not started | waits on lane I for GEN.565, GEN.428, GEN.429 |
+| Composition J, bulk composition and the object model (started 5:48 PM EDT 2026-10-23) | phase 6 of 8.1 (37 items: units registry sweeps, the system rule, object IDs, DB.74, GEN.460, GEN.430, the giant interiors GEN.641, GEN.642 and DB.89 (Boss 6:01 PM EDT), and the quantity call-site sweep) | not started | waits on lane I for GEN.565, GEN.428, GEN.429 |
 | Composition K, surfaces and small bodies (started 5:48 PM EDT 2026-10-23) | 8.1 phase 7 surface and small bodies and phase 8 stored surface composition (11 items) plus star composition per docs/design/stellar-composition.md | not started | waits on GEN.428 and GEN.429 |
 | Composition L, atmosphere mixture, haze and proofs (started 5:49 PM EDT 2026-10-23) | 8.1 phases 7 to 9: the mixture items other than lane I's, haze, dust and cloud, and the consistency proofs (20 items) | not started | waits on lane I for GEN.411; lane F has GEN.413, lane G GEN.414 |
 | Composition M, atmosphere and sky colour (started 5:49 PM EDT 2026-10-23) | 8.1 phases 10 and 11: the colour model, descriptions, stand-ins, weight research and tuned draws (50 items) | not started | waits on GEN.411 and GEN.417 for the colour core; research can start now |
