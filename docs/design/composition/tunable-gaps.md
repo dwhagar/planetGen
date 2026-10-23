@@ -174,6 +174,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.508, lane M, 2026-10-23):** the selection model `wd-pollution-detection` (`planetgen/physics/wd_pollution.py`, `docs/design/wd-pollution-detection.md`). It reproduces the rule by which Doyle 2020 and 2023 report an oxygen fugacity (a median with both bounds, a median with an upper bound, or an upper limit only), fits the absolute abundance error to the 24 stars and shows the spread of the 22 reported medians is explained by the measurement alone: the intrinsic width of rows a3 and a4 is not identified by the sample (0 to about 0.15), and the recipe width 0.45 is too wide. The retune belongs to GEN.513.
 
+**Built (GEN.505, lane M, 2026-10-23):** the selection model `mass-radius-sample` (`planetgen/physics/mass_radius_sample.py`, `docs/design/mass-radius-sample.md`): the chance a transiting planet with a published mass passes the cut of mass better than 25 percent and radius better than 8 percent, from an error model fitted to the NASA Exoplanet Archive (`scripts/fit_mass_radius_sample.py`). The cut is a weak filter (the relative error is nearly independent of the signal) and conditions on a published mass; detection is GEN.504.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

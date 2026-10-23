@@ -1,0 +1,60 @@
+{
+ "title": "The error model of the sample of precisely measured planets (GEN.505)",
+ "source": "NASA Exoplanet Archive, table pscomppars (composite planetary parameters), transiting planets with a measured mass; query in scripts/fit_mass_radius_sample.py",
+ "retrieved": "2026-10-23",
+ "label": "DATA, COMPUTED",
+ "cut": {
+  "mass_error_share": 0.25,
+  "radius_error_share": 0.08,
+  "source": "Luque and Palle 2022, Science 377, 1211 (the planets with mass better than 25 percent and radius better than 8 percent)"
+ },
+ "k_per_earth_mass_ms": 0.08945945945945946,
+ "subsamples": {
+  "small": {
+   "description": "transiting planets smaller than 4 Earth radii",
+   "n": 599,
+   "passing": 311,
+   "ln_sigma_k": {
+    "intercept": -1.4259,
+    "slope": 0.8857,
+    "scatter": 0.8085
+   },
+   "ln_sigma_depth": {
+    "intercept": -1.2956,
+    "slope": 0.835,
+    "scatter": 0.8499
+   },
+   "residual_correlation": 0.3966,
+   "population": {
+    "mean_ln_k": 1.0146,
+    "sd_ln_k": 0.9955,
+    "mean_ln_depth": 6.379,
+    "sd_ln_depth": 0.9481,
+    "correlation": 0.2383
+   }
+  },
+  "m-dwarf": {
+   "description": "transiting planets smaller than 4 Earth radii around hosts cooler than 4000 K",
+   "n": 100,
+   "passing": 76,
+   "ln_sigma_k": {
+    "intercept": -2.0037,
+    "slope": 0.9847,
+    "scatter": 0.7561
+   },
+   "ln_sigma_depth": {
+    "intercept": -0.4828,
+    "slope": 0.7082,
+    "scatter": 0.566
+   },
+   "residual_correlation": 0.3725,
+   "population": {
+    "mean_ln_k": 0.9767,
+    "sd_ln_k": 0.8649,
+    "mean_ln_depth": 7.4251,
+    "sd_ln_depth": 0.851,
+    "correlation": 0.4693
+   }
+  }
+ }
+}

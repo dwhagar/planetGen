@@ -353,6 +353,7 @@ SELECTION_MODELS = {}
 
 
 SELECTION_MODEL_MODULES = {
+    "mass-radius-sample": "planetgen.physics.mass_radius_sample",
     "wd-pollution-detection": "planetgen.physics.wd_pollution",
 }
 """dict: The module that builds and registers each selection model, imported when a target needs it."""

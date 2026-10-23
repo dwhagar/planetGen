@@ -83,6 +83,15 @@ The keys are the source keys of the file. Values read from the tables of the pap
 | `doyle20` | Doyle, Klein, Schlichting and Young 2020, ApJ (arXiv:2008.05992), Table 1 | Published paper; values only |
 | `doyle23` | Doyle, Klein, Dufour et al. 2023 (arXiv:2303.00063), Tables 2 and 4 | Published paper; values only |
 
+## The precisely measured planets (`src/planetgen/physics/data/mass_radius_sample.json`, GEN.505)
+
+Fitted numbers only (two regression lines and their scatter per sub-sample, and counts); the archive's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| NASA Exoplanet Archive, table `pscomppars` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
+| Luque and Palle 2022, Science 377, 1211 | Published paper; the two cuts (mass better than 25 percent, radius better than 8 percent) only |
+
 ## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
