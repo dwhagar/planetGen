@@ -34,7 +34,7 @@ The radiation derived from the stored composition: the band transmission and gre
 |---|---|---|---|
 | GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | GEN.417, GEN.413, GEN.414 | Boss 11:58 PM EDT; band transmission and greenhouse from the mixture. |
 | GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) |  | Atmosphere research lane finding 4 (part 07 sections 2.1 and 4); generator epoch bump. Core 4 proposed. |
-| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441, GEN.453, GEN.459, GEN.478 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
+| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441, GEN.453, GEN.459 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
 | GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | GEN.444 | Boss 11:58 PM EDT; habitability reads the derived values. |
 
 ## Phase 3: Composition and colour in the product
@@ -63,28 +63,28 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | GEN.478 | Atmosphere lane research need R1 (rows b4, e3, e4, e5); replaces the seeded bracket of the DESIGN rows. |
-| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | GEN.478 | Atmosphere lane research need R2 (rows b1 to b6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | GEN.478 | Atmosphere lane research need R3 (rows a1, a2, a3); replaces the seeded bracket of the DESIGN rows. |
-| GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | GEN.478 | Atmosphere lane research need R4 (rows d6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | GEN.478 | Atmosphere lane research need R5 (rows f7); replaces the seeded bracket of the DESIGN rows. |
-| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | GEN.478 | Atmosphere lane research need R6 (rows h2, h3, h4); replaces the seeded bracket of the DESIGN rows. |
-| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | GEN.478 | Atmosphere lane research need R7 (rows i6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | GEN.478 | Atmosphere lane research need R8 (rows j1 to j5); replaces the seeded bracket of the DESIGN rows. |
-| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | GEN.478 | Atmosphere lane research need R9 (rows k1 to k5, k7); replaces the seeded bracket of the DESIGN rows. |
-| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | GEN.478 | Atmosphere lane research need R10 (rows a4, l1, l2, l3); replaces the seeded bracket of the DESIGN rows. |
-| GEN.490 | Source the trace-gas presence weights (AR11) | GEN.478 | Atmosphere lane research need R11 (rows m2 to m6, m11); replaces the seeded bracket of the DESIGN rows. |
-| GEN.491 | Source the cloud and haze windows and yields (AR12) | GEN.478 | Atmosphere lane research need R12 (rows n6, n7); replaces the seeded bracket of the DESIGN rows. |
-| GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | GEN.478 | Atmosphere lane research need R13 (rows o2, o3, o4, o6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | GEN.478 | Atmosphere lane research need R14 (rows p6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | GEN.478 | Atmosphere lane research need R15 (rows g1, g4); replaces the seeded bracket of the DESIGN rows. |
+| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) |  | Atmosphere lane research need R1 (rows b4, e3, e4, e5); replaces the seeded bracket of the DESIGN rows. |
+| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) |  | Atmosphere lane research need R2 (rows b1 to b6); replaces the seeded bracket of the DESIGN rows. |
+| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) |  | Atmosphere lane research need R3 (rows a1, a2, a3); replaces the seeded bracket of the DESIGN rows. |
+| GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) |  | Atmosphere lane research need R4 (rows d6); replaces the seeded bracket of the DESIGN rows. |
+| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) |  | Atmosphere lane research need R5 (rows f7); replaces the seeded bracket of the DESIGN rows. |
+| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) |  | Atmosphere lane research need R6 (rows h2, h3, h4); replaces the seeded bracket of the DESIGN rows. |
+| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) |  | Atmosphere lane research need R7 (rows i6); replaces the seeded bracket of the DESIGN rows. |
+| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) |  | Atmosphere lane research need R8 (rows j1 to j5); replaces the seeded bracket of the DESIGN rows. |
+| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) |  | Atmosphere lane research need R9 (rows k1 to k5, k7); replaces the seeded bracket of the DESIGN rows. |
+| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) |  | Atmosphere lane research need R10 (rows a4, l1, l2, l3); replaces the seeded bracket of the DESIGN rows. |
+| GEN.490 | Source the trace-gas presence weights (AR11) |  | Atmosphere lane research need R11 (rows m2 to m6, m11); replaces the seeded bracket of the DESIGN rows. |
+| GEN.491 | Source the cloud and haze windows and yields (AR12) |  | Atmosphere lane research need R12 (rows n6, n7); replaces the seeded bracket of the DESIGN rows. |
+| GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) |  | Atmosphere lane research need R13 (rows o2, o3, o4, o6); replaces the seeded bracket of the DESIGN rows. |
+| GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) |  | Atmosphere lane research need R14 (rows p6); replaces the seeded bracket of the DESIGN rows. |
+| GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) |  | Atmosphere lane research need R15 (rows g1, g4); replaces the seeded bracket of the DESIGN rows. |
 | GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables |  | Body lane reconciliation: NH3 lifetime 6.7e3 s quiet Sun, 5.6e3 s quiet/active mean; activity factor unknown. |
 
 ### Tuned draws and selection models
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | GEN.478 | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target |  | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
 | GEN.504 | The Kepler transit-plus-recovery selection model | GEN.503 | Tunable gaps report: The Kepler transit-plus-recovery selection model. |
 | GEN.505 | The mass-radius sample selection model | GEN.503 | Tunable gaps report: The mass-radius sample selection model. |
 | GEN.506 | The JWST atmosphere target-selection model | GEN.503 | Tunable gaps report: The JWST atmosphere target-selection model. |

@@ -7532,7 +7532,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.478. Related: GEN.85, GEN.355,
+  Prerequisites: GEN.429. Related: GEN.85, GEN.355,
   GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
@@ -7799,7 +7799,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.412, GEN.478. Related: GEN.413, DB.68,
+  Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68,
   GEN.418.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
@@ -8948,7 +8948,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.443, GEN.441, GEN.453, GEN.459, GEN.478.
+  Prerequisites: GEN.443, GEN.441, GEN.453, GEN.459.
   Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
@@ -9165,7 +9165,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.478. Related: GEN.409,
+  Prerequisites: GEN.428. Related: GEN.409,
   GEN.411,
   GEN.422,
   GEN.428.
@@ -9469,7 +9469,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.460, GEN.478. Related:
+  Prerequisites: GEN.411, GEN.460. Related:
   GEN.409,
   GEN.410,
   GEN.411,
@@ -9555,7 +9555,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.442, GEN.478. Related:
+  Prerequisites: GEN.441, GEN.442. Related:
   GEN.409,
   GEN.410,
   GEN.441, GEN.442, DB.70, GEN.446.
@@ -9644,8 +9644,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.411, GEN.414, GEN.451, GEN.478,
-  GEN.499.
+  Prerequisites: GEN.441, GEN.411, GEN.414, GEN.451, GEN.499.
   Related:
   GEN.409,
   GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
@@ -10626,97 +10625,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.478 The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket**
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Boss's gated-table requirement (1:40 AM EDT;
-  format and loader GEN.472) restated by the lane for every atmosphere
-  recipe of parts 05, 06 and 07 plus escape and UV from part 04, in
-  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md:
-  16 categories (a mantle redox, b volatile inventory and water fraction
-  by snow line, c outgassed regime, d retention regime, e sub-Neptune
-  envelope, f giants, g brown dwarfs, h hot Jupiters, i lava worlds, j
-  frost and evolved atmospheres, k comets and KBOs, l white-dwarf and
-  pulsar planets, m trace gases, n clouds, hazes and dust, o ground
-  radioisotopes, p host-star UV regime) and 104 rows, 8 SOURCED, 48
-  DERIVED (computed from a formula given in the row) and 48 DESIGN (no
-  sourced weight: the physical bracket is in the row and the generator
-  draws a seeded value inside it meanwhile, nothing fixed, and the
-  loader reports them as `open` rows). The rows have the columns id,
-  option, gate, weight, weight source with verification label, status
-  and notes; weights may be functions of mass, temperature, pressure,
-  redox, insolation, the host star and a_form over the snow line;
-  level-2 tables draw after their parent row (joint probability = parent
-  times conditional); if the weights sum to zero the table's named
-  fallback row (bare, airless, absent) wins, which is the
-  explicit-fallback exception to the loader's no-silent-fallback rule
-  and is stored in the table; the draw order is the host star, then the
-  16 tables, the last four reading earlier draws; the continuous
-  quantities (redox, metallicity, C/O) are given as a parametric draw
-  and as a binned table. Do: write the rows as the data files of the
-  loader (the one source of the recipes of GEN.411, GEN.413, GEN.414,
-  GEN.451 and GEN.454 to GEN.456), keep the part's labels and gates, and
-  bring the two corrections of the part (the C/O recipe that put 13.9
-  percent of giants above C/O 0.8 where about 2 to 5 percent was
-  intended, and the lava-world boundary difference of 63 K, not 130 K).
-  Boss's ruling of 1:44 AM EDT applies: a row built from a measured
-  Solar System body is a flagged `stand-in` and the shoreline constants
-  (fitted to 13 Solar System bodies; the cited paper is only a snippet)
-  are one. Changes stored values, so it ships with a generator epoch
-  bump. Done: every row of the 16 tables loads, TEST.214 passes on them,
-  the `open` rows are listed with their AR number (GEN.480 to GEN.494),
-  and a draw is deterministic at any worker count. Owner: Blocker 3
-  (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the
-  earlier proposal of Core 4).
-  Prerequisites: none. Related: GEN.472, GEN.410, GEN.411,
-  GEN.413, GEN.414, GEN.451, GEN.454, GEN.455, GEN.456, GEN.479,
-  TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
-  GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492,
-  GEN.493, GEN.494, GEN.503.
-  Boss's standing rule (3:02 AM EDT, section 4a item 10 of
-  composition-model.md): everything verified and partially verified is
-  usable as long as it is not contradictory, and the verified source
-  wins in a contradiction; each of the 104 rows is marked with its
-  state; partly verified rows ship as sourced-with-limit unless a
-  verified source contradicts them, and only the rows with no usable
-  source stay open (the 48 of part 09, AR1 to AR15).
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/tunable-gaps.md): of the 48 rows with no sourced weight, 5
-  are tunable draws (a3, a4, p6, k4, k5), 14 tunable only to a few
-  constraints (b1, b2, b3, e5, f7, h4, i6, k1, k2, k3, n6, o2, o3, o6),
-  17 are derivations and not probabilities (b6, d6, e3, e4, g1, g4, h2,
-  h3, j1, j5, l1, l2, l3, m2, m5, m6, o4: compute them, the only
-  randomness is upstream), 6 need a named source (a1, a2, b4, b5, n7,
-  k7) and 6 are design flags (j2, j3, j4, m3, m4, m11: a labelled
-  bracket, default off, never tuned). The seeded brackets are corrected:
-  d table K window LU[3.0e-4, 6.6e-4] with slope 4 is contradicted (use
-  the Berta-Thompson logistic and Meni-Gallardo and Palle slope 5.77);
-  a4 centre -1.0 becomes -1.25 +/- 0.10 and a3's U[-1.4, 0] is 0.55 dex
-  high; f7 f_tail LU[0.0013, 0.34] is outside the data (planet tail
-  0.043 to 0.087, core centre 0.57); p4 tau_sat depends on stellar mass
-  (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2 to 0.3, 2.3
-  +/- 1.3 for 0.1 to 0.2). Tuning and its harness are GEN.503 and the
-  builders GEN.509 to GEN.525; the six defaults D1 to D6 stand as
-  Decided (composition-model.md section 4a item 11).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 7, "Derived from
-  physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
-  outputs of the escape and retention physics, not design flags; the
-  design-flag rows left in B17 are m3, m4 and m11.
-  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
-  lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in DATA-LICENSE.md. This
-  overrides every line of this item that calls the licence column
-  mandatory; GEN.623 does the removal.
-
-
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
@@ -10754,7 +10662,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.478, GEN.411. Related: GEN.478, GEN.411, GEN.451,
+  Prerequisites: GEN.411. Related: GEN.478, GEN.411, GEN.451,
   GEN.454, GEN.28, GEN.90, GEN.424.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the +0.5
@@ -10810,7 +10718,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   paper wins as the newest. The migration-delivery logistic of
   Emsenhuber 2021 (centre 6.1 Earth masses, slope 6.3 per dex) is the
   nearest law.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.481 Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -10854,7 +10762,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. AT.b5, the
   sub-percent water fraction.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -10913,7 +10821,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
   (core formation) scale differs from the surface magma-ocean scale and
   needs a conversion test.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -10945,7 +10853,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   q = 1.17, width 0.247 dex (arXiv:2507.02136); Zahnle and Catling draw
   the line by eye and give no K; 'TRAPPIST-1 b and c under 0.1 bar' is
   in no paper read (at or above 1 bar disfavoured). Builder GEN.511.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.484 Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -10978,7 +10886,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ends of the f_tail bracket [0.0013, 0.34] lie outside the planet data
   (0.043 to 0.087) and the core centre is 0.57 (LExACoM,
   arXiv:2510.26785). Builder GEN.516.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.485 Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11035,7 +10943,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the explicit disregard option (GEN.599) the run uses this
   dataset's best possible fallback and prints it in the run header;
   never a silent fallback. See GEN.594.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11055,7 +10963,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sourced weights or the derivation with citations, the rows change
   from DESIGN to SOURCED or DERIVED, and TEST.214 lists fewer `open`
   rows. Owner: unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.487 Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11088,7 +10996,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
   outputs of the escape and retention physics, not design flags; the
   design-flag rows left in B17 are m3, m4 and m11.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.488 Source the comet coma classes and their volatile ratios (AR9)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11149,7 +11057,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. AT.k7, the
   single-comet species (67P alone for N2, O2, Ar, Kr and Xe).
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11170,7 +11078,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derivation with citations, the rows change from DESIGN to SOURCED or
   DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
   (research; Boss or a read-only research lane).
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.490 Source the trace-gas presence weights (AR11)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11209,7 +11117,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. AT.m3, m4 and
   m11, the N2O, PH3, NO2 and CH3Cl presence: no detection on any
   exoplanet; flagged bracket, default off, never tuned.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11273,7 +11181,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. AT.n7, the haze
   yield (laboratory rates span 250 times).
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11305,7 +11213,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tuning target; o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value to derive
   from the production ratio, birth epoch and decay; o6 Al-26 is a
   mixture, not log-uniform. Builder GEN.514.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11337,7 +11245,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Johnstone 2021. Saturation times (0.16 Gyr at 0.5 to 0.6 solar masses,
   0.6 +- 0.3 at 0.2 to 0.3, 2.3 +- 1.3 at 0.1 to 0.2) are one author's
   pair: never mix Rossby saturation values of different authors. Rule V.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.494 Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11378,7 +11286,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   500 to 700 K is T8 to T9, not a T/Y gap, and Y0 begins at 371 to 510 K
   (Kirkpatrick 2021 Table 13). The title's "T/Y boundary near 500 to 700
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
-  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.495 The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag**
   Body composition research lane check of Boss's second research note
@@ -11401,6 +11309,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and label, and a test checks the ranges and determinism. Owner: Blocker 3
   (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the
   earlier proposal of Core 4).
+  Progress (Blocker 3, relayed 11:32 PM EDT 2026-10-22 as the lane
+  reported): GEN.478 merged as #2587; its comet rows k4 to k7 are
+  superseded by this item's table, which is in its gate now. This PR
+  also adds the README pointer to DATA-LICENSE.md, a DATA-LICENSE.md
+  section for the comet sources, and fixes the stale licence-column
+  sentences in docs/design/composition-model.md (GEN.438 and GEN.410
+  as-built) and body-composition-research.md F5; GEN.623 retires when it
+  merges.
   Prerequisites: none. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
   Papers list (2026-10-17, filed by the TODO thread;
@@ -11578,7 +11494,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.478. Related: GEN.472, GEN.478, TEST.214,
+  Prerequisites: none. Related: GEN.472, GEN.478, TEST.214,
   GEN.480, GEN.494.
   Registry hook (2026-10-17, gap-filling plan,
   docs/design/gap-filling-plan.md, group X1): the target table gets the
@@ -19603,6 +19519,15 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
+  Progress (Blocker 3, relayed 11:32 PM EDT 2026-10-22 as the lane
+  reported): GEN.478 merged as #2587 with 104 rows in 16 tables
+  (atmosphere-a to atmosphere-p). Source states after its tests: 8
+  verified, 51 partly verified and 45 open rows, and the 43 open rows
+  name GEN.480 to GEN.494. The draw in physics/atmosphere_recipes.py is
+  the one this test must use for open rows: its sum test cannot add the
+  weights of open rows, because they are drawn from their bracket.
+  Condition.one_of was added to the loader. No licence assertions
+  (GEN.623).
   Prerequisites: none. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -20377,6 +20302,31 @@ clears each one.
   the test database) and pass alone (test_count_cache, test_slow_route),
   so they are not filed.
   Prerequisites: none. Related: TEST.275.
+
+- [ ] **TEST.285 test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug)**
+  Found by Core 3 (relayed 11:32 PM EDT 2026-10-22 as the lane reported)
+  in its GEN.315 gate (21,243 tests passed, this the only red; nothing
+  in its diff touches the plan step). Kind: environment-dependent test.
+  Test:
+  src/tests/test_benchmark_suite.py::test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases.
+  Failure text: the plan step exits 1 ('FAILED') and the test asserts
+  exit_code == 0; the step log is a list of zenodo.org EOS17, EOS18 and
+  EOS19 download URLs, so the step needs the static downloads (the setup
+  step) or network. Fails on main: expected yes on any machine without
+  the datasets, not confirmed on main itself. Frequency: every run on a
+  machine without the datasets. Reproducer: on a fresh lane machine,
+  python3 -m pytest src/tests/test_benchmark_suite.py -k
+  real_run_of_the_plan. Do: by the missing-files rule (Boss, 5:53 PM EDT
+  2026-10-21) a generate run refuses when files are missing, so the test
+  must say what it needs: either fetch the datasets first (python3 -m
+  planetgen.cli.datasets fetch) or skip with a message naming the
+  missing files and the setup command, or pass the explicit
+  --disregard-missing-data of GEN.599 if the test is about the JSON and
+  the databases, not the physics. Fix the test, not the rule. Done: the
+  test passes or skips with that message on a machine without the
+  datasets, and passes with them. Owner: Bug Hunt (proposed by the TODO
+  thread, after TEST.275).
+  Prerequisites: none. Related: TEST.275, TEST.284, GEN.599.
 
 ## USR: User accounts
 
