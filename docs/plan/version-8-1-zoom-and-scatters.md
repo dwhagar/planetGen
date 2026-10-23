@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 1:22 PM EDT 2026-10-23: 738 of 953 items finished (77.4 percent), 215 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 104, phase 2 27, phase 3 25, phase 4 14, phase 5 31, phase 6 14. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 1:42 PM EDT 2026-10-23: 739 of 953 items finished (77.5 percent), 214 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 103, phase 2 27, phase 3 25, phase 4 14, phase 5 31, phase 6 14. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -132,7 +132,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) |  |  |
 | TEST.292 | test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug) |  |  |
 | TEST.297 | The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug) |  | Core 2 found it. |
-| TEST.296 | test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug) |  | Core 2 found it. |
 | TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug) |  |  |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |

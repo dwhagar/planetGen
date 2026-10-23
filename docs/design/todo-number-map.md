@@ -2525,7 +2525,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.293 | test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers fails once under the gate load and passes alone (bug) | none | done, PR #2663 |
 | TEST.294 | full --check run on a main checkout has an empty change set and reports every failure as not selected (the dependency map itself selects test_validation.py::test_system_methods_still_delegate for the GEN.325 change) (bug) | none | done, PR #2663 |
 | TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug) | none | open |
-| TEST.296 | test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug) | none | open |
+| TEST.296 | test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug) | none | done, PR #2687 |
 | TEST.297 | The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
