@@ -19588,6 +19588,10 @@ clears each one.
   they are load-sensitive, not collisions between workers. Bug Hunt saw
   no failure in 4 runs of both beside CPU load, so the item stays open
   and the first step is to read both for fixed waits.
+  Not reproduced (Bug Hunt, relayed 8:57 AM EDT 2026-10-23 as the lane
+  reported, with #2659): 20 of 20 runs of both tests passed beside CPU
+  load at -n 2. The item stays open for a sighting that comes with the
+  failure text.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
 - [ ] **TEST.291 test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug)**
