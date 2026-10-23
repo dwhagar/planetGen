@@ -691,11 +691,11 @@ def test_admin_hub_lists_the_admin_pages_without_a_signed_in_card(client, fake):
     assert all(f">{name}</a>" in rail for name in ("Generate", "Settings", "Jobs", "Data", "Account"))
 
 
-def test_gear_menu_has_only_account_admin_and_logout(client, fake):
+def test_gear_menu_has_only_lists_account_admin_and_logout(client, fake):
     _logged_in(client, fake)
     html = client.get("/admin").get_data(as_text=True)
     gear = re.search(r'<nav class="site-account".*?</nav>', html, re.S).group(0)
-    assert re.findall(r">([A-Za-z: ]+)</(?:a|button)>", gear) == ["Theme: System", "Units: Automatic", "Account", "Admin", "Logout"]
+    assert re.findall(r">([A-Za-z: ]+)</(?:a|button)>", gear) == ["Lists", "Theme: System", "Units: Automatic", "Account", "Admin", "Logout"]
 
 
 def test_admin_unknown_action(client, fake, admin_token):
