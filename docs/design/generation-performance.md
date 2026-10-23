@@ -190,8 +190,8 @@ real run takes on this box, plus the whole sector fill (the benchmark fills only
 The warm-up is the largest single cost at both sizes and still fails: at medium its deep-tiles phase builds 1,665
 tiles in 948 s, and the `/search` check answers `202` again (see the ranked list, item 1). At large the phenomenon scatter
 was still running when the 60-minute cap stopped it, with 66.0 million rows stored (ten times the medium galaxy's 6.7
-million by the time it was stopped, and not done), so the steps after it were not run: the large galaxy's whole run is
-more than 2.5 hours on this box, with the phenomena the first thing to speed up (ranked list, item 3). The cap is the
+million by the time it was stopped, and not done), so the steps after it were not run: the large galaxy's run is at least
+1.3 hours on this box (16 minutes for the first three steps, then the phenomena), with the phenomena the first thing to speed up (ranked list, item 3). The cap is the
 suite's `--step-timeout`, 240 minutes by default; the run used 60.
 
 ## Findings sent to the TODO thread
