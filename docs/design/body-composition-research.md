@@ -96,10 +96,24 @@ New groundwork that belongs with the 9.0 headline because the atmosphere is know
 | # | Decision | Taken |
 |---|---|---|
 | 1 | Route | **Decided: composition first (route 2)** for everything newly generated; route 1 stays as the inverse for editing and imports |
-| 2 | Water share of solids beyond the snow line | **Decided: keep the switch** (Marboeuf-derived 0.14 to 0.39 or the 0.5 convention). The default setting was not stated; the draft carries the Marboeuf-derived sequence as default until the Lodders 2003 full text is read |
+| 2 | Water share of solids beyond the snow line | **Decided: keep the switch** (Marboeuf-derived 0.14 to 0.39 or the 0.5 convention). The default setting was not stated; the draft carries the Marboeuf-derived sequence as default. The Lodders 2003 full text was read on 2026-10-23 (GEN.468, section 5.1): the default stays, and the switch names its denominator |
 | 3 | Radius reference level | **Decided: 1 bar** (scale-height correction for envelope tables) |
 | 4 | Reference abundance scale | **Decided: Asplund 2021 proto-solar** log eps as the scale for ratios (not a preset); spread among A21, Lodders 2009 and Lodders 2019 recorded as the uncertainty on ratios |
 | 5 | The two stellar figures | **Decided: replace both**: neutron-star radius from the 11.6 to 13.1 km band (no 10 km floor), main-sequence lifetime from the star's own mass and composition instead of a fixed 10 Gyr (A 2.12, 3.4) |
+
+### 5.1 The water share beyond the snow line, researched (GEN.468, 2026-10-23)
+
+The two values do not disagree about the chemistry. They count different things, and they start from different total ice to rock ratios.
+
+**Read (Lodders 2003, ApJ 591, 1220, Table 11, equilibrium condensation, solar-system composition, mass percent of the total nebular mass):** silicates and oxides 0.303, metal and FeS 0.186 (rock 0.489); H2O ice 0.571, CH4 ice 0.330, NH3 ice 0.097 (ices 0.998); all condensate 1.487. Water ice over rock is 1.17 (2.09 for the Anders and Grevesse 1989 set, which the paper revised to about unity). Water ice condenses at 182 K at 10^-4 bar with 22.75 % of the oxygen already in rock. The photospheric composition gives the same ratios.
+
+**Computed from those numbers:** the water share of the solids is 0.539 outside the water line (rock and water only), 0.494 once ammonia hydrate has condensed at 131 K, and 0.384 once methane has condensed too (all ices counted).
+
+**Read (the Bern model, Emsenhuber et al. 2021, arXiv 2007.05561, section 3.3.3; Venturini et al. 2024 data, Zenodo 10527170):** the model uses the Marboeuf 2014 condensation model, notes that water is about 60 % of the ices by mass, and maps all ice species to water ice in the planet structure. The water mass fraction of its water-vapour planets tops out at 0.51 to 0.53 (median 0.509 at 10 to 30 AU, 95th percentile 0.529). So the convention of about 0.5 is the total ice share labelled as water; its water proper is about 0.3 of the solids, inside the Marboeuf-derived 0.14 to 0.39.
+
+**What is explained.** (1) The convention counts water against rock plus water (or all ices lumped as water); the Marboeuf-derived range counts water against all solids. (2) What remains is a real factor of about two in the total ice to rock ratio: 2.04 for equilibrium chemistry with the carbon as CH4 (Lodders), 1 +/- 0.5 calibrated on comets (Marboeuf, second-hand). No source read says which one planetesimals follow.
+
+**Decision for the default.** The switch default stays the Marboeuf-derived sequence (Boss, 1:21 AM EDT on 10-17). The switch is defined as the water share of all solids, with the option "0.5 convention" read as the water share of rock plus water (0.49 to 0.54 from Lodders 2003), so the two settings no longer pretend to be the same quantity. The one overlap is 0.38 to 0.39, where both say the same thing for a disc with every ice condensed. The 170 K snow-line centre with 0.2 dex of scatter (Boss, 10-18) is unchanged. Extracted tables and arithmetic: `design-drafts/gen465-second-pass/README-gen465-gen468-findings.md` in the shared project folder.
 
 Lane-decidable, no card needed: neon following O or Mg and the O plateau at low [Fe/H] (A-R2); the super-Mercury branch probability (B, 0.05 to 0.23, a parametrisation); whether ages and metallicities are linked (A-D3, optional).
 
@@ -140,7 +154,7 @@ Only items no reachable source could replace. Detail and "number it gives" are i
 
 | Rank | Reference | Gives | Parts |
 |---|---|---|---|
-| 1 | **Lodders 2003**, ApJ 591, 1220 (full text; IOP page is a bot check) | Condensation temperatures and the water share beyond the snow line; K condensation; the exact solar set the earlier notes quote | C, A, E, D |
+| 1 | **Lodders 2003**, ApJ 591, 1220 (full text; READ on 2026-10-23 through the ADS link gateway, see 5.1; the IOP page is a flaky bot check) | Condensation temperatures and the water share beyond the snow line; K condensation; the exact solar set the earlier notes quote | C, A, E, D |
 | 2 | **Stixrude and Lithgow-Bertelloni 2011 and 2024** originals (Oxford Academic refused) | Replaces the 2ND-HAND copy of mantle mineral EOS taken from burnman | B, E |
 | 3 | Geochemistry compilations behind Elsevier and AGU: Palme and O'Neill 2014, Rudnick and Gao 2014, McDonough and Sun 1995, Gale 2013, Workman and Hart 2005 | Turns the oxide and K/Th/U tables from 2ND-HAND to READ | E |
 | 4 | **Giant-planet interiors**: Helled 2022 review, Wahl 2017, Debras and Chabrier 2019; Thorngren and Fortney 2018 inflation table | Core mass and diluted-core placeholder; hot-Jupiter inflation efficiency | C |
