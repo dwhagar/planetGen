@@ -168,7 +168,7 @@ spread to read these by. The medium numbers below are from the complete pass of 
 | Plan | 17.7 s, 327 components | 29 s, 22,267 components | 43 s, 9,306 components |
 | Massive stars | 2.0 min, 24,558 stars | 3.6 min, 68,499 stars | 4.0 min, 69,407 stars |
 | Bright stars | 2.8 min, 14,037 stars | 8.8 min, 899,474 stars | 11.2 min, 1,307,239 stars |
-| Phenomena | 4.3 min, 3.1 million | 14.1 min, 6.7 million | not run |
+| Phenomena | 4.3 min, 3.1 million | 14.1 min, 6.7 million | over 60 min: stopped at the cap with 66.0 million rows stored |
 | Nebula field | 40 s, 1,338 clouds | 4.0 min, 8,166 clouds | not run |
 | Dimmer band | 5.2 min, 486,761 stars | 10.5 min, 800,953 stars | not run |
 | Block totals | 4.3 s | 18 s, 153,815 blocks | not run |
@@ -188,8 +188,11 @@ default-size run is the `medium` column; its steps in a real run are the same co
 real run takes on this box, plus the whole sector fill (the benchmark fills only 6 or 12 sectors).
 
 The warm-up is the largest single cost at both sizes and still fails: at medium its deep-tiles phase builds 1,665
-tiles in 948 s, and the `/search` check answers `202` again (see the ranked list, item 1). The large run was stopped
-after the first three steps; the rest of the large steps were not run in this pass.
+tiles in 948 s, and the `/search` check answers `202` again (see the ranked list, item 1). At large the phenomenon scatter
+was still running when the 60-minute cap stopped it, with 66.0 million rows stored (ten times the medium galaxy's 6.7
+million by the time it was stopped, and not done), so the steps after it were not run: the large galaxy's whole run is
+more than 2.5 hours on this box, with the phenomena the first thing to speed up (ranked list, item 3). The cap is the
+suite's `--step-timeout`, 240 minutes by default; the run used 60.
 
 ## Findings sent to the TODO thread
 
