@@ -1091,3 +1091,5 @@ Baseline: PR #1817.
 | TEST.277 | 8.1 | Bugs and flaky tests |
 | TEST.275 | 8.1 | Bugs and flaky tests |
 | TEST.285 | 8.1 | Bugs and flaky tests |
+| ADM.127 | 8.1 | Admin control suite |
+| UX.146 | 8.1 | Admin control suite |

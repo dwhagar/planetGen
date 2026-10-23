@@ -977,24 +977,6 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
-- [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug)**
-  Boss (8:20 PM EDT 2026-10-22), testing the top menu bar, filed by the
-  TODO thread through the coordinator. Boss's words: "move lists into
-  the gear menu, make the search box just a search button without text
-  just the search icon, put Nearby under Nav, (click on Nav and you have
-  Plot Course and then Nearby Search." Do: (1) the Lists link leaves the
-  header and moves into the gear menu; (2) the search box in the header
-  becomes one search button that shows only the search icon and no text;
-  (3) Nearby leaves the header and goes under Nav: clicking Nav opens a
-  short menu with Plot Course first and then Nearby Search. Done: the
-  header shows no Lists or Nearby link, the gear menu lists Lists, the
-  search control is an icon-only button with an accessible name, and Nav
-  opens its two-entry menu, with browser tests for each and for keyboard
-  use of the Nav menu. Owner: Core 2, second in its queue, right after
-  ADM.127 and ahead of MAP.210 (the coordinator, relayed Boss's note
-  8:20 PM EDT 2026-10-22).
-  Prerequisites: none. Related: ADM.127, UX.124, UX.127.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -18210,33 +18192,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owner line).
   Prerequisites: none. Related: ADM.99, ADM.115, ADM.125.
 
-- [ ] **ADM.127 Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units (bug)**
-  Boss (8:13 PM EDT 2026-10-22), testing the current new-galaxy Generate
-  form, filed by the TODO thread through the coordinator. Boss's words:
-  "The star brightness section wastes a lot of space, so we should move
-  the neutron star options to next to the sliders for the mass and
-  brightness limits. Also put the sliders above the text boxes. Same
-  with the box to skip the star scatter. And rename it, this checkbox
-  should invoke no scatters at all. Arm pitch angle says degrees twice.
-  The edge units box should just be a text box and the user will type in
-  a number with the units. Explain the units in the text below." Do: (1)
-  the star brightness section stops wasting space: the neutron star
-  options sit next to the mass and brightness limit sliders; (2) each
-  slider sits above its text box; (3) the box that skips the star
-  scatter gets the same layout and a new name, because it must invoke no
-  scatters at all, and it must skip every scatter, not only the star
-  scatter (a test runs a galaxy with it ticked and finds no scatter
-  stage); (4) the arm pitch angle label says degrees once; (5) the Edge
-  units box becomes one plain text box where the user types a number
-  with its units (for example 2600pc or 20kpc), the form accepts every
-  unit the unit registry knows for a length, refuses an unknown unit
-  with a clear message, and the help text under the box explains the
-  units. Done: the five points hold on the Generate page for a new
-  galaxy, with browser tests for the layout, the unit parsing and the
-  no-scatter box. Owner: Core 2, first in its queue, ahead of MAP.210
-  (the coordinator, relayed Boss's note 8:14 PM EDT 2026-10-22).
-  Prerequisites: none. Related: ADM.125, ADM.126, GEN.605.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -20238,6 +20193,41 @@ clears each one.
   bound the draw really keeps. Owner: Bug Hunt (proposed by the TODO
   thread, after its stable-code hunt starts).
   Prerequisites: none. Related: TEST.284.
+
+- [ ] **TEST.287 test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug)**
+  Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
+  in its gate for ADM.127 and UX.146; neither diff touches it, and it
+  passed alone on re-run. Kind: flaky test. Test:
+  src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names.
+  Failure text: TimeoutError waiting for '#galaxymap3d-steps
+  [data-steps-panel] li' (120 s) in the browser phase. Fails on main:
+  unknown. Frequency: once in about 2 runs on that lane, with 2 workers
+  and a load average of about 8. Reproducer: the browser phase of
+  `scripts/test.py changed` beside another load, or the test alone under
+  a loop with a loaded machine. Do: find what the steps panel waits for
+  (the map scene built, or the steps list filled after the first frame),
+  make the test wait for that state, not a fixed 120 s selector, and say
+  in the test what it waits for. Done: the test passes 50 times in a row
+  on a machine at load 8. Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.284, TEST.281.
+
+- [ ] **TEST.288 test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug)**
+  Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
+  in its gate for ADM.127 and UX.146; neither diff touches it, and it
+  passed alone on re-run. Kind: flaky test. Test:
+  src/tests/test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2].
+  Failure text: assert lease['holder'] is None; the holder was another
+  test worker's node (vm:498). Fails on main: unknown. Frequency: once
+  in 2 runs on that lane, in the 4-worker non-browser phase. Cause (the
+  lane's reading, not confirmed): the lease key is shared between xdist
+  workers, so another worker's queue node can take it; since TEST.280
+  each worker has its own Redis database, so check whether this lease
+  key is outside that scoping (a key in the control database, or a node
+  name that carries only the process id). Do: scope the lease to the
+  worker's database or name the node per test, and say which in the
+  test. Done: the test passes 50 times in a row at -n 4. Owner: Bug Hunt
+  (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.280, TEST.284.
 
 ## USR: User accounts
 

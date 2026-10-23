@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.128 |
 | SEC | SEC.34 |
-| TEST | TEST.287 |
+| TEST | TEST.289 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.75 |
@@ -515,7 +515,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | done, PR #2494 |
 | ADM.125 | Generate: named recipes saved per admin in the control database | none | open |
 | ADM.126 | Generate: a live 'how big' count while typing a command or filling the form | none | open |
-| ADM.127 | Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units (bug) | none | open |
+| ADM.127 | Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units (bug) | none | done, PR #2608 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -2109,7 +2109,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
 | UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | none | open |
 | UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) | none | done, PR #2416 |
-| UX.146 | The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug) | none | open |
+| UX.146 | The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug) | none | done, PR #2610 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2502,6 +2502,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) | none | open |
 | TEST.285 | test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug) | none | done, PR #2602 |
 | TEST.286 | test_quasar_physics_follows_from_mass_and_eddington_ratio fails by chance: it builds 50 quasars with no seed and a mass draw below 1e5 breaks its assertion (bug) | none | open |
+| TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) | none | open |
+| TEST.288 | test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
