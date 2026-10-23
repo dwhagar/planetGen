@@ -248,8 +248,7 @@
     },
     {
       "epoch": 51,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1984",
       "reason": "Objects named by their position ID that share an ID take the collision numbers 0, 1, 2 in the order of their sectors' addresses instead of the order the sectors were saved in, so two sectors that share an ID get the same names in either save order (GEN.307)"
     }
   ]
