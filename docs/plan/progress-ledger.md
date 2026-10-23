@@ -1143,3 +1143,4 @@ Baseline: PR #1817.
 | UX.124 | 8.1 | Admin control suite |
 | OPS.63 | 8.1 | Bugs and flaky tests |
 | GEN.417 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.453 | 8.1 | Radiation chain for habitability (GEN.445) |
