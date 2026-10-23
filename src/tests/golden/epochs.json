@@ -258,8 +258,7 @@
     },
     {
       "epoch": 53,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1998",
       "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of Gadotti and de Sa-Freitas 2025 (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)"
     }
   ]
