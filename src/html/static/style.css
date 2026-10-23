@@ -9,6 +9,8 @@
   --text: #1b1e28;
   --text-muted: #5b6072;
   --border: #dde1eb;
+  /* The edge of a form field: 3:1 or more against the panel in each theme (WCAG 1.4.11; UX.124). */
+  --line: #858aa0;
   --accent: #4f5fe8;
   --accent-contrast: #ffffff;
   --link: #3a4bd6;
@@ -46,6 +48,7 @@
     --text: #e7e9f3;
     --text-muted: #9a9fb5;
     --border: #333650;
+    --line: #6a6f8c;
     --accent: #8891f5;
     --accent-contrast: #12132b;
     --link: #9aa3ff;
@@ -67,6 +70,7 @@
   --text: #e7e9f3;
   --text-muted: #9a9fb5;
   --border: #333650;
+  --line: #6a6f8c;
   --accent: #8891f5;
   --accent-contrast: #12132b;
   --link: #9aa3ff;
@@ -1708,7 +1712,7 @@ a:focus-visible .navmap-point circle {
   font-weight: 400;
   color: var(--text);
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.45rem 0.65rem;
 }

@@ -49,6 +49,17 @@
   --sl-panel-border-color: var(--border);
   --sl-shadow-large: var(--shadow);
   --sl-focus-ring-color: var(--accent);
+
+  /* Form fields (UX.124): the edge is the site's --line (3:1 against the panel), not the neutral-300 step (1.8:1). */
+  --sl-input-border-color: var(--line);
+  --sl-input-border-color-hover: var(--text-muted);
+  --sl-input-border-color-focus: var(--accent);
+  --sl-input-background-color: var(--bg-elevated);
+  --sl-input-color: var(--text);
+  --sl-input-label-color: var(--text-muted);
+  --sl-input-help-text-color: var(--text-muted);
+  --sl-input-placeholder-color: var(--text-muted);
+  --sl-input-required-content-color: var(--error);
 }
 
 /* Hidden until components.js has defined the element, so a page does not
@@ -59,6 +70,45 @@ sl-dropdown:not(:defined),
 sl-menu:not(:defined),
 sl-menu-item:not(:defined) {
   visibility: hidden;
+}
+
+/* A field whose script has not run (or never will): its <noscript> twin, if any, is what the page shows, so the
+   element takes no room. */
+sl-input:not(:defined),
+sl-select:not(:defined),
+sl-checkbox:not(:defined) {
+  display: none;
+}
+
+/* The server's validation error under a field (UX.124), and the edge that marks the field. */
+.field-error {
+  color: var(--error);
+  font-weight: 600;
+}
+
+sl-input[data-invalid],
+sl-select[data-invalid],
+sl-checkbox[data-invalid] {
+  --sl-input-border-color: var(--error);
+}
+
+/* A label kept for screen readers only (a field in a row that already says what it is). */
+.ui-field-bare sl-input::part(form-control-label) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ui-field {
+  flex: 1 1 12rem;
+}
+
+.ui-field-check {
+  flex: 0 1 auto;
 }
 
 /* A dialog's form is in the page until the element is defined. */
