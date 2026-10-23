@@ -1,16 +1,16 @@
 {
  "title": "Saturation (sublimation) pressures of the gases and ices: Fray and Schmitt 2009 polynomials, water by Feistel and Wagner",
- "basis": "Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. arXiv:2009.02277 (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has two fits, `from_k` is where the second takes over: the temperature at which the two fits cross (they approximate the alpha to beta transition), or at which they come closest when they do not cross. The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing.",
- "source": "docs/design/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4; docs/design/body-composition-research.md part F; Feistel and Wagner 2007, J. Phys. Chem. Ref. Data 35, 1021 (water, as quoted)",
+ "basis": "Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. arXiv:2009.02277 (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has more than one fit, `from_k` is where the second takes over: the temperature at which the two fits cross (the solid transitions of N2, CO, O2 and CH3OH), or at which they come closest when they do not cross (CO2). The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing.",
+ "source": "docs/design/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4 and 01-gas-table-thermodynamics.md section 7.2 (O2-3, Ne-2); docs/design/body-composition-research.md part F; Feistel and Wagner 2007, J. Phys. Chem. Ref. Data 35, 1021 (water, as quoted)",
  "cold_unverified_below_k": 50.0,
  "species": {
   "Ne": {
    "name": "neon",
    "form": "fray-schmitt",
-   "selection": "single",
+   "selection": "crossing",
    "curves": [
     {
-     "id": "Ne",
+     "id": "Ne-1",
      "from_k": 0.0,
      "floor_k": null,
      "phase": "",
@@ -23,9 +23,24 @@
       0.0,
       0.0
      ]
+    },
+    {
+     "id": "Ne-2",
+     "from_k": 13.26,
+     "floor_k": 5.48,
+     "phase": "",
+     "coefficients": [
+      10.61,
+      -308.6,
+      986,
+      -9069,
+      35140.0,
+      0.0,
+      0.0
+     ]
     }
    ],
-   "note": ""
+   "note": "neon has no solid transition; the fits cross at 11.19 K and 13.26 K (0.4 percent apart between), and Ne-1 alone is 6.5 percent under the triple-point pressure, so Ne-2 serves above 13.26 K"
   },
   "N2": {
    "name": "nitrogen",
@@ -160,9 +175,24 @@
       0.0,
       0.0
      ]
+    },
+    {
+     "id": "O2-3",
+     "from_k": 43.79,
+     "floor_k": 10.15,
+     "phase": "gamma",
+     "coefficients": [
+      10.18,
+      -803.5,
+      -7080,
+      75530.0,
+      0.0,
+      0.0,
+      0.0
+     ]
     }
    ],
-   "note": "alpha to beta at 23.88 K (fits cross at 23.15 K); the gamma fit O2-3, for 43.8 K to the triple point 54.36 K, was not legible in the source image, so beta runs on and is 1.55 times the triple-point pressure there"
+   "note": "the solid transitions are at 23.88 K and 43.8 K; the fits cross at 23.15 K and 43.79 K"
   },
   "CH4": {
    "name": "methane",
@@ -305,7 +335,7 @@
   "H2S": {
    "name": "hydrogen sulphide",
    "form": "fray-schmitt",
-   "selection": "closest-approach",
+   "selection": "single",
    "curves": [
     {
      "id": "H2S-1",
@@ -321,24 +351,9 @@
       0.0,
       0.0
      ]
-    },
-    {
-     "id": "H2S-2",
-     "from_k": 173.7,
-     "floor_k": null,
-     "phase": "",
-     "coefficients": [
-      8.933,
-      -726.0,
-      -350400.0,
-      27240000.0,
-      -858200000.0,
-      0.0,
-      0.0
-     ]
     }
    ],
-   "note": "the fits do not cross; they come closest at 173.7 K (0.09 percent in pressure)"
+   "note": "H2S-2 (a four-term fit, 6 times over H2S-1 at 80 K and equal to it above about 140 K) is not used; the fit is 1.7 percent over the triple-point pressure"
   },
   "CO2": {
    "name": "carbon dioxide",
@@ -376,7 +391,7 @@
      ]
     }
    ],
-   "note": "the fits do not cross; they come closest at 195.3 K (1.1 percent in pressure); CO2-1 is 4 percent under the triple-point pressure and CO2-2 0.5 percent over"
+   "note": "the fits do not cross; they come closest at 195.3 K (1.1 percent in pressure). CO2-1 holds the cold: with CO2-2 the pressure is 1e-9 bar at 64.7 K, 21 K colder than the 86 K that the latent heat of sublimation puts it at. CO2-1 is 4 percent under the triple-point pressure and CO2-2 0.5 percent over, so CO2-2 serves above 195.3 K"
   },
   "NH3": {
    "name": "ammonia",

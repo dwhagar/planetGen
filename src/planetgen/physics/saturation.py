@@ -10,11 +10,12 @@ R14-08 adopts. `data/saturation_pressure.json` holds the coefficients and says w
 a vapour-pressure curve lives; the callers (GEN.452, the cold-end work of GEN.497) read it.
 
 * **A curve is only as good as its window, and the windows were not read.** The paper is behind a paywall and the quoted
-  table has no lower limits. Where a species has two fits (alpha and beta N2, CO, O2 and CH3OH, and the two CO2 and two
-  H2S fits) the second takes over at the temperature where the two cross, or where they come closest when they do not
-  (`from_k` in the file). Those switch points land within 1 K of the known solid transitions (N2 35.6 K, CO 61.55 K, CH3OH
-  157.4 K, O2 23.9 K) but they are derived, not read, so the choice is a stand-in. The two CO2 fits are 1.1 percent apart at
-  their switch.
+  table has no lower limits. Where a species has more than one fit (alpha, beta and gamma O2, alpha and beta N2, CO and
+  CH3OH, two Ne, two CO2) the next takes over at the temperature where the two cross, or where they come closest when they
+  do not (`from_k` in the file). The switch points land within 1 K of the known solid transitions (N2 35.6 K, CO 61.55 K,
+  CH3OH 157.4 K, O2 23.9 K and 43.8 K) but they are derived, not read, so the choice is a stand-in. The two CO2 fits do not
+  cross and are 1.1 percent apart at their switch; CO2-1 serves the cold because CO2-2 puts 1e-9 bar at 64.7 K, 21 K colder
+  than the latent heat of sublimation allows. H2S-2 and the Ne-1 and CH3OH-1 fits above their switch are not used.
 * **Below 50 K the answer is `cold-unverified`.** The polynomials are fits to laboratory data that stop short of the
   coldest ices and the cold sublimation is wrong by model error, not by a sign (docs/design/atmosphere-composition.md,
   finding 11). The laboratory-corrected cold end and the Span and Wagner CO2 curve are GEN.497, which extends this module.
@@ -22,10 +23,9 @@ a vapour-pressure curve lives; the callers (GEN.452, the cold-end work of GEN.49
   is the polynomial's at the floor, which is below 1e-30 bar for every species and cannot overflow.
 * **Above the triple point there is no solid.** The value returned is the polynomial carried on, not the liquid curve
   (`above-triple`); the liquid branch is not in this module.
-* **Oxygen has no gamma fit.** O2-3 (43.8 K to the triple point 54.36 K) was not legible in the source image, so beta
-  runs on to the triple point and is 1.55 times the gas table's triple-point pressure there. At the triple point SO2 is
-  3.8 percent over the gas table's pressure, benzene 7 percent over, neon 6.5 percent under, acetylene 3.6 percent under
-  and CO2-1 4 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
+* **Known departures at the triple point** from the gas table's pressure: SO2 3.8 percent over, benzene 7 percent over,
+  acetylene 3.6 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
+* **Only the solid curve is here.** H2, He and the species without a polynomial raise `UnknownSpecies`.
 
 The functions are pure.
 """

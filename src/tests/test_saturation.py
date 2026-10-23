@@ -11,8 +11,8 @@ import pytest
 from planetgen.physics import gases, saturation
 
 # The species whose triple-point pressure on the highest-temperature fit is further than 3 percent from the gas table's,
-# with the ratio (the module docstring says the same; O2 lacks its gamma fit).
-OFF_BY_OVER_THREE_PERCENT = {"O2": 1.549, "SO2": 1.038, "C6H6": 1.071, "Ne": 0.935, "C2H2": 0.964}
+# with the ratio (the module docstring says the same).
+OFF_BY_OVER_THREE_PERCENT = {"SO2": 1.038, "C6H6": 1.071, "C2H2": 0.964}
 NO_TRIPLE_PRESSURE = {"HCN"}
 
 
@@ -73,7 +73,7 @@ def test_water_ice_is_the_iapws_form():
 # entries are the alpha fit's: 26.8 K against 26.3 K, 28.8 K against 29.1 K).
 CHECKED_INVERSIONS = {
     "Ne": (8.4, 12.2, 15.6, 21.7), "N2": (26.8, 36.7, 46.0, 62.2), "CO": (28.8, 40.0, 49.6, 65.8),
-    "Ar": (30.4, 42.6, 53.4, 71.7), "O2": (31.6, 42.9, 52.2, None), "CH4": (37.4, 52.7, 66.3, 89.5),
+    "Ar": (30.4, 42.6, 53.4, 71.7), "O2": (31.6, 42.9, 53.24, None), "CH4": (37.4, 52.7, 66.3, 89.5),
     "Kr": (42.3, 59.1, 73.8, 98.7), "Xe": (58.9, 82.1, 102.4, 136.6), "C2H6": (67.8, 89.9, None, None),
     "C2H4": (64.6, 85.9, 103.1, None), "H2S": (80.3, 110.5, 136.1, 177.1), "CO2": (86.1, 114.0, 136.3, 170.1),
     "NH3": (101.5, 134.6, 161.0, None), "SO2": (111.9, 146.7, 174.3, None), "HCN": (125.2, 165.8, 198.9, 250.1),
@@ -89,22 +89,25 @@ def test_the_checked_inversions_are_reproduced(formula):
 
 
 def test_two_fit_species_switch_where_the_fits_cross_or_come_closest():
-    for formula in ("N2", "CO", "O2", "CH3OH", "H2S", "CO2"):
+    for formula in ("N2", "CO", "O2", "CH3OH", "Ne", "CO2"):
         row = saturation.species(formula)
-        assert len(row.curves) == 2
-        low, high = row.curves
-        switch = high.from_k
-        jump = abs(math.log(saturation._fray_schmitt_pa(low.coefficients, switch)
-                            / saturation._fray_schmitt_pa(high.coefficients, switch)))
-        assert jump < (0.02 if row.selection == "closest-approach" else 0.005), formula
-        assert saturation.saturation(formula, switch - 0.01).curve_id == low.curve_id
-        assert saturation.saturation(formula, switch).curve_id == high.curve_id
+        assert len(row.curves) == (3 if formula == "O2" else 2)
+        for low, high in zip(row.curves, row.curves[1:]):
+            switch = high.from_k
+            jump = abs(math.log(saturation._fray_schmitt_pa(low.coefficients, switch)
+                                / saturation._fray_schmitt_pa(high.coefficients, switch)))
+            assert jump < (0.02 if row.selection == "closest-approach" else 0.005), formula
+            assert saturation.saturation(formula, switch - 0.01).curve_id == low.curve_id
+            assert saturation.saturation(formula, switch).curve_id == high.curve_id
 
 
 def test_the_switch_points_are_near_the_known_solid_transitions():
-    transitions = {"N2": 35.61, "CO": 61.55, "O2": 23.88, "CH3OH": 157.4}
-    for formula, transition in transitions.items():
-        assert abs(saturation.species(formula).curves[1].from_k - transition) < 1.0
+    transitions = {"N2": (35.61,), "CO": (61.55,), "O2": (23.88, 43.8), "CH3OH": (157.4,)}
+    for formula, expected in transitions.items():
+        found = [curve.from_k for curve in saturation.species(formula).curves[1:]]
+        assert len(found) == len(expected)
+        for switch, transition in zip(found, expected):
+            assert abs(switch - transition) < 1.0, formula
 
 
 def test_each_curve_rises_with_temperature_from_one_kelvin_to_the_triple_point():
@@ -166,7 +169,7 @@ def test_the_data_file_labels_its_stand_ins_and_the_unread_paper():
     assert "STAND-IN" in data["basis"]
     assert "2ND-HAND" in data["basis"]
     assert data["cold_unverified_below_k"] == 50.0
-    assert "gamma" in data["species"]["O2"]["note"]
+    assert "H2S-2" in data["species"]["H2S"]["note"]
 
 
 def test_pressure_is_in_pascals_not_bar():
