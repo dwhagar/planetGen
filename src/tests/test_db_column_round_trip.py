@@ -48,7 +48,6 @@ NULL_IN_THIS_GALAXY = {
     # DB.60: nothing writes the density columns until a sector fill reads the region overrides (MAP.119).
     **{("sectors", column): "written by the sector fill under a density override (DB.60 adds the columns only)"
        for column in ("density_multiplier_used", "override_id")},
-    ("sectors", "leaf_digest"): "stored at save time by the fingerprint tree (GEN.305)",
     # DB.66: the bar and the thick disk were never stored, so a spiral leaves them NULL ("as the structure draw gives them").
     **{("galaxy_shape", column): "NULL means as the structure draw gives it from the seed (DB.66)" for column in (
         "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude")},
