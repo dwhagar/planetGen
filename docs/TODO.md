@@ -8823,7 +8823,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.443, GEN.441, GEN.453, GEN.459.
+  Prerequisites: GEN.443, GEN.441, GEN.459.
   Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
@@ -9291,93 +9291,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now merges with the spine under lane I and takes a generator epoch at
   merge. The 8.4 rescatter it was to join is not waited for (testing
   mode). Owner: Habitability lane I (the spine, to be started).
-- [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
-  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
-  1:00 AM EDT as the lane reported; merged as
-  docs/design/atmosphere-composition.md section 3), filed by the TODO
-  thread. `physics/radiation.py` against the evidence of part 07 section
-  2.1: the cutoff rigidity scales with `(R_E / R_p) ** 3` (line 139)
-  where the Stoermer cutoff scales with the dipole moment over the
-  distance squared (the vertical cutoff is about 14.3 GV for Earth's
-  moment, so `EARTH_CUTOFF_GV = 14.9` is 4 percent high, acceptable);
-  the galactic cosmic ray dose curve `GCR_POINTS` is sound at the Moon
-  (about 500 mSv/yr) and at 22.5 g/cm2 of air (about 255 mSv/yr, range
-  128 to 420) but 1.5 to 2.7 times below proton-primary shower
-  simulations at 100 g/cm2 (up to 5 times without a field); the flat
-  magnetic floor 0.6 is right only near sea level (the ratio of an
-  Earth-strength field to none is 0.31 at 100 g/cm2, 0.37 at 200, 0.51
-  at 500, 0.61 at 700 and 0.52 at 1036), so the factor depends on the
-  column; the range law `R = 0.0022 E^1.77` holds below 300 MeV but is 5
-  times too long at 10 GeV; the Europa 5.4 Sv/day figure in
-  docs/design/activity-magnetism-radiation-hydrosphere.md has no primary
-  source (a depth-dependent number, not a surface constant) and the Mars
-  0.64 mSv/day figure in the same file is only a search snippet (Guo
-  2015 gives the measured value, read). Do: use M / r^2 for the cutoff;
-  replace the dose-against-column curve and the field factor with the
-  read tables of part 07 (Atri 2013, Griessmeier 2016, Guo 2015, Zhang
-  2020) with a seeded solar-modulation spread of 0.5 to 1.64; use the
-  PSTAR table of part 07 for the proton range above 300 MeV; mark the
-  Europa and Mars figures in the design file as unsourced or replace
-  them with the read values; no old constants kept (no shim). Changes
-  stored doses, so it ships with a generator epoch bump. Done: a test
-  checks the cutoff exponent against the Stoermer form, the dose curve
-  against the read points (Moon, 22.5 g/cm2, and the 100 to 1036 g/cm2
-  simulation values) within the stated spread, and the field factor at
-  the five columns above. Owner: Core 4 (proposed, with the radiation
-  chain). Where the radiation design (GEN.436) settles other formulas,
-  this item follows it; GEN.444 replaces the rest of the proxies.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.436, GEN.444, GEN.443, GEN.445,
-  GEN.256, GEN.434.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the 150 MeV Mars cutoff,
-  the Band function and the W-value of 33.85 eV per ion pair, to compare
-  with the constants this item corrects.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): the Titan column is 10,850
-  g/cm2 (the note's was 10 times too small) with a surface dose of about
-  3e-6 Gy per year; Europa needs a depth profile (the note's figure has
-  no primary source); Mars RAD numbers 0.21 mGy/day and 0.64 mSv/day are
-  confirmed.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC13 and AD5: effective-dose weights and limits are readable
-  from the free IAEA GSR Part 3 (read in the report): w_R 1 for photons,
-  electrons and muons, 2 for protons and charged pions, 20 for alpha
-  particles and heavy ions; w_T 0.12 (red marrow, colon, lung, stomach,
-  breast, remainder), 0.08 gonads, 0.04 (bladder, oesophagus, liver,
-  thyroid), 0.01 (bone surface, brain, salivary glands, skin); limits 20
-  mSv per year averaged over five years, 50 mSv in any one year. Only
-  the neutron weighting function is missing. Name which Badhwar and
-  O'Neill paper the code follows (Adv. Space Res. 14, 749, 1994 or 17,
-  7, 1996). Earth's vertical cutoff by the Stoermer scaling is about
-  14.3 GV against 14.9 in the code; the Gale column is 21 g/cm^2 against
-  16.4.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/radiation-model.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep card, tapped 7:29 AM EDT 2026-10-21
-  and "Close from IAEA", as the coordinator reported it): the radiation
-  weights and dose limits come from IAEA GSR Part 3 (BC13 closed except
-  the neutron weighting function); ICRP 103 is not needed.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane F (radiation constants and ozone).
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
