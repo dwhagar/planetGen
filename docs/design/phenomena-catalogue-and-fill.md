@@ -141,7 +141,7 @@ Counts per local sector use a 64 pc^3 cell with 8 stars [S: `interstellar-object
 | Emission C, D, E, G | built; stars real in GEN.241 | about 8,000 catalogued [S]; 67,500 hosted in the model (270,000 O stars x 0.25) [I] | host-first; members text only | O or early-B star; D and E their cluster members (42 and 549 on average) | members are stars with belts at most | young share | F, host first |
 | Reflection F | built | about 150 within a few kpc [S] | host-first | a B or A star | belts at most | young and intermediate | F |
 | Planetary H to L | built; GEN.149 fixes the star | about 20,000 [S] | own white dwarf, always | one hot white dwarf | see 4.1 | old share | S, made with its star |
-| Giant molecular cloud M | built | about 8,100 to 9,700 [S]; the generator keeps 102,000 | field | none; embedded protostars (new) | none | `gas` | D |
+| Giant molecular cloud M | built | about 8,100 to 9,700 [S]; the generator keeps 102,000 | field | none; embedded protostars not built, shortfall accepted (GEN.258) | none | `gas` | D |
 | Dark cloud N | built | | field | none | none | `gas` | D |
 | Bok globule P | built | 3.2e5 small globules [R] | field | protostar in 30% [I] | protostar systems | `gas` | D |
 | Star-forming core Q | built | | field | 1 to 4 protostars | protostar systems | `gas` | D |
@@ -262,7 +262,7 @@ Existing items stay as filed (GEN.153 to GEN.164, GEN.209, GEN.233 to GEN.249, G
 5. **Brown dwarfs as stars** (Core; later): an L/T/Y state for companions and primaries, from `ROGUE_BROWN_DWARF_*` cooling, with the brown-dwarf-desert companion rule. Built as GEN.252 (`brown-dwarf-state.md`): the state and the free-floating row's type; the companion rows are GEN.275's.
 6. **White-dwarf pollution flag and cool-white-dwarf presets** (Core; later): 25 to 50% of cool white dwarfs polluted [S]; part of the GEN.130 white-dwarf row.
 7. **The anomalies of GEN.114, one item per kind** (Core and Interface; later): superbubble field, Herbig-Haro and microquasar and pulsar jets (spin axes exist), radiation hazard score, Fermi-bubble overlay. GEN.114 is the umbrella that never got split.
-8. **Protostars in giant molecular clouds** (Core; with GEN.241): the P and Q cores give 2.6e5 protostars against 1.4e6 expected [C]; embedded Q-type groups in M clouds make up the rest. Default: accept the 5x shortfall for the first release.
+8. **Protostars in giant molecular clouds** (Core; with GEN.241): the P and Q cores give 2.6e5 protostars against 1.4e6 expected [C]; embedded Q-type groups in M clouds make up the rest. Default: accept the 5x shortfall for the first release. **Decided (GEN.258, closed by the TODO thread's answer of 12:17 PM EDT 2026-10-23, the open-question defaults being Decided since 2026-10-17):** the shortfall of about 1.14e6 protostars (1.4e6 expected against 2.6e5, 5.4 times short) is accepted for the first release and the embedded groups are not built; building them would add about 11 protostars to each of the generator's 102,000 M clouds and a rescatter. The yield is measured by the representation audit of a whole fill (TEST.160 does not count the cloud's protostars against 1.4e6); a later item reopens this by changing `tuning.NEBULA_CLOUD_PROTOSTARS` or adding the groups in `nebula_contents.py`.
 9. **Docs** (Quality): the catalogue pointers in `interstellar-object-rates.md`, `anomalies.md`, `multistar-and-compact-systems.md` and `nebula-and-asteroid-field-classes.md` so they say where each kind now lives.
 
 ## 9. Decisions and defaults
