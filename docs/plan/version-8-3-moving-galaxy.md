@@ -42,7 +42,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.369 | Split from GEN.115. |
+| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests |  | Split from GEN.115. |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.338 | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
 
 ## Phase 2: The update itself

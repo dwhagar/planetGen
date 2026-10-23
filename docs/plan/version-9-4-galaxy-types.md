@@ -54,7 +54,7 @@ Three independent families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | GEN.369, GEN.380, GEN.381 | Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369. |
+| GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | GEN.380, GEN.381 | Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369. |
 | GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold |  | Boss, 8:08 PM EDT 2026-10-21 (later item; replaces GEN.616); version is an estimate. |
 
 ## Phase 3: Lenticular, populations, clusters and the nucleus
@@ -77,7 +77,9 @@ What reads the families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297, GEN.403 | Step 6 of the galaxy types chain. |
+| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297 | Step 6 of the galaxy types chain. |
+| GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) |  |  |
+| GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) |  |  |
 
 
 ## Phase 4: Creation

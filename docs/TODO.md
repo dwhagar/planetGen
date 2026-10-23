@@ -4246,7 +4246,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   history and is not built. What this item still owns: the two-Gaussian
   [Fe/H] mixture, the metal-rich and metal-poor position profiles and
   the seeded fictional satellites for other shapes.
-  Prerequisites: GEN.403, GEN.387.
+  Prerequisites: GEN.387.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
@@ -5104,7 +5104,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets to about 275 AU, a dense core to a fraction of an AU), so this
   item is unblocked and Core 4 starts it now with the
   dispersion-convention fix above. It takes the next free epoch at merge
-  (57 or later; 56 went to GEN.329).
+  (58 or later; 57 went to Bugfix 2's #2638).
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5914,7 +5914,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
   9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
   kpc are reference radii for tests only.
-  Prerequisites: GEN.369. Related: GEN.115.
+  Prerequisites: none. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6376,7 +6376,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
   the coordinator): Core 1 does it last of its four (order: GEN.368,
   GEN.369, GEN.371, GEN.366). Owner: Core 1.
-  Prerequisites: GEN.369.
+  Prerequisites: none.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
   Found by a lane (2026-10-16), filed by the TODO thread. The Large and
@@ -6387,180 +6387,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test that a Cloud sector holds nebulae at the stated rate. Later item;
   candidate for the deep-sky version.
   Prerequisites: none. Related: GEN.237, GEN.282.
-
-- [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
-  Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
-  them" on the decision card at 4:01 PM EDT): asked whether the
-  satellites are placed as in the Milky Way, said this is a random
-  procedural galaxy so identical things make no sense, and wants the
-  probabilities of things appearing worked out and planned. Decision:
-  the 11 copied Milky Way satellites of GEN.237 (`MILKY_WAY_SATELLITES`,
-  generation/satellites.py) are replaced by a drawn population from the
-  galaxy seed: the count follows the halo mass, distances a halo
-  distribution, masses a satellite mass function, size, profile
-  (exponential for gas-rich, Plummer for dwarfs), [Fe/H] and age follow
-  mass relations. Supersedes the "Real Milky Way satellites at their
-  real places" open default in
-  docs/design/intergalactic-and-halo-contents.md section 8, item 2.
-  Done: `place_satellites` draws the population from
-  `unit_seed(galaxy_seed, ...)` through the laws GEN.368 sets, the real
-  rows are removed from the generator and kept only as reference data
-  for the plausibility test of GEN.366 (Boss, 2026-10-16, 4:11 PM EDT:
-  no option to pick a Milky Way preset), a test
-  shows two seeds give different populations and one seed gives the same
-  one, and the count scales with the halo mass. Owner: Core 1 (the code
-  owner), after the global top 5 blockers unless Boss moves it up; the
-  component pass GEN.324 places stars for whatever component rows exist,
-  so it does not wait on this.
-  Velocity (finding from the "galactic potential realism" thread,
-  2026-10-16, 8:43 PM EDT): `generation/satellites.py` gives every
-  satellite velocity (0, 0, 0). The derived population lists a velocity
-  as an output, drawn from the galaxy's potential; the potential module
-  is GEN.338 (8.3), so the velocities arrive with GEN.339 (8.3), not with
-  this item's 8.1 build, which keeps them at rest and says so.
-  Owner: Bugfix 2 (third; the prerequisite of GEN.624, not started
-  elsewhere; Boss, 8:52 PM EDT 2026-10-22: the plan-number bugs and
-  their prerequisites go to a second bugfix lane; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: GEN.371, GEN.237, GEN.366, GEN.324,
-  GEN.297.
-  Waits on GEN.371, the feasibility study of generating satellites
-  through the scatter (Boss, 2026-10-16, 4:02 PM EDT); if the study
-  finds it feasible, the drawn satellites are made by the scatter in the
-  cells they occupy.
-  Boss (2026-10-16, 4:04 PM EDT, in the Core 1 thread): "we don't need
-  them to be the exact distances. What we need is for that to be
-  calculated or derived or generated, preferably calculated and derived
-  using real science." Acceptance: the satellites' count, distances and
-  sizes are calculated from real science wherever a published relation
-  exists (the subhalo mass function and its radial distribution for
-  count and distance, the mass-size and mass-metallicity relations for
-  size and [Fe/H]), drawn only where the science gives a distribution
-  and not a value, and never copied or hand-picked; each law names its
-  source in the code and in the GEN.368 table.
-  Method (Boss, 2026-10-16, 4:04 PM EDT: derive, do not hand-set; the
-  chain is Core 1's suggestion, each source to be checked in GEN.368):
-  the galaxy's halo mass from its own mass model -> virial radius ->
-  subhalo count from the subhalo mass function (dN/dM roughly M^-1.9,
-  from the Aquarius and Via Lactea simulations) -> radial placement from
-  a subhalo profile (less concentrated than the dark matter) -> stellar
-  mass from the stellar-to-halo mass relation (abundance matching) with
-  a low-mass cutoff for reionization -> size from the size-mass relation
-  -> [Fe/H] from the mass-metallicity relation (Kirby 2013) -> age and
-  profile from the mass and gas fraction, with tidal stripping near the
-  disk. Each link names its source in the doc and the code. The real
-  Milky Way rows serve only as a check that the derived population looks
-  plausible.
-  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
-  reiterate that the idea is that we generate a scientifically accurate
-  galaxy as best we can. We generate the sectors of that, again as
-  accurately as we can, with what we can actually do processing-wise and
-  what we actually know. Astrophysics-wise that can be implemented I
-  don't want any fixed content. Everything should be procedurally
-  generated based on the random seeds that we already use. Random
-  numbers are used where we can. Things are derived everywhere we can or
-  calculated everywhere we can. If needed you should ask me to do
-  research if there are pieces missing that you can't look up yourself."
-  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
-  the coordinator): Core 1 builds it right after GEN.368 (order:
-  GEN.368, GEN.369, GEN.371, GEN.366). Owner: Core 1.
-  GEN.368's approved table (Boss, 10:11 PM EDT): row 10 gives the
-  satellite laws (subhalo mass function slope 1.9, Einasto placement,
-  the stellar mass from the halo mass with a reionization cutoff, [Fe/H]
-  from the mass-metallicity relation); the reionization cutoff and the
-  size-luminosity fit are open research (GEN.406).
-  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
-  docs/design/galaxy-laws-research.md, sections Q3, Q4, Q6 to Q8): the
-  occupation gate, the stellar mass at the cutoff, the dwarf and
-  satellite size law (Carlsten 2021, with scatter), the dispersion from
-  the enclosed mass (Wolf 2010), quenching times and the clusters in
-  satellites. Conflicts 1, 2 and 4 (where galaxy formation switches on,
-  the scatter in stellar mass at fixed halo mass, satellite size against
-  halo size) carry proposed defaults: field dwarfs by Benitez-Llambay
-  and Frenk, subhaloes by Nadler's erf with M50 at 8.5e7 and a hard
-  floor at a peak mass of 1e6, scatter 0.5 dex field and 0.19 dex
-  satellites.
-  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
-  the values this item cannot source from a read paper are filled by the
-  plan's section 5 (derived D, bracket B, theory prior T, or labelled
-  placeholder P) and registered in one stand-in registry (plan section
-  6: fill id, kind, evidence label, source state, form, assumptions,
-  validity range, knobs, target id, falsifier test, replaced-by research
-  item, sources, licence, epoch). A lead such as Gemini may only widen a
-  bracket, and on a contradiction the verified source wins. A stand-in
-  replaced later changes stored output and rides the pending epoch.
-  Galaxy gaps for this item: GR13 ultrafaint sizes, GR11 dwarf
-  stellar-to-halo relation and its scatter, GR15 occupation width
-  derived from the verified edges (plan 4.5).
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): GR11 scatter: the
-  environment is drawn from the halo mass and no environment concept is
-  added now; the dwarf scatter stays the uniform 0.19 to 0.5 dex
-  bracket.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Graus 2019 (arXiv:1808.03654, an
-  inference of which paper is meant) and the FIRE age-gradient paper
-  (arXiv:1901.05487) are readable by a thread for the occupation width
-  (GR15), class B to class A.
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): occupation
-  fraction against halo mass: centre 10^9.33 Msun/h, erf width 0.21 dex
-  (simulation; 0.205 for the model with simulated histories), 0.10 at
-  10^9.0, 0.78 at 10^9.5 (Gemini's 10^8.6 is the paper's limit with no
-  reionization, 8.65; the centre with z_re 2, 4, 6, 8, 10, 12 is 8.68,
-  8.87, 9.14, 9.29, 9.36, 9.38, which with Busha's z_re spread of 6.3 to
-  11.6 gives the per-galaxy cutoff, R12). Low-mass stellar-to-halo slope
-  1.92 (Garrison-Kimmel 2014, Behroozi 2013 Eq 3): log M* 3.61, 4.57,
-  5.53, 6.49, 7.44 at log Mh 8.5 to 10.5; the scatter stays the Fitts to
-  Nadler bracket. Ultra-faint sizes (R13): 15 objects, Plummer r_h 27.7
-  to 234 pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with
-  brightness (r = -0.88), so the size is not uncorrelated with M_V.
-  Satellite history (GEN.526 merged #2043, Core 3, squash 9a8f7671,
-  12:16 PM EDT as the lane reported; generator epoch 12 pending,
-  migration 0107): the Large Cloud holds 1.4 percent young and 36
-  percent intermediate stars, the Small Cloud 1.0 and 26 percent,
-  derived with the Kennicutt law from each satellite's age history and
-  gas (the stated 1 and 9 percent stand-in is dropped); about 3.8e4
-  bright stars are placed in the Clouds at the default floor. The
-  calculated satellites of this item re-derive these shares from the
-  halo mass history.
-  Findings from GEN.526 (Core 3, 2026-10-17, 12:16 PM EDT as the lane
-  reported; kind design gap, both for this item's re-derivation): (1)
-  the exponential history family over 13 Gy with the row's mean age, and
-  the 3 Msun/pc2 threshold (the low end of Schaye 2004's 3 to 10), are
-  inferred, not sourced; a sourced satellite history table replaces the
-  family. (2) Leo I comes out forming stars (7 Msun/pc2) although it has
-  no gas today, because its recalled mean age of 5 Gy in
-  MILKY_WAY_SATELLITES asks for a rising history; those table values are
-  the unchecked GEN.237 ones, which this item re-derives. Test targets
-  that are recalled and still to verify: LMC atomic gas about 4e8 Msun
-  (the build gives 4.4e8) and Harris and Zaritsky 2009 about 0.2 Msun/yr
-  over the last 5 Gy (read in arXiv:0908.1422; the build gives 0.36
-  Msun/yr now).
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): GR15 occupation width: Graus (v1
-  preprint) Eq. 1 is an erf in peak velocity and not in mass: f(>Vpeak)
-  = (1 + erf((Vpeak - V50)/(sqrt2 sigma)))/2 with V50 = 18 km/s and
-  sigma = 2.5 km/s (alternative V50 = 10.5 km/s), sigma assumed from
-  FIRE-2 and not fitted [V, re-read]. With Mpeak proportional to Vpeak^3
-  anchored at 1e9 solar masses at 20 km/s the width is about 0.18 dex
-  (V50 18) and 0.32 dex (V50 10.5) [R]; the conventional model's
-  edge-to-edge span (25 to 10 km/s) is 1.19 dex against 1.22 dex between
-  the Benitez-Llambay and Frenk edges, so the plan's derived width (0.20
-  to 0.25 dex) is confirmed and not tightened. No reionization redshift
-  is used, so GR12 is not served; the v1 numbers may differ from the
-  published MNRAS 488, 4585.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 13, "Drop GEN.371
-  as prerequisite": GEN.371 is no longer a prerequisite (it is Related);
-  this item builds the drawn population first, and GEN.371 decides later
-  whether the scatter makes the cells.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
@@ -6821,7 +6647,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 12): the dwarf spheroid share steps, 30 percent under 1e7
   solar masses and none from 1e7 to 1e9.
   Q2 is recorded as merged in docs/design/galaxy-types.md (#2377).
-  Prerequisites: GEN.369, GEN.380, GEN.381. Related: GEN.382, GEN.386.
+  Prerequisites: GEN.380, GEN.381. Related: GEN.382, GEN.386.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.386 Population mix, star-formation history and gas fraction by family: the young share that the nebula and profile rules read**
@@ -6925,7 +6751,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated fraction; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.297, GEN.403. Related:
+  Prerequisites: GEN.382, GEN.383, GEN.297. Related:
   GEN.384,
   GEN.280.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
@@ -7193,134 +7019,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stellar mass, and a switch to the exact conditional if the difference
   matters. Needs GEN.368's build (GEN.400).
   Prerequisites: none. Related: GEN.368, GEN.380.
-
-- [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 (bug)**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 9.
-  The cluster system mass is a fraction of the halo mass with its
-  scatter (the eta source is chosen between the two papers in the doc),
-  the count is that mass over the mean cluster mass, the mass function
-  stays log-normal about its peak, and GEN.297's calibration against the
-  Harris file still gives each cluster's law. Replaces
-  `CLUSTER_COUNT_MILKY_WAY` and the hard-coded 8000 and 1000 in
-  `clusters.py:92`. The cluster radial profile is still open in the
-  table and stays a stated research request. Done: the count over many
-  seeds follows the system mass with the stated scatter; a Milky Way
-  mass halo gives a count inside the observed range; the old constants
-  are gone; same seed same clusters. No fixed content (Boss, 4:11 and
-  4:14 PM EDT): no Milky Way preset or option; the real values are only
-  plausibility targets (GEN.366). Each law is written with its source
-  named in the code and the doc; the scatter is a log-normal drawn
-  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
-  compatibility shim: the old constant goes in the same change. A change
-  that alters the generator output follows the epoch rule. Consolidation
-  sweep (Boss, 2026-10-16, 11:58 PM EDT; applied 2026-10-17): take a
-  family specific frequency factor as an input from the start (1 for the
-  first family), so GEN.387 (9.4) multiplies this law and does not
-  define a second count. Boss approved this halo-mass law in GEN.368's
-  table (2026-10-16, 10:11 PM EDT); GEN.164's older S_N-by-morphology
-  count is superseded by it. Owner: Core 1 (Boss's lanes to 8.1,
-  2026-10-17, 10:06 AM EDT; lane assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
-  docs/design/galaxy-laws-research.md, sections Q3, Q4, Q6, Q8): the
-  cluster system radius and profile, the dwarf-end count and the
-  occupation draw, the halo dispersion for the Jeans equation and the
-  ages by component are there. Conflict 3 (cluster system size against
-  halo mass: Hudson and Robison R200^2.63 against Forbes R200^1, a 2.6
-  times difference at Milky Way mass) carries a proposed default; the
-  cluster system's join between the dwarf and the massive range is an
-  unsourced placeholder (requests R7 to R9 on GEN.531). The halo mass
-  law above 1e11 is a placeholder (R14). Fills (2026-10-17, gap-filling
-  plan, docs/design/gap-filling-plan.md): the values this item cannot
-  source from a read paper are filled by the plan's section 5 (derived
-  D, bracket B, theory prior T, or labelled placeholder P) and
-  registered in one stand-in registry (plan section 6: fill id, kind,
-  evidence label, source state, form, assumptions, validity range,
-  knobs, target id, falsifier test, replaced-by research item, sources,
-  licence, epoch). A lead such as Gemini may only widen a bracket, and
-  on a contradiction the verified source wins. A stand-in replaced later
-  changes stored output and rides the pending epoch. Galaxy gaps for
-  this item: GR7, GR8, GR9b, GR11 (group X4), GR10 age against halo mass
-  and GX1 (X2, X3); the cluster radius GR9a is answered (Jordan 2005).
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): GX4 and the cluster-count
-  environment: the environment is drawn from the halo mass and the 0.3
-  dex factor applies with the group probability, no environment concept
-  added now. GR7 (blue against red radius ratio): log-uniform from 1.0
-  to the largest printed ratio, 1.5 until the ratios are read; both
-  sources stay. Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT
-  as the lane clock reported; docs/design/gemini-batch1-check.md): halo
-  formation redshift z50 against halo mass (analytic mean, Correa 2015):
-  1.27, 1.15, 1.02, 0.88, 0.74, 0.60, 0.47, 0.35 at log M 8 to 15, slope
-  about -0.14 per dex (Gemini's 1.20 - 0.35 log(M/1e12) is contradicted
-  except at 1e14); a simulation fit (Cooper and Cole 2010) is still open
-  (R10). Cluster system radius against the galaxy's: about 3.5 times
-  (Hudson and Robison 2018, Forbes 2018) against about 6 times (Kartha
-  2016, twelve galaxies), DECIDED, widen and keep both (Boss's cards,
-  tapped 12:02 PM EDT (read from the session log and relayed in words by
-  the coordinator)): the ratio is drawn from about 3.5 to about 6 times
-  the galaxy's radius, both sources kept. The blue to red radius ratio
-  (R7) stays open: the 1.20 ± 0.08 of Gemini is in none of the papers
-  read. Cluster half-light radius (R9): 2.7 ± 0.35 pc after correction,
-  red about 17 percent smaller than blue, invariant to about 10 percent
-  over a factor of about 350 in host luminosity.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. GR7, the radius
-  ratio of the blue to the red cluster system, stays widened with both
-  papers kept (11:19 AM EDT answer).
-  Open choice check (2026-10-18, 12:45 AM EDT): the halo-mass law is
-  decided (Boss, 10:11 PM EDT on 2026-10-16). The one choice with no
-  Boss tap on file is the cluster system mass fraction eta of the halo
-  (row 9 of docs/design/intergalactic-and-halo-contents.md): 2.9e-5
-  (Harris, Blakeslee and Harris 2017, computed value), 4e-5 (Hudson
-  2014, verified) and 6e-5 (Harris, Harris and Alessi 2013, verified).
-  His standing source rule (12:39 PM EDT on 2026-10-17: when two sources
-  are in question the most permission wins, meaning the widest range)
-  gives the default: draw eta over the widest range, 2.9e-5 to 6e-5,
-  keep all three sources. Applied by the TODO thread from that rule, not
-  a new tap; a card is possible if Boss wants a narrower choice.
-  Decided (Boss, 1:14 AM EDT on 2026-10-18, typed in the project chat,
-  as the coordinator relayed; answering the eta question): 'No, I think
-  we're good for now. We can tune it later.' The cluster system mass
-  fraction eta keeps the widest range, 2.9e-5 to 6e-5 with all three
-  sources, as applied above; no card; he tunes it later.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 6, "Newest edition
-  wins": for editions of one work the newest verified edition wins (BC4:
-  the 2014 edition over 2003); Boss's widest-range rule applies between
-  independent sources, not between editions of the same work.
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Boss's live observation (8:48 PM EDT 2026-10-22, plan-numbers check):
-  157 globular clusters hold 112.6 million systems, 1.3 percent of a 4e9
-  solar-mass host against 0.07 percent for the Milky Way, so this is a
-  bug and an 8.1 item (`generation/clusters.py:113`, `tuning.py:1102`);
-  the module's own docstring names the S_N formula it does not use.
-  Owner: Core 1, moved from Core 4's queue so one lane builds the
-  satellite, cluster and outline fixes in order (the TODO thread, 8:52
-  PM EDT 2026-10-22; this replaces any earlier owner line).
-  Owner: Bugfix 2 (fifth, moved from Core 4's queue; Boss, 8:52 PM EDT
-  2026-10-22: the plan-number bugs and their prerequisites go to a
-  second bugfix lane; this replaces any earlier owner line).
-  Progress (the TODO thread, 4:47 AM EDT 2026-10-23, GEN.625 merged as
-  #2627, relayed by the coordinator as the lane reported, release
-  8.0.2002, generator epoch 55): the all-Auto galaxy now draws its size
-  and flatness until the plan raises none of its grid warnings (warn
-  rate 17.5 percent to 0 over 1,000 seeds, mean mass 4.3e9, mean scale
-  length 1,224 pc). The plan-numbers check asks for the 1,000-seed sweep
-  to be re-run after GEN.624 and GEN.403 land, because they change the
-  satellites and clusters the plan counts.
-  Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -14819,82 +14517,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: GEN.554, TEST.160.
 
-- [ ] **GEN.624 Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) (bug)**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: modelling
-  question, not a speed fix. Measured: a 3e7 solar-mass galaxy holds
-  3.1M phenomena and 487k band stars, because the 11 satellite galaxies'
-  6.4e9 systems exist at every galaxy mass, so a small galaxy still pays
-  for the satellites.
-  Decided (Boss, card tap, 8:14 PM EDT 2026-10-22): scale the satellites
-  with the galaxy's mass. Do: the count, mass and distance of the
-  satellites follow a law of the host's halo mass, with the law and its
-  constants sourced (verified wins; no fixed content from the Milky Way);
-  a small galaxy gets fewer satellites or none, and the full 11 appear at
-  the Milky Way's mass. It builds on GEN.369's seed-drawn satellites and
-  changes generated output, so it takes a generator epoch, numbered at
-  merge. Done: a 3e7 solar-mass galaxy builds without the 6.4e9 satellite
-  systems, a Milky-Way-mass galaxy builds the same satellites as before
-  the law (or the change is named in the epoch reason), the benchmark of
-  PERF.146 shows the saving, and a test checks the law at three host
-  masses. Owner: Core 1, after GEN.369 (the satellite items are Core 1's;
-  the TODO thread, 8:15 PM EDT 2026-10-22).
-  Also from the plan-numbers check (8:48 PM EDT 2026-10-22; Boss's
-  observation, so a bug): no satellite lies beyond the host's virial
-  radius, and the distances scale with the halo, not with the disc scale
-  length (`generation/plan_outline.py:61`,
-  `generation/satellites.py:93-95`); on Boss's seed the satellites hold
-  77.6 percent of the host's stars (the Large Magellanic Cloud row alone
-  62 percent) and 44 percent of everything the plan will generate. Core
-  1 builds it early: right after GEN.628 and GEN.625, with GEN.369.
-  Owner: Bugfix 2 (fourth, right after GEN.369; Boss, 8:52 PM EDT
-  2026-10-22: the plan-number bugs and their prerequisites go to a
-  second bugfix lane; this replaces any earlier owner line).
-  Progress (the TODO thread, 4:47 AM EDT 2026-10-23, GEN.625 merged as
-  #2627, relayed by the coordinator as the lane reported, release
-  8.0.2002, generator epoch 55): the all-Auto galaxy now draws its size
-  and flatness until the plan raises none of its grid warnings (warn
-  rate 17.5 percent to 0 over 1,000 seeds, mean mass 4.3e9, mean scale
-  length 1,224 pc). The plan-numbers check asks for the 1,000-seed sweep
-  to be re-run after GEN.624 and GEN.403 land, because they change the
-  satellites and clusters the plan counts.
-  Prerequisites: GEN.369. Related: PERF.146, GEN.403, GEN.625, PERF.163.
-
-- [ ] **GEN.627 The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug)**
-  Source: reports/plan-numbers-check-2026-10-22.md (the read-only check
-  of Boss's Stage 4 plan run, PlanetGen 8.0.1961, seed
-  2139DD5841E680B009A3D17A6319B2AA). Boss's live observations are bugs
-  (8:44 PM EDT 2026-10-22). The outline takes a component in by its
-  tidal reach, not by the density it reaches
-  (`galaxy/component_field.py:261-310`, `high_band`; `bound` at
-  `:239-259` is density-based, the two disagree). The Sagittarius row
-  (peak 0.58 systems per cell, never reaching one) alone adds 10.4
-  billion candidate cells because its 15.6 kpc tidal sphere covers the
-  whole host; the globular clusters add 3.8 billion and the open
-  clusters 1.0 billion. The printed 16,443,878,393 candidate sectors is
-  about 16 times the real count (about 1.0 billion cells reach one
-  expected system), and `GalaxyBounds.random_address`
-  (`galaxy/skeleton.py:294-309`), which draws uniformly over candidate
-  cells, would put about 94 percent of random starts in cells that hold
-  nothing (arithmetic from the cell counts, not yet observed). Do: take
-  a component in by the radius where its density falls below the
-  one-system threshold instead of the tidal radius; print both the
-  candidate count and the count of cells that reach one expected system.
-  Done: for the seed above the candidate count falls to the order of 1.0
-  billion and every random start lands in a cell that reaches one
-  expected system (a test over 1,000 random starts); a component that
-  never reaches the threshold adds no cells. Needs a generator epoch if
-  any generated value changes (random starts do), numbered at merge.
-  Owner: Core 1, after GEN.624 (the coordinator, relayed 8:48 PM EDT
-  2026-10-22).
-  Owner: Bugfix 2 (sixth; Boss, 8:52 PM EDT 2026-10-22: the plan-number
-  bugs and their prerequisites go to a second bugfix lane; this replaces
-  any earlier owner line).
-  Prerequisites: none. Related: GEN.624, GEN.403, GEN.625.
-
 - [ ] **GEN.629 The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together**
   Finding of Blocker 3 in GEN.495 (relayed 11:56 PM EDT 2026-10-22 as
   the coordinator and the lane reported), filed by the TODO thread.
@@ -15005,6 +14627,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.57, GEN.44, GEN.42, GEN.309,
   TEST.181.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+
+- [ ] **GEN.634 The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline)**
+  Left over from GEN.627 (merged in #2638 with GEN.369, GEN.624 and
+  GEN.403; relayed 6:31 AM EDT 2026-10-23 as the lane reported); filed
+  by the TODO thread. Kind: cost and tidiness, not a wrong result. With
+  GEN.369, GEN.403 and the outline by density reach in, the 2139DD58
+  galaxy's candidates fell from 16.4 billion to 3.5 billion, and the
+  plan prints about 1,008,663,079 of them expect at least one system
+  (GEN.627's Done asked for the order of 1.0 billion, so it is partly
+  met). The excess left is the outline's (shell, highest band)
+  representation: a few young clusters at 1 kpc height lift the run of
+  bands for the whole shell. Random starts already land in a sector that
+  expects a system (a redraw), so nothing is wrong for a user. Do:
+  replace the (shell, highest band) mark with an interval outline (a run
+  of bands per shell), if Boss wants the plan's candidate count to equal
+  the expecting count. Done: the candidate count is within a factor of
+  two of the count that expects a system on 2139DD58 and on three other
+  seeds, and the outline has a test per shape. Owner: none (pool). Not
+  needed for 8.1: Boss may pull it forward.
+  Prerequisites: none. Related: GEN.627, GEN.624, GEN.403, GEN.369.
+
+- [ ] **GEN.635 The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403)**
+  Left over from GEN.403 (merged in #2638; relayed 6:31 AM EDT
+  2026-10-23 as the lane reported); filed by the TODO thread. GEN.403
+  made the cluster count follow the halo mass with its scatter and
+  removed the fixed 157 and the hard-coded 8000 and 1000, but two parts
+  of the research were not built: the cluster system's radial profile
+  (the item said it stays a stated research request:
+  docs/design/galaxy-laws-research.md sections Q3 and Q4, the Hudson and
+  Robison R200^2.63 against Forbes R200^1 conflict, requests R7 to R9 on
+  GEN.531) and the dwarf-end occupation draw with the Carlsten 2021 fits
+  (arXiv:2105.03435, log M* 5.5 to 8.5). Do: draw each cluster's
+  position from a radial profile with a sourced law and its scatter, and
+  give the dwarf end an occupation draw below the massive range, both
+  through unit_seed and the one random wrapper, each law with its source
+  named; it changes generated output and takes a generator epoch,
+  numbered at merge. Done: the cluster radii follow the stated profile
+  over many seeds (a test), a dwarf-mass halo can hold none or a few,
+  and the stand-ins it replaces are retired in the registry. Owner: none
+  (pool). Not needed for 8.1: Boss may pull it forward.
+  Prerequisites: none. Related: GEN.403, GEN.387, GEN.531, GEN.297.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
