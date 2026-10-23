@@ -16159,60 +16159,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
-- [ ] **PERF.156 The warm-up counts the search check answering 202 (a queued job) as a failure, so planetgen warm stops after phase 4 on a large galaxy (bug)**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: bug and
-  cost. Failure: on a galaxy with 3.1M phenomena the search check
-  answers 202 (a queued job) and the warm-up counts 202 as a failure, so
-  'planetgen warm' stops after phase 4; the rest is 31 percent of the
-  run (8 minutes at size small). Do: make the check wait for the job, or
-  make /search need no job, and accept 202 as a valid answer. Done:
-  'planetgen warm' reaches its last phase on the benchmark galaxy and a
-  test covers a 202 answer. Owner: Performance (proposed by the TODO
-  thread, because the lane found it and PERF.146 lives there; the
-  coordinator can move it).
-  Progress (Performance, PERF.164 merged as #2623, relayed 4:15 AM EDT
-  2026-10-23 as the lane reported): at the medium size (4e9) the warm-up
-  takes 27.8 minutes and still fails on the /search check answering 202
-  (its deep-tiles phase builds 1,665 tiles in 948 s); it is the largest
-  single cost at both sizes, 74 minutes with it and 46 without. Measured
-  numbers: docs/design/generation-performance.md, section 'What medium
-  and large show'.
-  Prerequisites: none. Related: PERF.146.
-
-- [ ] **PERF.157 The warm-up reads 95.9 million rows for 1,044 deep tiles, about 92,000 rows a tile**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. Measured: warm deep-tiles took 320 s for 1,044 tiles
-  and read 95.9M rows. Do: read fewer rows for a deep tile (the rows a
-  tile shows, not the sector's), with the output of every tile
-  unchanged. Done: the same tiles in a fraction of the rows, and a test
-  that compares a tile before and after. Owner: Performance (proposed by
-  the TODO thread, because the lane found it and PERF.146 lives there;
-  the coordinator can move it).
-  Prerequisites: none. Related: PERF.146.
-
-- [ ] **PERF.158 scatter --band writes 348,743 single-row UPDATE statements and 2.4 million rows in 5.2 minutes**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. Measured: scatter --band issued 348,743 single-row
-  UPDATEs and wrote 2.4M rows in 5.2 min. Do: batch the updates (one
-  statement for many rows, or a staging table and one joined update).
-  Done: the same rows with far fewer statements and a time drop on the
-  benchmark. Owner: Performance (proposed by the TODO thread, because
-  the lane found it and PERF.146 lives there; the coordinator can move
-  it).
-  Prerequisites: none. Related: PERF.146.
-
 - [ ] **PERF.159 scatter --mass and --luminosity expand 65,536 shells serially in the supervisor, so the machine runs at 1.3 to 1.7 of 4 cores**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -16225,20 +16171,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the step, with identical rows. Owner: Performance (proposed by
   the TODO thread, because the lane found it and PERF.146 lives there;
   the coordinator can move it).
-  Prerequisites: none. Related: PERF.146.
-
-- [ ] **PERF.160 fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. Measured: fill-map-luminosity runs 3.1M single-row
-  UPDATEs, 162 s of server CPU against 45 s on the client. Do: one
-  set-based UPDATE per block. Done: the same values written with a
-  block-sized number of statements. Owner: Performance (proposed by the
-  TODO thread, because the lane found it and PERF.146 lives there; the
-  coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.161 bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass**
@@ -16355,6 +16287,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   expiry finishes and the run completes, and the test passes. Owner: the
   fix thread (Boss, 5:18 PM EDT 2026-10-23).
   Prerequisites: none. Related: PERF.146, PERF.171.
+
+- [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
+  Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
+  EDT 2026-10-23 as the lane's clock reads); filed by the TODO thread.
+  Measured on the benchmark suite: every unit's connection runs the
+  schema check (GET_LOCK, 10 CREATE TABLE IF NOT EXISTS, CREATE OR
+  REPLACE VIEW), 861 times, about 130 s of server time over the 617 s
+  band step. Kind: cost, value-neutral. Do: skip the check when the
+  stored schema version is current. Done: the same schema, with the
+  check run once per process or per version change. Owner: Performance
+  (proposed by the TODO thread, because the lane found it).
+  Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.175 benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug)**
+  Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
+  EDT 2026-10-23 as the lane's clock reads); filed by the TODO thread.
+  Reproducer: 'planetgen benchmark --suite --keep' on a run that
+  succeeds; fails on main, every run. Kind: bug. Expected: the scratch
+  databases stay. Observed: they are dropped on success. Do: honour
+  --keep on the success path. Done: a test that the databases survive a
+  successful run with --keep and go without it. Owner: Performance
+  (proposed by the TODO thread, because the lane found it).
+  Prerequisites: none. Related: PERF.146.
 
 ## DB: Database and schema
 

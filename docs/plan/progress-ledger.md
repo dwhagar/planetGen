@@ -1145,3 +1145,7 @@ Baseline: PR #1817.
 | GEN.417 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.453 | 8.1 | Radiation chain for habitability (GEN.445) |
 | UX.147 | 8.1 | Generate page and directives |
+| PERF.160 | 8.1 | The headline closes |
+| PERF.158 | 8.1 | The headline closes |
+| PERF.157 | 8.1 | The headline closes |
+| PERF.156 | 8.1 | The headline closes |
