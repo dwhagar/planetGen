@@ -494,7 +494,7 @@ class Recipes:
             raise DataError(f"row {row_id} is a stand-in and names no replacement item")
         if raw["state"] == pt.OPEN_STATE:
             if not raw.get("items") or any(item not in self.research.values() for item in raw["items"]):
-                raise DataError(f"row {row_id} is open and names no research item (GEN.480 to GEN.494)")
+                raise DataError(f"row {row_id} is open and names no research item of the part (R1 to R15)")
         known = set(tuning.PLANET_CLASSES) | set(PLANNED_CLASSES) | set(OBJECT_CLASSES) | {pt.ANY_CLASS}
         unknown = sorted(set(raw["classes"]) - known)
         if unknown:
@@ -655,7 +655,7 @@ class Recipes:
         for letter in sorted(self.categories):
             rows = [self._pt_row(e) for e in self.entries if e.category == letter]
             tables.append(pt.Table(f"atmosphere-{letter}", self.document["version"], rows,
-                                   description=f"{self.categories[letter]} (GEN.478, part 09 category {letter})"))
+                                   description=f"{self.categories[letter]} (part 09 category {letter})"))
         return tuple(tables)
 
     def _register(self):
