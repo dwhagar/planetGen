@@ -15503,7 +15503,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.146 shows the saving, and a test checks the law at three host
   masses. Owner: Core 1, after GEN.369 (the satellite items are Core 1's;
   the TODO thread, 8:15 PM EDT 2026-10-22).
-  Prerequisites: GEN.369. Related: PERF.146, GEN.403.
+  Prerequisites: GEN.369. Related: PERF.146, GEN.403, GEN.625, PERF.163.
+
+- [ ] **GEN.625 Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch)**
+  Boss (8:28 PM EDT 2026-10-22), after reading the plan coverage warning
+  (reports/plan-warning-explained-2026-10-22.md: "the disc's crest is
+  11.5 times the one-star density (under 20): about 38 percent of its
+  stars sit in planned sectors"): "Ok can we tune the defaults to avoid
+  the warnings? I don't want it more than half as big as the milky way
+  on average if possible." Filed by the TODO thread through the
+  coordinator. Reading chosen: the Auto draws for stellar mass, disk
+  scale length, flatness and central density
+  (docs/design/galaxy-size-levers.md, `galaxy/dials.py`) are retuned so that a
+  default galaxy does not trigger the warning (the disc's crest is at
+  least 20 times the one-star density), while the average default galaxy
+  stays at most half the Milky Way's size (its disk scale length and its
+  stellar mass both at most half the Milky Way's; the Auto mass range of
+  3e9 to 6e9 solar masses is already under a quarter, so the size and
+  flatness draws are the levers, since the crest goes as stellar mass
+  over scale length cubed and as flatness). If Boss meant total systems
+  rather than size, the same test applies to the system count. Do: (1)
+  sweep the Auto draws over at least 1,000 seeds and report the share
+  that warn today, with the crest and planned-star share for each; (2)
+  retune the size-mass relation draw, the flatness draw and the central
+  density so none warns, keeping every value inside its sourced range
+  (source rules: verified wins; a range that cannot hold both goals is
+  reported to Boss, not stretched); (3) the warning text and threshold
+  stay as they are. Done: a test that draws 1,000 Auto galaxies and
+  finds no warning, with a mean size at most half the Milky Way's, and
+  docs/design/galaxy-size-levers.md states the new Auto draws. Generator epoch: the draws
+  change generated values, so this needs a generator epoch; 51 is the
+  next free number and the epochs file must stay contiguous, so the
+  first of this item, DB.85 and PERF.123 slice C to merge takes 51, the
+  next 52 and so on, numbered at merge. Owner: Core 1, first in its
+  queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
+  EDT 2026-10-22).
+  Prerequisites: none. Related: GEN.624, GEN.613, GEN.619.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16629,6 +16664,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread, because the lane found it and PERF.146 lives there; the
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
+
+- [ ] **PERF.163 The Stage 4 plan takes 264 s against a 3.71 s skeleton: find where the other time goes**
+  The Stage 4 plan of a default-size galaxy with the default dials
+  (PlanetGen 8.0.1961, Boss's run, 8:23 PM EDT 2026-10-22) took 264 s
+  while the skeleton took 3.71 s. The log does not show where the other
+  260 s went; the research thread
+  (reports/plan-warning-explained-2026-10-22.md) suspects cluster and
+  satellite drawing, storing the shells and the bright stars, but did
+  not check. Why: the plan stage is the first thing a person runs, and
+  PERF.146 profiles generation options and scatters but not this stage
+  by name. Do: profile the plan stage on a default galaxy, with a
+  per-step timing table in the plan log (skeleton, outline, shell
+  storage, bright stars, clusters, satellites, globular clusters), find
+  where the 260 s goes and either fix it or file the ranked fixes. Note
+  that the satellites hold about 6.4e9 systems against about 8.4e9 for
+  the host (see GEN.624, decided: they scale with the host's mass), so
+  their share of this time falls once GEN.624 lands; measure before and
+  after. Done: the plan log prints the step timings, a report names the
+  top cost, and a repeatable benchmark command runs it. Owner: the
+  performance thread, as part of or beside PERF.146.
+  Prerequisites: none. Related: PERF.146, GEN.624.
 
 ## DB: Database and schema
 
