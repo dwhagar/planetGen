@@ -20,8 +20,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix |  | Research: before USR.2. |
-| USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI | SEC.32 | Split from USR.2. |
+| USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI |  | Split from USR.2. |
 | USR.3 | SMTP settings in the admin config | ADM.86, USR.26 |  |
 | USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links |  | Foundation found in the review. |
 | USR.5 | Email loop for setting and resetting passwords | USR.3, USR.28 |  |

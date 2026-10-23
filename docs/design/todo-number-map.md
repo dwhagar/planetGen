@@ -1941,7 +1941,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | done, PR #612 |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | done, PR #643 |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
-| SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | open |
+| SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | done, PR #2667 |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
