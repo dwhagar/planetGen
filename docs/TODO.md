@@ -1225,87 +1225,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
-- [ ] **MAP.146 Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field**
-  Boss (2026-10-09 22:24Z): "I want the zoom drill down to be less
-  specific, instead of set wedges, blocks, and slabs pre-determined, have
-  them based on the center of where the cursor is clicked. So that we
-  always are drilling down exactly where the user wants. We'll have to
-  convert block/slab measures to ranges of layers/shells/slots for
-  filling on demand." Boss (22:49Z and 22:56Z): the end goal is to
-  scroll-zoom and fly smoothly through the interface to a location; the
-  system does not do view distance well and renders and keeps clickable
-  what is right in front of the camera and the object the camera is in;
-  stars should be shown by a smooth distance-and-brightness gradient so
-  only what the observer could see is drawn; inside a block or sector the
-  observer should see its contents without looking around what is in the
-  way, the nearer things becoming more transparent as they approach;
-  double-click zooms or flies to a clickable thing, the wheel zooms in and
-  out, the user is always in the 3D galaxy even when viewing a sector;
-  the sectors looked at are rendered well and the surroundings stay
-  visible but quiet; smooth from the galaxy down to a star system.
-  Done: the Galaxy Map has one free camera from the whole galaxy to a
-  star system, built by its five sub-items: MAP.148 (the star visibility
-  law), MAP.149 (the near field), MAP.150 (the free camera), MAP.151
-  (the region data layer) and MAP.152 (scale hand-offs). The wheel zooms
-  toward the point under the cursor, double-click flies to the thing
-  clicked, stars fade by apparent magnitude against an on-screen limit,
-  things near the camera dissolve, and the camera position names the
-  container. The arc, slab and segment picks stop being the way to move;
-  old stage URLs stop working (no backward compatibility). The open
-  questions for Boss, each with a default, are on the sub-items.
-  Phase 1, and the headline of the 8.1 release (Boss, 2026-10-09
-  23:07Z): "Let's inject into phase 1 to full build ... This will be our
-  major version bump to 8.1 later when we finish Phase 1, this is the
-  main feature to move that." So MAP.146 and every item under it
-  (MAP.147 to MAP.155) are part of what "Phase 1 complete" means: the
-  8.1 stamp waits until all of them are done, and the 8.0 hold stays
-  until then. The open questions on the sub-items stand, each with its
-  default.
-  Order (Foundations lane 2, the map engine lane): MAP.157 and MAP.158
-  (the small wire format steps, no prerequisites), then MAP.153 and
-  MAP.149 (client side only, no prerequisites), then MAP.148 (needs
-  MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
-  MAP.159 (packed binary tiles; needs MAP.158; one cache stamp bump with
-  MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
-  and MAP.150, done in #1382); this umbrella closes last.
-  Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Progress (the TODO thread, 3:10 AM EDT 2026-10-23, answering Core 2's
-  question): every sub-item named in this item is done (MAP.147 to
-  MAP.155, MAP.225 to MAP.228 and MAP.245 are all merged), so nothing is
-  left open under the umbrella. Core 2 checks the Done text against the
-  map on main, closes the umbrella in a PR that retires it, or files
-  what is missing as new items. MAP.249, MAP.209 and MAP.210 are
-  related, not prerequisites; they wait on Boss's browser retest.
-  Prerequisites: none.
-  Related:
-  MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
-  MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
-  NAV.14.
-  Overlap (2026-10-09, zoom-star-visibility.md): Star visibility while
-  zooming is also covered by MAP.153 to MAP.155
-  (docs/design/zoom-star-visibility.md): MAP.153 is the first client
-  stage of MAP.148's law.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
-  Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
-  Owner: Core 2 (Boss, 2026-10-16, 11:32 AM EDT), right after MAP.152; the 8.1 headline.
-  What remains after MAP.152 merged (2026-10-16) (Boss 2:29 PM EDT): the
-  wheel toward the cursor (MAP.225), the double-click flight (MAP.226),
-  the container named from the camera position (MAP.227) and the camera
-  in the address (MAP.228); each was only in the Done line above and now
-  has its own item. This umbrella closes last.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Built (Core 2, 2026-10-17, 11:33 AM EDT as the lane reported; wheel
-  zoom toward the pointer #2031, MAP.227 and MAP.228 #2032): the wheel
-  zooms toward the point under the cursor; the header and the breadcrumb
-  ("In Sector ...") follow the camera's own cell; the address holds the
-  camera (`?cam=...`); old `?win=` links open the galaxy, no shim. Open:
-  MAP.245 (the column-density ray fallback, the clearance and the
-  half-way double click), which this umbrella now waits on in place of
-  MAP.225.
-
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
   select a single layer (or range of layers) to view top-down. It should
@@ -18224,6 +18143,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Correction (Core 2, relayed 3:19 AM EDT 2026-10-23 as the lane
+  reported, building it; in its gate): the control database has no
+  Alembic chain, so the table is `generate_recipes` in
+  src/planetgen/db/control_schema.sql at control schema version 17, not
+  a migration after the galaxy head (0130); the Do text above that names
+  an Alembic revision is wrong on that point.
   Prerequisites: none. Related: ADM.99, ADM.108.
 
 - [ ] **ADM.126 Generate: a live 'how big' count while typing a command or filling the form**
