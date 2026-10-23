@@ -5415,7 +5415,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.450, TEST.196,
+  Prerequisites: GEN.450,
   SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -8680,6 +8680,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   verified); the gap to the observed -0.28 dex per kpc closes by an
   index rising at low gas density, a gas disc more extended than the
   stars, or an outer-disc threshold: the choice must be named. Rule V.
+  Progress (Core 4, relayed 6:43 AM EDT 2026-10-23 as the lane
+  reported): the sources are read on arXiv (Bigiel 2008, Leroy 2008,
+  Schaye 2004; the Herschel paper and Kennicutt were already in this
+  note). They support a physical closure (H2 forms stars at constant
+  efficiency, the efficiency in HI-dominated gas falls with radius, HI
+  saturates near 9 solar masses per square parsec) but not a single
+  number, so the item's card clause applies: Core 4 posted Boss a
+  3-option card (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC, in the Core 4
+  thread). Core 4 waits on his tap before building.
   Prerequisites: none. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 - [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
@@ -18682,67 +18692,6 @@ clears each one.
   and the browser console) and the load at the time. Running log: the
   comments on issue #1694.
   Prerequisites: none.
-
-- [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
-  Boss (2026-10-16, 6:15 PM EDT, on the GEN.103 cards): the metallicity
-  effect on close binaries applies to every star mass, "but let's build
-  into that a check to see if the numbers act as expected". Done: a
-  check in the census harness (TEST.186, `src/tests/audit/census.py`)
-  that fills seeded sectors across the [Fe/H] range, counts the
-  close-companion share (inside about 10 AU) by primary-mass bin and
-  [Fe/H] bin, compares each bin to the published range with the Poisson
-  allowance (the Moe, Kratter and Badenes 2019 points, as Core 4 reads
-  them: 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 for
-  solar-type stars, and whatever the sources give for other masses),
-  flags every out-of-range bin in the audit report, shows that the
-  wide-companion share does not move with [Fe/H], and fails the test run
-  when a bin is out of range. The ranges are reference values for the
-  check, never inputs to the draw. Owner: Core 4 (near TEST.186, which
-  is Core 3's harness; ask Core 3 before editing census.py).
-  Status (Core 4, 2026-10-16, 7:16 PM EDT): TEST.186 is not on main yet,
-  so the check cannot be built. The note lists the expected ranges. The
-  massive-star flatness bins fail with plain scaling of the metallicity
-  factor; with the odds form Core 4 recommends in GEN.103 they are
-  expected to pass at the edge. The test lands only with a green run (no
-  skip, no quarantine). The 3.2 prevalence cap (GEN.373) was dropped by Boss
-  (2026-10-17, 10:07 AM EDT) and does not gate this test.
-  Prerequisites: none. Related: GEN.103, TEST.186,
-  TEST.161, TEST.164.
-  Finding (Core 4, 2026-10-17, 10:16 AM EDT as the lane reported, from
-  building GEN.448; relayed by the coordinator): the G-dwarf
-  close-companion level inside 10 AU is 0.13 at [Fe/H] 0 against the
-  pooled line's 0.20, and the O and B flatness ratios are 1.32 and 1.43
-  against this check's 1.3 edge. The check's expectations for them are
-  to be set from the built tables (TEST.196), not the other way round,
-  once GEN.448 and GEN.449 merge.
-  Merged-state findings (Core 4, 2026-10-17, 5:16 PM EDT as the lane
-  reported, GEN.447, GEN.448 and GEN.449 merged as #2100, #2101, #2102,
-  epochs 14, 15, 16): (1) the G-dwarf level inside 10 AU is 0.13 at
-  [Fe/H] 0 against the pooled line's 0.20 (Table 13's own figure is 0.15
-  +-0.03; the cause is open); Boss's 12:39 PM EDT rule (the newest
-  verified source wins) would point to the 2019 line; this check
-  compares ratios, not absolutes, so an offset in the level does not
-  fail it. (2) The O and B flatness ratios at [Fe/H] -0.7 are 1.32 and
-  1.43 against this check's 1.3 edge. Default until Boss says otherwise
-  (his rule that when two sources are both in question the widest range
-  wins, 12:39 PM EDT): the edge is widened to the range the sources give
-  once they are read, and the check is not narrowed to O only; Boss may
-  overrule. (3) Table 13's close-binary frequency by primary mass (0.15,
-  0.37, 0.63, 0.8, 1.0) sits in
-  `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and nothing draws from it;
-  default: it is a reference for this check and never an input to the
-  draw, as the ranges above are.
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item: the flatness edge is widened to the
-  range the sources give.
-  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
-  and "Ratios, report levels", as the coordinator reported it): the star
-  metallicity check compares ratios and reports the absolute levels
-  without failing on them; only the ratio comparison can fail.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (this item says itself that the check
-  cannot be built without it; TEST.186 is merged, PR #2040).
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
