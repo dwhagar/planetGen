@@ -410,7 +410,6 @@ def test_the_report_is_clean_for_a_consistent_galaxy(mysql_config, galaxy, capsy
 def test_a_species_whose_own_homeworld_is_an_abiotic_surface_is_still_consistent(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
-        conn.execute("DELETE FROM planet_evolutionary_paragraphs WHERE planet_id = ?", (galaxy["earth"],))
         conn.execute("UPDATE planets SET life_chemical = NULL WHERE id = ?", (galaxy["earth"],))
         conn.commit()
         assert species_fit.inconsistencies(conn) == []

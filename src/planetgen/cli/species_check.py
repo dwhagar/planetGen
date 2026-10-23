@@ -21,13 +21,14 @@ import argparse
 import sys
 
 from planetgen.db import species_fit, store
+from planetgen.db.query import open_readonly
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="List every species placed outside its own environment limits.")
     store.add_mysql_connection_args(parser)
     args = parser.parse_args(argv)
-    conn = store.get_connection(store.mysql_config_from_args(args))
+    conn = open_readonly(store.mysql_config_from_args(args))
     try:
         found = species_fit.inconsistencies(conn)
         total = conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"]
