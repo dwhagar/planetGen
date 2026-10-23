@@ -144,7 +144,10 @@ def test_the_line_is_the_estimate_only_output_for_the_same_values(mysql_config, 
     app.testing = True
     real = app.test_client()
     real.set_cookie(SESSION_COOKIE_NAME, "x")
-    form = {"what": "grid", "mode": "shell", "shell_index": "1", "shell_band": "0", "shell_limit": "3"}
+    # The estimate runs in a process of its own, which does not have conftest's "nothing is missing" and so refuses on a
+    # machine whose cache folder is empty (GEN.599); the form's own switch lets it carry on.
+    form = {"what": "grid", "mode": "shell", "shell_index": "1", "shell_band": "0", "shell_limit": "3",
+            "disregard_missing_data": "1"}
     answer = real.get(SIZE, query_string=form).get_json()
     assert answer["state"] == "ready", answer
     capsys.readouterr()

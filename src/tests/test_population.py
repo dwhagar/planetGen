@@ -154,9 +154,28 @@ def test_polity_color_and_government_are_stable():
 # Database pass
 # ---------------------------------------------------------------------------
 
+def _gets_a_species(conn, system_id):
+    """Whether the population pass will put a species on a planet of the saved system: a world that reached a
+    technological civilization (`has_civilization`; intelligent life is forced on in `_civilized_system`) and whose
+    limits can hold its species (POP.14: no species where undrinkable water rules it out)."""
+    from planetgen.db import species_fit
+    for row in conn.execute("SELECT id, life_stage, life_system_age_gyr, life_milestone_age_gyr FROM planets "
+                            "WHERE star_system_id = ?", (system_id,)).fetchall():
+        timeline = population.timeline_of(row["life_stage"], row["life_system_age_gyr"], row["life_milestone_age_gyr"])
+        if timeline is None or timeline.life_stage != "technological_civilization":
+            continue
+        try:
+            species_fit.check_homeworld(conn, row["id"])
+        except species_fit.PlacementError:
+            continue
+        return True
+    return False
+
+
 def _civilized_system(mysql_config):
-    """A saved system with a habitable planet that reached a technological
-    civilization -- retried, since generation is random."""
+    """A saved system with a habitable planet that reached a technological civilization and will get a species --
+    retried, since generation is random. A system the pass would leave without a species is deleted again (TEST.296:
+    one in a few kept by the old test of the timeline alone, and a test counting the species failed)."""
     for _ in range(200):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
@@ -164,9 +183,16 @@ def _civilized_system(mysql_config):
         cfg.HABITABLE_WORLD = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(population.timeline_of(getattr(p, "life_stage", None), getattr(p, "life_system_age_gyr", None),
-                                  getattr(p, "life_milestone_age_gyr", None)) for p in system.planets):
-            return store.save_system(system, cfg, config=mysql_config)
+        if any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.planets):
+            system_id = store.save_system(system, cfg, config=mysql_config)
+            conn = store.get_connection(mysql_config)
+            try:
+                if _gets_a_species(conn, system_id):
+                    return system_id
+                with conn:
+                    conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
+            finally:
+                conn.close()
     pytest.fail("could not generate a system with a civilization")
 
 
