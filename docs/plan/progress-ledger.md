@@ -1134,3 +1134,4 @@ Baseline: PR #1817.
 | PERF.167 | 8.1 | The headline closes |
 | GEN.253 | 8.1 | Multi-star and compact systems |
 | GEN.146 | 8.4 | Planet classes |
+| TEST.296 | 8.1 | Bugs and flaky tests |

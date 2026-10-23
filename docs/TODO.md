@@ -19604,36 +19604,6 @@ clears each one.
   Done is unchanged except that a recurrence is now diagnosable.
   Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
 
-- [ ] **TEST.296 test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug)**
-  Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
-  in its gate for ADM.126 (#2677); filed by the TODO thread. Kind: flaky
-  test, cause unknown. Test:
-  src/tests/test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits.
-  Failure: population.run_pass reported new_species 1 where the test
-  expects at least 2; it passes alone and ADM.126 does not touch it.
-  Fails on main: unknown. Frequency: once in one gate. Do: capture the
-  failure text and the seed, run it 50 times at -n 4, then find whether
-  the count of new species depends on timing, on the order of the tests
-  or on a seed that rarely draws one species, and fix the cause (a fixed
-  seed or a test that does not assume a count). Done: the test passes 50
-  times in a row at -n 4 and the cause is on this item. Owner: Bug Hunt
-  (proposed by the TODO thread).
-  Second sighting, in another test (Blocker 3, relayed about 1:12 PM EDT
-  2026-10-23 as the lane reported):
-  src/tests/test_population_rescans.py::test_territories_only_skips_new_worlds
-  failed once in a full changed gate on the GEN.146 branch at `assert
-  model.run_pass(conn)["new_species"] >= 1` (got 0); it passed 15 of 15
-  alone; frequency about once in 3 full gates. Likely common cause
-  (Blocker 3's reading, not confirmed): the helper `_civilized_system`
-  in test_population.py generates randomly and only checks that a planet
-  has a life timeline, while POP.14 (#2651) places no species on a
-  homeworld whose own limits cannot hold it, so a drawn system can end
-  with no species and new_species is 0 or 1. Reproducer: loop the two
-  tests, or seed the generation in `_civilized_system` and require a
-  species row. Done now also covers
-  test_population_rescans.py::test_territories_only_skips_new_worlds.
-  Prerequisites: none. Related: TEST.290, TEST.289.
-
 - [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**
   Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
   in its gate for ADM.126 (#2677); filed by the TODO thread. Kind: tests
@@ -19650,6 +19620,32 @@ clears each one.
   (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.141, TEST.284, TEST.287, TEST.289,
   TEST.295.
+  Waiting on data (Bug Hunt, relayed 1:25 PM EDT 2026-10-23 as the lane
+  reported): 13 tests of one file failing together at the same minute
+  points at the machine and not at 13 flakes. Asked of Core 2: the
+  failure text of one work-queue test and of the sector-open test,
+  whether MySQL or Redis restarted, hit max_connections or ran out of
+  disk during the gate, and whether its venv had argon2-cffi (main needs
+  it since SEC.32).
+  Core 2's answers (relayed 1:26 PM EDT 2026-10-23 as the lane reported;
+  gate 11:14 AM to 12:37 PM EDT, log /root/gate-adm126d.log on Core 2's
+  machine): test_a_dead_worker_never_hangs_the_run[1] ends 'the run hung
+  after a worker died: its record stood still for 60 s'
+  (test_work_queue_failures.py:133); test_on_done_raising_fails_the_run
+  ends with an IndexError in _ended_cleanly line 69, the work_jobs row
+  for the job id (state 'failed') not found by _rows; the sector-open
+  test is a playwright TimeoutError, wait_for_function 20000 ms,
+  test_web_browser_sector_open.py:212. MySQL and Redis did not restart
+  (uptime about 50,830 s), Max_used_connections 43 of 151, no disk or
+  connection-refused lines, disk 8.4 GB free, load 6 to 8, all 13 pass
+  alone at load 6.1 to 6.7, argon2-cffi 25.1.0 was installed. So it is
+  not the machine breaking; it is timing under load.
+  Bug Hunt's reading (relayed 1:40 PM EDT 2026-10-23 as the lane
+  reported): the dead-worker test's 60 s idle window was too short at
+  load 6 to 8, and test_on_done_raising_fails_the_run found no work_jobs
+  row because `_book` swallows control-database errors silently. Bug
+  Hunt loops the file under load and makes the tests report the
+  swallowed error.
 
 ## USR: User accounts
 
