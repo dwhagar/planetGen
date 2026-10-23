@@ -11528,49 +11528,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unsupported); one comet: rule M, the widest. Gas trapped in amorphous
   ice by deposition temperature is the nearest law.
 
-- [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-2 (part G1). The note's lifetimes are one value per
-  species (NH3 2.5e4 s); the lane read and recomputed them: NH3 about
-  6.7e3 s (5.4e3 to 7.7e3), quiet-Sun values, the active Sun shortening
-  H2O by 1.7 and CO2 by 2.35, and the scaling with the star's
-  ultraviolet is species-specific and not one scalar (for a cool star CO
-  falls by 3.5e-4, CH4 by about 80 and NH3 barely). Do: a table of the
-  species' photolysis lifetime at 1 AU for the quiet Sun, with the
-  active-Sun factors and the species-specific stellar-spectrum ratios,
-  as constants of the species table (GEN.410, not stored per body), read
-  by the coma and exosphere draws (GEN.455), the photochemical lifetimes
-  of the atmosphere (GEN.413 and GEN.409) and the trace-gas rows. Done:
-  a test checks each lifetime against the part's computed value and that
-  no module holds a lifetime constant of its own. Owner: Core 4
-  (proposed, with the composition chain).
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): reconciled by the Body composition lane (3:00 AM EDT as the lane reported; section 15.1 of body-composition-research.md): not a conflict. 6.7e3 s (1.5e-4 per s; Heays 2017 with the Liang 2007 cross section, reproduced to four digits by the Atmosphere lane; Biver 2007 agrees) is the default and 5.6e3 s (1.8e-4 per s; Huebner 1992 and Huebner and Mukherjee 2015, called quiet Sun by two sources and a quiet and active mean by Drozdovskaya 2023, inputs not reached) the other end of the published range 5.4e3 to 7.7e3 s. Settled by the two lanes (Atmosphere lane about 3:25 AM EDT as the lane reported, part 10E): the table stores the quiet-Sun rate and an NH3 activity factor of 1.05 to 1.10 (NH3 absorbs mainly at 170 to 217 nm, so active over quiet is small; the lane's own recomputation gives quiet 1.28 to 1.54e-4 and active 1.35 to 1.70e-4 per s), and a hard 200 nm cut would be wrong by a factor 2 because 200 to 226 nm supplies half of the rate. The Huebner and Mukherjee tables stay on the research item GEN.501 to replace the bracket.
-  The NH3 activity factor is the research item GEN.501.
-  Prerequisites: none. Related: GEN.410, GEN.455, GEN.413, GEN.472,
-  GEN.501.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
-  JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
-  stay meanwhile.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
-  al. 2020) is on Boss's list.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD8: still open. JPL Evaluation 19
-  was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
-  numbers; it prints 2019 for the evaluation the plan calls 2020, so
-  check the year on the item's citation.
-  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, third of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
   (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
