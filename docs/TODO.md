@@ -12744,7 +12744,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lifetimes and the giant branch reading the star's Z; one epoch and a
   rescatter of every star; GEN.651 and GEN.652 ride it. Owner: Core 4
   (from the TODO thread's hand-out, 6:40 PM EDT 2026-10-23), after its
-  current queue; replaces 'Owner: none' above.
+  current queue; replaces 'Owner: none' above. Moved to Habitability
+  lane A at 7:53 PM EDT 2026-10-23 (lane A is free and Core 4 is busy
+  on its critical path; no branch existed; Core 4 was told and keeps it
+  only if it already had local work).
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15185,8 +15188,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.553. Related: GEN.553, GEN.467, GEN.502, GEN.440,
   GEN.464.
   Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1:
-  composition-first stars). Owner: Core 4, built with GEN.553 in one
-  epoch (a rescatter of every star).
+  composition-first stars). Owner: Habitability lane A (moved from
+  Core 4 at 7:53 PM EDT 2026-10-23), built with GEN.553 in one epoch (a
+  rescatter of every star).
 
 - [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
   Gap found by the pipeline report
@@ -15206,8 +15210,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
   Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
   MIST is the single main-sequence table and the piecewise laws are
-  removed, no shim. Owner: Core 4, with GEN.553 and GEN.651 in one
-  epoch.
+  removed, no shim. Owner: Habitability lane A (moved from Core 4 at
+  7:53 PM EDT 2026-10-23), with GEN.553 and GEN.651 in one epoch.
 
 - [ ] **GEN.653 Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life**
   Boss, 6:54 PM EDT 2026-10-23: 'Now as an error condition for the
