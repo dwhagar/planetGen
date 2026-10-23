@@ -17610,27 +17610,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.13).
   Prerequisites: API.8. Related: API.3.
 
-- [ ] **ADM.126 Generate: a live 'how big' count while typing a command or filling the form**
-  Deferred by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
-  the lane's clock reads, when #2494 merged), filed by the TODO thread.
-  Part of the Generate rebuild of the admin control suite
-  (docs/design/admin-control-suite.md): while an admin types a command
-  or fills the Generate form, show a live count of how big the run will
-  be (the stars, systems and sectors it will make), from the same
-  estimate `planetgen generate --estimate-only` prints, so the cost
-  shows before Run. Do: an admin API that returns the estimate for the
-  form's current values (no job started, no data written, cached by the
-  form's values), and a line under the form that updates as the fields
-  change, with a debounce, and says when the values are not valid yet.
-  Done: changing a dial or the address changes the count within a
-  second, the count equals the estimate-only output for the same values
-  (a test), and nothing is written. Owner: the Admin redesign lane
-  (proposed), after ADM.116.
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: ADM.99, ADM.115, ADM.125.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -19608,6 +19587,39 @@ clears each one.
   cores at load about 10 (4 xdist workers, a second 2-worker scan on
   Redis port 6390, headless Chromium at 100 to 150 percent CPU).
   Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
+
+- [ ] **TEST.296 test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug)**
+  Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
+  in its gate for ADM.126 (#2677); filed by the TODO thread. Kind: flaky
+  test, cause unknown. Test:
+  src/tests/test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits.
+  Failure: population.run_pass reported new_species 1 where the test
+  expects at least 2; it passes alone and ADM.126 does not touch it.
+  Fails on main: unknown. Frequency: once in one gate. Do: capture the
+  failure text and the seed, run it 50 times at -n 4, then find whether
+  the count of new species depends on timing, on the order of the tests
+  or on a seed that rarely draws one species, and fix the cause (a fixed
+  seed or a test that does not assume a count). Done: the test passes 50
+  times in a row at -n 4 and the cause is on this item. Owner: Bug Hunt
+  (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.290, TEST.289.
+
+- [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**
+  Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
+  in its gate for ADM.126 (#2677); filed by the TODO thread. Kind: tests
+  that fail under load, the same family as TEST.141, TEST.284, TEST.287,
+  TEST.289 and TEST.295. Tests: all 13 in
+  src/tests/test_work_queue_failures.py and
+  src/tests/test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel.
+  Failure: they failed in the gate at load 6 to 8 and passed alone (the
+  failure text was not given). Fails on main: unknown. Frequency: once
+  in one gate. Do: capture the failure text, then find what the 13 share
+  (a queue worker start, a fixed wait, a port or a Redis key) and make
+  them wait for the state they need rather than a time. Done: the 14
+  tests pass 50 times in a row at -n 4 under load. Owner: Bug Hunt
+  (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.141, TEST.284, TEST.287, TEST.289,
+  TEST.295.
 
 ## USR: User accounts
 
