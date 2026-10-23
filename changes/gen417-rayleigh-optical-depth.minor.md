@@ -1,4 +1,0 @@
-**Headline:** The scattering depth of any atmosphere follows from its stored gases, pressure and gravity (Earth air 0.097 at 550 nm), the first step of the radiation chain.
-
-### Added
-- **GEN.417: Rayleigh optical depth of the mixture.** `physics/air_column.py` turns a body's stored partial pressures and gravity into an air column (column mass, mean molar mass, molecules of each gas per square centimetre; the unstored helium or ammonia balance of a class template completes it), and `physics/rayleigh.py` sums the per-gas cross sections of the gas table over it at any wavelength from 200 to 1100 nm (a three-point fit of `A lambda^-4 (1 + B / lambda^2)^2` per gas). Dry Earth air gives 0.0970 at 550 nm (Bucholtz 1995: 0.09721), 92 bar of Venus-like air 16.4, 1 bar of hydrogen and helium 0.093. Pure functions of stored values: no column, no migration, no generator epoch.
