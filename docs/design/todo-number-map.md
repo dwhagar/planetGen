@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.128 |
 | SEC | SEC.34 |
-| TEST | TEST.292 |
+| TEST | TEST.293 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.75 |
@@ -993,7 +993,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | none | done, PR #1820 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | none | done, PR #2255 |
 | GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | none | done, PR #1904 |
-| GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | none | open |
+| GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | none | done, PR #2640 |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | none | open |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model | none | done, PR #1932 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) | none | done, PR #1932 |
@@ -2516,6 +2516,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.289 | Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug) | none | open |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) | none | open |
 | TEST.291 | test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug) | none | open |
+| TEST.292 | test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
