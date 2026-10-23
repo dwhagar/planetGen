@@ -30,7 +30,8 @@ TASK_KEYS = ("add-sectors", "new-galaxy", "scatters", "check", "wipe")
 
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
-def test_every_screen_is_accessible_and_fits(browser, axe_source, server, config, viewport, scheme):
+def test_every_screen_is_accessible_and_fits(browser, axe_source, server, config, viewport, scheme, monkeypatch):
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: dict(ESTIMATE))
     context, page, problems, base_url = _page(browser, server, viewport, scheme)
     try:
         paths = ["/admin/generate", "/admin/generate/history", *(f"/admin/generate/task/{key}" for key in TASK_KEYS)]

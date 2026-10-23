@@ -1160,7 +1160,8 @@ def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
 
 ADMIN_JSON_ENDPOINTS = frozenset({"web.generate_status", "web.generate_sectors", "web.generate_job_stream",
                                   "web.generate_job_log", "web.admin_settings_export",
-                                  "web.generate_shape_report", "web.admin_palette", "web.generate_command"})
+                                  "web.generate_shape_report", "web.admin_palette", "web.generate_command",
+                                  "web.generate_size"})
 """The admin pages' own JSON routes: a 403 instead of a redirect."""
 
 @pytest.mark.parametrize("rule", ADMIN_PAGE_RULES, ids=_rule_ids(ADMIN_PAGE_RULES))
