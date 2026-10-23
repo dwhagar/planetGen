@@ -2,10 +2,10 @@
 
 """
 Generate recipes (ADM.125): a named, saved Generate form, kept per admin in the control database
-(`generate_recipes`, `control_schema.sql`).
+(`generate_recipes` and its `generate_recipe_fields`, `control_schema.sql`).
 
 A recipe is what "Run again" already keeps for a job, a draft: the fields of the task's form as `[name, value]`
-pairs, the first of which names the action. Saving one is done from the Review step; the Start screen lists them,
+pairs, the first of which names the action, kept one `generate_recipe_fields` row per pair. Saving one is done from the Review step; the Start screen lists them,
 a recipe opens the task's Review step filled with its draft (nothing runs until Run is pressed there), and it can be
 renamed or deleted. Each is the admin's own: every function takes the admin's account name and only ever reads or
 changes that account's rows, so one admin cannot see, run, rename or delete another's.
@@ -13,7 +13,6 @@ changes that account's rows, so one admin cannot see, run, rename or delete anot
 This module imports no Flask; the web layer (`web/generate_flow.py`) calls it.
 """
 
-import json
 import re
 
 from planetgen.db import store
@@ -27,8 +26,11 @@ MAX_RECIPES = 100
 MAX_FIELDS = 300
 """int: The most fields a draft may hold (the largest Generate form has about a hundred)."""
 
+FIELD_NAME_MAX = 100
+"""int: The longest field name a draft may hold, in characters (the column's width)."""
+
 MAX_VALUE = 4000
-"""int: The longest field name or value a draft may hold, in characters."""
+"""int: The longest field value a draft may hold, in characters (the column's width)."""
 
 
 class RecipeError(ValueError):
@@ -58,7 +60,7 @@ def _clean_draft(draft):
     pairs = [[str(name), str(value)] for name, value in draft]
     if not pairs:
         raise RecipeError("This form cannot be saved as a recipe.")
-    if len(pairs) > MAX_FIELDS or any(len(a) > MAX_VALUE or len(b) > MAX_VALUE for a, b in pairs):
+    if len(pairs) > MAX_FIELDS or any(len(a) > FIELD_NAME_MAX or len(b) > MAX_VALUE for a, b in pairs):
         raise RecipeError("This form is too large to save as a recipe.")
     return pairs
 
@@ -70,20 +72,27 @@ def _admin_id(conn, username):
     return row["id"]
 
 
-def _recipe(row):
-    return {"id": row["id"], "name": row["name"], "draft": json.loads(row["draft"]),
-            "created_at": row["created_at"], "updated_at": row["updated_at"]}
+def _recipes(conn, where, params):
+    """The recipes `where` (a condition on the `generate_recipes` row `r` and its admin `a`) selects, by name, each with
+    its draft read from its field rows."""
+    rows = conn.execute(
+        "SELECT r.id, r.name, r.created_at, r.updated_at FROM generate_recipes r "
+        f"JOIN admin_users a ON a.id = r.admin_id WHERE {where} ORDER BY r.name, r.id", params).fetchall()
+    found = []
+    for row in rows:
+        fields = conn.execute("SELECT field_name, field_value FROM generate_recipe_fields WHERE recipe_id = ? "
+                              "ORDER BY position", (row["id"],)).fetchall()
+        found.append({"id": row["id"], "name": row["name"], "created_at": row["created_at"],
+                      "updated_at": row["updated_at"],
+                      "draft": [[f["field_name"], f["field_value"]] for f in fields]})
+    return found
 
 
 def list_recipes(username, config=None):
     """The admin's recipes, by name: `[{id, name, draft, created_at, updated_at}]`."""
     conn = store.get_control_connection(config)
     try:
-        rows = conn.execute(
-            "SELECT r.id, r.name, r.draft, r.created_at, r.updated_at FROM generate_recipes r "
-            "JOIN admin_users a ON a.id = r.admin_id WHERE a.username = ? ORDER BY r.name, r.id",
-            (username,)).fetchall()
-        return [_recipe(row) for row in rows]
+        return _recipes(conn, "a.username = ?", (username,))
     finally:
         conn.close()
 
@@ -92,11 +101,8 @@ def get_recipe(username, recipe_id, config=None):
     """The admin's recipe `recipe_id`, or `None` when there is no such recipe of theirs."""
     conn = store.get_control_connection(config)
     try:
-        row = conn.execute(
-            "SELECT r.id, r.name, r.draft, r.created_at, r.updated_at FROM generate_recipes r "
-            "JOIN admin_users a ON a.id = r.admin_id WHERE a.username = ? AND r.id = ?",
-            (username, recipe_id)).fetchone()
-        return _recipe(row) if row else None
+        found = _recipes(conn, "a.username = ? AND r.id = ?", (username, recipe_id))
+        return found[0] if found else None
     finally:
         conn.close()
 
@@ -120,10 +126,12 @@ def save_recipe(username, name, draft, config=None):
                         (admin_id, name)).fetchone():
             raise RecipeError(f"You already have a recipe named “{name}”. Rename or delete it first, or "
                               "choose another name.")
-        cur = conn.execute("INSERT INTO generate_recipes (admin_id, name, draft) VALUES (?, ?, ?)",
-                           (admin_id, name, json.dumps(pairs)))
+        recipe_id = conn.execute("INSERT INTO generate_recipes (admin_id, name) VALUES (?, ?)",
+                                 (admin_id, name)).lastrowid
+        for position, (field, value) in enumerate(pairs):
+            conn.execute("INSERT INTO generate_recipe_fields (recipe_id, position, field_name, field_value) "
+                         "VALUES (?, ?, ?, ?)", (recipe_id, position, field, value))
         conn.commit()
-        recipe_id = cur.lastrowid
     finally:
         conn.close()
     return get_recipe(username, recipe_id, config)

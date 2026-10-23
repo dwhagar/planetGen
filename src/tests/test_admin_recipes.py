@@ -31,6 +31,11 @@ def test_a_saved_recipe_is_listed_with_its_draft(control_config):
     assert recipes.get_recipe("boss", saved["id"], control_config)["draft"] == DRAFT
 
 
+def test_the_longest_field_and_a_repeated_field_are_kept_in_order(control_config):
+    draft = [["action", "galaxy"], ["n" * recipes.FIELD_NAME_MAX, "v" * recipes.MAX_VALUE], ["tag", "b"], ["tag", "a"]]
+    assert recipes.save_recipe("boss", "long", draft, control_config)["draft"] == draft
+
+
 def test_recipes_are_listed_by_name(control_config):
     for name in ("b", "c", "a"):
         recipes.save_recipe("boss", name, DRAFT, control_config)
@@ -50,7 +55,7 @@ def test_the_longest_name_is_kept(control_config):
     assert recipes.save_recipe("boss", name, DRAFT, control_config)["name"] == name
 
 
-@pytest.mark.parametrize("draft", [[], [["a", "x" * (recipes.MAX_VALUE + 1)]],
+@pytest.mark.parametrize("draft", [[], [["a", "x" * (recipes.MAX_VALUE + 1)]], [["n" * (recipes.FIELD_NAME_MAX + 1), "v"]],
                                    [["a", "b"]] * (recipes.MAX_FIELDS + 1)])
 def test_a_draft_that_is_empty_or_too_large_is_refused(control_config, draft):
     with pytest.raises(recipes.RecipeError):
@@ -115,5 +120,6 @@ def test_deleting_an_admin_deletes_their_recipes(control_config):
         conn.execute("DELETE FROM admin_users WHERE username = 'boss'")
         conn.commit()
         assert conn.execute("SELECT COUNT(*) AS n FROM generate_recipes").fetchone()["n"] == 0
+        assert conn.execute("SELECT COUNT(*) AS n FROM generate_recipe_fields").fetchone()["n"] == 0
     finally:
         conn.close()

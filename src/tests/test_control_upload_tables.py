@@ -36,11 +36,10 @@ def owner(control):
     return control.execute("INSERT INTO admin_users (username, password_hash) VALUES ('uploader', 'x')").lastrowid
 
 
-def test_the_tables_are_made_empty_and_the_version_is_16(control):
+def test_the_tables_are_made_empty_and_the_version_is_the_current_one(control):
     for table in TABLES:
         assert _count(control, table) == 0
-    assert control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"] == 16 \
-        == store.CONTROL_SCHEMA_VERSION
+    assert control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"] == store.CONTROL_SCHEMA_VERSION
 
 
 def test_a_control_database_at_v15_gains_the_tables_and_keeps_its_rows(control):

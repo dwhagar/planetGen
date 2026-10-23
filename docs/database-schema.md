@@ -767,14 +767,14 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Twenty-six tables, versioned independently via `control_schema_migrations`
+Twenty-seven tables, versioned independently via `control_schema_migrations`
 (currently version 17, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables and v17 `generate_recipes`; the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables and v17 `generate_recipes` and `generate_recipe_fields`; the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -821,9 +821,11 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   `expires_at` makes a key stop working, like a revoked one — control
   schema v13, API.9).
 - **`generate_recipes`** — an admin's named, saved Generate forms (`admin_id`,
-  `name`, `draft` as JSON `[name, value]` pairs, the first naming the action;
-  `UNIQUE (admin_id, name)`; deleted with the admin; control schema v17,
-  ADM.125, `admin/recipes.py`).
+  `name`; `UNIQUE (admin_id, name)`; deleted with the admin; control schema
+  v17, ADM.125, `admin/recipes.py`). **`generate_recipe_fields`** holds a
+  recipe's form, one row per `[name, value]` pair in the order the form sent
+  them (`recipe_id`, `position`, `field_name`, `field_value`; the first pair
+  is the `action`); they go with their recipe.
 - **`admin_api_key_scopes`** — what each key may do: one row per
   `(key_id, scope)` with `scope` one of `read`, `generate`, `upload`,
   `admin` (`admin` implies all; `generate` and `upload` imply `read`).
