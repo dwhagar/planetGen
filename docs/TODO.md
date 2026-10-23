@@ -5766,6 +5766,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with their child rows kept for GEN.316. This item stays open for that
   remainder (N of 3 or more, compact and brown-dwarf members, phenomenon
   rows in stage B).
+  Progress (Core 3, slice 1 merged as #2605, about 1:25 AM EDT
+  2026-10-23 as the lane reported; the item stays open): a pre-placed
+  star builds from the tree its scatter row stored, for trees of one or
+  two ordinary stars. It takes generator epoch 52 (renumbered at merge,
+  main's 51 was GEN.307). Documented under 'As built (GEN.315, slice 1)'
+  in docs/design/multistar-and-compact-systems.md, below the GEN.314
+  paragraph. Remainder: trees of three or more members, compact and
+  brown dwarf members, the stage B phenomenon rows, and planet_zones as
+  a caller (GEN.332).
   Prerequisites: none. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -14958,10 +14967,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds no warning, with a mean size at most half the Milky Way's, and
   docs/design/galaxy-size-levers.md states the new Auto draws. Generator epoch: the draws
   change generated values, so this needs a generator epoch; GEN.307 took
-  51 (#2595, 11:57 PM EDT 2026-10-22 as the lane reported), so 52 is the
-  next free number and the epochs file must stay contiguous: the first
-  of this item and PERF.123 slice C to merge takes 52, the next 53 and
-  so on, numbered at merge (DB.85 merged as #2582 without an epoch). Owner: Core 1, first in its
+  51 (#2595, 11:57 PM EDT 2026-10-22 as the lane reported) and GEN.315
+  slice 1 took 52 (#2605, 1:25 AM EDT 2026-10-23 as the lane reported),
+  so 53 is the next free number and the epochs file must stay
+  contiguous: the first of this item and PERF.123 slice C to merge
+  takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
   Owner: Core 1, holds this item only from the plan-number bugs; it is
@@ -15560,7 +15570,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Slices 2 to 2c are next after TEST.283 (branch claude/core5-perf123b);
   the random-start slice C still needs its generator epoch numbered at
   merge (the epochs file must stay contiguous; 51 is taken by GEN.307,
-  #2595, so the next free number is 52), and slice D follows.
+  #2595 and 52 by GEN.315 slice 1, #2605, so the next free number is 53), and slice D follows.
   Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
@@ -20151,6 +20161,19 @@ clears each one.
   under load (the Performance lane can do the same after its medium
   suite) to find what the page depends on that load changes; the earlier
   request for more output is withdrawn.
+  Progress (Bug Hunt, #2604 merged 1:18 AM EDT 2026-10-23 as the lane
+  reported; the item stays open): not reproduced in 150 or more runs of
+  the test, alone and with the file's other tests under -n 3, beside a
+  six-worker load at load 9 on the Bug Hunt lane. The page is built
+  straight from the phenomenon_scatter row, so only a non-page answer
+  (202 loading, 302, a cached page of another row) can drop the class
+  name. #2604 makes the assertion print the status code, the headers and
+  the first 1,500 characters of the page, so the next sighting names the
+  cause. The Performance lane's two sightings may predate #2573 (a
+  private Redis database per xdist worker) and #2600; it is asked to
+  re-run the file in its next gate on current main and send the printed
+  answer if it recurs. Close this item if it does not recur in the
+  Performance lane's next two gates.
   Prerequisites: none. Related: TEST.275.
 
 ## USR: User accounts
