@@ -9,8 +9,8 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.galaxy import components
-from planetgen.generation import satellites
+from planetgen.galaxy import components, mass_chain
+from planetgen.generation import clusters
 from tests.test_galaxy_gen import _build_real_skeleton
 
 pytestmark = pytest.mark.fresh_database
@@ -24,14 +24,33 @@ def _rows(mysql_config):
         conn.close()
 
 
+def planned_cluster_count(mysql_config, info):
+    """How many globular clusters the stored plan's seed and halo draw (GEN.403: the count follows the halo mass)."""
+    conn = store.get_connection(mysql_config)
+    try:
+        seed = store.get_galaxy_seed(conn)
+    finally:
+        conn.close()
+    chain = mass_chain.draw_mass_chain(seed, info.shape.structure.stellar_mass_solar)
+    return clusters.cluster_count(seed, chain.halo_mass_solar)
+
+
+def _satellite_rows(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        return store.get_galaxy_components(conn, kind="satellite")
+    finally:
+        conn.close()
+
+
 def test_a_plan_stores_the_clusters_and_the_shape_carries_them(mysql_config):
     _build_real_skeleton(mysql_config)
     found, info = _rows(mysql_config)
     globular = [c for c in found if not components.is_open_cluster(c)]
-    assert len(globular) == tuning.CLUSTER_COUNT_MILKY_WAY
+    assert len(globular) == planned_cluster_count(mysql_config, info)
     assert len(found) > len(globular)              # the young open clusters (GEN.244) are stored with them
     assert {c.source for c in found} == {"generated"}
-    assert info.shape.components is not None and len(info.shape.components) == len(found) + len(satellites.MILKY_WAY_SATELLITES)
+    assert info.shape.components is not None and len(info.shape.components) == len(found) + len(_satellite_rows(mysql_config))
     assert info.shape.components.edge_pc == info.edge_pc
     assert info.shape.components.expected_at_density_1 == info.expected_system_count_at_density_1
 

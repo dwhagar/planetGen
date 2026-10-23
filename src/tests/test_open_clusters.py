@@ -180,7 +180,9 @@ def _brute_bound(field, r_cyl, z):
 def _brute_high_band(field, shell, band_at):
     high, radius = -1, shell * field.edge_pc
     slack = tuning.CLUSTER_BOUND_SLACK_EDGES * field.edge_pc
-    for center, reach in zip(field._centers, field._reach):
+    for center, reach in zip(field._centers, field._density_reach):
+        if reach <= 0.0:
+            continue
         distance, grown = float(np.linalg.norm(center)), reach + slack
         if distance <= grown:
             return band_at(shell, 0.0) if shell else 0

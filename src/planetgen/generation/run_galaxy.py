@@ -1889,8 +1889,9 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
     """
     One random start for random-start mode: an unoccupied address drawn
     inside the outline by volume (`GalaxyBounds.random_address`), retried up
-    to `RANDOM_START_MAX_PLACEMENT_ATTEMPTS` times until it meets
-    `--min-start-density`, and, for `--neighborhoods` (GEN.97), until its
+    to `RANDOM_START_MAX_PLACEMENT_ATTEMPTS` times until its density expects at least one system (the outline is a
+    superset of the sectors that do, GEN.627, and a start in an empty sector is no start; skipped when the density is given
+    explicitly), until it meets `--min-start-density`, and, for `--neighborhoods` (GEN.97), until its
     whole neighborhood lies inside the outline, it is at least twice the
     radius from every start in `taken`, and it passes the
     `--neighborhood-gamma` draw (accepted with probability
@@ -1924,6 +1925,9 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
                 continue
         sector_args = batch_density.resolve(args, address, position_pc)
         if sector_args is None:
+            continue
+        if (sector_args is not args
+                and sector_args.density * batch_density.skeleton.expected_system_count_at_density_1 < 1.0):
             continue
         if args.min_start_density is not None and sector_args.density < args.min_start_density:
             continue

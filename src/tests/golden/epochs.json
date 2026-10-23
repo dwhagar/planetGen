@@ -275,6 +275,12 @@
       "epoch": 56,
       "first_release": "8.0.2007",
       "reason": "A pre-placed O or B star is a runaway at the observed rates (20% and 7.5%), two thirds by the supernova channel, with a bound compact companion at the 17% the collapse leaves, and every runaway the fill rolls draws an origin, so a seed's runaways, their stored trees and the draws after them differ from before (GEN.329)"
+    },
+    {
+      "epoch": 57,
+      "first_release": null,
+      "pending": true,
+      "reason": "A galaxy's satellites are drawn from its halo (a Poisson count of subhalos, an occupation draw, stellar masses from the stellar-to-halo relation, sizes, metallicities and ages from laws, an Einasto radial distribution inside the virial radius) instead of the Milky Way's eleven rows (GEN.369, GEN.624); its globular cluster count follows its halo mass instead of a fixed 157 (GEN.403); the outline takes components in by density reach and a random start is redrawn until its sector expects a system (GEN.627). Every seed's components, outline and random starts differ."
     }
   ]
 }

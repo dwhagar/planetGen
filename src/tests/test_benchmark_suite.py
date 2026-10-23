@@ -212,7 +212,7 @@ def test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases(mysql_co
     assert saved["suite_version"] == benchmark_suite.SUITE_VERSION and saved["size"] == "tiny"
     assert [entry["step"] for entry in saved["ranking"]] == ["plan"]
     record = saved["runs"][0][0]
-    assert record["exit_code"] == 0 and record["wall_seconds"] > 0 and record["made"]["count"] > 100
+    assert record["exit_code"] == 0 and record["wall_seconds"] > 0 and record["made"]["count"] > 0
     assert record["database"]["Questions"] > 0 and record["peak_rss_total_mb"] > 0
     assert any(stage["key"] == "skeleton" for stage in record["stages"])
     assert saved["machine"]["workers"] == 1 and saved["worker_startup"]["process_seconds"] > 0

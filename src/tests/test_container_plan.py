@@ -7,8 +7,8 @@ components, drawn from the same seed, so planning again writes the same rows.
 
 import pytest
 
-from planetgen import tuning
 from planetgen.db import containers as containersDb, store
+from tests.test_cluster_plan import planned_cluster_count
 from tests.test_galaxy_gen import _build_real_skeleton
 
 pytestmark = pytest.mark.fresh_database
@@ -26,7 +26,12 @@ def test_a_plan_stores_a_container_for_each_globular_cluster(mysql_config):
     _build_real_skeleton(mysql_config)
     found = _stored(mysql_config)
     clusters = [c for c in found if c["kind"] == "globular_cluster"]
-    assert len(clusters) == tuning.CLUSTER_COUNT_MILKY_WAY
+    conn = store.get_connection(mysql_config)
+    try:
+        info = store.get_galaxy_shape(conn)
+    finally:
+        conn.close()
+    assert len(clusters) == planned_cluster_count(mysql_config, info)
     assert all(c["name"] and c["component_id"] and c["extent_pc"] > 0 for c in clusters)
     assert all(c["kind"] != "superbubble" or c["bubble"] for c in found)
     assert len({c["uid"] for c in found}) == len(found)

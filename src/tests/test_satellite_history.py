@@ -13,7 +13,7 @@ import pytest
 from planetgen import tuning
 from planetgen.galaxy import component_field, satellite_history
 from planetgen.generation import bright_stars as brightStars, component_pass
-from planetgen.generation.satellites import MILKY_WAY_SATELLITES
+from tests.reference_satellites import MILKY_WAY_SATELLITES
 
 SPAN = tuning.SATELLITE_HISTORY_SPAN_GY
 

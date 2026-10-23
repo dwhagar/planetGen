@@ -18,7 +18,6 @@ from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import dials
 from planetgen.galaxy import plan_figures as planFigures
 from planetgen.galaxy import shape_draw as shapeDraw
-from planetgen.galaxy.density import model_terms
 from planetgen.galaxy.skeleton import (
     DEFAULT_REACH_SHELL, build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
 )
@@ -66,11 +65,10 @@ def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHEL
     scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
     epoch = program_constants.SCATTER_PHASE_ORIGIN_UNIX
     with timer.step("the globular clusters"):
-        found = clusters.generate_clusters(galaxy_seed, epoch_unix=epoch, scale=scale)
+        count = clusters.cluster_count(galaxy_seed, drawn.chain.halo_mass_solar)
+        found = clusters.generate_clusters(galaxy_seed, count, epoch_unix=epoch, scale=scale)
     with timer.step("the satellite galaxies"):
-        dwarfs = satellites.place_satellites(
-            galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
-            model_terms(shape)["reference_angle_rad"], epoch_unix=epoch, scale=scale)
+        dwarfs = satellites.draw_satellites(galaxy_seed, drawn.chain, epoch_unix=epoch)
     with timer.step("the young open clusters"):
         young = openClusters.generate_open_clusters(galaxy_seed, shape, edge_pc, e_value, epoch_unix=epoch)
     with timer.step("the component field (each cluster's and satellite's systems)"):
@@ -96,11 +94,14 @@ class Report:
     """What an outline says about its galaxy: `crest` (the thin disc's expected systems per sector on an arm crest at
     its centre, which is its central density over the one-star density, the density-limits report's D), `share` (the
     share of the galaxy's systems in sectors that expect one, integrated from its density; approximate), `shells`,
-    `sectors` (candidate sectors) and `radius_pc` of the outline, `empty` and the `warnings` (sentences)."""
+    `sectors` (candidate sectors, the outline's upper bound) and `reaching` (the sectors that expect at least one system,
+    integrated from the density; approximate, GEN.627) and `radius_pc` of the outline, `empty` and the `warnings`
+    (sentences)."""
     crest: float
     share: float
     shells: int
     sectors: int
+    reaching: int
     radius_pc: float
     empty: bool
     warnings: list
@@ -111,7 +112,8 @@ class Report:
             return f"Outline: empty (the disc's crest is {self.crest:.2g} times the one-star density)"
         return (f"Outline: the disc's crest is {self.crest:.3g} times the one-star density, about "
                 f"{100 * self.share:.0f} percent of the stars sit in planned sectors, {self.shells:,} shells out to "
-                f"{self.radius_pc / 1000:,.1f} kpc, {self.sectors:,} candidate sectors")
+                f"{self.radius_pc / 1000:,.1f} kpc, {self.sectors:,} candidate sectors, about {self.reaching:,} of them expect "
+                f"at least one system")
 
 
 def report(outline):
@@ -121,9 +123,10 @@ def report(outline):
     empty = not outline.extents
     radius = 0.0 if empty else (outline.outer_shell_index + 1) * outline.edge_pc
     share = 0.0 if empty else planFigures.planned_share(outline.shape, outline.e_value, radius)
+    reaching = 0 if empty else round(planFigures.reaching_sectors(outline.shape, outline.e_value, radius, outline.edge_pc))
     return Report(
         crest=crest, share=share, shells=len(outline.extents),
-        sectors=shell_candidate_sector_count(outline.extents), radius_pc=radius, empty=empty,
+        sectors=shell_candidate_sector_count(outline.extents), reaching=reaching, radius_pc=radius, empty=empty,
         warnings=dials.shape_warnings(crest, share, drawn.disk_scale_height_pc, drawn.bulge_scale_radius_pc))
 
 

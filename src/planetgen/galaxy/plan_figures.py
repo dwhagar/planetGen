@@ -9,9 +9,12 @@ The two density figures the plan prints about its galaxy (GEN.626), read from th
 - the **planned share**, the share of the galaxy's own systems that sit in sectors expecting at least one system,
   integrated from the model's density over radius, height and azimuth.
 
-Both follow the galaxy's own `k_norm`, so the Census dial (richness) and the galaxy's own system mass are in them.
+Both follow the galaxy's own `k_norm`, so the Census dial (richness) and the galaxy's own system mass are in them. The same
+integral gives the **reaching sectors** (GEN.627), the sectors expecting at least one system, to set beside the outline's
+candidate sectors (a superset by design: the outline takes the best longitude and the run of bands up to a component's).
 """
 
+import collections
 import math
 
 import numpy as np
@@ -37,10 +40,31 @@ def crest(shape, expected_systems_at_density_1):
     return (shape.k_norm * shape.arm_level * (1.0 + shape.arm_amplitude) * expected_systems_at_density_1)
 
 
+Planned = collections.namedtuple("Planned", ["share", "volume_pc3"])
+"""The planned share of the galaxy's systems, and the volume (cubic parsecs) of the disc and bulge's sectors expecting one."""
+
+
 def planned_share(shape, expected_systems_at_density_1, radius_pc):
+    """The planned share alone (`planned(...).share`)."""
+    return planned(shape, expected_systems_at_density_1, radius_pc).share
+
+
+def reaching_sectors(shape, expected_systems_at_density_1, radius_pc, edge_pc):
+    """
+    How many sectors expect at least one system: the volume where the model's density reaches it (`planned`) over a
+    sector's volume, plus each component's sphere out to where its own density reaches one system in a cell
+    (`ComponentField.qualifying_volume_pc3`). Approximate to a few percent; a component inside the disc is counted twice.
+    """
+    volume = planned(shape, expected_systems_at_density_1, radius_pc).volume_pc3
+    if shape.components is not None:
+        volume += shape.components.qualifying_volume_pc3()
+    return float(volume / edge_pc ** 3)
+
+
+def planned(shape, expected_systems_at_density_1, radius_pc):
     """
     The share of the galaxy's own systems (its stars, not its clusters or satellites) that sit in sectors expecting at
-    least one system, `0` to `1`.
+    least one system, `0` to `1`, and the volume of those sectors, as a `Planned`.
 
     The model's density (`density.total_density_array`) is integrated over cylindrical radius and height out to
     `radius_pc` (the outline's outer edge) on a geometric grid and `SHARE_AZIMUTHS` azimuths; the systems in a cell of
@@ -53,10 +77,10 @@ def planned_share(shape, expected_systems_at_density_1, radius_pc):
         radius_pc (float): How far out to integrate; nothing farther holds a sector that reaches one system.
 
     Returns:
-        float: The share; `0.0` for a galaxy with no radius.
+        Planned: The share (`0.0` for a galaxy with no radius) and the volume.
     """
     if radius_pc <= SHARE_INNER_PC:
-        return 0.0
+        return Planned(0.0, 0.0)
     edges = np.concatenate(([0.0], np.geomspace(SHARE_INNER_PC, radius_pc, SHARE_RADIAL_STEPS)))
     middles = np.sqrt(edges[:-1] * edges[1:])
     middles[0] = 0.5 * edges[1]
@@ -68,9 +92,10 @@ def planned_share(shape, expected_systems_at_density_1, radius_pc):
     x = r_grid * np.cos(azimuths)[None, None, :]
     y = r_grid * np.sin(azimuths)[None, None, :]
     rho = density.total_density_array(x, y, z_grid, shape)
-    systems = rho * ring_area[:, None, None] * slab[None, :, None] / SHARE_AZIMUTHS
-    planned = systems[rho * expected_systems_at_density_1 >= 1.0].sum()
+    cell_volume = ring_area[:, None, None] * slab[None, :, None] / SHARE_AZIMUTHS
+    reaching = rho * expected_systems_at_density_1 >= 1.0
+    planned_systems = (rho * cell_volume)[reaching].sum()
     total = shape.structure.stellar_mass_solar / density.mean_system_mass_solar(shape)
     local_per_pc3 = physical_constants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
-    return float(min(1.0, planned * local_per_pc3 / total))
-
+    return Planned(float(min(1.0, planned_systems * local_per_pc3 / total)),
+                   float((np.broadcast_to(cell_volume, rho.shape))[reaching].sum()))
