@@ -40,6 +40,13 @@ The keys are the source keys of the file.
 Every row was recorded as `open` (no licence found). NIST Standard Reference Data are copyrighted (permission is noted in body
 composition part G4); PubChem and USGS data are public domain. The sources are listed in the file's `sources`.
 
+## The proton range file (`src/planetgen/physics/data/proton_range.json`, GEN.453)
+
+The CSDA range and total stopping power of protons at 26 energies from 1 MeV to 10 GeV in 17 materials, as printed by NIST
+PSTAR (NIST Standard Reference Database 124, ICRU Report 49), thinned from PSTAR's 133 energies by
+`scripts/build_proton_range.py`. NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was
+sought. The raw pages are never in the repository.
+
 ## The element and isotope files (`elements.json`, `isotopes.json`, `decay_series.json`, GEN.438)
 
 - `elements.json`: the tables are CIAAW's (c) 2007-2024; no licence statement was found.

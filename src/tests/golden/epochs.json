@@ -300,6 +300,12 @@
       "epoch": 61,
       "first_release": "8.0.2038",
       "reason": "A planet or belt past the survival ceiling of its star's final age is trimmed after the age is settled (about 1 system in 250), so those systems lose their outermost body (GEN.325)"
+    },
+    {
+      "epoch": 62,
+      "first_release": null,
+      "pending": true,
+      "reason": "A planet's cosmic-ray dose follows the read shower curve and the column-dependent field factor (the Stormer cutoff scales with moment over radius squared, 14.34 GV for Earth), the proton range behind the stellar-particle cutoff comes from NIST PSTAR, and each body draws a solar-modulation factor of 0.5 to 1.64, so every rocky body's stored dose changes and a draw is added to the dose stream (GEN.453)"
     }
   ]
 }
