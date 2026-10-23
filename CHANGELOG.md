@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1968] - 2026-10-23
+
+**Headline:** The API's generate-neighborhood, regenerate-sector and settle jobs run through the work queue's run record, so they show on the Queue page and wait their turn.
+
+### Changed
+- **The API's sector jobs are runs (PERF.119, second slice).** Generating a neighborhood, regenerating a sector and saving sector paths each start runs through the wrapper (the sectors, the bright-star backfill around the requested sector, and the paths), like the stages of `planetgen galaxy`, instead of generating inside the job's own process. A job that finds another generation run going waits in line for its turn, as every generation run does. The job's id and `GET /api/jobs/<id>` answer as before.
+
+TODO items resolved: none (PERF.119 slice 2 of 3). Added: none.
+
 ## [8.0.1967] - 2026-10-23
 
 **Headline:** Drawing a system's content again keeps the ID of every star, planet, moon, belt and comet that keeps its place.
