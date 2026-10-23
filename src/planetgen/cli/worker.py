@@ -15,12 +15,13 @@ import argparse
 import os
 import re
 import sys
+import time
 
 import rq
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, units, work, workers
+from planetgen.queue import pause, redisqueue, units, work, workers
 
 WARM_MODULES = (
     "planetgen.generation.run_plan",
@@ -88,17 +89,32 @@ def worker_class():
     it starts itself over when the release on disk has changed. PERF.146: before it forks a horse for a unit, it
     works out what the unit would work out from the galaxy alone (`units.warm_unit`), so the horse starts with it
     instead of building it again.
+
+    PERF.152: a worker of a queue that `pause.holds` takes no job while the Queue page's pause flag is set. It waits
+    before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
+    untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
     """
     class WarmWorker(rq.Worker):
         def fork_work_horse(self, job, queue):
             units.warm_unit(job)
             return super().fork_work_horse(job, queue)
 
+        def _wait_while_paused(self):
+            if not any(pause.holds(name) for name in self.queue_names()):
+                return
+            while pause.is_paused(self.connection) and not self._stop_requested:
+                self.heartbeat()
+                time.sleep(pause.WAIT_SECONDS)
+
         def dequeue_job_and_maintain_ttl(self, *args, **kwargs):
             if stale():
                 self.register_death()
                 os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
-            return super().dequeue_job_and_maintain_ttl(*args, **kwargs)
+            self._wait_while_paused()
+            result = super().dequeue_job_and_maintain_ttl(*args, **kwargs)
+            if result is not None:
+                self._wait_while_paused()
+            return result
 
     return WarmWorker
 
@@ -120,7 +136,7 @@ def main(argv=None):
     except updateguard.UpdateRunning as exc:
         print(exc, file=sys.stderr)
         return updateguard.EX_TEMPFAIL
-    work.lower_priority()
+    work.lower_priority(workers.niceness(args.queues))
     warm(args.queues)
     serializers = {redisqueue.serializer_for(name) for name in args.queues}
     if len(serializers) > 1:

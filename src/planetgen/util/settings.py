@@ -349,6 +349,34 @@ class Jobs(_Section):
                               "app's own.")
 
 
+class Queue(_Section):
+    interactive_workers: int = opt(
+        1, "How many workers are kept for short jobs: edits, estimates, wiki uploads and slow page answers. They "
+        "are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run "
+        "at a higher priority than the bulk workers.", unit="workers", group="speed", ge=1, le=64,
+        label="Workers for short jobs",
+        summary="How many workers are reserved for short jobs; generation work never takes them.")
+    long_workers: int = opt(
+        1, "How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a "
+        "large settle, which can run for hours). They have a lane of their own so a long job can never hold the "
+        "workers kept for short ones.", unit="workers", group="speed", ge=1, le=64,
+        label="Workers for long jobs",
+        summary="How many workers run long jobs, apart from the ones for short jobs.")
+    long_job_seconds: float = opt(
+        60, "A job expected to take longer than this goes to the long lane. A job with no estimate counts as short.",
+        unit="seconds", group="speed", gt=0,
+        label="Long job limit",
+        summary="Jobs expected to take longer than this go to the long lane.",
+        control="duration")
+    wait_minutes: float = opt(
+        60, "How long a generation run, or an API job that generates sectors, waits in line when another generation "
+        "run holds the machine, before it fails naming that run (0 does not wait).", unit="minutes", group="speed",
+        ge=0,
+        label="Longest wait for a run",
+        summary="How long a run waits in line for the one in front of it before it gives up (0 means it "
+                "does not wait).")
+
+
 class WikiJs(_Section):
     base_url: str = opt("", "The Wiki.js instance's root URL. Empty means it isn't offered as an upload target.",
                         env="PLANETGEN_WIKIJS_BASE_URL", role="owner", group="wiki",
@@ -741,6 +769,7 @@ class Settings(_Section):
                                 summary="The database that holds admin accounts, sessions, API keys "
                                         "and the audit log.")
     redis: Redis = Redis()
+    queue: Queue = Queue()
     ratelimit: RateLimit = RateLimit()
     login_allowlist: List[str] = opt(
         [], "Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. "

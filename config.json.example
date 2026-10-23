@@ -66,6 +66,12 @@
   "redis": {
     "url": "redis://127.0.0.1:6379/0"
   },
+  "queue": {
+    "interactive_workers": 1,
+    "long_workers": 1,
+    "long_job_seconds": 60.0,
+    "wait_minutes": 60.0
+  },
   "ratelimit": {
     "default": "200 per day;50 per hour",
     "storage_uri": "",

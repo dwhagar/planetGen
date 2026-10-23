@@ -831,6 +831,94 @@
       "title": "ProxyFix",
       "type": "object"
     },
+    "Queue": {
+      "properties": {
+        "interactive_workers": {
+          "default": 1,
+          "description": "How many workers are kept for short jobs: edits, estimates, wiki uploads and slow page answers. They are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run at a higher priority than the bulk workers.",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Interactive Workers",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Workers for short jobs",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many workers are reserved for short jobs; generation work never takes them.",
+          "x-unit": "workers"
+        },
+        "long_job_seconds": {
+          "default": 60,
+          "description": "A job expected to take longer than this goes to the long lane. A job with no estimate counts as short.",
+          "exclusiveMinimum": 0,
+          "title": "Long Job Seconds",
+          "type": "number",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": "duration",
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Long job limit",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "Jobs expected to take longer than this go to the long lane.",
+          "x-unit": "seconds"
+        },
+        "long_workers": {
+          "default": 1,
+          "description": "How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a large settle, which can run for hours). They have a lane of their own so a long job can never hold the workers kept for short ones.",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Long Workers",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Workers for long jobs",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many workers run long jobs, apart from the ones for short jobs.",
+          "x-unit": "workers"
+        },
+        "wait_minutes": {
+          "default": 60,
+          "description": "How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait).",
+          "minimum": 0,
+          "title": "Wait Minutes",
+          "type": "number",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Longest wait for a run",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How long a run waits in line for the one in front of it before it gives up (0 means it does not wait).",
+          "x-unit": "minutes"
+        }
+      },
+      "title": "Queue",
+      "type": "object"
+    },
     "RateLimit": {
       "properties": {
         "default": {
@@ -1910,6 +1998,15 @@
         "x_for": 0,
         "x_host": 0,
         "x_proto": 0
+      }
+    },
+    "queue": {
+      "$ref": "#/$defs/Queue",
+      "default": {
+        "interactive_workers": 1,
+        "long_job_seconds": 60.0,
+        "long_workers": 1,
+        "wait_minutes": 60.0
       }
     },
     "ratelimit": {

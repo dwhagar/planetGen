@@ -20,7 +20,7 @@ import rq
 from planetgen.admin import updateguard
 from planetgen.cli import reset_jobs
 from planetgen.db import store
-from planetgen.queue import redisqueue, runrecord, work, workers
+from planetgen.queue import pause, redisqueue, runrecord, work, workers
 from tests.test_update_guard import FakeWork, REPO, run_shell
 
 pytestmark = pytest.mark.real_queue
@@ -158,6 +158,7 @@ def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(r
     connection.set(workers.WANTED_KEY, 3)
     connection.set("planetgen:page:kept", "1")
     connection.set(workers.STARTING_PREFIX + redisqueue.INTERACTIVE_QUEUE, 2)
+    pause.pause("boss", connection)
     stale_run = runrecord.start_run(connection, "Stale run", [runrecord.Stage("mass", "Mass", units=3)])
     with pytest.raises(runrecord.Busy):
         runrecord.start_run(connection, "Blocked", [runrecord.Stage("mass", "Mass")])
@@ -165,7 +166,7 @@ def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(r
     control = store.get_control_connection(mysql_config)
     try:
         control.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
-        control.execute("UPDATE work_lease SET holder = 'host:1:x', job_id = ?, heartbeat_at = NOW(6), paused = 1 "
+        control.execute("UPDATE work_lease SET holder = 'host:1:x', job_id = ?, heartbeat_at = NOW(6) "
                         "WHERE id = 1", (node.id,))
         control.commit()
         lines = []
@@ -175,7 +176,7 @@ def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(r
                                      control=mysql_config)
         assert stuck.cancelled == [] and connection.exists(waiting.key) == 1
         assert any("Redis: " in line and "key(s)" in line for line in lines)
-        assert any("1 job(s)" in line and "held by host:1:x and paused" in line for line in lines)
+        assert any("1 job(s)" in line and "held by host:1:x" in line for line in lines)
 
         questions = []
         assert not reset_jobs.reset_jobs(mysql_config, redis_url=url, sources=[stuck], write=lines.append,
@@ -192,8 +193,9 @@ def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(r
         assert list(connection.scan_iter(match=workers.STARTING_PREFIX + "*")) == []
         assert connection.get(workers.WANTED_KEY) == b"3" and connection.get("planetgen:page:kept") == b"1"
         assert control.execute("SELECT COUNT(*) AS n FROM work_jobs").fetchone()["n"] == 0
-        lease = control.execute("SELECT holder, job_id, paused FROM work_lease WHERE id = 1").fetchone()
-        assert (lease["holder"], lease["job_id"], lease["paused"]) == (None, None, 0)
+        lease = control.execute("SELECT holder, job_id FROM work_lease WHERE id = 1").fetchone()
+        assert (lease["holder"], lease["job_id"]) == (None, None)
+        assert not pause.is_paused(connection)          # the pause flag goes with the rest
         text = "\n".join(lines)
         assert "Redis: removed" in text and "Control database: removed 1 job(s)" in text and "Jobs and queue reset" in text
 

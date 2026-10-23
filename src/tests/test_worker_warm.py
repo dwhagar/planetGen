@@ -49,6 +49,7 @@ def test_the_worker_class_restarts_itself_on_a_new_release(monkeypatch):
     cls = worker.worker_class()
     instance = cls.__new__(cls)
     instance.register_death = lambda: deaths.append(1)
+    instance.queues = []
     monkeypatch.setattr(worker, "stale", lambda: True)
     monkeypatch.setattr(worker.os, "execv", lambda *args: execs.append(args))
     monkeypatch.setattr(rq.Worker, "dequeue_job_and_maintain_ttl", lambda *a, **k: None)

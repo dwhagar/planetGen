@@ -6,18 +6,22 @@ hold a web worker for minutes queues the work with `submit`, answers
 `202 Accepted` with the job's id at once, and the client reads the
 outcome from `GET /api/jobs/<id>` (`status`).
 
-The jobs share the interactive queue (`QUEUE_NAME`), served by workers started
+The jobs share two queues, the interactive one (`QUEUE_NAME`) for short jobs and
+the long one (`LONG_QUEUE_NAME`) for jobs expected to run longer than
+`queue.long_job_seconds` (PERF.151), each served by workers started
 detached from the web server (`workers.ensure_workers`), as the admin
 Generate page's jobs do (`planetgen.web.jobs`): a request timeout or a
 graceful reload of the web server doesn't stop them, and a worker exits
 after `workers.IDLE_SECONDS` without work. A job starts a worker only while
-fewer than `workers.wanted` serve the queue, so a batch of uploads doesn't
-start a process (and its imports) per job (PERF.39). The result is kept for
-`RESULT_TTL_SECONDS`.
+fewer than its lane's cap serve the queue (`queue.interactive_workers`,
+`queue.long_workers`), so a batch of uploads doesn't start a process (and its
+imports) per job (PERF.39) and a long job never holds a worker kept for short
+ones. The result is kept for `RESULT_TTL_SECONDS`.
 """
 
 import calendar
 import importlib
+import math
 import os
 import re
 import secrets
@@ -34,7 +38,10 @@ QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
 
 QUEUE_NAME = redisqueue.INTERACTIVE_QUEUE
-"""str: The queue every job goes on, and its workers serve."""
+"""str: The queue a short job goes on, and its workers serve."""
+
+LONG_QUEUE_NAME = redisqueue.LONG_QUEUE
+"""str: The queue a job expected to run longer than `queue.long_job_seconds` goes on (PERF.151)."""
 
 RESULT_TTL_SECONDS = 86400
 """int: How long a finished job's result or error is kept."""
@@ -152,10 +159,32 @@ def recorded_task_seconds(kind, config=None, workers=1):
         return None
 
 
+def is_long(expected_seconds):
+    """Whether a job expected to take `expected_seconds` goes to the long lane (PERF.151): more than
+    `queue.long_job_seconds`. A job with no estimate counts as short."""
+    from planetgen.util.settings import get_settings
+    if expected_seconds is None or not math.isfinite(expected_seconds):
+        return False
+    return expected_seconds > get_settings().queue.long_job_seconds
+
+
+def lane(expected_seconds=None):
+    """
+    The queue and the worker cap of a job expected to take `expected_seconds`: `(LONG_QUEUE_NAME, queue.long_workers)`
+    when `is_long`, else `(QUEUE_NAME, queue.interactive_workers)`.
+    """
+    from planetgen.util.settings import get_settings
+    section = get_settings().queue
+    if is_long(expected_seconds):
+        return LONG_QUEUE_NAME, section.long_workers
+    return QUEUE_NAME, section.interactive_workers
+
+
 def submit(function, *args, expected_seconds=None):
     """
     Queues `function(*args)` (a module-level function; its arguments and
-    return value travel as JSON, `encode_argument`) and starts a worker for it unless
+    return value travel as JSON, `encode_argument`) on its lane (`lane`: a job expected to run
+    longer than `queue.long_job_seconds` goes to the long queue) and starts a worker for it unless
     enough are serving the queue already (`workers.ensure_workers`). RQ ends the job after
     `time_limit(expected_seconds)`, so a job whose worker was killed expires.
 
@@ -177,13 +206,21 @@ def submit(function, *args, expected_seconds=None):
         raise NoQueue(f"no Redis server answers at {url} (config.json's redis.url); "
                       f"start Redis to run this: {exc}") from exc
     job_id = new_job_id()
-    redisqueue.queue(QUEUE_NAME, connection).enqueue(
+    queue_name, cap = lane(expected_seconds)
+    redisqueue.queue(queue_name, connection).enqueue(
         execute, args=(function_reference(function), [encode_argument(arg) for arg in args]), job_id=QUEUE_PREFIX + job_id,
         job_timeout=time_limit(expected_seconds),
         result_ttl=RESULT_TTL_SECONDS, failure_ttl=RESULT_TTL_SECONDS,
     )
-    workers.ensure_workers(QUEUE_NAME, connection, url)
+    workers.ensure_workers(queue_name, connection, url, count=cap)
     return job_id
+
+
+def _cap_of(queue_name):
+    """The worker cap of the lane whose queue is `queue_name`."""
+    from planetgen.util.settings import get_settings
+    section = get_settings().queue
+    return section.long_workers if queue_name == LONG_QUEUE_NAME else section.interactive_workers
 
 
 def wait(job_id, seconds=SHORT_WAIT_SECONDS):
@@ -233,7 +270,8 @@ def status(job_id):
             status of a refusal, else `None`) and `made` (ADM.31: for a
             finished job that makes sectors, `{"since", "until"}`, the
             Unix seconds window the Galaxy Map's `made` view takes, else
-            `None`). `None` for an unknown or expired id, or a bad one.
+            `None`), and `waiting` (PERF.153: for a running job that waits in line for the generation run in front of
+            it, `{"run", "position", "text"}`, else `None`). `None` for an unknown or expired id, or a bad one.
 
     Raises:
         NoQueue: No Redis server answers.
@@ -251,10 +289,11 @@ def status(job_id):
     if state == "queued":
         # A worker that was about to exit when the job arrived leaves it waiting: whoever asks starts another.
         try:
-            workers.ensure_workers(QUEUE_NAME, connection)
+            workers.ensure_workers(job.origin, connection, count=_cap_of(job.origin))
         except Exception:  # noqa: BLE001 -- a status read does not fail for want of a worker
             pass
-    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None, "made": None}
+    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None, "made": None,
+            "waiting": job.meta.get("waiting") if state == "running" else None}
     if state == "succeeded":
         outcome = job.return_value()
         if "refused" in outcome:

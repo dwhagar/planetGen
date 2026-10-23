@@ -40,11 +40,16 @@ INTERACTIVE_QUEUE = "planetgen-interactive"
 """str: Work an admin or the API starts and waits for (PERF.40, PERF.78): neighborhoods, estimates, exports, the
 deep database check. Its workers serve this queue and no other, so a long run never holds one up."""
 
-JSON_QUEUE_PREFIXES = (BULK_QUEUE, INTERACTIVE_QUEUE, "planetgen-web-", "planetgen-api-")
-"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the two shared queues, each
-Generate page job's own (`planetgen-web-<id>`), and the API queue the tests give a name of its own."""
+LONG_QUEUE = "planetgen-long"
+"""str: The API jobs expected to take longer than `queue.long_job_seconds` (PERF.151): a neighbourhood or a large
+settle, which can run for hours. Its own workers serve it, so a long job never holds the workers kept for the short
+ones on `INTERACTIVE_QUEUE`."""
 
-QUEUES = (GENERATION_QUEUE, BULK_QUEUE, INTERACTIVE_QUEUE)
+JSON_QUEUE_PREFIXES = (BULK_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE, "planetgen-web-", "planetgen-api-")
+"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the shared queues, each
+Generate page job's own (`planetgen-web-<id>`), and the API queues the tests give a name of their own."""
+
+QUEUES = (GENERATION_QUEUE, BULK_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
 """tuple: Every shared queue."""
 
 def redis_url():

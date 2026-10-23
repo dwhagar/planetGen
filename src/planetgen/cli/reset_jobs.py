@@ -10,10 +10,11 @@ It stops what the update guard lists (Generate jobs, work queue runs, queued job
 kills the queue workers on this host, then removes what is left:
 
 * **Redis**: every RQ key (`rq:*`: the queues, their registries, the jobs, the workers), every run record
-  (`planetgen:run:*`, with the active-run keys and event streams) and the counters of workers being started. The
-  admin's worker count (`planetgen:workers:wanted`) and every cache are kept.
+  (`planetgen:run:*`, with the active-run keys and event streams), the counters of workers being started and the
+  pause flag of the Queue page (the queues are un-paused). The admin's worker count (`planetgen:workers:wanted`)
+  and every cache are kept.
 * **The control database**: every row of `work_jobs` (their tasks and arguments go with them) and the work lease,
-  which is freed and un-paused.
+  which is freed.
 
 The galaxy databases and the Generate page's job directories are not touched. `update.sh --reset-jobs` runs this
 first. It asks before it changes anything (`--yes` is the answer for a script); `--dry-run` only prints what
@@ -32,14 +33,14 @@ import rq
 
 from planetgen.admin import updateguard
 from planetgen.db import store
-from planetgen.queue import redisqueue, runrecord, workers
+from planetgen.queue import pause, redisqueue, runrecord, workers
 
 STOP_SECONDS = 20
 """int: How long the polite cancel of the running work is given before the rest is removed by force."""
 
 KEY_PATTERNS = ("rq:*", f"{runrecord.PREFIX}:run:*", workers.STARTING_PREFIX + "*")
-"""tuple: The Redis keys removed: RQ's own, the runs' (records, units' results, event streams, the active-run keys)
-and the counters of workers being started."""
+"""tuple: The Redis keys removed: RQ's own, the runs' (records, units' results, event streams, the active-run keys),
+and the counters of workers being started; the pause flag (PERF.152) is removed with them (`pause.key`)."""
 
 
 def _redis(url):
@@ -63,7 +64,7 @@ def _count_queues(connection):
 
 def _redis_keys(connection):
     keys = []
-    for pattern in KEY_PATTERNS:
+    for pattern in (*KEY_PATTERNS, pause.key()):
         keys.extend(connection.scan_iter(match=pattern, count=500))
     return keys
 
@@ -93,7 +94,7 @@ def _kill_worker(pid, write):
 
 
 def _survey_work_rows(control):
-    """`(jobs by state, task count, lease holder, paused)` of the control database, or `None` when it has no
+    """`(jobs by state, task count, lease holder)` of the control database, or `None` when it has no
     work tables to reset."""
     conn = store.get_control_connection(control, ensure_schema=False)
     try:
@@ -101,11 +102,11 @@ def _survey_work_rows(control):
             jobs = {row["state"]: int(row["n"]) for row in conn.execute(
                 "SELECT state, COUNT(*) AS n FROM work_jobs GROUP BY state").fetchall()}
             tasks = int(conn.execute("SELECT COUNT(*) AS n FROM work_tasks").fetchone()["n"])
-            lease = conn.execute("SELECT holder, paused FROM work_lease WHERE id = 1").fetchone() or {}
+            lease = conn.execute("SELECT holder FROM work_lease WHERE id = 1").fetchone() or {}
         except Exception:  # noqa: BLE001 -- a control schema without the work queue
             return None
         conn.rollback()
-        return jobs, tasks, lease.get("holder"), bool(lease.get("paused"))
+        return jobs, tasks, lease.get("holder")
     finally:
         conn.close()
 
@@ -114,8 +115,8 @@ def _clear_work_rows(control):
     conn = store.get_control_connection(control, ensure_schema=False)
     try:
         conn.execute("DELETE FROM work_jobs")
-        conn.execute("UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL, paused = 0, "
-                     "paused_by = NULL, paused_at = NULL WHERE id = 1")
+        conn.execute("UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL "
+                     "WHERE id = 1")
         conn.commit()
     finally:
         conn.close()
@@ -160,14 +161,14 @@ def reset_jobs(config, redis_url=None, assume_yes=False, dry_run=False, sources=
     if rows is None:
         write("Control database: no work queue tables to reset." if control is not None else "Control database: left alone.")
     else:
-        jobs, tasks, holder, paused = rows
+        jobs, tasks, holder = rows
         states = ", ".join(f"{count} {state}" for state, count in sorted(jobs.items())) or "none"
         write(f"Control database: {sum(jobs.values())} job(s) ({states}), {tasks} task(s); the work lease is "
-              f"{'held by ' + holder if holder else 'free'}{' and paused' if paused else ''}")
+              f"{'held by ' + holder if holder else 'free'}")
     if dry_run:
         write("Dry run: nothing was changed.")
         return True
-    if not (running or keys or local or rows and (rows[0] or rows[2] or rows[3])):
+    if not (running or keys or local or rows and (rows[0] or rows[2])):
         write("Nothing to reset.")
         return True
     if not assume_yes:

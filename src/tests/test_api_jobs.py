@@ -12,6 +12,7 @@ import time
 import pytest
 
 from planetgen.queue import api_jobs
+from planetgen.util.settings import get_settings
 from tests.test_api import admin_client, client, default_admin_client, first_admin_password  # noqa: F401
 
 pytestmark = pytest.mark.real_queue
@@ -59,7 +60,7 @@ def test_the_status_route_reports_a_job(admin_client, redis_server):
     _wait(job_id)
     body = admin_client.get(f"/api/jobs/{job_id}").get_json()
     assert body == {"id": job_id, "state": "succeeded", "result": 9.0, "error": None, "error_status": None,
-                    "made_url": None}
+                    "made_url": None, "waiting": None}
 
 
 def test_the_status_route_is_503_without_redis(admin_client, monkeypatch):
@@ -207,7 +208,8 @@ def test_a_batch_of_jobs_starts_no_more_workers_than_the_cap(redis_server, monke
     """PERF.39: one worker process per job used to be started, each paying the imports again."""
     started = []
     monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 2)
+    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 8)         # the bulk count is not the cap
+    monkeypatch.setattr(get_settings().queue, "interactive_workers", 2)
     ids = [api_jobs.submit(math.pow, 2, n) for n in range(6)]
     assert len(started) == 2
     assert all(api_jobs.QUEUE_NAME in argv for argv in started)

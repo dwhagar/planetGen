@@ -17,7 +17,7 @@ import re
 from flask import Blueprint, g, jsonify, request
 
 from planetgen.generation import stats as generationStats
-from planetgen.queue import load as systemLoad, redisqueue, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
@@ -31,7 +31,7 @@ def _available(conn):
     """Whether the control schema has the job tree (v7)."""
     try:
         conn.execute("SELECT control FROM work_jobs LIMIT 1").fetchall()
-        conn.execute("SELECT paused FROM work_lease LIMIT 1").fetchall()
+        conn.execute("SELECT holder FROM work_lease LIMIT 1").fetchall()
         conn.rollback()
         return True
     except Exception:  # noqa: BLE001 -- update.sh not run yet
@@ -192,16 +192,16 @@ def clear_finished():
 def queue():
     """
     `POST /api/admin/work/queue` `{"action": "pause"|"resume"}` pauses
-    the whole queue (no run takes the lease or a task until it's resumed;
-    running tasks finish) or resumes it. `{"ok": bool}`: false when it
+    the whole queue (the workers of the generation and maintenance lanes take no job
+    until it's resumed; running tasks finish; PERF.152) or resumes it. `{"ok": bool}`: false when it
     already was.
     """
     action = parse_body(QueueAction, require_json_body()).action
-    conn = get_control_db()
+    connection = _redis()
     if action == "pause":
-        ok = workQueue.pause_queue(conn, g.admin_user["username"])
+        ok = queuePause.pause(g.admin_user["username"], connection)
     else:
-        ok = workQueue.resume_queue(conn)
+        ok = queuePause.resume(connection)
     if ok:
         audit(f"work.queue.{action}", target="queue")
     return jsonify({"ok": ok})
