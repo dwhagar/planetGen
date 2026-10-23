@@ -7940,21 +7940,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
 
-- [ ] **GEN.416 Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/sky-colour-analysis.md): The star's light colour is a
-  blackbody at the star's temperature weighted by the CIE curves (the
-  Wyman, Sloan and Shirley 2013 fit already validated in
-  `docs/design/sky-view.md`), encoded to sRGB, in
-  `planetgen/physics/photometry.py`. This is only the colour part of
-  VIEW.11; the apparent magnitude, bolometric correction and extinction
-  law stay there and extend this module. Done: 5,772 K gives a
-  white-yellow, 3,300 K an orange-cream and 10,000 K a blue-white within
-  a stated tolerance of the published colours, and the module has no
-  database access.
-  Prerequisites: none. Related: VIEW.11, GEN.417.
-  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, first of GEN.416, GEN.498, GEN.496).
-
 - [ ] **GEN.417 Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): `planetgen/physics/sky.py`:
@@ -8038,7 +8023,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-cyan with an orange sun, a 9 MPa CO2 world is white;
   deterministic and free of NaN for every class; the label says when
   aerosols dominate the answer.
-  Prerequisites: GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68,
+  Prerequisites: GEN.417, GEN.413, GEN.414, DB.67, DB.68,
   GEN.441, GEN.462.
   The ground's bounce reads the surface composition of GEN.441 (the
   ground's colour and reflectance) where it is stored.
@@ -11859,6 +11844,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
+  Stand-ins (Blocker 2 via the coordinator, 9:25 PM EDT 2026-10-22, as
+  the lane reported): the coefficients from Hirschmann 2021 and Sossi
+  2020 are recalled and labelled stand-ins in the stand-in registry,
+  because par.nsf.gov and PMC do not resolve from the lane environment.
+  Replacing them with the printed values needs those two hosts opened
+  for lanes (an open question for Boss, listed in
+  docs/plan/execution-notes.md under Needs Boss); the labelled values
+  stay until then and are replaced when read.
   Prerequisites: none. Related: GEN.451, DB.69, GEN.422, GEN.456.
   Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, second of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
 
@@ -22515,7 +22508,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the HYG
   calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
   2026-10-16, 11:58 PM EDT), not VIEW.10's.
-  Prerequisites: VIEW.1, VIEW.9, GEN.416. Related: VIEW.2.
+  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for

@@ -20,9 +20,8 @@ The physics of the colour: the blackbody colour of the star, the Rayleigh optica
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library |  | Boss 11:24 PM EDT; VIEW.11 extends it. |
 | GEN.417 | Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity | GEN.411 | Boss 11:24 PM EDT; pure function of the stored mixture. |
-| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68, GEN.441, GEN.462 | Boss 11:24 PM EDT; absolute colour, not eye-adapted. |
+| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | GEN.417, GEN.413, GEN.414, DB.67, DB.68, GEN.441, GEN.462 | Boss 11:24 PM EDT; absolute colour, not eye-adapted. |
 | GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | GEN.418 | Boss 11:24 PM EDT; reference level chosen in the design. |
 
 ## Phase 2: Atmospheric and surface radiation
