@@ -253,6 +253,14 @@ def _anchor_under(page, spot):
     return page.evaluate("(s) => document.querySelector('#galaxymap3d-canvas').galaxyAnchorUnder(...s)", list(spot))
 
 
+def _anchor_near_star(page, point, shift):
+    """The wheel's anchor `shift` pixels from where `point` is on the screen, and that spot, read in the one call."""
+    return page.evaluate(
+        "([p, by]) => { const c = document.querySelector('#galaxymap3d-canvas'); const s = c.galaxyScreenOf(...p);"
+        " return [s ? c.galaxyAnchorUnder(s.x + by[0], s.y + by[1]) : null, s]; }",
+        [list(point), list(shift)])
+
+
 def _still_spot(page, point):
     """Where `point` is on the screen once the camera has stopped moving (the centring is a flight): the same place
     on three reads 100 ms apart. Read at once, a loaded machine gives a spot the star has left by the time the
@@ -303,8 +311,12 @@ def test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it(
     _ready(page)
     position = _still_spot(page, point)
     for shift in ((0, 0), _shift_nearest_to(page, base_url, scene, point, position)):
-        anchor = _anchor_under(page, (position[0] + shift[0], position[1] + shift[1]))
-        assert anchor == pytest.approx(list(point), abs=1e-9), (shift, anchor, point)
+        # The pointer is put `shift` from where the star is in the same call that asks for the anchor, so nothing
+        # that moves the star on the screen in between (a late layout, a camera still settling) can come between
+        # them (TEST.237).
+        anchor, spot = _anchor_near_star(page, point, shift)
+        assert anchor == pytest.approx(list(point), abs=1e-9), (shift, anchor, point, spot, position, _camera(page))
+    position = _still_spot(page, point)
     distances = [math.dist(_camera(page)["eye"], point)]
     for _ in range(12):
         _wheel(page, position, -60)
