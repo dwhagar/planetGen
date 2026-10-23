@@ -66,8 +66,8 @@ TAIL_RATIOS = (0.12, 0.10)
 further star follows the last (0.10), up to `max_stars` (multi-star-systems.md
 13.1). The tail comes out of the 7-star column, so the table's totals stand."""
 
-MAX_MEMBERS = 12
-"""int: The most members in a tree unless a caller lowers it (`GEN.267`'s cap)."""
+MAX_MEMBERS = tuning.MAX_STARS_DEFAULT
+"""int: The most members in a tree unless a caller lowers or raises it (`SystemConfig.MAX_STARS`, GEN.267)."""
 
 PERIOD_LAWS_LOG10_DAYS = {"solar": (5.03, 2.28), "massive": (3.5, 1.5)}
 """dict: The mean and sigma of the log-normal in log10 of the period in days: the

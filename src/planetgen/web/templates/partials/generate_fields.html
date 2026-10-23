@@ -200,6 +200,9 @@
     </div>
     <p class="hint" data-star-mix-total role="status" aria-live="polite"></p>
   </fieldset>
+  <div class="search-fields">
+    {{ field("max_stars", max_stars_label, value=max_stars_default, step=1, min=1, max=max_stars_ceiling, hint="Default: " ~ max_stars_default ~ ", at most " ~ max_stars_ceiling ~ ". The cap on a rare system's star count.") }}
+  </div>
 </fieldset>
 {%- endmacro -%}
 {#- GEN.96: minimums every generated sector must hold (`--directive`). -#}

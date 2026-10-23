@@ -1220,7 +1220,9 @@ One row per `SystemConfig` "recipe" — the generation parameters a
 | `binary_system` | INTEGER (0/1) | tri-state | |
 | `wide_binary` | INTEGER (0/1) | tri-state | Force a wide (S-type) or close binary (v50). |
 | `num_orbits` | INTEGER | nullable | Explicit orbital slot count override. |
-| `prevalence_habitable_world`, `prevalence_asteroid_belt`, `prevalence_comets`, `prevalence_large_star`, `prevalence_moons`, `prevalence_max_planets`, `prevalence_intelligent_life`, `prevalence_binary_system`, `prevalence_wide_binary`, `prevalence_planets` | DOUBLE | NOT NULL, default 0 | Added in v54 (GEN.52). One per forcing option above: a sector or galaxy run's percentage deviation from that feature's normal chance, 0 for none. |
+| `stars` | TINYINT UNSIGNED | nullable | The forced number of stars (`--stars N`), NULL when left to chance (v134, GEN.267). |
+| `max_stars` | TINYINT UNSIGNED | NOT NULL, default 12 | The cap on the star count (`--max-stars`) (v134, GEN.267). |
+| `prevalence_habitable_world`, `prevalence_asteroid_belt`, `prevalence_comets`, `prevalence_large_star`, `prevalence_moons`, `prevalence_max_planets`, `prevalence_intelligent_life`, `prevalence_binary_system`, `prevalence_wide_binary`, `prevalence_planets`, `prevalence_multi_star` | DOUBLE | NOT NULL, default 0 | Added in v54 (GEN.52). One per forcing option above: a sector or galaxy run's percentage deviation from that feature's normal chance, 0 for none. |
 
 ### `system_config_slots`
 
@@ -2128,6 +2130,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v134 (GEN.267): the star count, its cap and the multi-star prevalence on a stored config
+
+Migration 0134 adds `system_configs.stars` (TINYINT UNSIGNED, nullable: the star count the system was forced to, `--stars N`), `max_stars` (TINYINT UNSIGNED, not null, default 12: the cap on the star count, `--max-stars`) and `prevalence_multi_star` (DOUBLE, not null, default 0: the percent from the usual chance of five or more stars, as the other prevalence columns), each at the end of the table. The defaults are what every config before the revision meant, so no row is touched or backfilled. The version is detected from `system_configs.max_stars`.
 
 ### v133 (GEN.630): `stars.role` 'member' and `stars.slot`
 

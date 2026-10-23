@@ -20,6 +20,7 @@ syntax (see `run_system.process_args`): `+name` sets the option to `True`,
 `-name` sets it to `False`, and omitting it leaves it `None`.
 """
 
+from planetgen import tuning
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 
 # The SystemConfig attributes that make up a system's generation "recipe" --
@@ -31,7 +32,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 SERIALIZABLE_FIELDS = [
     "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "PLANETS", "STAR_TYPE", "NAME", "AGE", "INTELLIGENT_LIFE",
-    "BINARY_SYSTEM", "WIDE_BINARY", "NUM_ORBITS", "SLOTS", "PREVALENCE",
+    "BINARY_SYSTEM", "WIDE_BINARY", "STARS", "MAX_STARS", "NUM_ORBITS", "SLOTS", "PREVALENCE",
 ]
 
 
@@ -164,6 +165,23 @@ class SystemConfig:
         decade of period (`generation.companion_classes`). Defaults to None.
         """
 
+        self.STARS = None
+        """
+        int or None: Forces the number of stars in the system (`--stars N`, the system file's `stars`, GEN.267), from 1
+        to MAX_STARS. 1 is a single star, 2 a pair, and more a member tree whose levels the member-tree host builds
+        (GEN.630). None leaves the count to the `star-count` table. Not read by the host until GEN.630 lands; carried
+        in the config, the plan and the `system_configs` row so a stored config regenerates with the same count.
+        `generation.run_system.stars_conflict` refuses a count that contradicts BINARY_SYSTEM or WIDE_BINARY.
+        Defaults to None.
+        """
+
+        self.MAX_STARS = tuning.MAX_STARS_DEFAULT
+        """
+        int: The most stars the system may hold (`--max-stars N`, the system file's `max_stars`, GEN.267), the cap the
+        star-count draw's tail stops at; `tuning.MAX_STARS_DEFAULT` (12) unless raised, up to
+        `tuning.MAX_STARS_CEILING`. A forced STARS above it is refused. Defaults to 12.
+        """
+
         self.NUM_ORBITS = None
         """
         int or None: Explicitly sets the number of orbital slots (planets and
@@ -197,6 +215,9 @@ class SystemConfig:
         from its normal chance (+50 is 1.5 times as often, -100 never).
         Features left out keep their normal chance. The tri-state flags
         above force a feature; this only shifts how often it happens.
+        "multi_star" scales the chance of five or more stars
+        (`prevalence.multi_star_scale`, which the member-tree host passes as
+        the `prevalence` of `multistar.draw_member_tree`).
         """
 
         self.POPULATION = None

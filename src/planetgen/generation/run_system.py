@@ -55,7 +55,7 @@ def load_system_file(path):
     docstrings for details): `star_type`, `name`, `age`, `num_orbits`,
     `slots`, `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons`,
     `max_planets`, `intelligent_life`, `binary_system`, `wide_binary`,
-    `planets`, `flavor_chance_system`, `flavor_chance_planet`,
+    `stars`, `max_stars`, `planets`, `flavor_chance_system`, `flavor_chance_planet`,
     `max_planet_flavor`, `output`.
 
     `slots`, if present, is a list whose entries are either `null` or an
@@ -100,7 +100,7 @@ def apply_system_file(system_config, data):
         "star_type", "name", "age", "num_orbits", "slots",
         "habitable_world", "asteroid_belt", "comets", "large_star", "moons",
         "max_planets", "intelligent_life", "binary_system", "wide_binary",
-        "planets",
+        "stars", "max_stars", "planets",
     ]
     key_to_attr = {key: key.upper() for key in simple_keys}
 
@@ -167,6 +167,11 @@ def build_system_config(args):
         system_config.NAME = args.name
     if args.age is not None:
         system_config.AGE = args.age
+    # `--stars` is for a single system only (sector and galaxy parsers refuse it), `--max-stars` is shared (GEN.267).
+    if getattr(args, "stars", None) is not None:
+        system_config.STARS = args.stars
+    if getattr(args, "max_stars", None) is not None:
+        system_config.MAX_STARS = args.max_stars
 
     # A sector or galaxy run's --prevalence (GEN.52), the last one given
     # for a feature winning.
@@ -197,12 +202,62 @@ def build_system_config(args):
     return system_config
 
 
+def max_stars_problem(max_stars):
+    """
+    Why `max_stars` (`--max-stars`, the system file's `max_stars`) is not allowed, or `None`: it is a whole number from 1
+    to `tuning.MAX_STARS_CEILING`. `None` (left out) is fine.
+    """
+    if max_stars is None:
+        return None
+    if isinstance(max_stars, bool) or not isinstance(max_stars, int) or not 1 <= max_stars <= program_constants.MAX_STARS_CEILING:
+        return f"max_stars {max_stars!r} must be a whole number from 1 to {program_constants.MAX_STARS_CEILING}."
+    return None
+
+
+def stars_problem(stars, max_stars, binary_system, wide_binary):
+    """
+    Why a forced star count (`--stars N`, GEN.267) cannot be met, or `None`: `stars` is not a whole number of at least 1,
+    is more than the cap in force (`max_stars`, else `tuning.MAX_STARS_DEFAULT`) or than any system may hold
+    (`tuning.MAX_STARS_CEILING`), or contradicts the pair options. One star is a single star, so `+binary_system` and
+    `+wide_binary` (a companion of the wide kind) have none to apply to; two or more stars are not a single star, so
+    `-binary_system` contradicts them. `+binary_system` with three or more stars stands: the system is a binary only in
+    having a companion, and the member-tree host (GEN.630) decides what the rest of the tree is. `-wide_binary` with one
+    star stands: no companion is of the wide kind.
+
+    Args:
+        stars (int or None): The forced count, `None` when left to chance.
+        max_stars (int or None): The cap, `None` for the default.
+        binary_system, wide_binary (bool or None): The tri-state options.
+
+    Returns:
+        str or None: The message.
+    """
+    if stars is None:
+        return None
+    if isinstance(stars, bool) or not isinstance(stars, int) or stars < 1:
+        return f"stars {stars!r} must be a whole number of at least 1."
+    cap = program_constants.MAX_STARS_DEFAULT if max_stars is None else max_stars
+    if stars > program_constants.MAX_STARS_CEILING:
+        return f"stars {stars} is more than any system may hold ({program_constants.MAX_STARS_CEILING})."
+    if stars > cap:
+        return f"stars {stars} is more than the cap of {cap} stars; raise the cap with --max-stars (at most {program_constants.MAX_STARS_CEILING})."
+    if stars == 1 and binary_system is True:
+        return "stars 1 is a single star, which +binary_system contradicts."
+    if stars == 1 and wide_binary is True:
+        return "stars 1 is a single star, which has no companion for +wide_binary."
+    if stars > 1 and binary_system is False:
+        return f"stars {stars} is more than one star, which -binary_system contradicts."
+    return None
+
+
 def single_system_conflict(system_config):
     """
     The contradiction in a single system's resolved options, or `None`:
     `-planets` (no planets or belts at all) with anything that needs a
-    planet or a belt (GEN.50). `validate_system_args` already rejects these
-    on the command line; this also catches them from a `--system-file`.
+    planet or a belt (GEN.50), and a forced star count the cap or the pair
+    options rule out (`stars_problem`). `validate_system_args` already
+    rejects these on the command line; this also catches them from a
+    `--system-file`.
 
     Args:
         system_config (SystemConfig): The resolved configuration.
@@ -210,6 +265,10 @@ def single_system_conflict(system_config):
     Returns:
         str or None: The error message.
     """
+    problem = max_stars_problem(system_config.MAX_STARS) or stars_problem(
+        system_config.STARS, system_config.MAX_STARS, system_config.BINARY_SYSTEM, system_config.WIDE_BINARY)
+    if problem:
+        return problem
     if system_config.PLANETS is not False:
         return None
     forced = [flag for attr, flag in (("MOONS", "+moons"), ("MAX_PLANETS", "+max_planets"),

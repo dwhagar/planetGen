@@ -241,6 +241,11 @@ STRICT_HELP = ("Stop instead of warning: a run the console would otherwise go ah
                "system had room for) ends with an error and nothing generated.")
 
 
+MAX_STARS_HELP = (f"The most stars a system may hold: the cap on the star-count draw (default {program_constants.MAX_STARS_DEFAULT}, "
+                  f"at most {program_constants.MAX_STARS_CEILING}). Raise it to let a rare system hold more; "
+                  f"--prevalence multi_star=PERCENT changes how often five or more stars come up.")
+
+
 def add_system_arguments(parser):
     """
     Adds every option the `system` subcommand accepts (besides
@@ -291,6 +296,14 @@ def add_system_arguments(parser):
     parser.add_argument('--num-orbits', type=int,
                         help="Force an exact number of orbital slots (planets and asteroid belts "
                              "combined) to be generated.")
+
+    # Number of stars (GEN.267)
+    parser.add_argument('--stars', type=int,
+                        help="Force the number of stars in the system, from 1 up to the cap (--max-stars). "
+                             "Refused when it is over the cap or contradicts +binary_system, -binary_system "
+                             "or +wide_binary.")
+    parser.add_argument('--max-stars', type=int, default=None, metavar='N',
+                        help=MAX_STARS_HELP)
 
     # System Name
     parser.add_argument('--name', type=str, help="Force the name of the star system.")
@@ -365,11 +378,28 @@ def validate_system_args(args, parser):
     if args.num_orbits is not None and args.planets is False:
         parser.error("--num-orbits cannot be combined with -planets.")
 
+    _validate_star_count(args, parser, file_data if args.system_file else {})
+
     if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
         parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
 
     if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
         parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+
+
+def _validate_star_count(args, parser, file_data):
+    """
+    `--stars` and `--max-stars` (GEN.267) against each other and the pair options, as the run will resolve them: a
+    command-line value wins over the system file's. The message is `run_system.stars_problem`'s.
+    """
+    def resolved(name):
+        value = getattr(args, name, None)
+        return file_data.get(name) if value is None else value
+
+    problem = run_system.max_stars_problem(resolved("max_stars")) or run_system.stars_problem(
+        resolved("stars"), resolved("max_stars"), resolved("binary_system"), resolved("wide_binary"))
+    if problem:
+        parser.error(problem)
 
 
 def add_shared_generation_options(parser):
@@ -437,6 +467,8 @@ def add_shared_generation_options(parser):
                         help="How much more or less often every system gets FEATURE than by chance, as a "
                              "percentage: comets=+50 is 1.5 times as often, comets=-100 never. Repeat "
                              "for more features: " + ", ".join(prevalence.FEATURES) + ".")
+    parser.add_argument('--stars', type=int, default=None, action=SingleSystemOnlyAction, help=argparse.SUPPRESS)
+    parser.add_argument('--max-stars', type=int, default=None, metavar='N', help=MAX_STARS_HELP)
     parser.add_argument('--star-mix', type=finite_float, nargs=3, default=None,
                         metavar=('SINGLE', 'CLOSE', 'WIDE'),
                         help="The share of systems, in percent, with one star, a close binary and a wide "
@@ -469,6 +501,9 @@ def validate_shared_generation_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
+    problem = run_system.max_stars_problem(getattr(args, "max_stars", None))
+    if problem:
+        parser.error(problem)
     star_mix = getattr(args, "star_mix", None)
     if star_mix is not None:
         given = {feature for feature, _ in (args.prevalence or ())}

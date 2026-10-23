@@ -85,3 +85,4 @@ Commit each file came from:
 - v130: b9bf305 (DB.85 galaxy containers) (before OPS.58)
 - v131: d10849e (OPS.58 generator epoch) (before GEN.458)
 - v132: c42411611 (GEN.458 snow line) (before GEN.630)
+- v133: 6f0754dda (GEN.630 star members) (before GEN.267)

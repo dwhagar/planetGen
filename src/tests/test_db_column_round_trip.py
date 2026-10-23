@@ -53,6 +53,8 @@ NULL_IN_THIS_GALAXY = {
         "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude")},
     # DB.61: nothing writes the cluster link until the cluster membership of a star is generated (GEN.209).
     ("stars", "cluster_id"): "written when a star's cluster is known (DB.61 adds the column only)",
+    # GEN.267: only `planetgen system --stars N` stores a forced star count; sector and galaxy runs refuse it.
+    ("system_configs", "stars"): "written by a single system run with --stars (sector and galaxy runs refuse it)",
     # Only something sitting inside a nebula or supernova remnant.
     **{(table, column): CHANCE for table in store.CONTAINABLE_TABLES for column in CONTAINMENT},
     # A quasar is placed only at a galaxy's own center, so whether the run

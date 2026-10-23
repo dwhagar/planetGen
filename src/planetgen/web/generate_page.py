@@ -680,6 +680,7 @@ PREVALENCE_LABELS = {
     "binary_system": "Binary systems (% of systems)",
     "wide_binary": "Wide pairs (% of binaries)",
     "planets": "Any planets (% of systems)",
+    "multi_star": "Five or more stars (% of systems)",
 }
 """dict: The Generate page's label for each prevalence feature (ADM.16),
 naming what its share is of."""
@@ -757,7 +758,25 @@ def prevalence_argv(form):
             continue
         percent = prevalence.percent_for_share(feature, share / 100.0)
         argv += ["--prevalence", f"{feature}={percent:.6g}"]
-    return argv + star_mix_argv(form)
+    return argv + star_mix_argv(form) + max_stars_argv(form)
+
+
+MAX_STARS_LABEL = "Most stars in a system"
+"""str: The Generate page's label for the star cap (`--max-stars`, GEN.267)."""
+
+
+def max_stars_argv(form):
+    """
+    `--max-stars N` when the Most stars field differs from the default cap (`tuning.MAX_STARS_DEFAULT`); blank or the
+    default leaves it alone.
+
+    Raises:
+        FormError: A value that isn't a whole number from 1 to `tuning.MAX_STARS_CEILING`.
+    """
+    count = _number(form, "max_stars", MAX_STARS_LABEL, int, minimum=1, maximum=tuning.MAX_STARS_CEILING)
+    if count is None or count == tuning.MAX_STARS_DEFAULT:
+        return []
+    return ["--max-stars", str(count)]
 
 
 DIRECTIVE_FIELDS = (
@@ -1281,6 +1300,9 @@ def page_context(admin, form=None, error=None, status=200):
         halo_min_stellar_mass=mass_chain.HALO_MIN_STELLAR_MASS_SOLAR,
         full_structure_min_mass=dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR,
         prevalence_fields=PREVALENCE_FIELDS,
+        max_stars_label=MAX_STARS_LABEL,
+        max_stars_default=tuning.MAX_STARS_DEFAULT,
+        max_stars_ceiling=tuning.MAX_STARS_CEILING,
         star_mix_fields=STAR_MIX_FIELDS,
         directive_fields=DIRECTIVE_FIELDS,
         sliders=limit_sliders.SLIDERS,
@@ -1319,7 +1341,7 @@ def page_context(admin, form=None, error=None, status=200):
     )
 
 
-ADVANCED_PREFIXES = ("prevalence_", "star_mix_", "directive_")
+ADVANCED_PREFIXES = ("prevalence_", "star_mix_", "directive_", "max_stars")
 """tuple: Form fields that live in the Advanced block; a draft shown again that holds one opens it."""
 
 
