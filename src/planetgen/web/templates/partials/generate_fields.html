@@ -74,20 +74,18 @@
 </label>
 {%- else -%}
 <label class="search-field">{{ row.label }}{% if row.unit and row.kind != "length" %} ({{ row.unit }}){% endif %}
-  <span class="lever-entry">
+  {%- if row.kind == "length" %}
+  <input type="text" name="{{ row.name }}" value="{{ shown }}" data-lever="{{ row.name }}" placeholder="Auto" autocomplete="off"
+    autocapitalize="off" spellcheck="false" aria-describedby="{{ row.name }}-units">
+  <span class="field-hint">{{ row.help }} Allowed {{ row.range_text() }}. Auto: {{ row.auto_text }}.
+  <span id="{{ row.name }}-units">{{ row.units_text() }}</span></span>
+  {%- else %}
   <input type="number" name="{{ row.name }}" value="{{ shown }}" step="any" inputmode="decimal"
     min="{{ row.minimum }}" max="{{ row.maximum }}" data-lever="{{ row.name }}" data-step="{{ row.step }}" data-dial="{{ row.dial }}"
     {%- if row.name == "mass" %} data-no-dark-halo-below="{{ halo_min_stellar_mass }}" data-simple-below="{{ full_structure_min_mass }}"{% endif %}
     placeholder="Auto">
-  {%- if row.kind == "length" %}
-  <select name="{{ row.name }}_unit" aria-label="{{ row.label }} unit">
-    {%- for unit in row.units %}
-    <option value="{{ unit.name }}"{% if (form.get(row.name ~ "_unit") if form else "") == unit.name %} selected{% endif %}>{{ unit.name }}</option>
-    {%- endfor %}
-  </select>
-  {%- endif %}
-  </span>
   <span class="field-hint">{{ row.help }} Allowed {{ row.range_text() }}. Auto: {{ row.auto_text }}.</span>
+  {%- endif %}
 </label>
 {%- endif -%}
 {%- endmacro -%}
@@ -110,11 +108,14 @@
 {%- endmacro -%}
 {#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
     first, then a segment each for the core, the halo and the crowded cells. -#}
-{%- macro scatter_limits(id) -%}
+{%- macro scatter_limits(id, skip_id=none) -%}
 <div class="search-fields scatter-limits">
   {{ mass_limit_slider(id) }}
   {{ bright_floor_slider(id ~ "-floor") }}
   {{ compact_limit(id ~ "-compact") }}
+  {%- if skip_id %}
+  {{ skip_scatter(skip_id) }}
+  {%- endif %}
 </div>
 <div class="scatter-segments">
   {{ core_segment(id ~ "-core", id ~ "-floor", id) }}
@@ -224,9 +225,9 @@
 </details>
 {%- endmacro -%}
 {%- macro skip_scatter(id) -%}
-<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
-  {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
-  <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy: right after the plan, or on a new galaxy once its first sectors are generated, leaving them out.</span></label>
+<label class="search-field generate-check generate-skip"><span><input type="checkbox" id="{{ id }}" name="skip_scatters" value="1"
+  {%- if form and form.get("skip_scatters") %} checked{% endif %}> Skip all scatters</span>
+  <span class="field-hint">Runs no scatter at all: no massive stars, bright stars, neutron stars, black holes or other phenomena are placed across the whole galaxy. Normally they are, right after the plan, or on a new galaxy once its first sectors are generated, leaving those out.</span></label>
 {%- endmacro -%}
 {#- GEN.599: a job refuses to start while a downloaded data file is missing; this box says to go ahead with each missing dataset's labelled fallback. -#}
 {%- macro disregard_data(id, ticked=False) -%}

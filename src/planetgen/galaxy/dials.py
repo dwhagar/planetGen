@@ -139,6 +139,21 @@ class Lever:
     def _abs_text(self):
         return f", at least {self.min_abs:g} away from 0" if self.min_abs is not None else ""
 
+    def units_text(self):
+        """How to type a `length` row, for the text under its box: the number with its unit straight after it, with
+        an example and what each unit is."""
+        examples = {"L": "12L", "pc": "160pc", "kpc": "40kpc", "Mpc": "0.1Mpc"}
+        names = {"pc": "parsecs", "kpc": "kiloparsecs", "Mpc": "megaparsecs"}
+        shown = [examples.get(unit.name, f"1{unit.name}") for unit in self.units]
+        meanings = []
+        for unit in self.units:
+            if unit.factor is None:
+                meanings.append(f"{unit.name} is scale lengths of the thin disc ({unit.minimum:g} to {unit.maximum:g})")
+            else:
+                meanings.append(f"{unit.name} is {names.get(unit.name, unit.name)}")
+        return (f"Type the number with its unit straight after it, such as {', '.join(shown[:-1])} or {shown[-1]}. "
+                f"{'; '.join(meanings)}.")
+
     def unit_names(self):
         """The units a `length` row takes, as `L, pc, kpc`."""
         return ", ".join(unit.name for unit in self.units)
@@ -227,7 +242,7 @@ LEVERS = (
         help="The galaxy family. A selector, not a dial: it never sets a size or a count.",
         source="the galaxy families; only the spiral exists, later families fill the list", status="theory"),
     Lever(
-        name="mass", flag="--mass", dial="scale", label="Stellar mass (solar masses)", kind="float",
+        name="mass", flag="--mass", dial="scale", label="Stellar mass", kind="float",
         unit="solar masses", minimum=281.0, maximum=1.55e11, step=0.01, log=True,
         law="the total mass of the galaxy's stars (not its dark halo, which the Halo dial sets); the size, the halo, "
             "the thick disc, the bulge and the black hole all follow it through their laws; under about 4.6e6 the "
@@ -239,7 +254,7 @@ LEVERS = (
                "Volume Database v1.1.1; Simon et al. 2011, arXiv:1007.4198); ceiling 1.5 x Andromeda's 1.03e11 "
                "(Sick et al. 2014, arXiv:1410.0017), read by the galaxy size research thread", status="derived"),
     Lever(
-        name="compactness", flag="--compactness", dial="scale", label="Compactness (sigma)", kind="float",
+        name="compactness", flag="--compactness", dial="scale", label="Compactness", kind="float",
         unit="sigma", minimum=-3.0, maximum=3.0, step=0.1,
         law="the size at the same mass, as standard deviations from the size-mass law: 0 is the median galaxy, a "
             "positive value a larger disc (the scale length is the law's median times e^(sigma x z))",
@@ -249,7 +264,7 @@ LEVERS = (
         source="scatter of the late-type size-mass law, Shen et al. 2003 (read in the repository); three sigma is "
                "the draw's own cap", status="derived"),
     Lever(
-        name="density", flag="--density", dial="scale", label="Central surface density (solar masses per pc^2)",
+        name="density", flag="--density", dial="scale", label="Central surface density",
         kind="float", unit="solar masses per pc^2", minimum=0.04, maximum=1.0e5, step=0.01, log=True,
         law="the thin disc's central surface density, mass over 2 pi L^2: the same thing as the size at a fixed mass",
         auto_text="a read-out of the mass and size",
@@ -264,7 +279,7 @@ LEVERS = (
         units=(Unit("pc", 1.0), Unit("kpc", 1000.0)),
         law="the thin disk's scale length L; every other length of the galaxy is a ratio of it",
         auto_text="drawn from the size-mass relation of the galaxy's stellar mass",
-        help="Thin disk exponential scale length with its unit, such as 2600pc or 2.6kpc (the thick disk's is 0.77x).",
+        help="Thin disk exponential scale length (the thick disk's is 0.77x).",
         source="Boss, 10-21 (7:04 PM to 8:08 PM EDT): floor 28 pc (Segue 1's half, 7.1 pc, is under the 4 pc cell grid's "
                "reach: a variable sector edge, a later item, would bring it back); ceiling 1.5 x Andromeda's 5.5 kpc "
                "(Courteau et al. 2011, arXiv:1106.3564; Dorman et al. 2013, arXiv:1310.4179), read by the galaxy size "
@@ -313,8 +328,7 @@ LEVERS = (
             "clear the one-star threshold (a relative length is in scale lengths of the thin disc)",
         auto_text="the outline's own edge, where no sector clears the one-star-per-sector threshold, up to the grid's "
                   "reach",
-        help="How far from the centre the plan walks the outline, with its unit: 12L (scale lengths of the thin disc, "
-             "3 to 20), or 40kpc, 160pc, 0.1Mpc. Replaces --max-shell.",
+        help="How far from the centre the plan walks the outline. Replaces --max-shell.",
         source="relative: Boss, 10-21 (7:01 PM EDT), 3 to 20 scale lengths; absolute: one 4 pc shell up to the grid's "
                "reach of 65,535 shells, 262 kpc (spherical.MAX_ADDRESSABLE_SHELL)", status="derived"),
     Lever(
@@ -359,11 +373,11 @@ LEVERS = (
         source="Hart et al. 2017 counts 1 to 5 or more arms; the ceiling of 10 is a placeholder",
         status="placeholder"),
     Lever(
-        name="pitch_angle_deg", flag="--pitch-angle-deg", dial="pattern", label="Arm pitch angle (degrees)",
+        name="pitch_angle_deg", flag="--pitch-angle-deg", dial="pattern", label="Arm pitch angle",
         kind="float", unit="degrees", minimum=-90.0, maximum=90.0, step=0.5, min_abs=1.0,
         law="the arms' pitch angle (a negative one winds the other way)",
         auto_text="drawn from the seed, tighter for heavier galaxies",
-        help="Spiral arm pitch angle, degrees.",
+        help="How tightly the spiral arms wind; a negative angle winds them the other way.",
         source="Hart 2017 draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused "
                "because a flat pitch divides by zero (density-limits report, 10-21)", status="placeholder"),
     Lever(

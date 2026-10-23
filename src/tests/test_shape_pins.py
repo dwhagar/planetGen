@@ -74,7 +74,7 @@ def test_a_pinned_mass_compactness_and_flatness_round_trip(mysql_config):
     assert info.shape.disk_scale_length_pc == saved.disk_scale_length_pc
     assert shape_json["pins"] == info.pins
     assert central == enclosed_mass.enclosed_mass_kg(info.shape, SEED, TIDE_PC) != _drawn_tide_kg()
-    assert dials.describe_pins(info.pins).startswith("Shape pinned: Stellar mass (solar masses) 7e+09 solar masses")
+    assert dials.describe_pins(info.pins).startswith("Shape pinned: Stellar mass 7e+09 solar masses")
     assert dials.describe_pins(info.pins).endswith("the rest drawn from the seed")
 
 

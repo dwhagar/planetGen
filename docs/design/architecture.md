@@ -1036,7 +1036,7 @@ moving to Redis; see [redis-and-the-work-queue.md](redis-and-the-work-queue.md) 
 
 Planning runs the bright-star scatter as its own step (`planetgen plan
 --bright-stars-only` after `plan --no-bright-stars`), so the job shows its
-progress bar and count; "Skip the bright-star scatter" leaves it out, and
+progress bar and count; "Skip all scatters" leaves it out, and
 "Rebuild the bright stars" runs it alone on the stored plan. The sectors a job generates run on the same Redis work queue (`planetgen/queue/work.py`) in worker processes, so a sector or a shell's scatter is one unit of work. Generate
 neighborhood (on the Sector Map and the Galaxy Map, `static/generatebuttons.js`)
 asks for a radius in light years, 13 to 652, and asks again past about

@@ -51,7 +51,7 @@ for (const note of document.querySelectorAll("[data-shape-report]")) {
   let sent = 0;
   const ask = async () => {
     const query = new URLSearchParams();
-    for (const input of form.querySelectorAll('[data-lever], select[name$="_unit"]')) {
+    for (const input of form.querySelectorAll("[data-lever]")) {
       if (!input.disabled && input.name && input.value.trim() !== "") query.set(input.name, input.value.trim());
     }
     const mine = ++sent;

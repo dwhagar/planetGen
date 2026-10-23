@@ -143,10 +143,7 @@
       <summary>Advanced: bright stars, prevalence and star mix</summary>
       <fieldset class="generate-mode">
         <legend>Bright stars</legend>
-        {{ scatter_limits("new-galaxy-mass-limit") }}
-        <div class="search-fields">
-          {{ skip_scatter("new-galaxy-skip-bright") }}
-        </div>
+        {{ scatter_limits("new-galaxy-mass-limit", "new-galaxy-skip-bright") }}
       </fieldset>
       {{ prevalence_inputs() }}
     </details>

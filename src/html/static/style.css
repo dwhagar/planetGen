@@ -1629,12 +1629,11 @@ a:focus-visible .navmap-point circle {
 
 .scatter-limits {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   align-items: start;
 }
 
 .scatter-limits .generate-compact {
-  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -1647,31 +1646,25 @@ a:focus-visible .navmap-point circle {
   border-radius: 4px;
 }
 
-@media (max-width: 40rem) {
-  .scatter-limits {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* UX.116: a limit slider is a range input with a number box at its end. */
+/* UX.116: a limit slider is a range input with its number box under it. */
 .limit-slider-row {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
   min-width: 0;
 }
 
 .limit-slider-row input[type="range"] {
-  flex: 1 1 0;
-  width: 0;
-  min-width: 4rem;
+  width: 100%;
+  min-width: 0;
   margin: 0;
 }
 
 .limit-slider-row .range-value {
-  flex: 0 0 8.5rem;
   width: 8.5rem;
-  text-align: right;
+  max-width: 100%;
+  align-self: flex-start;
 }
 
 .scatter-segments {
@@ -1749,6 +1742,24 @@ a:focus-visible .navmap-point circle {
   flex-direction: column;
   grid-column: 1 / -1;
   grid-row: auto;
+}
+
+/* ADM.127: the scatter limits are one row of cells of their own (two sliders, the neutron star options, the box that
+   skips every scatter), not rows shared with each other: a tall cell must not stretch the others' label rows. */
+.aligned-fields .scatter-limits {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  align-items: start;
+  gap: 0.75rem 1.25rem;
+}
+
+.aligned-fields .scatter-limits > .search-field,
+.aligned-fields .scatter-limits > .search-field.generate-check {
+  display: flex;
+  flex-direction: column;
+  grid-row: auto;
+  grid-column: auto;
+  justify-content: flex-start;
+  margin-bottom: 0;
 }
 
 .aligned-fields .search-field input[type="text"],
@@ -4725,9 +4736,22 @@ p.hint a {
 .setting-rate,
 .setting-slider .limit-slider-row {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   gap: 0.4rem 0.6rem;
   align-items: center;
+}
+
+.setting-slider .limit-slider-row input[type="range"] {
+  flex: 1 1 8rem;
+  width: auto;
+  min-width: 4rem;
+}
+
+.setting-slider .limit-slider-row .range-value {
+  flex: 0 0 8.5rem;
+  align-self: auto;
+  text-align: right;
 }
 
 .setting-unit {

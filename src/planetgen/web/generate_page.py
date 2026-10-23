@@ -397,13 +397,12 @@ def lever_argv(form):
 
 def _lever_text(form, row):
     """The text of a lever's flag value from the form (blank is Auto, so `None`), checked against the row's range;
-    a length goes with the unit chosen beside it (`2600pc`)."""
+    a length is typed with its unit (`2600pc`)."""
     raw = (form.get(row.name) or "").strip()
     if not raw:
         return None
-    unit = (form.get(f"{row.name}_unit") or "").strip() if row.kind == "length" else ""
     try:
-        value = row.convert(raw + unit)
+        value = row.convert(raw)
     except ValueError as exc:
         _problem(f"{row.label}: {exc}.")
         return None
@@ -411,7 +410,7 @@ def _lever_text(form, row):
     if message:
         _problem(f"{row.label}: {message}.")
         return None
-    return raw + unit if row.kind == "length" else str(value)
+    return raw if row.kind == "length" else str(value)
 
 
 def random_start_argv(form):
@@ -825,14 +824,14 @@ def redo_scatters_steps(generate, form):
 
 def plan_steps(generate, form):
     """
-    The plan step and, unless the form's "skip the bright-star scatter" box is ticked, the scatters as the steps after
+    The plan step and, unless the form's "Skip all scatters" box is ticked, the scatters as the steps after
     it (`scatter_steps`: the massive stars, the bright stars, the phenomena), at the form's limits.
 
     Returns:
         list[dict]: Job steps.
     """
     steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}]
-    if not form.get("skip_bright_stars"):
+    if not form.get("skip_scatters"):
         steps += scatter_steps(generate, form)
     return steps
 
@@ -873,7 +872,7 @@ def step_stages(step, form):
     """
     The stages one job step goes through (UX.89), `{"label", "skipped"}` each:
     the stages its `galaxy` or `plan` command declares (`generation.stages`),
-    with a scatter stage left out by the form's "skip the bright-star scatter"
+    with a scatter stage left out by the form's "Skip all scatters"
     box saying so; any other step is one stage of its own label.
     """
     argv = step["argv"]
@@ -888,9 +887,9 @@ def step_stages(step, form):
         except (SystemExit, Exception):  # noqa: BLE001 -- the step is then one stage
             found = []
         if found:
-            ticked = bool(form.get("skip_bright_stars"))
+            ticked = bool(form.get("skip_scatters"))
             return [{"label": stage.label,
-                     "skipped": ("the \"skip the bright-star scatter\" box is ticked"
+                     "skipped": ("the \"Skip all scatters\" box is ticked"
                                  if ticked and stage.skip and "scatter was not asked for" in stage.skip
                                  else stage.skip)} for stage in found]
     return [{"label": step["label"], "skipped": None}]
@@ -939,7 +938,7 @@ def _build_job_steps(action, form, edge_pc=None):
         plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
         argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form)
         label = "Generate sectors around a random start"
-        if not form.get("skip_bright_stars"):
+        if not form.get("skip_scatters"):
             # The plan step doesn't store the mass limit, so the scatters take it from here.
             argv += ["--then-scatter"] + mass_limit_argv(form) + luminosity_floor_argv(form)
             label = NEW_GALAXY_SCATTER_LABEL
