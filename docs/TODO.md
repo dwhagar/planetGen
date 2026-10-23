@@ -14995,6 +14995,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier owner line. Owner: Habitability lane D (model). It changes
   generated values, so it takes a generator epoch at merge (62 is
   GEN.450, then 63).
+  Decided (Boss, 7:09 and 7:12 PM EDT 2026-10-23, option 1 of lane D's
+  card, relayed by lane D; design note
+  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md):
+  ship the planet-mass habitable zone edges as staged; keep the
+  early-runaway loss with a smaller escape efficiency,
+  ENERGY_LIMITED_EFFICIENCY 0.01 (the low end of the published range
+  0.01 to 0.3, a DESIGN stand-in: label it in the stand-in registry of
+  the gap plan, docs/design/gap-filling-plan.md), so only the worst red
+  dwarfs desiccate; the loss comes off the surface reservoir first
+  (surface_water_fraction), and the mantle returns part of the deficit
+  over the star's age by outgassing. Re-measure on 120 systems and
+  report the ocean and dry counts. Takes a generator epoch at merge.
+  Owner: Habitability lane D (already on its list).
+
 - [ ] **GEN.640 GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree**
   Split from GEN.631 (Core 3's re-cut, relayed 2:20 PM EDT 2026-10-23 as
   the lane reported; TODO thread agreed). BinaryStarProxy and
@@ -15248,7 +15262,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   also reads size and surface gravity; the class code carries a size
   tier (S and V become tiers, not letters, as the class lane reported).
 
-- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) rebuilds the planet from scratch with restricted draw parameters at each generation stage, pulling the decision tree toward a habitable world (PHI-6 overall Blue or Green) or the requested class**
+- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of adaptations before it gives up: redraw the surface, restrict the planet parameters, more starting water, aquifers, regenerate the planet, adapt the system, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
   doing compositions, let's leave out the class designation until planet
@@ -15261,27 +15275,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
   (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
   (the habitable rule). Owner: Habitability lane D unless stated.
-  Replace the class-list steering (LIFE_PLANET_CLASSES). Boss's design
-  (6:39 and 6:43 PM EDT 2026-10-23): a regenerate is a regenerate. A
-  request for a habitable world (or a class) rebuilds the planet from
-  scratch, a whole new body from a derived sub-seed, never an edit of a
-  drawn one; and each stage (formation distance, mass, bulk composition,
-  atmosphere, temperature, water, life) draws with restricted parameters,
-  the part of its distribution that can still lead to the request, so the
-  decision tree is pulled toward a PHI-6 overall of Blue or Green (or the
-  requested class once classes are derived, GEN.647). Boss: 'I would
-  prefer to not redraw but a redraw is a redraw since we're doing planets
-  differently now, a regenerate is a regenerate, so rebuild the new
-  planet from scratch, we'll then use restricted draw parameters to pull
-  the decision tree toward the requested class.' The restriction should
-  make a rebuild succeed almost always; if a rebuild still misses, rebuild
-  again with a stated cap on tries, and a request that no stage can
-  satisfy fails with a message naming the stage. Done: a forced request is
-  met by a Blue or Green world in every one of 120 forced systems that has
-  an ecosphere (the proposal measured 7 of 120 before), the number of
-  rebuilds per request is measured and small, the restricted draws are
-  deterministic across worker counts, and a request that cannot be met
-  names the stage.
+  Replace the class-list steering (LIFE_PLANET_CLASSES). Boss (7:12 PM
+  EDT 2026-10-23, answering through lane D): a habitable-world request
+  runs an ordered ladder of adaptations before it quits. After each
+  attempt the failing domain of the finished score (Water, Temperature,
+  Radiation, Suitability) and the star's history loss pick the next step.
+  The aim is a PHI-6 overall of Blue or Green; the accepted end is Yellow
+  with Suitability at least Yellow (Boss, 6:54 PM EDT). The ladder:
+  (1) redraw the surface (albedo, greenhouse, atmosphere, life draws of
+  the same planet); (2) restrict the planet parameters (mass 0.5 to 2
+  Earth masses, rocky, low eccentricity, usable rotation and tilt);
+  (3) more starting water, an Ocean World (initial water = the history
+  loss / mass plus an Earth-like remainder; the class follows the
+  finished composition under GEN.644 option 3); (4) aquifers (the
+  aquifer item of this list, which also covers the Yellow fallback);
+  (5) regenerate the planet in the same slot (whole new body from a
+  derived sub-seed, never an edit); (6) adapt the system (6a place the
+  zone planet in the outer part of the zone, 6b move or remove a giant
+  that blocks the slot, 6c add a second, then a third star); (7)
+  regenerate the star (the red dwarf failures: a failing M dwarf is
+  redrawn up to N times; a failing G or K star keeps its star and goes
+  to step 8 unless Boss wants those redrawn); (8) give up with the best
+  result found, Yellow if Suitability allows, recorded as unmet or
+  fallback, never silently. Each step has an attempt cap and a seed per
+  (step, attempt); suggested caps K1 8, K2 6, K3 6, K4 1, K5 6, K6 4
+  each, K7 8 stars (design values), and a budget of attempts per request
+  so a directed sector cannot run for ever. The outcome records the step
+  reached and how many star draws it took. Design:
+  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md
+  (section a, the honest note on 6c: a companion cannot make the host
+  heavier or brighter, so it helps little for lost water). Done: a
+  forced request is met by a Blue or Green world, or by the stated
+  fallback, in every one of 120 forced systems that has an ecosphere (the
+  proposal measured 7 of 120 before), the step reached is counted per
+  request, the draws are deterministic across worker counts, and a
+  request that cannot be met names the failing domain and the step.
   Decided (Boss, 6:39 PM EDT 2026-10-23, relayed by the coordinator):
   'there is no recalculation never redraws composition rule, at least I
   don't remember one' (bulk-composition.md decision 31 / F10 was a lane
@@ -15295,6 +15323,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Green first; the Yellow fallback is taken only after the stated cap on
   tries and the result is marked as a fallback in its description. Food
   comes from the Flora and Fauna scores (GEN.653).
+  Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
+  Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
 
 - [ ] **GEN.649 The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
@@ -15422,6 +15452,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rung table with a case per Flora and Fauna pair, a test that Flora
   alone beats none and both beat Flora alone, and the docs state it.
   Prerequisites: GEN.649. Related: GEN.649, GEN.648, GEN.643.
+
+- [ ] **GEN.654 Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only**
+  Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
+  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md,
+  mechanism b3): aquifers for habitable-world requests and for the
+  worlds themselves. Owner: Habitability lane D, built after GEN.649
+  merges. Depth to liquid water about (273 - T_surface) k / q (k near 2
+  W/m/K, q the stored internal heat flux), if the crust holds water down
+  to that depth (porosity falls with depth, so the practical limit is a
+  few km); thickness of the water-bearing layer. Water rung: liquid
+  water within reach underground (a Yellow rung like the ocean under
+  ice). Suitability: shelter and water within reach. Life: it raises the
+  Microbial score only (0 to 9), not Flora, Fauna or Sentient. Step 4 of
+  the GEN.648 ladder. Changes stored values (epoch with GEN.649, testing
+  mode). Done: the model with cases (a dry hot world, a frozen world, a
+  tidally heated moon), the rungs, the Microbial rule, tests,
+  determinism across worker counts, and the design doc states it.
+  Prerequisites: GEN.649. Related: GEN.648, GEN.649, GEN.653.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17461,6 +17509,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   older rows. Owner: Habitability lane D with lane B for the API. Done:
   round trip, migration test, and the schema document lists the columns.
   Prerequisites: GEN.649. Related: GEN.649, DB.73.
+
+- [ ] **DB.92 Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers)**
+  Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
+  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md,
+  mechanism b3): aquifers for habitable-world requests and for the
+  worlds themselves. Owner: Habitability lane D, built after GEN.649
+  merges. One column pair (km) on planets and moons with their Alembic
+  revision and schema version, declared in db/column_units.py in the
+  same PR, the loader and writer, the API field and the rebuild step for
+  older rows. Done: round trip, migration test, the schema document
+  lists the columns.
+  Prerequisites: GEN.654. Related: GEN.654, DB.91.
 
 ## API: The JSON API
 
