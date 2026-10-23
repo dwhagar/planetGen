@@ -89,7 +89,7 @@ class ComponentField:
 
     __slots__ = ("edge_pc", "expected_at_density_1", "names", "kinds", "families", "fe_h", "shares", "_centers", "_reach",
                  "_scale_pc", "_central", "_tables", "_index", "_big", "_small", "_small_by_cyl", "_small_cyl",
-                 "_small_by_dist", "_small_dist", "_small_window", "_encloses_origin")
+                 "_small_by_dist", "_small_dist", "_small_window", "_density_reach", "_density_window", "_encloses_origin")
 
     def __init__(self, found, edge_pc, expected_at_density_1):
         held = [c for c in found if c.kind in KINDS_IN_THE_GATE]
@@ -107,6 +107,7 @@ class ComponentField:
         self._central = np.array([component_profiles.central_density_per_pc3(c) / c.mean_system_mass_solar
                                   for c in held], dtype=float)
         self._tables = tuple(component_profiles.table_for(c) for c in held)
+        self._density_reach = self._qualifying_reach([c.mass_solar / c.mean_system_mass_solar for c in held])
         self._index = self._build_index()
         self._group_by_reach()
 
@@ -117,6 +118,33 @@ class ComponentField:
 
     def __len__(self):
         return len(self.names)
+
+    def _qualifying_reach(self, total_systems):
+        """
+        How far from its centre each component can put a cell at or over one expected system (GEN.627): the radius where
+        its density times the cell's volume falls to one system, grown by the cell's half-diagonal, and never beyond its
+        tidal radius. A component that holds under one system in all, or whose centre cell would hold under one, never
+        qualifies a cell, and its reach is `0`. The outline takes a component in by this reach and not by its tidal one:
+        a dwarf galaxy's tidal sphere (15.6 kpc for the Sagittarius remnant) covers the whole host, though its density
+        never reaches one system in a cell.
+        """
+        one_cell = self.edge_pc ** 3
+        reach = np.zeros(len(self._reach))
+        for i, table in enumerate(self._tables):
+            if total_systems[i] < 1.0 or self._central[i] * one_cell < 1.0:
+                continue
+            needed = 1.0 / (self._central[i] * one_cell)
+            x = float(np.interp(needed, table.density[::-1], table.x[::-1]))
+            reach[i] = min(self._reach[i], x * self._scale_pc[i] + 0.87 * self.edge_pc)
+        return reach
+
+    def qualifying_volume_pc3(self):
+        """
+        The volume, cubic parsecs, of the sectors the components qualify on their own (GEN.627): each component's sphere
+        out to where its density reaches one system in a cell, at least one cell; the sum, so overlap counts twice.
+        """
+        radius = np.maximum(self._density_reach[self._density_reach > 0.0] - 0.87 * self.edge_pc, 0.0)
+        return float(np.maximum(4.0 / 3.0 * math.pi * radius ** 3, self.edge_pc ** 3).sum())
 
     def _group_by_reach(self):
         """
@@ -137,8 +165,11 @@ class ComponentField:
         self._small_by_dist, self._small_dist = self._small[order], distance[order]
         slack = tuning.CLUSTER_BOUND_SLACK_EDGES * self.edge_pc
         self._small_window = (float(reach[self._small].max()) if len(self._small) else 0.0) + slack
+        density_reach = self._density_reach
+        self._density_window = (float(density_reach[self._small].max()) if len(self._small) else 0.0) + slack
+        qualifying = self._small[density_reach[self._small] > 0.0]
         self._encloses_origin = bool(np.any(
-            np.linalg.norm(self._centers[self._small], axis=1) <= reach[self._small] + slack)) if len(self._small) else False
+            np.linalg.norm(self._centers[qualifying], axis=1) <= density_reach[qualifying] + slack)) if len(qualifying) else False
 
     def _grid_cell(self, point):
         grid = tuning.CLUSTER_GRID_PC
@@ -262,7 +293,9 @@ class ComponentField:
         """
         The highest `|band|` of shell `shell` any component reaches (grown by the bound's slack), or `-1` when none
         does: a component far from the plane is no part of the run of bands the disk and bulge qualify, so the outline
-        takes it in by hand. `band_at` is `galaxy.spherical.band_at`.
+        takes it in by hand. A component reaches as far as its density does (`_qualifying_reach`), not its tidal radius,
+        and one whose density never reaches one system in a cell adds nothing (GEN.627). `band_at` is
+        `galaxy.spherical.band_at`.
         """
         slack = tuning.CLUSTER_BOUND_SLACK_EDGES * edge_pc
         radius = shell * edge_pc
@@ -270,7 +303,9 @@ class ComponentField:
             return band_at(shell, 0.0) if shell else 0   # the sphere holds the pole: the shell's top band
         high = -1
         for i in self._big:
-            center, reach = self._centers[i], self._reach[i]
+            center, reach = self._centers[i], self._density_reach[i]
+            if reach <= 0.0:
+                continue
             distance = float(np.linalg.norm(center))
             grown = reach + slack
             if distance <= grown:
@@ -282,12 +317,13 @@ class ComponentField:
             highest = min(math.pi / 2.0, abs(latitude) + half_angle)
             high = max(high, abs(band_at(shell, math.pi / 2.0 - highest)))
         if len(self._small):
-            low, top = np.searchsorted(self._small_dist, (radius - self._small_window, radius + self._small_window))
+            low, top = np.searchsorted(self._small_dist, (radius - self._density_window, radius + self._density_window))
             near = self._small_by_dist[low:top]
+            near = near[self._density_reach[near] > 0.0]
             if len(near):
                 centers = self._centers[near]
-                distance = self._small_dist[low:top]
-                grown = self._reach[near] + slack
+                distance = np.linalg.norm(centers, axis=1)
+                grown = self._density_reach[near] + slack
                 inside = np.abs(distance - radius) <= grown
                 if inside.any():
                     latitude = np.arcsin(np.clip(centers[inside, 2] / distance[inside], -1.0, 1.0))

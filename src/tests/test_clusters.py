@@ -2,7 +2,7 @@
 
 """
 GEN.159: the generated globular cluster system (`generation/clusters.py`) is a pure function of the galaxy seed, has the
-Milky Way's count by default, and each cluster is a well-formed King component whose edge fits inside its Jacobi radius.
+count it is given, and each cluster is a well-formed King component whose edge fits inside its Jacobi radius.
 """
 
 import math
@@ -16,23 +16,24 @@ from planetgen.generation import clusters
 from planetgen.physics import king
 
 SEED = bytes(range(16))
+COUNT = 157
 
 
 @pytest.fixture(scope="module")
 def system():
-    return clusters.generate_clusters(SEED, epoch_unix=123.0)
+    return clusters.generate_clusters(SEED, COUNT, epoch_unix=123.0)
 
 
-def test_the_default_count_is_the_milky_ways(system):
-    assert len(system) == tuning.CLUSTER_COUNT_MILKY_WAY == 157
+def test_the_count_is_the_one_asked_for(system):
+    assert len(system) == COUNT
     assert len(clusters.generate_clusters(SEED, count=12)) == 12
 
 
 def test_the_same_seed_gives_the_same_clusters_and_another_gives_others(system):
-    assert system == clusters.generate_clusters(SEED, epoch_unix=123.0)
-    other = clusters.generate_clusters(bytes(reversed(SEED)), epoch_unix=123.0)
+    assert system == clusters.generate_clusters(SEED, COUNT, epoch_unix=123.0)
+    other = clusters.generate_clusters(bytes(reversed(SEED)), COUNT, epoch_unix=123.0)
     assert [c.center_pc for c in system] != [c.center_pc for c in other]
-    assert clusters.generate_clusters(7) == clusters.generate_clusters(7)
+    assert clusters.generate_clusters(7, COUNT) == clusters.generate_clusters(7, COUNT)
 
 
 def test_a_larger_count_keeps_the_first_clusters(system):
@@ -79,7 +80,7 @@ def test_the_system_has_the_designs_shape():
     assert len(poor) / len(big) == pytest.approx(tuning.CLUSTER_FE_H_GROUPS[0][0], abs=0.04)
     distance = [math.sqrt(sum(v * v for v in c.center_pc)) for c in big]
     assert max(distance) <= tuning.CLUSTER_HALO_RADIUS_RANGE_PC[1] * 1.001  # inside the cell key's reach, 262,144 pc
-    assert sum(c.expected_systems for c in clusters.generate_clusters(SEED)) == pytest.approx(1.8e8, rel=0.5)
+    assert sum(c.expected_systems for c in clusters.generate_clusters(SEED, COUNT)) == pytest.approx(1.8e8, rel=0.5)
 
 
 def test_a_component_checks_its_own_fields():

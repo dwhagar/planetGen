@@ -1089,7 +1089,7 @@ SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
 CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
 # A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/globular-clusters.md section 8):
-# the Milky Way's count; masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
+# the count from the halo mass (`CLUSTER_SYSTEM_FRACTION_RANGE`); masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
 # `CLUSTER_MASS_RANGE_SOL`; half-mass radii lognormal about `CLUSTER_HALF_MASS_RADIUS_PC` (width in dex, growing with
 # distance from the centre as `(R / reference) ** CLUSTER_RADIUS_GROWTH` (the reference radius in the galaxy's own
 # scale lengths, `CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS`), limited to `CLUSTER_HALF_MASS_RADIUS_RANGE_PC`);
@@ -1099,7 +1099,12 @@ CLUSTER_HALO_CIRCULAR_KMS = 220.0
 # metal-poor halo clusters and the metal-rich ones of the bulge and disk (the two peaks near -1.5 and -0.5), the
 # metal-rich group sitting on flattened orbits about the centre (median `CLUSTER_BULGE_MEDIAN_PC`, rotating at
 # `CLUSTER_HALO_CIRCULAR_KMS`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
-CLUSTER_COUNT_MILKY_WAY = 157
+CLUSTER_SYSTEM_FRACTION_RANGE = (2.9e-5, 6.0e-5)
+"""float: The globular cluster system's mass over its halo's mass, `eta` (GEN.403): Harris, Blakeslee and Harris 2017
+(2.9e-5) to Harris, Harris and Alessi 2013 (6e-5), Hudson 2014 (4e-5) between them. The three disagree by a factor of two,
+so each galaxy draws its `eta` log-uniform over the whole range (the standing rule: two in question, the widest range)."""
+CLUSTER_SYSTEM_SCATTER_DEX = 0.2
+"""float: The scatter of a system's mass about `eta` times the halo, dex (Hudson et al. 2014: at most 0.2 dex intrinsic)."""
 CLUSTER_MASS_PEAK_SOL = 2.0e5
 CLUSTER_MASS_SIGMA_DEX = 0.5
 CLUSTER_MASS_RANGE_SOL = (1.0e4, 3.0e6)

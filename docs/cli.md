@@ -489,7 +489,10 @@ Before it stores anything, `planetgen plan` prints one line about the galaxy it 
 crest is as a multiple of the one-star-per-sector density (D: the systems the thin disc expects per sector on an arm
 crest at its centre, from the built shape, so it follows the Census dial), about what share of the galaxy's systems sit
 in sectors that expect one (one integral of the built density over radius, height and azimuth, approximate), and how
-many shells and candidate sectors the outline holds. A
+many shells and candidate sectors the outline holds, with about how many of those sectors really expect at least one
+system (the candidates are an upper bound: the outline keeps the best longitude and the run of bands up to a cluster's,
+and takes a cluster or dwarf galaxy in by the radius where its own density reaches one system in a sector, not by its
+tidal radius, GEN.627). A random start is redrawn until its sector expects at least one system. A
 crest under 20 times the one-star density adds a warning, and an outline with no sector in it is refused with the reason
 (raise the mass or the density, or lower the scale length or the height). The Generate page shows the same line under the
 shape dials; it asks `/admin/generate/shape-report`, which works the numbers out with the same code

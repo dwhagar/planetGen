@@ -1,70 +1,191 @@
 # planetgen/generation/satellites.py
 
 """
-The Milky Way's satellite galaxies as galaxy components (GEN.237; docs/design/intergalactic-and-halo-contents.md 5.5).
+The satellite galaxies of a galaxy, drawn from its seed and its halo (GEN.369, GEN.624; docs/design/intergalactic-and-halo-contents.md
+5.5 and 5.13, row 10; docs/design/galaxy-laws-research.md Q3, Q4, Q6 and Q7). Nothing here is a real galaxy's satellite: the
+Milky Way's own rows are reference data for the plausibility tests (`tests/reference_satellites.py`).
 
-The Large and Small Magellanic Clouds, the Sagittarius dwarf and eight of the classical dwarf spheroidals are real
-objects at real places, so they are catalogue rows, not draws: `MILKY_WAY_SATELLITES` lists each with its galactic
-longitude and latitude, its distance from the Sun, its stellar mass, half-light radius, mean [Fe/H] and age.
-`place_satellites` turns the table into `Component` rows in the galaxy frame, putting the Sun where the density model
-does (`galaxy.density.model_terms`: the solar radius at the inter-arm azimuth), which is the one anchor that makes a
-direction on the sky a direction in the galaxy.
+The chain, each link from the one before it and each scatter drawn through `unit_seed(galaxy_seed, "satellites", <link>)`:
 
-Every value in the table is recalled from McConnachie (2012, AJ 144, 4) and not checked against it (the sources were out
-of reach when GEN.237 was built), so each is good to a few tens of percent in size and distance and a factor of two in
-mass until Boss supplies the catalogue; they are filed with TODO as needing verification. The half-light radius stands
-in for the half-mass radius (the stars' mass follows their light to this accuracy). The velocities are zero: the sector
-gate reads only the position, and the satellites' proper motions (which move them by a few hundred parsecs over the
-age of a game) belong with the encounter model of the orbital update.
+1. **Subhaloes** of the host's halo mass `Mh` (200 times critical, `galaxy.mass_chain`): the number above a mass fraction
+   `mu = Msub / Mh` is `N(> mu) = (mu / MU1)^A exp[-(mu / MU_CUT)^B]` (Boylan-Kolchin et al. 2010, arXiv:0911.4484, Eqs. 7
+   and 8; about 640 above `mu = 1e-5`), the count drawn as a Poisson number and each mass from that law. The mass is taken
+   as the peak mass, the one a galaxy forms by.
+2. **Occupation**: a subhalo hosts a galaxy with the probability `0.5 [1 + erf((log Mpeak - log M50) / (sqrt(2) sigma))]`
+   (Nadler et al. 2020, arXiv:1912.03303, Eq. 3: `M50` at its 95 percent upper limit, 8.5e7 solar masses, `sigma` 0.03 dex).
+3. **Stellar mass** from the peak mass by the stellar-to-halo relation of the mass chain (Moster, Naab and White 2013,
+   `mass_chain.median_stellar_mass`, extrapolated down to the dwarf end, which the research note marks as an underestimate
+   of the faintest galaxies), scattered by 0.19 dex (Nadler's 95 percent upper limit for satellites). A galaxy under
+   `MIN_STELLAR_MASS_SOLAR` is not made.
+4. **Size** from the stellar mass: Carlsten et al. 2021 (ELVES I, arXiv:2105.03435, Eq. 5) `log r_e = 1.071 + 0.247 log M*`
+   with 0.181 dex below `log M* = 8.5`, and above it the late-type size-mass law of the galaxy shape (Shen et al. 2003,
+   `galaxy.shape_draw.size_median_kpc`), which meets it there to 5 percent.
+5. **Metallicity**: `<[Fe/H]> = -1.69 + 0.30 log(M* / 1e6)` (Kirby et al. 2013, ApJ 779, 102) with 0.17 dex about it (0.09
+   for the gas-rich ones).
+6. **Profile and age**: exponential for a gas-rich galaxy (`M*` over `EXPONENTIAL_MIN_STELLAR_MASS_SOLAR`), Plummer for a
+   dwarf spheroidal; the mean age falls with mass along `AGE_AT_1E5_GY` and `AGE_SLOPE_GY_PER_DEX`, STAND-INS anchored on
+   the quenching times of Weisz et al. 2015 (arXiv:1503.05195: the faintest quenched 10 Gyr ago, a few-1e8 galaxy still
+   forming).
+7. **Place**: the distance from the host's centre from an Einasto profile far less concentrated than the dark matter
+   (`EINASTO_ALPHA`, `EINASTO_R_MINUS2_OVER_R200`: Nadler 2020, a calibration on one halo), between `INNER_OVER_R200` of
+   the virial radius (STAND-IN: the host's disc destroys what comes closer) and the virial radius, in an isotropic
+   direction. Nothing lies beyond the virial radius, and the radius is the halo's, not the disc's.
+
+The velocities are zero: the sector gate reads only the position, and the satellites' orbits belong with the orbital
+update (GEN.339). A galaxy with no halo (`mass_chain.has_halo`) has no satellites.
 """
 
-import collections
 import math
 
-from planetgen.galaxy import components
+import numpy as np
+
+from planetgen import tuning
+from planetgen.galaxy import components, mass_chain, seed as galaxySeed, shape_draw
 from planetgen.physics import component_profiles
 from planetgen.util import draw
+from planetgen.util.poisson import poisson_count
 
-Satellite = collections.namedtuple(
-    "Satellite", "name longitude_deg latitude_deg distance_kpc stellar_mass_sol half_light_radius_pc profile fe_h age_gy")
-"""One real satellite: where it lies on the sky and how far, how heavy and how big, and its stars' [Fe/H] and age."""
+SUBHALO_MU1 = 0.01
+SUBHALO_MU_CUT = 0.096
+SUBHALO_SLOPE = -0.935
+SUBHALO_CUTOFF_EXPONENT = 1.29
+"""float: The constants of the subhalo count `N(> mu) = (mu / MU1)^a exp[-(mu / MU_CUT)^b]` (Boylan-Kolchin 2010 Eqs. 7, 8)."""
 
-MILKY_WAY_SATELLITES = (
-    Satellite("Large Magellanic Cloud", 280.47, -32.89, 49.6, 2.5e9, 2700.0, "exponential", -0.4, 5.0),
-    Satellite("Small Magellanic Cloud", 302.8, -44.3, 62.4, 5.2e8, 1100.0, "exponential", -0.9, 6.0),
-    Satellite("Sagittarius dwarf", 5.6, -14.2, 24.0, 1.0e8, 2600.0, "exponential", -0.6, 8.0),
-    Satellite("Fornax dwarf", 237.1, -65.7, 143.0, 2.0e7, 710.0, "plummer", -1.0, 7.0),
-    Satellite("Sculptor dwarf", 287.5, -83.2, 86.0, 2.3e6, 283.0, "plummer", -1.7, 11.0),
-    Satellite("Carina dwarf", 260.1, -22.2, 105.0, 3.8e5, 250.0, "plummer", -1.7, 7.0),
-    Satellite("Draco dwarf", 86.4, 34.7, 76.0, 2.9e5, 221.0, "plummer", -2.0, 11.0),
-    Satellite("Ursa Minor dwarf", 105.0, 44.8, 76.0, 2.9e5, 405.0, "plummer", -2.1, 12.0),
-    Satellite("Sextans dwarf", 243.5, 42.3, 86.0, 4.4e5, 695.0, "plummer", -1.9, 11.0),
-    Satellite("Leo I", 226.0, 49.1, 254.0, 5.5e6, 251.0, "plummer", -1.4, 5.0),
-    Satellite("Leo II", 220.2, 67.2, 233.0, 7.4e5, 176.0, "plummer", -1.6, 9.0),
-)
-"""tuple: The Milky Way's satellites (recalled from McConnachie 2012, unchecked: see the module docstring)."""
+SUBHALO_MU_MAX = 0.2
+"""float: STAND-IN: the heaviest subhalo drawn, as a fraction of the host's halo: a satellite is the lighter of a pair, and a
+subhalo near the host's own mass is a merger, not a satellite."""
+
+SATELLITE_MAX_STELLAR_FRACTION = 0.25
+"""float: STAND-IN: the most stellar mass a satellite holds, as a fraction of its host's (the Large Magellanic Cloud is about a
+tenth of the Milky Way's): a host drawn light for its halo would otherwise out-weigh itself with a satellite."""
+
+OCCUPATION_M50_SOLAR = 8.5e7
+OCCUPATION_SIGMA_DEX = 0.03
+"""float: The centre and width of the peak-mass occupation curve (Nadler 2020)."""
+OCCUPATION_FLOOR_SOLAR = 1.0e6
+"""float: The lightest peak mass a detectable galaxy needs (Nadler 2020, section 7.5)."""
+
+STELLAR_SCATTER_DEX = 0.19
+MIN_STELLAR_MASS_SOLAR = 1.0e3
+"""float: The lightest satellite made, solar masses of stars: about the faintest known satellites (the ultra-faint dwarfs
+hold a few hundred to a few thousand). STAND-IN: below it a population is a handful of stars in a cell."""
+
+CARLSTEN_INTERCEPT = 1.071
+CARLSTEN_SLOPE = 0.247
+CARLSTEN_SCATTER_DEX = 0.181
+SIZE_JOIN_LOG_MASS = 8.5
+"""float: The `log10 M*` where the dwarf size law hands over to the disc size law."""
+
+KIRBY_FE_H_AT_1E6 = -1.69
+KIRBY_FE_H_SLOPE = 0.30
+KIRBY_SCATTER_DEX = 0.17
+KIRBY_IRREGULAR_SCATTER_DEX = 0.09
+
+EXPONENTIAL_MIN_STELLAR_MASS_SOLAR = 1.0e8
+"""float: STAND-IN: the stellar mass from which a satellite is a gas-rich, still star-forming exponential disc (Weisz 2015:
+about 40 percent of the galaxies near 1e8 are quenched today, all of the fainter ones)."""
+AGE_AT_1E5_GY = 11.5
+AGE_SLOPE_GY_PER_DEX = -1.2
+AGE_SCATTER_GY = 1.5
+AGE_RANGE_GY = (2.0, 13.0)
+"""float: STAND-INS for the mean stellar age of a satellite against its stellar mass (see the module docstring)."""
+
+EINASTO_ALPHA = 0.678
+EINASTO_R_MINUS2_OVER_R200 = 0.81
+INNER_OVER_R200 = 0.05
+RADIAL_STEPS = 4000
 
 
-def sun_frame(frame_radius_pc, frame_angle_rad):
-    """`(sun, ex, ey, ez)`: the Sun's position in the galaxy frame and the unit vectors of the galactic coordinates there.
-
-    `ex` points from the Sun to the galactic centre (longitude 0, latitude 0), `ey` towards longitude 90 degrees (the
-    direction the disk turns) and `ez` along the galaxy frame's +z. Those three form a left-handed set, so a proper
-    galactic frame has its north pole towards -z: `satellite_position_pc` takes a latitude `b` as a height of
-    `-sin(b)` in the galaxy frame.
-    """
-    cos_a, sin_a = math.cos(frame_angle_rad), math.sin(frame_angle_rad)
-    sun = (frame_radius_pc * cos_a, frame_radius_pc * sin_a, 0.0)
-    return sun, (-cos_a, -sin_a, 0.0), (-sin_a, cos_a, 0.0), (0.0, 0.0, 1.0)
+def subhalo_count_above(mu):
+    """The mean number of subhaloes above the mass fraction `mu` of the host's halo."""
+    return (mu / SUBHALO_MU1) ** SUBHALO_SLOPE * math.exp(-((mu / SUBHALO_MU_CUT) ** SUBHALO_CUTOFF_EXPONENT))
 
 
-def satellite_position_pc(longitude_deg, latitude_deg, distance_pc, frame_radius_pc, frame_angle_rad):
-    """The position in the galaxy frame (pc, the galactic centre at the origin) of an object seen from the Sun at this
-    galactic longitude and latitude and this distance."""
-    sun, ex, ey, ez = sun_frame(frame_radius_pc, frame_angle_rad)
-    longitude, latitude = math.radians(longitude_deg), -math.radians(latitude_deg)
-    along = (math.cos(latitude) * math.cos(longitude), math.cos(latitude) * math.sin(longitude), math.sin(latitude))
-    return tuple(sun[i] + distance_pc * (along[0] * ex[i] + along[1] * ey[i] + along[2] * ez[i]) for i in range(3))
+def occupation_probability(peak_mass_solar):
+    """The probability that a subhalo of this peak mass hosts a galaxy (Nadler 2020 Eq. 3)."""
+    if peak_mass_solar < OCCUPATION_FLOOR_SOLAR:
+        return 0.0
+    along = (math.log10(peak_mass_solar) - math.log10(OCCUPATION_M50_SOLAR)) / (math.sqrt(2.0) * OCCUPATION_SIGMA_DEX)
+    return 0.5 * (1.0 + math.erf(along))
+
+
+def lightest_peak_mass_solar():
+    """The lightest peak mass worth drawing: the one whose median stellar mass, three scatters (`STELLAR_SCATTER_DEX`)
+    up, reaches `MIN_STELLAR_MASS_SOLAR` (a lighter halo cannot make a galaxy of the floor's mass), and at least the
+    occupation floor."""
+    target = math.log10(MIN_STELLAR_MASS_SOLAR) - 3.0 * STELLAR_SCATTER_DEX
+    low, high = 6.0, 14.0
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        if math.log10(mass_chain.median_stellar_mass(10.0 ** middle)) < target:
+            low = middle
+        else:
+            high = middle
+    return max(10.0 ** (0.5 * (low + high)), OCCUPATION_FLOOR_SOLAR)
+
+
+def _stream(galaxy_seed, link):
+    return draw.Stream(galaxySeed.unit_seed(galaxy_seed or mass_chain.FALLBACK_SEED, "satellites", link))
+
+
+def _scatter(stream, sigma, limit=3.0):
+    for _ in range(50):
+        value = stream.gauss(0.0, sigma)
+        if abs(value) <= limit * sigma:
+            return value
+    return 0.0
+
+
+def _subhalo_fraction(stream, mu_min):
+    """A mass fraction from `mu_min` to `SUBHALO_MU_MAX` from the count law: the inverse of `N(> mu)` over that range by
+    bisection in log mu."""
+    top = subhalo_count_above(SUBHALO_MU_MAX)
+    target = top + stream.random() * (subhalo_count_above(mu_min) - top)
+    low, high = math.log10(mu_min), math.log10(SUBHALO_MU_MAX)
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        if subhalo_count_above(10.0 ** middle) > target:
+            low = middle
+        else:
+            high = middle
+    return 10.0 ** (0.5 * (low + high))
+
+
+def _radius_table(r200_pc):
+    """`(radii, cumulative share)` of the Einasto distribution of subhaloes between the inner limit and the virial radius."""
+    r_minus2 = EINASTO_R_MINUS2_OVER_R200 * r200_pc
+    radii = np.linspace(INNER_OVER_R200 * r200_pc, r200_pc, RADIAL_STEPS)
+    rho = np.exp(-(2.0 / EINASTO_ALPHA) * ((radii / r_minus2) ** EINASTO_ALPHA - 1.0))
+    shell = radii ** 2 * rho
+    cumulative = np.concatenate(([0.0], np.cumsum(0.5 * (shell[1:] + shell[:-1]) * np.diff(radii))))
+    return radii, cumulative / cumulative[-1]
+
+
+def _direction(stream):
+    z = stream.uniform(-1.0, 1.0)
+    azimuth = stream.uniform(0.0, 2.0 * math.pi)
+    xy = math.sqrt(max(1.0 - z * z, 0.0))
+    return xy * math.cos(azimuth), xy * math.sin(azimuth), z
+
+
+def half_light_radius_pc(stellar_mass_solar, deviation):
+    """A satellite's half-light radius, parsecs, at `deviation` standard deviations about the size law of its mass (the
+    dwarf law below `SIZE_JOIN_LOG_MASS`, the disc law above)."""
+    log_mass = math.log10(stellar_mass_solar)
+    if log_mass < SIZE_JOIN_LOG_MASS:
+        return 10.0 ** (CARLSTEN_INTERCEPT + CARLSTEN_SLOPE * log_mass + deviation * CARLSTEN_SCATTER_DEX)
+    sigma_dex = shape_draw.size_sigma_ln(stellar_mass_solar) / math.log(10.0)
+    return 1000.0 * shape_draw.size_median_kpc(stellar_mass_solar) * 10.0 ** (deviation * sigma_dex)
+
+
+def mean_fe_h(stellar_mass_solar):
+    """The mean [Fe/H] of a satellite of this stellar mass (Kirby et al. 2013)."""
+    return KIRBY_FE_H_AT_1E6 + KIRBY_FE_H_SLOPE * math.log10(stellar_mass_solar / 1.0e6)
+
+
+def mean_age_gy(stellar_mass_solar):
+    """The median mean stellar age, Gyr, of a satellite of this stellar mass (`AGE_AT_1E5_GY`)."""
+    return AGE_AT_1E5_GY + AGE_SLOPE_GY_PER_DEX * (math.log10(stellar_mass_solar) - 5.0)
 
 
 def _seed(galaxy_seed, name):
@@ -72,32 +193,58 @@ def _seed(galaxy_seed, name):
     return draw.Stream(f"satellite:{text}:{name}").getrandbits(63)
 
 
-def place_satellites(galaxy_seed, frame_radius_pc, frame_angle_rad, epoch_unix=0.0, scale=1.0):
+def draw_satellites(galaxy_seed, chain, epoch_unix=0.0):
     """
-    The Milky Way's satellites as components of a galaxy.
+    The galaxy's satellite galaxies: the same seed and halo give the same population.
 
     Args:
-        galaxy_seed (bytes or int): The galaxy's seed, from which each satellite's own seed (the one its stars are drawn
-            from) comes.
-        frame_radius_pc (float): The catalogue's observer's distance from the galactic centre in this galaxy's frame (the reference radius).
-        frame_angle_rad (float): The Sun's azimuth in that frame.
+        galaxy_seed (bytes or int): The galaxy's seed.
+        chain (galaxy.mass_chain.MassChain): The galaxy's stellar mass and halo (`halo_mass_solar` and `virial_radius_kpc`
+            are `None` for a galaxy with no halo, which has no satellites).
         epoch_unix (float): When the positions hold.
-        scale (float): How much larger than the Milky Way the galaxy is, by its disk scale length: the satellites'
-            distances from the Sun are multiplied by it, as the clusters' are, so a toy galaxy keeps its satellites
-            inside itself. Their masses and sizes do not scale.
 
     Returns:
-        list[Component]: One `satellite` component per row of `MILKY_WAY_SATELLITES`, in table order.
+        list[Component]: One `satellite` component per galaxy, the heaviest first, named "Generated satellite 001" and on.
     """
+    if chain.halo_mass_solar is None:
+        return []
+    halo_mass = chain.halo_mass_solar
+    r200_pc = chain.virial_radius_kpc * 1000.0
+    mu_min = lightest_peak_mass_solar() / halo_mass
+    if mu_min >= SUBHALO_MU_MAX:
+        return []
+    count = poisson_count(subhalo_count_above(mu_min) - subhalo_count_above(SUBHALO_MU_MAX), _stream(galaxy_seed, "count"))
+    mass_stream, occupation = _stream(galaxy_seed, "mass"), _stream(galaxy_seed, "occupation")
+    stellar, size = _stream(galaxy_seed, "stellar-mass"), _stream(galaxy_seed, "size")
+    metals, ages = _stream(galaxy_seed, "metallicity"), _stream(galaxy_seed, "age")
+    places, directions = _stream(galaxy_seed, "radius"), _stream(galaxy_seed, "direction")
+    radii, shares = _radius_table(r200_pc)
+    drawn = []
+    for _ in range(count):
+        peak = _subhalo_fraction(mass_stream, mu_min) * halo_mass
+        hosts_galaxy = occupation.random() < occupation_probability(peak)
+        mass = min(mass_chain.median_stellar_mass(peak) * 10.0 ** _scatter(stellar, STELLAR_SCATTER_DEX),
+                   SATELLITE_MAX_STELLAR_FRACTION * chain.stellar_mass_solar)
+        distance = float(np.interp(places.random(), shares, radii))
+        direction = _direction(directions)
+        deviation = _scatter(size, 1.0)
+        fe_deviation, age_deviation = _scatter(metals, 1.0), _scatter(ages, 1.0)
+        if hosts_galaxy and mass >= MIN_STELLAR_MASS_SOLAR:
+            drawn.append((mass, distance, direction, deviation, fe_deviation, age_deviation))
     found = []
-    for row in MILKY_WAY_SATELLITES:
-        position = satellite_position_pc(
-            row.longitude_deg, row.latitude_deg, row.distance_kpc * 1000.0 * scale, frame_radius_pc, frame_angle_rad)
+    for index, (mass, distance, direction, deviation, fe_deviation, age_deviation) in enumerate(
+            sorted(drawn, key=lambda row: -row[0])):
+        name = f"Generated satellite {index + 1:03d}"
+        gas_rich = mass >= EXPONENTIAL_MIN_STELLAR_MASS_SOLAR
+        profile = "exponential" if gas_rich else "plummer"
+        radius = half_light_radius_pc(mass, deviation)
+        low, high = tuning.METALLICITY_RANGE_FE_H
+        scatter = KIRBY_IRREGULAR_SCATTER_DEX if gas_rich else KIRBY_SCATTER_DEX
+        fe_h = min(max(mean_fe_h(mass) + fe_deviation * scatter, low), high)
+        age = min(max(mean_age_gy(mass) + age_deviation * AGE_SCATTER_GY, AGE_RANGE_GY[0]), AGE_RANGE_GY[1])
         found.append(components.Component(
-            kind="satellite", name=row.name, source="catalogue", center_pc=position, velocity_kms=(0.0, 0.0, 0.0),
-            epoch_unix=epoch_unix, mass_solar=row.stellar_mass_sol,
-            half_mass_radius_pc=row.half_light_radius_pc, profile=row.profile, age_gy=row.age_gy,
-            metallicity_fe_h=row.fe_h, seed=_seed(galaxy_seed, row.name),
-            tidal_radius_pc=component_profiles.cut_radius_pc(row.profile, row.half_light_radius_pc),
-            catalogue_id=row.name))
+            kind="satellite", name=name, source="generated",
+            center_pc=tuple(distance * c for c in direction), velocity_kms=(0.0, 0.0, 0.0), epoch_unix=epoch_unix,
+            mass_solar=mass, half_mass_radius_pc=radius, profile=profile, age_gy=age, metallicity_fe_h=fe_h,
+            seed=_seed(galaxy_seed, name), tidal_radius_pc=component_profiles.cut_radius_pc(profile, radius)))
     return found
