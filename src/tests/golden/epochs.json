@@ -245,6 +245,12 @@
       "epoch": 50,
       "first_release": "8.0.1915",
       "reason": "A saved binary system stores its tree of orbits: one orbit_nodes row for the pair, its Roche interaction, and the parent node and offset of each star, so a seed's stored rows differ from before (GEN.311, GEN.269)"
+    },
+    {
+      "epoch": 51,
+      "first_release": null,
+      "pending": true,
+      "reason": "Objects named by their position ID that share an ID take the collision numbers 0, 1, 2 in the order of their sectors' addresses instead of the order the sectors were saved in, so two sectors that share an ID get the same names in either save order (GEN.307)"
     }
   ]
 }
