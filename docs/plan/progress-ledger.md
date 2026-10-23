@@ -1136,3 +1136,5 @@ Baseline: PR #1817.
 | GEN.146 | 8.4 | Planet classes |
 | TEST.296 | 8.1 | Bugs and flaky tests |
 | GEN.630 | 8.1 | Multi-star and compact systems |
+| MAP.174 | 8.1 | Nebula data foundations |
+| GEN.638 | 8.1 | The headline closes |
