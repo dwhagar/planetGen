@@ -1,6 +1,6 @@
 {
  "title": "Saturation (sublimation) pressures of the gases and ices: Fray and Schmitt 2009 polynomials, water by Feistel and Wagner",
- "basis": "Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. arXiv:2009.02277 (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has more than one fit, `from_k` is where the second takes over: the temperature at which the two fits cross (the solid transitions of N2, CO, O2 and CH3OH), or at which they come closest when they do not cross (CO2). The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing.",
+ "basis": "The solid curve is below the triple point and the liquid curve above it, up to the critical point. Liquid: Wagner fits to the NIST saturation tables, P = Pc exp((a x + b x^1.5 + c x^2.5 + d x^5)/Tr), x = 1 - T/Tc, Tr = T/Tc, P in Pa (COMPUTED by the Atmosphere research lane, part 01 section 6.2, max error 0.002 to 0.26 percent against the table); hydrogen cyanide by the Perry DIPPR 101 correlation ln P[Pa] = A + B/T + C ln T + D T^E (259.83 to 456.65 K, DATA, part 01 section 7.4); acetylene has no liquid curve. Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. arXiv:2009.02277 (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has more than one fit, `from_k` is where the second takes over: the temperature at which the two fits cross (the solid transitions of N2, CO, O2 and CH3OH), or at which they come closest when they do not cross (CO2). The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing.",
  "source": "docs/design/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4 and 01-gas-table-thermodynamics.md section 7.2 (O2-3, Ne-2); docs/design/body-composition-research.md part F; Feistel and Wagner 2007, J. Phys. Chem. Ref. Data 35, 1021 (water, as quoted)",
  "cold_unverified_below_k": 50.0,
  "species": {
@@ -40,7 +40,18 @@
      ]
     }
    ],
-   "note": "neon has no solid transition; the fits cross at 11.19 K and 13.26 K (0.4 percent apart between), and Ne-1 alone is 6.5 percent under the triple-point pressure, so Ne-2 serves above 13.26 K"
+   "note": "neon has no solid transition; the fits cross at 11.19 K and 13.26 K (0.4 percent apart between), and Ne-1 alone is 6.5 percent under the triple-point pressure, so Ne-2 serves above 13.26 K",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 44.4,
+    "pc_pa": 2661458.2,
+    "coefficients": [
+     -5.78536,
+     1.14227,
+     -0.07076,
+     -1.30581
+    ]
+   }
   },
   "N2": {
    "name": "nitrogen",
@@ -78,7 +89,18 @@
      ]
     }
    ],
-   "note": "the alpha to beta transition is at 35.6 K; the two fits cross at 36.1 K"
+   "note": "the alpha to beta transition is at 35.6 K; the two fits cross at 36.1 K",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 126.192,
+    "pc_pa": 3395710.6,
+    "coefficients": [
+     -6.1229,
+     1.25875,
+     -0.75882,
+     -1.79283
+    ]
+   }
   },
   "CO": {
    "name": "carbon monoxide",
@@ -116,7 +138,18 @@
      ]
     }
    ],
-   "note": "the alpha to beta transition is at 61.55 K; the two fits cross at 60.75 K"
+   "note": "the alpha to beta transition is at 61.55 K; the two fits cross at 60.75 K",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 132.86,
+    "pc_pa": 3497225.4,
+    "coefficients": [
+     -6.18485,
+     1.29617,
+     -0.91665,
+     -2.03164
+    ]
+   }
   },
   "Ar": {
    "name": "argon",
@@ -139,7 +172,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 150.687,
+    "pc_pa": 4863032.1,
+    "coefficients": [
+     -5.92648,
+     1.21423,
+     -0.52935,
+     -1.54635
+    ]
+   }
   },
   "O2": {
    "name": "oxygen",
@@ -192,7 +236,18 @@
      ]
     }
    ],
-   "note": "the solid transitions are at 23.88 K and 43.8 K; the fits cross at 23.15 K and 43.79 K"
+   "note": "the solid transitions are at 23.88 K and 43.8 K; the fits cross at 23.15 K and 43.79 K",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 154.581,
+    "pc_pa": 5044902.0,
+    "coefficients": [
+     -6.07788,
+     1.31005,
+     -0.7289,
+     -1.49664
+    ]
+   }
   },
   "CH4": {
    "name": "methane",
@@ -215,7 +270,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 190.564,
+    "pc_pa": 4599091.9,
+    "coefficients": [
+     -6.02354,
+     1.2679,
+     -0.57083,
+     -1.36956
+    ]
+   }
   },
   "Kr": {
    "name": "krypton",
@@ -238,7 +304,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 209.48,
+    "pc_pa": 5525731.7,
+    "coefficients": [
+     -5.98453,
+     1.34328,
+     -0.66158,
+     -1.31519
+    ]
+   }
   },
   "Xe": {
    "name": "xenon",
@@ -261,7 +338,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 289.733,
+    "pc_pa": 5841283.1,
+    "coefficients": [
+     -5.9972,
+     1.34294,
+     -0.7263,
+     -1.33548
+    ]
+   }
   },
   "C2H6": {
    "name": "ethane",
@@ -284,7 +372,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 305.322,
+    "pc_pa": 4881269.7,
+    "coefficients": [
+     -6.5823,
+     1.69617,
+     -1.48179,
+     -1.5681
+    ]
+   }
   },
   "C2H4": {
    "name": "ethylene",
@@ -307,7 +406,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 282.35,
+    "pc_pa": 5044941.7,
+    "coefficients": [
+     -6.42322,
+     1.4715,
+     -1.24789,
+     -1.99668
+    ]
+   }
   },
   "C2H2": {
    "name": "acetylene",
@@ -353,7 +463,18 @@
      ]
     }
    ],
-   "note": "H2S-2 (a four-term fit, 6 times over H2S-1 at 80 K and equal to it above about 140 K) is not used; the fit is 1.7 percent over the triple-point pressure"
+   "note": "H2S-2 (a four-term fit, 6 times over H2S-1 at 80 K and equal to it above about 140 K) is not used; the fit is 1.7 percent over the triple-point pressure",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 373.1,
+    "pc_pa": 8993628.0,
+    "coefficients": [
+     -6.48162,
+     1.46237,
+     -1.29817,
+     -2.0632
+    ]
+   }
   },
   "CO2": {
    "name": "carbon dioxide",
@@ -391,7 +512,18 @@
      ]
     }
    ],
-   "note": "the fits do not cross; they come closest at 195.3 K (1.1 percent in pressure). CO2-1 holds the cold: with CO2-2 the pressure is 1e-9 bar at 64.7 K, 21 K colder than the 86 K that the latent heat of sublimation puts it at. CO2-1 is 4 percent under the triple-point pressure and CO2-2 0.5 percent over, so CO2-2 serves above 195.3 K"
+   "note": "the fits do not cross; they come closest at 195.3 K (1.1 percent in pressure). CO2-1 holds the cold: with CO2-2 the pressure is 1e-9 bar at 64.7 K, 21 K colder than the 86 K that the latent heat of sublimation puts it at. CO2-1 is 4 percent under the triple-point pressure and CO2-2 0.5 percent over, so CO2-2 serves above 195.3 K",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 304.128,
+    "pc_pa": 7376475.3,
+    "coefficients": [
+     -7.01631,
+     1.48903,
+     -2.15456,
+     -3.18597
+    ]
+   }
   },
   "NH3": {
    "name": "ammonia",
@@ -414,7 +546,18 @@
      ]
     }
    ],
-   "note": ""
+   "note": "",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 405.56,
+    "pc_pa": 11367055.2,
+    "coefficients": [
+     -7.28265,
+     1.57703,
+     -1.88641,
+     -2.28486
+    ]
+   }
   },
   "SO2": {
    "name": "sulphur dioxide",
@@ -437,7 +580,18 @@
      ]
     }
    ],
-   "note": "3.8 percent over the triple-point pressure of the gas table"
+   "note": "3.8 percent over the triple-point pressure of the gas table",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 430.64,
+    "pc_pa": 7884667.6,
+    "coefficients": [
+     -7.25016,
+     1.62324,
+     -2.21507,
+     -2.85747
+    ]
+   }
   },
   "HCN": {
    "name": "hydrogen cyanide",
@@ -460,7 +614,19 @@
      ]
     }
    ],
-   "note": "the gas table has no triple-point pressure for HCN, so the triple-point check cannot be made"
+   "note": "the gas table has no triple-point pressure for HCN, so the triple-point check cannot be made",
+   "liquid": {
+    "form": "dippr101",
+    "t_max_k": 456.65,
+    "pc_pa": null,
+    "coefficients": [
+     36.75,
+     -3927.1,
+     -2.1245,
+     3.8948e-17,
+     6.0
+    ]
+   }
   },
   "CH3OH": {
    "name": "methanol",
@@ -498,7 +664,18 @@
      ]
     }
    ],
-   "note": "the alpha to beta transition is at 157.4 K; the two fits cross at 157.55 K"
+   "note": "the alpha to beta transition is at 157.4 K; the two fits cross at 157.55 K",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 513.38,
+    "pc_pa": 8194162.4,
+    "coefficients": [
+     -8.67443,
+     1.35531,
+     -2.7448,
+     -0.58626
+    ]
+   }
   },
   "C6H6": {
    "name": "benzene",
@@ -521,7 +698,18 @@
      ]
     }
    ],
-   "note": "7 percent over the triple-point pressure of the gas table"
+   "note": "7 percent over the triple-point pressure of the gas table",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 562.02,
+    "pc_pa": 4905466.6,
+    "coefficients": [
+     -7.11487,
+     1.80003,
+     -2.11804,
+     -3.45642
+    ]
+   }
   },
   "H2O": {
    "name": "water",
@@ -538,7 +726,37 @@
     29.7880481050215,
     -9.13050963547721
    ],
-   "note": "ice Ih sublimation, Feistel and Wagner 2007 as adopted by IAPWS R14-08; a fit to 0 K is not claimed"
+   "note": "ice Ih sublimation, Feistel and Wagner 2007 as adopted by IAPWS R14-08; a fit to 0 K is not claimed",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 647.096,
+    "pc_pa": 22071748.8,
+    "coefficients": [
+     -7.87987,
+     1.92877,
+     -2.32932,
+     -2.05762
+    ]
+   }
+  },
+  "H2": {
+   "name": "hydrogen",
+   "form": "clausius-clapeyron",
+   "selection": "single",
+   "curves": [],
+   "sublimation_kj_mol": 1.02,
+   "note": "solid by Clausius-Clapeyron from the triple point (13.957 K, 7358 Pa) with 1.02 kJ/mol = 0.90 of vapourisation (gas table) + 0.12 of fusion (RECALLED, CRC); a stand-in, unchecked against Woolley 1948",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 33.145,
+    "pc_pa": 1296303.5,
+    "coefficients": [
+     -4.89948,
+     1.05654,
+     0.74762,
+     0.04196
+    ]
+   }
   }
  }
 }
