@@ -1397,27 +1397,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **MAP.174 Nebula cover in the stage-view cell statistics, for filled and unfilled cells**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): the cell
-  statistics behind the stage view (and the Color by switch) gain the
-  share of each cell inside a nebula, for filled cells from stored
-  nebulae and for unfilled cells from the field. Done: the statistic,
-  with a test that filled and unfilled cells agree on a seeded galaxy.
-  Owner: Foundations lane 2.
-  Prerequisites: none. Related: MAP.131, MAP.151 (done, PR
-  #1539).
-  Narrowed (2026-10-16 review): exposes MAP.172's cover in the
-  stage-view statistics payload (filled from stored nebulae, unfilled
-  from the field) plus the filled-versus-unfilled agreement test.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
 - [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -1455,7 +1434,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PR #1188): 0, under 0.5 percent, 0.5 to 1.5, 1.5 to 3 and 3 percent or
   more, replacing 0, under 5, 5 to 15, 15 to 30 and 30 percent or more
   (the alternative of per-view percentiles stays open for the builder).
-  Prerequisite: MAP.174. Related: MAP.131.
+  Note from MAP.174 (Core 2, #2694 merged about 3:00 PM EDT 2026-10-23
+  as the lane reported): the Galaxy Map stage and window payloads now
+  carry the nebula cover per block cell (GET /api/galaxy/nebula-cover,
+  db.query.galaxy_nebula_cover, read live beside the cached payload
+  because the tile cache only invalidates on sector changes);
+  sector-level cells have no stored cover, so this item needs that if it
+  wants the colour at sector level. The route is additive, so
+  API_VERSION stays 5.
+  Prerequisites: none. Related: MAP.131, MAP.174.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.178 Field nebula clouds drawn one by one from the nebula table**
@@ -5372,8 +5359,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.450,
-  SEC.33, TEST.261, GEN.638.
+  Prerequisites: GEN.450, SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -14449,29 +14435,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.625 measurement; proposed by the TODO thread).
   Prerequisites: none. Related: GEN.625, GEN.624, GEN.403.
 
-- [ ] **GEN.638 Planets and belts can sit past the survival ceiling because the age is raised after they are placed, so test_wide_binary_system_generates_and_stays_within_bounds[G2V] fails in about 0.4 percent of draws (bug)**
-  Found by Core 4 (relayed 10:42 AM EDT 2026-10-23 as the lane reported)
-  in the whole-suite gate of GEN.497 (#2671); filed by the TODO thread.
-  Kind: generation bug from GEN.325 (#2624), intermittent. Test:
-  src/tests/test_wide_binary.py::test_wide_binary_system_generates_and_stays_within_bounds[G2V]
-  fails on main in 6 draws of 1,500 (about 0.4 percent) with a G2V wide
-  pair. Cause (Core 4): GEN.325's survival ceiling depends on the star's
-  age; planets are placed under the provisional age, then
-  Star.adjust_age_for_planets only ever raises the age, so the final
-  ceiling is lower and an outer planet or belt sits past it (301 AU
-  against 275 AU, up to 593 against 284). It affects single stars too,
-  not only wide pairs. Reproducer: python -m pytest
-  src/tests/test_wide_binary.py -k generates_and_stays_within_bounds,
-  repeated. Do: re-trim the planet and belt lists to the final-age
-  ceiling right after the age is settled, and recompute the
-  habitable-world and belt requirements. It changes generation output
-  for those draws, so it takes a generator epoch (60 is the next free
-  number, numbered at merge). Done: 3,000 draws of the test pass and no
-  planet or belt sits past the final ceiling. GEN.301's closing `full
-  --check` needs it. Owner: Core 4 (its GEN.325; proposed by the TODO
-  thread).
-  Prerequisites: none. Related: GEN.325, GEN.636, GEN.301.
-
 - [ ] **GEN.639 The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1)**
   Left open by GEN.146 (Blocker 3, merged as #2685 at about 1:20 PM EDT
   2026-10-23 as the lane reported, generator epoch 60): the Kopparapu
@@ -19695,6 +19658,20 @@ clears each one.
   reports the rows there are and what the queue could not write. This
   item stays open for a sighting with that text.
 
+- [ ] **TEST.298 test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug)**
+  Found by Core 2 (relayed 2:55 PM EDT 2026-10-23 as the lane reported)
+  in its gate for MAP.174 (#2694); filed by the TODO thread. Kind: flaky
+  errors under load. Test: four tests of
+  src/tests/test_admin_script_cli.py errored in their fixture (a pytest
+  fixture-finalizer assertion); they pass on re-run. Failure text beyond
+  that was not given. Fails on main: unknown. Frequency: once in one
+  gate. Do: capture the finalizer assertion and the fixture, find what
+  the finalizer asserts on (a leftover database, a held connection or a
+  worker still running) and make it wait for or remove that state. Done:
+  the four tests pass 50 times in a row at -n 4 under load, with the
+  cause on this item. Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.297, TEST.141.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20426,6 +20403,30 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   lock file, so a fresh machine has every package main needs. Core 3 and
   Core 2 hit the same on 2026-10-23.
   Prerequisites: none. Related: TEST.254.
+
+- [ ] **OPS.63 The setup script works on Ubuntu 24.04 and 26.04 LTS**
+  Boss, 2:52 PM EDT 2026-10-23 (typed in the project chat, started as
+  its own thread): "Update and make sure the setup script works on
+  Ubuntu 24 and 26 LTS releases". Filed by the TODO thread from the
+  lane's first status (2:52 PM EDT as the lane reported: read update.sh
+  and the setup scripts, check each package and version against 24.04
+  and 26.04, fix the scripts, add a changes note, draft the cloud lane
+  environment script of OPS.62, gate, PR, merge). Background from
+  project memory, to verify against main: Boss's server is Ubuntu 26
+  LTS, with the venv at /usr/local/planetgen/venv (OPS.45); the minimum
+  Python is 3.12 and 24.04 ships it; numba is required with no fallback;
+  MySQL 8.0.19 or later is the minimum. Do: for each release, list what
+  the setup and update scripts install (packages, Python, MySQL, Redis,
+  chromium and the rest) and fix whatever is missing, renamed or
+  removed; install from the lock file so that every package main needs
+  (argon2-cffi since SEC.32) is present; keep REQUIREMENTS in
+  src/tests/test_install_python_deps.py in step. Done: the setup script
+  runs to the end on a clean Ubuntu 24.04 and a clean 26.04 (or the lane
+  says exactly which parts it could check and which not), a changes note
+  is written, and OPS.62 is closed by the same work or stays with its
+  own Done. Owner: the Setup script lane (started 2:52 PM EDT
+  2026-10-23).
+  Prerequisites: none. Related: OPS.62, OPS.45.
 
 ## DOC: Documentation
 
