@@ -8,6 +8,7 @@ import math
 
 import pytest
 
+from planetgen import tuning
 from planetgen.physics import gases, saturation
 
 # The species whose triple-point pressure on the highest-temperature fit is further than 3 percent from the gas table's,
@@ -48,11 +49,9 @@ def test_the_triple_point_pressure_is_the_gas_tables(formula):
         assert abs(ratio - 1.0) < 0.03
 
 
-def test_carbon_dioxide_is_within_a_percent_on_the_upper_fit_and_four_under_on_the_lower():
-    assert _triple_ratio("CO2") == pytest.approx(1.005, abs=0.002)
-    lower = saturation.species("CO2").curves[0]
-    row = gases.gas("CO2")
-    assert saturation._fray_schmitt_pa(lower.coefficients, row.triple_point_k) / row.triple_point_pa == pytest.approx(0.961, abs=0.002)
+def test_carbon_dioxide_is_span_and_wagner_and_meets_the_gas_tables_triple_point():
+    assert saturation.species("CO2").form == "span-wagner" and not saturation.species("CO2").curves
+    assert _triple_ratio("CO2") == pytest.approx(1.0, abs=0.0005)
 
 
 def test_hydrogen_cyanide_has_no_triple_point_pressure_to_check_against():
@@ -69,14 +68,16 @@ def test_water_ice_is_the_iapws_form():
 
 # The temperatures at which each ice saturates at 1e-9, 1e-5, 1e-3 and 0.1 bar, from the table of part 06 section 2.4
 # (the inversions of the same polynomials, so this tests the code and the transcription of the coefficients together;
-# the table used the beta fit of N2 and CO throughout, here the alpha fit serves below the switch, so the coldest N2 and CO
-# entries are the alpha fit's: 26.8 K against 26.3 K, 28.8 K against 29.1 K).
+# the table used the beta fit of N2 and CO throughout, here the alpha fit serves below the switch). The entries of N2, CO,
+# CH4, O2, NH3 and CO2 are this function's own since GEN.497: the laboratory-corrected cold end moves the coldest ones up
+# (CO 28.8 K to 30.4 K at 1e-9 bar) and Span and Wagner moves carbon dioxide's (86.1 K to 87.6 K); the colder-than-1e-5
+# entries of the others are unchanged.
 CHECKED_INVERSIONS = {
-    "Ne": (8.4, 12.2, 15.6, 21.7), "N2": (26.8, 36.7, 46.0, 62.2), "CO": (28.8, 40.0, 49.6, 65.8),
-    "Ar": (30.4, 42.6, 53.4, 71.7), "O2": (31.6, 42.9, 53.24, None), "CH4": (37.4, 52.7, 66.3, 89.5),
+    "Ne": (8.4, 12.2, 15.6, 21.7), "N2": (27.0, 36.7, 46.0, 62.2), "CO": (30.4, 41.2, 50.1, 65.9),
+    "Ar": (30.4, 42.6, 53.4, 71.7), "O2": (32.0, 42.85, 53.24, None), "CH4": (37.7, 52.7, 66.3, 89.5),
     "Kr": (42.3, 59.1, 73.8, 98.7), "Xe": (58.9, 82.1, 102.4, 136.6), "C2H6": (67.8, 89.9, None, None),
-    "C2H4": (64.6, 85.9, 103.1, None), "H2S": (80.3, 110.5, 136.1, 177.1), "CO2": (86.1, 114.0, 136.3, 170.1),
-    "NH3": (101.5, 134.6, 161.0, None), "SO2": (111.9, 146.7, 174.3, None), "HCN": (125.2, 165.8, 198.9, 250.1),
+    "C2H4": (64.6, 85.9, 103.1, None), "H2S": (80.3, 110.5, 136.1, 177.1), "CO2": (87.6, 114.6, 136.4, 170.0),
+    "NH3": (102.0, 135.0, 161.1, None), "SO2": (111.9, 146.7, 174.3, None), "HCN": (125.2, 165.8, 198.9, 250.1),
     "C6H6": (148.7, 196.2, 233.5, None), "H2O": (161.1, 212.6, 252.8, None),
 }
 
@@ -88,17 +89,17 @@ def test_the_checked_inversions_are_reproduced(formula):
             assert _invert(formula, pressure_bar * 1e5) == pytest.approx(expected, abs=0.15), (formula, pressure_bar)
 
 
-def test_two_fit_species_switch_where_the_fits_cross_or_come_closest():
-    for formula in ("N2", "CO", "O2", "CH3OH", "Ne", "CO2"):
+def test_two_fit_species_switch_where_the_fits_cross():
+    for formula in ("N2", "CO", "O2", "CH3OH", "Ne"):
         row = saturation.species(formula)
         assert len(row.curves) == (3 if formula == "O2" else 2)
         for low, high in zip(row.curves, row.curves[1:]):
             switch = high.from_k
             jump = abs(math.log(saturation._fray_schmitt_pa(low.coefficients, switch)
                                 / saturation._fray_schmitt_pa(high.coefficients, switch)))
-            assert jump < (0.02 if row.selection == "closest-approach" else 0.005), formula
-            assert saturation.saturation(formula, switch - 0.01).curve_id == low.curve_id
-            assert saturation.saturation(formula, switch).curve_id == high.curve_id
+            assert jump < 0.005, formula
+            assert saturation.curve_at(formula, switch - 0.01).curve_id == low.curve_id
+            assert saturation.curve_at(formula, switch).curve_id == high.curve_id
 
 
 def test_the_switch_points_are_near_the_known_solid_transitions():
@@ -153,8 +154,8 @@ def test_status_follows_the_temperature():
 
 def test_the_cold_limit_is_fifty_kelvin():
     assert saturation.COLD_UNVERIFIED_BELOW_K == 50.0
-    assert saturation.saturation("CH4", 49.9).status == saturation.COLD_UNVERIFIED
-    assert saturation.saturation("CH4", 50.0).status == saturation.OK
+    assert saturation.saturation("Ar", 49.9).status == saturation.COLD_UNVERIFIED
+    assert saturation.saturation("Ar", 50.0).status == saturation.OK
 
 
 def test_an_unknown_species_and_a_bad_temperature_are_refused():
@@ -255,3 +256,154 @@ def test_solid_carbon_dioxide_is_as_cold_as_its_latent_heat_allows():
         t = 1.0 / (1.0 / 194.7 + math.log(1e9) / slope)
         assert t == pytest.approx(expected, abs=0.1)
     assert 83.0 < _invert("CO2", 1e-9 * 1e5) < 88.0
+
+
+# --- the cold ends and carbon dioxide (GEN.497) ---------------------------------------------------------------------
+
+# Span and Wagner 1996 equation 3.12 (body-composition-parts/G4-ices-brines-licences.md, the test targets) in Pa
+SPAN_WAGNER_PA = {100.0: 1.3408e-2, 120.0: 3.736, 150.0: 842.65, 170.0: 9960.4, 185.0: 43935.0, 195.0: 103971.0, 210.0: 327089.0}
+
+
+@pytest.mark.parametrize("temperature_k", sorted(SPAN_WAGNER_PA))
+def test_carbon_dioxide_sublimation_is_the_span_and_wagner_values(temperature_k):
+    assert saturation.pressure_pa("CO2", temperature_k) == pytest.approx(SPAN_WAGNER_PA[temperature_k], rel=2e-4)
+    assert saturation.saturation("CO2", temperature_k).curve_id == "CO2-SW"
+
+
+def test_carbon_dioxide_sublimates_at_one_atmosphere_at_194_6855_kelvin():
+    assert _invert("CO2", 101325.0, 150.0, 216.0) == pytest.approx(194.6855, abs=0.001)
+
+
+def test_carbon_dioxide_is_flagged_under_the_data_it_was_matched_to():
+    assert saturation.saturation("CO2", 100.0).status == saturation.OK
+    below = saturation.saturation("CO2", 80.0)
+    assert below.status == saturation.BELOW_FIT and below.pressure_pa == pytest.approx(2.169e-6, rel=1e-3)
+    assert saturation.saturation("CO2", 230.0).phase == saturation.LIQUID
+
+
+# Grundy et al. 2024 fits as tabulated in G4_qcm_corrected_vapor_pressure.csv (bar; two or three figures), inside the window
+# of each set (the corrected set meets Fray and Schmitt at 35, 54.4 and 51.0 K, the uncorrected at 35, 59.4 and 68.5 K)
+GRUNDY_2024_BAR = {
+    "N2": {26.0: 2.34e-10, 28.0: 2.54e-9, 30.0: 2.01e-8, 32.0: 1.22e-7, 34.0: 6.0e-7},
+    "CO": {26.0: 2.22e-12, 30.0: 5.27e-10, 36.0: 2.0e-7, 42.0: 1.39e-5, 48.0: 3.3e-4, 54.0: 3.8e-3},
+    "CH4": {31.0: 8.4e-13, 36.0: 1.91e-10, 40.0: 5.59e-9, 45.0: 1.64e-7, 50.0: 2.47e-6},
+}
+UNCORRECTED_ONLY = {"CO": {58.0: 1.44e-2}, "CH4": {60.0: 1.43e-4}}
+
+
+@pytest.fixture(params=[True, False], ids=["corrected", "uncorrected"])
+def switch(request, monkeypatch):
+    monkeypatch.setattr(tuning, "COLD_END_LABORATORY_CORRECTION", request.param)
+    return request.param
+
+
+@pytest.mark.parametrize("formula", sorted(GRUNDY_2024_BAR))
+def test_nitrogen_carbon_monoxide_and_methane_follow_the_laboratory_fit_in_both_sets(formula, switch):
+    factor = 1.19 if switch else 1.0
+    for temperature_k, bar in GRUNDY_2024_BAR[formula].items():
+        answer = saturation.saturation(formula, temperature_k)
+        assert answer.pressure_pa / 1e5 == pytest.approx(bar * factor, rel=0.03), (formula, temperature_k)
+        assert answer.status == saturation.OK and answer.curve_id == f"{formula}-QCM"
+    if not switch:
+        for temperature_k, bar in UNCORRECTED_ONLY.get(formula, {}).items():
+            assert saturation.pressure_pa(formula, temperature_k) / 1e5 == pytest.approx(bar, rel=0.03), (formula, temperature_k)
+
+
+def test_the_switch_is_a_factor_of_1_19_for_nitrogen_carbon_monoxide_and_methane(monkeypatch):
+    for formula, temperature_k in (("N2", 30.0), ("CO", 40.0), ("CH4", 40.0)):
+        monkeypatch.setattr(tuning, "COLD_END_LABORATORY_CORRECTION", True)
+        on = saturation.pressure_pa(formula, temperature_k)
+        monkeypatch.setattr(tuning, "COLD_END_LABORATORY_CORRECTION", False)
+        assert on / saturation.pressure_pa(formula, temperature_k) == pytest.approx(1.19, rel=1e-5), formula
+
+
+# Blakley et al. 2024 Table 1 (the "old" set) and the same with the A and B of Grundy 2026 Table 3 (the "new" one), bar
+BLAKLEY_BAR = {
+    "O2": {30.0: (7.067e-11, 8.632e-11), 35.0: (2.029e-8, 2.262e-8), 40.0: (1.400e-6, 1.457e-6)},
+    "NH3": {80.0: (2.496e-14, 3.229e-14), 90.0: (5.301e-12, 6.533e-12), 100.0: (3.907e-10, 4.631e-10),
+            120.0: (2.519e-7, 2.817e-7), 140.0: (2.574e-5, 2.761e-5)},
+}
+
+
+@pytest.mark.parametrize("formula", sorted(BLAKLEY_BAR))
+def test_oxygen_and_ammonia_follow_blakley_in_both_sets(formula, switch):
+    for temperature_k, (old, new) in BLAKLEY_BAR[formula].items():
+        assert saturation.pressure_pa(formula, temperature_k) / 1e5 == pytest.approx(new if switch else old, rel=2e-3), (formula, temperature_k)
+
+
+def test_the_uncorrected_ammonia_is_below_fray_and_schmitt_by_the_published_factors(monkeypatch):
+    monkeypatch.setattr(tuning, "COLD_END_LABORATORY_CORRECTION", False)
+    polynomial = saturation.species("NH3").curves[0].coefficients
+    for temperature_k, ratio in ((80.0, 0.57), (90.0, 0.63), (100.0, 0.68), (140.0, 0.88)):
+        assert saturation.pressure_pa("NH3", temperature_k) / saturation._fray_schmitt_pa(polynomial, temperature_k) == \
+            pytest.approx(ratio, abs=0.006)
+
+
+def test_carbon_monoxide_is_far_below_fray_and_schmitt_near_25_kelvin(monkeypatch):
+    monkeypatch.setattr(tuning, "COLD_END_LABORATORY_CORRECTION", False)
+    polynomial = saturation.species("CO").curves[0].coefficients
+    ratio = saturation.pressure_pa("CO", 25.0) / saturation._fray_schmitt_pa(polynomial, 25.0)
+    assert 1.0 / ratio > 10.0
+
+
+@pytest.mark.parametrize("formula", ["CO", "CH4", "O2", "NH3"])
+def test_each_cold_end_meets_the_fray_and_schmitt_polynomial_where_it_hands_over(formula, switch):
+    cold_end = saturation.species(formula).cold_end
+    coefficients, hand_over = cold_end.active()
+    polynomial = saturation.curve_at(formula, hand_over).coefficients
+    fray = saturation._fray_schmitt_pa(polynomial, hand_over)
+    lab = saturation._lobo_ferreira_bar(coefficients, hand_over) * saturation.BAR_TO_PA
+    assert lab / fray == pytest.approx(1.0, abs=0.002)
+    assert saturation.saturation(formula, hand_over - 0.001).curve_id == cold_end.curve_id
+    assert saturation.saturation(formula, hand_over).curve_id != cold_end.curve_id
+
+
+def test_nitrogen_hands_over_at_the_top_of_its_window_and_the_step_is_left_as_published(switch):
+    cold_end = saturation.species("N2").cold_end
+    assert cold_end.active()[1] == 35.0
+    step = saturation.pressure_pa("N2", 34.999) / saturation.pressure_pa("N2", 35.0)
+    assert step == pytest.approx(0.478 if switch else 0.478 / 1.19, abs=0.01)
+    assert saturation.saturation("N2", 35.0).status == saturation.COLD_UNVERIFIED
+
+
+@pytest.mark.parametrize("formula", ["N2", "CO", "CH4", "O2", "NH3"])
+def test_under_the_window_the_curve_is_clausius_clapeyron_and_flagged(formula, switch):
+    cold_end = saturation.species(formula).cold_end
+    coefficients = cold_end.active()[0]
+    edge = cold_end.from_k
+    at_edge = saturation.saturation(formula, edge)
+    assert at_edge.status == saturation.OK
+    under = saturation.saturation(formula, edge - 0.5)
+    assert under.status == saturation.BELOW_FIT and under.curve_id == f"{cold_end.curve_id}-CC"
+    assert under.pressure_pa < at_edge.pressure_pa
+    # continuous in value and in slope across the edge
+    step = 1e-4
+    low = saturation.pressure_pa(formula, edge - step)
+    assert low / at_edge.pressure_pa == pytest.approx(1.0, abs=1e-3)
+    slope_in = saturation._lobo_ferreira_slope(coefficients, edge)
+    slope_out = (math.log(at_edge.pressure_pa) - math.log(saturation.pressure_pa(formula, edge - 0.01))) / 0.01
+    assert slope_out == pytest.approx(slope_in, rel=0.01)
+    # far below it does not turn over or overflow
+    assert 0.0 < saturation.pressure_pa(formula, 3.0) < under.pressure_pa
+
+
+@pytest.mark.parametrize("formula", ["N2", "CO", "CH4", "O2", "NH3", "CO2"])
+def test_the_curve_rises_through_the_cold_end_in_both_sets(formula, switch):
+    previous = 0.0
+    temperature_k = 2.0
+    while temperature_k < saturation.triple_point_k(formula):
+        value = saturation.pressure_pa(formula, temperature_k)
+        assert value >= previous, (formula, temperature_k)
+        previous = value
+        temperature_k += 0.25
+
+
+def test_the_switch_is_on_by_default_and_the_file_has_both_sets():
+    assert tuning.COLD_END_LABORATORY_CORRECTION is True
+    with open(saturation.DATA_FILE, encoding="utf-8") as handle:
+        data = json.load(handle)
+    for formula in ("N2", "CO", "CH4", "O2", "NH3"):
+        cold_end = data["species"][formula]["cold_end"]
+        assert len(cold_end["corrected"]) == len(cold_end["uncorrected"]) == 6
+        assert set(cold_end["hand_over_k"]) == {"corrected", "uncorrected"}
+    assert data["species"]["CO2"]["form"] == "span-wagner"
