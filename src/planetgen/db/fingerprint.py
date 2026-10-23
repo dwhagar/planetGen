@@ -114,9 +114,9 @@ _PARENT_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems"
 LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
 
-LEFT_OUT_TABLE_COLUMNS = {"star_systems": frozenset({"location"})}
+LEFT_OUT_TABLE_COLUMNS = {"star_systems": frozenset({"location"}), "sectors": frozenset({"leaf_digest"})}
 """dict: Columns left out of one table: `location` is written from the
-nearest systems."""
+nearest systems, and a sector's `leaf_digest` is a digest of the sector (GEN.305)."""
 
 _TIME_TYPES = frozenset({"datetime", "timestamp", "date", "time"})
 

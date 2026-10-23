@@ -63,8 +63,6 @@ _EMPTY_TABLE_ROWS = {
     # DB.79: the index builder (PERF.140) fills it; the migration only makes the table.
     "object_index": (
         "INSERT INTO object_index (kind, uid, source_id, name) VALUES ('system', UNHEX('000000000000000000000001'), 1, 'Test')"),
-    "sector_tree_nodes": (
-        "INSERT INTO sector_tree_nodes (level, shell_index, band_index) VALUES (1, 0, 1)"),
     # DB.36: the 8.6 plan code (ADM.58, ADM.60) writes these; the migration only makes the tables.
     "change_plans": (
         "INSERT INTO change_plans (requester_name, requester_role, state) VALUES ('Test', 'admin', 'draft')"),
@@ -94,6 +92,15 @@ _EMPTY_TABLE_ROWS = {
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),
+}
+
+
+_ALWAYS_ADDED_ROWS = {
+    # GEN.305: the fingerprint tree is filled as sectors are saved, so a level-1 row on a shell no galaxy reaches is added
+    # to break: the first stored row cannot become a shell node (its key, level 2, is held by the shell's own node).
+    "sector_tree_nodes": (
+        "INSERT INTO sector_tree_nodes (level, shell_index, band_index) VALUES (1, 2000000000, 1)",
+        "shell_index DESC"),
 }
 
 
@@ -146,10 +153,13 @@ def test_every_check_rejects_a_bad_row(rich_galaxy):
             try:
                 if table in _EMPTY_TABLE_ROWS and conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is None:
                     conn.execute(_EMPTY_TABLE_ROWS[table])
+                if table in _ALWAYS_ADDED_ROWS:
+                    conn.execute(_ALWAYS_ADDED_ROWS[table][0])
                 key = [r["c"] for r in conn.execute(
                     "SELECT COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
                     " AND TABLE_NAME = ? AND COLUMN_KEY = 'PRI' ORDER BY ORDINAL_POSITION", (table,)).fetchall()]
-                row = conn.execute(f"SELECT * FROM {table} ORDER BY {', '.join(key)} LIMIT 1").fetchone()
+                order = _ALWAYS_ADDED_ROWS[table][1] if table in _ALWAYS_ADDED_ROWS else ", ".join(key)
+                row = conn.execute(f"SELECT * FROM {table} ORDER BY {order} LIMIT 1").fetchone()
                 assert row is not None, f"the seeded galaxy has no {table} row to break {name} on"
                 column, value = _breaking_value(conn, table, check["clause"], row)
                 try:

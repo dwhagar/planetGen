@@ -70,6 +70,7 @@ import sqlalchemy.pool
 
 from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, point_columns, scatter_systems
+from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
@@ -6960,6 +6961,9 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     if built_tree_ids:  # GEN.315: a built row's members and nodes are its system's stars and orbit_nodes now
         scatter_systems.delete_member_trees(conn, "bright_stars", built_tree_ids)
     mark_phenomena_built(conn, built_scatter_ids)
+    if _address_of(galaxy_position) is not None:
+        fingerprintTree.store_leaf(conn, sector_id, _address_of(galaxy_position),
+                                   fingerprintTree.leaf_digest(sector, _address_of(galaxy_position)))
 
     field_nebulae = getattr(sector, "field_nebulae", None)
     if galaxy_position is not None and (link_neighbors or field_nebulae):
