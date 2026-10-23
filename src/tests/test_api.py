@@ -2214,7 +2214,8 @@ def test_regenerate_keeps_the_system_but_replaces_its_bodies(seeded_sector, admi
                                                                        before["location"])
     assert after["stars"][0]["star_type"].startswith("K1V")
     assert after["stars"][0]["name"] == before["name"]
-    assert not old_star_ids & {star["id"] for star in after["stars"]}
+    # The slot keeps its ID: the star that takes the primary slot is the object that held it (DB.75).
+    assert old_star_ids == {star["id"] for star in after["stars"]}
     for planet in after["planets"]:
         assert planet["name"].startswith(before["name"])
 
