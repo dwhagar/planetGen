@@ -15156,6 +15156,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replaced items with Boss's card if any is not obvious.
   Prerequisites: GEN.644, GEN.643. Related: GEN.644, GEN.643, GEN.90,
   GEN.28, GEN.350, GEN.355, GEN.356.
+  Owner: Habitability lane D keeps the design, with the class lane
+  (design draft condition-based-classes-2026-10-23.md, C1 to C5 and C13
+  to C15). Boss, 6:23 PM EDT 2026-10-23: 'oh planet classes will also be
+  classed by their physical properties (size, gravity, etc)'. The rule
+  table takes size and surface gravity as inputs beside the atmosphere,
+  temperature and composition; the class lane builds them as rule inputs
+  plus a size tier in the class code (S and V become tiers, not
+  letters).
 
 - [ ] **GEN.646 Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -15185,6 +15193,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.645, GEN.428, GEN.429, GEN.411, GEN.412, GEN.442,
   GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
   GEN.428, GEN.90.
+  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
+  the TODO thread): the Condition-based planet classes lane builds this
+  item (its design draft:
+  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
+  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
+  Habitability lane D keeps GEN.645 and GEN.643. This replaces
+  'Habitability lane D' above for the build.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -15207,6 +15222,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the class agrees with its conditions, and the result is identical at
   any worker count.
   Prerequisites: GEN.646. Related: GEN.645, GEN.646, GEN.643.
+  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
+  the TODO thread): the Condition-based planet classes lane builds this
+  item (its design draft:
+  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
+  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
+  Habitability lane D keeps GEN.645 and GEN.643. This replaces
+  'Habitability lane D' above for the build.
+  Boss, 6:23 PM EDT 2026-10-23: 'oh planet classes will also be classed
+  by their physical properties (size, gravity, etc)'. classify(body)
+  also reads size and surface gravity; the class code carries a size
+  tier (S and V become tiers, not letters, as the class lane reported).
 
 - [ ] **GEN.648 The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -17272,6 +17298,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   classify again. Done: round trip, migration test, and an edited body
   changes class when its conditions cross a rule.
   Prerequisites: GEN.647. Related: GEN.647, DB.69, DB.70.
+  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
+  the TODO thread): the Condition-based planet classes lane builds this
+  item (its design draft:
+  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
+  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
+  Habitability lane D keeps GEN.645 and GEN.643. This replaces
+  'Habitability lane D' above for the build.
 
 - [ ] **DB.91 Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
@@ -20594,6 +20627,13 @@ clears each one.
   changed gate and in full --check.
   Prerequisites: GEN.647, DB.90, GEN.648. Related: GEN.647, TEST.209,
   TEST.210.
+  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
+  the TODO thread): the Condition-based planet classes lane builds this
+  item (its design draft:
+  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
+  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
+  Habitability lane D keeps GEN.645 and GEN.643. This replaces
+  'Habitability lane D' above for the build.
 
 ## USR: User accounts
 
@@ -22043,6 +22083,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   state the rules, the derived class column and the PHI-6 relation, and
   the old letter tables are gone.
   Prerequisites: GEN.645, DB.90. Related: GEN.645, DOC.75.
+  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
+  the TODO thread): the Condition-based planet classes lane builds this
+  item (its design draft:
+  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
+  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
+  Habitability lane D keeps GEN.645 and GEN.643. This replaces
+  'Habitability lane D' above for the build.
 
 - [ ] **DOC.77 Docs for the four life scores: the help text, docs/design/habitability-index.md and the database schema document**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
