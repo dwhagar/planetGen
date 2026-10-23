@@ -765,6 +765,73 @@
       "title": "PageCache",
       "type": "object"
     },
+    "PasswordHash": {
+      "properties": {
+        "memory_kib": {
+          "default": 19456,
+          "description": "Memory one admin password check uses, in KiB (Argon2id). 19456 (19 MiB) with time_cost 2 and parallelism 1 is OWASP's minimum; raise it where the host has the memory to spare. A stored hash made with other numbers is re-hashed at that admin's next sign-in.",
+          "minimum": 8,
+          "title": "Memory Kib",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": false,
+          "x-env": "PLANETGEN_PASSWORD_HASH_MEMORY_KIB",
+          "x-group": "security",
+          "x-label": "Password hashing memory",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": true,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How much memory checking one admin password takes; the default is OWASP's minimum.",
+          "x-unit": "KiB"
+        },
+        "parallelism": {
+          "default": 1,
+          "description": "Threads one admin password check uses (Argon2id).",
+          "minimum": 1,
+          "title": "Parallelism",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": false,
+          "x-env": "PLANETGEN_PASSWORD_HASH_PARALLELISM",
+          "x-group": "security",
+          "x-label": "Password hashing threads",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": true,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many threads one admin password check uses."
+        },
+        "time_cost": {
+          "default": 2,
+          "description": "Passes over that memory for one admin password check (Argon2id).",
+          "minimum": 1,
+          "title": "Time Cost",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": false,
+          "x-env": "PLANETGEN_PASSWORD_HASH_TIME_COST",
+          "x-group": "security",
+          "x-label": "Password hashing passes",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": true,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many passes one admin password check makes over its memory."
+        }
+      },
+      "title": "PasswordHash",
+      "type": "object"
+    },
     "ProxyFix": {
       "properties": {
         "x_for": {
@@ -2011,6 +2078,14 @@
         "stamp_seconds": 15.0,
         "stored_counts": true,
         "warm_max_objects": 5000
+      }
+    },
+    "password_hash": {
+      "$ref": "#/$defs/PasswordHash",
+      "default": {
+        "memory_kib": 19456,
+        "parallelism": 1,
+        "time_cost": 2
       }
     },
     "proxy_fix": {

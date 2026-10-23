@@ -41,7 +41,7 @@ from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
 from planetgen.web.lib import apiclient
-from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
 
 from . import csrf
@@ -146,7 +146,7 @@ def current_admin():
     """
     admin = g.get("web_admin", _UNSET)
     if admin is _UNSET:
-        if not request.cookies.get(SESSION_COOKIE_NAME):
+        if not request.cookies.get(session_cookie_name()):
             g.web_admin = None
             return None
         try:

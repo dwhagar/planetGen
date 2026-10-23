@@ -89,6 +89,10 @@ setup(
         # transitively), so installing both extras together never
         # downgrades it.
         'werkzeug>=3.0.0',
+        # Argon2id, how admin passwords are hashed (SEC.32); werkzeug still
+        # checks the PBKDF2 and scrypt hashes older installs stored until
+        # their next sign-in re-hashes them.
+        'argon2-cffi>=23.1.0',
         # Progress bar for `planetgen galaxy`'s sector-generation loops
         # (TimeElapsedColumn/TimeRemainingColumn; see _generation_progress
         # in planetgen/generation/run_common.py).

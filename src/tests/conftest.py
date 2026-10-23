@@ -404,16 +404,17 @@ def mediawiki_config():
 from tests import fuzz_support  # noqa: E402,F401
 
 
-FAST_PASSWORD_HASH_METHOD = "pbkdf2:sha256:1000"
+FAST_PASSWORD_HASH_PARAMETERS = (8, 1, 1)
+"""Argon2id's smallest legal cost: 8 KiB, one pass, one thread."""
 
 
 @pytest.fixture(autouse=True)
 def _fast_password_hashing(request, monkeypatch):
-    """Every login, credential change and seeded admin user runs PBKDF2 at
-    600,000 rounds in production (`adminAuth.PASSWORD_HASH_METHOD`, SEC.25),
-    about a third of a second per check -- thousands of fuzzed logins
-    spend minutes on it without testing anything the round count changes.
-    Tests use 1,000 rounds instead (same algorithm, same code path, same
+    """Every login, credential change and seeded admin user runs Argon2id at
+    19 MiB and two passes in production (`adminAuth.hash_parameters`, SEC.32),
+    tens of milliseconds per check -- thousands of fuzzed logins spend
+    minutes on it without testing anything the cost changes. Tests use the
+    smallest cost instead (same algorithm, same code path, same
     rehash-on-login logic), except those marked `real_password_hashing`
     (test_password_hardening.py), which check the production setting
     itself."""
@@ -421,7 +422,7 @@ def _fast_password_hashing(request, monkeypatch):
         yield
         return
     from planetgen.admin import auth as adminAuth
-    monkeypatch.setattr(adminAuth, "PASSWORD_HASH_METHOD", FAST_PASSWORD_HASH_METHOD)
+    monkeypatch.setattr(adminAuth, "hash_parameters", lambda: FAST_PASSWORD_HASH_PARAMETERS)
     # The unknown-username dummy hash is cached; make the next one cheap
     # too (monkeypatch puts the production one back afterwards).
     monkeypatch.setattr(adminAuth, "_dummy_password_hash", None)

@@ -217,6 +217,27 @@ class ProxyFix(_Section):
                       summary="How many reverse proxies to trust for the host name (0 means none).")
 
 
+class PasswordHash(_Section):
+    memory_kib: int = opt(19456, "Memory one admin password check uses, in KiB (Argon2id). 19456 (19 MiB) with "
+                          "time_cost 2 and parallelism 1 is OWASP's minimum; raise it where the host has the memory "
+                          "to spare. A stored hash made with other numbers is re-hashed at that admin's next sign-in.",
+                          env="PLANETGEN_PASSWORD_HASH_MEMORY_KIB", unit="KiB", restart=True, editable=False,
+                          group="security", ge=8,
+                          label="Password hashing memory",
+                          summary="How much memory checking one admin password takes; the default is "
+                                  "OWASP's minimum.")
+    time_cost: int = opt(2, "Passes over that memory for one admin password check (Argon2id).",
+                         env="PLANETGEN_PASSWORD_HASH_TIME_COST", restart=True, editable=False, group="security",
+                         ge=1,
+                         label="Password hashing passes",
+                         summary="How many passes one admin password check makes over its memory.")
+    parallelism: int = opt(1, "Threads one admin password check uses (Argon2id).",
+                           env="PLANETGEN_PASSWORD_HASH_PARALLELISM", restart=True, editable=False,
+                           group="security", ge=1,
+                           label="Password hashing threads",
+                           summary="How many threads one admin password check uses.")
+
+
 class Cache(_Section):
     max_mb: float = opt(1024, "How much disk the site's stored caches (today the Galaxy Map's tiles) may use, in all. "
                         "When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit "
@@ -797,6 +818,7 @@ class Settings(_Section):
                           label="Form signing key",
                           summary="Signs the security tokens on forms; empty makes a random one at "
                                   "each start.")
+    password_hash: PasswordHash = PasswordHash()
     proxy_fix: ProxyFix = ProxyFix()
     cache: Cache = Cache()
     tile_cache: TileCache = TileCache()

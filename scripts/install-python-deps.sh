@@ -93,6 +93,7 @@ REQUIREMENTS=(
     "pymysql>=1.2.3"
     "cryptography>=42.0.0"
     "werkzeug>=3.0.0"
+    "argon2-cffi>=23.1.0"
     "rich>=13.7.0"
     "flask>=3.0.3"
     "flask-limiter>=3.7.0"

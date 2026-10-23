@@ -29,7 +29,7 @@ def key(version):
 
 
 # Distributions whose import name isn't the pip name with "-" as "_".
-IMPORT_NAMES = {"scikit-image": "skimage"}
+IMPORT_NAMES = {"scikit-image": "skimage", "argon2-cffi": "argon2"}
 
 
 def _pymysql_logs_in_to_mysql_8():

@@ -950,7 +950,9 @@ forced credential change. They back the admin stats page
 ### Authentication
 
 - `POST /api/auth/login` `{"username", "password"}` — sets the session
-  cookie (`pg_admin_session`; `HttpOnly`/`Secure`/`SameSite=Strict`) and
+  cookie (`__Host-pg_admin_session`, or `pg_admin_session` when
+  `admin_cookie_insecure` is on; `HttpOnly`/`Secure`/`SameSite=Strict`;
+  the `__Host-` prefix is SEC.32) and
   a trusted-device cookie (`pg_admin_device`, the same flags, 90 days;
   SEC.22). A login or change-credentials from a browser holding a valid
   device cookie for that username skips the per-username lock below (it

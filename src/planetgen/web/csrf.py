@@ -13,7 +13,7 @@ path outside `/api`), `protect()` recomputes the HMAC from the two
 cookies and compares it with the field in constant time; a missing or
 wrong token gets a 400 page and the view never runs.
 
-The token is bound to the login session (`api.authz.SESSION_COOKIE_NAME`,
+The token is bound to the login session (`api.authz.session_cookie_name`,
 empty when nobody is logged in, as on the login form): a token minted
 for one session, or before logging in, fails for any other session.
 Tokens are computed per render, so the pages a browser sees after
@@ -46,7 +46,7 @@ import secrets
 from flask import abort, current_app, g, redirect, request, url_for
 from markupsafe import Markup, escape
 
-from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.authz import session_cookie_name
 from planetgen.admin import activity_log
 
 COOKIE_NAME = "pg_csrf"
@@ -58,7 +58,7 @@ SIGN_IN_ENDPOINTS = frozenset({"web.login", "web.login_code"})
 
 def _session():
     """This request's admin session cookie (`""` when not logged in)."""
-    return request.cookies.get(SESSION_COOKIE_NAME) or ""
+    return request.cookies.get(session_cookie_name()) or ""
 
 
 def _sign(nonce, session=""):
