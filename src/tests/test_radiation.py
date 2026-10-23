@@ -128,10 +128,11 @@ def test_uv_follows_the_star_and_the_ozone_layer():
     assert rad.uv_ratio(7200.0) == pytest.approx(2.8, rel=0.5)
     assert rad.uv_ratio(2800.0) == rad.UV_FLOOR
     sun = types.SimpleNamespace(temperature=5772.0, luminosity=constants.SOLAR_LUMINOSITY)
-    assert rad.uv_index(sun, 1.0, 21.2) == pytest.approx(1.0, rel=0.05)
+    assert rad.uv_index(sun, 1.0, rad.EARTH_OZONE_DU) == pytest.approx(1.0, rel=0.05)
     assert rad.uv_index(sun, 1.0, 0.0) == pytest.approx(rad.UV_MAX)
-    assert rad.uv_index(sun, 1.0, 5.0) > rad.uv_index(sun, 1.0, 21.2)
-    assert rad.uv_index(types.SimpleNamespace(temperature=None, luminosity=None), 1.0, 21.2) is None
+    assert rad.uv_index(sun, 1.0, 100.0) > rad.uv_index(sun, 1.0, 300.0) > rad.uv_index(sun, 1.0, 428.0)
+    assert rad.uv_index(types.SimpleNamespace(temperature=None, luminosity=None), 1.0, 300.0) is None
+    assert rad.ozone_ratio(150.0) == 0.5 and rad.ozone_ratio(None) == 0.0 and rad.ozone_ratio(-1.0) == 0.0
 
 
 def test_supernova_hazard_rises_toward_the_galactic_centre():
@@ -200,6 +201,7 @@ def test_every_generated_body_has_a_consistent_dose():
                 body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr)
             assert body.dose_gcr_msv_yr > 0 and body.dose_ground_msv_yr > 0
             assert isinstance(body.ozone_loss_flag, bool)
+            assert (body.ozone_column_du > 0.0) == ((body.p_o2_kpa or 0.0) > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
             assert body.uv_surface_index is None or body.uv_surface_index > 0
     assert seen["rocky"] > 10 and seen["giant"] > 0
@@ -212,7 +214,7 @@ def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
     star = system.stars[0] if hasattr(system, "stars") else system.primary_star
     assert star.lethal_event_rate_per_gyr > activity.SN_RATE_AT_SUN_PER_GYR * 50
     for body in _bodies(system):
-        if body.body_type == "t" and (body.p_o2_kpa or 0.0) >= rad.O3_MIN_PO2_KPA:
+        if body.body_type == "t" and (body.ozone_column_du or 0.0) > 0.0:
             assert body.ozone_loss_flag
 
 
