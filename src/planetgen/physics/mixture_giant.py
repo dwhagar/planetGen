@@ -370,7 +370,10 @@ def _alkali_in_gas(subject, row, temperature_k, onset_k):
     applies to the subject, else the temperature test at the row's centre."""
     entry = RECIPES.entry(row)
     if entry.supports(subject):
-        return RECIPES.draw_binary(row, subject)[0]
+        try:
+            return RECIPES.draw_binary(row, subject)[0]
+        except KeyError as error:
+            raise MixtureError(str(error)) from error
     return temperature_k >= onset_k
 
 

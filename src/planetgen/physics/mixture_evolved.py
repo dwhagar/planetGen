@@ -35,7 +35,7 @@ import math
 from planetgen.physics import gas_equilibrium, saturation
 from planetgen.physics import mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
-from planetgen.physics.mixture_base import MixtureDraw, MixtureError, atoms_of, bracket, finish, require
+from planetgen.physics.mixture_base import MixtureDraw, NotApplicable, atoms_of, bracket, finish, require
 
 WATER_RESIDUAL = (1e-5, 1e-3, "log")
 """tuple: The share of the hydrogen a water-lost body keeps (Venus keeps 20 ppm of water in 96.5 percent carbon dioxide, TEST)."""
@@ -81,7 +81,7 @@ FAMILIES = tuple(FAMILY_OF_ROW.values())
 def _saturation_bar(formula, temperature_k):
     curve = saturation.saturation(formula, temperature_k)
     if curve.status == saturation.ABOVE_CRITICAL:
-        raise MixtureError(f"{formula} has no saturation pressure at {temperature_k} K (above its critical point)")
+        raise NotApplicable(f"{formula} has no saturation pressure at {temperature_k} K (above its critical point)")
     return curve.pressure_pa / saturation.BAR_TO_PA
 
 
@@ -153,7 +153,7 @@ def frost_equilibrium(subject, recipe):
     ice = {formula: bracket(constants, f"ice_{formula.lower()}", spec) for formula, spec in FROST_ICE.items()}
     ice["N2"] = 1.0 - sum(ice.values())
     if ice["N2"] <= 0.0:
-        raise MixtureError("the minor ices exceed the nitrogen ice")
+        raise NotApplicable("the minor ices exceed the nitrogen ice")
     partial = {formula: share * _saturation_bar(formula, temperature) for formula, share in ice.items()}
     total = sum(partial.values())
     return _from_fractions(partial, family="frost", recipe=recipe, temperature_k=temperature, pressure_bar=total,

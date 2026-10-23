@@ -43,7 +43,7 @@ import dataclasses
 
 from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_evolved, mixture_giant, mixture_lava, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
-from planetgen.physics.mixture_base import MixtureDraw, MixtureError  # noqa: F401  (the public names of the result)
+from planetgen.physics.mixture_base import MixtureDraw, MixtureError, NotApplicable  # noqa: F401  (the public names of the result)
 
 
 CATEGORIES = "".join(letter for letter in atmosphere_recipes.DRAW_ORDER if letter <= "l")
@@ -109,7 +109,7 @@ def family_of(recipe, subject):
         return "hot-jupiter"
     if "f" in groups:
         return "giant"
-    if "k" in groups:
+    if "k" in groups and groups["k"].name != "none":
         return "coma"
     if "l" in groups:
         if groups["l"].name == "l2":
@@ -121,7 +121,7 @@ def family_of(recipe, subject):
         temperature = _surface_temperature(subject, "tp_k")
         if temperature is not None and temperature >= mixture_lava.MELT_MIN_K:
             return "lava"
-    if "j" in groups:
+    if "j" in groups and groups["j"].name in mixture_evolved.FAMILY_OF_ROW:
         return mixture_evolved.FAMILY_OF_ROW[groups["j"].name]
     if "e" in groups and groups["e"].name == "e2":
         return "envelope"
@@ -159,7 +159,10 @@ def draw_mixture(subject):
     elif family == "lava":
         result = mixture_lava.vapour_mixture(subject, recipe, temperature_name="ts_k" if "l" in recipe.groups else "tp_k")
     elif family in mixture_evolved.FAMILIES:
-        result = mixture_evolved.draw(subject, recipe, family)
+        try:
+            result = mixture_evolved.draw(subject, recipe, family)
+        except NotApplicable:
+            result = mixture_rocky.outgassed_mixture(subject, recipe)
     elif family == "envelope":
         z = recipe.values.get("e5")
         if z is None:

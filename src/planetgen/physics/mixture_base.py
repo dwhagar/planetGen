@@ -27,6 +27,11 @@ class MixtureError(RuntimeError):
     """A mixture that cannot be drawn: a quantity the tables read that the subject lacks, or a gas outside the gas table."""
 
 
+class NotApplicable(MixtureError):
+    """A regime the recipe drew whose physics does not hold at this body's temperature or pressure (an ice atmosphere on a surface above the
+    ices' critical points): the dispatcher leaves the body to its outgassed air."""
+
+
 @dataclass(frozen=True)
 class MixtureDraw:
     """
