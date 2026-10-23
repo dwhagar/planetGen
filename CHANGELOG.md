@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2008] - 2026-10-23
+
+**Headline:** A galaxy plan no longer reads every stored cluster back just to build the containers of its globular ones.
+
+### Changed
+- The plan's container step reads only the King-profile clusters (157 of 37,402 at the default size) instead of all of them, which takes about 1 to 1.5 s off a plan of a default galaxy. The containers are the same.
+- `docs/design/generation-performance.md` records why the component insert, the second `plan_shape` and the start-up math check were left as they are.
+
 ## [8.0.2007] - 2026-10-23
 
 **Headline:** Every runaway star now has an origin, the supernova or the dynamical channel, at the observed rates for O and B stars.
