@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2006] - 2026-10-23
+
+**Headline:** The benchmark suite's `--resume` looks for its scratch database in a way the SQL portability test accepts.
+
+### Changed
+- `planetgen benchmark --suite --resume` finds the scratch database with a query on `information_schema.SCHEMATA` instead of `SHOW DATABASES`, whose `DATABASES` is a reserved word on MySQL 8.0 and 8.4. Nothing else about the resume changes.
+
 ## [8.0.2005] - 2026-10-23
 
 **Headline:** The quick-edit test waits for its job instead of the clock, and two flaky browser and run tests now say what they saw.
