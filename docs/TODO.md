@@ -3271,7 +3271,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: GEN.307, TEST.181.
+    Prerequisites: TEST.181.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -5637,23 +5637,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
-
-- [ ] **GEN.307 The object-ID collision number keyed on the lower address**
-  Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `db/store._claim_object_ids` gives
-  the next collision number to an ID already held by a stored row, so
-  when two sectors' objects share an ID cell the number depends on which
-  sector saved first. Make it depend on addresses: the object in the
-  sector with the lower address keeps number 0, the other takes the
-  next. Check first whether the 96-bit ID work (the later phases)
-  already removes the collision; if it does, close this child as not
-  needed. Changes stored values, so it ships with an epoch bump. Done:
-  two sectors whose objects share an ID cell get the same numbers in
-  either save order; a test says so.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.57.
 
 - [ ] **GEN.309 The backfill picks the draw path per block and gives the same stars wherever it lands**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -8777,7 +8760,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.495.
+  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -11296,62 +11279,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
-- [ ] **GEN.495 The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-1 (part G1, 31 claims: 17 confirmed, 9 partly, 2
-  contradicted, 3 unverifiable). Part D 3.4.2 draws the comet volatiles
-  log-normally around one comet (67P) with sigma 0.5 dex, which is too
-  low for several species (the CH3OH population geometric mean is about
-  1.9 percent against 0.21 at 67P, CH4 0.68 against 0.34; real scatter
-  0.22 to 0.37 dex and 0.64 dex for CO); class by dynamical type is a
-  weak predictor (only CO separates, 28 percent of the variance, p =
-  0.035). Do: take the species ranges and log-normal scatters of part G1
-  (CO 0.3 to 26 percent of water, 0.15 for 103P; CO2 2 to 30; HCN from
-  0.03; the interstellar-object CO/H2O range widens to include 3I/ATLAS
-  at 1.65) as the comet rows of the possibility tables (GEN.472),
-  continuous log-normals with a carbon-chain-depleted flag as the
-  parametrisation, and keep the one comet as a test target only. Done:
-  the comet volatile draw reads the table, each range carries its source
-  and label, and a test checks the ranges and determinism. Owner: Blocker 3
-  (Boss asked for it on the blocker list, 4:25 PM EDT 2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads; replaces the
-  earlier proposal of Core 4).
-  Progress (Blocker 3, relayed 11:32 PM EDT 2026-10-22 as the lane
-  reported): GEN.478 merged as #2587; its comet rows k4 to k7 are
-  superseded by this item's table, which is in its gate now. This PR
-  also adds the README pointer to DATA-LICENSE.md, a DATA-LICENSE.md
-  section for the comet sources, and fixes the stale licence-column
-  sentences in docs/design/composition-model.md (GEN.438 and GEN.410
-  as-built) and body-composition-research.md F5; GEN.623 retires when it
-  merges.
-  Prerequisites: none. Related: GEN.442, GEN.455, GEN.457,
-  GEN.472, GEN.474.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
-  Rev. Astron. Astrophys. 49, 471) is on list B.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AT.k7: Mumma and Charnley 2011 Table
-  4 and Figure 4 hold no N2, O2, Ar, Kr or Xe for any comet, so those
-  stand-ins stay. SO2 is listed for Hale-Bopp only, 0.2 percent of water
-  [V, re-read], a second comet beside 67P (0.127 percent in our files).
-  NH3 is 1.5, 0.5, 0.7 and under 0.3 percent of water in the four comets
-  that have it and H2S 0.4, 0.8, 1.5, 1.15 and 0.25 (Halley, Hyakutake,
-  Hale-Bopp, C/2001 A2, 73P/SW3), so the repo's NH3 upper bound of 3.6
-  percent is not supported by this review (the paper wins). Three
-  infrared taxonomy classes: organics-normal, enriched, depleted.
-  Figure-read ranges are approximate.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): AT.k7: N2, O2, Ar, Kr, Xe come from 67P alone, SO2 0.2 percent
-  of water in Hale-Bopp, NH3 about 1.5 percent (the 3.6 percent bound is
-  unsupported); one comet: rule M, the widest. Gas trapped in amorphous
-  ice by deposition temperature is the nearest law.
-
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
   (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
@@ -13508,7 +13435,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.557, GEN.495, GEN.442. Related: GEN.550, GEN.520.
+  Prerequisites: GEN.557, GEN.442. Related: GEN.550, GEN.520.
 
 - [ ] **GEN.560 Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14967,47 +14894,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: GEN.554, TEST.160.
 
-- [ ] **GEN.623 Data tables carry no licence column or licence check; the licence information lives in DATA-LICENSE.md**
-  Boss, 4:41 to 4:42 PM EDT 2026-10-22 (in the Blocker 3 thread, as the
-  coordinator relayed at 4:42 PM EDT as the lane's clock reads): remove
-  the licence column from data tables and move the licence information
-  to its own file in the repo root, "and that is all"; "Remove those
-  too" covers the gas table, the element table and the possibility-table
-  loader. Do: take the `licence` field out of the gas table
-  (`physics/gases.py`), the element table (`physics/elements.py`), the
-  possibility-table row and its loader
-  (`generation/possibility_table.py`) and any other data table or loader
-  that carries one, along with every check that a row or file states a
-  licence (the loader refusals, the `licence` entries in the
-  required-field lists, the `"open"` default, and the licence assertions
-  in TEST.214 and the table tests); write the licence information for
-  each data source (name, licence, where read) in a new repo root file,
-  DATA-LICENSE.md (Boss, 4:46 PM EDT 2026-10-22, after first saying
-  LICENSE.md; the project's own LICENSE.md stays as it is) and have the
-  README point to it. Done: no data table, loader or test has a licence
-  field or check, nothing fails when a table carries no licence,
-  DATA-LICENSE.md lists every source the tables cite, the docs that call
-  the licence column mandatory (docs/design/atmosphere-composition.md
-  and the design notes of GEN.427, GEN.438, GEN.472) say so no more, and
-  a grep for `licence` in the table modules finds none. No epoch, no
-  migration. Owner: Blocker 3 (Boss, via the Blocker 3 thread, 4:42 PM
-  EDT as the lane's clock reads; it does this before the table items so
-  the new tables are built without the column).
-  Progress (Blocker 3, relayed 10:38 PM EDT 2026-10-22 as the lane
-  reported, in GEN.427's PR #2580): the licence key is gone from
-  `pt.Row`, the gas, element, isotope, decay-series and white dwarf
-  files and the dataset catalogue, and DATA-LICENSE.md exists in the
-  repo root. Other lanes' unmerged code that passes `licence=` to
-  `pt.Row` or `fetch.Dataset` fails on rebase. Left to confirm and
-  finish: the README pointer to DATA-LICENSE.md, the design notes that
-  call the licence column mandatory
-  (docs/design/atmosphere-composition.md, GEN.438, GEN.472), the licence
-  assertions in TEST.214 and the table tests, and a grep for `licence`
-  in the table modules; Blocker 3 confirms which of these #2580 already
-  did.
-  Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
-  GEN.472, TEST.214.
-
 - [ ] **GEN.624 Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) (bug)**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -15071,11 +14957,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay as they are. Done: a test that draws 1,000 Auto galaxies and
   finds no warning, with a mean size at most half the Milky Way's, and
   docs/design/galaxy-size-levers.md states the new Auto draws. Generator epoch: the draws
-  change generated values, so this needs a generator epoch; 51 is the
-  next free number and the epochs file must stay contiguous, so the
-  first of this item and PERF.123 slice C to merge takes 51, the
-  next 52 and so on, numbered at merge (DB.85 merged as #2582 without
-  an epoch). Owner: Core 1, first in its
+  change generated values, so this needs a generator epoch; GEN.307 took
+  51 (#2595, 11:57 PM EDT 2026-10-22 as the lane reported), so 52 is the
+  next free number and the epochs file must stay contiguous: the first
+  of this item and PERF.123 slice C to merge takes 52, the next 53 and
+  so on, numbered at merge (DB.85 merged as #2582 without an epoch). Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
   Owner: Core 1, holds this item only from the plan-number bugs; it is
@@ -15174,6 +15060,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisites go to a second bugfix lane; this replaces any earlier
   owner line).
   Prerequisites: none. Related: GEN.625, GEN.626, GEN.387.
+
+- [ ] **GEN.629 The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together**
+  Finding of Blocker 3 in GEN.495 (relayed 11:56 PM EDT 2026-10-22 as
+  the coordinator and the lane reported), filed by the TODO thread.
+  `physics/comet_population.py` and `data/comet_population.json` (merged
+  as #2596) draw the carbon-chain volatiles with
+  `draw_volatiles(period_class, interstellar=False)`, the draw GEN.442,
+  GEN.455 and GEN.457 read. The scatter of S=(CO+CO2)/H2O is 0.1 dex,
+  the +/-4 of the median in HP22 converted to dex, and that is narrow
+  against single comets: the Rosetta comet 67P at 7.8 percent is 3.6
+  sigma below the median, so the draw reaches 67P's CO and CO2 only
+  seldom together. Do: decide the scatter from the spread of individual
+  comets rather than from the uncertainty of the median (a source for
+  the individual values is the first step; if none is held, ask Boss for
+  the paper), widen the draw to it, keep the table's median, and state
+  the new value as sourced or as a labelled stand-in. Changes stored
+  values, so it rides the single 8.4 epoch bump (Boss, fork 1,
+  2026-10-18), no epoch of its own. Done: a test draws 10,000 comets of
+  the short-period class and checks that 67P's ratio falls inside the
+  central 99 percent of the draw, that the median is unchanged, and that
+  the same seed gives the same comet at 1 and 4 workers; TEST.214 reads
+  the same draw. Owner: none for now, in the pool (8.4 work is paused
+  until 8.1 is complete, Boss, 7:44 PM EDT 2026-10-22).
+  Prerequisites: none. Related: GEN.495, GEN.442, GEN.455, GEN.457,
+  TEST.214.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15672,7 +15583,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Slice 1 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported): the link, backfill and settle commands (settle --since).
   Slices 2 to 2c are next after TEST.283 (branch claude/core5-perf123b);
   the random-start slice C still needs its generator epoch numbered at
-  merge (the epochs file must stay contiguous), and slice D follows.
+  merge (the epochs file must stay contiguous; 51 is taken by GEN.307,
+  #2595, so the next free number is 52), and slice D follows.
   Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
@@ -19140,7 +19052,7 @@ clears each one.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.307. Related: GEN.57.
+  Prerequisites: none. Related: GEN.57.
 
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for

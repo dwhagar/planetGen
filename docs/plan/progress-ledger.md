@@ -1084,3 +1084,6 @@ Baseline: PR #1817.
 | PERF.150 | 8.1 | Queue, caches and performance |
 | GEN.470 | 8.1 | Composition tables |
 | GEN.478 | 8.4 | Atmosphere tables |
+| GEN.307 | 8.1 | Reproducible galaxies |
+| GEN.623 | 8.1 | Composition tables |
+| GEN.495 | 8.4 | Surface and small bodies |
