@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1970] - 2026-10-23
+
+**Headline:** `planetgen link`, `backfill` and `settle` run the last stages of a galaxy run on their own.
+
+### Changed
+- **Three stages of `galaxy` are commands (PERF.123, first slice).** `planetgen link --since TIME` links the sectors saved since `TIME` to their neighbours, `planetgen backfill --since TIME` draws the bright stars out from them, and `planetgen settle --since TIME` saves their paths and those of the sectors around them. Each is one run on the work queue and does nothing when no sector was saved since `TIME`. A `galaxy` run now says its start time on the database's clock, the value these commands take. `galaxy` itself is unchanged for now.
+
+TODO items resolved: none (PERF.123 slice 1 of 4). Added: none.
+
 ## [8.0.1969] - 2026-10-23
 
 **Headline:** `planetgen sector` and `planetgen system` run through the work queue like every other generation command, so they show on the Queue page and take their turn.
