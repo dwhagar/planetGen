@@ -165,6 +165,17 @@ def test_the_finished_page_is_served_once_the_job_has_run(slow, monkeypatch):  #
     assert page.status_code == 200 and "data-datatable" in html and "data-slow-load" not in html
 
 
+def test_the_warm_up_builds_a_slow_page_in_its_own_request_and_never_gets_the_loading_page(slow):  # noqa: F811
+    """PERF.156: every request of the galaxy counts as slow here; a visitor is told to wait (202), the warm-up's visit
+    is answered with the page (200) and nothing is queued for it."""
+    from planetgen.web import warmup
+    config = slow.config
+    assert _site(config).test_client().get("/search").status_code == 202
+    visitor = warmup._Visitor(warmup.build_app(config), config.database)
+    assert visitor.visit("/search").status_code == 200 and visitor.visit("/phenomena").status_code == 200
+    assert visitor.failed == []
+
+
 def _queued_ids(db):
     connection = redisclient.client(decode_responses=True)
     found = []

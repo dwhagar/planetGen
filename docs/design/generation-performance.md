@@ -227,6 +227,45 @@ What is left is MySQL's work per row: the stored `cell_key` expression and the p
 secondary index off, which the three workers and the server share four cores for. The same trick would help the bright-star
 scatter (its due-time and cell indexes), not measured.
 
+## The warm-up and the member counts (PERF.156, PERF.157, PERF.158)
+
+Measured with `planetgen benchmark --suite --size medium` (4e9 solar masses, release 8.0.2039, 3 workers, one run) and on a
+kept galaxy of the same build (`plan`, the three scatters and the band run one by one into a database of their own).
+
+- **The warm-up counted a loading page as a failed visit (PERF.156).** A slow page (the search, the phenomena list) answers
+  `202` with a progress bar while a queued job builds it (UX.118), and the warm-up's visitor, which wants the answer cached, took the
+  `202` for a page that "did not answer" and stopped `planetgen warm` after its fourth phase. The warm-up is not a visitor: `slow_route`
+  now builds in its own request when the app is the warm-up's (`config.WARMUP`), so the answer is cached when the unit ends. At
+  `medium` the warm-up now reaches its fifth phase (it stopped in the fourth before, after 27.8 minutes at this size).
+- **Two tile pieces read most of the rows (PERF.157).** Over 83 sampled deep tiles of the medium galaxy the tile builder read 342,755
+  rows a tile, 22.4 million of the 28.4 million in the scattered points and 2.4 million in the bright stars; the rest are under 3,000.
+  The scattered-points query listed a range of shells and read every band and wedge of them when the box reached more than 64
+  shells, and for a 256 pc tile at the centre the optimizer chose a scan of the whole 3.6 million row table. It now lists a range per
+  shell with the bands the box reaches (up to 1,000 shells): the same rows, 1.6 million instead of 22.4 million. The bright-star piece
+  chose between its two ways of reading (the luminosity index or the addresses) by the box's share of the disc's area, which says
+  nothing about height: a 1 kpc box a kiloparsec above the plane looked like a share of the disc and was read by walking the whole
+  population index, 380,000 rows to find 60 stars. It now chooses by the box's share of the outline's cells and longitudes, with the
+  walk's real cost (its 16 arms of four lists' worth each). The estimate that decides whether a box is answered from the galaxy-wide
+  sample is as it was.
+  Over 237 sampled deep tiles: 79.5 million rows to 22.7 million and 125 s to 75 s; over all 329 built-level tiles 41.2 million to
+  27.7 million and 279 s to 142 s. The warm-up as a whole: 10.8 minutes in the suite before, 6.5 minutes after (3 workers).
+  *What changes in a tile.* The tile builder stops a piece that runs past 3 seconds and serves the tile marked `incomplete`; of 660
+  sampled tiles 58 lost their bright stars that way before, 1 after (the time limit makes this vary with the machine's load). Of the
+  tiles that did not time out, 6 in 660 list a different set of cut-band stars: the two ways of reading hand the thinning
+  (`_even_pick`, MAP.251) different candidate pools, so a tile whose choice moves can pick other, equally valid, stars of its cut
+  band. Everything else in every tile is as it was.
+- **The band scatter's 592,000 single-row `UPDATE`s (PERF.158).** Each scattered multi-star system's `member_count` and
+  `system_mass_solar` were set one row at a time (165 s of server time over the step, 592,313 statements at `medium`). They are one
+  `UPDATE ... JOIN (VALUES ROW(...), ...)` for the batch now (453 statements, 25 s). The band step 617 s to 536 s; the values
+  are the same bits (a test sets a row both ways and compares). The massive and luminosity scatters write the same way: 39,684 and
+  20,666 single-row updates before.
+- **The map-luminosity fill (PERF.160) was already set-based.** Its 40 statements each update an id block (`MAP_LUMINOSITY_BATCH_IDS`);
+  the 3.6 million rows the step "updates" are the suite emptying the column before the step (`Pipeline.prepare`), as a fill after the
+  column's migration would find it. A scatter writes the value with the row. Nothing to batch.
+- **Seen, not fixed here:** every unit's connection runs the schema check (`GET_LOCK`, the `CREATE TABLE IF NOT EXISTS` list and
+  `CREATE OR REPLACE VIEW`), 861 times over the band step, about 130 s of server time. The suite's `--keep` is accepted but the
+  scratch databases are dropped on success (so a kept galaxy has to be built command by command, as here).
+
 ## What `medium` and `large` show (PERF.164)
 
 Same 4-CPU box, three workers, release 8.0.1973, seed `...BEEF`, one run each. The container restarted during the
