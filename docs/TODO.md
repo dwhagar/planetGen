@@ -20115,6 +20115,11 @@ clears each one.
   make the test wait for that state, not a fixed 120 s selector, and say
   in the test what it waits for. Done: the test passes 50 times in a row
   on a machine at load 8. Owner: Bug Hunt (proposed by the TODO thread).
+  Progress (Bug Hunt, #2630 merged 5:49 AM EDT 2026-10-23 as the lane
+  reported): did not reproduce; the fresh-load helper now reports the
+  address, title, text and page errors when no steps appear. The item
+  stays open until the next sighting shows the text or two clean gates
+  pass.
   Prerequisites: none. Related: TEST.284, TEST.281.
 
 - [ ] **TEST.289 Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug)**
@@ -20133,6 +20138,15 @@ clears each one.
   between workers), and make the test wait for that state or scope the
   key. Done: both pass 50 times in a row at -n 4. Owner: Bug Hunt
   (proposed by the TODO thread).
+  Progress (Bug Hunt, #2630 merged 5:49 AM EDT 2026-10-23 as the lane
+  reported): neither test reproduced in 72 runs beside CPU load.
+  test_a_quick_edit_answers_in_the_same_response waits a fixed 8 s for a
+  worker (SHORT_WAIT_SECONDS) and the route answers 202 after that, so a
+  busy gate can give 202 where 201 is expected; the test now gives the
+  route a long wait, and that half is counted as fixed. The neighborhood
+  test now prints its answer, sector count and runs on failure. The item
+  stays open until the next sighting shows the failure text or two clean
+  gates pass.
   Prerequisites: none. Related: TEST.284, TEST.288, TEST.280.
 
 - [ ] **TEST.290 test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug)**
@@ -20150,6 +20164,22 @@ clears each one.
   and scope it per test. Done: both pass 50 times in a row at -n 4.
   Owner: Bug Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
+
+- [ ] **TEST.291 test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug)**
+  Found by Bug Hunt (relayed 5:49 AM EDT 2026-10-23 as the lane
+  reported) in its gate for #2630; filed by the TODO thread. Kind: flaky
+  test. Test:
+  src/tests/test_web_browser_sector_open.py::test_a_star_in_a_sector_far_from_the_core_is_selectable,
+  the far-sector test that TEST.281 (#2619) added after the
+  click-before-the-camera-stopped fix. Failure text: not given by the
+  lane; it passed alone. Fails on main: unknown. Frequency: once in one
+  gate. Reproducer: none yet; run it 50 times at -n 4 beside a loaded
+  machine. Do: capture the failure text, then find what the click waits
+  on (the camera flight, the star positions re-read at the click, the
+  600 px window) that the gate's load changes, and make the test wait
+  for that state. Done: the test passes 50 times in a row at -n 4 under
+  load. Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.281, TEST.284, TEST.287.
 
 ## USR: User accounts
 

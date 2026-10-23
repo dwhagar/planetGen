@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.128 |
 | SEC | SEC.34 |
-| TEST | TEST.291 |
+| TEST | TEST.292 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.75 |
@@ -2510,6 +2510,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.288 | test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug) | none | done, PR #2625 |
 | TEST.289 | Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug) | none | open |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) | none | open |
+| TEST.291 | test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
