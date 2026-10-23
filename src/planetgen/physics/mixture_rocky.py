@@ -88,6 +88,9 @@ OXIDATION_TIME_GY = (0.1, 1.5, "log")
 the e-folding time of the oxidation (Aulbach and Stagno 2016 put the Earth's upper mantle at its present redox by about 3.5 Ga;
 bracket, GEN.482)."""
 
+MIN_EQUILIBRIUM_K = 300.0
+"""float: The least temperature that every species of `species_thermo` is fitted for (the sulfur and phosphorus gases start at 300 K)."""
+
 MAX_EQUILIBRIUM_K = 5000.0
 """float: Hotter outgassing temperatures are held at this (the fits of the main species end at 6000 K)."""
 
@@ -162,6 +165,52 @@ def rocky_inventory(subject, recipe, constants):
     return {"H": hydrogen, "C": carbon, "N": nitrogen, "S": sulfur, "Ar": argon}
 
 
+def volcanic_gas(subject, recipe, constants):
+    """
+    The first stage: the gas in equilibrium with the mantle at the magmatic temperature and the pressure of the layer, the
+    oxygen fugacity held. Draws the redox, the inventory and the magmatic temperature (recorded in `constants`).
+
+    Returns:
+        tuple: `(Equilibrium, redox_diw, inventory)`.
+
+    Raises:
+        MixtureError: A quantity is missing, or the class has no mantle (no redox row applies).
+    """
+    require(subject, ("ts_k", "pressure_bar", "mass_earth", "age_gy"))
+    redox = draw_redox(subject, recipe, constants)
+    if redox is None:
+        raise MixtureError(f"no redox row applies to the class {subject.body_class!r}: it has no mantle to outgas")
+    inventory = rocky_inventory(subject, recipe, constants)
+    magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
+    volcanic = gas_equilibrium.solve(inventory, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
+    return volcanic, redox, inventory
+
+
+def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True):
+    """
+    The second stage: the gas, a closed system of `atoms` (moles of atoms, oxygen included), cooled to the surface temperature or,
+    when the surface is colder, to the quench temperature (drawn here and recorded in `constants`).
+
+    Args:
+        volcanic (Equilibrium, optional): The first stage; where the result would be at the magmatic temperature already
+            it is returned as it is.
+        held_diw (float, optional): Hold the oxygen fugacity at this log10 units above iron-wuestite (a surface that buffers the
+            air, as an evolved oxidised body's crust does); `atoms` then carry no oxygen.
+        quenched (bool): Freeze the gas at the quench temperature when the surface is colder (a fresh outgassed air whose reactions
+            stop, drawn here and recorded in `constants`); `False` for an old air that has had the time to settle to the surface
+            temperature, with the least temperature the species of the table are all fitted for (`MIN_EQUILIBRIUM_K`).
+    """
+    if quenched:
+        quench = bracket(constants, "quench_temperature_k", QUENCH_TEMPERATURE_K)
+    else:
+        quench = MIN_EQUILIBRIUM_K
+    temperature = min(max(subject["ts_k"], quench), MAX_EQUILIBRIUM_K)
+    if volcanic is not None and held_diw is None and temperature == volcanic.temperature_k:
+        return volcanic
+    held = None if held_diw is None else fo2.log_fo2(held_diw, temperature)
+    return gas_equilibrium.solve(atoms, temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
+
+
 def outgassed_mixture(subject, recipe=None):
     """
     The gas a rocky body's mantle outgasses, drawn for `subject` (see the module text).
@@ -177,25 +226,13 @@ def outgassed_mixture(subject, recipe=None):
     Raises:
         MixtureError: A quantity is missing, or the hot gas holds more than `UNLISTED_LIMIT` of species the gas table lacks.
     """
-    require(subject, ("ts_k", "pressure_bar", "mass_earth", "age_gy"))
     if recipe is None:
         try:
             recipe = RECIPES.draw_all(subject, categories=ROCKY_CATEGORIES)
         except KeyError as error:
             raise MixtureError(str(error)) from error
     constants = {}
-    redox = draw_redox(subject, recipe, constants)
-    if redox is None:
-        raise MixtureError(f"no redox row applies to the class {subject.body_class!r}: it has no mantle to outgas")
-    inventory = rocky_inventory(subject, recipe, constants)
-    magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
-    quench = bracket(constants, "quench_temperature_k", QUENCH_TEMPERATURE_K)
-    temperature = min(max(subject["ts_k"], quench), MAX_EQUILIBRIUM_K)
-    pressure = subject["pressure_bar"]
-    volcanic = gas_equilibrium.solve(inventory, magmatic, pressure, fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
-    if temperature == magmatic:
-        result = volcanic
-    else:
-        result = gas_equilibrium.solve(atoms_of(volcanic), temperature, pressure)
+    volcanic, redox, inventory = volcanic_gas(subject, recipe, constants)
+    result = cool(atoms_of(volcanic), subject, constants, volcanic)
     return finish(result, family="rocky", drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=redox,
                   inventory=inventory, constants=constants)

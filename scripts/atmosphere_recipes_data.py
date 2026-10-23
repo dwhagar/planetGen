@@ -17,7 +17,7 @@ row), `p('id')` (the probability of a row in its own table at this subject) and 
 continuous row's value lies in [lo, hi]).
 """
 
-ROCKY = list("ABCDEFGHKLMNOPQSV")
+ROCKY = list("ABCDEFGHKLMNOPQSV") + list("UYZ")   # the planned rocky classes (PLANNED_CLASSES) have the rocky tables' rows too
 AIR = list("ABEFGHKLMNOPQV")
 GIANT = list("IJT")
 HAB = list("EFGHKLMOPQV")

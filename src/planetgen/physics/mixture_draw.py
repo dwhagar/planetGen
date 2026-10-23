@@ -31,12 +31,16 @@ The families, by what the recipe drew:
 | a hot-Jupiter row (`h`) | `hot-jupiter` | `mixture_giant` |
 | a giant row (`f`: the classes I, J and T, the class being the authority on what is a giant; a stripped envelope `e1` of such a body is for the class reconciliation, GEN.645) | `giant` | `mixture_giant` |
 | the envelope kept (`e2`) of a body without giant rows (a super-Earth) | `envelope` | `mixture_giant` (the metallicity from the drawn Z) |
+| a coma row (`k`: a comet or an icy asteroid) | `coma` | `mixture_coma` |
+| an evolved-terrestrial row (`j1` Venus-like, `j2` Mars-like, `j5` abiotic oxygen) | `venus`, `mars`, `abiotic-oxygen` | `mixture_evolved` |
+| a cold-body row (`j3` Titan-like, `j4` Pluto-like) | `titan`, `frost` | `mixture_evolved` |
+| airless white-dwarf planet (`l2`) | `airless` (no gas: empty `mole_fractions`) | |
 | anything else rocky (`a` to `c`, `e1`, `e3`, `e4`) | `rocky` | `mixture_rocky` |
 """
 
 import dataclasses
 
-from planetgen.physics import atmosphere_recipes, mixture_giant, mixture_rocky
+from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_evolved, mixture_giant, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, MixtureError  # noqa: F401  (the public names of the result)
 
@@ -99,6 +103,12 @@ def family_of(recipe):
         return "hot-jupiter"
     if "f" in groups:
         return "giant"
+    if "k" in groups:
+        return "coma"
+    if "l" in groups and groups["l"].name == "l2":
+        return "airless"
+    if "j" in groups:
+        return mixture_evolved.FAMILY_OF_ROW[groups["j"].name]
     if "e" in groups and groups["e"].name == "e2":
         return "envelope"
     return "rocky"
@@ -127,6 +137,13 @@ def draw_mixture(subject):
     family = family_of(recipe)
     if family == "rocky":
         result = mixture_rocky.outgassed_mixture(subject, recipe)
+    elif family == "coma":
+        result = mixture_coma.coma_mixture(subject, recipe)
+    elif family == "airless":
+        result = MixtureDraw(mole_fractions={}, family="airless", drawn={g: d.name for g, d in recipe.groups.items()}, redox_diw=None,
+                             temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
+    elif family in mixture_evolved.FAMILIES:
+        result = mixture_evolved.draw(subject, recipe, family)
     elif family == "envelope":
         z = recipe.values.get("e5")
         if z is None:
