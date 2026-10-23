@@ -154,6 +154,8 @@ mysqladmin ping --silent
 SQL="ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '$DB_PASSWORD';
 CREATE USER IF NOT EXISTS 'planetgen'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';
 CREATE USER IF NOT EXISTS 'planetgen'@'127.0.0.1' IDENTIFIED WITH caching_sha2_password BY '';
+ALTER USER 'planetgen'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';
+ALTER USER 'planetgen'@'127.0.0.1' IDENTIFIED WITH caching_sha2_password BY '';
 GRANT ALL ON *.* TO 'planetgen'@'localhost' WITH GRANT OPTION;
 GRANT ALL ON *.* TO 'planetgen'@'127.0.0.1' WITH GRANT OPTION;
 FLUSH PRIVILEGES;"
