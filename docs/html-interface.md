@@ -48,10 +48,12 @@ radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, an
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
 and black holes follow a host rule. The Equipment search has a facet for
 the labels. The explanation page is /classes/habitability under Classes (UX.90, PR
-#1065), linked from the chips and the Equipment filter; planet and moon
-rows carry the per-domain colours and the stored microbial, complex-life
-and human-operability scores. UX.91 added the full per-factor explanation
-to the planet and moon description.
+#1065), linked from the chips and the Equipment filter. UX.100: a system page's planet and moon rows show
+the overall PHI-6 symbol and the six domain symbols (UX.101) beside the equipment chip, instead of the notes (the
+tooltip, the per-domain colour words and the three stored scores); each row names its class (and a "Habitable class"
+chip for a habitable one, with no Terrestrial or Gas Giant label) and counts its moons. The Search page's planet and
+moon panels have a Habitability column of the same symbols (a `symbols` cell, drawn by the page and by
+`datatable.js`). The description below the row says in words where the planet falls in each category (UX.91).
 
 ## How it works
 

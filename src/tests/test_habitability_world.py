@@ -267,7 +267,7 @@ def test_the_page_chip_names_the_kit_and_takes_the_worst_domains_colour():
     from planetgen.web.lib import systempage
     scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
     chip = systempage._habitability_chip(scored)
-    assert "flag-tier-2" in chip and "Mask and scrubber" in chip and "PHI-6" in chip
+    assert "flag-tier-2" in chip and "Mask and scrubber" in chip and "title=" not in chip
     assert systempage._habitability_chip({"equipment_tier": None}) == ""
     assert systempage._habitability_chip({}) == ""
 
