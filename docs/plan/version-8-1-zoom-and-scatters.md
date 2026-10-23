@@ -420,6 +420,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.166 | The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug) |  |  |
 | PERF.165 | The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug) |  |  |
 | PERF.167 | The phenomenon scatter on a large galaxy runs over an hour and stores over 66 million rows without finishing |  |  |
+| PERF.168 | test_sql_portability fails on main: benchmark_suite.py runs SHOW DATABASES, a reserved word on MySQL 8.0 and 8.4 (bug) |  |  |
 | PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word |  |  |
 | PERF.161 | bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass |  |  |
 | PERF.160 | fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client |  |  |

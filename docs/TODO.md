@@ -16057,6 +16057,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
 
+- [ ] **PERF.168 test_sql_portability fails on main: benchmark_suite.py runs SHOW DATABASES, a reserved word on MySQL 8.0 and 8.4 (bug)**
+  Found by Bugfix 2 (relayed 6:11 AM EDT 2026-10-23 as the lane
+  reported) and reproduced by the TODO thread on origin/main 8c0b691;
+  filed by the TODO thread. Kind: bug, introduced by PERF.164 (#2623,
+  the `--resume` change). Test:
+  src/tests/test_sql_portability.py::test_no_reserved_word_is_an_unquoted_identifier.
+  Failure text: planetgen/cli/benchmark_suite.py:595: 'DATABASES'
+  (reserved on MySQL 8.0, MySQL 8.4) in: SHOW DATABASES LIKE __expr__.
+  Fails on main: yes, every run. Reproducer: `python -m pytest
+  src/tests/test_sql_portability.py`. Do: ask
+  information_schema.SCHEMATA for the scratch database (`SELECT
+  SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = %s`)
+  instead of SHOW DATABASES; do not widen the test's scanner. Done: the
+  portability test passes and `benchmark --suite --resume` still finds
+  its scratch database. Owner: Performance (it came in with PERF.164).
+  Prerequisites: none. Related: PERF.164, PERF.167.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
