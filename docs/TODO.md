@@ -15023,6 +15023,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   step-list preview from the run's own cut; random starts are picked from
   the run's seed when the step is cut, which changes which sector a
   seed's random start lands on, so that slice takes a generator epoch.
+  Re-cut (Core 5, relayed 2:50 PM EDT 2026-10-23 as the lane's clock
+  reads; the TODO thread agreed): D1 and C go through one gate together
+  now; D2 (the galaxy as one wrapper run, which needs the population and
+  phenomenon work of PERF.124 and PERF.125 to be units) is split out as
+  PERF.172, so this item closes when D1 and C merge. Slice C needs NO
+  generator epoch: the run seed is a fresh random value per run that no
+  option can supply, so the same inputs give the same output as before.
+  That revises the card answer of 5:12 to 5:18 PM EDT 2026-10-22 (point
+  4), which expected an epoch because the random start would land on
+  another sector for a given seed; the epoch placeholder 61 for slice C
+  is dropped.
 
 - [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -15571,6 +15582,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rebuilt where it pays, or the item records that it does not. Owner:
   none (pool, Performance if it has room).
   Prerequisites: none. Related: PERF.167, PERF.164.
+
+- [ ] **PERF.172 The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123)**
+  Split from PERF.123 (Core 5's suggestion, relayed 2:50 PM EDT
+  2026-10-23 as the lane's clock reads; the TODO thread agreed) so that
+  PERF.123 closes when its D1 and C slices merge. D2 is the galaxy as
+  one wrapper run; it needs the population and phenomenon work of
+  PERF.124 and PERF.125 to be units first. Do: once PERF.124 and
+  PERF.125 are merged, make `planetgen galaxy` hand the wrapper one step
+  list that runs sectors, link, scatters, backfill, population and
+  settle as units of a single run. Done: `planetgen galaxy` is one
+  wrapper run over the step list, the same seed gives the same galaxy as
+  before at 1 and 4 workers, and the estimate shows the whole list.
+  Owner: Core 5 (proposed, after PERF.125).
+  Prerequisites: PERF.124, PERF.125. Related: PERF.123.
 
 ## DB: Database and schema
 
@@ -19660,6 +19685,15 @@ clears each one.
   row because `_book` swallows control-database errors silently. Bug
   Hunt loops the file under load and makes the tests report the
   swallowed error.
+  Mitigated, not root-caused (Bug Hunt, #2692 merged 2:44 PM EDT
+  2026-10-23 as the lane reported, gate 77 passed): load alone did not
+  reproduce it (6 loops at -n 4 beside 8 CPU burners). Fixed from Core
+  2's texts: the dead-worker test's idle window is 180 s and no longer
+  60 s; the sector-open test re-clicks the sector centre where the map
+  holds still (the TEST.291 cause); test_work_queue_failures keeps the
+  queue's swallowed bookkeeping errors, and a missing work_jobs row
+  reports the rows there are and what the queue could not write. This
+  item stays open for a sighting with that text.
 
 ## USR: User accounts
 
@@ -20383,6 +20417,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   exits 0 on a fresh machine. Owner: not assigned (OPS queue; the
   environment settings copy of the script is Boss's, so the lane edits
   the example and tells the coordinator).
+  Second reason it matters (Core 5, relayed 2:50 PM EDT 2026-10-23 as
+  the lane's clock reads): current main needs the `argon2-cffi` package
+  (SEC.32; in setup.py and requirements-server.lock), but a lane
+  machine's setup did not install it, so every test module that imports
+  the web app failed at collection (ModuleNotFoundError: argon2) until
+  it was installed by hand. The setup script should install from the
+  lock file, so a fresh machine has every package main needs. Core 3 and
+  Core 2 hit the same on 2026-10-23.
   Prerequisites: none. Related: TEST.254.
 
 ## DOC: Documentation
