@@ -187,6 +187,19 @@ The unit's other rows moved with the machine's load between the runs (the compon
 containers row is the change; the rest of that drop is run-to-run noise. What remains in the containers step is the
 superbubble field (0.9 s, the gas tracer of 2,209 columns).
 
+## The plan's report lines (PERF.169)
+
+The "report lines" row of the plan's table (the pins, the halo, the outline's crest, share and sector counts) read 3.5 s of a
+12.4 s unit in one run and 1.1 to 1.7 s in the others on the same box, so most of it was cold caches, not arithmetic. Two things
+are in it. The outline's figures integrate the model's density over a 240 x 240 x 24 grid, and they did it twice: once for the
+planned share and again, with the same shape, energy and radius, for the sectors that expect a system. They now integrate
+once and hand the figures to the second (`plan_figures.reaching_sectors(..., figures=)`); the share and the sector count are
+the same to the last bit (a test compares them), and the step's warm cost goes from 0.4 s to 0.18 s. The other part is the first
+count of the candidate sectors, which adds up the wedges of every band of all 1,386 shells (533,000 `_wedges_at` calls,
+0.65 s). It is cached for the storing of the shells that follows, so it is paid once, but it grows with the square of the
+shell count: an inlined sum is twice as fast and gives the same totals for shells 2 to 1,500, and it is the next step if
+the large galaxy's plan shows it. It duplicates the wedge rule, so it is left until it matters.
+
 ## What `medium` and `large` show (PERF.164)
 
 Same 4-CPU box, three workers, release 8.0.1973, seed `...BEEF`, one run each. The container restarted during the

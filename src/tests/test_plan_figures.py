@@ -83,6 +83,19 @@ def test_the_planned_share_equals_an_independent_integral(extra):
     assert made.share == pytest.approx(independent, rel=0.02)
 
 
+@pytest.mark.parametrize("extra", [[], SMALL])
+def test_one_integral_gives_the_share_and_the_reaching_sectors_the_two_calls_gave(extra):
+    """PERF.169: the report integrates the density once and hands the figures to `reaching_sectors`; the answers are the
+    ones a second integral gave, bit for bit."""
+    built = _outline(extra)
+    made = plan_outline.report(built)
+    again = plan_figures.planned(built.shape, built.e_value, made.radius_pc)
+    assert made.share == again.share
+    assert made.reaching == round(plan_figures.reaching_sectors(built.shape, built.e_value, made.radius_pc, built.edge_pc))
+    assert made.reaching == round(plan_figures.reaching_sectors(
+        built.shape, built.e_value, made.radius_pc, built.edge_pc, figures=again))
+
+
 def test_the_share_falls_with_the_census_dial_and_is_not_a_table_lookup():
     shares = [plan_outline.report(_outline(["--richness", value])).share for value in ("1.0", "3.0")]
     assert shares[0] < shares[1] and all(0.0 < share < 1.0 for share in shares)

@@ -122,8 +122,10 @@ def report(outline):
     crest = planFigures.crest(outline.shape, outline.e_value)
     empty = not outline.extents
     radius = 0.0 if empty else (outline.outer_shell_index + 1) * outline.edge_pc
-    share = 0.0 if empty else planFigures.planned_share(outline.shape, outline.e_value, radius)
-    reaching = 0 if empty else round(planFigures.reaching_sectors(outline.shape, outline.e_value, radius, outline.edge_pc))
+    figures = None if empty else planFigures.planned(outline.shape, outline.e_value, radius)
+    share = 0.0 if empty else figures.share
+    reaching = 0 if empty else round(planFigures.reaching_sectors(
+        outline.shape, outline.e_value, radius, outline.edge_pc, figures=figures))
     return Report(
         crest=crest, share=share, shells=len(outline.extents),
         sectors=shell_candidate_sector_count(outline.extents), reaching=reaching, radius_pc=radius, empty=empty,
