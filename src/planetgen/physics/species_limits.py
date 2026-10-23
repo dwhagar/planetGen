@@ -117,7 +117,7 @@ def generated(world):
     return {name: round(value, 6) for name, value in out.items() if value != limit(name)}
 
 
-def assess(world, overrides, tech_level=None):
+def assess(world, overrides, tech_level=None, native=False):
     """
     Whether a species with the limits `overrides` could live on `world`, and what it would need.
 
@@ -127,12 +127,36 @@ def assess(world, overrides, tech_level=None):
             (no domain Red), `equipped` (it can live there with the kit: Water is not Red, and the species' `tech_level`
             reaches the kit's `tuning.SPECIES_EQUIPMENT_MIN_TECH`; a species with no tech level has no kit) and
             `failing` (the domains that are Red, in page order).
+
+    `native` is true for the species' own homeworld: Suitability is not judged there, because the water and the food
+    of its world are the species' own (POP.14); a Red Suitability alone no longer keeps it off its own world.
     """
     bands = habitability.bands(overrides)
     domains = habitability.phi4(world, bands)
     kit = habitability.equipment(world, bands)
-    failing = [name for name in habitability.DOMAINS if domains[name][1] == "Red"]
+    failing = [name for name in habitability.DOMAINS if domains[name][1] == "Red" and not (native and name == "Suitability")]
     tier = habitability_world.EQUIPMENT_NAMES.index(kit)
     equipped = (domains["Water"][1] != "Red" and tech_level is not None
                 and tech_level >= tuning.SPECIES_EQUIPMENT_MIN_TECH[tier])
     return {"domains": domains, "equipment": kit, "unaided": not failing, "equipped": equipped, "failing": failing}
+
+
+def explain(world, overrides, failing):
+    """
+    The `failing` domains (`assess`) of `world` in plain in-universe words, one sentence each, for the species whose
+    limits are `overrides`: "the air is too thin", "it is too hot" and so on. No numbers, so a message is the same
+    whatever the units.
+    """
+    bands = habitability.bands(overrides)
+    cold, hot = habitability.temperature_extremes_c(world)
+    reasons = {
+        "Pressure": "the air is too thin to hold" if world.pressure_kpa < bands.pressure[4] else "the air is crushingly dense",
+        "Temperature": ("it is too cold" if cold < bands.temperature[3] and hot <= bands.temperature[4] else
+                        "it is too hot" if hot > bands.temperature[4] and cold >= bands.temperature[3] else
+                        "it swings too far between hot and cold"),
+        "Air": "the air cannot be breathed",
+        "Water": "there is no water it could drink",
+        "Radiation": "the radiation is far beyond what it can survive",
+        "Suitability": "the surface offers too little water, food and shelter to live on",
+    }
+    return [reasons[name] for name in failing]
