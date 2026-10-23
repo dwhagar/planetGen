@@ -186,7 +186,7 @@ mass-weighted perturber mass of 1.01 solar masses below) it gives 1.6 x 10^4 AU 
 
 **GEN.447 (built, 2026-10-17).** Two corrections to the first version of this limit, which read sigma as the population's own
 dispersion and used 0.4 solar masses for the perturber mass: `place_terms.RELATIVE_VELOCITY_FACTOR` (root 2) multiplies the
-population dispersion (`STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional), and `place_terms.mass_weighted_perturber_mass_solar`
+population's one-axis dispersion (the profile's three-axis total over root 3, GEN.284), and `place_terms.mass_weighted_perturber_mass_solar`
 computes `<M^2> / <M>` from the generator's own initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), aged to each
 population's age range at a steady rate (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`), with the remnants of what has left the main
 sequence: stars up to the turn-off where the main-sequence lifetime of Hurley, Pols and Tout 2000 (`ms_lifetime.mass_for_lifetime_gy`) reaches the age, white dwarfs from the
@@ -258,7 +258,7 @@ So the encounter limit, not the tide, decides everywhere, and the old fixed cap 
 (16,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector holds only tight pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
 and `dark_matter` are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
-cell's populations (`profile._dispersion_kms`: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest `tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
+cell's populations (`profile._dispersion_kms`: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest the one-axis `tuning.STELLAR_POPULATION_DISPERSION_KMS` times root 3, so every value the profile holds is a three-axis total, and `place_terms.from_profile` divides by root 3 again, GEN.284). The age is the star's own, so a young pair keeps a wider axis than an old one.
 
 ## 4. How the rules reach the draw
 

@@ -89,7 +89,7 @@ def _dispersion_kms(shape, age_gy):
     (`galaxy.structure.disc_dispersion_kms` is the three-axis total), isotropic."""
     bins = np.clip(np.searchsorted(np.asarray(tuning.OPEN_CLUSTER_AGE_EDGES_MYR), age_gy * 1000.0, side="right") - 1,
                    0, len(tuning.OPEN_CLUSTER_POPULATIONS) - 1)
-    per_bin = np.array([galaxy_structure.disc_dispersion_kms(shape.structure, name) / math.sqrt(3.0)
+    per_bin = np.array([galaxy_structure.disc_dispersion_kms(shape.structure, name) / constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS
                         for name in tuning.OPEN_CLUSTER_POPULATIONS])
     return per_bin[bins]
 

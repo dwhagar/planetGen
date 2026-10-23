@@ -86,12 +86,14 @@ def from_profile(profile):
     """
     The terms of the place a `galaxy.profile.SectorProfile` describes: the mass density is the cell's expected
     systems over its volume times the mean system mass, the dispersion the root mean square of the populations'
-    dispersions weighted by their shares (the heavier the share, the more of the stars that move that way), the
+    dispersions (the profile's three-axis totals, so divided by `constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS` to the one-axis
+    value the limits take) weighted by their shares (the heavier the share, the more of the stars that move that way), the
     perturber mass the mass-weighted mean of the mass function of the populations the cell holds (GEN.447).
     """
     systems_per_pc3 = profile.expected_systems / profile.volume_pc3 if profile.volume_pc3 > 0.0 else 0.0
     weighted = sum(p.share * p.dispersion_kms ** 2 for p in profile.populations.values())
-    dispersion = math.sqrt(weighted) if weighted > 0.0 else tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
+    dispersion = (math.sqrt(weighted) / constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS if weighted > 0.0
+                  else tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS)
     perturber = mass_weighted_perturber_mass_solar(
         (p.share, p.age_gy) for p in profile.populations.values() if p.share > 0.0)
     mean_mass = galaxy_system_mass.mean_over_solar({n: p.share for n, p in profile.populations.items()}, profile.shape)
