@@ -282,3 +282,6 @@ Plain `pytest -n auto` still works.
 The bundled list of common passwords (`src/planetgen/admin/common_passwords.txt.gz`)
 is derived from [SecLists](https://github.com/danielmiessler/SecLists) under the
 MIT licence; see `src/planetgen/admin/common_passwords.LICENSE`.
+
+Where the data files in the repository come from, and what is known of their terms, is recorded in
+[DATA-LICENSE.md](DATA-LICENSE.md).
