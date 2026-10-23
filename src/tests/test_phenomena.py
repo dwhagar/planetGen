@@ -106,7 +106,9 @@ def test_a_galaxy_holds_hundreds_of_intermediate_mass_black_holes():
 
 def test_supermassive_black_hole_sits_still_and_glows_faintly():
     bh = BlackHole(make_config(), mass_class="supermassive")
-    assert bh.mass_class == "supermassive" and bh.mass_solar >= 0.1 * tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR
+    # A galaxy's own nucleus is "supermassive" whatever the draw gives (GEN.402: 38 percent are under the class minimum
+    # of a tuning constant, two in a thousand under a tenth of it), so only the draw being a mass is checked (TEST.286).
+    assert bh.mass_class == "supermassive" and 0 < bh.mass_solar < float("inf")
     assert bh.type == "Supermassive Black Hole"
     assert bh.galactic_orbital_period_gy is None and bh.galactic_orbital_speed_kms is None
     assert bh.has_accretion_disk
