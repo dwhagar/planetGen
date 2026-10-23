@@ -59,13 +59,3 @@ Boss, 12:27 PM EDT 2026-10-23 (cards): not in 8.1; each needs a generator epoch 
 |---|---|---|---|
 | PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word |  | Boss: not in 8.1 (12:27 PM EDT 2026-10-23). |
 | PERF.166 | The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug) |  | Boss: leave it (12:27 PM EDT 2026-10-23); build only if a measurement after PERF.165 says it is worth an epoch. |
-
-## Phase 4: Habitable zone follow-ups
-
-Parts of the Kopparapu work (GEN.146) left open; paused until 8.1 is complete.
-
-### Habitable zone
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) |  | From Blocker 3's report of GEN.146 (#2685). |

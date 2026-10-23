@@ -22,10 +22,10 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.300 |
+| TEST | TEST.301 |
 | USR | USR.32 |
 | OPS | OPS.65 |
-| DOC | DOC.75 |
+| DOC | DOC.76 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
 
@@ -711,6 +711,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.72 | The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete | none | open |
 | DOC.73 | INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate | none | open |
 | DOC.74 | Design part 01, section 7.4: the CO2 row and its recommended CO2-2 sublimation fit are wrong in the cold; the table now says to use CO2-1 below 195.3 K (bug) | none | open |
+| DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2539,6 +2540,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.297 | The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug) | none | open |
 | TEST.298 | test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug) | none | open |
 | TEST.299 | test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug) | none | open |
+| TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
