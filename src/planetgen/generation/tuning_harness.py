@@ -39,6 +39,7 @@ Use:
 """
 
 import hashlib
+import importlib
 import json
 import math
 import os
@@ -351,6 +352,19 @@ SELECTION_MODELS = {}
 """dict: id -> function `item -> probability` of the selection models built so far (five)."""
 
 
+SELECTION_MODEL_MODULES = {
+    "wd-pollution-detection": "planetgen.physics.wd_pollution",
+}
+"""dict: The module that builds and registers each selection model, imported when a target needs it."""
+
+
+def selection_model(model_id):
+    """The registered selection model `model_id`, importing the module that builds it on first use; None when none builds it yet."""
+    if model_id not in SELECTION_MODELS and model_id in SELECTION_MODEL_MODULES:
+        importlib.import_module(SELECTION_MODEL_MODULES[model_id])
+    return SELECTION_MODELS.get(model_id)
+
+
 def register_selection_model(model_id, function):
     """Registers the selection model `model_id` (one of `SELECTION_MODEL_ITEMS`); `function(item)` returns the probability
     in [0, 1] that a simulated item (the number or the mapping the sampler returns) is in the observed sample."""
@@ -478,7 +492,7 @@ def simulate(target, sampler, n=2000):
     """
     model = None
     if target.selection_model is not None:
-        model = SELECTION_MODELS.get(target.selection_model)
+        model = selection_model(target.selection_model)
         if model is None:
             raise TargetError(f"target {target.id} needs the selection model {target.selection_model!r}, which "
                               f"is {SELECTION_MODEL_ITEMS[target.selection_model]}; it is not registered")

@@ -74,6 +74,15 @@ The keys are the source keys of the file. Only values computed or read from the 
 | `coch15` | Cochran et al. 2015, Space Science Reviews 197, 9 (arXiv:1507.00761) | Published paper; values only |
 | `cor25` | Cordiner et al. 2025 (arXiv:2508.18209) | Preprint; two measured ratios only |
 
+## The polluted white dwarfs (`src/planetgen/physics/data/wd_pollution_sample.json`, GEN.508)
+
+The keys are the source keys of the file. Values read from the tables of the papers (the median oxygen fugacity with its bounds, the type and the effective temperature of each star); the papers' text is not in the repository.
+
+| Source key | Source | Terms known |
+|---|---|---|
+| `doyle20` | Doyle, Klein, Schlichting and Young 2020, ApJ (arXiv:2008.05992), Table 1 | Published paper; values only |
+| `doyle23` | Doyle, Klein, Dufour et al. 2023 (arXiv:2303.00063), Tables 2 and 4 | Published paper; values only |
+
 ## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
