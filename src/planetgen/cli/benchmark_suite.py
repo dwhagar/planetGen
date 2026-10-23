@@ -592,7 +592,8 @@ def run_suite(args):
     try:
         if resumed:
             with admin.cursor() as cur:
-                cur.execute("SHOW DATABASES LIKE %s", (f"planetgen_suite_{suffix}_r0",))
+                cur.execute("SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = %s",
+                            (f"planetgen_suite_{suffix}_r0",))
                 if not cur.fetchall():
                     raise SystemExit(f"planetgen benchmark --suite: no scratch database planetgen_suite_{suffix}_r0 "
                                      f"to resume.")
