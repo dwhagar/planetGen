@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1972] - 2026-10-23
+
+**Headline:** The test workers no longer meet on the machine's one Redis database, which failed five tests of a full run.
+
+### Fixed
+- **Five tests failed in one full run because another worker's job was running (TEST.280).** `test_update_guard.py::test_the_command_begins_ends_and_reports`, three tests of `test_update_database_step.py` and `test_work_units.py::test_the_skeleton_is_one_unit...` start `planetgen` processes (or ask the update guard) on the machine's Redis with the default key prefix, which holds the one live-run lock and the `planetgen-bulk` queue. A real worker or run another xdist worker had started at that moment made them answer "work is running" and refuse. TEST.266 gave one test a database of its own; every worker now runs all its tests, and the processes they start, on the Redis database numbered after it, empty when the session starts and when it ends, so no worker sees another's runs or workers. `tests/private_redis.py` loses its fixture (the one test that took it needs nothing), the worker database reset forgets the stored counts in that database, and `PLANETGEN_TEST_REDIS_URL` still names the server whose database 0 `scripts/test.py` cleans.
+
+TODO items resolved: TEST.280. Added: none.
+
 ## [8.0.1971] - 2026-10-23
 
 **Headline:** The browser reads its unit factors from one generated copy of the unit registry.
