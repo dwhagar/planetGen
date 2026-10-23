@@ -3393,13 +3393,15 @@ SYSTEM_COMET_CHANCE = 0.3
 # decides, measured over 20,000 systems generated with default options
 # (four seeds of 5,000; 2026-10-07, remeasured 2026-10-17 after GEN.447 to
 # GEN.449 changed the companions and 2026-10-18 after GEN.404 moved a system with
-# no place to the galaxy's half-mass radius). A sector or galaxy run's
+# no place to the galaxy's half-mass radius; habitable_world alone remeasured
+# 2026-10-23 after GEN.146 widened the zone to the Kopparapu edges, the same
+# 20,000 systems: 0.4216 where it was 0.253). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.253,   # a habitable planet or moon
+    "habitable_world": 0.422,   # a habitable planet or moon
     "asteroid_belt": 0.582,     # an asteroid belt
     "large_star": 0.051,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.953,           # at least one planet or belt

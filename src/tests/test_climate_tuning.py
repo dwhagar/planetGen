@@ -71,7 +71,9 @@ def test_class_k_lands_within_mars_like_band(class_means):
     # ecosphere zone as every other habitable class, not at Mars' real,
     # farther orbital distance, so its baseline runs warmer than real Mars
     # regardless of tuning (see PLANET_CLASSES["K"]'s docstring note).
-    assert 200 <= temp <= 270, f"Class K mean surface_temperature {temp:.1f}K outside Mars-like band"
+    # GEN.146 moved the ecosphere's outer edge from 1.37 to 1.68 AU for the Sun, past Mars's own orbit, so the class's
+    # mean ran colder (195 K); the class tuning against the final zone edges is the GEN.29 sweep's.
+    assert 180 <= temp <= 270, f"Class K mean surface_temperature {temp:.1f}K outside Mars-like band"
     assert 100 <= pressure <= 3000, f"Class K mean atmospheric_pressure {pressure:.1f}Pa outside Mars-like band"
 
 

@@ -44,12 +44,13 @@ def _planets(systems):
 
 
 def test_zone_mix_is_spread(systems):
-    """About 30% hot, 6% ecosphere and 64% cold (it was 96% cold)."""
+    """About 30% hot, 12% ecosphere and 58% cold (it was 96% cold; the ecosphere was 6% before GEN.146 widened it to
+    the Kopparapu edges, 0.95 to 1.68 AU for the Sun)."""
     zones = collections.Counter(planet.zone for planet in _planets(systems))
     total = sum(zones.values())
     assert total > 3000
     assert 0.20 < zones['h'] / total < 0.42
-    assert 0.03 < zones['e'] / total < 0.12
+    assert 0.06 < zones['e'] / total < 0.20
     assert 0.50 < zones['c'] / total < 0.75
 
 
