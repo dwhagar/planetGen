@@ -73,6 +73,7 @@ function init(shell) {
   let shown = [];
   let command = null;
   let asked = 0;
+  let sizeTimer = null;
 
   const dialog = el("dialog", { class: "admin-palette", "aria-label": "Admin palette" });
   const input = el("input", { type: "search", placeholder: "Find a page, task or setting", autocomplete: "off",
@@ -102,6 +103,7 @@ function init(shell) {
   function ask() {
     const text = input.value;
     command = null;
+    clearTimeout(sizeTimer);
     if (!COMMAND_START.test(text) || !shell.dataset.commandUrl) { draw(); return; }
     const mine = ++asked;
     fetch(`${shell.dataset.commandUrl}?q=${encodeURIComponent(text)}`, { credentials: "same-origin", headers: { Accept: "application/json" } })
@@ -111,8 +113,24 @@ function init(shell) {
         command = body.command ? { ...body.command, kind: "command", danger: "safe", keywords: [] }
           : body.error ? { error: body.error } : null;
         draw();
+        if (command && command.size_url) askSize(command, mine);
       })
       .catch(() => {});
+  }
+
+  // ADM.126: a moment after the last key, the size the command would make is added to its row, from the same estimate
+  // the Review step shows.
+  function askSize(row, mine) {
+    sizeTimer = setTimeout(() => {
+      fetch(row.size_url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((body) => {
+          if (mine !== asked || !body || body.state !== "ready") return;
+          row.size = body.line;
+          draw();
+        })
+        .catch(() => {});
+    }, 500);
   }
 
   function draw() {
@@ -124,7 +142,7 @@ function init(shell) {
       const link = el("a", { href: item.url });
       link.append(el("strong", {}, item.label), el("span", { class: "badge" }, KIND_NAMES[item.kind] || item.kind));
       if (DANGER_NAMES[item.danger]) link.append(el("span", { class: "badge" }, DANGER_NAMES[item.danger]));
-      link.append(el("span", { class: "hint" }, item.summary));
+      link.append(el("span", { class: "hint" }, item.size ? `${item.summary}. ${item.size}` : item.summary));
       row.append(link);
       return row;
     }));

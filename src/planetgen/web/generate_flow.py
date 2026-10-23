@@ -247,21 +247,70 @@ def generate_task(key):
     return _review_or_form(admin, task, form)
 
 
-def _review_or_form(admin, task, form, recipe_error=None):
-    """The Review step for the draft `form`, or the task's form again with what is wrong."""
+def _planned_job(task, form):
+    """The job a task's `form` asks for, with its estimate when the job asks for one: `(action, kind, title, steps,
+    estimate)`, `estimate` being `_estimate_view`'s dict or `None`. The Review step and the live size line
+    (`generate_size`) both come through here, so the line is the estimate the Review step would show.
+
+    Raises:
+        FormError: Nothing is chosen yet, or a value is not acceptable (the message says what).
+    """
     action = form.get("action") or (task.actions[0] if len(task.actions) == 1 else "")
     if action not in task.actions:
-        return task_page(admin, task, form=form, error="Choose what to do first.", status=400)
+        raise FormError("Choose what to do first.")
     database = db_name()
+    kind, title, steps = build_job(action, form, database, edge_pc=_edge_pc(action, form, database))
+    estimate = None
+    if estimate_needed(kind, form):
+        env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
+        estimate = _estimate_view(estimate_for(kind, steps, database, env))
+    return action, kind, title, steps, estimate
+
+
+def _review_or_form(admin, task, form, recipe_error=None):
+    """The Review step for the draft `form`, or the task's form again with what is wrong."""
     try:
-        kind, title, steps = build_job(action, form, database, edge_pc=_edge_pc(action, form, database))
-        estimate = None
-        if estimate_needed(kind, form):
-            env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-            estimate = _estimate_view(estimate_for(kind, steps, database, env))
+        action, kind, title, steps, estimate = _planned_job(task, form)
     except FormError as exc:
         return task_page(admin, task, form=form, error=str(exc), status=400)
     return review_page(admin, action, kind, title, steps, form, estimate=estimate, recipe_error=recipe_error)
+
+
+def size_line(estimate):
+    """One sentence for an estimate (`_estimate_view`'s dict): how much the run will make, what it adds to the database
+    and how long it takes, the figures the Review step shows in full."""
+    if estimate.get("deep_check"):
+        return f"Checks about {estimate['systems']:,} star systems, about {estimate['time_text']}."
+    return (f"About {estimate['sectors']:,} sectors (about {estimate['systems']:,} star systems, "
+            f"{estimate['stars']:,} stars), adding about {estimate['size_text']} to the database, "
+            f"taking about {estimate['time_text']}.")
+
+
+@bp.route("/admin/generate/task/<key>/size")
+def generate_size(key):
+    """
+    The live "how big" line under a task's form (ADM.126): the fields of the form in the query string, the answer as JSON.
+    `state` is `ready` (`line`, `refused`, `refusal`, `estimate`: the same estimate the Review step shows, from the
+    same `planetgen galaxy --estimate-only` and its cache), `none` (this form's job has no estimate) or `invalid`
+    (`message`: why the values cannot be sized yet). Nothing is started or written.
+    """
+    admin, response = _admin_or_redirect()
+    if response:
+        return jsonify({"error": "sign in"}), 403
+    task = task_for_key(key)
+    if task is None:
+        abort(404)
+    try:
+        _action, _kind, _title, _steps, estimate = _planned_job(task, request.args)
+    except FormError as exc:
+        return _no_store(jsonify({"state": "invalid", "message": str(exc)}))
+    if estimate is None:
+        return _no_store(jsonify({"state": "none"}))
+    return _no_store(jsonify({"state": "ready", "line": size_line(estimate), "refused": bool(estimate.get("refused")),
+                              "refusal": estimate.get("refusal"), "estimate": estimate}))
+
+
+generate_size.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/admin/generate/command")
@@ -296,7 +345,8 @@ def command_link(text):
     query = {**command.fields, **({"review": "1"} if command.review else {})}
     url = page_url(task.endpoint, **task.params)
     return {"label": f"{'Review' if command.review else 'Open'}: {task.label}", "summary": command.summary,
-            "url": url + ("?" + urlencode(query) if query else "")}
+            "url": url + ("?" + urlencode(query) if query else ""),
+            "size_url": page_url("generate_size", key=task.key) + "?" + urlencode(command.fields)}
 
 
 @bp.route("/admin/generate/recipes", methods=["POST"])

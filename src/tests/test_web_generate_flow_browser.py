@@ -195,3 +195,39 @@ def test_a_review_can_be_saved_as_a_recipe_run_renamed_and_deleted(browser, axe_
             context.close()
         problems += [f"{viewport}/{scheme}: {p}" for p in found if "400 (BAD REQUEST)" not in p]
     assert not problems, "\n".join(problems)
+
+
+def _sized(argv, env):
+    """An estimate whose sector count is the form's `--limit`, so a change of the box is a change of the line."""
+    limit = int(argv[argv.index("--limit") + 1]) if "--limit" in argv else 9
+    return {**ESTIMATE, "sectors": limit, "systems": limit * 10}
+
+
+def test_the_size_line_follows_the_form_and_the_palette_command(browser, axe_source, server, config, monkeypatch):
+    """ADM.126: a moment after a box changes, the line under the form shows the sectors, systems and stars the run would
+    make, or why it cannot be sized yet; a typed command in the palette shows its size too. Nothing is started."""
+    monkeypatch.setattr(generate_page, "run_estimate", _sized)
+    problems = []
+    for viewport, scheme in (("desktop", "light"), ("phone", "dark")):
+        context, page, found, base_url = _page(browser, server, viewport, scheme)
+        try:
+            page.goto(base_url + "/admin/generate/task/add-sectors", wait_until="load")
+            page.check("input[name='what'][value='grid']")
+            page.fill("input[name='shell_index']", "40")
+            page.fill("input[name='shell_limit']", "200")
+            page.wait_for_selector("#size-report:has-text('About 200 sectors')", timeout=1500)
+            assert "about 2,000 star systems" in page.inner_text("#size-report")
+            found += [f"size line: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
+            page.fill("input[name='shell_limit']", "300")
+            page.wait_for_selector("#size-report:has-text('About 300 sectors')", timeout=1500)
+            page.fill("input[name='shell_index']", "")
+            page.wait_for_selector("#size-report:has-text('Not sized yet: ')", timeout=1500)
+            assert page.locator("[role=alert]").count() == 0
+            page.goto(base_url + "/admin/generate", wait_until="load")
+            page.keyboard.press("Control+k")
+            page.fill("dialog.admin-palette input[type=search]", "add sectors shell 40 limit 250")
+            page.wait_for_selector("dialog.admin-palette li[role=option] >> text=About 250 sectors", timeout=3000)
+        finally:
+            context.close()
+        problems += [f"{viewport}/{scheme}: {p}" for p in found if "400 (BAD REQUEST)" not in p]
+    assert not problems, "\n".join(problems)
