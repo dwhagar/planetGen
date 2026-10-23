@@ -38,6 +38,9 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN generator_epoch, DROP COLUMN fp_spec, DROP COLUMN battery_digest,"
+                     " DROP COLUMN battery_cases")  # v131
+        conn.execute("ALTER TABLE generation_runs DROP COLUMN generator_epoch")  # v131
         conn.execute("DROP TABLE galaxy_containers")  # v130
         conn.execute("DROP TABLE vessels")  # v129
         conn.execute("DROP TABLE constellations")  # v128

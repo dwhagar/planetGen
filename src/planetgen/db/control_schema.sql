@@ -366,11 +366,14 @@ CREATE TABLE IF NOT EXISTS galaxy_naming (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v11 (OPS.13): the version key each update ran under, per galaxy database,
--- newest last. Every update adds one row per galaxy (the galaxy's seed, the
+-- newest last. An update adds one row per galaxy (the galaxy's seed, the
 -- key `planetgen.galaxy.version_key` computes, the release, and the SHA-256
 -- of requirements.lock) and keeps only the last 10 per database
 -- (`planetgen/galaxy/version_history.py`), so an admin can see which
 -- release/environment a seed was last known to make the same galaxy under.
+-- v18 (OPS.58): the row also holds the generator epoch, the battery digest
+-- (and its cases) and the environment, and an update that finds all of them
+-- as in the newest row adds none: it sets that row's `last_seen_at`.
 CREATE TABLE IF NOT EXISTS version_key_history (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     database_name        VARCHAR(64) NOT NULL,
@@ -379,6 +382,11 @@ CREATE TABLE IF NOT EXISTS version_key_history (
     planetgen_version    VARCHAR(32) NOT NULL,
     requirements_sha256  CHAR(64) NULL,           -- NULL: no requirements.lock beside the code
     recorded_at          DATETIME(6) NOT NULL,
+    generator_epoch      SMALLINT UNSIGNED NULL,  -- v18 (OPS.58): NULL on a row recorded before it
+    battery_digest       CHAR(64) NULL,           -- v18: the generator battery's overall digest (OPS.57)
+    battery_cases        JSON NULL,               -- v18: {case: full digest}, to name the first case that differs
+    environment          JSON NULL,               -- v18: libc, numpy, astropy, scipy and scikit-image versions
+    last_seen_at         DATETIME(6) NULL,        -- v18: the last update that ran unchanged (NULL: recorded_at)
     INDEX idx_version_key_history_database (database_name, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

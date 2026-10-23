@@ -1413,6 +1413,9 @@
 -- v130 (DB.85): `galaxy_containers`, each globular cluster and each superbubble stored as a container: its object ID (`uid`), kind, name, the cluster component or the bubble's field address that
 --   made it, its centre and extent in the galaxy frame, and the sector its centre is born in. The plan writes them from the galaxy seed; `db/containers.py` asks which hold a point and what one holds.
 --
+-- v131 (OPS.58): `galaxy_shape` also keeps the generator epoch, the fingerprint format and the generator battery digest (with its cases) of the code that planned the galaxy, and `generation_runs`
+--   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1678,6 +1681,16 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- (`sector_stats`), and how many fills went into it.
     density_ratio_avg               DOUBLE,
     density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0,
+
+    -- v131 (OPS.58): what else the code that wrote `galaxy_seed` was -- the
+    -- generator epoch (`util/generator_epoch.py`), the fingerprint format
+    -- (`util/fingerprint_encoding.FP_SPEC`) and the generator battery's overall
+    -- digest with its cases (`generation/generator_battery.py`, OPS.57), as
+    -- `{case: full digest}`. NULL on a galaxy planned before v131.
+    generator_epoch                 SMALLINT UNSIGNED NULL,
+    fp_spec                         SMALLINT UNSIGNED NULL,
+    battery_digest                  CHAR(64) NULL,
+    battery_cases                   JSON NULL,
 
     CONSTRAINT chk_galaxy_shape_cell_star_ceiling CHECK (cell_star_ceiling >= 1),  -- v100 (GEN.281)
     CONSTRAINT chk_galaxy_shape_scatter_limits CHECK (  -- v101 (DB.54)
@@ -3592,6 +3605,7 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     started_at           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     finished_at          TIMESTAMP(3) NULL,
     outcome              VARCHAR(16),
+    generator_epoch      SMALLINT UNSIGNED NULL,  -- v131 (OPS.58): the epoch the run's code generated under, NULL before v131
 
     KEY idx_generation_runs_started_at (started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

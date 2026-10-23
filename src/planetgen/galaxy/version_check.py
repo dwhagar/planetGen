@@ -9,7 +9,11 @@ Python and platform that generated it (schema v67), so the check names
 exactly what differs.
 """
 
+import collections
+
 from planetgen.galaxy import version_key
+from planetgen.generation import generator_battery
+from planetgen.util import fingerprint_encoding, generator_epoch
 
 
 def differences(running, stored):
@@ -73,22 +77,88 @@ def planned_differences(maker, running=None):
     })
 
 
-def galaxy_warning(conn):
+GalaxyCheck = collections.namedtuple("GalaxyCheck", ["errors", "warnings"])
+"""What `galaxy_check` found, as two lists of sentences. An error says the running code makes another galaxy from the
+seed (the generator epoch differs); a warning says it may (the battery, the fingerprint format, other versions)."""
+
+
+def epoch_difference(maker, running_epoch=None):
     """
-    OPS.14: the one check behind every mismatch warning (`planetgen galaxy`,
-    the Generate page, `planetgen fingerprint`): sectors made by another
-    version (`mixed_version_warning`), then how the running code differs from
-    the code that planned the galaxy (the record `galaxy_shape` keeps, ADM.50).
-    `None` when nothing differs, or when the galaxy has no such record (one
-    planned before v52).
+    The sentence saying the generator epoch differs between the code that planned the galaxy and the running code, naming
+    the release that first generated under the epoch after the planning one when the epoch record knows it, or `None`
+    (also when the galaxy was planned before the epoch was recorded).
+
+    Args:
+        maker (store.GalaxyMaker): The galaxy's maker record.
+        running_epoch (int, optional): Defaults to `generator_epoch.generator_epoch()`.
+    """
+    running_epoch = generator_epoch.generator_epoch() if running_epoch is None else running_epoch
+    if maker is None or maker.generator_epoch is None or maker.generator_epoch == running_epoch:
+        return None
+    text = f"generator epoch {running_epoch} now, {maker.generator_epoch} when planned"
+    if maker.generator_epoch < running_epoch:
+        release = generator_epoch.first_release(maker.generator_epoch + 1)
+        if release:
+            text += f"; epoch {maker.generator_epoch + 1} was first generated under release {release}"
+    return text
+
+
+def battery_difference(maker, running):
+    """
+    The sentence saying the generator battery (OPS.57) gives another digest than it did when the galaxy was planned,
+    naming the first case that differs, or `None` when it does not, or when the galaxy recorded none. Only meant for
+    the same epoch: it then says the platform or a library differs.
+
+    Args:
+        maker (store.GalaxyMaker): The galaxy's maker record.
+        running (generator_battery.BatteryDigest): The running code's battery.
+    """
+    if maker is None or maker.battery_digest is None or maker.battery_digest == running.overall:
+        return None
+    first = generator_battery.first_difference(maker.battery_cases or {}, generator_battery.cases_of(running))
+    where = f"; the first case that differs is {first}" if first else ""
+    return ("the generator battery gives another digest than when the galaxy was planned, so the platform or a "
+            f"library differs{where}")
+
+
+def galaxy_check(conn, compute_battery=False):
+    """
+    The one check behind every mismatch warning (OPS.14, OPS.58): `GalaxyCheck(errors, warnings)` for a galaxy.
+    Errors: the generator epoch differs from the planning one. Warnings: sectors made by another version
+    (`mixed_version_warning`), how the running code differs from the code that planned the galaxy (the record
+    `galaxy_shape` keeps, ADM.50), the fingerprint format, and, with `compute_battery`, the generator battery (about
+    five seconds the first time in a process, so the web pages leave it out); the battery is compared only when the
+    epochs agree, since a different epoch is the likelier reason it differs. Both lists are empty when nothing differs,
+    or when the galaxy has no maker record (one planned before v52).
     """
     from planetgen.db import store
-    parts = []
+    errors, warnings = [], []
     mixed = mixed_version_warning(store.sector_versions(conn))
     if mixed:
-        parts.append(mixed)
+        warnings.append(mixed)
     maker = store.get_galaxy_maker(conn)
-    found = planned_differences(maker) if maker is not None else []
+    if maker is None:
+        return GalaxyCheck(errors, warnings)
+    found = planned_differences(maker)
     if found:
-        parts.append("The running code differs from the code that planned the galaxy (" + "; ".join(found) + ").")
-    return " ".join(parts) or None
+        warnings.append("The running code differs from the code that planned the galaxy (" + "; ".join(found) + ").")
+    epoch = epoch_difference(maker)
+    if epoch:
+        errors.append(f"The generator epoch differs ({epoch}), so the seed makes another galaxy here.")
+    if maker.fp_spec is not None and maker.fp_spec != fingerprint_encoding.FP_SPEC:
+        warnings.append(f"The fingerprint format is {fingerprint_encoding.FP_SPEC} now and was {maker.fp_spec} when "
+                        "the galaxy was planned, so stored fingerprints cannot be compared with new ones.")
+    if compute_battery and not epoch and maker.battery_digest is not None:
+        battery = battery_difference(maker, generator_battery.running_digest())
+        if battery:
+            warnings.append(f"Same generator epoch, but {battery}.")
+    return GalaxyCheck(errors, warnings)
+
+
+def galaxy_warning(conn, compute_battery=False):
+    """
+    OPS.14: the text of `galaxy_check` as one string (errors first), behind every mismatch warning (`planetgen galaxy`,
+    the Generate page, `planetgen fingerprint`); `None` when nothing differs. See `galaxy_check` for `compute_battery`.
+    """
+    found = galaxy_check(conn, compute_battery)
+    return " ".join(found.errors + found.warnings) or None

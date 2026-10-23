@@ -75,7 +75,8 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
-from planetgen.util import generator_epoch as generatorEpoch, log
+from planetgen.generation import generator_battery as generatorBattery
+from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import multistar, steps
 from planetgen.generation.belt import AsteroidBelt
@@ -198,7 +199,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 17
+CONTROL_SCHEMA_VERSION = 18
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -209,7 +210,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -232,6 +233,13 @@ _CONTROL_COLUMNS = {
         ("paused", "TINYINT(1) NOT NULL DEFAULT 0"),
         ("paused_by", "VARCHAR(64) NULL"),
         ("paused_at", "DATETIME(6) NULL"),
+    ],
+    "version_key_history": [
+        ("generator_epoch", "SMALLINT UNSIGNED NULL"),
+        ("battery_digest", "CHAR(64) NULL"),
+        ("battery_cases", "JSON NULL"),
+        ("environment", "JSON NULL"),
+        ("last_seen_at", "DATETIME(6) NULL"),
     ],
     "admin_users": [
         ("email", "VARCHAR(254) NULL"),
@@ -1517,6 +1525,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (131, _column_marker("generation_runs", "generator_epoch")),
     (130, _table_marker("galaxy_containers")),
     (129, _table_marker("vessels")),
     (128, _table_marker("constellations")),
@@ -6854,16 +6863,17 @@ def sector_run_id(conn, run_id=None):
         return cached
     made_by = versionKey.current()
     values = (SAVE_RUN_COMMAND, made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
-              made_by["platform"])
+              made_by["platform"], generatorEpoch.generator_epoch())
     row = conn.execute(
         "SELECT id FROM generation_runs WHERE command = ? AND version_key = ? AND planetgen_version = ?"
-        " AND python_version = ? AND platform = ? ORDER BY id LIMIT 1", values).fetchone()
+        " AND python_version = ? AND platform = ? AND generator_epoch <=> ? ORDER BY id LIMIT 1", values).fetchone()
     if row is not None:
         conn.save_run_id = row["id"]
     else:
         conn.save_run_id = conn.execute(
-            "INSERT INTO generation_runs (command, version_key, planetgen_version, python_version, platform, finished_at,"
-            " outcome) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), 'ok')", values).lastrowid
+            "INSERT INTO generation_runs (command, version_key, planetgen_version, python_version, platform,"
+            " generator_epoch, finished_at, outcome) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), 'ok')",
+            values).lastrowid
     return conn.save_run_id
 
 
@@ -7659,11 +7669,13 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
             if stored_seed != bytes(galaxy_seed):
                 # DB.6: a new seed is a new galaxy -- record the code making it.
                 made_by = versionKey.current()
+                battery = generatorBattery.running_digest()
                 conn.execute(
-                    "UPDATE galaxy_shape SET version_key = ?, planetgen_version = ?, python_version = ?, platform = ?"
-                    " WHERE id = 1",
+                    "UPDATE galaxy_shape SET version_key = ?, planetgen_version = ?, python_version = ?, platform = ?,"
+                    " generator_epoch = ?, fp_spec = ?, battery_digest = ?, battery_cases = ? WHERE id = 1",
                     (made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
-                     made_by["platform"]),
+                     made_by["platform"], generatorEpoch.generator_epoch(), fingerprintEncoding.FP_SPEC,
+                     battery.overall, json.dumps(generatorBattery.cases_of(battery), sort_keys=True)),
                 )
     finally:
         conn.close()
@@ -7675,8 +7687,12 @@ def has_galaxy_sectors(conn):
     return conn.execute("SELECT 1 FROM sectors WHERE shell_index IS NOT NULL LIMIT 1").fetchone() is not None
 
 
-GalaxyMaker = namedtuple("GalaxyMaker", ["version_key", "planetgen_version", "python_version", "platform"])
-"""What made the galaxy (v52, DB.6): `galaxy_shape`'s version columns."""
+GalaxyMaker = namedtuple(
+    "GalaxyMaker", ["version_key", "planetgen_version", "python_version", "platform", "generator_epoch", "fp_spec",
+                    "battery_digest", "battery_cases"], defaults=(None, None, None, None))
+"""What made the galaxy: `galaxy_shape`'s version columns (v52, DB.6), the generator epoch, the fingerprint format and
+the generator battery's overall digest with its `{case: full digest}` (v131, OPS.58); the last four are `None` for a
+galaxy planned before v131."""
 
 
 def get_galaxy_maker(conn):
@@ -7685,7 +7701,10 @@ def get_galaxy_maker(conn):
     row = conn.execute("SELECT * FROM galaxy_shape WHERE id = 1").fetchone()
     if row is None or row.get("version_key") is None:
         return None
-    return GalaxyMaker(row["version_key"], row["planetgen_version"], row["python_version"], row["platform"])
+    cases = row["battery_cases"]
+    return GalaxyMaker(row["version_key"], row["planetgen_version"], row["python_version"], row["platform"],
+                       row["generator_epoch"], row["fp_spec"], row["battery_digest"],
+                       json.loads(cases) if isinstance(cases, (str, bytes)) else cases)
 
 
 def sector_versions(conn):
@@ -7726,9 +7745,10 @@ def start_generation_run(conn, command, arguments, run_seed=None):
     seed_bytes = None if run_seed is None else int(run_seed).to_bytes(galaxySeed.SEED_BYTES, "big")
     run_id = conn.execute(
         "INSERT INTO generation_runs (command, run_seed, galaxy_seed, version_key, planetgen_version,"
-        " python_version, platform) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        " python_version, platform, generator_epoch) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (command, seed_bytes, get_galaxy_seed(conn), made_by["version_key"],
-         made_by["planetgen_version"], made_by["python_version"], made_by["platform"]),
+         made_by["planetgen_version"], made_by["python_version"], made_by["platform"],
+         generatorEpoch.generator_epoch()),
     ).lastrowid
     for position, argument in enumerate(arguments):
         conn.execute("INSERT INTO generation_run_arguments (run_id, position, value) VALUES (?, ?, ?)",

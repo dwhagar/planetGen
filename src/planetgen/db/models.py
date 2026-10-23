@@ -671,6 +671,10 @@ galaxy_shape = sa.Table(
     sa.Column('platform', sa.String(64), nullable=True),
     sa.Column('density_ratio_avg', mysql.DOUBLE(), nullable=True),
     sa.Column('density_ratio_samples', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('fp_spec', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('battery_digest', mysql.CHAR(64), nullable=True),
+    sa.Column('battery_cases', mysql.JSON(), nullable=True),
     sa.CheckConstraint('((`bar_axis_ratio_b` > 0) and (`bar_axis_ratio_b` <= 1))', name='chk_galaxy_shape_bar_axis_ratio_b'),
     sa.CheckConstraint('((`bar_axis_ratio_c` > 0) and (`bar_axis_ratio_c` <= 1))', name='chk_galaxy_shape_bar_axis_ratio_c'),
     sa.CheckConstraint('(`body_clump_share` between 0 and 1)', name='chk_galaxy_shape_body_clump_share'),
@@ -732,6 +736,7 @@ generation_runs = sa.Table(
     sa.Column('started_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
     sa.Column('finished_at', mysql.TIMESTAMP(fsp=3), nullable=True),
     sa.Column('outcome', sa.String(16), nullable=True),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Index('idx_generation_runs_started_at', 'started_at'),
     mysql_engine="InnoDB",
 )

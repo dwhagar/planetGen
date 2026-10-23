@@ -35,7 +35,11 @@ import dataclasses
 import decimal
 import hashlib
 
-FORMAT_TAG = "pgfp1"
+FP_SPEC = 1
+"""int: The number of the encoding's format, which goes up when the canonical encoding or its rounding changes. A galaxy
+records the one it was planned under (`galaxy_shape.fp_spec`, OPS.58)."""
+
+FORMAT_TAG = f"pgfp{FP_SPEC}"
 """str: The version of the encoding, hashed into every digest."""
 
 FLOAT_FORMAT = ".8e"

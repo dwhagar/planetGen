@@ -338,14 +338,20 @@ full key text living on the `generation_runs` row. Detail:
   the date. The corpus and name-list hashes are not recorded (the name
   codec replaced them). Only the last 10 rows per galaxy are kept;
   `planetgen versions` lists them. A failure to record only warns.
-  Not built, recommended: the row also holds
-  the `generator_epoch`, the battery digest and an environment record
-  (libc, numpy, astropy, scipy, scikit-image versions). A row is added only
-  when the key or a hash differs from the newest row (an update that
-  changes nothing only refreshes that row's last-seen date), so repeated
-  "already up to date" runs do not push the older distinct versions out.
-  The lock file is pinned to LF in `.gitattributes` (or hashed as
-  normalised text) so a checkout hashes the same on any machine.
+  *As built (OPS.58, control schema v18).* The row also holds the
+  `generator_epoch`, the generator battery's overall digest with its cases
+  (OPS.57) and an environment record (Python, system, machine, libc and the
+  numpy, astropy, scipy and scikit-image versions). A row is added only when
+  the seed, the key, the epoch, the battery digest, the lock hash or the
+  environment differs from the newest row; an update that changes nothing
+  sets that row's `last_seen_at`, so repeated "already up to date" runs do
+  not push the older distinct versions out. `planetgen versions` shows the
+  epoch, the battery and the last-seen time, and what changed from the row
+  before (`epoch 54 to 55`, `lock file`, `numpy 2.1.0 to 2.1.1`, `battery
+  digest (first case sector-a)`). The battery is worked out once an update,
+  however many galaxies there are (about five seconds). The lock file is
+  pinned to LF in `.gitattributes` (`*.lock text eol=lf`, OPS.33) so a
+  checkout hashes the same on any machine.
   *The seed question.* Boss's wording (2026-10-02 02:08Z) was that each
   update makes "a sweet to recalculate the seed value based on the current
   code version". The seed is not changed: it identifies the galaxy whose
@@ -358,7 +364,16 @@ full key text living on the `generation_runs` row. Detail:
 - **Mismatch warning (OPS.14, built).** `version_check.galaxy_warning` is the
   one check: it names the sectors made by another version (DB.7) and how the
   running release, Python, platform, version key and `requirements.lock` hash
-  differ from those in the galaxy's internal record (ADM.50). `planetgen
+  differ from those in the galaxy's internal record (ADM.50). From v131
+  (OPS.58) the record also keeps the generator epoch, the fingerprint
+  format and the battery digest with its cases, and `generation_runs`
+  keeps the epoch each run generated under (so each pass of a galaxy, such
+  as a scatter, says its epoch); `version_check.galaxy_check` returns the
+  epoch difference as an error, naming the release that first generated
+  under the next epoch, and a battery difference at the same epoch as a
+  warning naming the first case that differs (run only by the commands that
+  extend or fingerprint a galaxy, since it takes about five seconds a
+  process; the Generate page leaves it out). `planetgen
   galaxy`, `planetgen fingerprint` and the Generate page (`/api/galaxy/shape`'s
   `version_warning`) show it; a galaxy planned before the record existed has
   only the sector part. The reproduce report (GEN.61) will print it too. As

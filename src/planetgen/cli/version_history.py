@@ -4,10 +4,13 @@
 """
 Records the version key every galaxy database was updated under (OPS.13).
 
-`update.sh` runs it after the code and databases are current. It adds one
-history row per galaxy database that has a seed
-(`planetgen.galaxy.version_history`) and does nothing else; `planetgen
-versions` lists what was recorded.
+`update.sh` runs it after the code and databases are current. For each
+galaxy database that has a seed it adds a history row when the version key,
+the generator epoch, the generator battery's digest, the lock file or the
+environment differs from the newest row, and otherwise only sets that row's
+last-seen time (`planetgen.galaxy.version_history`); `planetgen versions`
+lists what was recorded. The battery (OPS.57) is worked out once, about five
+seconds, however many galaxies there are.
 
 Usage:
     python3 -m planetgen.cli.version_history [--mysql-host HOST] ...
@@ -60,10 +63,16 @@ def format_history(config):
             rows = version_history.history(control, name)
             if not rows:
                 lines.append("  no updates recorded yet")
-            for row in rows:
+            for position, row in enumerate(rows):
                 lock = (row["requirements_sha256"] or "no lock file")[:12]
+                epoch = "epoch ?" if row["generator_epoch"] is None else f"epoch {row['generator_epoch']}"
+                battery = (row["battery_digest"] or "no battery")[:12]
                 lines.append(f"  {row['recorded_at']:%Y-%m-%d %H:%M}  {row['version_key']}  "
-                             f"PlanetGen {row['planetgen_version']}  lock {lock}")
+                             f"PlanetGen {row['planetgen_version']}  {epoch}  battery {battery}  lock {lock}  "
+                             f"last seen {row['last_seen_at']:%Y-%m-%d %H:%M}")
+                changed = version_history.changes(row, rows[position + 1] if position + 1 < len(rows) else None)
+                if changed:
+                    lines.append("    changed: " + ", ".join(changed))
     finally:
         control.close()
     return "\n".join(lines) if lines else "No planned galaxy databases."

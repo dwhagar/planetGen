@@ -30,6 +30,7 @@ result does not depend on what ran before or on the hash seed.
 """
 
 import dataclasses
+import functools
 import math
 
 from planetgen import tuning
@@ -242,3 +243,29 @@ def generator_battery_digest():
         cases[name] = CaseDigest(found.full, found.structural, found.floats)
     overall = encoding.digest({"battery": [[name, cases[name].full] for name in CASES]})
     return BatteryDigest(overall, cases)
+
+
+@functools.lru_cache(maxsize=1)
+def running_digest():
+    """
+    The running code's `BatteryDigest`, worked out once a process: what a plan records with the galaxy and an update
+    records in the version history (OPS.58), so the five seconds are paid once however many call it.
+    """
+    return generator_battery_digest()
+
+
+def first_difference(stored, found):
+    """
+    The first case, in the order of `CASES`, whose full digest differs between two `{case: digest}` dicts (as `cases_of`
+    gives and a record keeps), or `None` when none does. A case in only one of them is not compared, so a record from a
+    battery with other cases says nothing of them.
+    """
+    for name in CASES:
+        if name in stored and name in found and stored[name] != found[name]:
+            return name
+    return None
+
+
+def cases_of(digest):
+    """`{case: full digest}` of a `BatteryDigest`, the form a record keeps."""
+    return {name: digest.cases[name].full for name in CASES}

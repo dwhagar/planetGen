@@ -768,13 +768,13 @@ describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
 Twenty-seven tables, versioned independently via `control_schema_migrations`
-(currently version 17, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
+(currently version 18, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables and v17 `generate_recipes` and `generate_recipe_fields`; the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`; the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -900,10 +900,19 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 - **`version_key_history`** (v11, OPS.13) — the version key each update ran
   under, per galaxy database, newest last: `database_name`, `galaxy_seed`
   (32 hex digits), `version_key` (22), `planetgen_version`,
-  `requirements_sha256` (NULL with no `requirements.lock`), `recorded_at`.
-  Every update adds a row per galaxy and keeps the last 10 per database
+  `requirements_sha256` (NULL with no `requirements.lock`), `recorded_at`, and
+  from v18 (OPS.58) `generator_epoch` (SMALLINT UNSIGNED), `battery_digest`
+  (CHAR(64), the generator battery's overall digest, OPS.57), `battery_cases`
+  (JSON, `{case: full digest}`), `environment` (JSON: Python, system, machine,
+  libc and the numpy, astropy, scipy and scikit-image versions) and
+  `last_seen_at` (DATETIME(6)); all five are NULL on a row recorded before v18
+  (`last_seen_at` then reads as `recorded_at`). An update adds a row only when
+  the seed, the key, the epoch, the battery digest, the lock hash or the
+  environment differs from the newest row, and otherwise sets that row's
+  `last_seen_at`; the last 10 rows per database are kept
   (`planetgen/galaxy/version_history.py`), so an admin can see which
-  release and environment a seed was last known to make the same galaxy under.
+  release and environment a seed was last known to make the same galaxy
+  under and what changed between two rows.
 - **`generation_stage_runs`** (v14, PERF.56) — how long each stage of a
   generation run took, with the settings it ran with
   (`planetgen/generation/stages.py` writes a row as a stage ends):
@@ -1089,6 +1098,8 @@ billions of candidates).
 | `galaxy_seed` | BINARY(16) | nullable | Added in v51 (GEN.39). The galaxy's 128-bit seed, shown and typed as 32 hex digits (`planetgen plan --seed`), written by the first plan and kept by every later one. Every sector, bright-star scatter, band and backfill block draws from SHA-256 of it and the unit's `kind:address` (`galaxySeed.unit_seed`). NULL only on a galaxy planned before v51. |
 | `version_key` | CHAR(22) | nullable | Added in v52 (DB.6). The version key of the code that wrote `galaxy_seed` (`version_key.version_key`): MAJOR 4, REVISION 4, BUILD 6, Python major, minor and micro 2 each, OS 1 (0 Linux, 1 Windows, 2 other Unix, 3 macOS, F unknown) and architecture 1 (0 x86-64, 1 ARM64, 2 x86, 3 ARM32, 4 RISC-V 64, F unknown) hex digits, for example `0007007F000160030C0300`. Written with a new seed; a later plan keeping the seed keeps it. |
 | `planetgen_version`, `python_version`, `platform` | VARCHAR(32) / VARCHAR(16) / VARCHAR(64) | nullable | Added in v52 (DB.6). The same code's full release (`7.127.352`), Python version (`3.12.3`) and `platform.system()` and `.machine()` (`Linux x86_64`). |
+| `generator_epoch`, `fp_spec` | SMALLINT UNSIGNED | nullable | Added in v131 (OPS.58). The generator epoch (`util/generator_epoch.py`) and the fingerprint format (`util/fingerprint_encoding.FP_SPEC`) of the code that wrote `galaxy_seed`. NULL on a galaxy planned before v131, which `version_check` says nothing about. |
+| `battery_digest`, `battery_cases` | CHAR(64) / JSON | nullable | Added in v131 (OPS.58). The generator battery's overall digest (`generation/generator_battery.py`, OPS.57) when `galaxy_seed` was written, and `{case: full digest}` for each case, so a check names the first case that differs. NULL before v131. |
 | `pinned_stellar_mass_solar` | DOUBLE | nullable | Added in v113 (DB.81). The stellar mass, solar masses, the plan was told to build the galaxy at (a pinned mass, or the one a pinned size and density hold); NULL when the seed drew it. A loaded shape draws its mass chain and structure again at this mass. |
 | `density_ratio_avg` | DOUBLE | nullable | Added in v53 (PERF.11). Systems a fill got against systems expected (`sector_stats`), as a mean over the first 1,000 fills, then a decaying average weighing each new fill 1 in 1,000 (`_db.DENSITY_RATIO_WINDOW`). NULL before any fill. |
 | `density_ratio_samples` | BIGINT UNSIGNED | NOT NULL, default 0 | Added in v53 (PERF.11). How many fills went into `density_ratio_avg`. |
@@ -1890,6 +1901,7 @@ replays. Writing them never stops a run.
 | `version_key`, `planetgen_version`, `python_version`, `platform` | CHAR(22) / VARCHAR | NOT NULL | The running code, as in `galaxy_shape`. |
 | `started_at`, `finished_at` | TIMESTAMP(3) | `finished_at` nullable | |
 | `outcome` | VARCHAR(16) | nullable | `ok`, `failed` or `interrupted`; NULL while it runs, or when it died without saying. |
+| `generator_epoch` | SMALLINT UNSIGNED | nullable | Added in v131 (OPS.58). The generator epoch the run's code generated under, so a galaxy says which epoch each pass of it (a scatter, a fill, a redo) was made at. NULL on a run from before v131. |
 
 The command line is in `generation_run_arguments` (v63, DB.13), which replaced a JSON text column of `generation_runs`: `run_id` (FK -> `generation_runs.id`, `ON DELETE CASCADE`), `position` (the argument's place, from 0) and `value` (VARCHAR(1024)), primary key `(run_id, position)`. It leaves out the `--mysql-*` and `--debug` options (`generate._run_argv`).
 
@@ -2116,6 +2128,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v131 (OPS.58): the generator epoch, the fingerprint format and the battery on the galaxy record
+
+Migration 0131 adds `generator_epoch`, `fp_spec`, `battery_digest` and `battery_cases` to `galaxy_shape` and `generator_epoch` to `generation_runs`, each at the end of its table and nullable. A plan that draws a new galaxy seed writes the first four with the code's version key; every run writes the epoch it generates under. `planetgen.galaxy.version_check` reads them: a different epoch is an error, a different battery digest at the same epoch a warning that names the first case that differs ([generation-determinism.md](design/generation-determinism.md) section 5.2). Rows from before the migration keep NULL, since the epoch they were made under was never recorded, and nothing is backfilled. Both tables are small (one row, and one row a run), so each change is one statement; a column already there is skipped, so a stopped run can be started again. The version is detected from `generation_runs.generator_epoch`.
 
 ### v130 (DB.85): globular clusters and superbubbles stored as containers
 
