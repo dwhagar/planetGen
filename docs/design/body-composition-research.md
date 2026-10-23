@@ -14,6 +14,7 @@ This is the **synthesis**. Five detailed parts (A to E) and a sixth check part (
 | D | [D-small-bodies-moons.md](body-composition-parts/D-small-bodies-moons.md) | Asteroids, comets, Kuiper belt objects, dwarf planets, moons of every origin |
 | E | [E-ground-radiogenic-shielding.md](body-composition-parts/E-ground-radiogenic-shielding.md) | Crust and ground, regolith, albedo by band, radiogenic heat, surface radiation and shielding, one materials table (CSV) |
 | F | [F-boss-note-check.md](body-composition-parts/F-boss-note-check.md) | Check of Boss's additional research note (1:22 AM EDT): vapour pressures of ices, magma-ocean redox, ICRP weights, comet ratios; new items F1 to F5 |
+| H | [H-gen465-second-pass-tables.md](body-composition-parts/H-gen465-second-pass-tables.md) | The GEN.465 second extraction pass (UNSCEAR 2008, Brewer and Fischer 2016, Zenodo 10527170, Lodders 2003, Weisberg 2006) and the GEN.468 water-share result (merged 7:06 AM EDT 2026-10-23) |
 
 Built on the GEN.425 source check (`/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md`, called G425 below), which already verified Seager 2007, Zeng and Sasselov 2013, Zeng 2016 and 2019, Fortney 2007, Lopez and Fortney 2014, Thiabaud 2015, Santos 2015 and Dorn 2015; the parts cite its sections and do not repeat that work. All five parts agree with G425 where they overlap (differences are listed in section 7).
 
