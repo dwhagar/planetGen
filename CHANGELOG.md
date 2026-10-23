@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2040] - 2026-10-23
+
+**Headline:** The wheel-anchor browser test puts the pointer next to the star in the same call that asks for the anchor.
+
+### Changed
+- **The wheel-anchor test no longer leaves a gap between reading the star's spot and asking for the anchor (TEST.237).** The test now reads where the star is on the screen and asks the wheel's anchor a few pixels from it in one browser call, so a camera or layout still settling under load cannot move the star in between, and it reads the spot again before the zoom steps. It proves the same things; a failure now prints the star's spot and the camera.
+
+TODO items resolved: none. Added: none.
+
 ## [8.0.2039] - 2026-10-23
 
 **Headline:** Generation no longer spends 2.5 seconds on the math check before every run; the check runs at every update and from the Admin page.
