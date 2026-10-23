@@ -1098,3 +1098,4 @@ Baseline: PR #1817.
 | GEN.136 | 8.1 | Reproducible galaxies |
 | TEST.281 | 8.1 | Bugs and flaky tests |
 | GEN.628 | 8.1 | Reproducible galaxies |
+| MAP.146 | 8.1 | Fly-through map |
