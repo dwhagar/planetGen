@@ -1002,6 +1002,15 @@ with `clamp()`.
   generated sectors, the galaxy screen shows its sector layout, a sector
   can then be added by hand, and a browser test covers it. Owner: Bug
   Hunt (Boss, 5:13 PM EDT 2026-10-23).
+  Finding (Bug Hunt, 5:25 PM EDT 2026-10-23 as the lane reported): a
+  plan-only path exists but is buried. It is the Plan the galaxy again
+  and scatter radio inside the Change what is scattered across the
+  galaxy card, with a Skip all scatters tick, and on a galaxy that has
+  sectors the plan will not replace the seed. Start a new galaxy always
+  resets and generates a first neighborhood. Bug Hunt's fix: a new Start
+  card, Plan a new galaxy and stop (reset, plan, no sectors, no scatter,
+  typed confirmation). Bug Hunt takes UX.147 and UX.148 first, then
+  TEST.298 and TEST.299.
   Prerequisites: none. Related: UX.134, UX.125, PERF.149.
 
 - [ ] **UX.148 Log output from Generate is no longer in a fixed-width font (bug)**
@@ -1023,6 +1032,29 @@ with `clamp()`.
   fixed-width text, and a test pins it. Owner: Bug Hunt (Boss, 5:14 PM
   EDT 2026-10-23).
   Prerequisites: none. Related: UX.102, UX.123, UX.125.
+
+- [ ] **UX.149 Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug)**
+  Boss's live observation (relayed 5:30 PM EDT 2026-10-23, typed in the
+  project chat): chemical names in HTML such as water (H2O) should
+  properly use subscripts and superscripts in the output. Kind:
+  formatting bug. Wanted: a formula in any page prints its counts as
+  subscripts (H2O with a subscript 2), its ion charges as superscripts
+  (the plus of Na+ and the 2- of sulfate raised) and its isotope mass
+  numbers as superscripts before the symbol (the 14 in 14C). Do: one
+  shared formatter, a Jinja filter and its plain-text twin for the
+  command line, that turns a formula string into marked-up HTML
+  (escaping everything else), and use it in every template and generated
+  text that prints a species, an atmosphere or ocean composition, a
+  mineral or ice, or a gas, plus the help and design pages that quote
+  formulas; do not edit page by page with hand-typed tags. The formatter
+  takes the formula (never free text, so a word such as CO2 in a
+  sentence is handled by the caller, not guessed). Add tests for counts,
+  charges, isotopes, hydrates and brackets, and a test that no template
+  prints a bare formula. Done: the formatter and its tests exist, every
+  page that prints a chemical formula goes through it, and a browser or
+  HTML test shows the water entry with a subscript 2. Owner: Bug Hunt
+  (Boss, 5:30 PM EDT 2026-10-23).
+  Prerequisites: none. Related: UX.148, DOC.13.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2481,6 +2513,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
+
+- [ ] **MAP.256 The map shows the information box twice when an object is selected: once in the window and once to its right (bug)**
+  Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
+  project chat): when an object is selected on the map the infobox
+  appears twice, once in the window and once to the right of it. Kind:
+  duplicate render, cause not found. The TODO thread did not run it.
+  Fails on main: yes, as Boss sees it. Reproducer: open the Galaxy Map,
+  select any object, look for a second copy of the information box
+  beside the window. Do: find why the box is drawn twice (a second mount
+  of the same panel, a leftover panel from the sector or system view, or
+  the select handler firing twice), keep the one in the window, and add
+  a browser test that selecting an object leaves exactly one information
+  box. Done: selecting a star, a system and a sector each shows exactly
+  one information box, and a browser test counts them. Owner: Core 2
+  (Boss, 5:27 PM EDT 2026-10-23).
+  Prerequisites: none. Related: MAP.140, MAP.141, MAP.249.
+
+- [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
+  Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
+  project chat): infinite zoom is still really clunky. Boss asks to get
+  rid of the whole idea of segments other than sectors, and to
+  investigate how the structure of the 3D map interface could better
+  accommodate starting at the galaxy level, zooming in with the scroll
+  wheel and seeing anything in the galaxy easily. The different zoom
+  zones are now in the way; he wants one space that is filtered for what
+  is displayed, the way a game world is one rendered space where the
+  system manages what is visible. Kind: design bug against the
+  fly-through map (MAP.146 area). A design thread is investigating a
+  redesign and will send its items; this item stays as the user-visible
+  symptom and the home for that thread's result, and is not to be built
+  on until the design is chosen. Fails on main: yes, as Boss sees it.
+  Related live reports: MAP.249 (lag when the zoom level changes) and
+  MAP.209 and MAP.210 (waiting on Boss's retest). Do: take the design
+  thread's report, break it into items under this one (the single space,
+  the visibility filter by distance and size instead of zones, what
+  stays of sectors as the unit of data), and get Boss's word on the
+  design before building. Done: scrolling from the galaxy level in to a
+  single star works in one continuous space with nothing popping between
+  zones, anything in the galaxy can be reached by zooming to it, and
+  Boss confirms it by retest. Owner: the design thread first (report),
+  then Core 2 (maps).
+  Prerequisites: none. Related: MAP.146, MAP.249, MAP.209, MAP.210.
 
 
 ## NAV: Navigation and courses
@@ -4771,54 +4845,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator relayed;
   docs/design/unified-system-barycentre.md): see the note on GEN.315
   (heaviest first at every node, no new copy of the swap).
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
-- [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
-  Step 11 (design note 11 item 11; small). `MAX_STARS` (default 12) and
-  a `--stars N` directive so a user may force N members or raise the
-  cap, and a prevalence knob for the N of 5 or more columns, as GEN.129
-  already has. Done: the setting and the directive exist and a forced N
-  is honoured or refused with the reason. Owner: Core (2026-10-15). Boss
-  (2026-10-15 5:51 PM EDT): stellar companions of stars and star-like
-  objects, including neutron star and black hole pairs, are generated at
-  scatter time because they matter for gravity; planets, moons and belts
-  stay at sector fill. Defaults taken (reversible): compact pairs
-  promoted to the scatter, black hole companion fraction 1.25%, cap 12
-  stars (7 before the 6:08 PM EDT catalogue), hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the default cap
-  is 12, not 7 (ten candidate systems with multiplicity up to 12; theory
-  allows several hundred; the 1.1e6 to 1.1e2 systems of N = 8 to 12 in
-  the default galaxy are in the tail table). A directive may still raise
-  it.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
-  after Core 3 merges UX.116 (Generate page)).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the owner stays Core
-  4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
-  owner lines are deleted.
-  Scope decision (TODO thread, 1:05 PM EDT 2026-10-23, from Core 4's
-  question relayed 1:10 PM EDT as the lane reported; reversible by
-  Boss): nothing in the generator calls multistar.draw_member_tree with
-  a user's config yet, because StarSystem builds only a single star or a
-  pair until GEN.630 (Core 3, the N-star StarSystem host) and GEN.631
-  (stages D and G call the tree) merge. So Core 4 builds the half that
-  does not touch StarSystem: the MAX_STARS setting, the --stars N
-  directive, the Generate page field, the prevalence knob for 5 or more
-  stars, and the refusals with their reasons ('N is above the cap of
-  12', 'N of 3 or more needs a tree, not --binary'), carried in the
-  config and the plan where the StarSystem host of GEN.630 will read
-  them. The 'honoured' half (a single-system generate building the
-  forced tree) lands with GEN.630 and GEN.631 and is checked when the
-  later of the two merges; Core 3 is told to read the forced N and the
-  cap from this config. Done for this item: the setting, the directive,
-  the field, the knob and the refusals exist and are tested; a forced N
-  is refused with the reason where it is invalid and passed to the
-  StarSystem host.
-  Prerequisites: none. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -14371,6 +14397,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   binaries about 0.75 and 0.60, mean 1.38 stars per system). Takes an
   epoch at merge. The deletion of the pair classes is the new item
   GEN.640 after GEN.332.
+  Note from GEN.267 (Core 4, merged as #2704, about 5:30 PM EDT
+  2026-10-23 as the lane reported, schema v134, no epoch): the
+  star-count settings now exist and StarSystem does not read them yet,
+  so the honoured half is this item's. SystemConfig.STARS and MAX_STARS
+  (default cap 12) are in the config JSON, the plan arguments and
+  system_configs (stars, max_stars, prevalence_multi_star); the refusals
+  are in the CLI (a count under 1, over the cap, over 64, --stars 1 with
+  +binary_system or +wide_binary, 2 or more stars with -binary_system).
+  The prevalence feature multi_star (usual share 0.45 percent of
+  systems) comes with prevalence.multi_star_scale(config), which this
+  item passes to draw_member_tree(prevalence=...). Open stand-ins for
+  the registry: the ceiling of 64 (tuning.MAX_STARS_CEILING) and the
+  0.45 percent usual share (remeasure from generated systems once the
+  host builds five stars).
   Prerequisites: none. Related: GEN.316, GEN.315, GEN.264, GEN.581.
 
 - [ ] **GEN.632 Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function**
@@ -17619,6 +17659,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.8. Related: API.3.
+
+- [ ] **ADM.128 The admin one-off system page and the API schema offer the star count and the cap (stars and max_stars)**
+  Follow-up to GEN.267 (Core 4, #2704, offered at 5:31 PM EDT 2026-10-23
+  as the lane reported; filed by the TODO thread): the star count
+  settings exist on the command line, in system files and on the
+  Generate page (a field for the cap), but the admin one-off system page
+  and the API schema do not offer stars or max_stars. Do: add the star
+  count and the cap to the one-off system page and to the API schema for
+  system generation, with the same refusals as the command line (a count
+  under 1, over the cap, over 64, one star with a binary feature, two or
+  more stars with binary_system off), and tests for each refusal. Done:
+  both surfaces accept stars and max_stars, refuse the same cases with
+  the same words, and a test covers each. Owner: Core 4 (it built the
+  settings; after GEN.631 reads them, so the page can be tried end to
+  end).
+  Prerequisites: GEN.631. Related: GEN.267, UX.125.
 
 ## SEC: Security
 
