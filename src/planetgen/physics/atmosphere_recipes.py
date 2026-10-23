@@ -341,7 +341,7 @@ class Entry:
         status (str): SOURCED, DERIVED or DESIGN as the part has it.
         state (str): The source state in the loader's words (`possibility_table.STATES`).
         limit (str): For a partly verified row, its limit.
-        replacement (str): For a stand-in, the research item that replaces it.
+        replacement (str): For a stand-in, the builder item (GEN.509 to GEN.525, GEN.595) that replaces it.
         research (tuple): For an open row, its research ids (R1 to R15).
         items (tuple): The TODO items that replace it (GEN.480 to GEN.494 for an open row).
         classes (tuple): The class gate.

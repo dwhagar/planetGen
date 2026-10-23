@@ -182,6 +182,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.504, lane M, 2026-10-23):** the selection model `kepler-recovery` (`planetgen/physics/kepler_recovery.py`, `docs/design/kepler-recovery.md`): the chance the Kepler pipeline would have recovered a transiting planet, from the geometry of a circular orbit, the multiple event statistic against the host's noise (the host's Kepler magnitude and radius give a noise level) and a recovery curve fitted to the 146,257 DR25 on-target injections (`scripts/fit_kepler_recovery.py`). It reproduces the injections' recovered count to 0.02 percent with the stars' own noise and to 5.4 percent with a modelled noise level. It is the detection step only (no vetting) and holds for periods 0.5 to 500 days.
 
+**Dispositions (GEN.480 to GEN.494, GEN.501, lane M, 2026-10-23):** the 43 atmosphere rows that were `open` are now partly verified or labelled stand-ins that name the builder above; the row-by-row table is `docs/design/weight-research-dispositions.md`.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

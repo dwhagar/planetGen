@@ -235,16 +235,16 @@
     "R3"
    ],
    "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005",
+   "replacement": "GEN.513",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.482"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -291,12 +291,12 @@
     "R3"
    ],
    "notes": "far above meteoritic building blocks (part 05 s3.2) A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482.",
-   "replacement": "GEN.482",
+   "replacement": "GEN.513",
    "labels": [],
    "state": "stand-in",
    "limit": "",
    "items": [
-    "GEN.482"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -348,12 +348,10 @@
     "READ",
     "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1 (GEN.513 tunes it)",
    "replacement": "",
-   "items": [
-    "GEN.482"
-   ],
+   "items": [],
    "classes": [
     "asteroid",
     "C",
@@ -385,12 +383,10 @@
     "READ",
     "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample; GEN.513 tunes it with the detection and settling model",
    "replacement": "",
-   "items": [
-    "GEN.489"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -564,16 +560,16 @@
     "R2"
    ],
    "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -614,15 +610,15 @@
     "R2"
    ],
    "notes": "stored in mantle 0.015 and 0.0022 wt%",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -663,15 +659,15 @@
     "R2"
    ],
    "notes": "stored 0.045 and 0.005 wt%; D_H2O 0.01",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -713,16 +709,15 @@
     "R1"
    ],
    "notes": "feeds e3, e4",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481",
-    "GEN.480"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -769,15 +764,15 @@
     "R2"
    ],
    "notes": "bins low/high 50/50",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -826,12 +821,12 @@
     "R2"
    ],
    "notes": "Earth oceans 2.3e-4",
+   "replacement": "GEN.510",
    "labels": [],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "C",
@@ -1388,14 +1383,14 @@
     "R4"
    ],
    "notes": "",
+   "replacement": "GEN.511",
    "labels": [
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.483"
+    "GEN.511"
    ],
    "classes": [
     "A",
@@ -1552,12 +1547,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)",
    "replacement": "",
-   "items": [
-    "GEN.480"
-   ],
+   "items": [],
    "classes": [
     "S",
     "V",
@@ -1590,12 +1583,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)",
    "replacement": "",
-   "items": [
-    "GEN.480"
-   ],
+   "items": [],
    "classes": [
     "S",
     "V",
@@ -1629,12 +1620,10 @@
     "READ",
     "NOT REACHED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists (GEN.509)",
    "replacement": "",
-   "items": [
-    "GEN.480"
-   ],
+   "items": [],
    "classes": [
     "S",
     "V",
@@ -1906,12 +1895,10 @@
     "READ",
     "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "stellar C/O is measured (N=849); the planet tail is 6 of 69 (LExACoM) with a 0.2 to 0.3 method systematic (GEN.516)",
    "replacement": "",
-   "items": [
-    "GEN.484"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -1998,12 +1985,10 @@
    "labels": [
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "type is a function of Teff with published scatter (Kirkpatrick 2021); the lower age edge is a design choice (GEN.517)",
    "replacement": "",
-   "items": [
-    "GEN.494"
-   ],
+   "items": [],
    "classes": [
     "brown-dwarf"
    ],
@@ -2079,12 +2064,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "type is a function of Teff with published scatter (Kirkpatrick 2021); the 500 to 700 K edge is a design choice (GEN.517)",
    "replacement": "",
-   "items": [
-    "GEN.494"
-   ],
+   "items": [],
    "classes": [
     "brown-dwarf"
    ],
@@ -2184,12 +2167,12 @@
     "R6"
    ],
    "notes": "",
+   "replacement": "GEN.518",
    "labels": [],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.485"
+    "GEN.518"
    ],
    "classes": [
     "I",
@@ -2218,15 +2201,15 @@
     "R6"
    ],
    "notes": "no mole fractions without FastChem or GGchem",
+   "replacement": "GEN.518",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.485"
+    "GEN.518"
    ],
    "classes": [
     "I",
@@ -2259,12 +2242,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "a Ti threshold between 2350 and 2640 K from N=3 to 6 planets; no population measures Kzz (GEN.519)",
    "replacement": "",
-   "items": [
-    "GEN.485"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -2498,12 +2479,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2, Beta interval 0.29 to 0.99; GEN.511)",
    "replacement": "",
-   "items": [
-    "GEN.486"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -2550,12 +2529,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual in [0, 1] (GEN.511)",
    "replacement": "",
-   "items": [
-    "GEN.487"
-   ],
+   "items": [],
    "classes": [
     "N",
     "V",
@@ -2713,15 +2690,15 @@
     "R8"
    ],
    "notes": "",
+   "replacement": "GEN.511",
    "labels": [
     "READ",
     "2ND-HAND"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.487"
+    "GEN.511"
    ],
    "classes": [
     "Z"
@@ -2761,14 +2738,14 @@
     "R9"
    ],
    "notes": "",
+   "replacement": "GEN.520",
    "labels": [
     "SNIPPET"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.488"
+    "GEN.520"
    ],
    "classes": [
     "comet",
@@ -2791,14 +2768,14 @@
     "R9"
    ],
    "notes": "Hale-Bopp CO 23 %, Hyakutake 18.2 % of H2O (READ)",
+   "replacement": "GEN.520",
    "labels": [
     "SNIPPET"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.488"
+    "GEN.520"
    ],
    "classes": [
     "comet",
@@ -2821,14 +2798,14 @@
     "R9"
    ],
    "notes": "the three weights sum to 0.93; normalised",
+   "replacement": "GEN.520",
    "labels": [
     "SNIPPET"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.488"
+    "GEN.520"
    ],
    "classes": [
     "comet",
@@ -2851,15 +2828,15 @@
     "R9"
    ],
    "notes": "",
+   "replacement": "GEN.520",
    "labels": [
     "READ",
     "SNIPPET"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.488"
+    "GEN.520"
    ],
    "classes": [
     "comet",
@@ -2891,15 +2868,15 @@
     "R9"
    ],
    "notes": "",
+   "replacement": "GEN.520",
    "labels": [
     "READ",
     "SNIPPET"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.488"
+    "GEN.520"
    ],
    "classes": [
     "comet",
@@ -2971,14 +2948,14 @@
     "R9"
    ],
    "notes": "O2 presence probability unsourced Built from one measured comet (67P, Rubin 2019): a flagged stand-in until GEN.488. Ne is only an upper limit (below 5e-8) and is not drawn.",
-   "replacement": "GEN.488",
+   "replacement": "GEN.520",
    "labels": [
     "READ"
    ],
    "state": "stand-in",
    "limit": "",
    "items": [
-    "GEN.488"
+    "GEN.520"
    ],
    "classes": [
     "comet",
@@ -3067,15 +3044,15 @@
     "R10"
    ],
    "notes": "composition via a4",
+   "replacement": "GEN.513",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.489"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -3124,12 +3101,12 @@
     "R10"
    ],
    "notes": "fallback row",
+   "replacement": "GEN.513",
    "labels": [],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.489"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -3175,14 +3152,14 @@
     "R10"
    ],
    "notes": "composition via tables f and g",
+   "replacement": "GEN.513",
    "labels": [
     "NOT REACHED"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.489"
+    "GEN.513"
    ],
    "classes": [
     "I",
@@ -3259,15 +3236,15 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.524",
    "labels": [
     "READ",
     "2ND-HAND"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.524"
    ],
    "classes": [
     "A",
@@ -3313,14 +3290,14 @@
     "R11"
    ],
    "notes": "longer lifetime around M dwarfs",
+   "replacement": "GEN.525",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.525"
    ],
    "classes": [
     "A",
@@ -3361,14 +3338,14 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.525",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.525"
    ],
    "classes": [
     "A",
@@ -3409,14 +3386,14 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.524",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.524"
    ],
    "classes": [
     "A",
@@ -3470,14 +3447,14 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.524",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.524"
    ],
    "classes": [
     "A",
@@ -3683,14 +3660,14 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.525",
    "labels": [
     "NOT REACHED"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.525"
    ],
    "classes": [
     "A",
@@ -3972,12 +3949,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "A_H against Teq is measured (Fu 2017, N=34); the crossover Teq is a model output, not a measurement (GEN.519)",
    "replacement": "",
-   "items": [
-    "GEN.491"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -4004,14 +3979,14 @@
     "R12"
    ],
    "notes": "near zero for carbon-free gas, lower in H2 gas",
+   "replacement": "GEN.519",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.491"
+    "GEN.519"
    ],
    "classes": [
     "A",
@@ -4195,12 +4170,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "thin and thick disc [Th/Mg] from Hypatia (N=215, 32); halo, young and M hosts have no data (GEN.514)",
    "replacement": "",
-   "items": [
-    "GEN.492"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -4245,15 +4218,15 @@
     "R13"
    ],
    "notes": "",
+   "replacement": "GEN.514",
    "labels": [
     "READ",
     "NOT REACHED"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.492"
+    "GEN.514"
    ],
    "classes": [
     "A",
@@ -4294,15 +4267,15 @@
     "R13"
    ],
    "notes": "",
+   "replacement": "GEN.514",
    "labels": [
     "READ",
     "NOT REACHED"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.492"
+    "GEN.514"
    ],
    "classes": [
     "A",
@@ -4389,12 +4362,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution (GEN.514)",
    "replacement": "",
-   "items": [
-    "GEN.492"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -4614,12 +4585,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "percentile tracks of Tu 2015 (READ); the 0.25/0.5/0.25 weights are replaced by a uniform percentile (GEN.523)",
    "replacement": "",
-   "items": [
-    "GEN.493"
-   ],
+   "items": [],
    "classes": [
     "*"
    ],

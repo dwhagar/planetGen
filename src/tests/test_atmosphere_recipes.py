@@ -100,28 +100,33 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 36, "partly verified": 23, "open": 43, "stand-in": 2}
+    assert RECIPES.state_counts() == {"verified": 36, "partly verified": 38, "open": 0, "stand-in": 30}
 
 
-def test_the_open_rows_name_the_research_item_that_replaces_them_gen_480_to_494():
+def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
+    """The research found no measurement for some rows: they ship as labelled stand-ins that name their builder."""
     assert RECIPES.research == {f"R{n}": f"GEN.{479 + n}" for n in range(1, 16)}
-    for entry, research, items in RECIPES.open_rows():
-        assert items == tuple(RECIPES.research[r] for r in research), entry.id
-    waiting = {item for _e, _r, items in RECIPES.open_rows() for item in items}
-    waiting |= {e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert waiting == {f"GEN.{n}" for n in range(480, 495)}, "every research item replaces at least one row"
+    assert RECIPES.open_rows() == [], "no row waits on research any more"
+    researched = {r for entry in RECIPES.entries for r in entry.research}
+    assert researched == set(RECIPES.research), "every research item concerns at least one row"
+    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595"}
+    for entry in RECIPES.entries:
+        if entry.state == pt.STAND_IN:
+            assert entry.replacement in builders, (entry.id, entry.replacement)
 
 
-def test_the_stand_ins_are_the_rows_built_from_measured_solar_system_bodies():
+def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert stand_ins == {"a2": "GEN.482", "k7": "GEN.488"}
+    assert stand_ins["a2"] == "GEN.513" and stand_ins["k7"] == "GEN.520"
+    assert {"a1", "b5", "k1", "m3", "m4", "n7", "o3"} <= set(stand_ins)
+    assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 
 
-def test_the_registered_tables_report_the_open_rows_and_stand_ins():
+def test_the_registered_tables_report_the_stand_ins_and_limits():
     report = pt.REGISTRY.report()
     assert "atmosphere-a (version 1)" in report
-    assert "atmosphere-b: b1 " in report                      # an open row of table b
-    assert "atmosphere-a: a2 " in report and "replaced by GEN.482" in report
+    assert "atmosphere-b: b1 " in report                      # a stand-in row of table b
+    assert "atmosphere-a: a2 " in report and "replaced by GEN.513" in report
     assert "limit:" in report
 
 

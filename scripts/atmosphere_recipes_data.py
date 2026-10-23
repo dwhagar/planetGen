@@ -76,20 +76,20 @@ _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
 MACHINE = {
     # ---- a. mantle redox ----
-    "a1": dict(kind="param", classes=ROCKY, when=[c("mass_earth", minimum=0.01)], sets="redox_diw",
+    "a1": dict(state="stand-in", replacement="GEN.513", kind="param", classes=ROCKY, when=[c("mass_earth", minimum=0.01)], sets="redox_diw",
                dist={"kind": "normal", "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5)", "sigma": 0.5}),
     "a2": dict(kind="param", classes=AIR, when=[c("long_lived_geology", equals=True)], sets="redox_diw_later",
-               state="stand-in", replacement="GEN.482",
+               state="stand-in", replacement="GEN.513",
                dist={"kind": "normal", "mu": "3.5 + 2*log10(mass_earth)", "sigma": 1.0, "range": [-6, 6]},
                correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482."),
-    "a3": dict(kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
+    "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1 (GEN.513 tunes it)", kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.26, "sigma": 0.45},
                source="22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, "
                       "via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic "
                       "bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the uniform U[-1.4, 0] has its mean 0.55 dex above the "
                           "white dwarf ensemble; the core-formation scale differs from the surface magma-ocean scale of a1."),
-    "a4": dict(kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw", tunable=True,
+    "a4": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample; GEN.513 tunes it with the detection and settling model", kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.45},
                source="22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 (Doyle 2020, "
                       "Doyle 2023; READ, COMPUTED)",
@@ -100,17 +100,17 @@ MACHINE = {
     "a7": dict(kind="option", group="a", classes=ROCKY, weight="phi((redox_diw - 2.5)/0.5)"),
 
     # ---- b. delivered volatile inventory ----
-    "b1": dict(kind="option", group="b", classes=ROCKY, weight="(1 - s)**2",
+    "b1": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="(1 - s)**2",
                lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b2": dict(kind="option", group="b", classes=ROCKY, weight="2*s*(1 - s)",
+    "b2": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="2*s*(1 - s)",
                lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b3": dict(kind="option", group="b", classes=ROCKY, weight="s**2",
+    "b3": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="s**2",
                lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b4": dict(kind="option", group="b", classes=ROCKY + ["I"], when=[c("snow_ratio", minimum=1.0)],
+    "b4": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY + ["I"], when=[c("snow_ratio", minimum=1.0)],
                weight="c_b4*s**3", lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b5": dict(kind="param", classes=ROCKY, when=[drawn("b", "b2", "b3")],
+    "b5": dict(state="stand-in", replacement="GEN.510", kind="param", classes=ROCKY, when=[drawn("b", "b2", "b3")],
                dist={"kind": "loguniform", "lo": 5e-4, "hi": 5e-3}),
-    "b6": dict(kind="binary", classes=["C", "D", "S", "I"], when=[c("zone", equals="r")],
+    "b6": dict(state="stand-in", replacement="GEN.510", kind="binary", classes=["C", "D", "S", "I"], when=[c("zone", equals="r")],
                weight="0.8 if body_class == 'I' else 0.35",
                dist={"kind": "loguniform", "lo": 1e-4, "hi": 0.1}),
 
@@ -150,7 +150,7 @@ MACHINE = {
     "d5": dict(kind="option", group="d", classes=ROCKY + ["asteroid"], lets=_SHORE,
                weight="p_atm*window(delta, None, -1.4, 0.247)",
                source="same as d2"),
-    "d6": dict(kind="derived", classes=ROCKY + ["asteroid"], table_of="d",
+    "d6": dict(state="stand-in", replacement="GEN.511", kind="derived", classes=ROCKY + ["asteroid"], table_of="d",
                table={"d1": 0.0, "d2": 1e-5, "d3": 0.01, "d4": 0.1, "d5": None}),
     "d7": dict(kind="flag", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
                weight="1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"),
@@ -161,11 +161,11 @@ MACHINE = {
     "e2": dict(kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*(1 - min(1, f_lost/f_env0))",
                lets={"f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"}),
-    "e3": dict(kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "e3": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*(1 - eta)"),
-    "e4": dict(kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "e4": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*eta"),
-    "e5": dict(kind="param", classes=["S", "V", "I", "T"], when=[drawn("e", "e2")],
+    "e5": dict(state="partly verified", limit="bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists (GEN.509)", kind="param", classes=["S", "V", "I", "T"], when=[drawn("e", "e2")],
                dist={"kind": "loguniform", "lo": 0.01, "hi": 0.6}, bins=[0.01, 0.03, 0.1, 0.3, 0.6],
                values={"mean_molecular_weight": "2.4 + 3.1*log10(value/0.01)/log10(58)"}),
     "e6": dict(kind="binary", classes=["S", "V", "I", "T"], when=[drawn("e", "e2")], weight="phi((500 - teq_k)/100)"),
@@ -180,7 +180,7 @@ MACHINE = {
                dist={"kind": "normal", "log10": True, "mu": "log10(9.7*mass_jupiter**-0.45)", "sigma": 0.3,
                      "range": [-0.5, 2.0]}),
     "f6": dict(kind="bins", classes=GIANT, of="f5", bins=["10**-0.5", 1, "10**0.5", 10, "10**1.5", 100]),
-    "f7": dict(kind="param", classes=GIANT + BD, sets="c_to_o", constants={"f_tail": [0.043, 0.087, "log"]},
+    "f7": dict(state="partly verified", limit="stellar C/O is measured (N=849); the planet tail is 6 of 69 (LExACoM) with a 0.2 to 0.3 method systematic (GEN.516)", kind="param", classes=GIANT + BD, sets="c_to_o", constants={"f_tail": [0.043, 0.087, "log"]},
                dist={"kind": "mixture", "weight": "f_tail",
                      "core": {"kind": "normal", "log10": True, "mu": "log10(0.57)", "sigma": 0.15,
                               "range": ["log10(0.2)", "log10(0.8)"]},
@@ -197,21 +197,21 @@ MACHINE = {
                weight="phi((1100 - teff_k)/100) if body_class == 'brown-dwarf' else phi((500 - teq_k)/100)"),
 
     # ---- g. brown dwarfs ----
-    "g1": dict(kind="option", group="g", classes=BD, weight="window(teff_k, 2200, 2800, 100)"),
+    "g1": dict(state="partly verified", limit="type is a function of Teff with published scatter (Kirkpatrick 2021); the lower age edge is a design choice (GEN.517)", kind="option", group="g", classes=BD, weight="window(teff_k, 2200, 2800, 100)"),
     "g2": dict(kind="option", group="g", classes=BD, weight="window(teff_k, 1300, 2200, 100)"),
     "g3": dict(kind="option", group="g", classes=BD, weight="window(teff_k, 700, 1300, 100)"),
-    "g4": dict(kind="option", group="g", classes=BD, weight="window(teff_k, 500, 700, 100)"),
+    "g4": dict(state="partly verified", limit="type is a function of Teff with published scatter (Kirkpatrick 2021); the 500 to 700 K edge is a design choice (GEN.517)", kind="option", group="g", classes=BD, weight="window(teff_k, 500, 700, 100)"),
     "g5": dict(kind="option", group="g", classes=BD, weight="window(teff_k, None, 500, 100)"),
     "g6": dict(kind="binary", classes=BD, weight="phi((1100 - teff_k)/100)"),
 
     # ---- h. hot Jupiters ----
     "h1": dict(kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
                weight="window(tday_k, None, 1500, 100)"),
-    "h2": dict(kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
+    "h2": dict(state="stand-in", replacement="GEN.518", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
                weight="window(tday_k, 1500, 2200, 100)"),
-    "h3": dict(kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
+    "h3": dict(state="stand-in", replacement="GEN.518", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
                weight="window(tday_k, 2200, None, 100)"),
-    "h4": dict(kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
+    "h4": dict(state="partly verified", limit="a Ti threshold between 2350 and 2640 K from N=3 to 6 planets; no population measures Kzz (GEN.519)", kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
                weight="clamp((11 - (7.48 + 3.52*(log10(grain_um) + 1)/2))/4, 0, 1)"),
     "h5": dict(kind="binary", classes=GIANT, when=[c("zone", equals="h")], weight="pdist('f7', 1.0, None)"),
 
@@ -221,12 +221,12 @@ MACHINE = {
     "i3": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 2588, 2890, 60)"),
     "i4": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 2890, 3168, 60)"),
     "i5": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 3168, None, 60)"),
-    "i6": dict(kind="binary", classes=LAVA, when=[c("zone", equals="h"), c("mass_earth", minimum=1, maximum=10)],
+    "i6": dict(state="partly verified", limit="2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2, Beta interval 0.29 to 0.99; GEN.511)", kind="binary", classes=LAVA, when=[c("zone", equals="h"), c("mass_earth", minimum=1, maximum=10)],
                constants={"c_i6": [0.1, 0.9, "log"]}, weight="c_i6",
                values={"p_eq_bar": "10**(-34.7*exp(-0.00112*tp_k))"}),
 
     # ---- j. frost-equilibrium and evolved atmospheres ----
-    "j1": dict(kind="option", group="j", classes=["N", "V", "A", "S"],
+    "j1": dict(state="partly verified", limit="the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual in [0, 1] (GEN.511)", kind="option", group="j", classes=["N", "V", "A", "S"],
                when=[c("redox_diw", minimum=1), c("water_lost", equals=True), c("runaway_ratio", minimum=1.0)],
                weight="c_j1"),
     "j2": dict(kind="option", group="j", classes=["K", "L", "U"],
@@ -242,27 +242,27 @@ MACHINE = {
     "j4": dict(kind="option", group="j", classes=["C", "D", "U"], when=[drawn("d", "d4", "d5")],
                weight="window(ts_k, 30, 67, 5)", state="derived",
                correction="Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it."),
-    "j5": dict(kind="option", group="j", classes=["Z"],
+    "j5": dict(state="stand-in", replacement="GEN.511", kind="option", group="j", classes=["Z"],
                when=[c("host_type", equals="M"), c("age_gy", minimum=1), c("mass_earth", minimum=0.3, maximum=5),
                      c("zone", equals="e")],
                weight="c_j5"),
 
     # ---- k. comets ----
-    "k1": dict(kind="option", group="k", classes=["comet", "asteroid"], weight=
+    "k1": dict(state="stand-in", replacement="GEN.520", kind="option", group="k", classes=["comet", "asteroid"], weight=
                "0.5 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
-    "k2": dict(kind="option", group="k", classes=["comet", "asteroid"], weight=
+    "k2": dict(state="stand-in", replacement="GEN.520", kind="option", group="k", classes=["comet", "asteroid"], weight=
                "1/3 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
-    "k3": dict(kind="option", group="k", classes=["comet", "asteroid"], weight=
+    "k3": dict(state="stand-in", replacement="GEN.520", kind="option", group="k", classes=["comet", "asteroid"], weight=
                "0.1 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
-    "k4": dict(kind="param", classes=["comet", "asteroid"], bins=[0.03, 0.1, 0.3],
+    "k4": dict(state="stand-in", replacement="GEN.520", kind="param", classes=["comet", "asteroid"], bins=[0.03, 0.1, 0.3],
                dist={"kind": "normal", "log10": True, "mu": "log10(0.12)", "sigma": 0.5}),
-    "k5": dict(kind="param", classes=["comet", "asteroid"],
+    "k5": dict(state="stand-in", replacement="GEN.520", kind="param", classes=["comet", "asteroid"],
                dist={"kind": "normal", "log10": True, "mu": "log10(0.03)", "sigma": 0.6, "range": ["log10(0.005)", "log10(0.23)"]}),
     "k6": dict(kind="param", classes=["comet", "asteroid"],
                dists={"CH3OH": {"kind": "loguniform", "lo": 0.002, "hi": 0.026},
                       "NH3": {"kind": "loguniform", "lo": 0.001, "hi": 0.0073},
                       "HCN": {"kind": "loguniform", "lo": 0.0009, "hi": 0.0029}}),
-    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.488",
+    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.520",
                dists={name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": 0.6}
                       for name, v in (("CH4", 3.4e-3), ("C2H6", 2.9e-3), ("H2CO", 3.2e-3), ("H2S", 1.1e-2), ("N2", 8.9e-4),
                                       ("O2", 3.1e-2), ("OCS", 4.1e-4), ("SO2", 1.3e-3), ("Ar", 5.8e-6), ("Kr", 4.9e-7),
@@ -271,31 +271,31 @@ MACHINE = {
                           "upper limit (below 5e-8) and is not drawn."),
 
     # ---- l. white-dwarf and pulsar planets ----
-    "l1": dict(kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
+    "l1": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
                weight="phi((-34.7*exp(-0.00112*ts_k) + 6)/0.5)",
                values={"p_eq_bar": "10**(-34.7*exp(-0.00112*ts_k))"}),
-    "l2": dict(kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
+    "l2": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
                weight="1 - w('l1')"),
-    "l3": dict(kind="option", group="l", classes=GIANT, when=[c("host_type", equals="WD")], weight="c_l3"),
+    "l3": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=GIANT, when=[c("host_type", equals="WD")], weight="c_l3"),
 
     # ---- m. trace gases ----
     "m1": dict(kind="binary", classes=AIR, when=[c("o2_pal", minimum=1e-3)], weight=1,
                dist={"kind": "loguniform", "lo": 192, "hi": 279}),
-    "m2": dict(kind="binary", classes=AIR, when=[c("o2_pal", maximum=1e-3)], constants={"c_m2": [0.1, 0.6, "log"]},
+    "m2": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=AIR, when=[c("o2_pal", maximum=1e-3)], constants={"c_m2": [0.1, 0.6, "log"]},
                weight="c_m2 if (co2_rich and h2_poor and host_type in ('M', 'K')) else 0"),
-    "m3": dict(kind="binary", classes=AIR, constants={"c_m3": [0.05, 0.5, "log"]},
+    "m3": dict(state="stand-in", replacement="GEN.525", kind="binary", classes=AIR, constants={"c_m3": [0.05, 0.5, "log"]},
                weight="c_m3 if (life_chemical or sep_reducing) else 0"),
-    "m4": dict(kind="binary", classes=AIR, constants={"c_m4": [0.0, 0.05, "uniform"]}, weight="c_m4"),
-    "m5": dict(kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
+    "m4": dict(state="stand-in", replacement="GEN.525", kind="binary", classes=AIR, constants={"c_m4": [0.0, 0.05, "uniform"]}, weight="c_m4"),
+    "m5": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
                constants={"c_m5": [0.1, 0.5, "log"]}, weight="c_m5"),
-    "m6": dict(kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
+    "m6": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
                constants={"c_m6": [0.1, 0.5, "log"]}, weight="c_m6"),
     "m7": dict(kind="binary", classes=GIANT + BD + LAVA, weight="phi((t_layer_k - 962)/33)"),
     "m8": dict(kind="binary", classes=GIANT + BD + LAVA, weight="phi((t_layer_k - 775)/26)"),
     "m9": dict(kind="derived", classes=AIR + GIANT + BD, when=[c("gas_has_co_h2s", equals=True)],
                values={"log10_k_eq": "-1.477 + 4/t_layer_k", "k_eq": "10**(-1.477 + 4/t_layer_k)"}),
     "m10": dict(kind="binary", classes=AIR, when=[c("has_solid_ground", equals=True)], weight=1),
-    "m11": dict(kind="binary", classes=AIR, constants={"c_m11": [0.0, 0.3, "uniform"]},
+    "m11": dict(state="stand-in", replacement="GEN.525", kind="binary", classes=AIR, constants={"c_m11": [0.0, 0.3, "uniform"]},
                 weight="c_m11 if (life_chemical or lightning) else 0"),
 
     # ---- n. clouds, hazes and dust ----
@@ -308,8 +308,8 @@ MACHINE = {
     "n5": dict(kind="windows", classes=GIANT + ["K", "Y", "D", "comet"],
                windows=[["CO2 ice", 114, 195], ["NH3 ice", 135, 179], ["CH4 ice", 53, 90], ["N2 ice", 31, 62],
                         ["CO ice", 34, 66]]),
-    "n6": dict(kind="binary", classes=GIANT + BD + LAVA, weight="phi((teq_k - 950)/100)"),
-    "n7": dict(kind="binary", classes=AIR + GIANT + BD, when=[c("carbon_bearing", equals=True)],
+    "n6": dict(state="partly verified", limit="A_H against Teq is measured (Fu 2017, N=34); the crossover Teq is a model output, not a measurement (GEN.519)", kind="binary", classes=GIANT + BD + LAVA, weight="phi((teq_k - 950)/100)"),
+    "n7": dict(state="stand-in", replacement="GEN.519", kind="binary", classes=AIR + GIANT + BD, when=[c("carbon_bearing", equals=True)],
                constants={"y": [0.01, 1.0, "log"]}, weight="(1 - w('n6'))*y"),
     "n8": dict(kind="binary", classes=AIR, weight="1 if u_star > u_star_threshold else 0"),
     "n9": dict(kind="binary", classes=AIR, weight="1 if sulfur_flux_earth >= (1 if h2_air else 100) else 0"),
@@ -317,14 +317,14 @@ MACHINE = {
     # ---- o. ground radioisotopes ----
     "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=True)], bins=[0.7, 1.4],
                dist={"kind": "normal", "log10": True, "mu": 0.08, "sigma": 0.058}),
-    "o2": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)],
+    "o2": dict(state="partly verified", limit="thin and thick disc [Th/Mg] from Hypatia (N=215, 32); halo, young and M hosts have no data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)],
                dist={"kind": "loguniform", "lo": "10**-0.23", "hi": "10**0.40"}),
-    "o3": dict(kind="param", classes=ROCKY, dist={"kind": "loguniform", "lo": 8.9e3, "hi": 1.4e4}),
-    "o4": dict(kind="param", classes=ROCKY, dist={"kind": "uniform", "lo": 3.8, "hi": 4.5}),
+    "o3": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "loguniform", "lo": 8.9e3, "hi": 1.4e4}),
+    "o4": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "uniform", "lo": 3.8, "hi": 4.5}),
     "o5": dict(kind="derived", classes=ROCKY,
                values={"heating_ratio": "0.384*exp(0.693147/4.468*(4.5 - age_gy)) + 0.016*exp(0.693147/0.7038*(4.5 - age_gy))"
                                         " + 0.402*exp(0.693147/14.05*(4.5 - age_gy)) + 0.193*exp(0.693147/1.248*(4.5 - age_gy))"}),
-    "o6": dict(kind="binary", classes=ROCKY, when=[c("planetesimals_early", equals=True)],
+    "o6": dict(state="partly verified", limit="the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution (GEN.514)", kind="binary", classes=ROCKY, when=[c("planetesimals_early", equals=True)],
                constants={"c_o6": [0.1, 1.0, "log"]}, weight="c_o6"),
 
     # ---- p. host-star UV regime ----
@@ -344,7 +344,7 @@ MACHINE = {
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(kind="choice", classes=ANY, when=[drawn("p", "p4", "p5")],
+    "p6": dict(state="partly verified", limit="percentile tracks of Tu 2015 (READ); the 0.25/0.5/0.25 weights are replaced by a uniform percentile (GEN.523)", kind="choice", classes=ANY, when=[drawn("p", "p4", "p5")],
                options={"slow": {"weight": 0.25, "percentile": 10, "t_sat_myr": 5.7},
                         "median": {"weight": 0.5, "percentile": 50, "t_sat_myr": 23},
                         "fast": {"weight": 0.25, "percentile": 90, "t_sat_myr": 226}}),
