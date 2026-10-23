@@ -321,34 +321,35 @@ gets 0.
 | Earth, all natural | 2.4 mSv/yr (radon 1.26, cosmic 0.39, ground gamma 0.48, ingestion 0.29); about 3.0 in newer UNSCEAR | UNSCEAR [S] |
 | ISS | 0.731 mSv/day (GCR only 0.523) | Chang'E-4 LND comparison [S] |
 | Moon surface | 1.369 mSv/day (about 500 mSv/yr) | Chang'E-4 LND [S] |
-| Mars surface | 0.64 +/- 0.12 mSv/day dose equivalent; 0.21 +/- 0.04 mGy/day absorbed | MSL RAD, Hassler 2014 [S] |
-| Europa surface | about 5.4 Sv/day | [R]; searches found only depth profiles [S] |
+| Mars surface | 0.64 +/- 0.12 mSv/day dose equivalent; 0.21 +/- 0.04 mGy/day absorbed (GCR only, column about 21 g/cm2, ICRP 60 Q(L)) | MSL RAD, Hassler 2014 Tables 1 and 3, read (GEN.453) |
+| Europa surface | unsourced: the figure of about 5.4 Sv/day has no primary source and is not a surface value (the dose is 1e3 to 1e4 Gy/yr at 2 to 4 cm depth in ice; radiation-model.md section 10); no surface constant is used | [R]; searches found only depth profiles [S] |
 
 Mars is 230 mSv/yr (dose equivalent) = 0.077 Gy/yr (absorbed). Compare dose
 equivalent with human limits; the `L_rad` term uses absorbed dose in Gy.
 
 ### 4.2 The calculator
 
-1. **GCR against column X (g/cm2), no field, 2-pi surface:** log-log
-   interpolation through Moon (X 0, 1.37 mSv/day), Mars (16.4, 0.65), a
-   high-altitude point (100, 0.30 [R]), then exponential with attenuation
-   length 164 g/cm2 [R], fitted so sea level (1033) gives 0.37 mSv/yr against
-   0.39 observed. Floor the tail at 1e-3 of the sea-level value for X up to 1e5,
-   since muons penetrate kilometres of rock [R].
-2. **Magnetic effect on GCR:** global-average factor `1 - 0.4 * min(1,
-   log10(Rc0 / 1 GV) / log10(15))`, with cutoff rigidity `Rc0 = 14.9 GV *
-   (M_dip / 7.768e22) * (R_E / R_p)^3` [R]. An Earth dipole cuts GCR dose to
-   0.6, consistent with Atri 2017 and Griessmeier 2015 (removing the dipole
-   raises dose under 2x at 1 bar) [S via Rad]. The "two or three orders of
-   magnitude" Rad gives applies to solar particles, not GCR.
+1. **GCR against column X (g/cm2) (GEN.453, replaces the Moon to 164 g/cm2 curve of the first version):** `D = D0(X) f_B(M, X)
+   f_sol`. `D0` is the no-field curve through the proton-primary air showers of Atri 2013 (553, 263, 17.2, 3.02 and 0.65
+   mSv/yr at X of 100, 200, 500, 700 and 1036; log-log), a stand-in below 100 through the Moon (X 0, 500 mSv/yr) and Mars (X 21,
+   232 mSv/yr, Hassler 2014) until a shower run replaces it, and above 1036 the larger of the last slope and the Crouch muon
+   floor. The sea-level point is 0.34 mSv/yr (UNSCEAR 0.32) and the 10 km point 46 (aviation 47.9); the earlier curve was 1.5 to
+   2.7 times low from 100 to 1036 g/cm2.
+2. **Magnetic effect on GCR (GEN.453):** `f_B` is the ratio of the runs of Atri 2013 and Griessmeier 2016 with a dipole of M Earth
+   moments to those with none, at 100, 200, 500, 700 and 1036 g/cm2 (0.31, 0.37, 0.51, 0.61 and 0.52 for M = 1), log-linear in
+   M between the runs and in ln X between the columns; the flat 0.6 was right only near sea level. The field enters as the
+   equivalent moment `Rc0 / 14.34 GV`, with the Stormer cutoff `Rc0 = 14.34 GV (M_dip f_dip / 7.768e22) (R_E / R_p)^2` (moment
+   over radius squared; the cube was wrong, and 14.9 was 4 percent high). The runs reach 10 Earth moments and 100 to 1036 g/cm2;
+   outside them the nearest ratio is taken. `f_sol`, 0.5 to 1.64 of the mean (Mars), is a seeded draw. The "two or three
+   orders of magnitude" Rad gives applies to solar particles, not GCR.
 3. **Solar and stellar particles (SEP):** free-space annual dose = `20 mSv/yr *
    (N33 / N33_sun)^0.5 / d_AU^2` [R, design]; the square root keeps Proxima b
    from receiving hundreds of Sv/yr. Surface dose = free dose
    `* exp(-p_cut(X) / R0) * polar-cap fraction`. `p_cut` is the rigidity of the
-   proton whose range equals X (`R = 0.0022 E^1.77 g/cm2`, E in MeV, within
-   2 percent of Bethe-Bloch to 200 MeV [C]); `R0` = 0.2 GV is calibrated on the
+   proton whose CSDA range in air equals X (NIST PSTAR, `physics/proton_range.py`; the power law `R = 0.0022 E^1.77` was 5
+   times too long at 10 GeV); `R0` = 0.2 GV is calibrated on the
    1956 ground-level event [R]. Polar-cap fraction
-   `1 - sqrt(1 - sqrt(R_eff / Rc0))`, `R_eff = max(0.5 p_cut, 0.2 GV)` [R].
+   `1 - sqrt(1 - sqrt(R_eff / Rc0))`, `R_eff = max(0.5 p_cut, 0.2 GV)` [R]. GEN.444 replaces this with the Band spectrum.
 4. **Crust and radon:** `D_crust = 0.48 mSv/yr * a_rad * H(age) / H(4.5 Gyr)`,
    with `H` the radiogenic heating from `tuning.ROGUE_RADIOGENIC_ISOTOPES`
    (relative 3.5 at 0.5 Gyr, 1.9 at 2, 1.0 at 4.5, 0.51 at 10 [C]). Radon adds
@@ -370,13 +371,13 @@ already returns the radius; use R / R_open.
 
 | Case | GCR | SEP | Total |
 |---|---|---|---|
-| Earth sea level (crust and radon not added) | 0.22 | 2e-5 | 0.22 |
-| Mars surface, no field | 235 | 0.5 | 236 (0.65 mSv/day, matches MSL) |
+| Earth sea level (crust and radon not added) | 0.34 | 0 | 0.34 (GEN.453) |
+| Mars surface, no field | 232 | 0.5 | 232 (0.64 mSv/day, MSL) |
 | Moon surface | 500 | 20 | 520 |
-| 0.05 bar, Earth gravity, Earth dipole | 88 | 0.03 | 88 (Rad: 50 to 100) |
-| Proxima-b-like, 1 bar, dipole x0.15 | 0.33 | 1.3 | 1.6 |
-| Proxima-b-like, 1 bar, no dipole | 0.37 | 2.6 | 3.0 |
-| Proxima-b-like, 0.1 bar, no dipole | 108 | 2,300 | 2,400 (2.4 Sv/yr) |
+| 0.05 bar, Earth gravity, Earth dipole | 119 | 0.04 | 119 (Rad: 50 to 100; the earlier curve gave 88) |
+| Proxima-b-like, 1 bar, dipole x0.15 | 0.65 | 0.1 | 0.74 |
+| Proxima-b-like, 1 bar, no dipole | 0.86 | 0.16 | 1.0 |
+| Proxima-b-like, 0.1 bar, no dipole | 542 | 2,700 | 3,200 (3.2 Sv/yr) |
 
 The 1-bar rows agree with Rad that a dense atmosphere decouples the surface
 from flares (under 5 mSv/yr). The 0.1-bar row shows how fast it breaks: a thin

@@ -3105,6 +3105,11 @@ ROGUE_MANTLE_MASS_FRACTION = 0.67
 """float: The heat-producing (silicate) share of a rocky rogue's mass,
 Earth's (4.0e24 of 5.97e24 kg)."""
 
+GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
+"""tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the
+Mars dose equivalent runs from 0.35 to 1.15 mSv/day around a mean of 0.7 (Guo 2015, Hassler 2014; a total spread of
+3.3). The same field at another star differs in the same way, so the draw stands for the host's modulation level."""
+
 ROGUE_RADIOGENIC_ABUNDANCE_RANGE = (0.5, 2.0)
 """tuple: A rogue's radioactive abundance relative to Earth's, drawn
 log-uniformly -- stars, and so their planets, differ in U, Th and K (a

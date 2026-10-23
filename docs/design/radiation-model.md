@@ -111,8 +111,9 @@ E(lambda) at the ground = direct + diffuse + ground-reflected, from section 3. U
 | `uv_index` = `uv_ratio` x flux x ozone^-1.6 (a ratio to the Sun, not the CIE index) | UVI and DNA dose of section 7 | GEN.445 |
 | `_band_fraction`, `uv_ratio` (blackbody 200 to 300 nm, floor 0.1) | band shares of R6 and the stellar UV of R17 | GEN.443 |
 | `a_rad` log-uniform 0.5 to 2 times 0.48 mSv/yr times heat ratio, plus radon 0.5 mSv/yr behind a 1 kPa gate | gamma and radon from K, U, Th (section 6) | GEN.444 with GEN.459 |
-| `GCR_POINTS` (500, 237, 110), `GCR_ATTENUATION_G_CM2` 164, `magnetic_factor` (cut 0.4, flat) | Atri and Griessmeier tables (R13) | GEN.453 then GEN.444 |
-| `cutoff_rigidity_gv` (R_E/R)^3 | M / r^2 | GEN.453 |
+| `GCR_POINTS` (500, 237, 110), `GCR_ATTENUATION_G_CM2` 164, `magnetic_factor` (cut 0.4, flat) | Atri and Griessmeier tables (R13) | GEN.453 then GEN.444. **Built (GEN.453):** `GCR_SHOWER_POINTS`, `GCR_ANCHORS`, `magnetic_factor(cutoff, column)` |
+| `cutoff_rigidity_gv` (R_E/R)^3 | M / r^2 | GEN.453. **Built:** 14.34 GV for Earth |
+| `proton_cutoff_gv` range law `R = 0.0022 E^1.77` | NIST PSTAR range tables | GEN.453. **Built:** `physics/proton_range.py` (mixtures by Bragg's rule for GEN.444) |
 | `helio_multiplier` 1 + 1.5 exp(-X/100) c (no source) | dropped or sourced | GEN.453, GEN.256 |
 | `sep_dose_msv_yr`, `free_sep_msv_yr` (20 mSv/yr, R0 0.2 GV, range law 0.0022 E^1.77) | Band spectrum, PSTAR inversion, fluence law (R14) | GEN.444 |
 | habitability.py second GCR curve (0.45 exp(-X/22) + 0.05 exp(-X/200) + 0.002 Sv/yr) | reads the derived dose | GEN.445 |
