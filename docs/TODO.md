@@ -15978,25 +15978,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
-- [ ] **PERF.165 The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug)**
-  Found by the Performance lane in PERF.163 (merged as #2576, relayed
-  10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
-  of the 264 s plan stage, so a bug. PERF.163 raised the
-  mean-system-mass cache from 512 to 65,536 ages (a plan asks for about
-  22,000); `plan --mass 4e9` fell from about 2 minutes (8.0.1960) to
-  about 30 s after PERF.146 and about 25 s now, and the plan log ends
-  with a step table. What is left that changes no generated value: (1)
-  the 22,267 components are stored row by row (3.1 s of a 12.3 s unit);
-  store them in batches; (2) about 10 s of start-up outside the unit:
-  plan_shape runs twice, the math check takes 2 s, the queue workers
-  start. Do: batch the component insert and run the shape once, and make
-  the math check cheap or skippable on a plan; keep every value the
-  same. Done: the plan step table shows the storing and start-up rows
-  smaller, the golden outputs are unchanged, and `plan --mass 4e9` is
-  measured again. Owner: the Performance thread, after PERF.164 (the
-  Performance lane, relayed 10:25 PM EDT 2026-10-22).
-  Prerequisites: none. Related: PERF.163, PERF.164, PERF.146.
-
 - [ ] **PERF.166 The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug)**
   Found by the Performance lane in PERF.163 (merged as #2576, relayed
   10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
@@ -16046,6 +16027,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread, because the lane found it and PERF.146 lives there; the
   coordinator can move it).
   Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
+
+- [ ] **PERF.169 The plan stage spends 3.5 s of a 12.4 s unit on its report lines**
+  Found by the Performance lane in PERF.165 (merged as #2636; relayed
+  6:27 AM EDT 2026-10-23 as the lane reported); filed by the TODO
+  thread. Kind: cost, value-neutral. After PERF.165's fix the plan unit
+  takes 12.4 s: the report lines 3.5 s (28 percent, not yet looked at),
+  the component field 2.7 s, storing the clusters 1.2 to 1.8 s, the
+  outline 1.0 to 1.3 s. Reproducer: `planetgen plan --mass 4e9` with the
+  plan log's step table (PERF.163), or the benchmark suite's plan step.
+  Do: find what the report lines compute (a second pass over the
+  components, or a second call of the field), reuse what the unit
+  already holds and say what the lines cost in the plan log. Done: the
+  plan unit is faster by about the report lines' share with identical
+  output (the report text and the stored rows unchanged). Owner:
+  Performance (proposed by the TODO thread, because the lane offered to
+  take it next).
+  Prerequisites: none. Related: PERF.163, PERF.165, PERF.146.
+
+- [ ] **PERF.170 The start-up math check (the TEST.68 gate, 2.5 s for 60 checks) runs before every bulk run: skip it or stamp a pass on disk? (open question for Boss)**
+  Found by the Performance lane in PERF.165 (relayed 6:27 AM EDT
+  2026-10-23 as the lane reported); filed by the TODO thread as an open
+  question. Every bulk run (plan, scatter, fill) starts with the TEST.68
+  math check, 60 checks, 2.5 s, before any work. Making it skippable (a
+  flag) or stamping a pass on disk (so a machine that already passed for
+  this release and platform does not repeat it) is a policy call, not a
+  speed fix: the check is the gate that proves the machine's math
+  matches the reference. Default (Performance's, kept here): leave it as
+  it is; 2.5 s is under 1 percent of a plan and nothing else depends on
+  it. Decided default (the TODO-thread rule that an open question's
+  default stands until Boss says otherwise): leave it. Do: nothing
+  unless Boss says to change it. Done: Boss answers, or the default
+  stands. Owner: none.
+  Prerequisites: none. Related: PERF.165, PERF.41.
 
 ## DB: Database and schema
 
