@@ -474,6 +474,7 @@ As built (GEN.548, the shared step; the datasets themselves follow in the same i
 | SC1 | D | DATA (MIST v1.2 main-sequence rows, downloaded) | Baraffe et al. 2015 track at solar metallicity and fitted relations | the MIST download (`isochrones.py`) | Choi et al. 2016; Dotter 2016 | open, cited |
 | SC2 | D | DATA (Bédard et al. 2020 sequences, downloaded) | the D13 radius law and a fixed layer split | the sequence download (`white_dwarf_models.py`) | Bédard et al. 2020 | open, cited |
 | SC3 | D | DATA (Zenodo tables, downloaded) | the nickel-to-krypton crust table and the D13 radius floor | the equation-of-state and crust download (`neutron_star_matter.py`) | Malik et al. 2024; Servais and Chamel 2026 | CC BY 4.0 |
+| AD9 | D | DATA (MPI-Mainz atlas snapshot, Brion-team ozone cross sections 195 to 830 nm at 218, 243 and 295 K, downloaded) | the 35 band means of the gas table for ozone (20 nm bins; the UV index they give is off by a large factor in the UV-B) | the ozone download (`ozone_uv.py`, read by `physics/uv_cross_sections.py`, GEN.443) | Keller-Rudek et al. 2013 (ESSD 5, 365); Daumont et al. 1992; Malicet et al. 1995; Brion et al. 1998 | CC BY 4.0 (Zenodo 10.5281/zenodo.6951) |
 
 Each is "stand-in" in the loader report until the files are in the cache folder and "partly verified" after (the files are the sources' own; the readers interpolate them). The follow-up that wires the readers into the stellar-composition modules moves each fill's `replaced_by` from a plan to code.
 

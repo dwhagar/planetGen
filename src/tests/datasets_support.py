@@ -1,7 +1,7 @@
 # tests/datasets_support.py
 
-"""Fixtures for the three downloaded datasets of GEN.548, built offline: a small MIST archive, a white-dwarf sequence
-archive and an equation-of-state and outer-crust set, each served to the real download step by a fake opener (the sha256 of
+"""Fixtures for the four downloaded datasets of GEN.548 and GEN.443, built offline: a small MIST archive, a white-dwarf sequence
+archive, an equation-of-state and outer-crust set and an ozone cross-section archive, each served to the real download step by a fake opener (the sha256 of
 the fixture bytes replaces the catalogue's), so no test reaches the network and no downloaded data is committed. Shared by
 `test_datasets_readers.py` (the readers), `test_datasets_gate.py` (the refusal) and `test_stellar_composition.py` (GEN.590)."""
 
@@ -13,7 +13,7 @@ import zipfile
 
 import numpy as np
 
-from planetgen.datasets import catalogue, fetch, isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.datasets import catalogue, fetch, isochrones, neutron_star_matter, ozone_uv, white_dwarf_models
 
 
 class _Response(io.BytesIO):
@@ -33,7 +33,7 @@ def reset_caches(cache_folder, monkeypatch):
     monkeypatch.setenv(fetch.CACHE_DIR_ENV, str(cache_folder))
     fetch._VERIFIED.clear()
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
-                   neutron_star_matter._load_eos):
+                   neutron_star_matter._load_eos, ozone_uv._load):
         loader.cache_clear()
 
 
@@ -146,6 +146,35 @@ def _crust_zip():
     return buffer.getvalue()
 
 
+# ---- ozone ----
+
+def ozone_fixture_sigma(nm, temperature_k):
+    """The synthetic ozone cross section of the fixture, cm2: a Hartley-like hump at 255 nm and a falling tail, warmer is larger."""
+    return (1.1e-17 * np.exp(-((nm - 255.0) / 22.0) ** 2) + 3e-19 * np.exp(-(nm - 300.0) / 18.0) * (nm > 300.0)
+            + 5e-21 * np.exp(-((nm - 600.0) / 60.0) ** 2)) * (1.0 + (temperature_k - 218.0) / 770.0)
+
+
+def _ozone_text(low, high, step, temperature_k):
+    grid = np.arange(low, high + 1e-9, step)
+    return ("\n".join(f"{nm:.2f}    {ozone_fixture_sigma(nm, temperature_k):.5e}" for nm in grid) + "\n\n").encode()
+
+
+def _ozone_archive():
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for key, member in ozone_uv.MEMBERS.items():
+            if key == "vis":
+                archive.writestr(member, _ozone_text(195.0, 830.0, 1.0, 295.0))
+            else:
+                archive.writestr(member, _ozone_text(195.0, 345.0, 0.05, float(key)))
+        archive.writestr("cross_sections/Ozone/readme.txt", b"not read\n")
+    return buffer.getvalue()
+
+
+def install_ozone(monkeypatch):
+    return install(monkeypatch, ozone_uv, ozone_uv.DATASET, {ozone_uv.ARCHIVE: _ozone_archive()})
+
+
 def install_isochrones(monkeypatch):
     return install(monkeypatch, isochrones, isochrones.DATASET, {isochrones.ARCHIVE: _iso_archive()})
 
@@ -162,7 +191,8 @@ def install_neutron_stars(monkeypatch):
 
 
 def install_all(monkeypatch):
-    """All three datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
-    installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch)]
+    """All four datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
+    installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch),
+                 install_ozone(monkeypatch)]
     monkeypatch.setattr(catalogue, "ALL", tuple(installed))
     return installed
