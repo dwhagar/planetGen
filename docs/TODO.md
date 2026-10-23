@@ -999,6 +999,24 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
 
+- [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search**
+  Boss (8:20 PM EDT 2026-10-22), testing the top menu bar, filed by the
+  TODO thread through the coordinator. Boss's words: "move lists into
+  the gear menu, make the search box just a search button without text
+  just the search icon, put Nearby under Nav, (click on Nav and you have
+  Plot Course and then Nearby Search." Do: (1) the Lists link leaves the
+  header and moves into the gear menu; (2) the search box in the header
+  becomes one search button that shows only the search icon and no text;
+  (3) Nearby leaves the header and goes under Nav: clicking Nav opens a
+  short menu with Plot Course first and then Nearby Search. Done: the
+  header shows no Lists or Nearby link, the gear menu lists Lists, the
+  search control is an icon-only button with an accessible name, and Nav
+  opens its two-entry menu, with browser tests for each and for keyboard
+  use of the Nav menu. Owner: Core 2, second in its queue, right after
+  ADM.127 and ahead of MAP.210 (the coordinator, relayed Boss's note
+  8:20 PM EDT 2026-10-22).
+  Prerequisites: none. Related: ADM.127, UX.124, UX.127.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -15462,7 +15480,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.427, GEN.478, GEN.438, GEN.410,
   GEN.472, TEST.214.
 
-- [ ] **GEN.624 QUESTION for Boss: a 3e7 solar-mass galaxy holds 3.1 million phenomena and 487,000 band stars because the 11 satellites' 6.4e9 systems exist at every galaxy mass**
+- [ ] **GEN.624 Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch)**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
   with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
@@ -15471,15 +15489,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   question, not a speed fix. Measured: a 3e7 solar-mass galaxy holds
   3.1M phenomena and 487k band stars, because the 11 satellite galaxies'
   6.4e9 systems exist at every galaxy mass, so a small galaxy still pays
-  for the satellites. Do: the TODO thread puts the question to Boss on a
-  card (should the satellites scale with the galaxy mass, and by what
-  law?); no change before his answer, and any change takes a generator
-  epoch. Done: Boss's answer is recorded here and, if it changes the
-  model, a build item is filed. Owner: the TODO thread for the card; the
-  build, if any, goes to a generator lane.
-  Card posted to Boss at 7:55 PM EDT 2026-10-22 (scale with galaxy mass,
-  keep all 11, or a satellites dial); recommended: scale with galaxy mass.
-  Prerequisites: none. Related: PERF.146.
+  for the satellites.
+  Decided (Boss, card tap, 8:14 PM EDT 2026-10-22): scale the satellites
+  with the galaxy's mass. Do: the count, mass and distance of the
+  satellites follow a law of the host's halo mass, with the law and its
+  constants sourced (verified wins; no fixed content from the Milky Way);
+  a small galaxy gets fewer satellites or none, and the full 11 appear at
+  the Milky Way's mass. It builds on GEN.369's seed-drawn satellites and
+  changes generated output, so it takes a generator epoch, numbered at
+  merge. Done: a 3e7 solar-mass galaxy builds without the 6.4e9 satellite
+  systems, a Milky-Way-mass galaxy builds the same satellites as before
+  the law (or the change is named in the epoch reason), the benchmark of
+  PERF.146 shows the saving, and a test checks the law at three host
+  masses. Owner: Core 1, after GEN.369 (the satellite items are Core 1's;
+  the TODO thread, 8:15 PM EDT 2026-10-22).
+  Prerequisites: GEN.369. Related: PERF.146, GEN.403.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18694,6 +18718,33 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: ADM.99, ADM.115, ADM.125.
+
+- [ ] **ADM.127 Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units**
+  Boss (8:13 PM EDT 2026-10-22), testing the current new-galaxy Generate
+  form, filed by the TODO thread through the coordinator. Boss's words:
+  "The star brightness section wastes a lot of space, so we should move
+  the neutron star options to next to the sliders for the mass and
+  brightness limits. Also put the sliders above the text boxes. Same
+  with the box to skip the star scatter. And rename it, this checkbox
+  should invoke no scatters at all. Arm pitch angle says degrees twice.
+  The edge units box should just be a text box and the user will type in
+  a number with the units. Explain the units in the text below." Do: (1)
+  the star brightness section stops wasting space: the neutron star
+  options sit next to the mass and brightness limit sliders; (2) each
+  slider sits above its text box; (3) the box that skips the star
+  scatter gets the same layout and a new name, because it must invoke no
+  scatters at all, and it must skip every scatter, not only the star
+  scatter (a test runs a galaxy with it ticked and finds no scatter
+  stage); (4) the arm pitch angle label says degrees once; (5) the Edge
+  units box becomes one plain text box where the user types a number
+  with its units (for example 2600pc or 20kpc), the form accepts every
+  unit the unit registry knows for a length, refuses an unknown unit
+  with a clear message, and the help text under the box explains the
+  units. Done: the five points hold on the Generate page for a new
+  galaxy, with browser tests for the layout, the unit parsing and the
+  no-scatter box. Owner: Core 2, first in its queue, ahead of MAP.210
+  (the coordinator, relayed Boss's note 8:14 PM EDT 2026-10-22).
+  Prerequisites: none. Related: ADM.125, ADM.126, GEN.605.
 
 ## SEC: Security
 

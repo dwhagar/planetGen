@@ -13,14 +13,14 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.146 |
+| UX | UX.147 |
 | MAP | MAP.256 |
 | NAV | NAV.63 |
 | GEN | GEN.625 |
 | PERF | PERF.163 |
 | DB | DB.89 |
 | API | API.32 |
-| ADM | ADM.127 |
+| ADM | ADM.128 |
 | SEC | SEC.34 |
 | TEST | TEST.283 |
 | USR | USR.32 |
@@ -515,6 +515,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.124 | Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown | none | done, PR #2494 |
 | ADM.125 | Generate: named recipes saved per admin in the control database | none | open |
 | ADM.126 | Generate: a live 'how big' count while typing a command or filling the form | none | open |
+| ADM.127 | Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -1330,7 +1331,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.621 | The Scale dial's Auto default draws a galaxy about half the Milky Way's size, with an epoch bump | none | done, PR #2418 |
 | GEN.622 | pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug) | none | open |
 | GEN.623 | Data tables carry no licence column or licence check; the licence information lives in DATA-LICENSE.md | none | open |
-| GEN.624 | QUESTION for Boss: a 3e7 solar-mass galaxy holds 3.1 million phenomena and 487,000 band stars because the 11 satellites' 6.4e9 systems exist at every galaxy mass | none | open |
+| GEN.624 | Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2096,6 +2097,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
 | UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | none | open |
 | UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) | none | done, PR #2416 |
+| UX.146 | The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
