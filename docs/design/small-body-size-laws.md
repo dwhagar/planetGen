@@ -94,10 +94,13 @@ Kollmeier and Raymond 2019 (MNRAS, arXiv:1810.03304, READ):
 
 - A submoon's orbit is stable out to a fraction f of its moon's Hill sphere; f = 0.4895 for prograde low-eccentricity orbits
   (Domingos et al. 2006, 2ND-HAND), about 0.4 when the planet's perturbation is included (Payne et al. 2013, 2ND-HAND).
-- Tidal survival over T = 4.6 Gyr gives a critical moon radius that grows with the submoon mass and the moon's Love number
-  and falls steeply with the moon's orbital distance (their equation 1, adapted from Barnes and O'Brien 2002; the survivable
-  submoon mass scales as `M_moon Q a^3 / M_p`). The typeset formula does not survive text extraction, so the code must
-  take it from the paper's PDF, not from this note.
+- Tidal survival over T = 4.6 Gyr (their equation 1, adapted from Barnes and O'Brien 2002, read from the typeset page):
+  `R_moon >= [ 39 M_sub k2 T sqrt(G) / (2 (4 pi rho_moon)^(8/3) Q) * (3 M_p / (f a_moon)^3)^(13/6) ]^(1/3)`, with the
+  moon's Love number k2 (0.25), tidal quality factor Q (100), density rho_moon (2500 kg/m3), orbital radius a_moon, the
+  planet mass M_p, the submoon mass M_sub (10 km radius, 2000 kg/m3 by default) and f the Hill fraction above. The
+  dimensions work out (metres). Computed here with these defaults (not read): Moon 125 km, Callisto 331 km, Titan 354 km,
+  Iapetus 35 km (all pass), Ganymede 1126 km (passes; the paper's text lists only the other four, so its figure uses
+  something this note does not capture), Europa 3096 km, Io 8470 km, Rhea 2187 km and Triton 1489 km (all fail).
 - Their result: 10 km submoons survive only around large (1000 km scale) moons on wide orbits. Among the Solar System's
   moons only Titan, Iapetus, Callisto and the Moon pass; none has a submoon, so formation or other effects (mass
   concentrations) also remove them. A mass ratio of about 1e-5 is a rough guide to long-lived submoons (Reid 1973).
