@@ -2897,7 +2897,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   consistent at the outer edge of the habitable zone. Evidence: the
   planet class gap report
   (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
-  Prerequisites: GEN.146, GEN.428, GEN.411.
+  Prerequisites: GEN.428, GEN.411.
   Plan (2026-10-07): Moved to phase 2 under GEN.90.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -3020,7 +3020,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
-  Prerequisites: GEN.28, GEN.27, GEN.146, TEST.209, TEST.210.
+  Prerequisites: GEN.28, GEN.27, TEST.209, TEST.210.
   Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
   stays with it in phase 2.
   Research (2026-10-09, atmospheres-retention-and-classes.md): known
@@ -4095,31 +4095,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait that the 2026-10-16, 11:58 PM EDT sweep text names.
   Prerequisites: GEN.355, GEN.428, GEN.411.
   Related: GEN.412, GEN.423, GEN.428.
-  Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
-
-- [ ] **GEN.146 Teff-dependent habitable zone from the Kopparapu table**
-  Replace the fixed 1.1 and 0.53 flux limits in
-  `orbits.calculate_habitable_zone` with the Kopparapu table (design doc
-  4.1): the fixed limits put the outer edge 33 percent too near for a
-  3,200 K star and at 1.37 AU against 1.68 AU for the Sun. It changes
-  the zone of every star, so it needs reproducibility handling (the
-  GEN.57 family) and the epoch bump.
-  Does not need GEN.91 (nothing in the Kopparapu table touches
-  atmosphere retention); placed right after GEN.33 and a prerequisite of
-  GEN.27, the R, Y and Z classes of GEN.28 and the GEN.29 sweep, so the
-  classes are tuned against the final habitable-zone edges (2026-10-16
-  review).
-  Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT
-  2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads). Takes an epoch: ask the TODO
-  thread for the next free number.
-  Blocker 3, relayed about 1:12 PM EDT 2026-10-23 as the lane reported:
-  three tests' numbers move with this item and are updated in its PR:
-  the habitable-world base share 0.253 to 0.422
-  (tuning.PREVALENCE_BASE_SHARES, remeasured over 20,000 systems), the
-  ecosphere share of planets about 6 to 12 percent, and the class K mean
-  temperature in the ecosphere 195 K; the class tuning against the final
-  zone edges is the GEN.29 sweep's.
-  Prerequisites: none.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
@@ -6040,7 +6015,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
   reference page and the class-contract and 1,000-system tests; no old
   row or test expects T.
-  Prerequisites: GEN.355, GEN.146, GEN.428, GEN.411. Related:
+  Prerequisites: GEN.355, GEN.428, GEN.411. Related:
   GEN.28, GEN.412, GEN.423, GEN.428.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -6099,7 +6074,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.355, GEN.146, GEN.428, GEN.411. Related: GEN.28,
+  Prerequisites: GEN.355, GEN.428, GEN.411. Related: GEN.28,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.354 Class Z, lifeless temperate world**
@@ -6118,7 +6093,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.146, GEN.428, GEN.411. Related: GEN.28,
+  Prerequisites: GEN.428, GEN.411. Related: GEN.28,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.355 Atmosphere retention module with its test table**
@@ -14497,6 +14472,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --check` needs it. Owner: Core 4 (its GEN.325; proposed by the TODO
   thread).
   Prerequisites: none. Related: GEN.325, GEN.636, GEN.301.
+
+- [ ] **GEN.639 The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1)**
+  Left open by GEN.146 (Blocker 3, merged as #2685 at about 1:20 PM EDT
+  2026-10-23 as the lane reported, generator epoch 60): the Kopparapu
+  runaway and maximum greenhouse edges now follow the star's temperature
+  (Table 1, 1 Earth mass; temperature clamped to 2,600 to 7,200 K; a
+  binary uses the luminosity-weighted temperature), but two parts of
+  design note 4.1 were not done: the planet-mass hz_limits (the edges
+  for other masses than 1 Earth mass) and the pre-main-sequence runaway
+  history. Filed by the TODO thread from the lane's report; the exact
+  scope is design note 4.1 and the lane's PR, which the owner reads
+  first. Do: read design note 4.1 and the GEN.146 PR, build the two
+  parts or record in the design note why one is not needed, and say in
+  the PR whether it changes stored values (and takes an epoch). Done:
+  both parts are built and tested, or the design note says why not.
+  Owner: none (pool; after 8.1 unless Boss wants it sooner).
+  Prerequisites: none. Related: GEN.146, GEN.29.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

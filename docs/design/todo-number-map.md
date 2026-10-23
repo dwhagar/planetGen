@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.147 |
 | MAP | MAP.256 |
 | NAV | NAV.63 |
-| GEN | GEN.639 |
+| GEN | GEN.640 |
 | PERF | PERF.172 |
 | DB | DB.89 |
 | API | API.33 |
@@ -855,7 +855,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | open |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | done, PR #2473 |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
-| GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |
+| GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | done, PR #2685 |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | done, PR #1457 |
 | GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | done, PR #1760 |
@@ -1348,6 +1348,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.636 | StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug) | none | done, PR #2653 |
 | GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | open |
 | GEN.638 | Planets and belts can sit past the survival ceiling because the age is raised after they are placed, so test_wide_binary_system_generates_and_stays_within_bounds[G2V] fails in about 0.4 percent of draws (bug) | none | open |
+| GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
