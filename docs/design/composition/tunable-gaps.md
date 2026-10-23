@@ -188,6 +188,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.516, lane M, 2026-10-23):** rows f5 and f7 are retuned (`docs/design/giant-planet-tuning.md`): the enrichment of giants follows the 147-giant fit of Chachan 2025 with the 0.26 dex intrinsic width, and the C/O core width rises from 0.15 to 0.21 to match the 69 retrieved planets. The harness gained three target fields for this: `scale` (a statistic of the logarithm), `threshold` and `below` (a proportion over or under a value) and `subject` (the body the row is drawn for), with `check_target`; `src/tests/test_tuned_draws.py` checks every target that names a subject.
 
+**Built (GEN.517, lane M, 2026-10-23):** rows g1 to g5 now take their edges and softness from the Kirkpatrick 2021 temperature map (`planetgen/physics/brown_dwarf_types.py`, `docs/design/brown-dwarf-types.md`): 2238, 1273, 686 and 460 K with scatter 134 and 79 K, in place of the design edges 2200, 1300, 700 and 500 K at 100 K. The type is a derived function of the temperature, so there is no target to tune; the test pins the recipe to the map.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

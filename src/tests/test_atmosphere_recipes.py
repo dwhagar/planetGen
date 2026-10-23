@@ -273,7 +273,7 @@ def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_l
 
 def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows():
     g = Subject("brown-dwarf", {"teff_k": 848.4})
-    assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9310, "g4": 0.0687, "g5": 0.0002}, abs=1e-3)
+    assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9801, "g4": 0.0199}, abs=1e-3)
     assert RECIPES.probability("g6", g) == pytest.approx(0.994, abs=1e-3)
     assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h"}))) == pytest.approx(
         {"h2": 0.0013, "h3": 0.9987}, abs=1e-4)

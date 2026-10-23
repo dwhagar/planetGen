@@ -1,0 +1,17 @@
+{
+ "title": "Effective temperature against spectral type of L, T and Y dwarfs (GEN.517)",
+ "source": "Kirkpatrick et al. 2021 (arXiv 2011.11616, ApJS 253, 7), Table 13: the Teff(SpT) polynomials fitted to 525 L, T and Y dwarfs within 20 pc; the spectral type s counts L0 = 0, T0 = 10, Y0 = 20",
+ "label": "READ",
+ "pieces": [
+  {"name": "L0 to L8.75", "s_min": 0.0, "s_max": 8.75, "coefficients": [2237.5, -144.96, 4.0301], "rms_k": 134.0},
+  {"name": "L8.75 to T4.75", "s_min": 8.75, "s_max": 14.75, "coefficients": [1437.9, -18.309], "rms_k": 79.0},
+  {"name": "T4.75 to Y2", "s_min": 14.75, "s_max": 22.0, "coefficients": [5141.3, -368.65, 6.7301], "rms_k": 79.0}
+ ],
+ "boundaries": [
+  {"id": "m-l", "from": "late M", "to": "L", "s": 0.0},
+  {"id": "l-t", "from": "L", "to": "T", "s": 9.0},
+  {"id": "t-late-t", "from": "T", "to": "late T (T8 and later, NH3-rich)", "s": 18.0},
+  {"id": "t-y", "from": "T", "to": "Y", "s": 20.0}
+ ],
+ "note": "The boundary of L and T is taken between L8.75 and T0 (s = 9); the polynomial is flat there (-18 K per subtype), so the type is fixed to about 4 subtypes by Teff alone."
+}

@@ -207,11 +207,11 @@ MACHINE = {
                weight="phi((1100 - teff_k)/100) if body_class == 'brown-dwarf' else phi((500 - teq_k)/100)"),
 
     # ---- g. brown dwarfs ----
-    "g1": dict(state="partly verified", limit="type is a function of Teff with published scatter (Kirkpatrick 2021); the lower age edge is a design choice (GEN.517)", kind="option", group="g", classes=BD, weight="window(teff_k, 2200, 2800, 100)"),
-    "g2": dict(kind="option", group="g", classes=BD, weight="window(teff_k, 1300, 2200, 100)"),
-    "g3": dict(kind="option", group="g", classes=BD, weight="window(teff_k, 700, 1300, 100)"),
-    "g4": dict(state="partly verified", limit="type is a function of Teff with published scatter (Kirkpatrick 2021); the 500 to 700 K edge is a design choice (GEN.517)", kind="option", group="g", classes=BD, weight="window(teff_k, 500, 700, 100)"),
-    "g5": dict(kind="option", group="g", classes=BD, weight="window(teff_k, None, 500, 100)"),
+    "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2800 K cap is the repo's rogue maximum (GEN.517)", kind="option", group="g", classes=BD, weight="phi((2800 - teff_k)/100) - phi((2238 - teff_k)/134)"),
+    "g2": dict(kind="option", group="g", classes=BD, weight="phi((2238 - teff_k)/134) - phi((1273 - teff_k)/79)"),
+    "g3": dict(kind="option", group="g", classes=BD, weight="phi((1273 - teff_k)/79) - phi((686 - teff_k)/79)"),
+    "g4": dict(state="partly verified", limit="late T (T8 and later) is a subclass of T, not a type of its own; its edge at T8 (686 K) is a design choice on the map (GEN.517)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
+    "g5": dict(kind="option", group="g", classes=BD, weight="phi((460 - teff_k)/79)"),
     "g6": dict(kind="binary", classes=BD, weight="phi((1100 - teff_k)/100)"),
 
     # ---- h. hot Jupiters ----
