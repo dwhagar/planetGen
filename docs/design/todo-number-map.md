@@ -13,8 +13,8 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.149 |
-| MAP | MAP.256 |
+| UX | UX.150 |
+| MAP | MAP.258 |
 | NAV | NAV.63 |
 | GEN | GEN.641 |
 | PERF | PERF.173 |
@@ -1605,6 +1605,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
 | MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | none | done, PR #2514 |
 | MAP.255 | The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug) | none | open |
+| MAP.256 | The map shows the information box twice when an object is selected: once in the window and once to its right (bug) | none | open |
+| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2130,6 +2132,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.146 | The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug) | none | done, PR #2610 |
 | UX.147 | The Generate page has no clear way to generate only a galaxy plan, with no scatter, to see the sector layout on the galaxy screen and add sectors by hand (bug) | none | open |
 | UX.148 | Log output from Generate is no longer in a fixed-width font (bug) | none | open |
+| UX.149 | Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

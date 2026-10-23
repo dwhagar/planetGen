@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 5:15 PM EDT 2026-10-23: 743 of 960 items finished (77.4 percent), 217 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 108, phase 2 27, phase 3 25, phase 4 14, phase 5 31, phase 6 12. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 5:28 PM EDT 2026-10-23: 743 of 962 items finished (77.2 percent), 219 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 108, phase 2 29, phase 3 25, phase 4 14, phase 5 31, phase 6 12. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -108,6 +108,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | UX.147 | The Generate page has no clear way to generate only a galaxy plan, with no scatter, to see the sector layout on the galaxy screen and add sectors by hand (bug) |  |  |
 | UX.148 | Log output from Generate is no longer in a fixed-width font (bug) |  |  |
+| UX.149 | Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug) |  |  |
 
 ### Bugs and flaky tests
 
@@ -193,6 +194,8 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |
+| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) |  |  |
+| MAP.256 | The map shows the information box twice when an object is selected: once in the window and once to its right (bug) |  |  |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |

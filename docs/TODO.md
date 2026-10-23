@@ -1002,6 +1002,15 @@ with `clamp()`.
   generated sectors, the galaxy screen shows its sector layout, a sector
   can then be added by hand, and a browser test covers it. Owner: Bug
   Hunt (Boss, 5:13 PM EDT 2026-10-23).
+  Finding (Bug Hunt, 5:25 PM EDT 2026-10-23 as the lane reported): a
+  plan-only path exists but is buried. It is the Plan the galaxy again
+  and scatter radio inside the Change what is scattered across the
+  galaxy card, with a Skip all scatters tick, and on a galaxy that has
+  sectors the plan will not replace the seed. Start a new galaxy always
+  resets and generates a first neighborhood. Bug Hunt's fix: a new Start
+  card, Plan a new galaxy and stop (reset, plan, no sectors, no scatter,
+  typed confirmation). Bug Hunt takes UX.147 and UX.148 first, then
+  TEST.298 and TEST.299.
   Prerequisites: none. Related: UX.134, UX.125, PERF.149.
 
 - [ ] **UX.148 Log output from Generate is no longer in a fixed-width font (bug)**
@@ -1023,6 +1032,29 @@ with `clamp()`.
   fixed-width text, and a test pins it. Owner: Bug Hunt (Boss, 5:14 PM
   EDT 2026-10-23).
   Prerequisites: none. Related: UX.102, UX.123, UX.125.
+
+- [ ] **UX.149 Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug)**
+  Boss's live observation (relayed 5:30 PM EDT 2026-10-23, typed in the
+  project chat): chemical names in HTML such as water (H2O) should
+  properly use subscripts and superscripts in the output. Kind:
+  formatting bug. Wanted: a formula in any page prints its counts as
+  subscripts (H2O as H<sub>2</sub>O), its ion charges as superscripts
+  (Na+ as Na<sup>+</sup>, SO4 2- as SO<sub>4</sub><sup>2-</sup>) and its
+  isotope mass numbers as superscripts before the symbol (the 14 in
+  14C). Do: one shared formatter, a Jinja filter and its plain-text twin
+  for the command line, that turns a formula string into marked-up HTML
+  (escaping everything else), and use it in every template and generated
+  text that prints a species, an atmosphere or ocean composition, a
+  mineral or ice, or a gas, plus the help and design pages that quote
+  formulas; do not edit page by page with hand-typed tags. The formatter
+  takes the formula (never free text, so a word such as CO2 in a
+  sentence is handled by the caller, not guessed). Add tests for counts,
+  charges, isotopes, hydrates and brackets, and a test that no template
+  prints a bare formula. Done: the formatter and its tests exist, every
+  page that prints a chemical formula goes through it, and a browser or
+  HTML test shows the water entry as H<sub>2</sub>O. Owner: Bug Hunt
+  (Boss, 5:30 PM EDT 2026-10-23).
+  Prerequisites: none. Related: UX.148, DOC.13.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2481,6 +2513,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
+
+- [ ] **MAP.256 The map shows the information box twice when an object is selected: once in the window and once to its right (bug)**
+  Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
+  project chat): when an object is selected on the map the infobox
+  appears twice, once in the window and once to the right of it. Kind:
+  duplicate render, cause not found. The TODO thread did not run it.
+  Fails on main: yes, as Boss sees it. Reproducer: open the Galaxy Map,
+  select any object, look for a second copy of the information box
+  beside the window. Do: find why the box is drawn twice (a second mount
+  of the same panel, a leftover panel from the sector or system view, or
+  the select handler firing twice), keep the one in the window, and add
+  a browser test that selecting an object leaves exactly one information
+  box. Done: selecting a star, a system and a sector each shows exactly
+  one information box, and a browser test counts them. Owner: Core 2
+  (Boss, 5:27 PM EDT 2026-10-23).
+  Prerequisites: none. Related: MAP.140, MAP.141, MAP.249.
+
+- [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
+  Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
+  project chat): infinite zoom is still really clunky. Boss asks to get
+  rid of the whole idea of segments other than sectors, and to
+  investigate how the structure of the 3D map interface could better
+  accommodate starting at the galaxy level, zooming in with the scroll
+  wheel and seeing anything in the galaxy easily. The different zoom
+  zones are now in the way; he wants one space that is filtered for what
+  is displayed, the way a game world is one rendered space where the
+  system manages what is visible. Kind: design bug against the
+  fly-through map (MAP.146 area). A design thread is investigating a
+  redesign and will send its items; this item stays as the user-visible
+  symptom and the home for that thread's result, and is not to be built
+  on until the design is chosen. Fails on main: yes, as Boss sees it.
+  Related live reports: MAP.249 (lag when the zoom level changes) and
+  MAP.209 and MAP.210 (waiting on Boss's retest). Do: take the design
+  thread's report, break it into items under this one (the single space,
+  the visibility filter by distance and size instead of zones, what
+  stays of sectors as the unit of data), and get Boss's word on the
+  design before building. Done: scrolling from the galaxy level in to a
+  single star works in one continuous space with nothing popping between
+  zones, anything in the galaxy can be reached by zooming to it, and
+  Boss confirms it by retest. Owner: the design thread first (report),
+  then Core 2 (maps).
+  Prerequisites: none. Related: MAP.146, MAP.249, MAP.209, MAP.210.
 
 
 ## NAV: Navigation and courses
