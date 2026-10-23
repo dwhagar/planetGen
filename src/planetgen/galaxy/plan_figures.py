@@ -44,18 +44,17 @@ Planned = collections.namedtuple("Planned", ["share", "volume_pc3"])
 """The planned share of the galaxy's systems, and the volume (cubic parsecs) of the disc and bulge's sectors expecting one."""
 
 
-def planned_share(shape, expected_systems_at_density_1, radius_pc):
-    """The planned share alone (`planned(...).share`)."""
-    return planned(shape, expected_systems_at_density_1, radius_pc).share
-
-
-def reaching_sectors(shape, expected_systems_at_density_1, radius_pc, edge_pc):
+def reaching_sectors(shape, expected_systems_at_density_1, radius_pc, edge_pc, figures=None):
     """
     How many sectors expect at least one system: the volume where the model's density reaches it (`planned`) over a
     sector's volume, plus each component's sphere out to where its own density reaches one system in a cell
     (`ComponentField.qualifying_volume_pc3`). Approximate to a few percent; a component inside the disc is counted twice.
+    `figures` is the `planned` of the same shape, `E` and radius when the caller has it already (the integral is the
+    plan's costliest figure, PERF.169).
     """
-    volume = planned(shape, expected_systems_at_density_1, radius_pc).volume_pc3
+    if figures is None:
+        figures = planned(shape, expected_systems_at_density_1, radius_pc)
+    volume = figures.volume_pc3
     if shape.components is not None:
         volume += shape.components.qualifying_volume_pc3()
     return float(volume / edge_pc ** 3)
