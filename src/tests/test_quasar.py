@@ -41,7 +41,10 @@ def _core_sector(mysql_config, sector=None):
 def test_quasar_physics_follows_from_mass_and_eddington_ratio():
     for _ in range(50):
         q = Quasar(SystemConfig())
-        assert q.black_hole_mass_solar >= 0.1 * tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR
+        # The galaxy's own hole follows its bulge or stellar mass with a log-normal scatter (GEN.402), so a small galaxy's
+        # hole lies below the supermassive minimum (a third of the draws do) and about one in 400 below a tenth of it;
+        # the old bound of a tenth of the minimum failed one run in eight, for 50 draws (TEST.286).
+        assert math.isfinite(q.black_hole_mass_solar) and q.black_hole_mass_solar > 0
         assert q.luminosity_w == pytest.approx(
             q.eddington_ratio * tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * q.black_hole_mass_solar
         )
@@ -206,6 +209,6 @@ def test_a_quiescent_nucleus_is_stored_as_a_supermassive_black_hole_at_the_cente
         conn.close()
 
     assert row["mass_class"] == "supermassive"
-    assert row["mass_solar"] >= 0.1 * tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR
+    assert row["mass_solar"] > 0    # the nucleus's own draw can lie under the class minimum (TEST.286)
     assert row["galactic_radius_pc"] == pytest.approx(0.0, abs=1e-9)
     assert row["galactic_orbital_period_gy"] is None
