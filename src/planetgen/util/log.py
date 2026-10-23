@@ -43,7 +43,14 @@ What a debug run writes is split into areas (`AREAS`), so that a galaxy
 run's volume can be cut down: `--debug-areas draw,queue`, `"debug_areas"`
 in `config.json` or `PLANETGEN_DEBUG_AREAS` pick the areas shown, and a
 name with a leading `-` leaves one out (`-draw`). Errors and warnings
-are always shown, and so are the normal (INFO) lines.
+are always shown, and so are the normal (INFO) lines. One area is off
+unless it is named: `branch` logs every conditional jump of planetGen's own
+code (`sys.monitoring`, Python 3.12+): the source line, whether the jump was
+taken, the line it went to and the values the line refers to. That is the
+decisions that are neither random nor narrated; it writes hundreds of
+thousands of lines for one system and runs about 15 times slower, so
+`--debug-areas branch` (or `all,branch` for everything) is something to ask
+for when hunting one bug.
 
 Separately from the console, `config.json`'s `"debug": true` (or
 `PLANETGEN_DEBUG=1`) turns on the **debug log**: every entry point --
@@ -111,8 +118,13 @@ AREAS = {
     "cache": "cache hits, misses and rebuilds",
     "web": "web requests, API calls and authorization decisions",
     "lib": "what other libraries log (Flask, RQ, Redis, urllib3)",
+    "branch": "every conditional jump in planetGen's own code: the source line, where it went and the values it refers "
+              "to (off unless named; many times the volume and the cost of the rest together)",
 }
 """dict: The areas of debug output (`--debug-areas`), each with what it holds."""
+
+DEFAULT_AREAS = frozenset(AREAS) - {"branch"}
+"""frozenset: The areas a debug run writes when none are named: all but `branch`, which has to be asked for."""
 
 _logger = logging.getLogger("planetgen")
 _logger.propagate = False
@@ -144,10 +156,11 @@ _areas_spec = ""
 def parse_areas(spec):
     """
     The areas a `--debug-areas` text names: names separated by commas or spaces, `all` (or `*`) for every area, a
-    leading `-` to leave one out (`-draw`; with only exclusions, every other area is shown). Empty is every area.
+    leading `-` to leave one out (`-draw`; with only exclusions, every other area is shown). Empty is every area but
+    `branch`, which is shown only when named (`all,branch` is everything).
 
     Returns:
-        frozenset | None: The areas shown, or `None` for all of them.
+        frozenset | None: The areas shown, or `None` for the default ones (all but `branch`).
 
     Raises:
         ValueError: A name that is not an area.
@@ -156,7 +169,7 @@ def parse_areas(spec):
     chosen, left_out = set(), set()
     for name in names:
         if name in ("all", "*"):
-            chosen.update(AREAS)
+            chosen.update(DEFAULT_AREAS)
             continue
         target = left_out if name.startswith("-") else chosen
         bare = name.lstrip("-")
@@ -165,8 +178,8 @@ def parse_areas(spec):
         target.add(bare)
     if not names or (not chosen and not left_out):
         return None
-    shown = (chosen or set(AREAS)) - left_out
-    return None if shown == set(AREAS) else frozenset(shown)
+    shown = (chosen or set(DEFAULT_AREAS)) - left_out
+    return None if shown == DEFAULT_AREAS else frozenset(shown)
 
 
 def set_areas(spec):
@@ -183,7 +196,7 @@ def areas_spec():
 
 def area_enabled(area):
     """Whether output of `area` is shown: lets a caller skip building a line nobody would see."""
-    return _areas is None or area in _areas
+    return area in DEFAULT_AREAS if _areas is None else area in _areas
 
 
 def set_component(name):
@@ -236,7 +249,7 @@ class _AreaFilter(logging.Filter):
             area = record.area = _area_of(record)
         if record.levelno != logging.DEBUG:
             return True
-        return _areas is None or area in _areas
+        return area in DEFAULT_AREAS if _areas is None else area in _areas
 
 
 class _DebugLogFormatter(logging.Formatter):
@@ -583,6 +596,7 @@ def _sync_tracing():
     global _tracing
     _tracing = _debug_log_handler is not None or _console_debug or _relay_handler is not None
     _trace_random(_tracing)
+    _trace_branches(_tracing and area_enabled("branch"))
     if _tracing:
         _install_excepthooks()
 
@@ -788,6 +802,89 @@ def _trace_random(enable):
         for name, original in _original_random_functions.items():
             setattr(draw.Stream, name, original)
         _original_random_functions.clear()
+
+
+# -- Branch tracing -----------------------------------------------------------
+
+_BRANCH_TOOL = 3
+"""int: The `sys.monitoring` tool id the branch tracer takes (0 is the debugger, 1 coverage, 2 the profiler, 5 the
+optimizer)."""
+
+_branch_code_info = {}
+_branch_active = False
+_branch_state = threading.local()
+_NOT_TRACED_FILES = tuple(os.path.splitext(os.path.abspath(path))[0] for path in (__file__, draw.__file__))
+
+
+def _branch_info(code):
+    """`(next offset, line)` per instruction offset of `code`, from its disassembly, once."""
+    import dis
+    got = _branch_code_info.get(code)
+    if got is None:
+        instructions = list(dis.get_instructions(code))
+        following = {a.offset: b.offset for a, b in zip(instructions, instructions[1:])}
+        lines = {i.offset: (i.positions.lineno if i.positions else None) for i in instructions}
+        got = _branch_code_info[code] = (following, lines)
+    return got
+
+
+def _on_branch(code, offset, destination):
+    """
+    A conditional jump in monitored code (`sys.monitoring.events.BRANCH`): in planetGen's own code, logs the source
+    line, whether the jump was taken or the next instruction followed, the line it went to, and the values the line
+    refers to. Code that is not planetGen's is switched off for good (`DISABLE`), so it costs nothing after its first
+    jump; the log and draw modules are left alone, since what they do is not a decision of the program.
+    """
+    monitoring = sys.monitoring
+    filename = code.co_filename
+    if not (filename.startswith(_PACKAGE_DIR) or filename.startswith(_REPO_DIR + os.sep)):
+        return monitoring.DISABLE
+    if os.path.splitext(os.path.abspath(filename))[0] in _NOT_TRACED_FILES:
+        return monitoring.DISABLE
+    if getattr(_branch_state, "inside", False) or not area_enabled("branch"):
+        return None
+    _branch_state.inside = True
+    try:
+        following, lines = _branch_info(code)
+        line = lines.get(offset) or code.co_firstlineno
+        went = lines.get(destination)
+        source = linecache.getline(filename, line).strip()
+        values = _referenced_values(sys._getframe(1), source)
+        jumped = destination != following.get(offset)
+        text = (f"{source}  -> {'jumps' if jumped else 'continues'} to line {went}"
+                + (f"  [{', '.join(values)}]" if values else ""))
+        record = _trace_logger.makeRecord("planetgen.trace", logging.DEBUG, filename, line, "%s", (text,), None,
+                                          code.co_name, extra={"area": "branch"})
+        if _trace_logger.isEnabledFor(logging.DEBUG):
+            _trace_logger.handle(record)
+    finally:
+        _branch_state.inside = False
+    return None
+
+
+def _trace_branches(enable):
+    """Starts (or stops) logging every conditional jump of planetGen's own code, in the `branch` area. Needs Python
+    3.12's `sys.monitoring`; elsewhere it does nothing."""
+    global _branch_active
+    monitoring = getattr(sys, "monitoring", None)
+    if monitoring is None or enable == _branch_active:
+        return
+    events = monitoring.events
+    wanted = getattr(events, "BRANCH", 0) or (events.BRANCH_LEFT | events.BRANCH_RIGHT)
+    try:
+        if enable:
+            monitoring.use_tool_id(_BRANCH_TOOL, "planetgen-branch")
+            for event in (wanted,) if getattr(events, "BRANCH", 0) else (events.BRANCH_LEFT, events.BRANCH_RIGHT):
+                monitoring.register_callback(_BRANCH_TOOL, event, _on_branch)
+            monitoring.set_events(_BRANCH_TOOL, wanted)
+            monitoring.restart_events()
+        else:
+            monitoring.set_events(_BRANCH_TOOL, 0)
+            monitoring.free_tool_id(_BRANCH_TOOL)
+            _branch_code_info.clear()
+    except ValueError:      # the tool id is taken by another tool: no branch lines, the rest still works
+        return
+    _branch_active = enable
 
 
 # -- Worker lines to the starter's stdout -------------------------------------

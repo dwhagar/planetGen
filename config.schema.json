@@ -1939,7 +1939,7 @@
     },
     "debug_areas": {
       "default": "",
-      "description": "Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib (comma separated; a leading - leaves one out). Empty writes everything.",
+      "description": "Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib (comma separated; a leading - leaves one out). Empty writes everything but branch, which logs every conditional jump of the program's own code and is written only when named.",
       "title": "Debug Areas",
       "type": "string",
       "x-advanced": false,

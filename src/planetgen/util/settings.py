@@ -769,7 +769,9 @@ class Settings(_Section):
                       summary="Write a very detailed log of everything the generator does; it grows "
                               "fast.")
     debug_areas: str = opt("", "Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib "
-                           "(comma separated; a leading - leaves one out). Empty writes everything.",
+                           "(comma separated; a leading - leaves one out). Empty writes everything but branch, "
+                           "which logs every conditional jump of the program's own code and is written only "
+                           "when named.",
                            env="PLANETGEN_DEBUG_AREAS", restart=True, editable=False, group="logging",
                            label="Debug areas",
                            summary="Which kinds of detail debug mode writes; empty is all of them.")

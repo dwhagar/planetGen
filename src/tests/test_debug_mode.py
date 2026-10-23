@@ -126,10 +126,56 @@ def test_parse_areas():
     assert log.parse_areas("") is None
     assert log.parse_areas("all") is None
     assert log.parse_areas("draw, sql") == frozenset({"draw", "sql"})
-    assert log.parse_areas("-draw") == frozenset(log.AREAS) - {"draw"}
+    assert log.parse_areas("-draw") == log.DEFAULT_AREAS - {"draw"}
+    assert "branch" not in log.DEFAULT_AREAS and log.area_enabled("draw") and not log.area_enabled("branch")
+    assert log.parse_areas("all,branch") == frozenset(log.AREAS)
+    assert log.parse_areas("branch") == frozenset({"branch"})
     assert log.parse_areas("queue,-queue") == frozenset()
     with pytest.raises(ValueError, match="not a debug area"):
         log.parse_areas("drawn")
+
+
+def _a_decision_in_our_code():
+    from planetgen.util import random as sampling
+    return sampling.sample_bounded_bell(0.0, 1.0, 0.5)
+
+
+def test_branches_are_logged_only_when_the_branch_area_is_named(monkeypatch, capsys):
+    """Boss, 5:55 PM EDT 10-23: the opt-in `branch` area logs every conditional jump in our own code; off by default."""
+    monkeypatch.setenv("PLANETGEN_DEBUG", "0")
+    log.configure(log.DEBUG)
+    try:
+        assert not log._branch_active
+        _a_decision_in_our_code()
+        assert "branch" not in capsys.readouterr().out
+        log.configure(log.DEBUG, areas="branch")
+        assert log._branch_active
+        _a_decision_in_our_code()
+        out = capsys.readouterr().out
+    finally:
+        log.configure(log.NORMAL)
+    assert not log._branch_active
+    branches = [line for line in out.splitlines() if "planetgen.trace random.py:" in line]
+    assert any("if max_val <= min_val:" in line and " to line " in line and "max_val=1.0" in line
+               for line in branches), branches
+    assert any("for _ in range(max_attempts):" in line for line in branches)
+    assert all(ISO_LINE.match(line) for line in out.splitlines())
+    assert "roll draw." not in out, "the branch area alone writes no draws"
+
+
+def test_branch_tracing_changes_no_number(monkeypatch):
+    monkeypatch.setenv("PLANETGEN_DEBUG", "0")
+    log.configure(log.NORMAL)
+    draw.set_run_seed(5)
+    plain = [_a_decision_in_our_code() for _ in range(5)]
+    log.configure(log.DEBUG, areas="branch")
+    try:
+        with contextlib_redirect():
+            draw.set_run_seed(5)
+            traced = [_a_decision_in_our_code() for _ in range(5)]
+    finally:
+        log.configure(log.NORMAL)
+    assert traced == plain
 
 
 def test_areas_come_from_the_environment_then_config(monkeypatch):
