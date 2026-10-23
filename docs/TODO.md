@@ -44,6 +44,10 @@ that default.
 - A bug is a subitem of the item whose feature it breaks, marked
   "(bug)". A bug in something with no item here is a top-level item in
   its category, marked "(bug)" (for example UX.15).
+- Everything Boss reports from live observation of the running app is a
+  bug, never a feature or an enhancement (Boss, 8:44 PM EDT 2026-10-22):
+  file it as a bug item marked "(bug)", whatever the wording (a layout
+  note, a name, a missing control, a slow stage, an implausible number).
 - The project is in early alpha (Boss, 2026-10-15 5:27 PM EDT): the
   current database schema is not a constraint on any item. Redesign
   tables, columns and layouts as the work needs, with one migration or a
@@ -999,7 +1003,7 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
 
-- [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search**
+- [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug)**
   Boss (8:20 PM EDT 2026-10-22), testing the top menu bar, filed by the
   TODO thread through the coordinator. Boss's words: "move lists into
   the gear menu, make the search box just a search button without text
@@ -15505,7 +15509,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the TODO thread, 8:15 PM EDT 2026-10-22).
   Prerequisites: GEN.369. Related: PERF.146, GEN.403, GEN.625, PERF.163.
 
-- [ ] **GEN.625 Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch)**
+- [ ] **GEN.625 Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug)**
   Boss (8:28 PM EDT 2026-10-22), after reading the plan coverage warning
   (reports/plan-warning-explained-2026-10-22.md: "the disc's crest is
   11.5 times the one-star density (under 20): about 38 percent of its
@@ -16665,7 +16669,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
-- [ ] **PERF.163 The Stage 4 plan takes 264 s against a 3.71 s skeleton: find where the other time goes**
+- [ ] **PERF.163 The Stage 4 plan takes 264 s against a 3.71 s skeleton: find where the other time goes (bug)**
   The Stage 4 plan of a default-size galaxy with the default dials
   (PlanetGen 8.0.1961, Boss's run, 8:23 PM EDT 2026-10-22) took 264 s
   while the skeleton took 3.71 s. The log does not show where the other
@@ -18775,7 +18779,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owner line).
   Prerequisites: none. Related: ADM.99, ADM.115, ADM.125.
 
-- [ ] **ADM.127 Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units**
+- [ ] **ADM.127 Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units (bug)**
   Boss (8:13 PM EDT 2026-10-22), testing the current new-galaxy Generate
   form, filed by the TODO thread through the coordinator. Boss's words:
   "The star brightness section wastes a lot of space, so we should move
