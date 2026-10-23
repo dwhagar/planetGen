@@ -51,6 +51,9 @@ TASKS = (
          "Generate more sectors, around a place or by shells, bands and wedges.", "safe", ("galaxy",)),
     Task("new-galaxy", "Start a new galaxy",
          "Delete everything, plan a new galaxy and generate a first neighborhood.", "destroys", ("new_galaxy",)),
+    Task("plan-only", "Plan a new galaxy and stop",
+         "Delete everything and plan a new galaxy with no sectors and no scatters, so the Galaxy Map shows the sector layout "
+         "and you add sectors by hand.", "destroys", ("new_plan",)),
     Task("scatters", "Change what is scattered across the galaxy",
          "Plan again, redo some scatters, or add a dimmer step of bright stars. Sectors already generated are left alone.",
          "rewrites", ("plan", "redo_scatters", "bright_band")),
@@ -64,10 +67,11 @@ TASKS = (
 )
 """tuple: The tasks, in card order (the wipe card is drawn last, apart from the rest)."""
 
-DESTRUCTIVE_ACTIONS = frozenset({"new_galaxy", "reset"})
+DESTRUCTIVE_ACTIONS = frozenset({"new_galaxy", "new_plan", "reset"})
 
 RUN_LABELS = {
     "new_galaxy": "Delete everything and start a new galaxy",
+    "new_plan": "Delete everything and plan a new galaxy",
     "reset": "Delete everything",
     "check_db": "Check",
 }

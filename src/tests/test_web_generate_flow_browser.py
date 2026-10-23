@@ -25,7 +25,7 @@ ESTIMATE = {"sectors": 9, "systems": 120, "stars": 156, "bytes": 8_400_000, "sec
             "summary": "About 8.4 MB and 1 m 15 s for 9 sectors.", "what": "shell 40"}
 """dict: A made-up size and time, so a galaxy job's Review step does not run the real estimate."""
 
-TASK_KEYS = ("add-sectors", "new-galaxy", "scatters", "check", "wipe")
+TASK_KEYS = ("add-sectors", "new-galaxy", "plan-only", "scatters", "check", "wipe")
 
 
 @pytest.mark.parametrize("scheme", SCHEMES)

@@ -250,7 +250,7 @@ def test_page_renders_summary_and_forms(site, client):
     assert "Planned, edge at shell 4,100" in html
     assert "7 sectors" in html
     for key, label in (("add-sectors", "Add sectors to the galaxy"), ("new-galaxy", "Start a new galaxy"),
-                       ("scatters", "Change what is scattered"), ("check", "Check the database"),
+                       ("plan-only", "Plan a new galaxy and stop"), ("scatters", "Change what is scattered"), ("check", "Check the database"),
                        ("wipe", "Wipe the galaxy")):
         assert f'href="/admin/generate/task/{key}"' in html and label in html
     assert 'href="/admin/generate/system"' in html and 'href="/admin/generate/history"' in html
@@ -639,7 +639,7 @@ def test_the_start_screen_has_a_card_per_task_and_no_folds(site, client):
     assert 'id="current-job"' not in html
     cards = re.findall(r'href="(/admin/generate/[^"]*)"><strong>', html)
     assert cards == ["/admin/generate/task/add-sectors", "/admin/generate/task/new-galaxy",
-                     "/admin/generate/task/scatters", "/admin/generate/system", "/admin/generate/task/check",
+                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/system", "/admin/generate/task/check",
                      "/admin/generate/task/wipe"]
     assert "generatefolds.js" not in html and "generatecustomize.js" not in html and "data-fold" not in html
 
@@ -656,7 +656,7 @@ def test_a_form_shown_again_is_its_tasks_page_with_the_draft(site, client, no_sp
 
 def test_no_task_form_has_two_boxes_with_the_same_name(site, client):
     """A box repeated in two panels would post twice and the first, empty one would win (the radius of the place tabs)."""
-    for key in ("add-sectors", "new-galaxy", "scatters", "check", "wipe"):
+    for key in ("add-sectors", "new-galaxy", "plan-only", "scatters", "check", "wipe"):
         html = _task_html(client, key)
         names = re.findall(r'<input type="(?:text|number|search)"[^>]*? name="([^"]+)"', html)
         names += re.findall(r'<input[^>]*? name="([^"]+)"[^>]*? type="(?:text|number|search)"', html)
@@ -708,7 +708,7 @@ def test_plan_rejects_out_of_range(site, client, no_spawn):
     assert "Arm contrast: 10.5 is outside 0 to 1" in resp.get_data(as_text=True)
 
 
-@pytest.mark.parametrize("action", ["reset", "new_galaxy"])
+@pytest.mark.parametrize("action", ["reset", "new_galaxy", "new_plan"])
 def test_destructive_jobs_need_the_typed_database_name(site, client, no_spawn, action):
     resp = _post(client, action=action, confirm="wrong")
     assert resp.status_code == 400
@@ -726,6 +726,24 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     # GEN.30: the scatter comes after the sectors, inside the galaxy step.
     assert galaxy["label"] == generate_page.NEW_GALAXY_SCATTER_LABEL
     assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0", "--then-scatter"]
+
+
+def test_plan_only_resets_and_plans_with_no_sectors_and_no_scatter(site, client, no_spawn):
+    """UX.147: the Start card that wipes and plans, so the Galaxy Map shows the sector layout and sectors are added by hand."""
+    resp = _post(client, action="new_plan", confirm=DB, arm_count="4")
+    assert resp.status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "new_plan"
+    reset, plan = _work_steps(job)
+    assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
+    assert _argv(plan) == ["plan", "--arm-count", "4"]
+    assert not any(word in ("galaxy", "scatter", "--then-scatter") for step in job["steps"] for word in step["argv"])
+
+
+def test_the_plan_only_page_asks_for_the_shape_and_the_database_name_and_nothing_to_scatter(site, client):
+    html = _task_html(client, "plan-only")
+    assert 'name="action" value="new_plan"' in html and 'name="confirm"' in html and 'name="arm_count"' in html
+    assert 'name="radius_pc"' not in html and "skip_scatters" not in html and "mass-limit" not in html
 
 
 # --- Bright-star scatter ----------------------------------------------------------
