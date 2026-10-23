@@ -7036,13 +7036,6 @@ def _mark_nebula_field_stored(conn, nebula_id, center):
         (nebula_id, i, j, k, x, y, z))
 
 
-def _address_of(galaxy_position):
-    """`(shell, band, wedge)` of a sector's galaxy position, `None` when it has none."""
-    if not galaxy_position or galaxy_position.get("shell_index") is None:
-        return None
-    return (galaxy_position["shell_index"], galaxy_position["band_index"], galaxy_position["wedge_index"])
-
-
 def _sector_object_ids(sector, galaxy_position):
     """
     `(obj, kind, center_pc)` for everything in a galaxy-placed sector that
