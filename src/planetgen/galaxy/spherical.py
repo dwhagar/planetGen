@@ -286,6 +286,7 @@ def cell_count(shell):
     return cells_in_band_range(shell, band_range(shell)[1])
 
 
+@functools.lru_cache(maxsize=65536)
 def cells_in_band_range(shell, high_band):
     """
     How many cells shell `shell` holds in bands `-high_band .. high_band`

@@ -536,3 +536,14 @@ def test_a_query_centred_on_a_cell_centre_does_not_trip_on_rounding(address, rad
     center = spherical.sector_position_pc(*address, 4.0)
     cells = list(spherical.enumerate_sectors_within_radius(center, radius, 4.0))
     assert address in {cell[:3] for cell in cells}
+
+
+@pytest.mark.parametrize("shell", [1, 2, 7, 120, 5000])
+def test_cells_in_a_band_range_are_the_wedges_of_its_bands_and_asked_for_again_cost_nothing(shell):
+    """TEST.275: the outline's shell sums are asked for again and again (every dial change); a repeat is a cache hit."""
+    for high in {0, 1, spherical.band_range(shell)[1] // 2, spherical.band_range(shell)[1]}:
+        cells = sum(spherical.wedge_count(shell, band) for band in range(-high, high + 1))
+        assert spherical.cells_in_band_range(shell, high) == cells
+        hits = spherical.cells_in_band_range.cache_info().hits
+        assert spherical.cells_in_band_range(shell, high) == cells
+        assert spherical.cells_in_band_range.cache_info().hits == hits + 1
