@@ -47,6 +47,7 @@ def inline_queue(monkeypatch=None):
     token = uuid.uuid4().hex[:12]
     prefix = f"planetgen-test:{token}"
     queue_name = f"planetgen-bulk-test-{token}"
+    maintenance_name = f"planetgen-maintenance-test-{token}"
     used = []
 
     def run_waiting_units(name, connection=None, url=None, mysql_host=None, count=None):
@@ -63,6 +64,7 @@ def inline_queue(monkeypatch=None):
             patch = monkeypatch or stack.enter_context(pytest.MonkeyPatch.context())
             patch.setattr(runrecord, "PREFIX", prefix)
             patch.setattr(redisqueue, "BULK_QUEUE", queue_name)
+            patch.setattr(redisqueue, "MAINTENANCE_QUEUE", maintenance_name)
             patch.setattr(workers, "ensure_workers", run_waiting_units)
             for name, value in (("HOST", server["host"]), ("PORT", server["port"]), ("USER", server["user"]),
                                 ("PASSWORD", server["password"])):
@@ -74,4 +76,4 @@ def inline_queue(monkeypatch=None):
             client = redis.Redis.from_url(url)
             for key in list(client.scan_iter(match=f"{prefix}:*")) + list(client.scan_iter(match=f"rq:*{token}*")):
                 client.delete(key)
-            client.delete(f"rq:queue:{queue_name}")
+            client.delete(f"rq:queue:{queue_name}", f"rq:queue:{maintenance_name}")

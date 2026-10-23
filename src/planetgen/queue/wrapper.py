@@ -89,6 +89,7 @@ def _expand(conn, run_id, index):
                               "detail": expansion.plan})
     runrecord.begin_stage(conn, run_id, index, now=started)
     units.enqueue_units(conn, run_id, index, step.kind, expansion.units,
+                        queue_name=queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))),
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
                         .get("expected_seconds"))
     return len(expansion.units)
@@ -183,6 +184,12 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         sleep(units.POLL_SECONDS)
 
 
+def queue_of(kind):
+    """The queue the units of a run of `kind` go on (PERF.150): the maintenance queue for a `MAINTENANCE` or `CHECK`
+    run, the bulk queue for a `GENERATION` run."""
+    return redisqueue.BULK_QUEUE if kind == runrecord.GENERATION else redisqueue.MAINTENANCE_QUEUE
+
+
 def waiting_text(holder, position):
     """What a run waiting for the machine says (PERF.153; PERF.147's bar uses the same words)."""
     return f"Waiting at position {position} for run {holder}"
@@ -258,7 +265,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
     else:
         run_id = start()
-    ensure = lambda: workers.ensure_workers(redisqueue.BULK_QUEUE, conn, url, count=workers_count)  # noqa: E731
+    ensure = lambda: workers.ensure_workers(queue_of(kind), conn, url, count=workers_count)  # noqa: E731
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):

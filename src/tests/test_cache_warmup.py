@@ -547,7 +547,7 @@ def prefetch(galaxy, monkeypatch):
 def _run_queued(prefetch):
     import rq
     connection = redisqueue.connect()
-    done = rq.SimpleWorker([redisqueue.queue(redisqueue.BULK_QUEUE, connection)], connection=connection,
+    done = rq.SimpleWorker([redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)], connection=connection,
                            serializer=redisqueue.JsonSerializer)
     done.work(burst=True, logging_level="WARNING")
 
@@ -556,7 +556,7 @@ def test_a_visit_queues_the_tiles_around_it_and_they_are_then_stored(galaxy, pre
     with warmup.build_app().test_request_context("/"):
         tilecache.fetch_tiles(prefetch.db, ["5/16/16/16"])          # the visit: the map asked for this tile
     queued = prefetch.schedule(["5/16/16/16"])
-    assert queued == 20 and prefetch.ran and prefetch.ran[0].get("count") == 1, "one worker, never the admin's count"
+    assert queued == 20 and prefetch.ran and "count" not in prefetch.ran[0], "the maintenance lane sets its own cap"
     _run_queued(prefetch)
     around = list(prefetch.module.candidates(["5/16/16/16"]))[:20]
     with warmup.build_app().test_request_context("/"):

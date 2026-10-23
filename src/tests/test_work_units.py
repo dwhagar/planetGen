@@ -224,7 +224,7 @@ def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds_and_its_un
     run_id = wrapper.run("T", [_step(1)], lambda index, plan: None, lambda index, unit, result: None, rows={"test": row})
     stage = runrecord.read_run(conn, run_id)["stages"][0]
     assert stage["expected_seconds"] == 3000.0 and stage["row"] == row
-    assert seen == [{"expected_seconds": 3000.0}]
+    assert seen == [{"queue_name": redisqueue.BULK_QUEUE, "expected_seconds": 3000.0}]
 
 
 def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypatch, conn):
