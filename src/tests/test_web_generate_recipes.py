@@ -95,7 +95,7 @@ def test_a_saved_recipe_is_listed_and_opens_the_review_step_without_running(clie
     assert "Shell 40" in start and "Add sectors to the galaxy" in start
     link = re.search(r'<a href="([^"]+)"><strong>Shell 40</strong>', start).group(1).replace("&amp;", "&")
     page = client.get(link)
-    assert page.status_code == 200 and "galaxy --shell 40" in page.get_data(as_text=True)
+    assert page.status_code == 200 and "sectors --shell 40" in page.get_data(as_text=True)
     assert no_spawn == []
 
 

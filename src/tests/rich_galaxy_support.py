@@ -65,7 +65,10 @@ def _build(config):
     with forced_system_config(PLANETS=True):
         run_cli("sectors", ["--shell", "1", "--band", "0", "--limit", "3", "--num-systems", "6",
                             "--yes", "--quiet"] + target)
+        run_cli("link", ["--quiet"] + target)
+        run_cli("backfill", ["--quiet"] + target)
         run_cli("population", ["--quiet"] + target)
+        run_cli("settle", ["--quiet"] + target)
     conn = store.get_connection(config)
     try:
         sector_id = conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]

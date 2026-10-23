@@ -308,7 +308,8 @@ def test_a_galaxy_run_is_a_job_that_ends_done(control_config):
     assert "secret" not in tree["title"] and control_config.database not in tree["title"]
     assert tree["database_name"] == control_config.database
     # The sectors are units of the run on Redis (PERF.107), no longer tasks of a queue node in this tree.
-    assert [child["kind"] for child in tree["children"]] == []
+    # ... and the population pass `galaxy` ends with (PERF.123) is the one child.
+    assert [child["kind"] for child in tree["children"]] == ["population"]
     assert len(_rows(control_config, "SELECT id FROM sectors")) == cell_count(1)
 
 
