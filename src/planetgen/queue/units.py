@@ -32,6 +32,8 @@ import time
 import rq
 from rq.job import Callback
 
+from planetgen.datasets import fetch
+from planetgen.db import store
 from planetgen.queue import commands, redisqueue, runrecord
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -160,8 +162,10 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         dict: `seconds` the unit took, or `skipped`.
     """
     conn = rq.get_current_job().connection
-    if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
+    state, disregard = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data")
+    if runrecord._s(state) != "running":
         return {"skipped": True}
+    fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))      # GEN.599: the run's own switch, in every worker
     started = time.monotonic()
     result = commands.unit_function(kind)(args, _Reporter(conn, run_id, stage, unit))
     seconds = time.monotonic() - started
@@ -173,6 +177,44 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         wrapper.finish_stage(conn, run_id, stage)
         wrapper.advance(conn, run_id, stage + 1)
     return {"seconds": seconds}
+
+
+def warm_unit(job):
+    """
+    PERF.146: runs the command's `warm` function, if it has one, in the worker before RQ forks the horse for `job`.
+    A horse is a new process, so everything a unit works out from the galaxy alone (its shape, which holds the component
+    field built from tens of thousands of stored clusters, and the sampling tables of the scatters) was worked out
+    again in every unit: seconds of arithmetic before the first star, a unit after a unit. Done here, in the
+    worker, the caches it fills (`store._FIELD_BY_SIGNATURE`, `star_population._bright_table`) are in the worker's
+    memory and each horse starts with them; a table that changed meanwhile is read again, by its signature. Best
+    effort: a unit that cannot warm meets the same error itself.
+    """
+    if job.func_name != UNIT_FUNCTION:
+        return
+    kind, args = job.args[3], job.args[4]
+    spec = commands.spec(kind)
+    if spec.warm is None:
+        return
+    try:
+        commands.warm_function(kind)(args)
+    except Exception:
+        pass
+
+
+def warm_shape(unit_args):
+    """A `warm` function for the units that read the galaxy's shape first thing (`unit_args["database"]`): reads it, so
+    the worker holds its component field (`warm_unit`). The connection is closed and its pool dropped before the fork,
+    so no socket is shared with a horse."""
+    named = unit_args["database"]
+    config = store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+    try:
+        conn = store.get_connection(config)
+        try:
+            store.get_galaxy_shape(conn)
+        finally:
+            conn.close()
+    finally:
+        store.close_pool(config)
 
 
 def unit_failed(job, connection, exc_type, exc_value, _traceback):

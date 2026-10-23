@@ -21,6 +21,7 @@ from planetgen.galaxy.scatter_limits import ScatterLimits
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass, phenomenon_scatter, run_plan
 from planetgen.physics import component_profiles, king
+from planetgen.util import draw
 from tests import test_gen_scatter_tiers as tiers
 from tests.test_bright_star_scatter import EXTENTS
 from tests.test_phenomenon_scatter import _scatter_args as _phenomenon_args
@@ -361,3 +362,25 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
 
     rows = run_all(mine)
     assert len(rows) > 100 and run_all(list(reversed(mine))) == rows
+
+
+def test_a_spreads_tiers_are_looked_up_together_and_are_each_bands_own():
+    """PERF.146: the pass asks for the tiers of all its places at once; each star still gets the tier `tier_at` gives
+    its band."""
+    limits = ScatterLimits.of(tiers._skeleton(), tiers.FLOOR, tiers.MASS)
+    tiered = scatter_limits.luminosity_pass(limits)
+    fractions, bands = brightStars.pass_of(tiered, tiers.FLOOR, None, None)
+    component = _satellite(mass=1.0e8, half=3000.0, center=(1500.0, 0.0, 500.0))
+    asked = []
+
+    def counted(places):
+        asked.append(list(places))
+        return limits.tiers_of_places(places)
+
+    by_tier = brightStars.tier_fractions_of(tiered)
+    spots = list(component_pass.component_spots(component, EDGE, by_tier, counted, draw.Stream("x"), set()))
+    assert len(spots) > 200
+    assert len(asked) <= 3                                # one lookup per population
+    assert len({spot[-1] for spot in spots}) > 1                # the baseline's and the halo's
+    for shell, band, _wedge, _point, _population, tier in spots:
+        assert tier == limits.tier_at(shell, band)

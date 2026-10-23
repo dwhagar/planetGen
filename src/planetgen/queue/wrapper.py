@@ -25,6 +25,7 @@ PERF.128 give it units.
 import json
 import time
 
+from planetgen.datasets import fetch
 from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, units, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
@@ -252,7 +253,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                               row=(rows or {}).get(step.key)) for step in steps]
     start = lambda: runrecord.start_run(       # noqa: E731
         conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
-        kind=kind)
+        kind=kind, disregard_missing_data=fetch.disregarding_missing_data())
     if kind == runrecord.GENERATION:
         run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
     else:

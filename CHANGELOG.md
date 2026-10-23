@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1964] - 2026-10-23
+
+**Headline:** A run can be told to go ahead without a missing data file, and a refusal now names every file to download.
+
+### Changed
+- **`--disregard-missing-data` (GEN.599).** A bulk run still refuses to start while a downloaded data file is missing, but the refusal now names each dataset, why, every file to download with its URL and the setup command. Told to disregard missing data (the option on the command line, the "Disregard missing data files" box on the Generate page, `disregard_missing_data` in the neighbourhood request), the run starts, says which datasets are missing and what stands in for each, and hands the option to every worker. The fallbacks: no main-sequence values for a star, the zero-temperature Chandrasekhar radius for a white dwarf, and the Chamel and Haensel 2008 outer crust for a neutron star; each is an open item on the star and a stand-in in the relation list. `datasets status --disregard-missing-data` reports the same and exits 0 for a dataset that has a fallback.
+
+generation-output: unchanged
+
+## [8.0.1963] - 2026-10-23
+
+**Headline:** `planetgen benchmark --suite` times every generation step on a galaxy of a chosen size, and the first round of fixes it found makes the massive-star scatter at the default size take minutes, not hours.
+
+### Added
+- **`planetgen benchmark --suite`** (PERF.146). Builds a scratch galaxy of a chosen size (`tiny`, `small`, `medium`, `large`), runs each generation step as its own measured command (wall time, machine CPU, peak memory, database questions and rows, time per star or cell, the stages the step reports) and prints a table ranked by share of the whole run; `--repeats` gives the run-to-run spread, `--steps` picks steps, `--step-timeout` stops a step that runs away and records it as not finished, `--output` writes the JSON. See `docs/cli.md`.
+- **`docs/design/generation-performance.md`**: the measured cost of every step, a ranked list of what to speed up next, and the py-spy recipe the profiles were taken with.
+
+### Changed
+- **A queue worker builds the galaxy's component field and sampling tables once, before it forks a job, not once per unit.** The scatter units were each rebuilding the field from about 22,000 clusters and satellites; the massive-star scatter at the default size took over two hours and now takes about three minutes. The drawn values are unchanged.
+- **The mean system mass at an age is about four times faster** (the remnant states and turn-off mass are worked out once per call, and the lifetime terms once per metallicity), with the same numbers.
+- **The scatter's band tiers are looked up together** (one pass over the density arrays for all the places a component's stars land in) instead of one band at a time, bit for bit the same tiers; the supervisor's tier lookup for marked cells is vectorised the same way.
+
 ## [8.0.1962] - 2026-10-23
 
 **Headline:** A saved course now has a record that keeps both its forms and can say what changed when it is opened again.

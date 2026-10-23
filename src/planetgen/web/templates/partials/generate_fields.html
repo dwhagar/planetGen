@@ -228,6 +228,12 @@
   {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
   <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy: right after the plan, or on a new galaxy once its first sectors are generated, leaving them out.</span></label>
 {%- endmacro -%}
+{#- GEN.599: a job refuses to start while a downloaded data file is missing; this box says to go ahead with each missing dataset's labelled fallback. -#}
+{%- macro disregard_data(id, ticked=False) -%}
+<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="disregard_missing_data" value="1"
+  {%- if ticked or (form and form.get("disregard_missing_data")) %} checked{% endif %}> Disregard missing data files</span>
+  <span class="field-hint">A job refuses to start while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it starts anyway, takes a labelled fallback for each missing dataset, and says so in the job log.</span></label>
+{%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
   <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">

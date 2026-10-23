@@ -86,13 +86,19 @@ def worker_class():
     RQ's worker class with PERF.42's guard: a worker that pre-imports its
     code would keep serving the old release after an update (a horse used to
     import the new files on every job), so before it waits for the next job
-    it starts itself over when the release on disk has changed.
+    it starts itself over when the release on disk has changed. PERF.146: before it forks a horse for a unit, it
+    works out what the unit would work out from the galaxy alone (`units.warm_unit`), so the horse starts with it
+    instead of building it again.
 
     PERF.152: a worker of a queue that `pause.holds` takes no job while the Queue page's pause flag is set. It waits
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
     untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
     """
     class WarmWorker(rq.Worker):
+        def fork_work_horse(self, job, queue):
+            units.warm_unit(job)
+            return super().fork_work_horse(job, queue)
+
         def _wait_while_paused(self):
             if not any(pause.holds(name) for name in self.queue_names()):
                 return

@@ -16405,63 +16405,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: PERF.75, PERF.135.
 
-- [ ] **PERF.146 A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages**
-  Boss, 2026-10-21, 6:34 PM EDT, as the coordinator relayed: "have we
-  done a performance test on the bright star scatter? Or any of the
-  generation options so we can try to optimize? That should be a TODO
-  item before we stamp 8.1 as one of the final 3 stages." What exists:
-  `planetgen benchmark` (PERF.31, done) times a small galaxy from the
-  plan to the fill (2 sectors in one shell) and prints each stage's time
-  and database work, with an optional profile of the fill; every run
-  records its stage timings in `generation_stage_runs` and
-  `generation_stats` (PERF.56); PERF.113 to PERF.117 measure single
-  stages (neighbour link, population pass, settle, habitability
-  re-score, map-luminosity fill) and are open; PERF.128 makes the
-  benchmark a wrapper step list. Not covered: the scatters of GEN.301
-  (mass, luminosity, phenomena, nebula field, band, the bright stars and
-  the halo), their cost by size, and a ranked list of what to optimize.
-  Do: extend the benchmark (or add `planetgen benchmark --suite`, the
-  owner picks the name) so one repeatable command, with a fixed seed and
-  the sizes small, medium and large, times every generation option and
-  every scatter kind separately, per stage (bright-star scatter,
-  massive-star pass, halo, satellites, nebula field, band, cluster pass,
-  system fill, population, settle, the neighbour link, the habitability
-  re-score, the map-luminosity fill and the warm-up), reporting wall
-  time, CPU time, database queries and rows, peak memory and the time
-  per star or per cell, with the run-to-run spread; write the JSON and a
-  short report (docs/design/generation-performance.md with its README
-  row, or /mnt/project-files/reports/); rank the costs, estimate the
-  share of a full galaxy run each takes, and list the optimizations in
-  order of saving over effort. Optimizations that change no generated
-  value are built here when small; any that changes a drawn value needs
-  its own item with a generator epoch and Boss's word, and goes to a
-  later version unless he says otherwise. Done: the command exists and
-  is documented in docs/cli.md, a test runs it on a tiny size and checks
-  the JSON shape, the report is merged with the ranked list, items are
-  filed for the top optimizations, and the closing audits are re-run if
-  an optimization touched generation code. Order of the last three 8.1
-  stages (TODO thread, 6:40 PM EDT): (1) the whole-sphere audits
-  TEST.185, TEST.184, TEST.159 and TEST.160 on the final generator; (2)
-  this profile and its cheap optimizations; (3) the security audit
-  SEC.33 and the bug hunt audit TEST.261 on the final code, then the
-  headline GEN.301. Owner proposed: Core 1 after GEN.545 merges, or a
-  fresh performance thread started when TEST.159 and TEST.160 near the
-  end; not Core 5 (it carries the closing audits).
-  Owner: a new performance thread (the coordinator, relayed 3:42 PM EDT
-  2026-10-22 as the lane's clock reads, after TEST.159, TEST.160, TEST.184
-  and TEST.185 merged as #2504); thread Performance, session
-  cse_01SLzAuwkQE7AccwLD1hDRZX, started 3:42 PM EDT 2026-10-22.
-  Findings from the first benchmark run (Performance, relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads, release 8.0.1930, size small) are
-  filed as PERF.156 to PERF.162 and GEN.624 (a question for Boss).
-  Prerequisites: none. Related: PERF.31, PERF.56,
-  PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
-  SEC.33, TEST.261.
-  Note (TODO thread, 2026-10-21): the default galaxy becomes smaller
-  (Boss, 6:57 PM EDT; GEN.603), so measure the generation options on
-  both a default-size galaxy and a pinned large one; cost per option and
-  the sector and system counts will differ.
-
 - [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
   Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
   task gets its own progress bar once it is expected to take, or does
@@ -16682,7 +16625,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage has a unit expected over the ceiling; the splits keep the same
   stored rows for the same seed. Owner: the Performance thread
   (proposed; it holds the PERF.146 data), after PERF.146.
-  Prerequisites: PERF.146. Related: PERF.98, PERF.99, PERF.100,
+  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
 - [ ] **PERF.156 The warm-up counts the search check answering 202 (a queued job) as a failure, so planetgen warm stops after phase 4 on a large galaxy (bug)**
@@ -16825,6 +16768,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 1,578 shell rows, queue start-up, naming key) is unmeasured and
   needs a MySQL run.
   Prerequisites: none. Related: PERF.146, GEN.624.
+
+- [ ] **PERF.164 The generation performance report holds only the small size: measure medium and large after PERF.163 and re-rank**
+  Follow-up to PERF.146 (merged as #2559, about 9:10 PM EDT 2026-10-22
+  as the Performance lane reported; the benchmark suite `planetgen
+  benchmark --suite`, the report docs/design/generation-performance.md
+  and value-neutral speedups). PERF.146 shipped with the small size
+  measured; its Done line asks for small, medium and large. Do: run the
+  suite at the medium and large sizes on a full-size machine after
+  PERF.163 (the plan stage's cache bug) lands, add the numbers and the
+  per-star and per-cell times to the report, and re-rank the
+  optimization list if the large run changes the order. Done: the report
+  holds measured medium and large rows with the run-to-run spread and
+  the ranked list is checked against them. Owner: the Performance
+  thread, after PERF.163 (the Performance lane, relayed 9:04 PM EDT
+  2026-10-22).
+  Prerequisites: PERF.163. Related: PERF.146, PERF.163.
 
 ## DB: Database and schema
 
@@ -19020,7 +18979,7 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   open; Mediums are filed with owners; data loss, corruption or broken
   seed reproducibility counts as High. This holds unless Boss
   specifically authorizes an exception.
-  Prerequisites: PERF.146. Related: TEST.261.
+  Prerequisites: none. Related: TEST.261.
 
 ## TEST: The test suite
 
@@ -20744,7 +20703,7 @@ clears each one.
   physics/body_positions.py, light_travel.py and planet_zones.py, whose
   callers are open items); keep anything tied to an open or planned
   item, and say in each PR which item keeps what is left.
-  Prerequisites: PERF.146. Related: SEC.33.
+  Prerequisites: none. Related: SEC.33.
 
 - [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
   Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
@@ -21032,6 +20991,23 @@ clears each one.
   proposed by the TODO thread, because the lane named the area; the
   coordinator can move it).
   Prerequisites: none. Related: MAP.210, MAP.209.
+
+- [ ] **TEST.283 Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups**
+  PERF.146 (merged as #2559) changed generation code with value-neutral
+  speedups (scatter once-per-worker setup, bright-star tier lookups,
+  system-mass arithmetic), bit-identical and without an epoch. The goal
+  of PERF.146 says the closing audits are re-run when an optimization
+  touches generation code. Do: re-run the whole-sphere audits TEST.185,
+  TEST.184, TEST.159 and TEST.160 on main as it stands after #2559 and
+  file any finding; any audit that fails on main files its finding to
+  the TODO thread (kind, test, text, fails-on-main, frequency,
+  reproducer). Done: the four audits pass on main after #2559, or each
+  failure is filed with its owner. Owner: Core 5 after its current gate
+  (the coordinator, relayed 9:05 PM EDT 2026-10-22). Related to the
+  release gates: SEC.33 and TEST.261 run on final code and do not wait
+  for this.
+  Prerequisites: none. Related: PERF.146, TEST.159, TEST.160, TEST.184,
+  TEST.185.
 
 ## USR: User accounts
 

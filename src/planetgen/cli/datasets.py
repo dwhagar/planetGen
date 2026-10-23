@@ -24,6 +24,7 @@ from planetgen.datasets import catalogue, fetch
 
 
 _CONSEQUENCE = " -- generation will not start until it is fetched (it replaces: {})"
+_DISREGARDED = " -- the run takes a labelled fallback: {}"
 
 
 def _chosen(keys):
@@ -47,6 +48,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", choices=("fetch", "status"))
     parser.add_argument("keys", nargs="*", metavar="KEY", help="Datasets to handle (default: all)")
+    parser.add_argument("--disregard-missing-data", action="store_true",
+                        help="status: say that a missing dataset with a fallback is taken as one and exit 0 for it (the "
+                             "Generate page's data check when the run was told to disregard missing data)")
     args = parser.parse_args(argv)
     datasets = _chosen(args.keys)
     if not datasets:
@@ -66,8 +70,10 @@ def main(argv=None):
         else:
             located = fetch.locate(dataset)
             if located.missing:
-                absent += 1
-                print(_line(dataset, True, located.reason) + _CONSEQUENCE.format(dataset.replaces))
+                taken = args.disregard_missing_data and bool(dataset.fallback)
+                absent += not taken
+                print(_line(dataset, True, located.reason)
+                      + (_DISREGARDED.format(dataset.fallback) if taken else _CONSEQUENCE.format(dataset.replaces)))
                 for piece, reason in located.lacking:
                     print(_piece_line("missing", piece, reason))
             else:

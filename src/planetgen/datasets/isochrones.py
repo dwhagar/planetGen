@@ -39,6 +39,7 @@ DATASET = fetch.Dataset(
                         "bb3f42743f75676fa8bf6ca63c4cb2723a0839b77204efebcae39fa4610a92c8", 221507784, transient=True),),
     replaces="the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note",
     fill="SC1",
+    fallback="no MIST point, so no luminosity, temperature, radius or lifetime for a main-sequence star (an open item on the star)",
     derived=(DERIVED,),
     derive=lambda folder: derive(folder),
     derive_version=1,
