@@ -8777,7 +8777,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.495.
+  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.495.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -9288,7 +9288,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hydrogen sulphide row is its own curve, GEN.422 reads the new curves,
   and the old table and the copy line are gone. Owner: Core 4 (the 8.4
   atmosphere chain, proposed).
-  Prerequisites: GEN.470. Related: GEN.409, GEN.410,
+  Progress: GEN.470 merged as #2590 (11:20 PM EDT 2026-10-22 as the lane reported): `physics/saturation.py` and `data/saturation_pressure.json`, one saturation-pressure function; Fray and Schmitt fits for Ne, N2, CO, Ar, O2, CH4, Kr, Xe, C2H6, C2H4, C2H2, H2S, CO2, NH3, SO2, HCN, CH3OH and C6H6, water by Feistel and Wagner; no liquid branch yet (GEN.452 adds it); no column, migration or epoch.
+  Prerequisites: none. Related: GEN.409, GEN.410,
   GEN.422, GEN.451, GEN.414, GEN.434, GEN.470.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -10280,107 +10281,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (`SNOW_LINE_AU_AT_1_LSUN = 2.7`) with 0.2 dex of scatter; 150 K lies
   inside that scatter and is noted, not a second centre.
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
-
-- [ ] **GEN.470 One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests**
-  Part F of the Body composition research lane
-  (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Items F1 and F1t. Water ice by the
-  Feistel and Wagner 2007 form with the coefficients Boss gave (e0 to
-  e6, P_triple 6.116577e-3 bar, T_triple 273.16 K) was computed against
-  IAPWS R14-08 and agrees to 0.06 percent from 60 K to 273.16 K. The
-  cold ices (N2, CO, CH4, CO2, NH3, H2S, SO2) have a working table of
-  Fray and Schmitt 2009 polynomials `ln P[bar] = A0 + sum A_i / T^i`
-  transcribed from the image of Table 2 of the supplement of the
-  Arrokoth and Pluto ices paper (NTRS 20210019502); every polynomial
-  reproduces its NIST triple-point pressure within 3 percent (GEN.497 replaces solid CO2 by Span and Wagner equation 3.12, so no 4 percent case remains), which proves the
-  units and the exponent layout and does not verify the cold end below
-  50 K or the validity range and the choice between the two polynomials
-  of N2, CO, CO2 and H2S, for which the primary paper (Planet. Space
-  Sci. 57, 2053; ScienceDirect refused) is on Boss's research list. The
-  older two-parameter Prialnik 2004 fits are off by large factors in the
-  cold (CO 6 times too high at 40 K, 30 times at 30 K). Do: one
-  `p_sat(species, T)` that reads the polynomial rows of the gas table
-  (GEN.410) and the volatile-ice table (GEN.427) with each row's
-  validity range and source, raises outside the range or says it
-  extrapolates, and is the one function the freeze-out (GEN.452,
-  GEN.422), the comet and Kuiper-belt volatile retention (GEN.442) and
-  the hydrosphere (GEN.461) call; the transcribed table is the working
-  copy until the primary paper is read. Done: a test checks every ice
-  against its NIST triple point within 3 percent and water against the
-  IAPWS values within 0.1 percent, that out-of-range calls are flagged,
-  and that no other module holds a vapour-pressure constant. Owner: Core
-  4 (proposed, with the composition chain).
-  Prerequisites: none. Related: GEN.410, GEN.427, GEN.452,
-  GEN.422, GEN.442, GEN.461.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. The cold curves are the composite of GEN.410
-  (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
-  Blakley 2024 laboratory fits below); the sign inversions of Boss's
-  note are unsupported.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the cold-ice vapour
-  pressures below 50 K (Grundy 2024 and Blakley 2024 laboratory fits,
-  beta-O2 lower by 1.6), Jager and Span 2012 for CO2, and H2, HD and He
-  as non-condensable above their critical temperatures; the
-  sign-inversion question agrees with finding 11.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) the cold end is the laboratory-corrected N2, CO,
-  CH4, O2 and NH3 (Fray and Schmitt up to about 15 times too high for CO
-  near 25 K; Blakley 2024 covers O2 and NH3 only, Grundy 2024 N2, CO and
-  CH4, a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; the
-  9.2 percent is an enthalpy excess, about 10.1 kJ/mol, not 9.2 kJ/mol)
-  and solid CO2 uses Span and Wagner equation 3.12 (the 0 to 800 K, 12
-  GPa range of the note belongs to Trusler 2011); H2 freezes below 13.96
-  K (Tc 33.145 to 33.18 K, HD Tc 35.908 K); the item is GEN.497.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): the Jager and Span CO2
-  equation is valid 80 to 300 K and 0 to 500 MPa; triple points CO 68.16
-  K, O2 54.361 K, NH3 195.49 K; lab fit windows as in GEN.410.
-  Blakley 2024 beta-O2 'lower than legacy by an average factor of 1.6'
-  is a mean over its own 29 to 37 K window (Fray and Schmitt over lab
-  2.4 down to 1.3; recomputed 1.7); the factor 4.1 at 24 K is the fitted
-  curve extrapolated below the lowest datum, not a measurement, and part
-  01 labels its 24 and 26 K ratios as extrapolation (Atmosphere lane,
-  part 10A claim 2, about 2:55 AM EDT as the lane reported).
-  Corrections from the Atmosphere and Body lanes (about 3:25 AM EDT as
-  the lane reported): the cold-ice O2 and NH3 paper is Blakley et al.
-  2024 (PSS 244, 105863, arXiv:2403.09917; the NTRS record year 2025 was
-  taken for the paper year); a 2026 Grundy-group preprint adds a x1.19
-  back-condensation correction to the ice vapour pressures (read by the
-  Body lane, not by the Atmosphere lane or the TODO thread: carry as
-  lane-read, partly verified until the preprint is read); solid CO2
-  sublimation is better taken from Span and Wagner eq. 3.12 than from
-  Jager and Span's narrower range.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
-  windows: Fray and Schmitt 2009 was on Boss's own list (Boss, 3:07 PM
-  EDT 2026-10-18: he has provided all the data he can); each fit stays
-  inside its stated window as a labelled stand-in.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC12: still open. Fray and Schmitt
-  2009 (the temperature window of each sublimation fit and the cold end)
-  is paid and was not uploaded; the stand-in of each fit inside its
-  window with Clausius-Clapeyron beyond, flagged and doubled in width,
-  stays.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the tolerance is 3
-  percent for every ice; GEN.497 removes the 4 percent case.
-  Owner: Blocker 2, once Blocker 3 has landed GEN.427 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11568,7 +11468,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is paid and was not uploaded; the stand-in of each fit inside its
   window with Clausius-Clapeyron beyond, flagged and doubled in width,
   stays.
-  Prerequisites: GEN.470. Related: GEN.470, GEN.452, GEN.410, GEN.427.
+  Progress: GEN.470 merged as #2590 (11:20 PM EDT 2026-10-22 as the lane reported). Stand-ins, labelled: the switch temperatures between paired fits and the per-fit floor (floor_k) are derived, BC12 stays open; known triple-point departures SO2 +3.8 percent, C6H6 +7 percent, C2H2 -3.6 percent. No liquid branch, which GEN.452 adds.
+  Prerequisites: none. Related: GEN.470, GEN.452, GEN.410, GEN.427.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
   Body composition research lane check of Boss's second research note
