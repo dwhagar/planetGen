@@ -2048,6 +2048,21 @@ a.btn.btn-secondary.btn-active:visited {
   flex: none;
 }
 
+/* UX.101: a PHI-6 symbol (`habitability_symbol(name, tier)`), drawn in the tier-blue .. tier-red color of its
+   rating; the rating is also in its words, so the color is never the only sign. */
+.hab-symbol {
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -0.25em;
+}
+
+.hab-symbols {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2em;
+}
+
 /* A button that is only an icon; its words are its aria-label and title
    tooltip. Touch screens get a 44 px target. */
 .icon-btn {
