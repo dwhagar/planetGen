@@ -401,7 +401,7 @@ ln(P/bar) = A0 + A1/T + ... + A6/T^6, transcribed from SOM Table 2 of Lisse et a
 | CO-1 | 10.43 | -721.3 | -1.074e+04 | 2.341e+05 | -2.392e+06 | 9.478e+06 | 0 | +3.32 | T<60.7 K | 2ND-HAND |
 | CO-2 | 10.25 | -748.2 | -5843 | 3.939e+04 | 0 | 0 | 0 | +0.15 | 60.7 K to Tt | 2ND-HAND |
 | CO2-1 | 14.76 | -2571 | -7.781e+04 | 4.325e+06 | -1.207e+08 | 1.35e+09 | 0 | -3.92 | alternative (Tt error -3.9%) | 2ND-HAND |
-| CO2-2 | 18.61 | -4154 | 1.041e+05 | 0 | 0 | 0 | 0 | +0.54 | recommended (Tt error +0.5%) | 2ND-HAND |
+| CO2-2 | 18.61 | -4154 | 1.041e+05 | 0 | 0 | 0 | 0 | +0.54 | recommended only from 195.3 K up (Tt error +0.5%); in the cold it is 4 K too cold at 100 Pa and 17 K too cold at 1 mPa against this table's own sublimation heat (25.2 to 27.2 kJ/mol), so use CO2-1 below 195.3 K (GEN.452 lane, #2593) | 2ND-HAND |
 | CH3OH-1 | 19.18 | -5648 | 0 | 0 | 0 | 0 | 0 | +23.47 | | 2ND-HAND |
 | CH3OH-2 | 17.06 | -5314 | 0 | 0 | 0 | 0 | 0 | -0.72 | | 2ND-HAND |
 | CH4-1 | 10.51 | -1110 | -4341 | 1.035e+05 | -7.91e+05 | 0 | 0 | +1.64 | all T<Tt | 2ND-HAND |
@@ -455,7 +455,7 @@ H2SO4 (2ND-HAND, Gao et al. 2014, arXiv:1312.3750 eqs. 4a to 4c, read from the p
 | Ar | 87.2 | 71.7 | 61.2 | 53.4 | 47.4 | 42.6 | 32.7 | 0.4 | Wagner liquid; F&S Ar-1 | COMPUTED |
 | O2 | 90.1 | 72.7 | 61.3 | 53.2 | 47.4 | 42.9 | 33.8 | 1.2 | Wagner liquid; F&S O2-3 (43.78 K to Tt), O2-2 (23.14-43.78 K), O2-1 below | COMPUTED |
 | CH4 | 111.5 | 89.5 | 76.1 | 66.3 | 58.7 | 52.7 | 40.3 | 1.7 | Wagner liquid; F&S CH4-1 | COMPUTED |
-| CO2 | 194.4 | 169.2 | 148.8 | 131.8 | 117.5 | 105.0 | 74.4 | 7.9 | Wagner liquid above 216.592 K; F&S CO2-2 solid below | COMPUTED |
+| CO2 | 194.4 | 169.2 | 148.8 | 131.8 | 117.5 | 105.0 | 74.4 | 7.9 | Wagner liquid above 216.592 K; F&S CO2-2 solid below (CO2-2 is wrong in the cold, use CO2-1 below 195.3 K: see the CO2-2 row) | COMPUTED |
 | SO2 | 262.8 | 221.0 | 192.7 | 174.3 | 159.3 | 146.7 | 118.9 | 6.9 | Wagner liquid; F&S SO2-1 | COMPUTED |
 | H2O | 372.8 | 318.9 | 280.1 | 252.8 | 231.0 | 212.6 | 171.5 | 6.3 | Wagner liquid above 273.16 K; Feistel-Wagner ice formula below | COMPUTED |
 | H2S | 212.6 | 177.1 | 153.9 | 136.1 | 122.0 | 110.5 | 86.2 | 2.3 | Wagner liquid; F&S H2S-1 | COMPUTED |
