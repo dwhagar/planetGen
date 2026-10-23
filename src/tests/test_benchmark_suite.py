@@ -159,6 +159,14 @@ def test_a_step_that_ends_prints_a_line_a_stopped_run_keeps():
     assert benchmark_suite.progress_line(_record("plan", 3.0, exit_code=1)).startswith("  FAILED: ")
 
 
+def test_the_scratch_databases_are_kept_unless_every_repeat_ran_and_every_step_finished():
+    good = [_record("plan", 10.0)]
+    assert benchmark_suite.finished([good], 1) and benchmark_suite.finished([good, good], 2)
+    assert not benchmark_suite.finished([], 1) and not benchmark_suite.finished([good], 2)
+    assert not benchmark_suite.finished([[_record("plan", 3.0, exit_code=1)]], 1)
+    assert not benchmark_suite.finished([[_record("plan", 5400.0, timed_out=True, exit_code=None)]], 1)
+
+
 def test_the_machine_cpu_is_a_growing_number_on_linux():
     first = benchmark_suite.machine_cpu_seconds()
     if first is None:

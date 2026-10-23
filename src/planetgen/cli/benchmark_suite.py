@@ -527,6 +527,12 @@ class Pipeline:
         return records
 
 
+def finished(runs, repeats):
+    """Whether every repeat ran and none of its steps failed or stopped: only then are the scratch databases dropped."""
+    return len(runs) == repeats and not any(
+        record.get("failed") or record["timed_out"] or record["exit_code"] for run in runs for record in run)
+
+
 def progress_line(record):
     """The line printed when a step ends, so a run that is stopped before its report keeps what finished."""
     state = "NOT FINISHED" if record["timed_out"] else "FAILED" if record.get("failed") or record["exit_code"] else "done"
@@ -610,10 +616,14 @@ def run_suite(args):
             if startup is None:
                 startup = benchmark._startup_seconds(config, database, pipeline.env)
     finally:
-        with admin.cursor() as cur:
-            for database in scratch:
-                cur.execute(f"DROP DATABASE IF EXISTS `{database}`")
-            cur.execute(f"DROP DATABASE IF EXISTS `{control}`")
+        if not finished(runs, args.repeats):
+            print(f"A step did not finish: the scratch databases are kept; carry on with --resume {suffix} "
+                  f"(drop planetgen_suite_{suffix}_r0 and {control} when done).", flush=True)
+        else:
+            with admin.cursor() as cur:
+                for database in scratch:
+                    cur.execute(f"DROP DATABASE IF EXISTS `{database}`")
+                cur.execute(f"DROP DATABASE IF EXISTS `{control}`")
         admin.close()
     result = {
         "suite_version": SUITE_VERSION, "size": args.size, "mass_solar": args.mass or SIZES[args.size]["mass_solar"],
