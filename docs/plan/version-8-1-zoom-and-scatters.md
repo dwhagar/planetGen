@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 1:29 AM EDT 2026-10-23: 698 of 934 items finished (74.7 percent), 236 open, 23 dropped. Open by phase: phase 1 114, phase 2 29, phase 3 28, phase 4 17, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 is still free). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 1:34 AM EDT 2026-10-23: 700 of 936 items finished (74.8 percent), 236 open, 23 dropped. Open by phase: phase 1 114, phase 2 29, phase 3 28, phase 4 17, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 is still free). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -137,6 +137,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) |  |  |
 | TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) |  |  |
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) |  |  |
+| TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) |  | Bug Hunt; Core 2 finding |
+| TEST.288 | test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug) |  | Bug Hunt; Core 2 finding |
 | TEST.286 | test_quasar_physics_follows_from_mass_and_eddington_ratio fails by chance: it builds 50 quasars with no seed and a mass draw below 1e5 breaks its assertion (bug) |  | Bug Hunt; Blocker 3 finding |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
@@ -182,8 +184,6 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
 | ADM.125 | Generate: named recipes saved per admin in the control database |  |  |
 | ADM.126 | Generate: a live 'how big' count while typing a command or filling the form |  |  |
-| ADM.127 | Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units (bug) |  |  |
-| UX.146 | The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug) |  |  |
 | UX.126 | The admin pages and the edit dialogs on the field macro | UX.124 | The admin page conversion rides ADM.56 and ADM.93. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124 | Follows UX.40 (done): the fields themselves become Shoelace components. |
 
