@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.147 |
 | MAP | MAP.256 |
 | NAV | NAV.63 |
-| GEN | GEN.636 |
+| GEN | GEN.638 |
 | PERF | PERF.171 |
 | DB | DB.89 |
 | API | API.33 |
 | ADM | ADM.128 |
 | SEC | SEC.34 |
-| TEST | TEST.294 |
+| TEST | TEST.295 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.75 |
@@ -1345,6 +1345,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) | none | open |
 | GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) | none | open |
 | GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) | none | open |
+| GEN.636 | StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug) | none | open |
+| GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2518,6 +2520,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.291 | test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug) | none | open |
 | TEST.292 | test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug) | none | open |
 | TEST.293 | test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers fails once under the gate load and passes alone (bug) | none | open |
+| TEST.294 | The dependency map missed test_validation.py::test_system_methods_still_delegate when GEN.325 changed StarSystem._orbit_ceiling_au, so the changed gate let a failing test reach main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
