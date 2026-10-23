@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1971] - 2026-10-23
+
+**Headline:** The browser reads its unit factors from one generated copy of the unit registry.
+
+### Added
+- **The unit registry in the browser** (UX.140). `scripts/build_unit_registry.py` writes `html/static/unitregistry.js` from the Python registry: every unit's kind, symbol, names, factor and offset, every kind's base unit and bounds, and `convert`, `toBase` and `fromBase` with the same arithmetic. A test fails when the file is stale, compares every conversion with Python through Node, and fails when a script declares a unit factor.
+
+### Changed
+- `orbitpositions.js`, `systemview3d.js`, `galaxysystem.js`, `orbitclock.js` and `systemreach.js` no longer declare `AU_KM`, `KM_PER_PC` or the seconds in a year, and the nominal 50 AU system of the map uses the exact AU per parsec instead of the rounded 206264.806.
+
 ## [8.0.1970] - 2026-10-23
 
 **Headline:** `planetgen link`, `backfill` and `settle` run the last stages of a galaxy run on their own.
