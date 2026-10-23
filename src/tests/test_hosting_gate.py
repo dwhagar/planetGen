@@ -12,7 +12,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants, hosting_gate as hg
+from planetgen.physics import constants, hosting_gate as hg, relations
 
 SUN = 1.989e30
 AU = constants.AU_M
@@ -60,7 +60,7 @@ def test_the_stable_zone_is_the_hill_fraction_and_the_radius_plus_floor():
     host = body(20_000.0)
     inner, outer = hg.stable_zone_m(host)
     assert inner == pytest.approx((20_000.0 + 10.0) / 2.0)
-    hill = host.orbit_radius_m * (host.mass_kg / (3.0 * SUN)) ** (1.0 / 3.0)
+    hill = relations.hill_radius(host.orbit_radius_m, host.mass_kg, SUN)
     assert outer == pytest.approx(tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill)
     assert hg.hill_radius_m(body(20_000.0, eccentricity=0.5)) == pytest.approx(0.5 * hill)
 
@@ -73,7 +73,7 @@ def test_a_free_body_has_no_outer_edge():
 def test_a_fluid_host_has_the_roche_limit_as_its_inner_edge():
     host = body(20_000.0, fluid=True)
     inner, _ = hg.stable_zone_m(host)
-    assert inner == pytest.approx(hg.FLUID_ROCHE_FACTOR * 10_000.0)   # same density as the satellite
+    assert inner == pytest.approx(relations.ROCHE_FLUID_COEFFICIENT * 10_000.0)   # same density as the satellite
     assert inner > hg.stable_zone_m(body(20_000.0))[0]
 
 

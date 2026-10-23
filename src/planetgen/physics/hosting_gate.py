@@ -12,7 +12,7 @@ parts of the design in order and names the first that fails:
    than `MASS_RATIO_LIMIT` (a tenth, the limit `physics.planets.moon_size_limits` already uses; equal-mass pairs are binary
    nodes, not satellites).
 2. **A stable orbit must exist.** Outside the host's radius plus the smallest satellite's (and outside the fluid Roche limit
-   when the host is fluid), inside `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` (0.4895) of the host's Hill radius at its
+   (`relations.roche_limit`) when the host is fluid), inside `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` (0.4895) of the host's Hill radius at its
    pericentre, and, when the smallest satellite is comparable in mass to its host (`COMPARABLE_MASS_RATIO`), passing the
    hierarchical stability screen of `physics.stability`.
 3. **A chance that one exists at all.** Below `SIZE_CUT_M` (1 km across, Boss's card S5, a tunable stand-in) no body has satellites.
@@ -35,7 +35,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants, stability
+from planetgen.physics import constants, relations, stability
 
 FLOOR_DIAMETER_M = 10.0
 """float: The smallest satellite's diameter (Boss's card S5: the 10 m floor)."""
@@ -51,17 +51,13 @@ COMPARABLE_MASS_RATIO = 0.01
 """float: A smallest satellite this heavy compared with its host is checked with the hierarchical stability screen.
 STAND-IN."""
 
-FLUID_ROCHE_FACTOR = 2.44
-"""float: The fluid Roche limit, in host radii, for a satellite of the host's density: `2.44 (rho_host / rho_sat)^(1/3)`
-(Roche 1850; the standard textbook limit, COMPUTED)."""
-
 SATELLITE_DENSITY_KG_M3 = 2000.0
 """float: The density assumed for the smallest satellite (the submoon density of Kollmeier and Raymond 2019); STAND-IN."""
 
 # Tidal survival of a submoon (Kollmeier and Raymond 2019, MNRAS, arXiv:1810.03304, equation 1)
-SUBMOON_HILL_FRACTION = 0.4895
+SUBMOON_HILL_FRACTION = tuning.MOON_PROGRADE_STABLE_HILL_FRACTION
 """float: A submoon's orbit is stable out to this fraction of its moon's Hill sphere (Domingos et al. 2006, via Kollmeier and
-Raymond 2019); the same number as `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION`."""
+Raymond 2019); the project's own `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION`, 0.4895."""
 
 SUBMOON_LOVE_NUMBER = 0.25
 """float: The moon's tidal Love number k2 (Moore and Schubert 2000, via Kollmeier and Raymond 2019, their default)."""
@@ -157,8 +153,7 @@ def hill_radius_m(host):
     """The host's Hill radius at its pericentre, or `None` for a free body."""
     if host.parent_mass_kg is None:
         return None
-    pericentre = host.orbit_radius_m * (1.0 - host.eccentricity)
-    return pericentre * (host.mass_kg / (3.0 * host.parent_mass_kg)) ** (1.0 / 3.0)
+    return relations.hill_radius(host.orbit_radius_m * (1.0 - host.eccentricity), host.mass_kg, host.parent_mass_kg)
 
 
 def stable_zone_m(host):
@@ -169,8 +164,7 @@ def stable_zone_m(host):
     """
     inner = (host.diameter_m + FLOOR_DIAMETER_M) / 2.0
     if host.fluid:
-        inner = max(inner, FLUID_ROCHE_FACTOR * host.diameter_m / 2.0
-                    * (host.density_kg_m3 / SATELLITE_DENSITY_KG_M3) ** (1.0 / 3.0))
+        inner = max(inner, relations.roche_limit(host.diameter_m / 2.0, host.density_kg_m3, SATELLITE_DENSITY_KG_M3))
     hill = hill_radius_m(host)
     return inner, None if hill is None else tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill
 
