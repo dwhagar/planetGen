@@ -178,6 +178,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.506, lane M, 2026-10-23):** the selection model `jwst-target-selection` (`planetgen/physics/jwst_selection.py`, `docs/design/jwst-selection.md`): the chance a transiting planet has a published JWST spectrum, a logistic regression on the Kempton et al. 2018 transmission and emission metrics and a radius-class offset, fitted to the NASA Exoplanet Archive (`scripts/fit_jwst_selection.py`; 78 of 4,618 planets). It reproduces the count in each radius class and gives host magnitudes to a generated planet from the found hosts' distribution.
 
+**Built (GEN.507, lane M, 2026-10-23):** the selection model `comet-admission` (`planetgen/physics/comet_admission.py`, `docs/design/comet-admission.md`): the chance a known comet has a published coma composition by group and perihelion distance (93 of 2,422 comets, Robinson et al. 2024 joined to the JPL orbits, `scripts/fit_comet_admission.py`) and the heliocentric distance at which it is measured, truncated at its perihelion. It conditions on a known comet; nucleus size and activity are not inputs.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

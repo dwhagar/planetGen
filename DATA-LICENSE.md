@@ -101,6 +101,15 @@ Fitted numbers only (logistic coefficients, the host magnitude model and per-cla
 | NASA Exoplanet Archive, tables `pscomppars` and `spectra` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
 | Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671) | Published paper; the two formulas and the scale factors of its Table 1 only |
 
+## The comets with a measured composition (`src/planetgen/physics/data/comet_admission.json`, GEN.507)
+
+Fitted numbers only (counts of known and measured comets by group and perihelion bin, and two regression lines and their scatter); the database's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| Robinson, Malamud, Opitom, Perets and Blum 2024, A&A (arXiv:2403.15644), database doi 10.7488/ds/7723 | CC BY 4.0; attribution given here |
+| JPL Small-Body Database query API (https://ssd-api.jpl.nasa.gov/sbdb_query.api), retrieved 2026-10-23 | Public data of NASA/JPL; orbit class and perihelion distance only |
+
 ## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
