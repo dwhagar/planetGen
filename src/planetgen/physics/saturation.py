@@ -296,3 +296,33 @@ def saturation(formula, temperature_k):
 def pressure_pa(formula, temperature_k):
     """`saturation(...).pressure_pa`, for a caller that has no use for the status."""
     return saturation(formula, temperature_k).pressure_pa
+
+
+def condensation_temperature_k(formula, pressure_pa):
+    """
+    The temperature at which `formula` saturates at `pressure_pa` (a gas of mole fraction `x` in air at `P` has the partial
+    pressure `x P`): the root of `pressure_pa(formula, T)`, found by bisection. `None` when the pressure is over the
+    critical pressure (the gas does not condense into a liquid; hydrogen cyanide, with no critical pressure stored, is
+    capped at its liquid curve's end).
+
+    A pressure inside the step between the solid and liquid curves at the triple point (`saturation`'s docstring) has
+    two roots; the one the bisection lands on is returned.
+    """
+    if not pressure_pa > 0:
+        raise ValueError("a pressure must be positive")
+    row = species(formula)
+    if row.liquid is not None:
+        top, top_pa = row.liquid.t_max_k, _liquid_pa(row.liquid, row.liquid.t_max_k)
+    else:
+        top = triple_point_k(formula)
+        top_pa = saturation(formula, top).pressure_pa
+    if pressure_pa > top_pa:
+        return None
+    low, high = 0.5, top
+    for _ in range(200):
+        middle = 0.5 * (low + high)
+        if saturation(formula, middle).pressure_pa < pressure_pa:
+            low = middle
+        else:
+            high = middle
+    return 0.5 * (low + high)
