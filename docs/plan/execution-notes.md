@@ -9,6 +9,10 @@ paragraphs; a paragraph wholly in `*...*` is shown muted; `**bold**` and `` `cod
 
 Boss, 7:44 PM EDT 2026-10-22: Cores 1 to 5 work 8.1 items only until 8.1 is complete. Every item outside 8.1 that a core held went back to the pool (its owner line says so), except the three with a gate already running: UX.140, UX.128 and NAV.17. Versions 8.2 and later are paused. The five queues, in order, with each core's waits on another lane, are in /mnt/project-files/reports/8-1-core-queues-2026-10-22.md; a core takes its next item from the top of its own queue, and an item that is not in any queue waits for the TODO thread to place it. Epochs and Alembic revisions are numbered at merge, so two queues never claim one number. SEC.33 and TEST.261 get their own threads when PERF.146 closes, and GEN.301 closes last. Blocker 2, Blocker 3 and the DB lane finish their current queues (Boss, 7:47 and 7:50 PM EDT: when each is done its thread is retired and a full progress documentation update runs for versions, tree, execution plan, tier plan, roadmap, architecture map, docs index and every HTML page; one combined update after all three is fine).
 
+## Boss's live observations are bugs
+
+Boss, 8:44 PM EDT 2026-10-22: everything he reports from live observation of the running app is a bug, not a feature or an enhancement. Each such report is filed as a bug item marked "(bug)", whatever its wording (the Generate form layout and naming notes, the menu bar changes, the plan warning and implausible plan numbers, a slow stage). Filed so far and re-kinded on this date: ADM.127 (Generate form), UX.146 (menu bar), GEN.625 (Auto defaults and the plan warning) and PERF.163 (the 264 s plan stage); the earlier live reports MAP.209, MAP.210, MAP.249 and TEST.281 were already bugs. The plan-numbers check Boss asked for (actual against expected density, the 157 globular clusters and 11 satellites) is filed as a bug when its read-only result arrives. UX.142 (viewing windows scale to the browser) was a design note for 8.2, not an observation, and stays a feature unless Boss says otherwise.
+
 ## Conflicts to watch
 
 ### Alembic revisions and epochs
