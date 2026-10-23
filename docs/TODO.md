@@ -5429,7 +5429,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: GEN.450,
-  SEC.33, TEST.261.
+  SEC.33, TEST.261, GEN.638.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -10737,49 +10737,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
-- [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-3 (part G4, extends part F item F1 and GEN.470).
-  The Fray and Schmitt cold end is up to about 15 times too high for CO
-  near 25 K, and its CO2 set 1 is 7 percent off at 125 K and 41 percent
-  at 100 K; the laboratory papers are Blakley 2024 (Planet. Space Sci.
-  244, 105863; O2 and NH3 only) and Grundy 2024 (N2, CO, CH4), and a
-  2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; the note's
-  9.2 kJ/mol is a 9.2 percent enthalpy excess (about 10.1 kJ/mol); the
-  note's Jager and Span range (0 to 800 K, 12 GPa) belongs to Trusler
-  2011, so use Span and Wagner equation 3.12 for solid CO2 (842.65 Pa at
-  150 K and 103971 Pa at 195 K as test targets); H2 freezes below 13.96
-  K (Tc 33.145 to 33.18 K, HD Tc 35.908 K). The transcribed N2, CO and
-  CH4 polynomials agree to 0.5 percent with the Fray and Schmitt curves
-  in the Grundy 2024 data package (READ and COMPUTED); the constants C
-  and D2 to D4 for N2, CO and CH4 are curve-fit reconstructions, valid
-  only inside the fitted range. Do: for N2, CO, CH4, O2 and NH3 take the
-  cold end from the corrected tables of part G4 and CO2 from Span and
-  Wagner, with the 1.19 correction as a switch until the 2026 preprint
-  is read, and extend the p_sat function and its test of GEN.470 (triple
-  points plus the correction). Done: the test checks each cold-end curve
-  against the part's table within its stated error and the CO2 targets
-  above, and out-of-range calls are flagged. Owner: Core 4 (proposed,
-  with the composition chain).
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
-  windows: Fray and Schmitt 2009 was on Boss's own list (Boss, 3:07 PM
-  EDT 2026-10-18: he has provided all the data he can); each fit stays
-  inside its stated window as a labelled stand-in.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC12: still open. Fray and Schmitt
-  2009 (the temperature window of each sublimation fit and the cold end)
-  is paid and was not uploaded; the stand-in of each fit inside its
-  window with Clausius-Clapeyron beyond, flagged and doubled in width,
-  stays.
-  Progress: GEN.470 merged as #2590 (11:20 PM EDT 2026-10-22 as the lane reported). Stand-ins, labelled: the switch temperatures between paired fits and the per-fit floor (floor_k) are derived, BC12 stays open; known triple-point departures SO2 +3.8 percent, C6H6 +7 percent, C2H2 -3.6 percent. No liquid branch, which GEN.452 adds.
-  Prerequisites: none. Related: GEN.470, GEN.452, GEN.410, GEN.427.
-
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
   Body composition research lane check of Boss's second research note
   (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
@@ -14528,6 +14485,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spread, or what moved is filed as an item. Owner: Core 1 (ran the
   GEN.625 measurement; proposed by the TODO thread).
   Prerequisites: none. Related: GEN.625, GEN.624, GEN.403.
+
+- [ ] **GEN.638 Planets and belts can sit past the survival ceiling because the age is raised after they are placed, so test_wide_binary_system_generates_and_stays_within_bounds[G2V] fails in about 0.4 percent of draws (bug)**
+  Found by Core 4 (relayed 10:42 AM EDT 2026-10-23 as the lane reported)
+  in the whole-suite gate of GEN.497 (#2671); filed by the TODO thread.
+  Kind: generation bug from GEN.325 (#2624), intermittent. Test:
+  src/tests/test_wide_binary.py::test_wide_binary_system_generates_and_stays_within_bounds[G2V]
+  fails on main in 6 draws of 1,500 (about 0.4 percent) with a G2V wide
+  pair. Cause (Core 4): GEN.325's survival ceiling depends on the star's
+  age; planets are placed under the provisional age, then
+  Star.adjust_age_for_planets only ever raises the age, so the final
+  ceiling is lower and an outer planet or belt sits past it (301 AU
+  against 275 AU, up to 593 against 284). It affects single stars too,
+  not only wide pairs. Reproducer: python -m pytest
+  src/tests/test_wide_binary.py -k generates_and_stays_within_bounds,
+  repeated. Do: re-trim the planet and belt lists to the final-age
+  ceiling right after the age is settled, and recompute the
+  habitable-world and belt requirements. It changes generation output
+  for those draws, so it takes a generator epoch (60 is the next free
+  number, numbered at merge). Done: 3,000 draws of the test pass and no
+  planet or belt sits past the final ceiling. GEN.301's closing `full
+  --check` needs it. Owner: Core 4 (its GEN.325; proposed by the TODO
+  thread).
+  Prerequisites: none. Related: GEN.325, GEN.636, GEN.301.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
