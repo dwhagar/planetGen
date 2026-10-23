@@ -999,6 +999,24 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
 
+- [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search**
+  Boss (8:20 PM EDT 2026-10-22), testing the top menu bar, filed by the
+  TODO thread through the coordinator. Boss's words: "move lists into
+  the gear menu, make the search box just a search button without text
+  just the search icon, put Nearby under Nav, (click on Nav and you have
+  Plot Course and then Nearby Search." Do: (1) the Lists link leaves the
+  header and moves into the gear menu; (2) the search box in the header
+  becomes one search button that shows only the search icon and no text;
+  (3) Nearby leaves the header and goes under Nav: clicking Nav opens a
+  short menu with Plot Course first and then Nearby Search. Done: the
+  header shows no Lists or Nearby link, the gear menu lists Lists, the
+  search control is an icon-only button with an accessible name, and Nav
+  opens its two-entry menu, with browser tests for each and for keyboard
+  use of the Nav menu. Owner: Core 2, second in its queue, right after
+  ADM.127 and ahead of MAP.210 (the coordinator, relayed Boss's note
+  8:20 PM EDT 2026-10-22).
+  Prerequisites: none. Related: ADM.127, UX.124, UX.127.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
