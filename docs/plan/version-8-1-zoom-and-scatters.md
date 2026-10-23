@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 12:22 AM EDT 2026-10-23: 695 of 931 items finished (74.7 percent), 236 open, 23 dropped. Open by phase: phase 1 116, phase 2 29, phase 3 26, phase 4 17, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 is still free). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 12:39 AM EDT 2026-10-23: 697 of 931 items finished (74.9 percent), 234 open, 23 dropped. Open by phase: phase 1 114, phase 2 29, phase 3 26, phase 4 17, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 is still free). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -135,12 +135,10 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
 | TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) |  |  |
-| TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) |  |  |
 | TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) |  |  |
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails on main: 2 uncharted where 3 are expected (bug) |  |  |
 | TEST.285 | test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug) |  | Bug Hunt; Core 3 finding |
 | TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
-| TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |

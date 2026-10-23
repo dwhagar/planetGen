@@ -1088,3 +1088,5 @@ Baseline: PR #1817.
 | GEN.623 | 8.1 | Composition tables |
 | GEN.495 | 8.4 | Surface and small bodies |
 | GEN.626 | 8.1 | Reproducible galaxies |
+| TEST.277 | 8.1 | Bugs and flaky tests |
+| TEST.275 | 8.1 | Bugs and flaky tests |
