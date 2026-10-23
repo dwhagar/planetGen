@@ -325,3 +325,14 @@ Left for later: `dose` has no registry kind, so `describe/quantity.py` still wri
 unit they print, so they convert nothing.
 
 The column registry (`db/column_units.py`) no longer has its own `light-day`: `broad_line_region_light_days` is declared in the registry's `ld`, so a unit lives in one place.
+
+## Built: the registry in the browser (UX.140)
+
+`scripts/build_unit_registry.py` writes the registry to `html/static/unitregistry.js` (every unit with its kind, symbol, names,
+factor and offset, every kind with its base unit, dimension and bounds, and `unit`, `toBase`, `fromBase`, `scale` and `convert`,
+the same arithmetic as `unit_registry.py`). `tests/test_unit_registry_js.py` fails when the file is stale, checks every
+unit's numbers and every conversion between the units of a kind (all pairs, 14 values each) against Python through Node for exact
+equality, and fails when a browser script declares a unit factor. `orbitpositions.js`, `systemview3d.js`, `galaxysystem.js`,
+`orbitclock.js` and `systemreach.js` read `AU_KM`, `KM_PER_PC`, `SECONDS_PER_YEAR` and the 50 AU of the nominal system from it
+(the last one was the rounded 206264.806 AU per parsec; it is the exact factor now, a 1e-9 relative change in a pixel-size
+estimate). The browser sweep of the other conversions and the JavaScript `Quantity` are UX.128.

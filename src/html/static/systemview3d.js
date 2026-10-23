@@ -31,8 +31,9 @@ const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERS
 const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 
-const AU_KM = 149597870.7;
+const AU_KM = convert(1, "au", "km");
 const SPHERE_SEGMENTS = [28, 20];
 const BELT_PARTICLES = 700;
 const PICK_REACH_PX = 16;

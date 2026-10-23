@@ -7,7 +7,11 @@
 // state, no DOM: the view calls tick(nowMs) each frame and draws
 // positionsAt(scene, clock.years()).
 
-export const SECONDS_PER_YEAR = 365.25 * 86400;
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+
+export const SECONDS_PER_YEAR = convert(1, "yr", "s");
 
 // Years of scene time per real second at each speed step; the first is real time.
 export const RATES = [
