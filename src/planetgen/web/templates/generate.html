@@ -1,4 +1,5 @@
-{#- planetgen/web/templates/generate.html -- /admin/generate, the Start screen (ADM.108): one card per task. -#}
+{#- planetgen/web/templates/generate.html -- /admin/generate, the Start screen (ADM.108): one card per task, and the
+    signed-in admin's saved recipes (ADM.125). -#}
 {% extends "generate_base.html" %}
 {% block generate_body %}
 <section aria-labelledby="tasks-heading">
@@ -19,6 +20,38 @@
     </li>
   </ul>
   {%- endfor %}
+</section>
+<section class="panel generate-recipes" id="recipes" aria-labelledby="recipes-heading">
+  <h2 id="recipes-heading">Recipes</h2>
+  {%- if recipe_note %}
+  <p class="hint" role="status">{{ recipe_note }}</p>
+  {%- endif %}
+  {%- if recipe_problem %}
+  <p class="error" role="alert">{{ recipe_problem }}</p>
+  {%- endif %}
+  {%- if recipes %}
+  <p class="hint">Your saved settings. Open one to review it, change it if you like, and run it.</p>
+  <ul class="generate-recipe-list">
+    {%- for recipe in recipes %}
+    <li>
+      <span class="generate-recipe-name">{% if recipe.url %}<a href="{{ recipe.url }}"><strong>{{ recipe.name }}</strong></a>{% else %}<strong>{{ recipe.name }}</strong>{% endif %}</span>
+      <span class="hint">{{ recipe.task }}</span>
+      <form method="post" action="{{ url_for('web.generate_recipe_rename', recipe_id=recipe.id) }}" class="table-form">
+        {{ csrf_field() }}
+        <label for="recipe-rename-{{ recipe.id }}">New name for {{ recipe.name }}</label>
+        <input type="text" id="recipe-rename-{{ recipe.id }}" name="recipe_name" maxlength="80" required value="{{ recipe.name }}">
+        <button type="submit" class="btn">Rename</button>
+      </form>
+      <form method="post" action="{{ url_for('web.generate_recipe_delete', recipe_id=recipe.id) }}" class="table-form">
+        {{ csrf_field() }}
+        <button type="submit" class="btn" aria-label="Delete the recipe {{ recipe.name }}">Delete</button>
+      </form>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <p class="hint">No recipes yet. On the Review step of a task, Save as recipe keeps its settings here.</p>
+  {%- endif %}
 </section>
 {%- if summary.shells %}
 <section class="panel" aria-labelledby="shells-heading">

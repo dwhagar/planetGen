@@ -541,3 +541,30 @@ CREATE TABLE IF NOT EXISTS upload_id_ranges (
     CONSTRAINT chk_upload_id_ranges_order CHECK (last_id >= first_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- v17 (ADM.125): Generate recipes, a named and saved Generate form kept per
+-- admin. A recipe's form is the same draft "Run again" keeps for a job, one
+-- `generate_recipe_fields` row per `[name, value]` pair in the order the form
+-- sent them (its `action` field says which task). An admin's names are
+-- unique, and the recipes go with the account and the fields with the recipe.
+CREATE TABLE IF NOT EXISTS generate_recipes (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    admin_id      BIGINT UNSIGNED NOT NULL,
+    name          VARCHAR(80) NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_generate_recipes_name (admin_id, name),
+    CONSTRAINT fk_generate_recipes_admin
+        FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS generate_recipe_fields (
+    recipe_id     BIGINT UNSIGNED NOT NULL,
+    position      SMALLINT UNSIGNED NOT NULL,
+    field_name    VARCHAR(100) NOT NULL,
+    field_value   VARCHAR(4000) NOT NULL,
+
+    PRIMARY KEY (recipe_id, position),
+    CONSTRAINT fk_generate_recipe_fields_recipe
+        FOREIGN KEY (recipe_id) REFERENCES generate_recipes(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

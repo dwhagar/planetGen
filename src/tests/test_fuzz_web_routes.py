@@ -439,7 +439,7 @@ def real_values(rule, seed):
             "phenomenon_id": pid("nebula", seed["nebula_id"], seed["config"]),
             "nebula_id": pid("nebula", seed["nebula_id"], seed["config"]), "filename": "style.css", "key_id": 1,
             "job_id": "20260101-000000-abcdef", "star_id": 1, "planet_id": 1, "moon_id": 1, "facility_id": 1,
-            "type_id": 1, "field_id": 1,
+            "type_id": 1, "field_id": 1, "recipe_id": 1,
             "type_slug": "nebula", "code": "D", "body_id": 1, "bright_star_id": 1, "key": "add-sectors",
         }.get(name, "x")
     return values

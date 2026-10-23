@@ -149,3 +149,49 @@ def test_the_palette_finds_a_page_and_the_keys_open_help_and_close_it(browser, s
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+def test_a_review_can_be_saved_as_a_recipe_run_renamed_and_deleted(browser, axe_source, server, config):
+    """ADM.125: Save as recipe on the Review step keeps the settings under a name; the Start screen lists it (and passes
+    the accessibility and phone-fit checks with one listed); opening it shows the same Review step, which runs nothing;
+    it can be renamed and deleted."""
+    problems = []
+    for viewport, scheme in (("desktop", "light"), ("phone", "dark")):
+        context, page, found, base_url = _page(browser, server, viewport, scheme)
+        try:
+            page.goto(base_url + "/admin/generate/task/scatters", wait_until="load")
+            page.check("input[name='action'][value='bright_band']")
+            page.fill("input[name='down_to']", "250")
+            page.click("button:has-text('Review')")
+            page.wait_for_selector("#review")
+            page.fill("#recipe-name", "Dim stars")
+            page.click("#review button:has-text('Save as recipe')")
+            page.wait_for_selector("#recipes")
+            assert "Saved the recipe" in page.inner_text("#recipes")
+            assert page.locator("#recipes a", has_text="Dim stars").count() == 1
+            found += [f"start: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
+
+            page.click("#recipes a:has-text('Dim stars')")
+            page.wait_for_selector("#review")
+            assert "250" in page.inner_text("#review")
+            assert page.locator("#review button:has-text('Save as recipe')").count() == 1
+
+            page.fill("#recipe-name", "Dim stars")
+            page.click("#review button:has-text('Save as recipe')")
+            page.wait_for_selector("#recipe-error")
+            assert "already have a recipe" in page.inner_text("#recipe-error")
+            found += [f"review with error: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
+
+            page.goto(base_url + "/admin/generate", wait_until="load")
+            page.fill("#recipes input[name='recipe_name']", "Dimmer stars")
+            page.click("#recipes button:has-text('Rename')")
+            page.wait_for_selector("#recipes")
+            assert page.locator("#recipes a", has_text="Dimmer stars").count() == 1
+            page.click("#recipes button:has-text('Delete')")
+            page.wait_for_selector("#recipes")
+            assert "Deleted the recipe" in page.inner_text("#recipes")
+            assert page.locator("#recipes a").count() == 0
+        finally:
+            context.close()
+        problems += [f"{viewport}/{scheme}: {p}" for p in found if "400 (BAD REQUEST)" not in p]
+    assert not problems, "\n".join(problems)

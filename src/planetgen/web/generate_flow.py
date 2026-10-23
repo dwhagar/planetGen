@@ -17,7 +17,9 @@ import shlex
 from dataclasses import dataclass
 from urllib.parse import urlencode
 
-from flask import abort, current_app, jsonify, request
+from flask import abort, current_app, jsonify, redirect, request, url_for
+
+from planetgen.admin import recipes
 
 from . import adminregistry, bp, generate_commands, jobs
 from .generate_page import (
@@ -70,7 +72,7 @@ RUN_LABELS = {
     "check_db": "Check",
 }
 
-DRAFT_SKIP = frozenset({"csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, "back", "review"})
+DRAFT_SKIP = frozenset({"csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, "back", "review", "recipe_name"})
 """frozenset: Form fields that are not part of the draft carried between the task page and its Review step."""
 
 
@@ -86,15 +88,38 @@ def draft_of(action, form):
     return [[name, value] for name, value in form.items(multi=True) if name not in DRAFT_SKIP | NEVER_KEPT]
 
 
-def rerun_url(job):
-    """Where "Run again with the same settings" goes for a `jobs.get_job` dict: the task's Review step filled with the
-    job's draft (nothing starts until Run is pressed there), or `None` for a job with no kept draft."""
-    draft = job.get("draft") or []
+def draft_url(draft):
+    """The Review step of the task a kept `draft` (`[name, value]` pairs, the first naming the action) belongs to,
+    filled with it (nothing starts until Run is pressed there), or `None` for a draft that names no task or one that
+    cannot be run again."""
     action = next((value for name, value in draft if name == "action"), None)
     task = task_for_action(action) if action else None
     if task is None or action in DESTRUCTIVE_ACTIONS:
         return None
     return page_url(task.endpoint, **task.params) + "?" + urlencode([*map(tuple, draft), ("review", "1")])
+
+
+def rerun_url(job):
+    """Where "Run again with the same settings" goes for a `jobs.get_job` dict: the task's Review step filled with the
+    job's draft, or `None` for a job with no kept draft."""
+    return draft_url(job.get("draft") or [])
+
+
+def recipe_views(username):
+    """The admin's recipes for the Start screen: `[{id, name, task, url}]`, `task` being the label of the task each is
+    for. A recipe whose task is gone (its draft no longer names one) is listed without a Run link, so it can still
+    be deleted. An unreachable control database lists none."""
+    try:
+        found = recipes.list_recipes(username, current_app.config["CONTROL_MYSQL_CONFIG"])
+    except Exception:  # noqa: BLE001 -- the Start screen must still draw when the control database does not answer
+        return []
+    views = []
+    for recipe in found:
+        action = next((value for name, value in recipe["draft"] if name == "action"), None)
+        task = task_for_action(action) if action else None
+        views.append({"id": recipe["id"], "name": recipe["name"], "task": task.label if task else "an unknown task",
+                      "url": draft_url(recipe["draft"])})
+    return views
 
 
 def task_for_key(key):
@@ -134,9 +159,18 @@ def render_screen(template, admin, title, crumbs, form=None, error=None, status=
         description=description or "Generate, plan or reset this site's galaxy.", tasks=TASKS, **context))
 
 
+RECIPE_NOTES = {"saved": "Saved the recipe \u201c{}\u201d.", "renamed": "Renamed the recipe to \u201c{}\u201d.",
+                "deleted": "Deleted the recipe \u201c{}\u201d."}
+"""dict: What the Start screen says after a recipe was saved, renamed or deleted (the redirect names which, and the
+recipe), by `recipe=...` in its address."""
+
+
 def start_page(admin, error=None, status=200):
-    """The Start screen: a card per task."""
-    return render_screen("generate.html", admin, "Generate", [], error=error, status=status)
+    """The Start screen: a card per task, and the admin's recipes."""
+    note = RECIPE_NOTES.get(request.args.get("recipe", ""), "").format(request.args.get("recipe_name", "")[:80])
+    problem = request.args.get("recipe_error", "")[:300] if request.args.get("recipe") == "error" else None
+    return render_screen("generate.html", admin, "Generate", [], error=error, status=status,
+                         recipes=recipe_views(admin["username"]), recipe_note=note or None, recipe_problem=problem)
 
 
 def task_page(admin, task, form=None, error=None, status=200):
@@ -161,8 +195,9 @@ def _command(argv):
     return " ".join(words)
 
 
-def review_page(admin, action, kind, title, steps, form, estimate=None):
-    """The Review step for a built job: its steps with their command lines, the estimate if there is one, and Run."""
+def review_page(admin, action, kind, title, steps, form, estimate=None, recipe_error=None):
+    """The Review step for a built job: its steps with their command lines, the estimate if there is one, and Run.
+    A job that can be run again can also be saved as a recipe; `recipe_error` is why that just failed."""
     task = task_for_action(action)
     if task is None:
         abort(400)
@@ -174,10 +209,13 @@ def review_page(admin, action, kind, title, steps, form, estimate=None):
         "run_label": RUN_LABELS.get(action) or (
             "Generate anyway" if estimate and estimate.get("refused") else "Run"),
         "fields": [(name, value) for name, value in form.items(multi=True) if name not in DRAFT_SKIP],
+        "can_save_recipe": action not in DESTRUCTIVE_ACTIONS,
+        "recipe_error": recipe_error,
+        "recipe_name": form.get("recipe_name", "") if recipe_error else "",
     }
     return render_screen("generate_review.html", admin, f"Review: {title}", [crumb(task.label, "generate_task", key=task.key),
                                                                          crumb("Review")],
-                   form=form, task=task, review=review)
+                   form=form, task=task, review=review, status=400 if recipe_error else 200)
 
 
 @bp.route("/admin/generate/task/<key>", methods=["GET", "POST"])
@@ -209,7 +247,7 @@ def generate_task(key):
     return _review_or_form(admin, task, form)
 
 
-def _review_or_form(admin, task, form):
+def _review_or_form(admin, task, form, recipe_error=None):
     """The Review step for the draft `form`, or the task's form again with what is wrong."""
     action = form.get("action") or (task.actions[0] if len(task.actions) == 1 else "")
     if action not in task.actions:
@@ -223,7 +261,7 @@ def _review_or_form(admin, task, form):
             estimate = _estimate_view(estimate_for(kind, steps, database, env))
     except FormError as exc:
         return task_page(admin, task, form=form, error=str(exc), status=400)
-    return review_page(admin, action, kind, title, steps, form, estimate=estimate)
+    return review_page(admin, action, kind, title, steps, form, estimate=estimate, recipe_error=recipe_error)
 
 
 @bp.route("/admin/generate/command")
@@ -259,6 +297,49 @@ def command_link(text):
     url = page_url(task.endpoint, **task.params)
     return {"label": f"{'Review' if command.review else 'Open'}: {task.label}", "summary": command.summary,
             "url": url + ("?" + urlencode(query) if query else "")}
+
+
+@bp.route("/admin/generate/recipes", methods=["POST"])
+def generate_recipe_save():
+    """Save as recipe (ADM.125), from the Review step: keeps the draft the step shows under `recipe_name`, as the
+    signed-in admin's own, and returns to the Start screen. A name that cannot be used shows the Review step again with
+    the reason."""
+    admin = _admin_or_403()
+    form = request.form
+    action = form.get("action", "")
+    task = task_for_action(action)
+    if task is None or action in DESTRUCTIVE_ACTIONS:
+        abort(400)
+    try:
+        saved = recipes.save_recipe(admin["username"], form.get("recipe_name"), draft_of(action, form),
+                                    current_app.config["CONTROL_MYSQL_CONFIG"])
+    except recipes.RecipeError as exc:
+        return _review_or_form(admin, task, form, recipe_error=str(exc))
+    return redirect(url_for("web.generate", recipe="saved", recipe_name=saved["name"]) + "#recipes", 303)
+
+
+@bp.route("/admin/generate/recipes/<int:recipe_id>/rename", methods=["POST"])
+def generate_recipe_rename(recipe_id):
+    """Renames the admin's recipe (404 for one that is not theirs)."""
+    admin = _admin_or_403()
+    try:
+        renamed = recipes.rename_recipe(admin["username"], recipe_id, request.form.get("recipe_name"),
+                                        current_app.config["CONTROL_MYSQL_CONFIG"])
+    except recipes.RecipeError as exc:
+        return redirect(url_for("web.generate", recipe="error", recipe_error=str(exc)) + "#recipes", 303)
+    if renamed is None:
+        abort(404)
+    return redirect(url_for("web.generate", recipe="renamed", recipe_name=renamed["name"]) + "#recipes", 303)
+
+
+@bp.route("/admin/generate/recipes/<int:recipe_id>/delete", methods=["POST"])
+def generate_recipe_delete(recipe_id):
+    """Deletes the admin's recipe (404 for one that is not theirs)."""
+    admin = _admin_or_403()
+    name = recipes.delete_recipe(admin["username"], recipe_id, current_app.config["CONTROL_MYSQL_CONFIG"])
+    if name is None:
+        abort(404)
+    return redirect(url_for("web.generate", recipe="deleted", recipe_name=name) + "#recipes", 303)
 
 
 @bp.route("/admin/generate/history")

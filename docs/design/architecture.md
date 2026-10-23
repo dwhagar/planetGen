@@ -396,6 +396,7 @@ Admin accounts and security: sign-in, lockouts, the activity log, edits and main
 | [`auth.py`](../../src/planetgen/admin/auth.py) | Admin authentication/authorization: password hashing, web-session and API-key lifecycle, credential rotation, and the audit log -- all against the control schema (`control_schema.sql`), never the per-galaxy content schema. |
 | [`edits.py`](../../src/planetgen/admin/edits.py) | An admin's edits to a stored star system (ADM.1): regenerate or remove a planet, moon or belt (ADM.8), change a body's class (ADM.6) or a single star's type (ADM.7), made on the `StarSystem` that `store.load_star_system` returns and written back with `db/edits.py`'s `save_system_edits`; every edit is stabilized by `validation.stabilize_star_system`. |
 | [`maintenance.py`](../../src/planetgen/admin/maintenance.py) | One switch that makes the whole site, pages and API alike, unavailable to everyone but a signed-in admin (or an admin's API key): used while the sector maps are rebuilt. |
+| [`recipes.py`](../../src/planetgen/admin/recipes.py) | Generate recipes (ADM.125): an admin's named, saved Generate forms in the control database (`generate_recipes`); every function takes the account name and only touches that account's rows. |
 | [`throttle.py`](../../src/planetgen/admin/throttle.py) | The login throttle: the per-address lockout and the per-username backoff. |
 
 #### src/planetgen/cli/
