@@ -1,0 +1,544 @@
+{
+ "title": "Saturation (sublimation) pressures of the gases and ices: Fray and Schmitt 2009 polynomials, water by Feistel and Wagner",
+ "basis": "Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. arXiv:2009.02277 (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has more than one fit, `from_k` is where the second takes over: the temperature at which the two fits cross (the solid transitions of N2, CO, O2 and CH3OH), or at which they come closest when they do not cross (CO2). The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing.",
+ "source": "docs/design/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4 and 01-gas-table-thermodynamics.md section 7.2 (O2-3, Ne-2); docs/design/body-composition-research.md part F; Feistel and Wagner 2007, J. Phys. Chem. Ref. Data 35, 1021 (water, as quoted)",
+ "cold_unverified_below_k": 50.0,
+ "species": {
+  "Ne": {
+   "name": "neon",
+   "form": "fray-schmitt",
+   "selection": "crossing",
+   "curves": [
+    {
+     "id": "Ne-1",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      9.886,
+      -269.9,
+      128.3,
+      -162.4,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "id": "Ne-2",
+     "from_k": 13.26,
+     "floor_k": 5.48,
+     "phase": "",
+     "coefficients": [
+      10.61,
+      -308.6,
+      986,
+      -9069,
+      35140.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "neon has no solid transition; the fits cross at 11.19 K and 13.26 K (0.4 percent apart between), and Ne-1 alone is 6.5 percent under the triple-point pressure, so Ne-2 serves above 13.26 K"
+  },
+  "N2": {
+   "name": "nitrogen",
+   "form": "fray-schmitt",
+   "selection": "crossing",
+   "curves": [
+    {
+     "id": "N2-1",
+     "from_k": 0.0,
+     "floor_k": 5.6,
+     "phase": "alpha",
+     "coefficients": [
+      12.4,
+      -807.4,
+      -3926.0,
+      62970.0,
+      -463300.0,
+      1325000.0,
+      0.0
+     ]
+    },
+    {
+     "id": "N2-2",
+     "from_k": 36.1,
+     "floor_k": null,
+     "phase": "beta",
+     "coefficients": [
+      8.514,
+      -458.4,
+      -19870.0,
+      480000.0,
+      -4524000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "the alpha to beta transition is at 35.6 K; the two fits cross at 36.1 K"
+  },
+  "CO": {
+   "name": "carbon monoxide",
+   "form": "fray-schmitt",
+   "selection": "crossing",
+   "curves": [
+    {
+     "id": "CO-1",
+     "from_k": 0.0,
+     "floor_k": 8.46,
+     "phase": "alpha",
+     "coefficients": [
+      10.43,
+      -721.3,
+      -10740.0,
+      234100.0,
+      -2392000.0,
+      9478000.0,
+      0.0
+     ]
+    },
+    {
+     "id": "CO-2",
+     "from_k": 60.75,
+     "floor_k": 6.99,
+     "phase": "beta",
+     "coefficients": [
+      10.25,
+      -748.2,
+      -5843.0,
+      39390.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "the alpha to beta transition is at 61.55 K; the two fits cross at 60.75 K"
+  },
+  "Ar": {
+   "name": "argon",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "Ar",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      10.69,
+      -893.2,
+      -3567,
+      65740.0,
+      -428000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "O2": {
+   "name": "oxygen",
+   "form": "fray-schmitt",
+   "selection": "crossing",
+   "curves": [
+    {
+     "id": "O2-1",
+     "from_k": 0.0,
+     "floor_k": 0.78,
+     "phase": "alpha",
+     "coefficients": [
+      15.41,
+      -1148,
+      334.9,
+      60.21,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "id": "O2-2",
+     "from_k": 23.15,
+     "floor_k": 6.83,
+     "phase": "beta",
+     "coefficients": [
+      13.35,
+      -1012,
+      -2971,
+      29260.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "id": "O2-3",
+     "from_k": 43.79,
+     "floor_k": 10.15,
+     "phase": "gamma",
+     "coefficients": [
+      10.18,
+      -803.5,
+      -7080,
+      75530.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "the solid transitions are at 23.88 K and 43.8 K; the fits cross at 23.15 K and 43.79 K"
+  },
+  "CH4": {
+   "name": "methane",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "CH4",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      10.51,
+      -1110,
+      -4341,
+      103500.0,
+      -791000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "Kr": {
+   "name": "krypton",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "Kr",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      10.77,
+      -1223,
+      -8903,
+      263500.0,
+      -4260000.0,
+      35750000.0,
+      -121000000.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "Xe": {
+   "name": "xenon",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "Xe",
+     "from_k": 0.0,
+     "floor_k": 11.54,
+     "phase": "",
+     "coefficients": [
+      10.98,
+      -1737,
+      -13320.0,
+      434900.0,
+      -7027000.0,
+      44470000.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "C2H6": {
+   "name": "ethane",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "C2H6",
+     "from_k": 0.0,
+     "floor_k": 11.48,
+     "phase": "",
+     "coefficients": [
+      15.11,
+      -2207,
+      -24110.0,
+      774400.0,
+      -11610000.0,
+      67630000.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "C2H4": {
+   "name": "ethylene",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "C2H4",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      15.4,
+      -2206,
+      -12160.0,
+      284300.0,
+      -2203000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "C2H2": {
+   "name": "acetylene",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "C2H2",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      13.4,
+      -2536,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "H2S": {
+   "name": "hydrogen sulphide",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "H2S-1",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      12.98,
+      -2707.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "H2S-2 (a four-term fit, 6 times over H2S-1 at 80 K and equal to it above about 140 K) is not used; the fit is 1.7 percent over the triple-point pressure"
+  },
+  "CO2": {
+   "name": "carbon dioxide",
+   "form": "fray-schmitt",
+   "selection": "closest-approach",
+   "curves": [
+    {
+     "id": "CO2-1",
+     "from_k": 0.0,
+     "floor_k": 22.6,
+     "phase": "",
+     "coefficients": [
+      14.76,
+      -2571,
+      -77810.0,
+      4325000.0,
+      -120700000.0,
+      1350000000.0,
+      0.0
+     ]
+    },
+    {
+     "id": "CO2-2",
+     "from_k": 195.3,
+     "floor_k": 50.12,
+     "phase": "",
+     "coefficients": [
+      18.61,
+      -4154,
+      104100.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "the fits do not cross; they come closest at 195.3 K (1.1 percent in pressure). CO2-1 holds the cold: with CO2-2 the pressure is 1e-9 bar at 64.7 K, 21 K colder than the 86 K that the latent heat of sublimation puts it at. CO2-1 is 4 percent under the triple-point pressure and CO2-2 0.5 percent over, so CO2-2 serves above 195.3 K"
+  },
+  "NH3": {
+   "name": "ammonia",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "NH3",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      15.96,
+      -3537,
+      -33100.0,
+      1742000.0,
+      -29950000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": ""
+  },
+  "SO2": {
+   "name": "sulphur dioxide",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "SO2",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      15.6,
+      -3508,
+      -94010.0,
+      4152000.0,
+      -69460000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "3.8 percent over the triple-point pressure of the gas table"
+  },
+  "HCN": {
+   "name": "hydrogen cyanide",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "HCN",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      13.93,
+      -3624,
+      -132500.0,
+      6314000.0,
+      -112800000.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "the gas table has no triple-point pressure for HCN, so the triple-point check cannot be made"
+  },
+  "CH3OH": {
+   "name": "methanol",
+   "form": "fray-schmitt",
+   "selection": "crossing",
+   "curves": [
+    {
+     "id": "CH3OH-1",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "alpha",
+     "coefficients": [
+      19.18,
+      -5648,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "id": "CH3OH-2",
+     "from_k": 157.55,
+     "floor_k": null,
+     "phase": "beta",
+     "coefficients": [
+      17.06,
+      -5314,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "the alpha to beta transition is at 157.4 K; the two fits cross at 157.55 K"
+  },
+  "C6H6": {
+   "name": "benzene",
+   "form": "fray-schmitt",
+   "selection": "single",
+   "curves": [
+    {
+     "id": "C6H6",
+     "from_k": 0.0,
+     "floor_k": null,
+     "phase": "",
+     "coefficients": [
+      17.35,
+      -5663,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "7 percent over the triple-point pressure of the gas table"
+  },
+  "H2O": {
+   "name": "water",
+   "form": "feistel-wagner",
+   "selection": "single",
+   "triple_point_k": 273.16,
+   "triple_point_pa": 611.657,
+   "coefficients": [
+    20.9969665107897,
+    3.72437478271362,
+    -13.9205483215524,
+    29.6988765013566,
+    -40.1972392635944,
+    29.7880481050215,
+    -9.13050963547721
+   ],
+   "note": "ice Ih sublimation, Feistel and Wagner 2007 as adopted by IAPWS R14-08; a fit to 0 K is not claimed"
+  }
+ }
+}
