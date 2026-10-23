@@ -14577,6 +14577,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on main and the generator and the validator give one ceiling.
   GEN.301's closing `full --check` needs it. Owner: Core 4 (its GEN.325,
   proposed by the TODO thread).
+  Decision (Core 4, relayed 8:15 AM EDT 2026-10-23 as the lane reported;
+  in its gate, not merged): the validator keeps the stable-orbit rule and
+  generation takes the tighter of that and the place's survival limit,
+  because the survival limit is a chance of outliving passing systems and
+  not a stability limit, so a check or an admin edit should not refuse or
+  trim a body past it (comets keep their own ceiling for the same
+  reason). The test now asserts that the generation ceiling equals
+  min(stable orbit, survival limit) and that a body past the survival
+  limit but inside the stable orbit validates. Test and note only, no code
+  or epoch change. Core 4 asks Boss's side nothing; say so if the shared
+  rule is wanted instead.
   Prerequisites: none. Related: GEN.325, GEN.301.
 
 - [ ] **GEN.637 Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638)**
@@ -21501,39 +21512,14 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   for the page, Generate for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
+  Note (Core 4, relayed 8:15 AM EDT 2026-10-23 as the lane reported, with
+  POP.14 merged as #2651): the placement check and the consistency report
+  exist now and generation and the homeworld call the check; the editor's
+  save is the one call site still missing, so saving a species or a
+  placement in this editor must call the POP.14 check before it writes.
   Prerequisites: none. Related: POP.10 (done, PRs #1517 and #1524),
   POP.9, ADM.9.
   Moved to phase 2 with the shell as its prerequisite, so it is built on
   the shared table, form and confirmation and is not missed by the audit
   and the conversion (2026-10-16 review).
 
-- [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
-  Progress (2026-10-15): Generate built it and saved it on the branch
-  `claude/pop14-held` (not merged, not started on main); the Core lane
-  starts from that branch. It waits on DB.30 for storage.
-  Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
-  consistency that if we put a race on a planet it is within the limits
-  of what can survive there." Done: (1) one check, built on the species
-  limits and the scoring function of POP.12, that every way of putting a
-  species on a planet or moon calls before it writes: generation
-  (homeworld and any later settlement the scatter makes, POP.11), the
-  species editor (POP.13), the API and any command or import; it refuses
-  a placement outside the species' limits and says which domain fails,
-  in plain in-universe wording; (2) a consistency check over the stored
-  data (a report command and a test over a generated galaxy) that lists
-  every species placed outside its limits; any it finds are fixed by
-  regenerating the limits or the placement, with no shim and no
-  tolerance flag. How it fits: the POP.12 default takes a species'
-  limits from its homeworld, so every species passes its own homeworld
-  by construction and this check matters for every other placement; an
-  admin who edits limits in the species editor (POP.13) must not be able
-  to leave a species outside its homeworld's conditions, so the editor
-  runs this check on save and shows the failing domain. A placement that
-  is only acceptable with equipment counts as outside the limits unless
-  the placement says it is a habitat or vessel (default: only unaided
-  survival counts for a planet or moon surface).
-  Prerequisites: none. Related: POP.13, POP.11, POP.10 (done, PRs #1517
-  and #1524).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.

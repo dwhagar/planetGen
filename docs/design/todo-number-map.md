@@ -1909,7 +1909,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | done, PR #1554 |
 | POP.13 | A species editor: create and edit species and their environment limits | none | open |
-| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | none | open |
+| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | none | done, PR #2651 |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
