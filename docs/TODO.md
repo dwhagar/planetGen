@@ -15243,7 +15243,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   also reads size and surface gravity; the class code carries a size
   tier (S and V become tiers, not letters, as the class lane reported).
 
-- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) restricts the random parameters at each generation stage so the result is a habitable world (PHI-6 overall Blue or Green), with no rebuild loop**
+- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) rebuilds the planet from scratch with restricted draw parameters at each generation stage, pulling the decision tree toward a habitable world (PHI-6 overall Blue or Green) or the requested class**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
   doing compositions, let's leave out the class designation until planet
@@ -15257,18 +15257,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
   (the habitable rule). Owner: Habitability lane D unless stated.
   Replace the class-list steering (LIFE_PLANET_CLASSES). Boss's design
-  (6:39 PM EDT 2026-10-23, card 3 of the pipeline questions): control the
-  random generation parameters at each stage so that the generation
-  possibilities are restricted at each phase and the end result is always
-  a habitable world. When a habitable world is requested, each stage
-  (formation distance, mass, bulk composition, atmosphere, temperature,
-  water, life) draws from the part of its distribution that can still
-  lead to a PHI-6 overall of Blue or Green, chosen from the physics of
-  the stages that come after it, so there is no rebuild-until-it-fits
-  loop and no retry cap. A request that no stage can satisfy fails with a
-  message naming the stage. Done: a forced request is met by a Blue or
-  Green world in every one of 120 forced systems that has an ecosphere
-  (the proposal measured 7 of 120 before), the restricted draws are
+  (6:39 and 6:43 PM EDT 2026-10-23): a regenerate is a regenerate. A
+  request for a habitable world (or a class) rebuilds the planet from
+  scratch, a whole new body from a derived sub-seed, never an edit of a
+  drawn one; and each stage (formation distance, mass, bulk composition,
+  atmosphere, temperature, water, life) draws with restricted parameters,
+  the part of its distribution that can still lead to the request, so the
+  decision tree is pulled toward a PHI-6 overall of Blue or Green (or the
+  requested class once classes are derived, GEN.647). Boss: 'I would
+  prefer to not redraw but a redraw is a redraw since we're doing planets
+  differently now, a regenerate is a regenerate, so rebuild the new
+  planet from scratch, we'll then use restricted draw parameters to pull
+  the decision tree toward the requested class.' The restriction should
+  make a rebuild succeed almost always; if a rebuild still misses, rebuild
+  again with a stated cap on tries, and a request that no stage can
+  satisfy fails with a message naming the stage. Done: a forced request is
+  met by a Blue or Green world in every one of 120 forced systems that has
+  an ecosphere (the proposal measured 7 of 120 before), the number of
+  rebuilds per request is measured and small, the restricted draws are
   deterministic across worker counts, and a request that cannot be met
   names the stage.
   Decided (Boss, 6:39 PM EDT 2026-10-23, relayed by the coordinator):
