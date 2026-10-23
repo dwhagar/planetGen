@@ -93,7 +93,7 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
-from planetgen.db import cloudcontents, objectlist
+from planetgen.db import cloudcontents, containers as containersDb, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
@@ -686,6 +686,18 @@ def _int_arg(query_args, name, default):
         return int(raw)
     except ValueError:
         raise ApiError(f"{name} must be a whole number, got {raw!r}")
+
+
+def _float_arg(query_args, name):
+    """A required finite number from the query string; anything else is an `ApiError`."""
+    raw = query_args.get(name)
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        raise ApiError(f"{name} must be a number, got {raw!r}")
+    if value != value or value in (float("inf"), float("-inf")):
+        raise ApiError(f"{name} must be a finite number, got {raw!r}")
+    return value
 
 
 def _nav_ref_param(query_args, name):
@@ -1415,6 +1427,66 @@ def phenomenon_contents(phenomenon_type, phenomenon_id):
         query_phenomenon_detail(conn, phenomenon_type, phenomenon_id)
         limit = min(max(_int_arg(request.args, "limit", cloudcontents.DEFAULT_LIMIT), 1), 500)
         return jsonify(cloudcontents.cloud_contents(conn, phenomenon_type, phenomenon_id, limit))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/containers")
+def containers_list():
+    """
+    `GET /api/containers[?kind=globular_cluster|superbubble]` -- the galaxy's stored containers (DB.85), by kind then
+    id: `{"containers": [{"id", "uid", "kind", "name", "center_pc", "extent_pc", "region", "bubble"?}, ...]}`. 400 for
+    another kind.
+    """
+    try:
+        return jsonify({"containers": containersDb.listing(get_db(), request.args.get("kind"))})
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/containers/at")
+def containers_at():
+    """
+    `GET /api/containers/at?x=&y=&z=[&kind=]` -- the containers holding a galaxy-frame point (parsecs), deepest first,
+    each with `depth` (distance from its centre over its extent) and `distance_pc`. 400 for a missing coordinate or
+    another kind.
+    """
+    try:
+        point = [_float_arg(request.args, axis) for axis in ("x", "y", "z")]
+        kinds = [request.args["kind"]] if request.args.get("kind") else None
+        return jsonify({"containers": containersDb.holding(get_db(), point, kinds)})
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/containers/<printed_id>")
+def container_detail(printed_id):
+    """
+    `GET /api/containers/<object ID>` -- one container by its printed object ID. 404 for an ID that is no container.
+    """
+    try:
+        found = containersDb.get(get_db(), uid=printed_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    if found is None:
+        return jsonify({"error": f"no container {printed_id}"}), 404
+    return jsonify(found)
+
+
+@bp.route("/containers/<printed_id>/contents")
+def container_contents(printed_id):
+    """
+    `GET /api/containers/<object ID>/contents[?limit=]` -- what sits inside a container: `counts` by kind, `total`, and
+    up to `limit` (default 100, at most 500) `items` (`kind`, `id`, `name`) in kind, name order. 404 for an ID that is
+    no container.
+    """
+    conn = get_db()
+    try:
+        found = containersDb.get(conn, uid=printed_id)
+        if found is None:
+            raise ValueError(f"no container {printed_id}")
+        limit = min(max(_int_arg(request.args, "limit", containersDb.DEFAULT_LIMIT), 1), 500)
+        return jsonify(containersDb.contents(conn, found["id"], limit))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
 

@@ -37,7 +37,7 @@ For a point `x` and a bubble of centre `c` and radius `R`, depth `d = |x - c| / 
 
 ## 4. Stored or derived
 
-The regions stay derived from the seed (no fixed content, Boss 4:11 and 4:14 PM EDT): the same seed gives the same bubbles on every worker and every run, nothing is written, and an in-memory index per column serves lookups. A stored copy would drift from the seed and would need a migration for nothing. The edit-everything work (8.6) can later store an admin's override of one bubble as a region override (DB.38); it is not part of this chain.
+The regions stay derived from the seed (no fixed content, Boss 4:11 and 4:14 PM EDT): the same seed gives the same bubbles on every worker and every run, nothing is written, and an in-memory index per column serves lookups. A stored copy would drift from the seed and would need a migration for nothing. The edit-everything work (8.6) can later store an admin's override of one bubble as a region override (DB.38); it is not part of this chain. DB.85 does store a row for each bubble (`galaxy_containers`), written at a plan from the same `all_bubbles` call that the field answers with, so a stored row and the field cannot disagree for one seed and shape; the rows exist to name a bubble (an object ID) and to answer which containers hold a point and what a bubble holds, and the density lookups still read the field.
 
 ## 5. Touch points
 

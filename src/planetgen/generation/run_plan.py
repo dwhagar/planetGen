@@ -19,9 +19,10 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import nebula_blocks, query, store
+from planetgen.db import containers as containersDb, nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
+from planetgen.generation import containers as generationContainers
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
@@ -364,6 +365,8 @@ def plan_skeleton_unit(params, report):
             pinned_stellar_mass_solar=shapeDraw.pinned_stellar_mass(shape_args, drawn),
             pins=shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc),
         )
+    with timer.step("storing the containers"):
+        say(_store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index))
     core_floor = params.get("core_min_luminosity")
     core_mass = params.get("core_mass_limit")
     halo_floor = params.get("halo_min_luminosity")
@@ -398,6 +401,25 @@ def plan_skeleton_unit(params, report):
         "elapsed_s": elapsed,
         "edge_confirmed": edge_confirmed,
     }, "lines": lines}
+
+
+def _store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index):
+    """
+    Writes the galaxy's containers (DB.85): each globular cluster and each superbubble, drawn from the stored shape and
+    seed (the shape as the API reads it back, so the stored bubbles are the ones it draws). Returns the line to report.
+    """
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        components = store.get_galaxy_components(conn, kind="cluster")
+        made = generationContainers.build(galaxy_seed, skeleton.shape, edge_pc, (outer_shell_index + 1) * edge_pc,
+                                          components)
+        containersDb.replace(conn, made)
+        conn.commit()
+    finally:
+        conn.close()
+    clusters = sum(1 for c in made if c.kind == generationContainers.GLOBULAR_CLUSTER)
+    return f"Stored {clusters:,} globular clusters and {len(made) - clusters:,} superbubbles as containers."
 
 
 def _skeleton_on_queue(args):

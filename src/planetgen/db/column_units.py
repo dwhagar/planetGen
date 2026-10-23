@@ -242,6 +242,11 @@ TABLES = {
         "flag": ("core_collapsed",),
         "seed": ("seed",),
     },
+    "galaxy_containers": {
+        "id": ("id", "component_id"),
+        "index": ("bubble_col", "bubble_row", "bubble_n", "shell_index", "band_index", "wedge_index"),
+        "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "extent_pc"),
+    },
     "galaxy_shape": {
         "id": ("id",),
         "pc": (

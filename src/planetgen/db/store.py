@@ -1516,6 +1516,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (130, _table_marker("galaxy_containers")),
     (129, _table_marker("vessels")),
     (128, _table_marker("constellations")),
     (127, _column_marker("stars", "cluster_id")),

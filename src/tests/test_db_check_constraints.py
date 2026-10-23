@@ -77,6 +77,8 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO request_comments (plan_id, author_name, author_role, body) VALUES (1, 'Test', 'user', 'Please')"),
     "vessels": (
         "INSERT INTO vessels (uid, kind, name, origin) VALUES (UNHEX('000000000000000000000001'), 'ship', 'Test', 'generated')"),
+    "galaxy_containers": (
+        "INSERT INTO galaxy_containers (uid, kind, center_x_pc, center_y_pc, center_z_pc, extent_pc, shell_index, band_index, wedge_index) VALUES (UNHEX('000000000000000000000001'), 'superbubble', 0, 0, 0, 100, 0, 0, 0)"),
     # DB.53: the migration builds these; the generator writes them in the chain that follows.
     "orbit_nodes": (
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"

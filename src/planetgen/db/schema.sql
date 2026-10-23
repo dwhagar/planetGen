@@ -1410,6 +1410,9 @@
 -- v129 (DB.63): `vessels`, the ships and stations (9.3): object ID, kind, name, whether generated or user-made and its owner, the position, point mass and
 --   movement vector of GEN.294 at an epoch, the course (JSON) and the seed and version key it was made under. Nothing writes or reads it yet.
 --
+-- v130 (DB.85): `galaxy_containers`, each globular cluster and each superbubble stored as a container: its object ID (`uid`), kind, name, the cluster component or the bubble's field address that
+--   made it, its centre and extent in the galaxy frame, and the sector its centre is born in. The plan writes them from the galaxy seed; `db/containers.py` asks which hold a point and what one holds.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -4365,6 +4368,34 @@ CREATE TABLE IF NOT EXISTS object_index (
     KEY idx_object_index_system (system_id, kind, uid),
     FULLTEXT KEY ft_object_index_name (name),
     CONSTRAINT chk_object_index_placed CHECK (placed IN (0, 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v130 (DB.85): the stored globular clusters and superbubbles; see the header note.
+CREATE TABLE IF NOT EXISTS galaxy_containers (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    uid           BINARY(12) NOT NULL,
+    kind          VARCHAR(16) NOT NULL,
+    name          VARCHAR(255) NULL,
+    component_id  BIGINT UNSIGNED NULL,
+    bubble_col      INT NULL,
+    bubble_row      INT NULL,
+    bubble_n      SMALLINT UNSIGNED NULL,
+    center_x_pc   DOUBLE NOT NULL,
+    center_y_pc   DOUBLE NOT NULL,
+    center_z_pc   DOUBLE NOT NULL,
+    extent_pc     DOUBLE NOT NULL,
+    shell_index   INT NOT NULL,
+    band_index    INT NOT NULL,
+    wedge_index   INT NOT NULL,
+    created_at    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    UNIQUE KEY uq_galaxy_containers_uid (uid),
+    UNIQUE KEY uq_galaxy_containers_bubble (bubble_col, bubble_row, bubble_n),
+    KEY idx_galaxy_containers_kind_x (kind, center_x_pc),
+    KEY idx_galaxy_containers_birth (shell_index, band_index, wedge_index),
+    KEY idx_galaxy_containers_component (component_id),
+    CONSTRAINT fk_galaxy_containers_component FOREIGN KEY (component_id) REFERENCES galaxy_components(id) ON DELETE CASCADE,
+    CONSTRAINT chk_galaxy_containers_kind CHECK (kind IN ('globular_cluster', 'superbubble')),
+    CONSTRAINT chk_galaxy_containers_extent CHECK (extent_pc >= 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v129 (DB.63): the ships and stations; see the header note.
