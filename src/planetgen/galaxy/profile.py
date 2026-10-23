@@ -47,7 +47,7 @@ from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import ejecta_field, nebula_field, spherical, superbubble_field
 from planetgen.galaxy import structure as galaxyStructure
-from planetgen.physics import metallicity
+from planetgen.physics import constants, metallicity
 from planetgen.physics.units import pc_to_ly
 
 POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
@@ -77,7 +77,9 @@ class PopulationProfile:
         fe_h (tuple): `((weight, mean, sigma), ...)`, the [Fe/H] distribution of its stars at this place, dex
             (one peak; two for a disk or halo place that two components reach, one per component for a cluster or
             satellite place).
-        dispersion_kms (float): Velocity dispersion, km/s.
+        dispersion_kms (float): Velocity dispersion, km/s: the three-axis total for every population (the disc, bulge and
+            halo from the galaxy's own structure; the others the one-axis values of `tuning` times
+            `constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS`). `place_terms.from_profile` reads the one-axis value back.
         rotation (str): What its net motion follows: `disk`, `bar`, `orbit` or `none`.
     """
     name: str
@@ -188,7 +190,7 @@ def _dispersion_kms(name, shape):
     """
     The velocity dispersion of population `name` for this galaxy, km/s (three-axis total): the thin-disc populations',
     the bulge's and the halo's follow from the galaxy's own structure (`galaxy.structure`, GEN.532); the others are
-    `tuning.STELLAR_POPULATION_DISPERSION_KMS`.
+    the one-axis `tuning.STELLAR_POPULATION_DISPERSION_KMS` times `constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS` (GEN.284).
     """
     structure = shape.structure
     if name in ("young", "intermediate", "old") or name in tuning.OPEN_CLUSTER_POPULATIONS:
@@ -197,7 +199,7 @@ def _dispersion_kms(name, shape):
         return galaxyStructure.bulge_dispersion_kms(structure, galaxyDensity.bulge_to_total(shape))
     if name == "halo":
         return galaxyStructure.halo_dispersion_kms(structure)
-    return tuning.STELLAR_POPULATION_DISPERSION_KMS[name]
+    return tuning.STELLAR_POPULATION_DISPERSION_KMS[name] * constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS
 
 
 def _fe_h(name, distance_ly, shape=None, position_pc=None):

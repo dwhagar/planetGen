@@ -1277,6 +1277,9 @@ HALO_AXIS_RATIO = 0.7
 # bulge's and the halo's velocity dispersions are the galaxy's own (`galaxy.structure`, GEN.532); the rest are the
 # middle of the note's ranges (a cluster 1 to 15 km/s inside and its orbit outside); `rotation` says what the
 # population's net motion follows. [Recalled, to verify.]
+# These are one-axis dispersions, the kind the observed ranges are quoted in (a line-of-sight value): the profile states
+# them as three-axis totals, `sqrt(3)` times these, like the disc's, bulge's and halo's (GEN.284), and the pair and
+# planet limits read the one-axis value back (`generation.place_terms.from_profile`).
 STELLAR_POPULATION_DISPERSION_KMS = {
     "cluster": 8.0,
     "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)

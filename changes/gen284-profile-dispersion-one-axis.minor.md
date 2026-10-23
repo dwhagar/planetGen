@@ -1,0 +1,6 @@
+**Headline:** The nucleus of a galaxy now keeps planets by the same survival rule as the rest, and the encounter limits no longer read the disc's, bulge's and halo's three-axis dispersion as a one-axis one.
+
+### Changed
+- **One dispersion convention (GEN.284).** The sector profile states every population's velocity dispersion as a three-axis total: the disc's, bulge's and halo's already were (GEN.532), and the cluster, satellite and nuclear constants of `tuning.STELLAR_POPULATION_DISPERSION_KMS`, which are one-axis values (the observed kind), are now stated times root 3 (`constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS`). `place_terms.from_profile` divides by root 3 again, so a wide pair's widest axis (GEN.447) and a planet's outermost orbit (GEN.325) use a one-axis dispersion in every population; before, the disc, bulge and halo entered them root 3 too large. A galaxy-placed system's wide companions and far planets change.
+- **The nucleus feeds the one survival function (GEN.284).** The cell at the centre of a Milky Way-like galaxy keeps planets inside 0.06 AU at 1 pc, about 1 AU at 10 pc and 4 AU at 100 pc, against the core note's table of 0.06, 2 and 5.6; the table's density and dispersion rows are tests of the same function and nothing culls a second time.
+generation-output: changed

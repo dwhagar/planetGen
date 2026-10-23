@@ -34,7 +34,8 @@ by 0.097 dex (the scatter of the relation about its fit read from the paper's Fi
 the profile uses its three-axis total, `sqrt(3) sigma_0`. The stellar halo's is the Jeans equation for a tracer of
 density slope `alpha` in a flat rotation curve with isotropic orbits, `sigma_r = Vc / sqrt(alpha)` (Courteau 2007
 Eq. 2; Xue et al. 2008, arXiv:0801.1232), three-axis total `sqrt(3) sigma_r`. Clusters, satellites and the nuclear
-structures keep `tuning.STELLAR_POPULATION_DISPERSION_KMS` (GEN.403, GEN.369, GEN.280).
+structures keep the one-axis `tuning.STELLAR_POPULATION_DISPERSION_KMS` (GEN.403, GEN.369, GEN.280), which the profile
+states as a three-axis total like the others (GEN.284).
 
 Every fill here is a labelled stand-in or a derivation (gap plan, section 6): see `structure_draw`.
 """

@@ -158,7 +158,8 @@ def test_terms_from_a_profile_read_its_density_and_the_weighted_dispersion():
     terms = place_terms.from_profile(profile)
     mean_mass = galaxy_system_mass.mean_over_solar({"old": 0.75, "bulge": 0.25}, shape)
     assert terms.mass_density_solar_pc3 == pytest.approx(0.5 * mean_mass)
-    assert terms.dispersion_kms == pytest.approx(math.sqrt(0.75 * 400 + 0.25 * 3600))
+    # The profile's dispersions are three-axis totals; the terms hold the one-axis value (GEN.284).
+    assert terms.dispersion_kms == pytest.approx(math.sqrt(0.75 * 400 + 0.25 * 3600) / math.sqrt(3.0))
     assert terms.perturber_mass_solar == pytest.approx(
         place_terms.mass_weighted_perturber_mass_solar([(1.0, (3.0, 10.0))]))
     empty = SimpleNamespace(expected_systems=0.0, volume_pc3=100.0, shape=shape, populations={"old": pop(0.0, 20.0)})

@@ -89,7 +89,7 @@ def test_the_suns_neighbourhood_keeps_planets_out_to_a_few_hundred_au():
 def test_the_profile_s_systems_per_volume_reach_the_limit():
     class _Profile:
         expected_systems, volume_pc3 = 3.0e4, 1.0
-        populations = {"bulge": SimpleNamespace(share=1.0, dispersion_kms=128.0, age_gy=(8.0, 12.0))}
+        populations = {"bulge": SimpleNamespace(share=1.0, dispersion_kms=128.0 * math.sqrt(3.0), age_gy=(8.0, 12.0))}   # three-axis total
         shape = None
 
     from planetgen.galaxy import system_mass as galaxy_system_mass
