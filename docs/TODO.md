@@ -4190,7 +4190,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.325, GEN.326.
+  Prerequisites: GEN.326.
 
 - [ ] **GEN.163 Type-B pulsar planets in globular clusters (GEN.130 follow-on)**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -5092,7 +5092,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   populations against the same convention. Done: a test that the
   encounter limit of a disc system uses the one-dimensional sigma (the
   three-axis total divided by sqrt(3)), and the docstrings agree.
-  Prerequisites: GEN.325. Related: GEN.158.
+  Progress (Core 4, GEN.325 merged as #2624, relayed 4:20 AM EDT
+  2026-10-23 as the lane reported, release 8.0.2000): GEN.325 took
+  generator epoch 54 (value-changing: the Sun's neighbourhood keeps
+  planets to about 275 AU, a dense core to a fraction of an AU), so this
+  item is unblocked and Core 4 starts it now with the
+  dispersion-convention fix above. It takes the next free epoch at merge
+  (55 or later).
+  Prerequisites: none. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.285 Nuclear mass components in the galactic potential for the orbital update**
@@ -5715,33 +5722,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   caller of `primary_first` (GEN.581) later. No new copy is added.
   Prerequisites: GEN.315, GEN.630, GEN.631. Related: GEN.264, GEN.332.
 
-- [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
-  Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Giant-planet probability is
-  multiplied by 10^(2 [Fe/H]), capped at 1, and a planet survives only
-  inside the largest orbit that outlives 12 Gyr of encounters: expected
-  ionizing passes n pi a^2 v t (1 + 2 G M / (a v^2)), v = sqrt(6) times
-  the dispersion, M = 0.5 solar masses
-  (docs/design/realistic-galactic-core.md section 7, decision 4: the
-  survival formula, not the hard cut at a_h). One function,
-  planet_survival_limit_au(density, dispersion), that takes the place's
-  density and dispersion; here the cluster's King n(r) and sigma(r) feed
-  it. Done: the table of the cluster note (188, 11, 2.6 and 2.1 expected
-  passes at its four rows) is a test, a giant planet in a metal-poor
-  cluster is thinned by the factor, and the same function takes any
-  density and dispersion (GEN.284 feeds it the nucleus).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Progress (Core 4, relayed 2:13 AM EDT 2026-10-23 as the lane
-  reported): rebased on main and taking generator epoch 53 (51 and 52
-  are on main), gate started 2:12 AM EDT. Update (3:09 AM EDT 2026-10-23): GEN.628 merged first as #2620 and took 53, so this item now takes 54 or 55: GEN.329 (Core 3) plans the same; whichever merges first takes 54 and the other renumbers to 55, numbered at merge.
-  Prerequisites: none. Related: GEN.162.
-
 - [ ] **GEN.326 Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Blue stragglers are main-sequence
@@ -5834,7 +5814,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.329, GEN.163, GEN.325. Related: GEN.274.
+  Prerequisites: GEN.329, GEN.163. Related: GEN.274.
 
 - [ ] **GEN.331 Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions**
   Split from GEN.275 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14903,7 +14883,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   slice 1 took 52 (#2605, 1:25 AM EDT 2026-10-23 as the lane reported),
   so 53 was the next free number (GEN.628 took it, #2620, 3:08 AM EDT 2026-10-23 as the lane reported; 54 is next) and the epochs file must stay
   contiguous: the first of this item and PERF.123 slice C to merge
-  takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Claimants as of 2:13 AM EDT 2026-10-23: GEN.325 (Core 4, gate started 2:12 AM EDT as the lane reported) and GEN.329 (Core 3, gating) both plan 53; whichever merges first takes it, the other renumbers to 54, and this item and PERF.123 slice C follow. Owner: Core 1, first in its
+  takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Update (4:20 AM EDT 2026-10-23 as the lane reported): GEN.628 took 53 (#2620) and GEN.325 took 54 (#2624, release 8.0.2000), so 55 is next: GEN.329 (Core 3, gating) plans it, and this item and PERF.123 slice C follow. Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
   Owner: Core 1, holds this item only from the plan-number bugs; it is
@@ -14920,8 +14900,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Progress (the coordinator, relayed 3:08 AM EDT 2026-10-23 as the lane
   reported): GEN.628 merged as #2620 and took generator epoch 53, so
   this item is cleared to merge; Core 1 rebases and takes the next free
-  epoch at merge (54 if it merges first of GEN.325, GEN.329 and this
-  item, otherwise the next after theirs). Core 1's gate numbers (as the
+  epoch at merge (55 if it merges first of GEN.329 and this item,
+  otherwise the next after GEN.329's; GEN.325 took 54). Core 1's gate numbers (as the
   lane reported, 2:40 AM EDT): the warn rate 20 percent to 0 over 1,000
   seeds, mean mass 4.3e9, mean disc scale length 1,200 pc; re-run them
   on the rebased code.
@@ -15945,6 +15925,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test covers a 202 answer. Owner: Performance (proposed by the TODO
   thread, because the lane found it and PERF.146 lives there; the
   coordinator can move it).
+  Progress (Performance, PERF.164 merged as #2623, relayed 4:15 AM EDT
+  2026-10-23 as the lane reported): at the medium size (4e9) the warm-up
+  takes 27.8 minutes and still fails on the /search check answering 202
+  (its deep-tiles phase builds 1,665 tiles in 948 s); it is the largest
+  single cost at both sizes, 74 minutes with it and 46 without. Measured
+  numbers: docs/design/generation-performance.md, section 'What medium
+  and large show'.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.157 The warm-up reads 95.9 million rows for 1,044 deep tiles, about 92,000 rows a tile**
@@ -16035,22 +16022,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
-- [ ] **PERF.164 The generation performance report holds only the small size: measure medium and large after PERF.163 and re-rank**
-  Follow-up to PERF.146 (merged as #2559, about 9:10 PM EDT 2026-10-22
-  as the Performance lane reported; the benchmark suite `planetgen
-  benchmark --suite`, the report docs/design/generation-performance.md
-  and value-neutral speedups). PERF.146 shipped with the small size
-  measured; its Done line asks for small, medium and large. Do: run the
-  suite at the medium and large sizes on a full-size machine after
-  PERF.163 (the plan stage's cache bug) lands, add the numbers and the
-  per-star and per-cell times to the report, and re-rank the
-  optimization list if the large run changes the order. Done: the report
-  holds measured medium and large rows with the run-to-run spread and
-  the ranked list is checked against them. Owner: the Performance
-  thread, after PERF.163 (the Performance lane, relayed 9:04 PM EDT
-  2026-10-22).
-  Prerequisites: none. Related: PERF.146, PERF.163.
-
 - [ ] **PERF.165 The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug)**
   Found by the Performance lane in PERF.163 (merged as #2576, relayed
   10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
@@ -16090,6 +16061,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is merged with its epoch. Owner: none for now (needs Boss's word;
   pool).
   Prerequisites: none. Related: PERF.163, PERF.165.
+
+- [ ] **PERF.167 The phenomenon scatter on a large galaxy runs over an hour and stores over 66 million rows without finishing**
+  Found by the Performance lane in PERF.164 (merged as #2623; relayed
+  4:15 AM EDT 2026-10-23 as the lane reported); filed by the TODO
+  thread. Kind: cost, value-neutral. Measured on the benchmark suite
+  (`planetgen benchmark --suite --size large`, 5e10 solar masses): the
+  plan took 43 s, the massive stars 4.0 min, the bright stars 11.4 min,
+  then the phenomenon scatter hit the lane's 60 minute cap with 66.0
+  million rows stored and was not done, so a large run is at least 1.3
+  hours and the steps after the phenomena were not measured. For
+  comparison the phenomena take 4.3 min for 3.1 million rows at small
+  (3e7) and 14.1 min for 6.7 million rows at medium (4e9), so the large
+  galaxy has more than ten times the medium galaxy's rows by the time it
+  was stopped. This is item 3 of the ranked list in
+  docs/design/generation-performance.md: the database is the cost, not
+  the Python. Reproducer: `planetgen benchmark --suite --size large
+  --steps phenomena` (or the scatter step alone) on a full-size machine;
+  fails on main, every run. Do: batch and index the phenomenon inserts
+  (larger insert batches, fewer secondary indexes while the rows go in
+  and add them after), without changing a drawn value. Whether a large
+  galaxy should hold this many phenomena is a modelling question, not
+  part of this item: GEN.624 (the satellites scale with the galaxy mass)
+  changes the row counts, so re-measure after it lands. Done: the large
+  galaxy's phenomenon scatter finishes inside the suite's step cap with
+  the same rows (same fingerprint), and the report's large column is
+  filled for every step after it. Owner: Performance (proposed by the
+  TODO thread, because the lane found it and PERF.146 lives there; the
+  coordinator can move it).
+  Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
 
 ## DB: Database and schema
 
@@ -17473,6 +17473,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: API.5, API.15, API.30.
+
+- [ ] **API.32 GET /api/containers answers 500 to a hostile query string (bug)**
+  Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
+  lane reported) in its gate for PERF.164, a change that touches only
+  the benchmark suite and docs; filed by the TODO thread. Kind: bug.
+  Test:
+  src/tests/test_fuzz_web_routes.py::test_get_routes_survive_hostile_query[GET
+  /api/containers]. Failure: the route gets a 500 from /api/containers;
+  the test fails alone too. Reproducer: `pytest
+  src/tests/test_fuzz_web_routes.py -k containers`. Fails on main: very
+  likely (the lane's diff does not touch the route; not yet checked on a
+  clean main). Frequency: every run. The route was added by DB.85 (`GET
+  /api/containers[?kind=globular_cluster|superbubble]` in
+  src/planetgen/api/routes.py). Do: find which hostile value reaches the
+  handler unvalidated (the kind filter is the likely one), answer 400
+  with the error body the other routes use, and add the value to the
+  route's own test. Done: the fuzz test passes for /api/containers, the
+  route answers 400 for an unknown kind, and the other container routes
+  (`/api/containers/at`, `/<id>`, `/<id>/contents`) pass the same fuzz.
+  Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: DB.85.
 
 ## ADM: Admin tools
 
@@ -20150,24 +20171,6 @@ clears each one.
   on a machine at load 8. Owner: Bug Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.284, TEST.281.
 
-- [ ] **TEST.288 test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2] fails in the four-worker non-browser phase: the lease holder is another test worker's node (bug)**
-  Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
-  in its gate for ADM.127 and UX.146; neither diff touches it, and it
-  passed alone on re-run. Kind: flaky test. Test:
-  src/tests/test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed[2].
-  Failure text: assert lease['holder'] is None; the holder was another
-  test worker's node (vm:498). Fails on main: unknown. Frequency: once
-  in 2 runs on that lane, in the 4-worker non-browser phase. Cause (the
-  lane's reading, not confirmed): the lease key is shared between xdist
-  workers, so another worker's queue node can take it; since TEST.280
-  each worker has its own Redis database, so check whether this lease
-  key is outside that scoping (a key in the control database, or a node
-  name that carries only the process id). Do: scope the lease to the
-  worker's database or name the node per test, and say which in the
-  test. Done: the test passes 50 times in a row at -n 4. Owner: Bug Hunt
-  (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.280, TEST.284.
-
 - [ ] **TEST.289 Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug)**
   Found by Bugfix 2 (relayed 3:08 AM EDT 2026-10-23 as the lane
   reported) in its gate for GEN.628; the diff does not touch them. Kind:
@@ -20185,6 +20188,22 @@ clears each one.
   key. Done: both pass 50 times in a row at -n 4. Owner: Bug Hunt
   (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.284, TEST.288, TEST.280.
+
+- [ ] **TEST.290 test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug)**
+  Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
+  lane reported) in its gate for PERF.164; neither test is touched by
+  the diff. Kind: flaky test. Tests:
+  src/tests/test_work_units.py::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units
+  and
+  src/tests/test_galaxy_seed.py::test_a_new_seed_replaces_the_old_only_before_any_sector.
+  Failure text: not given by the lane; both passed alone at load 5.9.
+  Fails on main: unknown. Frequency: once each in one gate (4 workers).
+  Reproducer: none yet. Do: run both at -n 4 beside a loaded machine 50
+  times, capture the first failure text, find the state they share with
+  another worker (a Redis key, a control-database row or a galaxy name),
+  and scope it per test. Done: both pass 50 times in a row at -n 4.
+  Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
 ## USR: User accounts
 
