@@ -6916,6 +6916,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             conn.prereserved_names[id(obj)] = (base, diminutive_index)
 
         bright_star_links = []
+        built_tree_ids = []
         built_scatter_ids = []
         nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
         for entry, neighbors in zip(sector.entries, nearest):
@@ -6927,6 +6928,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             bright_star_id = getattr(entry, "bright_star_id", None)
             if bright_star_id is not None:
                 bright_star_links.append((bright_star_id, star_system_id))
+                if getattr(entry.star_system, "tree_built", False):
+                    built_tree_ids.append(bright_star_id)
             if getattr(entry, "scatter_id", None) is not None:
                 built_scatter_ids.append(entry.scatter_id)
             _save_progressed(conn)
@@ -6954,6 +6957,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         conn.deferred_name_confirmations = None
     if bright_star_links:
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
+    if built_tree_ids:  # GEN.315: a built row's members and nodes are its system's stars and orbit_nodes now
+        scatter_systems.delete_member_trees(conn, "bright_stars", built_tree_ids)
     mark_phenomena_built(conn, built_scatter_ids)
 
     field_nebulae = getattr(sector, "field_nebulae", None)

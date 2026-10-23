@@ -84,7 +84,7 @@ class BinaryStarProxy(StellarObject):
     """
 
     def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star,
-                 galactic_center_dist_ly=None, galactic_orbital_phase_deg=None):
+                 galactic_center_dist_ly=None, galactic_orbital_phase_deg=None, orbit=None):
         """
         Initializes a BinaryStarProxy object.
 
@@ -105,6 +105,10 @@ class BinaryStarProxy(StellarObject):
                 `secondary_star`, so all three agree (a binary pair moves
                 around the galaxy together, not independently). `None` (the
                 default) rolls a fresh random value in `[0, 360)`.
+            orbit (OrbitNode, optional): The pair's stored orbit (a fill that builds a system from the tree its scatter
+                row stored, GEN.315): its semi-major axis, plane, phase and period are the pair's, and nothing is
+                drawn for them. The mutual orbit is tracked as a circle of that radius until the readers move to the
+                stored nodes. `None` draws a separation and a plane.
         """
         # The base class takes the name only; the other properties are set below and by getters.
         # The proxy stands in for the whole system (its own `.name` is what
@@ -138,11 +142,14 @@ class BinaryStarProxy(StellarObject):
         # Generate binary separation (0.05 to 0.25 AU for P-type systems)
         # Add the radii of both stars to the separation to ensure they don't overlap
         # and to account for their physical size in the orbital distance.
-        base_separation = draw.uniform(0.05, 0.25)
-        # Convert star radii from kilometers to AU before adding to separation
-        self._binary_separation_au = base_separation + \
-                                     (self._primary.radius / constants.AU_TO_KM) + \
-                                     (self._secondary.radius / constants.AU_TO_KM)
+        if orbit is None:
+            base_separation = draw.uniform(0.05, 0.25)
+            # Convert star radii from kilometers to AU before adding to separation
+            self._binary_separation_au = base_separation + \
+                                         (self._primary.radius / constants.AU_TO_KM) + \
+                                         (self._secondary.radius / constants.AU_TO_KM)
+        else:
+            self._binary_separation_au = orbit.separation_km / constants.AU_TO_KM
 
         # Override base Star properties with effective values
         # Use only the primary star's own bare name for the system name --
@@ -187,13 +194,18 @@ class BinaryStarProxy(StellarObject):
         # near-ecliptic tilt the way PLANET_ORBITAL_INCLINATION_MAX_DEG is.
         self.binary_mutual_orbital_period_years = calculate_orbital_period_years(
             self._binary_separation_au, self._effective_mass
-        )
+        ) if orbit is None else orbit.period_years
         self.binary_mutual_orbital_speed_kms = circular_orbital_speed_kms(
             self._binary_separation_au, self.binary_mutual_orbital_period_years
         )
-        self.binary_mutual_orbital_inclination_deg = draw.uniform(0, 180)
-        self.binary_mutual_orbital_ascending_node_deg = draw.uniform(0, 360)
-        self.binary_mutual_orbital_phase_deg = draw.uniform(0, 360)
+        if orbit is None:
+            self.binary_mutual_orbital_inclination_deg = draw.uniform(0, 180)
+            self.binary_mutual_orbital_ascending_node_deg = draw.uniform(0, 360)
+            self.binary_mutual_orbital_phase_deg = draw.uniform(0, 360)
+        else:
+            self.binary_mutual_orbital_inclination_deg = orbit.inclination_deg
+            self.binary_mutual_orbital_ascending_node_deg = orbit.ascending_node_deg
+            self.binary_mutual_orbital_phase_deg = orbit.mean_anomaly_deg
         self.binary_mutual_min_update_interval_years = \
             minimum_update_interval_years(self.binary_mutual_orbital_period_years)
         # The secondary's position relative to the primary (AU) -- the same

@@ -25,7 +25,7 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import nebula_blocks, query, region, sector_paths, store
+from planetgen.db import nebula_blocks, query, region, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
@@ -344,11 +344,15 @@ def _fill_context(args, address):
             return brightStars.FillContext(profile, phenomenon_rows=phenomena, below_cut=below_cut,
                                            resolution=resolution, emission_hosts=emission_hosts)
         rows = store.bright_stars_for_sector(conn, *address)
+        # GEN.315: a row with members is built from the tree it stored
+        member_trees = scatter_systems.read_stored_trees(conn, "bright_stars", [r["id"] for r in rows if r.get("member_count")])
+        orbit_epoch_unix = store.get_orbit_epoch_unix(conn)
     finally:
         conn.close()
     return brightStars.FillContext(profile, rows, min_luminosity_sol=level,
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
-                                   resolution=resolution, emission_hosts=emission_hosts)
+                                   resolution=resolution, emission_hosts=emission_hosts, member_trees=member_trees,
+                                   orbit_epoch_unix=orbit_epoch_unix)
 
 
 def backfill_step_targets(addresses, bounds, step_masses=None):

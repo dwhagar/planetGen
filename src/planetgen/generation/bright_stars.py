@@ -71,7 +71,7 @@ from planetgen.galaxy.spherical import (
     wedge_longitude_bounds,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation import object_first, place_terms
+from planetgen.generation import object_first, place_terms, stored_trees
 from planetgen.generation.star_population import (
     bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
@@ -1189,10 +1189,17 @@ class FillContext:
         emission_hosts (tuple): The emission regions (D and E) that pre-placed hot stars in the neighbouring sectors
             light (GEN.321), `(nebula, host_name, host_position_pc)` each: the sector builds the ionizing members whose
             points fall inside it.
+        member_trees (dict): The stored trees of the `bright_rows` that have members, `{row id: StoredTree}`
+            (`db.scatter_systems.read_stored_trees`, GEN.315); a row not in it is a single star.
+        orbit_epoch_unix (float or None): The orbit epoch a built system holds its phases at; a stored node is carried
+            to it. `None` when no orbit update has run (a node keeps the time it was drawn at).
     """
 
     def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
-                 below_cut=None, star_mass_limit_sol=None, resolution=None, emission_hosts=()):
+                 below_cut=None, star_mass_limit_sol=None, resolution=None, emission_hosts=(), member_trees=None,
+                 orbit_epoch_unix=None):
+        self.member_trees = dict(member_trees or {})
+        self.orbit_epoch_unix = orbit_epoch_unix
         self.emission_hosts = tuple(emission_hosts)
         self.resolution = resolution
         self.star_mass_limit_sol = star_mass_limit_sol
@@ -1205,6 +1212,11 @@ class FillContext:
         self.phenomena_scattered = phenomenon_rows is not None
         self.phenomenon_rows = list(phenomenon_rows or ())
         self.below_cut = below_cut
+
+    def stored_plan(self, row_id):
+        """What a build of the `bright_rows` row `row_id` takes from its stored tree (`stored_trees.StoredPlan`): a
+        single star for a row with no members."""
+        return stored_trees.plan(self.member_trees.get(row_id), self.orbit_epoch_unix)
 
     @functools.cached_property
     def place_terms(self):

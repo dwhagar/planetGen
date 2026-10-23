@@ -36,6 +36,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation import companion_classes, place_terms
+from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -100,7 +101,7 @@ class WideBinaryPair:
     `store.advance_orbital_phases` never needs to join back to `stars`.
     """
 
-    def __init__(self, system_config, primary: Star, secondary: Star, inner_boost=1.0):
+    def __init__(self, system_config, primary: Star, secondary: Star, inner_boost=1.0, orbit=None):
         """
         Generates a fresh wide-binary orbital relationship between two
         already-generated stars, including each star's own Holman &
@@ -118,6 +119,9 @@ class WideBinaryPair:
                 caller need not know which is heavier ahead of time.
             inner_boost (float): The weight of the 0.25 to 10 AU range of separations after the metallicity trend
                 (`companion_classes.CompanionOdds.inner_boost`); 1 with none.
+            orbit (OrbitNode, optional): The pair's stored orbit (a fill that builds a system from the tree its scatter
+                row stored, GEN.315): its semi-major axis, eccentricity, plane, phase and period are the pair's and
+                nothing is drawn for them. `None` draws them.
         """
         self.system_config = system_config
 
@@ -135,16 +139,21 @@ class WideBinaryPair:
         # axis is the place's survival limit (GEN.103), not a constant.
         self.max_separation_au = wide_pair_limit_au(system_config, primary, secondary)
         """float: The widest axis the pair's place allowed when it was drawn (not saved)."""
-        self.separation_au = sample_wide_binary_separation_au(
-            self.max_separation_au, place_terms.born_mass_solar(primary),
-            place_terms.born_mass_solar(primary) + place_terms.born_mass_solar(secondary), inner_boost)
-        self.eccentricity = sample_wide_binary_eccentricity()
+        if orbit is None:
+            self.separation_au = sample_wide_binary_separation_au(
+                self.max_separation_au, place_terms.born_mass_solar(primary),
+                place_terms.born_mass_solar(primary) + place_terms.born_mass_solar(secondary), inner_boost)
+            self.eccentricity = sample_wide_binary_eccentricity()
+        else:
+            self.separation_au = orbit.separation_km / constants.AU_TO_KM
+            self.eccentricity = orbit.eccentricity
 
         self.periapsis_au = self.separation_au * (1 - self.eccentricity)
         self.apoapsis_au = self.separation_au * (1 + self.eccentricity)
 
         total_mass_kg = primary.mass + secondary.mass
-        self.period_years = calculate_orbital_period_years(self.separation_au, total_mass_kg)
+        self.period_years = (calculate_orbital_period_years(self.separation_au, total_mass_kg) if orbit is None
+                             else orbit.period_years)
         # Real orbital speed varies with eccentric anomaly (vis-viva), not
         # constant the way a circular orbit's is -- but this generator's
         # engine only ever tracks circular-orbit positions/speeds for every
@@ -163,9 +172,14 @@ class WideBinaryPair:
         # align with anything -- same full-sphere convention already used
         # for the close/P-type pair's own mutual orbit
         # (binary.BinaryStarProxy.__init__).
-        self.inclination_deg = draw.uniform(0, 180)
-        self.ascending_node_deg = draw.uniform(0, 360)
-        self.phase_deg = draw.uniform(0, 360)
+        if orbit is None:
+            self.inclination_deg = draw.uniform(0, 180)
+            self.ascending_node_deg = draw.uniform(0, 360)
+            self.phase_deg = draw.uniform(0, 360)
+        else:
+            self.inclination_deg = orbit.inclination_deg
+            self.ascending_node_deg = orbit.ascending_node_deg
+            self.phase_deg = orbit.mean_anomaly_deg
         self.position_x_au, self.position_y_au, self.position_z_au = orbital_position_au(
             self.separation_au, self.inclination_deg, self.ascending_node_deg, self.phase_deg
         )

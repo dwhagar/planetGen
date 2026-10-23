@@ -250,6 +250,12 @@
       "epoch": 51,
       "first_release": "8.0.1984",
       "reason": "Objects named by their position ID that share an ID take the collision numbers 0, 1, 2 in the order of their sectors' addresses instead of the order the sectors were saved in, so two sectors that share an ID get the same names in either save order (GEN.307)"
+    },
+    {
+      "epoch": 52,
+      "first_release": null,
+      "pending": true,
+      "reason": "A scattered star's system is the tree its scatter row stored: a star with one companion star is that pair on the stored orbit (its second star from the stored seed and birth mass, the pair's separation, eccentricity, plane, phase and period the stored node's), and a scattered star draws no companion of its own, so a seed's pre-placed systems differ from before (GEN.315)"
     }
   ]
 }
