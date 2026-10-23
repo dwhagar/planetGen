@@ -441,6 +441,12 @@ with `clamp()`.
   lists). Lane B also files the related pages it finds (system pages,
   body pages, search results, API fields) as sub-items through the TODO
   thread.
+  Decided (Boss, 6:02 PM EDT 2026-10-23): 'habitable' means the PHI-6
+  overall score is Blue or Green; the one rule is GEN.643 (a single
+  is_habitable predicate, this item reads it when it lands; until then
+  use the stored overall score and the same test). Tying the PHI-6 into
+  the planet classes is GEN.644 (Habitability lane D, proposal first).
+
 - [ ] **UX.101 The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
   (Boss, 2026-10-11 03:24Z), which supersedes the symbols of #1217.
@@ -1310,6 +1316,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-sector count; the lane says whether that needs a migration (next
   free 0135, GEN.412 holds it) and whether the PERF.116 re-score feeds
   it.
+  Decided (Boss, 6:02 PM EDT 2026-10-23): 'habitable' means the PHI-6
+  overall score is Blue or Green; the one rule is GEN.643 (a single
+  is_habitable predicate, this item reads it when it lands; until then
+  use the stored overall score and the same test). Tying the PHI-6 into
+  the planet classes is GEN.644 (Habitability lane D, proposal first).
+
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
   surface-brightness cut at about 23 mag/arcsec^2; the Magellanic Clouds
@@ -2008,6 +2020,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier owner line. Owner: Habitability lane C (map). The
   habitable-world half of MAP.132, which stays in 9.3 for black holes,
   nebulae and vessels.
+  Decided (Boss, 6:02 PM EDT 2026-10-23): 'habitable' means the PHI-6
+  overall score is Blue or Green; the one rule is GEN.643 (a single
+  is_habitable predicate, this item reads it when it lands; until then
+  use the stored overall score and the same test). Tying the PHI-6 into
+  the planet classes is GEN.644 (Habitability lane D, proposal first).
+
 - [ ] **MAP.221 Station and vessel icons on the Galaxy Map**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Register the station and vessel
@@ -14916,6 +14934,110 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch it takes. Owner: Core 3, after GEN.332.
   Prerequisites: GEN.332. Related: GEN.316, GEN.631.
 
+- [ ] **GEN.641 Research: the interior of a giant planet, ice giant and brown dwarf: the layers (molecular, liquid and metallic hydrogen and helium, helium rain, a dilute core), whether there is a rocky or icy core, and what the core is made of**
+  Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
+  composition, including liquid or metallic hydrogen or helium cores, if
+  they have a rocky core, and what it is made of.' Gap found by the TODO
+  thread: GEN.460 draws only the heavy-element mass M_Z, the envelope
+  helium and metallicity and a core-mass placeholder (log-uniform 5 to
+  20 Earth masses, part C item 3 of
+  docs/design/body-composition-parts/C-volatile-and-giants.md, the giant
+  interior design note never filed), and the spine contract
+  (composition-spine-contracts-2026-10-23.md) stores a giant as
+  fractions metal, rock, water, ice and envelope with envelope_helium
+  and envelope_z, with no layers. Covers gas giants, ice giants and
+  brown dwarfs. Owner: Composition lane J (bulk composition). Lane I
+  (the spine) is told: BulkFractions needs the giant interior fields
+  once GEN.642 settles them (testing mode: new epochs and database
+  versions are allowed, Boss 5:42 PM EDT). Read and fill the gap in part
+  C item 3: modern interior models (Wahl 2017 for Jupiter, Debras and
+  Chabrier 2019, Helled 2022 review 'Giant planet interiors', Miguel
+  2016, Nettelmann for Saturn and the ice giants), the pressure and
+  temperature at the molecular to metallic transition (about 1 to 2 Mbar
+  for Jupiter), the helium rain layer and the helium depletion of the
+  outer envelope, the diluted core and its metal gradient, the core mass
+  and composition (rock and iron, or ice, by mass and by formation
+  distance), the ice giants' layers (hydrogen-helium envelope, a
+  water-ammonia-methane ionic or superionic mantle, a rock core), and
+  the brown dwarfs' metallic hydrogen. No Solar System shape as a law:
+  the sources decide the distributions, with stand-ins labelled in the
+  gap plan registry. Done: a design note in docs/design (the layers per
+  mass and age, the core-presence probability, the core composition
+  draw, the transition pressures, every number labelled READ, COMPUTED
+  or placeholder), the test targets, and the open questions for Boss.
+  Prerequisites: none. Related: GEN.460, GEN.454, GEN.428.
+
+- [ ] **GEN.642 Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described**
+  Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
+  composition, including liquid or metallic hydrogen or helium cores, if
+  they have a rocky core, and what it is made of.' Gap found by the TODO
+  thread: GEN.460 draws only the heavy-element mass M_Z, the envelope
+  helium and metallicity and a core-mass placeholder (log-uniform 5 to
+  20 Earth masses, part C item 3 of
+  docs/design/body-composition-parts/C-volatile-and-giants.md, the giant
+  interior design note never filed), and the spine contract
+  (composition-spine-contracts-2026-10-23.md) stores a giant as
+  fractions metal, rock, water, ice and envelope with envelope_helium
+  and envelope_z, with no layers. Covers gas giants, ice giants and
+  brown dwarfs. Owner: Composition lane J (bulk composition). Lane I
+  (the spine) is told: BulkFractions needs the giant interior fields
+  once GEN.642 settles them (testing mode: new epochs and database
+  versions are allowed, Boss 5:42 PM EDT). Draw from the research (the
+  item before): the layer boundaries as mass fractions, the helium share
+  in each layer, whether a core exists, its mass and what it is made of
+  (rock, iron, ice and their shares), and the heavy-element split
+  between the core, the dilute zone and the envelope so the totals equal
+  M_Z of GEN.460. The fractions of GEN.428 stay the whole-body totals
+  (they must equal the layer sums), the layers are the detail; the
+  mass-radius solver of GEN.429 reads the layers where the research says
+  the tables allow. The description (GEN.430) states the layers, the
+  core and its makeup in words, with chemical formulas set in subscripts
+  (the HTML subscript rule). Changes stored values, so it takes a
+  generator epoch (testing mode, Boss 5:42 PM EDT). Done: every giant
+  has layers whose masses sum to the body mass, a core flag with
+  composition, a determinism test across worker counts, the sums test in
+  TEST.210 extended to giants, and the description names the layers.
+  Prerequisites: GEN.641, GEN.460, GEN.428, GEN.429. Related: GEN.460,
+  GEN.430, GEN.454, TEST.210, DB.69.
+
+- [ ] **GEN.643 Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions**
+  Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
+  on the PHI-6 score which must be Blue or Green overall. Also, I think
+  we probably want to tie the PHI-6 into the planet classifications?'
+  Owner: Habitability lane D (model). Define habitable once as
+  habitability.overall_score being Blue or Green
+  (docs/design/habitability-index.md, the overall caps), stored as a
+  flag beside the stored score so every reader uses the same test;
+  replace any other meaning of 'habitable' in code, text and settings
+  (the habitable zone stays a separate, orbital idea and keeps its
+  name). The readers are MAP.143 (sector colouring), MAP.220 (markers),
+  MAP.132, UX.100 (lists), search and the planet and moon descriptions.
+  Changes stored values only if the flag is stored (then it rides the
+  habitability epoch; testing mode allows a new one). Done: one
+  predicate is_habitable(body), every reader calls it, a test that lists
+  a Blue, a Green, a Yellow and a Red body and gets the first two only,
+  and no other 'habitable' test remains.
+  Prerequisites: none. Related: GEN.639, MAP.143, MAP.220, UX.100,
+  GEN.89.
+
+- [ ] **GEN.644 Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree**
+  Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
+  on the PHI-6 score which must be Blue or Green overall. Also, I think
+  we probably want to tie the PHI-6 into the planet classifications?'
+  Owner: Habitability lane D (model). Write the proposal first (a design
+  note under docs/design and a short Boss card, one option per row,
+  option 1 recommended): how the overall PHI-6 colour enters the planet
+  class (a new class for worlds that score Blue or Green, a tier or
+  suffix on the existing classes, or a separate label beside the class),
+  what happens to classes whose definition already implies habitability
+  (for example the temperate ocean and Earth-like classes and GEN.27's
+  class P), how the class is kept in step when the PHI-6 changes (the
+  class follows the stored score, never the reverse), and the effect on
+  stored values, the API and the maps. The build items (new epoch,
+  database version, tests, docs) are filed after Boss answers. Done: the
+  note and the card exist and Boss has answered it.
+  Prerequisites: GEN.643. Related: GEN.643, GEN.89, GEN.27, GEN.350.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16886,6 +17008,30 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: DB.76, DB.74, GEN.568.
+
+- [ ] **DB.89 Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition**
+  Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
+  composition, including liquid or metallic hydrogen or helium cores, if
+  they have a rocky core, and what it is made of.' Gap found by the TODO
+  thread: GEN.460 draws only the heavy-element mass M_Z, the envelope
+  helium and metallicity and a core-mass placeholder (log-uniform 5 to
+  20 Earth masses, part C item 3 of
+  docs/design/body-composition-parts/C-volatile-and-giants.md, the giant
+  interior design note never filed), and the spine contract
+  (composition-spine-contracts-2026-10-23.md) stores a giant as
+  fractions metal, rock, water, ice and envelope with envelope_helium
+  and envelope_z, with no layers. Covers gas giants, ice giants and
+  brown dwarfs. Owner: Composition lane J (bulk composition). Lane I
+  (the spine) is told: BulkFractions needs the giant interior fields
+  once GEN.642 settles them (testing mode: new epochs and database
+  versions are allowed, Boss 5:42 PM EDT). Columns on the planets table
+  (and the brown dwarf table where separate), declared in
+  db/column_units.py with their kinds in the same PR, one Alembic
+  revision, schema version bump, the loader and the writer in the
+  generic insert (DB.74), the rebuild step for older rows, and the API
+  field. Done: a save and load round trip returns the layers unchanged,
+  the migration test passes, and the schema docs list the columns.
+  Prerequisites: GEN.642. Related: GEN.642, DB.69, DB.74.
 
 ## API: The JSON API
 

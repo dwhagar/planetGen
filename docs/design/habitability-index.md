@@ -109,6 +109,8 @@ needed) and Red beyond, which closes the gap the PHI-4 doc left between
 and where `M_rad` starts charging for shielding. The Eigen threshold of 10
 Gy/yr belongs to `L_rad` (microbes), not to a person's tiers.
 
+**Habitable defined (Boss, 6:02 PM EDT 2026-10-23).** A world is habitable when its overall score is Blue or Green; Yellow and Red are not. One predicate (GEN.643) serves the sector counts, the markers, the lists, the search and the descriptions. Boss also wants the PHI-6 tied into the planet classification; the proposal is GEN.644.
+
 **The gates (GEN.207; Boss, 2026-10-11 and 2026-10-14).** Importance, most
 first: Radiation, Temperature, Pressure, Air, Water, Suitability. The colour
 gates come first, then the geometric mean inside them
