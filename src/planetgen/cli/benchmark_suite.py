@@ -31,6 +31,7 @@ import argparse
 import json
 import os
 import platform
+import re
 import signal
 import statistics
 import subprocess
@@ -129,6 +130,13 @@ def _positive_int(text):
     return value
 
 
+def _suffix(text):
+    """`argparse` type for the suffix of an earlier run's scratch databases: the eight hex digits the suite named them by."""
+    if not re.fullmatch(r"[0-9a-f]{8}", text):
+        raise argparse.ArgumentTypeError(f"must be the eight hex digits the suite printed, got {text!r}")
+    return text
+
+
 def _positive_mass(text):
     """`argparse` type for a mass in solar masses: a finite number above zero."""
     from planetgen.cli.generate import finite_float
@@ -159,6 +167,10 @@ def add_suite_arguments(parser):
                             f"(default {DEFAULT_STEP_TIMEOUT_MINUTES}).")
     group.add_argument("--mass", type=_positive_mass, default=None, metavar="M_SUN",
                        help="With --suite: the galaxy's stellar mass in solar masses, instead of the size's.")
+    group.add_argument("--resume", type=_suffix, metavar="SUFFIX", default=None,
+                       help="With --suite: carry on in the scratch databases of an earlier run that was stopped "
+                            "(the suite prints their names, planetgen_suite_<SUFFIX>_r0 and "
+                            "planetgen_suite_control_<SUFFIX>); give --steps the steps left to run.")
     group.add_argument("--fill-sectors", type=_positive_int, default=None, metavar="N",
                        help="With --suite: the sectors the fill makes, instead of the size's.")
 
@@ -564,20 +576,33 @@ def run_suite(args):
     workers = benchmark._workers(args.workers)[0]
     config = store.mysql_config_from_args(args)
     admin = benchmark._admin(config)
-    suffix = uuid.uuid4().hex[:8]
+    resumed = args.resume is not None
+    if resumed and args.repeats != 1:
+        raise SystemExit("planetgen benchmark --suite: --resume carries on one run, so --repeats stays 1.")
+    suffix = args.resume if resumed else uuid.uuid4().hex[:8]
     control = f"planetgen_suite_control_{suffix}"
     scratch = []
     runs = []
     try:
-        with admin.cursor() as cur:
-            cur.execute(f"CREATE DATABASE `{control}`")
-        benchmark._make_control_schema(config, control)
+        if resumed:
+            with admin.cursor() as cur:
+                cur.execute("SHOW DATABASES LIKE %s", (f"planetgen_suite_{suffix}_r0",))
+                if not cur.fetchall():
+                    raise SystemExit(f"planetgen benchmark --suite: no scratch database planetgen_suite_{suffix}_r0 "
+                                     f"to resume.")
+        else:
+            with admin.cursor() as cur:
+                cur.execute(f"CREATE DATABASE `{control}`")
+            benchmark._make_control_schema(config, control)
+        print(f"Scratch databases: planetgen_suite_{suffix}_r0 and {control} (to carry on after a stop: --resume {suffix})",
+              flush=True)
         facts = machine_facts(admin, workers)
         startup = None
         for repeat in range(args.repeats):
             database = f"planetgen_suite_{suffix}_r{repeat}"
-            with admin.cursor() as cur:
-                cur.execute(f"CREATE DATABASE `{database}`")
+            if not resumed:
+                with admin.cursor() as cur:
+                    cur.execute(f"CREATE DATABASE `{database}`")
             scratch.append(database)
             pipeline = Pipeline(config, control, database, args.size, steps, args.seed, workers,
                                 args.step_timeout * 60, mass=args.mass, sectors=args.fill_sectors)

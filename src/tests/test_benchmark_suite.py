@@ -28,6 +28,23 @@ def test_the_suite_is_off_unless_asked_for_and_small_by_default():
     assert _parse("--suite", "--size", "large", "--repeats", "3").size == "large"
 
 
+def test_a_stopped_run_is_resumed_by_the_suffix_of_its_databases_and_nothing_else_is_taken():
+    assert _parse().resume is None
+    assert _parse("--suite", "--resume", "b4a11796").resume == "b4a11796"
+    for odd in ("b4a1179", "B4A11796", "x`; drop", "b4a11796_r0"):
+        with pytest.raises(SystemExit):
+            _parse("--suite", "--resume", odd)
+
+
+@pytest.mark.fresh_database
+def test_resuming_databases_that_are_not_there_is_refused(mysql_config):
+    argv = ["--suite", "--size", "tiny", "--resume", "00000000", "--steps", "population",
+            "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
+            "--mysql-password", mysql_config.password or ""]
+    with pytest.raises(SystemExit, match="no scratch database"):
+        benchmark_suite.run_suite(_parse(*argv))
+
+
 def test_every_step_has_a_label_and_a_count_and_the_order_has_no_repeats():
     assert len(set(benchmark_suite.STEP_ORDER)) == len(benchmark_suite.STEP_ORDER)
     for step in benchmark_suite.STEP_ORDER:
