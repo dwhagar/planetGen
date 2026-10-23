@@ -118,6 +118,44 @@ alters a drawn value needs its own item, a generator epoch bump and Boss's word,
 9. **The fill, 3%** at 7.7 seconds a system: too few systems at this size to say anything; the fill needs a size of
    its own to be measured (the next version of the suite should fill a fixed count of sectors).
 
+## The plan stage at the default size (PERF.163)
+
+Boss's plan of a default galaxy (4e9 solar masses, 22,267 clusters and satellites, 1,089 shells) took 264 s against a
+3.7 s skeleton at release 8.0.1961. The plan log now ends with a table of where the unit's time went
+(`util/step_timer.py`), costliest first. On the 4-CPU test box, release 8.0.1960 (before PERF.146) took about 2 minutes
+for the whole `plan` command, the release after PERF.146 about 30 s, and the release with this table about 25 s (three
+runs each, on a machine that is not Boss's, so the seconds differ and the ratios are the finding). The table of the last run, 12.3 s
+of the unit:
+
+| Step | Seconds | Share |
+|---|---|---|
+| The component field (the mean system mass of each of 22,267 clusters and satellites) | 4.5 | 36.7% |
+| Storing the clusters and satellites (22,267 rows) | 3.1 | 25.3% |
+| Storing the 1,089 shells | 1.1 | 8.8% |
+| The report lines (pins, halo, outline) | 1.0 | 8.4% |
+| The young open clusters (22,099 drawn) | 0.7 | 5.6% |
+| The outline (the skeleton's shells; the "3.7 s" of Boss's log) | 0.7 | 5.6% |
+| The galaxy's shape | 0.6 | 5.1% |
+| The globular clusters, the satellites, the rest | 0.5 | 4% |
+
+The rest of the 25 s is outside the unit: the command's start-up and argument checks (about 3 s, 0.6 s of it
+`plan_shape` run once for the check and once for the unit), the start-up math check (2 s), and starting the queue and
+its workers (about 6 s).
+
+What was wrong: the cache of `mean_system_mass_at_age_solar` held 512 ages while a plan asks for 22,267 distinct ones (every
+open cluster rounds to its own age), so the log line that prints the clusters' system counts paid the whole bill a
+second time (4.4 s here, about 3 times that on Boss's box). It now holds 65,536 ages; the search for the mass of a
+given lifetime also reads the metallicity's terms once instead of once per bisection step. Neither changes a value
+(tests compare with the plain loop bit for bit). Together with the 4.4 times faster mean system mass from PERF.146 this
+brings the plan to about a fifth of its time at 8.0.1960.
+
+What is left, ranked: (1) the mean system mass of each age costs 0.2 ms, mostly the 50-step bisection for the turn-off
+mass (`youngest_progenitor_sol`): a table of the turn-off mass by age, or a root finder with fewer steps, would change
+the last bits of the answer, so it needs its own item and a generator epoch; (2) storing the 22,267 components takes 3 s,
+about 0.14 ms a row; (3) the plan's start (the `plan_shape` check run twice, the math check, the queue's workers) is
+about 10 s of the 25 s. GEN.624 will cut the satellites' systems; the component field's cost depends on the number of
+components, not their size, so it will not shrink.
+
 ## What `medium` and `large` show
 
 See the section at the end of this note once those runs finish (the numbers are added with the run date).

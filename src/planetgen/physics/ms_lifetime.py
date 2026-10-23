@@ -47,7 +47,6 @@ _BISECTIONS = 50
 
 
 @functools.lru_cache(maxsize=4096)
-@functools.lru_cache(maxsize=64)
 def _terms(zeta):
     """`a1` to `a10` at this `zeta`, and the share `x` of the base-of-giant-branch time the main sequence takes."""
     terms = tuple(sum(c * zeta ** power for power, c in enumerate(_COEFFICIENTS[n])) for n in range(1, 11))
@@ -72,12 +71,17 @@ def base_of_giant_branch_gy(mass_sol, fe_h=0.0):
     return _base_of_giant_branch_gy(_terms(zeta(fe_h))[0], mass_sol)
 
 
-def lifetime_gy(mass_sol, fe_h=0.0):
-    """The main-sequence lifetime of a star of this initial mass and [Fe/H], Gyr (eq. 5)."""
-    terms, x = _terms(zeta(fe_h))
+def _lifetime_gy(terms, x, mass_sol):
+    """`lifetime_gy` from the `terms` and `x` of its [Fe/H]."""
     _a1, _a2, _a3, _a4, _a5, a6, a7, a8, a9, a10 = terms
     hook = max(0.5, 1.0 - 0.01 * max(a6 / mass_sol ** a7, a8 + a9 / mass_sol ** a10))
     return max(hook, x) * _base_of_giant_branch_gy(terms, mass_sol)
+
+
+def lifetime_gy(mass_sol, fe_h=0.0):
+    """The main-sequence lifetime of a star of this initial mass and [Fe/H], Gyr (eq. 5)."""
+    terms, x = _terms(zeta(fe_h))
+    return _lifetime_gy(terms, x, mass_sol)
 
 
 def mass_for_lifetime_gy(lifetime, fe_h=0.0):
@@ -87,13 +91,14 @@ def mass_for_lifetime_gy(lifetime, fe_h=0.0):
     that mass, a shorter one than the heaviest (`MAX_MASS_SOL`) the heaviest.
     """
     low, high = math.log(MIN_MASS_SOL), math.log(MAX_MASS_SOL)
-    if lifetime >= lifetime_gy(MIN_MASS_SOL, fe_h):
+    terms, x = _terms(zeta(fe_h))
+    if lifetime >= _lifetime_gy(terms, x, MIN_MASS_SOL):
         return MIN_MASS_SOL
-    if lifetime <= lifetime_gy(MAX_MASS_SOL, fe_h):
+    if lifetime <= _lifetime_gy(terms, x, MAX_MASS_SOL):
         return MAX_MASS_SOL
     for _ in range(_BISECTIONS):
         middle = 0.5 * (low + high)
-        if lifetime_gy(math.exp(middle), fe_h) > lifetime:
+        if _lifetime_gy(terms, x, math.exp(middle)) > lifetime:
             low = middle
         else:
             high = middle
