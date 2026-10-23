@@ -5000,7 +5000,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system", built "into our generator throughout to match as close as
   possible to observed and theoretical probabilities (observed are best,
   theoretical are good too)".
-  Prerequisites: GEN.329, GEN.330. Related: GEN.159, GEN.160, GEN.161,
+  Prerequisites: GEN.330. Related: GEN.159, GEN.160, GEN.161,
   GEN.162, GEN.163, GEN.164, GEN.273.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -5104,7 +5104,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets to about 275 AU, a dense core to a fraction of an AU), so this
   item is unblocked and Core 4 starts it now with the
   dispersion-convention fix above. It takes the next free epoch at merge
-  (56 or later; 55 went to GEN.625).
+  (57 or later; 56 went to GEN.329).
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5770,7 +5770,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its values, and this item writes `dynamical` into it. Core 3 may carry
   the two in one PR; check that the column is in DB.53's remaining
   slices.
-  Prerequisites: GEN.329. Related: GEN.273.
+  Progress (Core 3, GEN.329 merged as #2634, 6:18 AM EDT 2026-10-23 as
+  the lane reported, release 8.0.2007, generator epoch 56, no
+  migration): the runaway origin is stored in stars.flags (the v104
+  column, serialization version 5), which is now always written (0 for
+  none) and sits in NEVER_READ as CHANCE because only a saved runaway
+  reads it; this item is unblocked and writes `dynamical` into the
+  origin as the sweep note above says.
+  Prerequisites: none. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5785,23 +5792,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Prerequisites: GEN.327. Related: GEN.273.
-
-- [ ] **GEN.329 Runaway bookkeeping: runaway_origin and the compact companion left by a supernova**
-  Split from GEN.274 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). runaway_origin (none, supernova,
-  dynamical) on a runaway at the observed rates (10% to 30% of O stars
-  and 5% to 10% of B stars; two-thirds supernova, one-third dynamical
-  for the massive ones); for the supernova channel a compact companion
-  left behind at the rate the survival rule gives; companions unbound by
-  a collapse (83% of non-interacting massive binaries) are not stored,
-  the survivor is an ordinary row with the runaway flag; hypervelocity
-  stars stay single. Done: runaway counts within the ranges (audit test
-  10) and no runaway carries a missing origin.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: none. Related: GEN.274.
 
 - [ ] **GEN.330 Cluster-hosted compact binaries: the cluster rates replace the field fractions**
   Split from GEN.274 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5820,7 +5810,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.329, GEN.163. Related: GEN.274.
+  Prerequisites: GEN.163. Related: GEN.274.
 
 - [ ] **GEN.331 Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions**
   Split from GEN.275 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -18813,7 +18803,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.270, GEN.271, GEN.272, GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31

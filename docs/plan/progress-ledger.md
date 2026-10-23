@@ -1106,3 +1106,4 @@ Baseline: PR #1817.
 | TEST.181 | 8.1 | Reproducible galaxies |
 | OPS.57 | 8.1 | Reproducible galaxies |
 | PERF.168 | 8.1 | The headline closes |
+| GEN.329 | 8.1 | Multi-star and compact systems |
