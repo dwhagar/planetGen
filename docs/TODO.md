@@ -5814,6 +5814,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Progress (Core 4, relayed 2:13 AM EDT 2026-10-23 as the lane
+  reported): rebased on main and taking generator epoch 53 (51 and 52
+  are on main), gate started 2:12 AM EDT. GEN.329 (Core 3) plans 53 too;
+  whichever merges first takes 53 and the other renumbers to 54,
+  numbered at merge.
   Prerequisites: none. Related: GEN.162.
 
 - [ ] **GEN.326 Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4**
@@ -13816,6 +13821,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and adds a dose-rate kind to the unit registry. GEN.575 is not started.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT 2026-10-22:
   work outside 8.1 is paused until 8.1 is complete; Core 4 held it before).
+  Progress (Core 4, slices 1 and 2 merged as #2615, about 2:20 AM EDT
+  2026-10-23 as the lane reported; the lane's clock runs ahead; the item
+  stays open): the stellar classes, the small bodies and the free planet
+  declare the unit of every persisted field; no generator output change
+  and no epoch. The planet and moon slice stays on branch
+  claude/gen570-planet-slice-wip in the pool. It adds a dose_rate unit,
+  so whoever takes it must regenerate html/static/unitregistry.js with
+  `python scripts/build_unit_registry.py`.
   Prerequisites: GEN.565. Related: GEN.550, GEN.565,
   DB.74.
   Order (the coordinator, 8:16 AM EDT 2026-10-22): Core 4 owns GEN.568
@@ -14969,7 +14982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   slice 1 took 52 (#2605, 1:25 AM EDT 2026-10-23 as the lane reported),
   so 53 is the next free number and the epochs file must stay
   contiguous: the first of this item and PERF.123 slice C to merge
-  takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Owner: Core 1, first in its
+  takes 53, the next 54 and so on, numbered at merge (DB.85 merged as #2582 without an epoch). Claimants as of 2:13 AM EDT 2026-10-23: GEN.325 (Core 4, gate started 2:12 AM EDT as the lane reported) and GEN.329 (Core 3, gating) both plan 53; whichever merges first takes it, the other renumbers to 54, and this item and PERF.123 slice C follow. Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
   Owner: Core 1, holds this item only from the plan-number bugs; it is
