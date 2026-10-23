@@ -75,6 +75,24 @@ def _ended_cleanly(config, job_id, state):
     assert not lease or lease[0]["holder"] is None
 
 
+def _run_ends(finished, config, idle_seconds=60):
+    """
+    Waits for `finished` (the run's thread) and says whether it came, giving up only when the run has stood still: the
+    run's record (how many tasks are in each state) has not changed for `idle_seconds`. A fixed limit on the whole run
+    also fails one that is merely slow, as a loaded machine makes the start of a worker process (TEST.277); a hung one
+    stops changing its record, and the pytest limit still ends a run that keeps changing it for ever.
+    """
+    last, since = None, time.monotonic()
+    while not finished.wait(1):
+        seen = [(row["state"], row["n"]) for row in
+                _rows(config, "SELECT state, COUNT(*) AS n FROM work_tasks GROUP BY state ORDER BY state")]
+        if seen != last:
+            last, since = seen, time.monotonic()
+        elif time.monotonic() - since > idle_seconds:
+            return False
+    return True
+
+
 # ---------------------------------------------------------------------------
 # TEST.20 Failure paths
 # ---------------------------------------------------------------------------
@@ -112,8 +130,19 @@ def test_a_dead_worker_never_hangs_the_run(control_config, attempt):
 
     thread = threading.Thread(target=run, daemon=True)
     thread.start()
-    assert finished.wait(60), "the run hung after a worker died"
+    assert _run_ends(finished, control_config), "the run hung after a worker died: its record stood still for 60 s"
     assert isinstance(outcome.get("raised"), redisqueue.WorkerDied)
+
+
+def test_a_run_whose_record_stands_still_is_taken_for_hung(control_config):
+    """TEST.277: the wait of the test above gives up on a run that changes nothing, and not before."""
+    never = threading.Event()
+    started = time.monotonic()
+    assert not _run_ends(never, control_config, idle_seconds=2)
+    assert 2 <= time.monotonic() - started < 10
+    done = threading.Event()
+    done.set()
+    assert _run_ends(done, control_config, idle_seconds=2)
 
 
 def test_on_done_raising_fails_the_run(control_config):
