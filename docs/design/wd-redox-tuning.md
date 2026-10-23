@@ -16,7 +16,7 @@ The four targets (a3 and a4, mean and sd) name the selection model `wd-pollution
 |---|---|---|
 | 0 | 0.419 | 0.625 |
 | 0.22 (shipped) | 0.48 | 0.66 |
-| 0.38 | about 0.585 (the edge of 2 sigma) | 0.69 |
+| 0.38 | 0.583 (the edge of 2 sigma) | 0.711 |
 | 0.45 (before) | 0.632 | 0.741 |
 
 The published spread is 0.447 (sigma 0.069), so the accepted width is 0 to about 0.38 with the first error model, and the second model over-disperses at every width, including zero (3.3 sigma at 0.05). The comparison therefore names the first model for the spread; the mean passes with both. This is the finding of GEN.508 in its final form: the sample does not identify the intrinsic width, and 0.45 was too wide. 0.22 is inside the accepted range and agrees with the independent estimate.
