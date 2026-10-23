@@ -18,25 +18,56 @@ from planetgen.physics import constants as physical_constants
 from planetgen.util.checks import finite_domain
 
 
-@finite_domain()
-def calculate_habitable_zone(luminosity):
+KOPPARAPU_TEFF_RANGE_K = (2600.0, 7200.0)
+"""tuple: The effective temperatures (K) Kopparapu et al. (2014) fitted the zone edges for; a star outside the range is
+given the nearest end's edges."""
+
+KOPPARAPU_REFERENCE_TEFF_K = 5780.0
+"""float: The Sun's temperature in the fits' `T* = Teff - 5780 K`."""
+
+KOPPARAPU_RUNAWAY_GREENHOUSE = (1.107, 1.332e-4, 1.58e-8, -8.308e-12, -1.931e-15)
+"""tuple: `(S0, a, b, c, d)` of the inner edge, the runaway greenhouse limit for a 1 Earth-mass planet (Kopparapu et
+al. 2014, ApJL 787, L29, Table 1; the 0.1 and 5 Earth-mass sets are in the paper). The effective flux, in units of
+the Sun's at the Earth, at which a planet loses its water: `S_eff = S0 + a T* + b T*^2 + c T*^3 + d T*^4`."""
+
+KOPPARAPU_MAXIMUM_GREENHOUSE = (0.356, 6.171e-5, 1.698e-9, -3.198e-12, -5.575e-16)
+"""tuple: `(S0, a, b, c, d)` of the outer edge, the maximum greenhouse limit (Kopparapu et al. 2014, Table 1; the same
+for every planet mass): the flux below which a CO2 atmosphere can no longer keep the surface warm."""
+
+
+def kopparapu_flux(coefficients, teff):
+    """The effective flux (the Sun's at the Earth = 1) of a zone edge for a star of temperature `teff` (K, inside
+    `KOPPARAPU_TEFF_RANGE_K`): `S0 + a T* + b T*^2 + c T*^3 + d T*^4` with `T* = teff - 5780`."""
+    s0, a, b, c, d = coefficients
+    t = teff - KOPPARAPU_REFERENCE_TEFF_K
+    return s0 + a * t + b * t * t + c * t * t * t + d * t * t * t * t
+
+
+@finite_domain(clamped=("temperature",))
+def calculate_habitable_zone(luminosity, temperature):
     """
     Calculates the inner and outer boundaries of the habitable zone for a star.
 
-    The habitable zone is defined as the region around a star where liquid
-    water could exist on a planet's surface. This calculation is based on the
-    star's luminosity.
+    The habitable zone is the region around a star where liquid water could exist on an Earth-like planet's surface.
+    The inner edge is the runaway greenhouse limit and the outer edge the maximum greenhouse limit, both from the
+    Kopparapu et al. (2014) fits, which move with the star's temperature: a cool star's light is redder, so a planet
+    takes more of it at the same flux, and the zone is nearer in than the luminosity alone says (GEN.146). For the
+    Sun the edges are 0.95 and 1.68 AU.
 
     Args:
         luminosity (float): The luminosity of the star in Watts.
+        temperature (float): The star's effective temperature in K. Outside `KOPPARAPU_TEFF_RANGE_K` (a brown dwarf,
+            a white dwarf, a remnant) the nearest end of the range is used.
 
     Returns:
         tuple: A tuple containing the inner and outer radii of the habitable
                zone in AU.
     """
     solar_lum = luminosity / physical_constants.SOLAR_LUMINOSITY
-    inner_radius = math.sqrt(solar_lum / 1.1)
-    outer_radius = math.sqrt(solar_lum / 0.53)
+    low, high = KOPPARAPU_TEFF_RANGE_K
+    teff = min(max(temperature, low), high)
+    inner_radius = math.sqrt(solar_lum / kopparapu_flux(KOPPARAPU_RUNAWAY_GREENHOUSE, teff))
+    outer_radius = math.sqrt(solar_lum / kopparapu_flux(KOPPARAPU_MAXIMUM_GREENHOUSE, teff))
     return (inner_radius, outer_radius)
 
 

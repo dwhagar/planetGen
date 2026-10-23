@@ -68,7 +68,7 @@ is listed under Evidence notes for checking when paper access is allowed.
 - **Pressure** is `atm_density * g * H` times `_atmosphere_retention_factor(g)
   = g^1` (`physics/planets.py`, line 580), "a starting point, not derived".
   Temperature, XUV and age play no part.
-- **Habitable zone.** `orbits.calculate_habitable_zone` uses fixed
+- **Habitable zone** (before GEN.146; see 4.1, As built). `orbits.calculate_habitable_zone` used fixed
   `S_inner = 1.1` and `S_outer = 0.53` for every star: for the Sun 0.95 and
   1.37 AU against Kopparapu's 0.95 (runaway) and 1.68 AU (maximum greenhouse)
   [C].
@@ -345,6 +345,8 @@ Runaway `S_eff` for 1 Earth mass: 2,800 K 0.918; 4,000 K 0.947; 5,780 K 1.107;
 the outer is 1.37 AU against 1.68. Recommended: a `hz_limits(teff, lum,
 planet_mass)` function with this table, as its own item (it changes zone
 assignment for every star).
+
+**As built (GEN.146).** `orbits.calculate_habitable_zone(luminosity, temperature)` uses the 1 Earth-mass runaway greenhouse set for the inner edge and the maximum greenhouse set for the outer edge, with the coefficients read from Table 1 of Kopparapu et al. 2014 (arXiv:1404.5292; they equal the `[R]` entries above for these two rows, now `[S]`) in `KOPPARAPU_RUNAWAY_GREENHOUSE` and `KOPPARAPU_MAXIMUM_GREENHOUSE`, `d = sqrt(L / S_eff)`. The Sun gets 0.950 and 1.676 AU. A temperature outside 2,600 to 7,200 K takes the nearest end (remnants and brown dwarfs). `Star` and `CompactRemnant` pass their own `temperature`; a `BinaryStarProxy` passes the pair's temperature weighted by luminosity with its summed luminosity. The mass-dependent runaway sets (0.1 M_earth: 0.99, 1.209e-4, 1.404e-8, -7.418e-12, -1.713e-15; 5 M_earth: 1.188, 1.433e-4, 1.707e-8, -8.968e-12, -2.084e-15) are not used: no caller has the planet when the zone is made. The planet-mass `hz_limits` function of the recommendation stays open.
 
 Post-runaway history matters: a planet above `S_runaway` early (pre-main-
 sequence M dwarf) and desiccated stays dry after the star settles, and the

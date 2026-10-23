@@ -168,7 +168,7 @@ class CompactRemnant(StellarObject):
             galactic_orbital_phase_deg (float, optional): See
                 `Star.__init__`'s docstring for the same parameter.
         """
-        self.habitable_zone = calculate_habitable_zone(self.luminosity)
+        self.habitable_zone = calculate_habitable_zone(self.luminosity, self.temperature)
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
         self.heliosphere_radius = 0.0
         self.set_galactic_motion(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
