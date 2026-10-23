@@ -631,7 +631,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
-| DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | open |
+| DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | done, PR #2582 |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | open |
 | DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | done, PR #2541 |
 | DB.88 | The vessels table has an Object ID but is not in db/kind_tables.py: test_kind_tables fails on main (bug) | none | done, PR #2545 |
@@ -1205,7 +1205,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.495 | The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag | none | open |
 | GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios | none | open |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | none | open |
-| GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted | none | open |
+| GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted | none | done, PR #2583 |
 | GEN.499 | The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol | none | open |
 | GEN.500 | The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka | none | dropped (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat: every acquired paper and dataset is usable, so no licence audit) |
 | GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables | none | open |
