@@ -15499,35 +15499,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.167 The phenomenon scatter on a large galaxy runs over an hour and stores over 66 million rows without finishing**
-  Found by the Performance lane in PERF.164 (merged as #2623; relayed
-  4:15 AM EDT 2026-10-23 as the lane reported); filed by the TODO
-  thread. Kind: cost, value-neutral. Measured on the benchmark suite
-  (`planetgen benchmark --suite --size large`, 5e10 solar masses): the
-  plan took 43 s, the massive stars 4.0 min, the bright stars 11.4 min,
-  then the phenomenon scatter hit the lane's 60 minute cap with 66.0
-  million rows stored and was not done, so a large run is at least 1.3
-  hours and the steps after the phenomena were not measured. For
-  comparison the phenomena take 4.3 min for 3.1 million rows at small
-  (3e7) and 14.1 min for 6.7 million rows at medium (4e9), so the large
-  galaxy has more than ten times the medium galaxy's rows by the time it
-  was stopped. This is item 3 of the ranked list in
-  docs/design/generation-performance.md: the database is the cost, not
-  the Python. Reproducer: `planetgen benchmark --suite --size large
-  --steps phenomena` (or the scatter step alone) on a full-size machine;
-  fails on main, every run. Do: batch and index the phenomenon inserts
-  (larger insert batches, fewer secondary indexes while the rows go in
-  and add them after), without changing a drawn value. Whether a large
-  galaxy should hold this many phenomena is a modelling question, not
-  part of this item: GEN.624 (the satellites scale with the galaxy mass)
-  changes the row counts, so re-measure after it lands. Done: the large
-  galaxy's phenomenon scatter finishes inside the suite's step cap with
-  the same rows (same fingerprint), and the report's large column is
-  filled for every step after it. Owner: Performance (proposed by the
-  TODO thread, because the lane found it and PERF.146 lives there; the
-  coordinator can move it).
-  Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
-
 - [ ] **PERF.170 A flag that skips the start-up math check (the TEST.68 gate, 2.5 s for 60 checks) before a bulk run**
   Found by the Performance lane in PERF.165 (relayed 6:27 AM EDT
   2026-10-23 as the lane reported); filed by the TODO thread as an open
@@ -15551,7 +15522,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that starts the check, a test covers the skipped and the default path,
   and the log line names the skip. Owner: Performance (named by the
   coordinator, 12:27 PM EDT).
+  Progress (Performance, relayed 12:54 PM EDT 2026-10-23 as the lane
+  reported): being built as --skip-math-check on every command plus a
+  'Skip the math check' box on the Generate page; the check still runs
+  by default; its gate was running (about 2 hours).
   Prerequisites: none. Related: PERF.165, PERF.41.
+
+- [ ] **PERF.171 The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter**
+  Candidate follow-up from the Performance lane (relayed 12:54 PM EDT
+  2026-10-23 as the lane reported, PERF.167 merged as #2679, not
+  measured); filed by the TODO thread, low rank. PERF.167 found that the
+  phenomenon scatter dropped only the address and class indexes, so with
+  the cell and due-time indexes on every insert read pages once the
+  table passed the 128 MB buffer pool; dropping and rebuilding them took
+  4.2M rows from 266 s to 145 s (+22 s rebuild) and the large galaxy
+  from over 90 minutes to 72.7. The bright-star scatter may do the same.
+  Do: measure the bright-star scatter's insert rate with and without its
+  cell and due-time indexes, and if the saving is worth it add them to
+  its drop-and-rebuild list. Value-neutral (no epoch). Done: the
+  measured times are on this item and the indexes are dropped and
+  rebuilt where it pays, or the item records that it does not. Owner:
+  none (pool, Performance if it has room).
+  Prerequisites: none. Related: PERF.167, PERF.164.
 
 ## DB: Database and schema
 

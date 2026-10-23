@@ -1131,3 +1131,4 @@ Baseline: PR #1817.
 | GEN.497 | 8.1 | Composition tables |
 | GEN.258 | 8.1 | Nebula and young stars |
 | ADM.126 | 8.1 | Admin control suite |
+| PERF.167 | 8.1 | The headline closes |
