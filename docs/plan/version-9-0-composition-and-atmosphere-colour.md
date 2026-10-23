@@ -20,7 +20,6 @@ The physics of the colour: the blackbody colour of the star, the Rayleigh optica
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.417 | Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity | GEN.411 | Boss 11:24 PM EDT; pure function of the stored mixture. |
 | GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | GEN.417, GEN.413, GEN.414, DB.67, DB.68, GEN.441, GEN.462 | Boss 11:24 PM EDT; absolute colour, not eye-adapted. |
 | GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | GEN.418 | Boss 11:24 PM EDT; reference level chosen in the design. |
 
@@ -32,10 +31,6 @@ The radiation derived from the stored composition: the band transmission and gre
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | GEN.417, GEN.413, GEN.414 | Boss 11:58 PM EDT; band transmission and greenhouse from the mixture. |
-| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) |  | Atmosphere research lane finding 4 (part 07 sections 2.1 and 4); generator epoch bump. Core 4 proposed. |
-| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441, GEN.453, GEN.459 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
-| GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | GEN.444 | Boss 11:58 PM EDT; habitability reads the derived values. |
 
 ## Phase 3: Composition and colour in the product
 

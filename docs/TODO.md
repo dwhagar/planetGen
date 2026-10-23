@@ -433,7 +433,14 @@ with `clamp()`.
   stay reachable from a small count on the row; the Habitable chip stays
   (Boss, 2026-10-10 19:12Z: keep it, revisit with a habitable-class-only
   chip later). Coordinate with GEN.220.
-
+  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
+  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
+  right now to build it, I want the habitability system finished before
+  8.1 is ready'; this overrides the 8.1-only pause for it and any
+  earlier owner line. Owner: Habitability lane B (planet and moon
+  lists). Lane B also files the related pages it finds (system pages,
+  body pages, search results, API fields) as sub-items through the TODO
+  thread.
 - [ ] **UX.101 The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
   (Boss, 2026-10-11 03:24Z), which supersedes the symbols of #1217.
@@ -456,7 +463,11 @@ with `clamp()`.
   of every rating colour; it comes first and no longer needs UX.100, so
   no interim shapes are built and thrown away (2026-10-16 review).
   Prerequisites: none. Related: UX.100, GEN.207 (done, PR #1429).
-
+  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
+  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
+  right now to build it, I want the habitability system finished before
+  8.1 is ready'; this overrides the 8.1-only pause for it and any
+  earlier owner line. Owner: Habitability lane A (symbols).
 - [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
   (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
   output logs, timestamps, same formatting, same style, dividers, step
@@ -1291,7 +1302,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sequential ramp that survives greyscale, 4 to 5 bins with a legend,
   zero habitable worlds drawn with no fill; blocks never fully opaque
   (Boss).
-
+  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
+  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
+  right now to build it, I want the habitability system finished before
+  8.1 is ready'; this overrides the 8.1-only pause for it and any
+  earlier owner line. Owner: Habitability lane C (map). Needs a stored
+  per-sector count; the lane says whether that needs a migration (next
+  free 0135, GEN.412 holds it) and whether the PERF.116 re-score feeds
+  it.
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
   surface-brightness cut at about 23 mag/arcsec^2; the Magellanic Clouds
@@ -1968,7 +1986,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behaviour, and a browser test that finds a black-hole marker on a
   seeded sector and hides it when the kind is switched off.
   Prerequisites: none. Related: MAP.132.
-
+  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
+  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
+  right now to build it, I want the habitability system finished before
+  8.1 is ready'; this overrides the 8.1-only pause for it and any
+  earlier owner line. Owner: Habitability lane C (map). Moved with
+  MAP.220, its prerequisite; the marker layer is shared with the later
+  marker kinds (MAP.132 stays in 9.3).
 - [ ] **MAP.220 Markers for habitable worlds and chosen classes, optional per kind**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Add the kinds that issue #1234
@@ -1977,7 +2001,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the zooms the budget allows. Done: both kinds in the registry of child
   a, and a browser test that finds one of each on a seeded sector.
   Prerequisites: MAP.219. Related: MAP.132.
-
+  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
+  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
+  right now to build it, I want the habitability system finished before
+  8.1 is ready'; this overrides the 8.1-only pause for it and any
+  earlier owner line. Owner: Habitability lane C (map). The
+  habitable-world half of MAP.132, which stays in 9.3 for black holes,
+  nebulae and vessels.
 - [ ] **MAP.221 Station and vessel icons on the Galaxy Map**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Register the station and vessel
@@ -5432,7 +5462,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.450, SEC.33, TEST.261.
+  Prerequisites: GEN.450, SEC.33, TEST.261, UX.100, MAP.143, MAP.220,
+  GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -7097,7 +7128,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429. Related: GEN.85, GEN.355,
+  Prerequisites: GEN.429, GEN.452. Related: GEN.85, GEN.355,
   GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
@@ -7140,7 +7171,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "let's definitely build the
@@ -7187,7 +7224,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: DB.67, GEN.85, GEN.355.
   Owner: none for now (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; Core 4's earlier proposal is not active). It needs a migration (0130 or later) and a generator epoch, so whoever takes it sequences with the DB lane and Core 4.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane D (model).
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "Build the ozone figures into the
@@ -7309,7 +7352,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane F (radiation constants and ozone).
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "I also want you to build into
@@ -7443,7 +7492,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the explicit disregard option (GEN.599) the run uses this
   dataset's best possible fallback and prints it in the run header;
   never a silent fallback. See GEN.594.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane G (bands).
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "By the end I want all of the
@@ -7539,7 +7594,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   13.3e-27; Sneep and Ubachs, 12.4e-27) and the draw uses the spread
   between them.
   Prerequisites: GEN.411. Related: GEN.418, VIEW.14.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane G (bands).
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "sky color and atmosphere color
@@ -7898,7 +7959,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the explicit disregard option (GEN.599) the run uses this
   dataset's best possible fallback and prints it in the run header;
   never a silent fallback. See GEN.594.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
   10:29 PM EDT; code read on main, line numbers as that thread gave
@@ -8113,7 +8180,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   share beyond the snow line defaults to 0.14 to 0.39 (with the keep
   switch of GEN.468); ice-to-rock 1 +/- 0.5 becomes a convention
   setting, not the default.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8176,7 +8249,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8296,7 +8375,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8482,7 +8567,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/radiation-model.md. Approved by Boss as recommended
   (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
   defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane G (bands).
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8584,7 +8675,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and "Close from IAEA", as the coordinator reported it): BC13
   (effective-dose weights and limits) is closed from the free IAEA GSR
   Part 3 except the neutron weighting function; ICRP 103 is not needed.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8627,7 +8724,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.444. Related: GEN.443, GEN.413, GEN.208.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane E (radiation link, help, tests).
 - [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8963,7 +9066,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   6 times below 40 K across the gases (Atmosphere lane) and about 15
   times for CO near 25 K (Body composition lane).
   Owner: Blocker 2, after GEN.470 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads). This replaces any earlier owner line on this item.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23, and made a prerequisite of GEN.411 by the
+  coordinator, 5:51 PM EDT: part 2 (PR #2613, held for the 8.4 epoch)
+  now merges with the spine under lane I and takes a generator epoch at
+  merge. The 8.4 rescatter it was to join is not waited for (testing
+  mode). Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -9044,7 +9152,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and "Close from IAEA", as the coordinator reported it): the radiation
   weights and dose limits come from IAEA GSR Part 3 (BC13 closed except
   the neutron weighting function); ICRP 103 is not needed.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane F (radiation constants and ozone).
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -9405,7 +9519,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in 8.1, and only scatter-level changes (nebula radius, remnants above
   the mass cut) need a rescatter. Where this item says it "joins the one
   rescatter of 8.4", this wins.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -9574,7 +9694,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.462 Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -12533,7 +12659,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   keep theirs; new note docs/design/remnant-age.md. Epochs through 39
   are taken (37 GEN.591, 8.0.1848; 38 GEN.318, 8.0.1849), so the next
   free epoch is 40.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane A (symbols).
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
@@ -12799,7 +12931,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
@@ -13188,7 +13326,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `spin.orbit_normal_from_state`; docs/design/mass-object-class.md
   section 12. Still open: the family classes, which wait on Core 1's
   DB.74 shape.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/mass-object-class.md, decided: Boss's cards, as the
@@ -14538,7 +14682,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   both parts are built and tested, or the design note says why not.
   Owner: none (pool; after 8.1 unless Boss wants it sooner).
   Prerequisites: none. Related: GEN.146, GEN.29.
-
+  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
+  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
+  right now to build it, I want the habitability system finished before
+  8.1 is ready'; this overrides the 8.1-only pause for it and any
+  earlier owner line. Owner: Habitability lane D (model). It changes
+  generated values, so it takes a generator epoch at merge (62 is
+  GEN.450, then 63).
 - [ ] **GEN.640 GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree**
   Split from GEN.631 (Core 3's re-cut, relayed 2:20 PM EDT 2026-10-23 as
   the lane reported; TODO thread agreed). BinaryStarProxy and
@@ -16257,7 +16407,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
-
+  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
+  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
+  testing mode, not production, so do what you have to do to get the job
+  done as best as you can, new epochs, DB versions, API versions, etc'.
+  This overrides the 8.1-only pause for it and any earlier owner line,
+  and allows new generator epochs, database versions and API versions.
+  Owner: Habitability lane B (planet and moon lists).
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/mass-object-class.md, decided: Boss's cards, as the
@@ -19764,6 +19920,21 @@ clears each one.
   full runs. Owner: Bug Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.296, TEST.298.
 
+- [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
+  Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
+  before 8.1 is ready. Lane E owns the end-to-end browser tests across
+  the lanes: a seeded galaxy where (1) a planet list shows the
+  habitability symbols with the right rating colours in both themes, (2)
+  a sector is coloured by its habitable-location count and the legend
+  matches, (3) a habitable-world marker shows at the zoom the budget
+  allows and hides when its kind is switched off, and (4) the help page
+  opens from the legend. Each lane adds its own unit and browser test
+  with its item; this item is the cross-lane check and the stable
+  fixtures they share. Done: the four checks pass 10 times in a row at
+  -n 4 under load. Owner: Habitability lane E (Boss, 5:38 PM EDT
+  2026-10-23).
+  Prerequisites: UX.100, MAP.143, MAP.220. Related: UX.100, MAP.143, MAP.220.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21174,6 +21345,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   vapour pressures) reads the corrected row. Done: no design document
   recommends CO2-2 below 195.3 K. Owner: the TODO thread.
   Prerequisites: none. Related: GEN.452, GEN.470, GEN.497.
+
+- [ ] **DOC.75 Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers**
+  Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
+  before 8.1 is ready. Lane E writes the help and design text for it
+  once lanes A to D have built their parts: what the habitability score
+  and its categories mean (the PHI-6 symbols, UX.101), how planet and
+  moon lists show it (UX.100), what the sector colouring counts
+  (MAP.143), the habitable-world markers and their toggle (MAP.219,
+  MAP.220), and the planet-mass habitable zone limits (GEN.639), plus
+  the Kopparapu zone from GEN.146. Do: one help page and the matching
+  design-doc section, linked from the symbol legend, the map legend and
+  the planet pages, in the repo's help style (DOC.13 is the Generate
+  page example). Done: the help page and design section exist, every
+  symbol and layer links to them, and the docs link check passes. Owner:
+  Habitability lane E (Boss, 5:38 PM EDT 2026-10-23).
+  Prerequisites: UX.100, MAP.143, MAP.220, GEN.639. Related: UX.101,
+  DOC.13.
 
 ## VIEW: The view from a planet
 
