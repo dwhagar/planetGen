@@ -25,15 +25,16 @@ section 3.3 (the cold side).
    of H2O, CO2 and SO2; in an anoxic atmosphere (O2 under 0.1 percent) part
    of each oxidized gas moves to its reduced partner (`REDOX_SHIFT`). An
    oxygenated atmosphere, made by life, keeps its mix.
-4. **Cold side.** No species can exceed its vapour pressure at the surface
-   temperature (Clausius-Clapeyron through the design doc's 100 kPa and
-   0.001 kPa points, `CONDENSATION_K`): the excess is ice, and the total
-   surface pressure drops by it. Gas giants have no surface and skip this.
+4. **Cold side.** No species can exceed its saturation pressure at the surface
+   temperature (`physics/saturation.py`: the Fray and Schmitt solid curves
+   below the triple point, the Wagner liquid curves above it, no limit above
+   the critical point): the excess is condensate, and the total surface
+   pressure drops by it. Gas giants have no surface and skip this.
 """
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, gases, saturation
 from planetgen.util import draw
 
 SPECIES = ("o2", "co2", "co", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so2")
@@ -74,15 +75,6 @@ REDUCED_PARTNERS = {
     "so2": (("h2s", 1.0),),
     "h2o": (("h2", 1.0),),
 }
-
-CONDENSATION_K = {
-    # (T at 100 kPa, T at 0.001 kPa), atmospheres-retention-and-classes.md 3.3
-    "h2": (20.0, 6.0), "n2": (77.0, 33.0), "co": (81.0, 36.0), "ar": (87.0, 38.0),
-    "o2": (90.0, 40.0), "ch4": (112.0, 48.0), "co2": (195.0, 112.0),
-    "so2": (263.0, 131.0), "h2o": (373.0, 212.0),
-}
-"""dict: H2S has no row; it condenses near SO2 and is capped the same way."""
-CONDENSATION_K["h2s"] = CONDENSATION_K["so2"]
 
 CLASS_MIXES = {
     # class: (mole fractions of the ten species, balance gas name or None)
@@ -136,11 +128,9 @@ def draw_mantle_delta_iw(mass_kg):
 
 
 def vapour_pressure_kpa(gas, temperature_k):
-    """The most of `gas` that can be vapour at `temperature_k`, kPa
-    (Clausius-Clapeyron through `CONDENSATION_K`'s two points)."""
-    t_100, t_low = CONDENSATION_K[gas]
-    latent_over_r = math.log(1e5) / (1.0 / t_low - 1.0 / t_100)
-    return 100.0 * math.exp(-latent_over_r * (1.0 / max(temperature_k, 1.0) - 1.0 / t_100))
+    """The most of `gas` (a stored species, `SPECIES`) that can be vapour at `temperature_k`, kPa: its saturation pressure
+    (`saturation.saturation`), infinite above its critical temperature."""
+    return saturation.pressure_pa(gases.stored(gas).formula, temperature_k) / 1000.0
 
 
 def draw_mixing_ratios(planet_class, redox):

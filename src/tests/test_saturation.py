@@ -255,3 +255,44 @@ def test_solid_carbon_dioxide_is_as_cold_as_its_latent_heat_allows():
         t = 1.0 / (1.0 / 194.7 + math.log(1e9) / slope)
         assert t == pytest.approx(expected, abs=0.1)
     assert 83.0 < _invert("CO2", 1e-9 * 1e5) < 88.0
+
+
+# Part 01 section 7.4 (T8): the condensation temperature, K, at 100 kPa, 10 kPa, 1 kPa, 100 Pa, 10 Pa, 1 Pa and 1 mPa
+# (COMPUTED by the Atmosphere research lane from the same curves; carbon dioxide is not here, see the next test).
+CHECKED_CONDENSATION_K = {
+    "H2": (20.3, 14.5, 11.4, 9.4, 8.0, 7.0, 5.0), "N2": (77.2, 62.2, 52.8, 46.0, 40.8, 36.7, 28.7),
+    "CO": (81.5, 65.9, 56.6, 49.6, 44.3, 40.0, 31.0), "Ar": (87.2, 71.7, 61.2, 53.4, 47.4, 42.6, 32.7),
+    "O2": (90.1, 72.7, 61.3, 53.2, 47.4, 42.9, 33.8), "CH4": (111.5, 89.5, 76.1, 66.3, 58.7, 52.7, 40.3),
+    "SO2": (262.8, 221.0, 192.7, 174.3, 159.3, 146.7, 118.9), "H2O": (372.8, 318.9, 280.1, 252.8, 231.0, 212.6, 171.5),
+    "H2S": (212.6, 177.1, 153.9, 136.1, 122.0, 110.5, 86.2), "NH3": (239.6, 202.0, 178.6, 161.0, 146.6, 134.6, 108.1),
+    "C2H6": (184.3, 150.4, 127.9, 111.8, 99.5, 89.9, 72.2), "HCN": (298.5, 250.1, 221.4, 198.9, 180.8, 165.8, 133.2),
+}
+CHECKED_PRESSURES_PA = (1e5, 1e4, 1e3, 1e2, 10.0, 1.0, 1e-3)
+
+
+@pytest.mark.parametrize("formula", sorted(CHECKED_CONDENSATION_K))
+def test_the_condensation_temperatures_are_the_checked_table(formula):
+    for pressure, expected in zip(CHECKED_PRESSURES_PA, CHECKED_CONDENSATION_K[formula]):
+        assert saturation.condensation_temperature_k(formula, pressure) == pytest.approx(expected, abs=0.12), (formula, pressure)
+
+
+def test_carbon_dioxide_condenses_where_its_latent_heat_puts_it():
+    # part 01's table used CO2-2 (3.9 percent under to 0.5 percent over at the triple point decided it), which is 4 K cold
+    # at 100 Pa and 17 K at 1 mPa; the sublimation heat of the gas table (25.2 to 27.2 kJ/mol) from 194.7 K at 1 bar
+    # brackets the answer instead
+    low, high = gases.gas("CO2").latent_heat_sublimation_kj_mol
+    for pressure in CHECKED_PRESSURES_PA[1:]:
+        ln_ratio = math.log(1e5 / pressure)
+        cold = 1.0 / (1.0 / 194.7 + ln_ratio * saturation.GAS_CONSTANT_J_MOL_K / (low * 1000.0))
+        warm = 1.0 / (1.0 / 194.7 + ln_ratio * saturation.GAS_CONSTANT_J_MOL_K / (high * 1000.0))
+        assert cold - 1.5 < saturation.condensation_temperature_k("CO2", pressure) < warm + 1.5, pressure
+    assert saturation.condensation_temperature_k("CO2", 1e5) == pytest.approx(194.5, abs=0.5)
+
+
+def test_the_condensation_temperature_is_the_inverse_and_has_limits():
+    for formula in ("N2", "H2O", "CH4", "C2H2"):
+        t = saturation.condensation_temperature_k(formula, 500.0)
+        assert saturation.pressure_pa(formula, t) == pytest.approx(500.0, rel=1e-9)
+    assert saturation.condensation_temperature_k("N2", 1e8) is None
+    with pytest.raises(ValueError):
+        saturation.condensation_temperature_k("N2", 0.0)
