@@ -27,7 +27,7 @@ from planetgen import tuning
 from planetgen.physics import constants as pc
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS
+from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
 from planetgen.generation.small_body import SmallBody
 
 
@@ -119,11 +119,12 @@ class AsteroidField(SmallBody):
             guard for `galactic_orbital_phase_deg`.
     """
 
-    SERIALIZABLE_FIELDS = [
-        "name", "field_class", "composition_family", "density", "radius_ly",
-        *GALACTIC_MOTION_FIELDS,
-    ]
-    """Every attribute set by `__init__`, excluding `system_config` (a
+    FIELD_UNITS = {
+        "name": "text", "field_class": "text", "composition_family": "text", "density": "text", "radius_ly": "ly",
+        **GALACTIC_MOTION_UNITS,
+    }
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
+    """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
     `to_dict`/`from_dict`, since it's a list of tuples -- JSON has no
     tuple type -- mirroring `AsteroidBelt.SERIALIZABLE_FIELDS`'s identical

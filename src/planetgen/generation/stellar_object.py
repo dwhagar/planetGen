@@ -18,11 +18,11 @@ it.
 """
 
 from planetgen import tuning
-from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
+from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS, MassObject
 from planetgen.galaxy import enclosed_mass, scales
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.physics import activity, constants
+from planetgen.physics import activity, constants, pre_main_sequence, spin
 from planetgen.physics.orbits import calculate_hill_sphere
 from planetgen.util import draw
 
@@ -48,20 +48,22 @@ class StellarObject(LazySaladName, MassObject):
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.galactic_center_dist_ly = galactic_center_dist_ly
 
-    SERIALIZABLE_FIELDS = [
-        "name", "type", "yerkes_class", "mass", "radius", "temperature",
-        "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
-        "heliosphere_radius", *GALACTIC_MOTION_FIELDS,
-        "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
-        *activity.STAR_ACTIVITY_FIELDS, "metallicity_fe_h",
-        "disk_kind", "disk_mass_solar", "disk_inner_au", "disk_outer_au",
-    ]
+    FIELD_UNITS = {
+        "name": "text", "type": "text", "yerkes_class": "text", "mass": "kg", "radius": "km", "temperature": "K",
+        "luminosity": "W", "age": "Gyr", "lifespan": "Gyr", "habitable_zone": "au", "system_perimeter": "au",
+        "heliosphere_radius": "au", **GALACTIC_MOTION_UNITS,
+        "a_crit_au": "au", "reflex_offset_x": "au", "reflex_offset_y": "au", "reflex_offset_z": "au",
+        "rotation_period_hours": "h", **spin.SPIN_UNITS, **activity.STAR_ACTIVITY_UNITS, "metallicity_fe_h": "dex",
+        **pre_main_sequence.DISK_UNITS,
+    }
     """
-    Every attribute set by `__init__`/`generate_star`, excluding
-    `system_config` (a shared back-reference threaded into `from_dict`
-    rather than serialized redundantly on every star).
+    Every attribute set by `__init__`/`generate_star`, excluding `system_config` (a shared back-reference threaded
+    into `from_dict` rather than serialized redundantly on every star), with its native unit (GEN.570). The habitable
+    zone is a pair (its inner and outer edge) of AU.
     """
+
+    SERIALIZABLE_FIELDS = list(FIELD_UNITS)
+    """The names of `FIELD_UNITS`, in the order they persist."""
 
     metallicity_fe_h = None
     """float or None: [Fe/H] in dex (GEN.158); class-level default for the same reason as `a_crit_au`."""

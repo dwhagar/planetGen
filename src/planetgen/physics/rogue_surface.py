@@ -276,10 +276,11 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
     return result
 
 
-ROGUE_SURFACE_FIELDS = (
-    "age_gy", "internal_heat_flux_w_m2", "effective_temperature_k", "surface_regime",
-    "surface_temperature_k", "surface_pressure_pa", "ice_shell_thickness_km", "ocean_depth_km",
-    "has_liquid_water", "hp_ice_km",
-)
+ROGUE_SURFACE_UNITS = {
+    "age_gy": "Gyr", "internal_heat_flux_w_m2": "W_m2", "effective_temperature_k": "K", "surface_regime": "text",
+    "surface_temperature_k": "K", "surface_pressure_pa": "Pa", "ice_shell_thickness_km": "km",
+    "ocean_depth_km": "km", "has_liquid_water": "flag", "hp_ice_km": "km",
+}
+ROGUE_SURFACE_FIELDS = tuple(ROGUE_SURFACE_UNITS)
 """tuple: The `rogue_surface_conditions` keys stored on `RoguePlanet` and
 in `rogue_planets` (schema v48); `has_internal_heat` is stored already."""
