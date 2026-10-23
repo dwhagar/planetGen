@@ -77,7 +77,7 @@ from planetgen.galaxy import component_field as componentField, components as ga
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.util import generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import steps
+from planetgen.generation import multistar, steps
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -2885,11 +2885,12 @@ STAR_FIELDS = (
     object_rows.each(pre_main_sequence.DISK_FIELDS),
     object_rows.context("parent_node_id"),
     object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
+    object_rows.computed("flags", lambda star, context: context["flags"]),
 )
 """tuple: The `Field`s of a `stars` row (`object_rows`)."""
 
 
-def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0)) -> int:
+def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0), flags=0) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
     `BinaryStarProxy` -- see `insert_star_system`).
@@ -2901,12 +2902,15 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
         role (str): `'primary'`, `'secondary'`, or `'single'`.
         parent_node_id (int, optional): The `orbit_nodes.node_no` the star is a child of; `None` for a single star.
         offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's centre of mass, AU (GEN.311).
+        flags (int, optional): The star's member flag bits (`generation.multistar.MEMBER_FLAGS`); a runaway star's primary
+            carries the bit of its origin (GEN.329); 0 for none.
 
     Returns:
         int: The new `stars.id`.
     """
     return object_rows.insert_row(conn, "stars", STAR_FIELDS, star, {
-        "star_system_id": star_system_id, "role": role, "parent_node_id": parent_node_id, "offset_au": offset_au})
+        "star_system_id": star_system_id, "role": role, "parent_node_id": parent_node_id, "offset_au": offset_au,
+        "flags": flags})
 
 
 def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_visible):
@@ -4223,16 +4227,19 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
     star_system.orbit_nodes = nodes
     places = orbit_trees.star_places(star_system)
+    # GEN.329: how a runaway star came to move so fast, in the flags of its (first) star row
+    origin_flags = multistar.RUNAWAY_ORIGIN_FLAGS.get(getattr(star_system, "runaway_origin", None), 0)
 
     if proxy_like:
-        insert_star(conn, star_system.primary_star, star_system_id, "primary", *places[0])
+        insert_star(conn, star_system.primary_star, star_system_id, "primary", *places[0], flags=origin_flags)
         insert_star(conn, star_system.secondary_star, star_system_id, "secondary", *places[1])
         primary_star_id = secondary_star_id = None  # planets orbit the proxy, not a stored star row -- see planets.star_id
     elif binary_configuration == "wide":
-        primary_star_id = insert_star(conn, star_system.primary_star, star_system_id, "primary", *places[0])
+        primary_star_id = insert_star(conn, star_system.primary_star, star_system_id, "primary", *places[0],
+                                      flags=origin_flags)
         secondary_star_id = insert_star(conn, star_system.secondary_star, star_system_id, "secondary", *places[1])
     else:
-        primary_star_id = insert_star(conn, star_system.star, star_system_id, "single", *places[0])
+        primary_star_id = insert_star(conn, star_system.star, star_system_id, "single", *places[0], flags=origin_flags)
         secondary_star_id = None
         # v16: a StarSystem anchored by a compact remnant (generation/phenomena/compact_remnant.py,
         # phenomenonGen.py --anchor-system) -- insert_star above already
@@ -8636,6 +8643,18 @@ def _comet_row_to_dict(row, composition_rows):
     return data
 
 
+def _runaway_origin(conn, star_system_id):
+    """How the runaway star of a system came to move so fast (`supernova` or `dynamical`, GEN.329), from the flags of its
+    first star row; `None` for a runaway saved without one."""
+    row = conn.execute("SELECT flags FROM stars WHERE star_system_id = ? AND role IN ('primary', 'single')"
+                       " ORDER BY id LIMIT 1", (star_system_id,)).fetchone()
+    flags = 0 if row is None or row["flags"] is None else row["flags"]
+    for origin, bit in multistar.RUNAWAY_ORIGIN_FLAGS.items():
+        if flags & bit:
+            return origin
+    return None
+
+
 def load_star_system(conn, star_system_id) -> StarSystem:
     """
     Reconstructs a full `StarSystem` -- config, star(s), every planet/
@@ -8839,6 +8858,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.system_flavor_text = row["system_flavor_text"]
     system.runaway_class = row["runaway_class"]
     system.runaway_speed_kms = row["runaway_speed_kms"]
+    system.runaway_origin = _runaway_origin(conn, star_system_id) if row["runaway_class"] == "runaway" else None
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
     system.hab_count, system.m_count = system.count_habitable()
     system.comet_count = system.count_comets()

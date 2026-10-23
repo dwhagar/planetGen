@@ -51,7 +51,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.generation.phenomena import hosts
+from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
     stability)
@@ -150,12 +150,19 @@ MEMBER_MERGER_PRODUCT = 8
 MEMBER_BE = 16
 MEMBER_FRAGILE = 32
 MEMBER_THEORETICAL = 64
+MEMBER_RUNAWAY_SUPERNOVA = 128
+MEMBER_RUNAWAY_DYNAMICAL = 256
 MEMBER_FLAGS = {"direct_collapse": MEMBER_DIRECT_COLLAPSE, "mass_reversed": MEMBER_MASS_REVERSED,
                 "mass_gainer": MEMBER_MASS_GAINER, "merger_product": MEMBER_MERGER_PRODUCT, "be": MEMBER_BE,
-                "fragile": MEMBER_FRAGILE, "theoretical": MEMBER_THEORETICAL}
+                "fragile": MEMBER_FRAGILE, "theoretical": MEMBER_THEORETICAL,
+                "runaway_supernova": MEMBER_RUNAWAY_SUPERNOVA, "runaway_dynamical": MEMBER_RUNAWAY_DYNAMICAL}
 """dict: The bits of `Member.flags`. The classifier sets `mass_gainer`, `fragile` and `theoretical`;
-`mass_reversed`, `merger_product` and `be` are set by the close-binary types, and `runaway_origin` by the
-runaway origin draw (its bits are reserved there)."""
+`mass_reversed`, `merger_product` and `be` are set by the close-binary types, and the runaway origin (none, or one of
+the two channels, `draw_runaway_origin`, GEN.329) is the two `runaway_*` bits: a built system's runaway star carries
+the one its draw named in `stars.flags`."""
+
+RUNAWAY_ORIGIN_FLAGS = {"supernova": MEMBER_RUNAWAY_SUPERNOVA, "dynamical": MEMBER_RUNAWAY_DYNAMICAL}
+"""dict: A runaway's origin -> the flag bit that records it."""
 NODE_INTERACTED = 1
 NODE_KL_ACTIVE = 2
 
@@ -283,6 +290,52 @@ class _Leaf:
     @property
     def direct_collapse(self):
         return bool(self.flags & MEMBER_DIRECT_COLLAPSE)
+
+
+@dataclass(frozen=True)
+class RunawayDraw:
+    """A runaway star's draw (GEN.329): its `origin` (`supernova`: the companion exploded and the survivor was flung out;
+    `dynamical`: a close encounter in a young group) and whether a compact companion stays bound to it (a supernova
+    that left the pair bound)."""
+    origin: str
+    bound_companion: bool
+
+
+def runaway_rate(initial_mass_sol):
+    """The share of stars of this initial mass that are runaways where the catalogue has an observed one: 10% to 30% of
+    O stars (default 20%) and 5% to 10% of B stars (default 7.5%, Gies 1987), else None (the field rate of
+    `tuning.PHENOMENON_DENSITY_PC3['runaway-star']` applies at the fill)."""
+    entry = system_types.SYSTEM_TYPE_RATES["runaway-star"]
+    letter = spectral_class(initial_mass_sol)
+    return entry.default if letter == "O" else entry.by_class["B"] if letter == "B" else None
+
+
+def runaway_origin_at(unit):
+    """The channel the uniform `unit` (in [0, 1)) names for a runaway: `supernova` for the first two thirds of the
+    range, `dynamical` for the rest (two thirds and one third of the massive runaways, Dray et al.)."""
+    return "supernova" if unit < system_types.SYSTEM_TYPE_RATES["runaway-star"].by_class["supernova channel"] \
+        else "dynamical"
+
+
+def bound_companion_share():
+    """The share of supernova-channel runaways that keep a compact companion: the collapse leaves a binary bound in the
+    17% that the 83% of non-interacting massive binaries unbound by the first collapse do not take
+    (`unbound-by-collapse`); the unbound ones are not stored, the survivor is an ordinary row."""
+    return 1.0 - system_types.SYSTEM_TYPE_RATES["unbound-by-collapse"].default
+
+
+def draw_runaway_origin(initial_mass_sol, runaway_unit, origin_unit, bound_unit):
+    """
+    The runaway draw of a star of `initial_mass_sol` (GEN.329), from three uniforms in [0, 1) so the scatter can derive
+    them from a row's seed: `None` for a star that is not a runaway (`runaway_unit` at or above `runaway_rate`, or a
+    class with no observed rate), else its `RunawayDraw`. Only the supernova channel can leave a compact companion
+    bound (`bound_companion_share`); a hypervelocity star is never drawn here (the Hills mechanism flings out one star).
+    """
+    rate = runaway_rate(initial_mass_sol)
+    if rate is None or runaway_unit >= rate:
+        return None
+    origin = runaway_origin_at(origin_unit)
+    return RunawayDraw(origin, origin == "supernova" and bound_unit < bound_companion_share())
 
 
 def spectral_class(initial_mass_sol):
@@ -741,14 +794,15 @@ def _companion_mass(birth, rng):
     return birth * rng.uniform(*companion_ratio_range(birth))
 
 
-def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION):
+def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False):
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
     birth = placed.birth_mass_solar
     if placed.kind == "star":
         leaf = _star_leaf(birth, age_yr, rng, lighten=False)
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
         leaves, units = [leaf], [0]
-        compact = _star_compact_companion(placed, age_yr, rng)
+        compact = (_bound_runaway_companion(placed, age_yr, rng) if bound_runaway
+                   else _star_compact_companion(placed, age_yr, rng))
         if n_stars is None:
             count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
         else:
@@ -800,6 +854,20 @@ def _star_compact_companion(placed, age_yr, rng):
         if pick < chance:
             return _remnant(kind, age_yr, placed.birth_mass_solar, rng) if in_window else None
         pick -= chance
+    return None
+
+
+def _bound_runaway_companion(placed, age_yr, rng):
+    """The compact companion a supernova left bound to a runaway star (GEN.329): a neutron star or a black hole in the
+    proportion of the placed class's table, from a progenitor heavier than the runaway that has had time to collapse
+    by `age_yr`; None when none can have."""
+    table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
+    odds = [(kind, default) for kind, (default, _low, _high) in table.items() if kind in COMPACT_KINDS]
+    pick = rng.random() * sum(default for _kind, default in odds)
+    for kind, default in odds:
+        if pick < default:
+            return _remnant(kind, age_yr, placed.birth_mass_solar, rng)
+        pick -= default
     return None
 
 
@@ -868,7 +936,7 @@ def _single(leaf, age_yr, dropped, rng):
 
 
 def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
-                     companion=_DRAW_COMPANION):
+                     companion=_DRAW_COMPANION, bound_runaway=False):
     """
     The members of the system around `placed` and their orbits, as a `MemberTree`.
 
@@ -885,11 +953,15 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
         companion (str or None): For a compact or white dwarf placed object, the companion state the caller's
             screen already drew (`companion_state_at`): the tree takes it instead of drawing its own, `None`
             for no companion. Left out, the tree draws it (`companion_state`). Ignored for a star.
+        bound_runaway (bool): The placed star is a supernova-channel runaway that kept a compact companion
+            (`draw_runaway_origin`, GEN.329): the tree gives it one, a neutron star or a black hole that has had time
+            to form by the age, in place of the draw at the odds of `MEMBER_STATE_BY_PLACED`. Ignored for any other
+            placed object.
 
     Returns:
         MemberTree: The placed object is member 0. A single object has one member and no nodes.
     """
-    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion)
+    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway)
     dropped = 0
     while True:
         if len(units) == 1 and isinstance(units[0], int):

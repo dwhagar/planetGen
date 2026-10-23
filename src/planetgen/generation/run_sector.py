@@ -25,7 +25,7 @@ from planetgen.galaxy import scales
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
 from planetgen.generation import fill_stages
-from planetgen.generation import nebula_contents
+from planetgen.generation import multistar, nebula_contents, scatter_companions
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import remnant_density, ejecta_field, nebula_field
@@ -454,8 +454,8 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None, scattered=False):
     flagged = 0
     for entry in sector.entries:
         system = entry.star_system
-        if getattr(system, "runaway_class", None) is not None:
-            continue  # a scattered hypervelocity star is flagged already
+        if getattr(system, "runaway_class", None) is not None or getattr(system, "runaway_decided", False):
+            continue  # a scattered hypervelocity star is flagged already, a pre-placed O or B star was decided by its seed
         if draw.random() < hvs_chance:
             system.runaway_class = "hypervelocity"
             system.runaway_speed_kms = log_uniform(*program_constants.HYPERVELOCITY_STAR_SPEED_RANGE_KMS)
@@ -464,6 +464,7 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None, scattered=False):
             system.runaway_class = "runaway"
             system.runaway_speed_kms = log_uniform(*program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS)
             system.runaway_direction = random_unit_vector()
+            system.runaway_origin = multistar.runaway_origin_at(draw.random())
         else:
             continue
         flagged += 1
@@ -697,6 +698,26 @@ def _add_hypervelocity_star(sector, args, row, position, dist_ly):
     return sector.add_preplaced_system(system, position, system_config=config)
 
 
+def _flag_scattered_runaway(system, row):
+    """
+    Marks the system built around a pre-placed O or B star as a runaway when its seed says it is one (GEN.329,
+    `scatter_companions.runaway_draw`: 20% of O stars and 7.5% of B stars, two thirds by the supernova channel): the same
+    answer the scatter used for the star's tree, with its speed and direction drawn from a stream of the row's seed. The
+    system is marked decided either way, so the fill's field roll (`flag_fast_stars`) leaves it alone.
+    """
+    if row["yerkes_class"] == "VII":
+        return
+    system.runaway_decided = True
+    runaway = scatter_companions.runaway_draw(row["seed"], row["initial_mass_sol"])
+    if runaway is None:
+        return
+    with draw.bound(draw.Stream(f"{row['seed']}:runaway")):
+        system.runaway_class = "runaway"
+        system.runaway_speed_kms = log_uniform(*program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS)
+        system.runaway_direction = random_unit_vector()
+    system.runaway_origin = runaway.origin
+
+
 def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
     """Builds a full system around each of the sector's pre-placed bright
     stars (`fill.bright_rows`) and places it first, at its stored point.
@@ -711,6 +732,7 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly,
                                 primary_star_params=brightStars.star_params(row),
                                 member_tree=fill.stored_plan(row["id"]))
+        _flag_scattered_runaway(system, row)
         entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
                                             system_config=cfg)
         entry.bright_star_id = row["id"]

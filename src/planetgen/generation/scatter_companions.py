@@ -31,6 +31,7 @@ place of the plain ones in `db.store`.
 """
 
 import collections
+import dataclasses
 import functools
 import itertools
 
@@ -44,7 +45,8 @@ from planetgen.util import draw
 MEMBERS_STREAM = "members"
 """str: The suffix of a row's seed that names the stream its tree is drawn from (and, later, `planets`)."""
 
-SCREEN_SALTS = {"companion": 0x9E3779B97F4A7C15, "recycled": 0xD1B54A32D192ED03}
+SCREEN_SALTS = {"companion": 0x9E3779B97F4A7C15, "recycled": 0xD1B54A32D192ED03,
+                "runaway": 0xA24BAED4963EE407, "runaway-origin": 0x9FB21C651E98DF25, "runaway-bound": 0xC13FA9A902A6328F}
 """dict: What `screen_unit` mixes into the seed for each question it answers, so the questions are independent."""
 
 _MASK = (1 << 64) - 1
@@ -139,11 +141,23 @@ def phenomenon_tree(row):
     return tree if tree.nodes else None
 
 
+def runaway_draw(seed, initial_mass_sol):
+    """
+    Whether the star of a row with this `seed` and birth mass is a runaway, and by which channel
+    (`multistar.draw_runaway_origin`, GEN.329): `None` or a `multistar.RunawayDraw`. A pure function of the seed, like the
+    companion screen, so the scatter that stores the star's tree and the fill that builds the star agree without either
+    storing the answer for a single star.
+    """
+    return multistar.draw_runaway_origin(initial_mass_sol, screen_unit(seed, "runaway"),
+                                         screen_unit(seed, "runaway-origin"), screen_unit(seed, "runaway-bound"))
+
+
 def star_tree(row):
     """
     The member tree of one `bright_stars` row (`store.BRIGHT_STAR_COLUMNS` order), or `None` for a single object.
     The row is the placed object: a star of its stored mass, birth mass and age (a white dwarf, class VII, a white
-    dwarf), and the system is as old as the star.
+    dwarf), and the system is as old as the star. A runaway star (`runaway_draw`) carries the flag of its channel on
+    member 0, and a supernova-channel runaway that kept a compact companion has it in its tree.
     """
     seed = row[_STAR_COLUMN["seed"]]
     white_dwarf = row[_STAR_COLUMN["yerkes_class"]] == "VII"
@@ -151,8 +165,15 @@ def star_tree(row):
                               row[_STAR_COLUMN["mass_kg"]] / constants.SOLAR_MASS_TO_KG,
                               row[_STAR_COLUMN["initial_mass_sol"]])
     age_yr = max(row[_STAR_COLUMN["age_gy"]], 1.0e-6) * 1.0e9
-    tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{seed}:{MEMBERS_STREAM}"))
-    return tree if tree.nodes else None
+    runaway = None if white_dwarf else runaway_draw(seed, placed.birth_mass_solar)
+    tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{seed}:{MEMBERS_STREAM}"),
+                                      bound_runaway=runaway is not None and runaway.bound_companion)
+    if not tree.nodes:
+        return None
+    if runaway is not None:
+        flagged = dataclasses.replace(tree.members[0], flags=tree.members[0].flags | multistar.RUNAWAY_ORIGIN_FLAGS[runaway.origin])
+        tree = dataclasses.replace(tree, members=(flagged, *tree.members[1:]))
+    return tree
 
 
 def star_trees(rows):
