@@ -1408,9 +1408,11 @@ class WorkQueue:
     def _standby(self):
         while self._running:
             self._collect(block=True)
-        self._book("set_state", self.job_id, "paused")
+        # The lease goes first: a node that says "paused" has already let the other runs go (TEST.288 saw the state
+        # paused while the lease was still held).
         if self.parallel:
             self._book("release_lease", self.holder)
+        self._book("set_state", self.job_id, "paused")
         log.normal(f"{self.title}: paused from the admin queue page; waiting until it is resumed.")
         while True:
             time.sleep(WAIT_POLL_SECONDS)

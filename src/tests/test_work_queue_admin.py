@@ -131,6 +131,35 @@ def test_a_paused_queue_node_stands_by_until_resumed(control_config, workers):
     assert _state(control_config, node_id) == "done"
 
 
+def test_a_node_that_says_paused_has_already_given_up_the_lease(control_config, monkeypatch):
+    """TEST.288: the state went to paused first and the lease was given up after, so a reader that saw "paused" under
+    load could still find the lease held. A slow release makes that gap long."""
+    release = workQueue._ControlStore.release_lease
+
+    def slow_release(self, holder):
+        time.sleep(0.5)
+        return release(self, holder)
+    monkeypatch.setattr(workQueue._ControlStore, "release_lease", slow_release)
+    seen = []
+    with workQueue.WorkQueue("Paused", workers=2, control_config=control_config) as queue:
+        node_id = queue.job_id
+        assert _call(control_config, workQueue.request_control, node_id, "pause")
+
+        def before():
+            _wait_for(lambda: _state(control_config, node_id) == "paused")
+            seen.append(_call(control_config, workQueue.queue_status)["holder"])
+
+        def resume():
+            _call(control_config, workQueue.request_control, node_id, "resume")
+
+        helper = _ResumeLater(before, resume)
+        helper.start()
+        for n in range(3):
+            queue.submit("square", str(n), _square, n)
+        helper.finish()
+    assert seen == [None]
+
+
 def test_cancelling_a_queue_node_skips_its_tasks_and_the_run_goes_on(control_config):
     with workQueue.job_node("galaxy", "Run", control_config) as root:
         with workQueue.WorkQueue("First batch", workers=1, control_config=control_config) as first:
