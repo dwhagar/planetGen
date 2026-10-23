@@ -977,6 +977,53 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
+- [ ] **UX.147 The Generate page has no clear way to generate only a galaxy plan, with no scatter, to see the sector layout on the galaxy screen and add sectors by hand (bug)**
+  Boss's live observation (relayed 5:13 PM EDT 2026-10-23, typed in the
+  project chat while testing the interface to generate a new galaxy):
+  there is no easily reached option on the web interface to just
+  generate a new galaxy plan without adding any scatter, only to see the
+  sector layout on the galaxy screen and add sectors manually later.
+  Kind: missing clear option. What the code has today (read by the TODO
+  thread, not run): the Generate page builds a job from an action name
+  (_build_job_steps in web/generate_page.py); the new_galaxy action
+  resets the galaxy, plans it and then generates sectors around a random
+  start (scatter only when skip_scatters is not set), and a separate
+  plan action (Plan the galaxy) runs only the plan step; whether the
+  Start screen shows that plan action as a clear card, and whether the
+  galaxy screen can show a plan with no stored sectors, is for Bug Hunt
+  to find out. Reproducer: open the Generate page, look for a choice
+  that makes a plan and nothing else. Do: add a clear Plan only choice
+  to the Generate page that resets the galaxy and runs only the plan (no
+  sectors, no scatter), so the galaxy screen shows the planned sector
+  layout, and check that sectors can then be added one at a time by hand
+  (visit-time generation or the one-sector command); say what it does in
+  the card text and in the help page. Done: a new galaxy plan can be
+  made from the Generate page in one choice with no scatter and no
+  generated sectors, the galaxy screen shows its sector layout, a sector
+  can then be added by hand, and a browser test covers it. Owner: Bug
+  Hunt (Boss, 5:13 PM EDT 2026-10-23).
+  Prerequisites: none. Related: UX.134, UX.125, PERF.149.
+
+- [ ] **UX.148 Log output from Generate is no longer in a fixed-width font (bug)**
+  Boss's live observation (relayed 5:14 PM EDT 2026-10-23, typed in the
+  project chat): the log output from generate is no longer in a
+  fixed-width (monospace) font. Kind: regression, cause not found.
+  Possibly from the admin shell and Generate redesign (Core 2's area) or
+  the logging standard and log layer work (UX.102, UX.123), but this is
+  a guess; the TODO thread did not run it. Where to look:
+  src/html/static/joblog.js and src/html/static/style.css (both name
+  monospace), the job log on the Generate job page and the Queue page.
+  Fails on main: yes, as Boss sees it. Reproducer: start any Generate
+  job and read the log panel; columns and progress lines no longer line
+  up. Do: find the commit that dropped the monospace font from the log
+  panel (git log on joblog.js and style.css), restore it for every job
+  log view (Generate job page, Queue page, admin log pages), and add a
+  test that the log element carries the monospace rule. Done: the
+  Generate job log, the Queue page log and the admin log pages show
+  fixed-width text, and a test pins it. Owner: Bug Hunt (Boss, 5:14 PM
+  EDT 2026-10-23).
+  Prerequisites: none. Related: UX.102, UX.123, UX.125.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
