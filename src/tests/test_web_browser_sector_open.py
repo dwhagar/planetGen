@@ -17,7 +17,9 @@ import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
+from planetgen.util import draw  # noqa: E402
 from planetgen.web.sector_page import sector_designation  # noqa: E402
+from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests.test_web_browser_maps import (  # noqa: E402,F401 -- fixtures
     GL_ARGS,
     VIEWPORT,
@@ -79,6 +81,23 @@ def _ready(page):
         page.wait_for_timeout(250)
 
 
+def _settled(page, centre):
+    """`_ready`, and then until `centre` (a point of the scene in parsecs, the opened sector's centre) stays where it is
+    on the screen for a second, with the canvas scrolled into the window. The scale text `_ready` reads is the same
+    while a flight is still on (a sector far from the core flies longer), and a click on a moving map is ignored."""
+    _ready(page)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    held, steady = None, 0
+    for _ in range(100):
+        spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(centre))
+        now = None if spot is None else (round(spot["x"]), round(spot["y"]))
+        steady = steady + 1 if now == held else 0
+        held = now
+        if steady >= 5:
+            return
+        page.wait_for_timeout(200)
+
+
 def _sector(site_app, sector_id):
     detail = site_app.test_client().get(f"/api/sectors/{sector_id}").get_json()
     assert detail["placed"], detail
@@ -100,28 +119,38 @@ def _scene(site_app, sector_id):
     return response.get_json()
 
 
-def _star_spots(page, site_app, sector_id):
-    """Where the opened sector's stars fall on the page: [(name, (x, y))], from the sector's scene JSON."""
+def _star_points(site_app, sector_id):
+    """The opened sector's stars: [(name, (x, y, z))], the point each is drawn at in the map's frame (parsecs), from the
+    sector's scene JSON."""
     scene = _scene(site_app, sector_id)
     unit = scene["halfEdgePc"] / (scene["sceneHalfPx"] or 160)
     cx, cy, cz = scene["centerPc"]
+    return [(star["name"], (cx + star["x"] * unit, cy - star["y"] * unit, cz + star["z"] * unit))  # the scene flips y
+            for star in scene["stars"] if star.get("endpoint", "").startswith("system:")]
+
+
+def _spot(page, point):
+    """Where `point` falls on the page now, if that is inside the canvas and the window: (x, y) or None."""
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+    if not spot:
+        return None
     box = page.locator(CANVAS).bounding_box()
-    spots = []
-    for star in scene["stars"]:
-        if not star.get("endpoint", "").startswith("system:"):
-            continue
-        point = (cx + star["x"] * unit, cy - star["y"] * unit, cz + star["z"] * unit)  # the scene flips y
-        spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
-        if spot and box["x"] + 4 < spot["x"] < box["x"] + box["width"] - 4 and box["y"] + 4 < spot["y"] < box["y"] + box["height"] - 4:
-            spots.append((star["name"], (spot["x"], spot["y"])))
-    return spots
+    window = page.viewport_size
+    left, top = max(box["x"], 0) + 4, max(box["y"], 0) + 4
+    right, bottom = min(box["x"] + box["width"], window["width"]) - 4, min(box["y"] + box["height"], window["height"]) - 4
+    return (spot["x"], spot["y"]) if left < spot["x"] < right and top < spot["y"] < bottom else None
 
 
-def _picks_a_star(page, spots):
-    """Clicks each star's spot until the panel names a star; returns its name."""
+def _picks_a_star(page, points):
+    """Clicks each star where it is drawn (worked out again at each click, in case the view has moved) until the
+    panel names a star; returns its name."""
     info = page.locator(INFO)
-    names = {name for name, _spot in spots}
-    for name, (x, y) in spots:
+    names = {name for name, _point in points}
+    for name, point in points:
+        spot = _spot(page, point)
+        if not spot:
+            continue
+        x, y = spot
         page.mouse.move(x, y)
         page.wait_for_timeout(100)
         page.mouse.click(x, y)
@@ -140,18 +169,18 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     sector_id = sample_params["sector_id"]
     detail = _sector(site_app, sector_id)
     code = _designation(detail)
+    point = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
     page.goto(f"{base_url}/galaxy?sector={code}", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
-    _ready(page)
+    _settled(page, point)
     page.evaluate("window.__panel.length = 0")
-    point = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
     spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
     assert spot, "the sector's centre is not on the map"
     page.mouse.move(spot["x"], spot["y"])
     page.wait_for_timeout(200)
     page.mouse.click(spot["x"], spot["y"])
     page.wait_for_function("() => location.search.includes('open=1')", timeout=20000)
-    _ready(page)
+    _settled(page, point)
     assert page.evaluate("window.__sameDocument") is True, "the page reloaded while the sector opened"
     assert page.url.endswith(f"?sector={code}&open=1"), page.url
     panel = page.evaluate("window.__panel")
@@ -162,19 +191,52 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     assert any(page.eval_on_selector_all(f"{INFO} a", "els => els.map(e => e.textContent)")), "the panel offers no link"
 
 
+def _selects_a_star(page, base_url, site_app, detail):
+    """Opens `detail`'s sector from its address and clicks its stars where they are drawn until one is selected."""
+    sector_id = detail["id"]
+    page.goto(f"{base_url}/galaxy?sector={_designation(detail)}&open=1", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _settled(page, (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]))
+    points = _star_points(site_app, sector_id)
+    assert points, "no star of the sector is on the map"
+    name = _picks_a_star(page, points)
+    assert name, f"no click on a star of {len(points)} picked one: {page.locator(INFO).inner_text()!r}"
+    assert page.locator(INFO).locator("a", has_text="View system").count() == 1
+    assert page.evaluate("window.__sameDocument") is True
+
+
 def test_a_star_in_an_opened_sector_is_selectable(moving_page, base_url, sample_params, site_app):
     """MAP.210: in the opened sector (loaded straight from its address, as a reload does, with the flight
     playing) a click on a star's projected position selects it: the panel names the star and links its system."""
-    page = moving_page
-    sector_id = sample_params["sector_id"]
-    detail = _sector(site_app, sector_id)
-    code = _designation(detail)
-    page.goto(f"{base_url}/galaxy?sector={code}&open=1", wait_until="load")
-    page.wait_for_selector(CANVAS, state="attached")
-    _ready(page)
-    spots = _star_spots(page, site_app, sector_id)
-    assert spots, "no star of the sector is on the map"
-    name = _picks_a_star(page, spots)
-    assert name, f"no click on a star of {len(spots)} picked one: {page.locator(INFO).inner_text()!r}"
-    assert page.locator(INFO).locator("a", has_text="View system").count() == 1
-    assert page.evaluate("window.__sameDocument") is True
+    _selects_a_star(moving_page, base_url, site_app, _sector(site_app, sample_params["sector_id"]))
+
+
+FAR_SHELL = 2000
+"""int: The shell of the far sector, 8,000 pc from the core (shells are one sector edge, 4 pc, deep)."""
+
+
+@pytest.fixture(scope="module")
+def far_sector(site_db, site_app):
+    """The detail of a sector generated 8 kpc from the core, where real sectors lie (the sample sector is at the
+    origin): the map's frame holds large numbers and the camera flies a long way to it."""
+    target = mysql_argv(site_db)
+    state = draw.getstate()
+    draw.set_run_seed(20261023)
+    try:
+        with forced_system_config(PLANETS=True):
+            run_cli("galaxy", ["--shell", str(FAR_SHELL), "--band", "0", "--wedge", "0", "--quiet"] + target)
+    finally:
+        draw.setstate(state)
+    client = site_app.test_client()
+    for item in client.get("/api/sectors?limit=100").get_json()["items"]:
+        detail = client.get(f"/api/sectors/{item['id']}").get_json()
+        if detail["shell_index"] == FAR_SHELL:
+            assert detail["placed"], detail
+            return detail
+    raise AssertionError(f"no sector of shell {FAR_SHELL} was generated")
+
+
+def test_a_star_in_a_sector_far_from_the_core_is_selectable(moving_page, base_url, far_sector, site_app):
+    """MAP.210: the same click on a star of a sector 8 kpc out, the distance of most of the galaxy."""
+    assert far_sector["center_x_pc"] > 7000, far_sector
+    _selects_a_star(moving_page, base_url, site_app, far_sector)
