@@ -288,8 +288,7 @@
     },
     {
       "epoch": 59,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2017",
       "reason": "The population pass no longer makes a species on a homeworld whose own limits cannot hold it (undrinkable water), so those planets keep no species, civilization, polity or territory (POP.14)"
     }
   ]
