@@ -9278,6 +9278,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge is held and it rides the one 8.4 epoch bump (Boss, fork 1,
   2026-10-18). The design's CO2-2 recommendation was wrong in the cold:
   filed as DOC.74; the lane uses CO2-1 below 195.3 K.
+  Progress (Blocker 2, relayed 2:01 AM EDT 2026-10-23 as the lane
+  reported): part 2 is PR #2613, held for the 8.4 epoch (the
+  coordinator's ruling): atmosphere.py reads the curves, CONDENSATION_K
+  and the hydrogen sulphide copy are gone, its gate was green at 10,044
+  tests. Stand-ins still open and labelled: BC12 per-fit windows (switch
+  temperatures and floors derived), the hydrogen solid's heat of 1.02
+  kJ/mol, and from GEN.498 the Frost FMQ and NNO constants and the Sossi
+  0.5 offset. Two other places hold their own vapour-pressure constants:
+  filed as GEN.632.
   Prerequisites: none. Related: GEN.409, GEN.410,
   GEN.422, GEN.451, GEN.414, GEN.434, GEN.470.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
@@ -15096,6 +15105,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.60, mean 1.38 stars per system). Owner: Core 3, after part (a).
   Prerequisites: GEN.630. Related: GEN.316, GEN.315, GEN.264, GEN.581.
 
+- [ ] **GEN.632 Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function**
+  Finding of Blocker 2 in GEN.452 (relayed 2:01 AM EDT 2026-10-23 as the
+  lane reported), filed by the TODO thread. After GEN.470 (#2590) and
+  GEN.452 (part 1 #2593, part 2 held in PR #2613), the one
+  vapour-pressure function is physics/saturation.py, and atmosphere.py
+  reads it (CONDENSATION_K and the hydrogen sulphide copy are gone in
+  part 2). Two places still hold their own constants:
+  rogue_surface.nitrogen_vapor_pressure_pa and the water curve in
+  hydrosphere.py. Do: make both call saturation(species, T) and delete
+  their own constants (no shim). Changes stored values (a rogue planet's
+  surface nitrogen and a world's water curve), so it rides the single
+  8.4 epoch bump (Boss, fork 1, 2026-10-18) and takes no epoch of its
+  own. Done: no module outside physics/saturation.py holds a
+  vapour-pressure constant, a test that greps for the old names fails if
+  one comes back, and the stored values that change are listed in the
+  item that merges it. Owner: none for now, in the pool (8.4 work is
+  paused until 8.1 is complete, Boss, 7:44 PM EDT 2026-10-22).
+  Prerequisites: GEN.452. Related: GEN.452, GEN.470, GEN.497.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -20172,27 +20200,6 @@ clears each one.
   answer if it recurs. Close this item if it does not recur in the
   Performance lane's next two gates.
   Prerequisites: none. Related: TEST.275.
-
-- [ ] **TEST.286 test_quasar_physics_follows_from_mass_and_eddington_ratio fails by chance: it builds 50 quasars with no seed and a mass draw below 1e5 breaks its assertion (bug)**
-  Found by Blocker 3 (relayed 1:29 AM EDT 2026-10-23 as the lane
-  reported) in the gate of GEN.458, which failed once in 21,525 tests at
-  about 12:55 AM EDT as the lane reported. Kind: flaky test. Test:
-  src/tests/test_quasar.py::test_quasar_physics_follows_from_mass_and_eddington_ratio.
-  Failure text: assert 80504.37 >= 0.1 *
-  BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR (1e5). Fails on main: not
-  reproduced (5 of 5 passes alone, on main and on the lane's branch).
-  Frequency: 1 in the 21,525-test gate. Cause (the lane's reading): the
-  test builds 50 Quasar(SystemConfig()) with no seed, so a mass draw
-  below 1e5 solar masses fails the assertion by chance. Reproducer: loop
-  the test 200 or more times, or bind a seed and scan for a quasar mass
-  under 1e5. Do: bind a seed in the loop, or assert against the
-  distribution's actual lower bound (the assertion states what the mass
-  draw guarantees); fix the test, not the draw, unless the draw is
-  allowed to go below the supermassive minimum, in which case that is a
-  bug in the draw. Done: the test passes for 10,000 draws or states the
-  bound the draw really keeps. Owner: Bug Hunt (proposed by the TODO
-  thread, after its stable-code hunt starts).
-  Prerequisites: none. Related: TEST.284.
 
 - [ ] **TEST.287 test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug)**
   Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
