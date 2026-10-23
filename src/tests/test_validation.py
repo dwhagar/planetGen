@@ -7,7 +7,7 @@ find each kind of fault, and the stabilize pass fixes what an edit broke.
 import pytest
 
 from planetgen.util import draw
-from planetgen.generation import validation
+from planetgen.generation import place_terms, validation
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -156,9 +156,33 @@ def test_stabilize_reports_rather_than_removes_by_default():
     assert not any("beyond" in p.message for p in report.problems)
 
 
-def test_system_methods_still_delegate():
-    system = make_system("G2V")
-    assert system._orbit_ceiling_au(system.star) == validation.orbit_ceiling_au(system.star)
+def test_generation_ceiling_is_the_stable_orbit_cut_by_the_survival_limit():
+    # Generation stops placing bodies at the tighter of the stable orbit (`validation.orbit_ceiling_au`, the one rule
+    # the checks and the stabilize pass apply to every planet and belt) and the place's survival limit (GEN.325, a
+    # chance of surviving the passing systems, not a stability limit, so no check or edit refuses a body past it).
+    for _ in range(20):
+        system = make_system("G2V")
+        star = system.star
+        stable = validation.orbit_ceiling_au(star)
+        survival = place_terms.planet_limit_au(place_terms.SOLAR_NEIGHBOURHOOD, star.age)
+        assert system._orbit_ceiling_au(star) == min(stable, survival)
+
+    # Where nothing passes the survival limit is infinite and generation takes the validator's own ceiling.
+    empty = make_system("G2V", PLACE_TERMS=place_terms.PlaceTerms(mass_density_solar_pc3=0.0, dispersion_kms=30.0))
+    assert empty._orbit_ceiling_au(empty.star) == validation.orbit_ceiling_au(empty.star)
+
+
+def test_a_body_past_the_survival_limit_but_inside_the_stable_orbit_validates():
+    for _ in range(40):
+        system = make_system("G2V", PLANETS=True)
+        star = system.star
+        survival = place_terms.planet_limit_au(place_terms.SOLAR_NEIGHBOURHOOD, star.age)
+        if validation.orbit_ceiling_au(star) > survival * 2:
+            break
+    else:
+        pytest.skip("no star with a stable orbit past the survival limit drawn")
+    system.planets[:] = [planet_at(star, survival * 1.5, "J")]
+    assert not any("beyond" in p.message for p in validation.check_star_system(system))
 
 
 def test_stabilizing_an_untouched_system_moves_nothing():
