@@ -1011,7 +1011,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | none | open |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
-| GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | open |
+| GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | done, PR #2578 |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | open |
 | GEN.306 | Population seeds keyed on the object, not on row ids | none | done, PR #1942 |
 | GEN.307 | The object-ID collision number keyed on the lower address | none | open |
