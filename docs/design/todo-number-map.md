@@ -844,7 +844,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | done, PR #1972 |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | done, PR #1927 |
-| GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | none | open |
+| GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | none | done, PR #2617 |
 | GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
 | GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | done, PR #865 |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
@@ -1013,7 +1013,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | done, PR #2578 |
-| GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | open |
+| GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | done, PR #2617 |
 | GEN.306 | Population seeds keyed on the object, not on row ids | none | done, PR #1942 |
 | GEN.307 | The object-ID collision number keyed on the lower address | none | done, PR #2595 |
 | GEN.308 | A block-first sampler for the backfill: a Poisson candidate count from the block's density bound, then thinning | none | done, PR #2070 |

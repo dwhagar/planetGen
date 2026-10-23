@@ -4056,33 +4056,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.312, MAP.213, GEN.313.
 
-- [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
-  GEN.58 as built hashes floats exactly; the research recommends
-  rounding to 9 significant digits (generation-determinism.md section
-  4). Done: the canonical encoder (floats as `format(x, ".8e")`,
-  integers exact and above 2^53 as hex, no Unicode normalisation, sorted
-  keys, generation order for lists, no ids or timestamps, a `pgfp1`
-  format tag), SHA-256 (not RFC 8785, not BLAKE3, which needs Python
-  3.11); a per-sector leaf digest stored at save time (DB.9 keeps its
-  own storage checksum); a (ring, layer) node table; ring and galaxy
-  roots on demand; a region digest that includes the sector count;
-  separate structural and float digests over named sections. Replaces
-  the `tests/galaxy_fingerprint.py` stand-in. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default: round to 9 digits): keep exact
-  float hashing as built, or
-  round?
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.304, DB.49, GEN.305. It bundles the pure
-  encoder that three other items need early (the battery digest in
-  OPS.28, the golden test TEST.77, the order test in GEN.57) with two
-  things nobody else waits for: a schema change and the save-time tree.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.305.
-  Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
-
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
   Follow-up to GEN.106: (a) struck 2026-10-16 (a per-object `epoch_unix`
   and `next_update_due` already exist on every moving table, schema v66,
@@ -5152,6 +5125,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   newer note wins, report todo-contradictions-2026-10-18.md): the owner
   is Core 4 (2026-10-16, 4:31 PM EDT, held until GEN.325 merges); the
   early "Owner Core 3" text is superseded.
+  Finding folded in (Core 4, relayed 2:38 AM EDT 2026-10-23 as the lane
+  reported, found while preparing this item): place_terms.from_profile
+  (GEN.447, the wide-pair limit, and the GEN.325 planet limit) treats
+  each population's dispersion_kms as one-dimensional, but since GEN.532
+  the profile's disc, bulge and halo values are the three-axis total
+  (galaxy/structure.py disc_dispersion_kms, bulge_dispersion_kms and
+  halo_dispersion_kms; the profile._dispersion_kms docstring says so),
+  while the tuning constants for the cluster, satellite and nuclear
+  populations read as one-dimensional. So the encounter and survival
+  limits use a sigma too large by sqrt(3) for the disc, bulge and halo.
+  Reproducer: any sector profile of the old disc;
+  from_profile(...).dispersion_kms is about 1.7 times the
+  one-dimensional value. Frequency: every galaxy-placed system. Do (in
+  this item, with its epoch): settle the convention, one table with one
+  stated dimensionality (and its column or constant says which), convert
+  the three-axis values where a one-dimensional sigma is used, and
+  re-read the tuning constants of the cluster, satellite and nuclear
+  populations against the same convention. Done: a test that the
+  encounter limit of a disc system uses the one-dimensional sigma (the
+  three-axis total divided by sqrt(3)), and the docstrings agree.
   Prerequisites: GEN.325. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5602,23 +5595,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   builder of the adaptive per-cell cap (GEN.280 is the core density);
   the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
-
-- [ ] **GEN.305 Store a leaf digest at save time and build the tree: roots and region digests**
-  Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Compute the leaf digest at save
-  time from the in-memory sector (not a re-read) with child a's encoder,
-  store it, and update that sector's band and shell nodes (one
-  1,000-child rehash instead of a scan); galaxy and shell roots on
-  demand; a region digest that includes the sector count; `planetgen
-  fingerprint` prints them. DB.9 keeps its own storage checksum (a
-  separate thing). Done: tests: changing one sector changes exactly its
-  band node, shell node and the root; a region digest changes when a
-  sector is added; the digests do not depend on save order or worker
-  count.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.136.
 
 - [ ] **GEN.309 The backfill picks the draw path per block and gives the same stars wherever it lands**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for

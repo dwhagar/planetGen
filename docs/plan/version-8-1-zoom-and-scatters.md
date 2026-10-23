@@ -68,8 +68,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.625 | Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug) | GEN.628 |  |
 | GEN.628 | The nuclear disc is a fixed 61 times the nuclear cluster, 21 percent of a small galaxy's stars against about 3 percent for the Milky Way: draw it from a law (bug, needs a generator epoch) |  |  |
 | GEN.627 | The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug) |  |  |
-| GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests |  | Split from GEN.136. |
-| GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | GEN.305 | Research follow-up to GEN.58 (built). |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases |  | Split from OPS.28. |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.57 | Split from OPS.28. |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
