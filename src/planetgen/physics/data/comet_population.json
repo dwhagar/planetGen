@@ -11,11 +11,11 @@
  "total_carbon_oxide": {
   "name": "CO + CO2",
   "median_percent": 18.0,
-  "sigma_dex": 0.1,
-  "source": "hp22",
-  "label": "READ",
+  "sigma_dex": 0.2,
+  "source": "rob24",
+  "label": "COMPUTED",
   "state": "partly verified",
-  "limit": "the median and its +/- 4 are read; the 0.1 dex width is that spread converted (PARAMETRISATION)"
+  "limit": "the median 18 is read (Harrington Pinto 2022, 18 comets); the 0.2 dex width is the scatter among single comets computed from the database: log10 of (CO + CO2)/H2O of the 9 comets with both measured within 2.5 AU gives 0.197 dex (8 comets within 2.0 AU give 0.138, the widest is kept); the sample is small and its own median is 15"
  },
  "co_fraction": {
   "name": "CO/(CO + CO2)",

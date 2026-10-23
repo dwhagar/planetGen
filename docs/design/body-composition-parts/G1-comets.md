@@ -211,7 +211,7 @@ Constants of the species table (not per comet): `beta0_diss`, `beta0_ion`, quiet
 
 Draw composition first, then derive bulk density, as part D already recommends. For the hyper-volatile block I recommend a three-step draw that keeps the observed anticorrelation and the 18 percent carbon budget:
 
-1. S = (CO + CO2)/H2O: log-normal with median 18 percent and sigma 0.1 dex (the +-4 of 18 in HP22; PARAMETRISATION).
+1. S = (CO + CO2)/H2O: log-normal with median 18 percent and sigma 0.2 dex (GEN.629: the scatter among single comets from the Robinson 2024 database, 0.197 dex for 9 comets within 2.5 AU and 0.138 within 2.0 AU, the widest kept; the first draft took the +-4 of 18 in HP22, 0.1 dex, which is the median's uncertainty and not the comets' spread).
 2. f = CO/(CO + CO2): logit-normal with class median 0.08 for JFC and 0.5 for Oort type (from P and C medians 1.2/(1.2 + 14.5) and 8.4/(8.4 + 8), computed from different comet subsets, so rough), logit sigma about 1.5 so that 0.01 to 0.9 is covered (PARAMETRISATION).
 3. All other species independent log-normals from 2.3.
 

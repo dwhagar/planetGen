@@ -9,7 +9,8 @@ comets and not from one comet. The species are log-normal with the geometric mea
 (Robinson et al. 2024 database, coma ratios at a heliocentric distance of at most 2 AU), truncated at the observed extremes;
 the hyper-volatile block keeps the observed trade-off of CO and CO2 and the carbon budget:
 
-1. S = (CO + CO2)/H2O, log-normal, median 18 percent, 0.1 dex (Harrington Pinto et al. 2022);
+1. S = (CO + CO2)/H2O, log-normal, median 18 percent (Harrington Pinto et al. 2022), 0.2 dex: the scatter among single comets
+   computed from the Robinson 2024 database (GEN.629), not the uncertainty of the median;
 2. f = CO/(CO + CO2), logit-normal with the median of the dynamical class (0.08 for Jupiter-family and Halley-type comets, 0.5
    for long-period ones) and a logit scatter of 1.5; CO = S f and CO2 = S (1 - f) are redrawn together while either lies outside
    its observed bounds (the retry is bounded and a failure is an error, never a clipped value);
