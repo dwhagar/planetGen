@@ -29,10 +29,11 @@ from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
-from planetgen.physics.habitability_world import EQUIPMENT_LABELS
+from planetgen.physics.habitability_world import EQUIPMENT_LABELS, TIER_NAMES
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
+from planetgen.web.lib.habitability_symbols import LABELS, SYMBOL_NAMES, overall_tier
 from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
 from . import tables
@@ -355,8 +356,9 @@ _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
     "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
-    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "System", "Sector"],
-    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Orbits", "System", "Sector"],
+    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", "System", "Sector"],
+    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", "Orbits", "System",
+              "Sector"],
     "belts": ["Density", "Composition", "System", "Sector"],
     "phenomena": ["Name", "Type", "Class", "Sector"],
 }
@@ -365,6 +367,18 @@ _PANEL_NOUNS = {
     "planets": ("planet", "planets"), "moons": ("moon", "moons"), "belts": ("asteroid belt", "asteroid belts"),
     "phenomena": ("phenomenon", "phenomena"),
 }
+
+
+def _habitability_cell(row):
+    """The Habitability cell (UX.100): the overall PHI-6 symbol and the six domain symbols, each with its rating, or a
+    dash for an unscored body. The page and `datatable.js` draw the symbols from `symbols`; `text` is the same in words."""
+    overall = overall_tier(row)
+    if overall is None:
+        return {"text": "—", "muted": True}
+    symbols = [{"name": name, "tier": overall if name == "overall" else row[f"tier_{name}"]} for name in SYMBOL_NAMES]
+    for symbol in symbols:
+        symbol["label"] = f"{LABELS[symbol['name']]}: {TIER_NAMES[symbol['tier']]}"
+    return {"text": ", ".join(symbol["label"] for symbol in symbols), "symbols": symbols}
 
 
 def _cells(panel, row):
@@ -381,7 +395,8 @@ def _cells(panel, row):
     if panel in ("planets", "moons"):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
-                 {"text": EQUIPMENT_LABELS[row["equipment_tier"]] if row.get("equipment_tier") is not None else "—"}]
+                 {"text": EQUIPMENT_LABELS[row["equipment_tier"]] if row.get("equipment_tier") is not None else "—"},
+                 _habitability_cell(row)]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})
         return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]

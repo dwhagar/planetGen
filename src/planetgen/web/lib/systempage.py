@@ -31,6 +31,7 @@ from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_
 from planetgen.web.lib.fmt import (
     distance_km_html, esc, format_gravity_g_short, format_number, measured_html, period_years_html, speed_kms_html,
 )
+from planetgen.web.lib.habitability_symbols import symbol_row
 from planetgen.web.lib.tabledisplay import format_star_radius
 
 
@@ -269,13 +270,10 @@ def _star_row_html(star, sections, children_html="", class_url=None, by_host=Non
     )
 
 
-def _type_chip(body):
-    """One chip for what kind of world this is: "Habitable class" (always
-    terrestrial: the class can carry life, which says nothing of its PHI-6 rating), else "Terrestrial" or "Gas Giant",
-    never two of them."""
-    if body["habitable"]:
-        return '<span class="flag flag-yes">Habitable class</span>'
-    return f'<span class="stat">{_BODY_TYPE_LABELS.get(body["body_type"], "")}</span>'
+def _habitable_chip(body):
+    """The "Habitable class" chip (the class can carry life, which says nothing of its PHI-6 rating), or `""`. The
+    row names the class and no Terrestrial or Gas Giant label (UX.32)."""
+    return '<span class="flag flag-yes">Habitable class</span>' if body["habitable"] else ""
 
 
 def _stat(text):
@@ -284,72 +282,55 @@ def _stat(text):
 
 def _habitability_chip(body):
     """GEN.89: the equipment a human needs on this body, coloured by its
-    worst PHI-6 domain (Blue to Red), with the score and what limits it in
-    its tooltip; empty for a gas giant or a body saved before v76."""
+    worst PHI-6 domain (Blue to Red); empty for a gas giant or a body saved
+    before v76. The ratings themselves are the symbols beside it (UX.100)."""
     tier = body.get("equipment_tier")
     if tier is None:
         return ""
     worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
-    title = f'PHI-6 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
-    return (f'<span class="flag flag-tier flag-tier-{worst}" title="{esc(title)}">'
-            f'{esc(EQUIPMENT_LABELS[tier])}</span>')
-
-
-TIER_NAMES = ("Blue", "Green", "Yellow", "Red")
-"""tuple: The PHI-6 tier colours, best first."""
-
-HABITABILITY_SCORES = (("phi_bio", "Microbial"), ("phi_cpx", "Complex life"), ("phi_tech", "Human operability"))
-"""tuple: The stored PHI-6 scores and their names (UX.90)."""
-
-
-def _habitability_detail(body):
-    """UX.90: each PHI-6 factor's colour (Blue to Red) and the three stored
-    scores, as visible text under the equipment chip; empty when unscored."""
-    if body.get("equipment_tier") is None:
-        return ""
-    chips = "".join(
-        f'<span class="flag flag-tier flag-tier-{body.get(f"tier_{domain}") or 0}">'
-        f'{domain.capitalize()}: {esc(TIER_NAMES[body.get(f"tier_{domain}") or 0])}</span>'
-        for domain in DOMAINS)
-    scores = " &middot; ".join(f'{label} {body[key]:.2f}' for key, label in HABITABILITY_SCORES
-                               if body.get(key) is not None)
-    return f'<p class="habitability-detail">{chips}{" " + scores if scores else ""}</p>'
+    return f'<span class="flag flag-tier flag-tier-{worst}">{esc(EQUIPMENT_LABELS[tier])}</span>'
 
 
 def _gravity_text(gravity_g):
     return format_gravity_g_short(gravity_g) if gravity_g is not None else ""
 
 
-def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None):
+def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None,
+                     sprite_url=None):
     """
-    A planet's (or moon's) row: its class, one type chip, a "Habitable-class
-    moon" chip when one of its moons is habitable, "Inhabited" when it is,
-    and its distance, period and gravity. The zone is left to the body's
-    own page. A planet's moons follow in their own "N moons" group
-    right under its row, collapsed, needing no script.
+    A planet's (or moon's) row: its class, a "Habitable class" chip for a
+    habitable class, a "Habitable-class moon" chip when one of its moons is
+    habitable, "Inhabited" when it is, its moon count, its distance, period
+    and gravity, and the equipment chip and the PHI-6 symbols (UX.100; none
+    where `sprite_url` is not given or the body is unscored). The zone is
+    left to the body's own page. A planet's moons follow in their own "N
+    moons" group right under its row, collapsed, needing no script.
     """
     moons = [] if is_moon else (body.get("moons") or [])
     stats = [
         _stat(f'Class {esc(body["planet_class"])}' if body["planet_class"] else ""),
-        _type_chip(body),
+        _habitable_chip(body),
     ]
     if any(moon["habitable"] for moon in moons):
         stats.append('<span class="flag flag-yes">Habitable-class moon</span>')
     if body["inhabited"]:
         stats.append('<span class="flag flag-yes">Inhabited</span>')
+    if moons:
+        stats.append(_stat(f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'))
     stats += [
         # Not esc()'d: built from floats and fixed unit literals.
         _stat(distance_km_html(body["distance_km"])),
         _stat(period_years_html(body["period_years"]) if body.get("period_years") is not None else ""),
         _stat(_gravity_text(body.get("gravity_g"))),
         _habitability_chip(body),
+        symbol_row(body, sprite_url) if sprite_url else "",
     ]
     section = sections["moons" if is_moon else "planets"]
-    after_html = _habitability_detail(body)
+    after_html = ""
     if moons:
         label = f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'
         moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url, by_host=by_host,
-                                              admin_rows=admin_rows)
+                                              admin_rows=admin_rows, sprite_url=sprite_url)
                             for moon in moons)
         after_html += (
             f'<details class="moon-group"><summary>{label} of {esc(body["name"])}</summary>'
@@ -434,7 +415,8 @@ def _comet_row_html(comet, sections, class_url=None):
                      anchor=body_anchor("comet", comet["id"]))
 
 
-def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None, admin_rows=None):
+def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None, admin_rows=None,
+                        sprite_url=None):
     """
     A star's (or a close pair's) own bodies in their order out from the
     star: planets and belts by their shared `orbital_index`, and each comet
@@ -452,7 +434,7 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_hos
             rows.append(_comet_row_html(pending.pop(0), sections, class_url))
         if kind == "planet":
             rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host, species=species,
-                                         admin_rows=admin_rows))
+                                         admin_rows=admin_rows, sprite_url=sprite_url))
         else:
             rows.append(_belt_row_html(body, sections, by_host, admin_rows))
     rows.extend(_comet_row_html(comet, sections, class_url) for comet in pending)
@@ -460,7 +442,7 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_hos
 
 
 def system_list_html(system, sections, class_url=None, facilities=(), species=None, admin_rows=None,
-                     habitability_url=None):
+                     habitability_url=None, sprite_url=None):
     """
     The system rendered natively: the page's overview (a binary pair's
     own data, the system summary, any flavor text) above an expandable
@@ -479,7 +461,8 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
     names each life world's dominant species in its row. `admin_rows`
     (`_row_admin_html`) gives each planet, moon and belt row its Admin menu.
     `habitability_url` (UX.90) adds a visible "Habitability levels" link above
-    the list when any body shows an equipment level.
+    the list when any body shows an equipment level; `sprite_url` (the icon
+    sprite, UX.100) draws each scored planet's and moon's PHI-6 symbols in its row.
     """
     stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
     by_host = _facilities_by_host(facilities)
@@ -495,6 +478,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
                 by_host,
                 species,
                 admin_rows,
+                sprite_url,
             )
             children_html = f'<ul class="system-list">{children}</ul>' if children else ""
             rows.append(_star_row_html(star, sections, children_html, class_url, by_host))
@@ -505,7 +489,8 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
         # keeps its row, which is where the facility is listed).
         rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host)
                             for star in stars if _star_has_list_row(system, star, by_host))
-        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows)
+        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows,
+                                         sprite_url)
 
     overview_html = _document_html(sections["overview"])
     scored = any(body.get("equipment_tier") is not None

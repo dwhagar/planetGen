@@ -63,7 +63,28 @@ function mapButton(cell, iconUrl) {
   return button;
 }
 
-// One table cell from a served cell: `{text, href?, muted?, swatch?, parts?, map_target?, form?}`.
+// The PHI-6 symbols of a `symbols` cell: `[{name, tier, label}]`, tier 0 to 3 (Blue to Red), each an `icons.svg`
+// symbol with the rating's colour class, the same markup `web/lib/habitability_symbols.py` draws.
+const TIER_CLASSES = ["tier-blue", "tier-green", "tier-yellow", "tier-red"];
+
+function symbolRow(symbols, iconUrl) {
+  const row = el("span", "hab-symbols");
+  symbols.forEach((symbol) => {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", `icon hab-symbol ${TIER_CLASSES[symbol.tier]}`);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", symbol.label);
+    const title = document.createElementNS(SVG_NS, "title");
+    title.textContent = symbol.label;
+    const use = document.createElementNS(SVG_NS, "use");
+    use.setAttribute("href", `${iconUrl}#hab-${symbol.name}`);
+    svg.append(title, use);
+    row.append(svg);
+  });
+  return row;
+}
+
+// One table cell from a served cell: `{text, href?, muted?, swatch?, symbols?, parts?, map_target?, form?}`.
 function cellNode(cell, iconUrl) {
   const td = el("td");
   if (!cell) {
@@ -102,6 +123,9 @@ function cellNode(cell, iconUrl) {
     button.setAttribute("aria-label", cell.form.label);
     form.append(button);
     td.append(form);
+  } else if (cell.symbols) {
+    // The habitability symbols (UX.100), drawn from the icon sprite as the page draws them with no scripts.
+    td.append(symbolRow(cell.symbols, iconUrl));
   } else if (cell.parts) {
     // Text and links, as a Location cell lists its nearest systems.
     cell.parts.forEach((part) => {

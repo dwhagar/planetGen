@@ -336,20 +336,6 @@ def compute(values, compact_host=None):
     return out
 
 
-def note(tiers, compact_host=None):
-    """
-    The short note that says what limits a scored body (a tooltip's second sentence): the domains that are not
-    Blue with their colours, or that all six are Blue, from `tiers` (`tier_<domain>` by domain name, 0 Blue to 3
-    Red); a planet of a compact object says so and its lethal dose. Worked out from the stored tiers, not stored.
-    """
-    if compact_host:
-        return (f"Planet of a {compact_host}: lethal radiation, rated as {LETHAL_DOSE_SV_YR:,.0f} "
-                f"Sv/yr at the surface")
-    limits = [f"{domain.capitalize()} {TIER_NAMES[tiers[f'tier_{domain}']]}" for domain in DOMAINS
-              if tiers.get(f"tier_{domain}")]
-    return ", ".join(limits) if limits else "All six domains Blue"
-
-
 def compact_host_name(star):
     """The `COMPACT_HOSTS` name of a star object, or `None`. A pulsar is
     called that."""

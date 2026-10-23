@@ -3364,9 +3364,7 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     row dict: `habitable` (its class is one of
     `tuning.HABITABLE_PLANET_CLASSES`, the same test
     `StarSystem.count_habitable` uses), `life_stage` (the most advanced
-    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only),
-    `hab_note` (what limits its rating, worked out from the stored tiers and `compact_host`, the pulsar, neutron
-    star or black hole it orbits) and
+    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only) and
     `inhabited` (habitable and reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
@@ -3376,7 +3374,6 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["life_stage"] = body["life_stage"] if body["habitable"] else None
     body["compact_host"] = compact_host
-    body["hab_note"] = habitability_world.note(body, compact_host) if body.get("equipment_tier") is not None else None
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
     return body
 
@@ -6331,6 +6328,13 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
 
 
+def _tiers(alias):
+    """The select list of a planet's or moon's habitability (UX.100): `phi4` and the six `tier_<domain>` columns of
+    table alias `alias`."""
+    columns = ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
+    return ", ".join(f"{alias}.{column}" for column in columns)
+
+
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
                            equipment_tags=()):
     clauses, params = [], []
@@ -6352,8 +6356,8 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        """
-        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
+        f"""
+        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, {_tiers("p")}, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -6384,9 +6388,9 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        """
-        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, m.planet_id, p.name AS planet_name,
-               m.star_system_id, ss.name AS system_name, ss.sector_id
+        f"""
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, {_tiers("m")}, m.radius_km,
+               m.planet_id, p.name AS planet_name, m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
         FROM moons m
