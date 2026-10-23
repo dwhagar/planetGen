@@ -44,6 +44,11 @@ def test_the_collision_decoration_does_not_count():
         "name": "Vestara", "xs": ["Kaan", 1.5]}
 
 
+def test_the_clocks_do_not_count():
+    assert tree.plain({"orbit_nodes": [{"mass": 1.0, "epoch_unix": 12.0}], "next_update_due": 3}) == {
+        "orbit_nodes": [{"mass": 1.0}]}
+
+
 def _cli(argv, config):
     old_argv = sys.argv
     out = io.StringIO()

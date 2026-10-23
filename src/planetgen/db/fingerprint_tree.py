@@ -20,7 +20,7 @@ workers. `tree` works the whole tree out in memory from the leaves (nothing writ
 A region's digest (`region_digest`) is over its sectors' leaves in address order together with their count, so adding
 a sector changes it.
 
-What is hashed is the generated content with the collision decoration left out of every name (`plain`): which of two
+What is hashed is the generated content with the clocks and the collision decoration left out of every name (`plain`): which of two
 colliding names keeps the plain one depends on what else is filled (GEN.57, phase 1), and the digest must not. That
 stopgap goes when GEN.57 makes a sector's content independent of the order sectors are saved in. An edit to a stored
 system does not rehash its sector's leaf yet: every writer marks its sector stale with the storage checksum (DB.45).
@@ -34,16 +34,22 @@ from planetgen.util import fingerprint_encoding as encoding
 _DECORATION = re.compile(r"\b(?:%s) (?=[A-Z])" % "|".join(GREEK_LETTERS + DIMINUTIVE_PREFIXES))
 """Pattern: A name-collision decoration word (`names.uniqueness`) before a name."""
 
+CLOCK_KEYS = frozenset({"epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
+"""frozenset: Keys left out of every dict: the clocks of GEN.106 record when an orbit was last moved, which for a pair
+saved before the database has an orbit epoch is the moment of the save (GEN.311), not what was made (the same columns
+`fingerprint.LEFT_OUT_COLUMNS` leaves out)."""
+
 BAND, SHELL = 1, 2
 """int: The levels of `sector_tree_nodes`."""
 
 
 def plain(value):
-    """`value` (a tree of the encoder's types) with the collision decoration left out of every string."""
+    """`value` (a tree of the encoder's types) with the collision decoration left out of every string and the clocks
+    (`CLOCK_KEYS`) left out of every dict."""
     if isinstance(value, str):
         return _DECORATION.sub("", value)
     if isinstance(value, dict):
-        return {key: plain(item) for key, item in value.items()}
+        return {key: plain(item) for key, item in value.items() if key not in CLOCK_KEYS}
     if isinstance(value, (list, tuple)):
         return [plain(item) for item in value]
     return value
