@@ -446,6 +446,9 @@ with `clamp()`.
   is_habitable predicate, this item reads it when it lands; until then
   use the stored overall score and the same test). Tying the PHI-6 into
   the planet classes is GEN.644 (Habitability lane D, proposal first).
+  Boss, 6:14 PM EDT 2026-10-23: lists show the four life scores
+  (Microbial, Flora, Fauna, Sentient, 0 to 9) in a cluster next to the
+  symbols; UX.152 does it, human operability is removed (GEN.649).
 
 - [ ] **UX.101 The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
@@ -474,6 +477,10 @@ with `clamp()`.
   right now to build it, I want the habitability system finished before
   8.1 is ready'; this overrides the 8.1-only pause for it and any
   earlier owner line. Owner: Habitability lane A (symbols).
+  Boss, 6:14 PM EDT 2026-10-23: the library also gets four life icons
+  with a 0 to 9 digit in a cluster next to these symbols: UX.151
+  (Habitability lane A); the scores are GEN.649, displayed by UX.152.
+
 - [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
   (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
   output logs, timestamps, same formatting, same style, dividers, step
@@ -1093,6 +1100,42 @@ with `clamp()`.
   lane B with lane D. Done: every reader shows the same class, a browser
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
+
+- [ ] **UX.151 Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes**
+  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
+  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
+  replace this with: Microbial, Flora, Fauna, Sentient and let's add
+  that to the icon design so that the # scores for these (based on the
+  evolutionary path and surface conditions), each icon goes with a small
+  number in a small cluster next to the PHI-6 icons. These will be a
+  score from 0 (none) to 9 (abundant) for each based on surface
+  conditions and current evolutionary stage.' Human operability goes
+  away. Extends the icon library of UX.101: four vector shapes (one per
+  kind) and the cluster layout: each icon with a small digit 0 to 9
+  beside the PHI-6 symbols, readable at the list size, both themes, with
+  an accessible text label and a 0 state that reads as none. Owner:
+  Habitability lane A. Done: the shapes in the library, the cluster
+  component with a visual test at three sizes, and the colour rule for
+  the digit (or none) written down.
+  Prerequisites: none. Related: UX.101, UX.100.
+
+- [ ] **UX.152 Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes**
+  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
+  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
+  replace this with: Microbial, Flora, Fauna, Sentient and let's add
+  that to the icon design so that the # scores for these (based on the
+  evolutionary path and surface conditions), each icon goes with a small
+  number in a small cluster next to the PHI-6 icons. These will be a
+  score from 0 (none) to 9 (abundant) for each based on surface
+  conditions and current evolutionary stage.' Human operability goes
+  away. Replaces HABITABILITY_SCORES in web/lib/systempage.py and the
+  planet and moon pages and lists (UX.100) with the cluster of the icon
+  item; the API names the four fields; old fields are removed with no
+  shim. Owner: Habitability lane B. Done: every page shows the cluster,
+  no page shows human operability, and a browser test (TEST.300) checks
+  the cluster on a list and a page.
+  Prerequisites: UX.151, DB.91, GEN.649. Related: UX.151, UX.100,
+  TEST.300.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -15188,6 +15231,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   world.
   Prerequisites: GEN.646, GEN.643. Related: GEN.643, GEN.646.
 
+- [ ] **GEN.649 The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed**
+  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
+  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
+  replace this with: Microbial, Flora, Fauna, Sentient and let's add
+  that to the icon design so that the # scores for these (based on the
+  evolutionary path and surface conditions), each icon goes with a small
+  number in a small cluster next to the PHI-6 icons. These will be a
+  score from 0 (none) to 9 (abundant) for each based on surface
+  conditions and current evolutionary stage.' Human operability goes
+  away. Replace phi_bio (microbial), phi_cpx (complex life) and phi_tech
+  (human operability with equipment) in physics/habitability.py,
+  habitability_world.py, generation/life.py and tuning.py with four
+  integer scores. Each is a function of the body's current evolutionary
+  stage (the life path already drawn in life.py) and its surface
+  conditions (temperature, pressure, radiation dose, water, air): 0
+  means none, 9 abundant; Flora and Fauna split the old complex-life
+  score, Sentient is new and is 0 unless the stage reaches it. Check
+  what reads phi_tech first (the equipment tier and the six-domain
+  overall in docs/design/habitability-index.md lines 197 and 492):
+  remove it where it is only a display and keep the equipment tier only
+  where the PHI-6 overall needs it; file anything else found. Changes
+  stored values: a new generator epoch (testing mode, Boss 5:42 PM EDT).
+  Owner: Habitability lane D. Done: the four scores per planet and moon,
+  a table of examples per stage and condition, tests for 0 and 9 and
+  monotone behaviour with conditions, determinism across worker counts.
+  Prerequisites: none. Related: GEN.643, GEN.89, UX.101, UX.100.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17202,6 +17272,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   classify again. Done: round trip, migration test, and an edited body
   changes class when its conditions cross a rule.
   Prerequisites: GEN.647. Related: GEN.647, DB.69, DB.70.
+
+- [ ] **DB.91 Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech**
+  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
+  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
+  replace this with: Microbial, Flora, Fauna, Sentient and let's add
+  that to the icon design so that the # scores for these (based on the
+  evolutionary path and surface conditions), each icon goes with a small
+  number in a small cluster next to the PHI-6 icons. These will be a
+  score from 0 (none) to 9 (abundant) for each based on surface
+  conditions and current evolutionary stage.' Human operability goes
+  away. Four small-integer columns with their Alembic revision and
+  schema version (testing mode allows it), declared in
+  db/column_units.py in the same PR, the old columns removed with no
+  shim, the loader, writer and API field names, and the rebuild step for
+  older rows. Owner: Habitability lane D with lane B for the API. Done:
+  round trip, migration test, and the schema document lists the columns.
+  Prerequisites: GEN.649. Related: GEN.649, DB.73.
 
 ## API: The JSON API
 
@@ -21935,6 +22022,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane E (Boss, 5:38 PM EDT 2026-10-23).
   Prerequisites: UX.100, MAP.143, MAP.220, GEN.639. Related: UX.101,
   DOC.13.
+  Boss, 6:14 PM EDT 2026-10-23: the help describes the four life scores
+  0 to 9 and no longer a human operability score; DOC.77 does this part.
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -21954,6 +22043,21 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   state the rules, the derived class column and the PHI-6 relation, and
   the old letter tables are gone.
   Prerequisites: GEN.645, DB.90. Related: GEN.645, DOC.75.
+
+- [ ] **DOC.77 Docs for the four life scores: the help text, docs/design/habitability-index.md and the database schema document**
+  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
+  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
+  replace this with: Microbial, Flora, Fauna, Sentient and let's add
+  that to the icon design so that the # scores for these (based on the
+  evolutionary path and surface conditions), each icon goes with a small
+  number in a small cluster next to the PHI-6 icons. These will be a
+  score from 0 (none) to 9 (abundant) for each based on surface
+  conditions and current evolutionary stage.' Human operability goes
+  away. Describe the scores (0 to 9, evolutionary stage and surface
+  conditions), the cluster, and that human operability is gone. Owner:
+  Habitability lane E. Done: the help (DOC.75) and the design and schema
+  docs state it and no text names human operability as a score.
+  Prerequisites: GEN.649, UX.152. Related: DOC.75, GEN.649.
 
 ## VIEW: The view from a planet
 

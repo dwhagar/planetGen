@@ -109,6 +109,8 @@ needed) and Red beyond, which closes the gap the PHI-4 doc left between
 and where `M_rad` starts charging for shielding. The Eigen threshold of 10
 Gy/yr belongs to `L_rad` (microbes), not to a person's tiers.
 
+**The four life scores (Boss, 6:14 PM EDT 2026-10-23).** Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions, shown as four small icons with a digit next to the PHI-6 icons. They replace the microbial, complex-life and human-operability scores (phi_bio, phi_cpx, phi_tech; GEN.649). The sections on Phi_tech below describe the old score and are rewritten by that item.
+
 **Habitable defined (Boss, 6:02 PM EDT 2026-10-23).** A world is habitable when its overall score is Blue or Green; Yellow and Red are not. One predicate (GEN.643) serves the sector counts, the markers, the lists, the search and the descriptions. Boss also wants the PHI-6 tied into the planet classification; the proposal is GEN.644. Decided (Boss, 6:09 PM EDT): classes are conditions-based and assigned after the body is complete, from the atmosphere composition and pressure, the surface temperature, the terrestrial and the gas composition (GEN.645 to GEN.648).
 
 **The gates (GEN.207; Boss, 2026-10-11 and 2026-10-14).** Importance, most
