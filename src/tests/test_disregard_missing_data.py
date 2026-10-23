@@ -246,8 +246,7 @@ def test_the_generate_page_hands_the_option_to_every_generating_command(monkeypa
     assert all(generate_page.DISREGARD_FLAG not in step["argv"] for step in plain)
     labels = {step["label"]: step["argv"] for step in ticked}
     assert labels[generate_page.DATA_CHECK_LABEL][-2:] == ["status", generate_page.DISREGARD_FLAG]
-    assert generate_page.DISREGARD_FLAG not in labels[generate_page.MATH_CHECK_LABEL]
-    generating = [step for step in ticked if step["label"] not in (generate_page.MATH_CHECK_LABEL, generate_page.DATA_CHECK_LABEL)]
+    generating = [step for step in ticked if step["label"] != generate_page.DATA_CHECK_LABEL]
     assert generating and all(step["argv"][-1] == generate_page.DISREGARD_FLAG for step in generating)
 
 

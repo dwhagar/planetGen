@@ -170,8 +170,10 @@ Measured on the 4-CPU test box (`plan --mass 4e9`, a machine with nothing else r
 - **`plan_shape` twice costs under a second.** The first call in a process is 0.57 s (the disc history and the cohort means
   fill their caches), the second 0.04 s. The check runs in the command and the unit in a worker process, so the unit pays
   the cold cost again, and sharing it would mean passing the shape between processes for about 0.6 s. Not done.
-- **The math check (2.5 s, 60 checks) is the gate in front of every bulk generation (TEST.68).** Making it skippable on a plan,
-  or stamping a pass on disk, is a policy change, so it is filed as a question rather than changed.
+- **The math check (2.5 s, 60 checks) was the gate in front of every bulk generation (TEST.68).** Making it skippable was a
+  policy change, so it was filed as a question (PERF.170). Boss's answer (1:14 PM EDT 2026-10-23): no check before a
+  generation; the check runs at every update (`update.sh`, which already did) and from the Admin page ("Check the math").
+  The gate in the command, the Generate page's first step and the Sector page's route are gone; `check-math` stays.
 
 What was wasted was another read. The containers step (`_store_containers`) read every stored `cluster` back, 37,402 rows at
 this size (the 157 globular clusters and the young open clusters), to keep the 157 the containers are made from. It now asks

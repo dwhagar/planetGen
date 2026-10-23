@@ -45,6 +45,19 @@
     </div>
   </form>
 </section>
+<section class="panel" id="math-check" aria-labelledby="math-check-heading">
+  <h2 id="math-check-heading">Check the math</h2>
+  <p class="hint">Runs the generator's math checks (known answers from real astronomy, identities and sampler distributions) and tells you the result; it takes a few seconds. Generation does not run it: <code>update.sh</code> does at every update, and this button runs it whenever you want.</p>
+  {%- if math_check %}
+  <p class="{{ 'error' if math_check.failed else 'hint' }}" role="{{ 'alert' if math_check.failed else 'status' }}">{{ math_check.text }}</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
+    {{ csrf_field() }}
+    <div class="search-actions">
+      <button type="submit" name="action" value="check_math" class="btn">Check the math</button>
+    </div>
+  </form>
+</section>
 {%- if new_key %}
 <section class="panel" id="new-key">
   <h2>New API key: {{ new_key.label }}</h2>

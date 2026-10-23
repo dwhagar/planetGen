@@ -32,8 +32,8 @@
 #      happened to it (fetched, kept, failed and why), so the output says
 #      where each piece comes from (GEN.600).
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
-#      warns (repeated at the end); bulk generation refuses to start until
-#      it passes.
+#      warns (repeated at the end). Generation does not run it (PERF.170); the
+#      admin page can run it any time.
 #   5. `planetgen.cli.migrate`: brings the database up to the current schema
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
@@ -266,7 +266,7 @@ warm_galaxy_map
 echo
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
-    echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
+    echo "warning: the math check failed (step 4): charted data may be wrong until it is fixed." >&2
 fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
     echo "warning: some data sets could not be downloaded (step 3): bulk generation refuses to start until they are." >&2

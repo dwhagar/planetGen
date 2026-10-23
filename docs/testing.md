@@ -95,7 +95,7 @@ test, which cost 0.66 s each on an idle machine.
   counters with a new database, and fail the test that left a difference.
   Run it after changing the schema or adding a cache keyed by database.
 
-## The math check runs first
+## The math check
 
 `src/planetgen/physics/mathcheck.py` is a fixed list of checks that the
 generator's math gives the right answers (TEST.63): known values from real
@@ -116,9 +116,9 @@ where the expected value comes from. It takes well under a second.
 - CI runs it as its own first job, `mathcheck`; every other job waits for it.
 - The website runs it once when it starts and shows admins a warning on
   every page if it failed (the site keeps serving).
-- Bulk generation runs it first and refuses to start if it fails:
-  `planetgen check-math` by hand, and every bulk path (see
-  [cli.md](cli.md#subcommands)); `update.sh` warns.
+- `update.sh` runs it after every update and warns when it fails;
+  `planetgen check-math` runs it by hand, and the Admin page's "Check the
+  math" button runs it on request (PERF.170). Generation does not run it.
 
 ```sh
 python -m planetgen.physics.mathcheck -v            # the report, exit 1 on failure

@@ -24,7 +24,7 @@ or as the installed `planetgen` command):
     planetgen clean-nebula-field    -- count (or with --apply delete) the stored field clouds the keep rate rejects
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
     planetgen population [options]  -- species, civilizations and territories
-    planetgen check-math            -- the math check bulk runs start with
+    planetgen check-math            -- the math check (update.sh runs it; so does the admin page)
     planetgen versions              -- the version keys each update recorded
     planetgen fingerprint [options] -- a digest of the generated content (GEN.58)
 
@@ -1402,7 +1402,7 @@ def build_parser():
         'check-math',
         description="Runs the math check (planetgen/physics/mathcheck.py): reference values from real "
                     "astronomy, identities and sampler distributions. Exits 1 if any check fails.",
-        help="Check the generator's math before generating.")
+        help="Check the generator's math (update.sh runs it).")
     check_math_parser.add_argument('-v', '--verbose', action='store_true',
                                    help="List every check, not only the failures.")
     add_logging_arguments(check_math_parser)
@@ -1618,13 +1618,13 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 
 
 BULK_COMMANDS = ("galaxy", "plan", "scatter", "population")
-"""tuple: Subcommands that always generate in bulk, so the math check runs
-first (TEST.68); `sector` joins them when it makes more than one sector
+"""tuple: Subcommands that always generate in bulk, so the data check runs
+first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
 
 
 def is_bulk_run(args):
-    """Whether this run is a bulk generation the math check must gate."""
+    """Whether this run is a bulk generation the data check must gate."""
     if args.command in BULK_COMMANDS:
         return True
     return args.command == "sector" and (getattr(args, "num_sectors", 1) or 1) > 1
@@ -1707,16 +1707,16 @@ def main():
     log.debug(f"Seeded the run's random number generator with {seed}; galaxy sectors and bright stars draw "
               f"from the galaxy's own seed instead.")
 
-    # TEST.68: a bulk run checks the math first and writes nothing at all
-    # (not even the activity log's start line) when it fails. GEN.590: so it
-    # does when a downloaded data file is missing.
+    # GEN.590: a bulk run writes nothing at all (not even the activity log's
+    # start line) when a downloaded data file is missing. The math check is
+    # not run here (PERF.170): `update.sh` runs it at every update and the
+    # admin page runs it on request.
     fetch.set_disregard_missing_data(getattr(args, "disregard_missing_data", False))
     if is_bulk_run(args):
         try:
-            run_galaxy.require_math_check()
             for line in run_galaxy.disregard_notice(run_galaxy.require_datasets()):
                 log.normal(line)
-        except (run_galaxy.MathCheckFailed, run_galaxy.DatasetsMissing) as exc:
+        except run_galaxy.DatasetsMissing as exc:
             _fatal(str(exc))
 
     # One start and one finish line per run in the activity log (SEC.28);

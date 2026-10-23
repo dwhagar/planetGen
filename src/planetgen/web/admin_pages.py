@@ -46,6 +46,7 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from planetgen.admin import maintenance
 from planetgen.generation import steps
+from planetgen.physics import mathcheck
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
 from planetgen.web.lib import tilecache
@@ -477,6 +478,14 @@ def _admin_action(cookie_header):
                     current_app.logger.error("%s", exc)
                 return {"error": str(exc)}, "maintenance"
             return {"message": "Maintenance mode is on. Only admins can use the site."}, "maintenance"
+        if action == "check_math":
+            results = mathcheck.run_all()
+            summary = mathcheck.format_report(results).splitlines()[-1]
+            failed = bool(mathcheck.failures(results))
+            if failed:
+                current_app.logger.error("%s", mathcheck.format_report(results))
+                summary += " Run 'planetgen check-math -v' on the server for the details."
+            return {"math_check": {"failed": failed, "text": summary}}, "math-check"
         if action == "revoke_key":
             try:
                 key_id = int(request.form.get("key_id", ""))
@@ -510,7 +519,7 @@ def admin():
     return _render(
         "admin.html", flashed=True, title="Admin", section="admin", breadcrumbs=[crumb("Admin")],
         admin=identity, keys_table=keys_table, maintenance=maintenance.read(), maintenance_problem=maintenance.write_problem(),
-        new_key=flashed.get("new_key"), message=flashed.get("message"), error=flashed.get("error"),
+        new_key=flashed.get("new_key"), math_check=flashed.get("math_check"), message=flashed.get("message"), error=flashed.get("error"),
     )
 
 

@@ -309,11 +309,8 @@ def _argv(step):
 
 
 def _work_steps(job):
-    """A generating job's steps after its first two, the math check
-    (TEST.68) and the data check (GEN.590), which this checks are there."""
-    check, data, *rest = job["steps"]
-    assert check["label"] == generate_page.MATH_CHECK_LABEL
-    assert check["argv"][1:3] == jobs.GENERATE_COMMAND and _argv(check) == ["check-math"]
+    """A generating job's steps after its first, the data check (GEN.590), which this checks is there."""
+    data, *rest = job["steps"]
     assert data["label"] == generate_page.DATA_CHECK_LABEL and data["argv"][1:] == [*jobs.DATASETS_COMMAND, "status"]
     return rest
 
@@ -1410,7 +1407,7 @@ def test_map_generate_target_only_for_a_usable_admin():
         assert target["csrfToken"]
 
 
-# --- The math check (TEST.68) --------------------------------------------------------
+# --- The data check first (GEN.590) ---------------------------------------------------
 
 @pytest.mark.parametrize("action, form", [
     ("new_galaxy", {"confirm": DB}),
@@ -1419,15 +1416,15 @@ def test_map_generate_target_only_for_a_usable_admin():
     ("bright_band", {"down_to": "100"}),
     ("galaxy", {"mode": "random"}),
 ])
-def test_every_generating_job_checks_the_math_and_the_data_first(action, form):
+def test_no_generating_job_checks_the_math_and_every_one_checks_the_data_first(action, form):
+    """PERF.170: the math check runs at every update and from the admin page, not as a step of a job."""
     kind, title, steps = generate_page.build_job(action, form, DB)
-    assert steps[0]["label"] == generate_page.MATH_CHECK_LABEL
-    assert steps[0]["argv"][1:] == [*jobs.GENERATE_COMMAND, "check-math"]
-    assert steps[1]["label"] == generate_page.DATA_CHECK_LABEL and steps[1]["argv"][1:] == [*jobs.DATASETS_COMMAND, "status"]
-    assert len(steps) > 2
+    assert steps[0]["label"] == generate_page.DATA_CHECK_LABEL and steps[0]["argv"][1:] == [*jobs.DATASETS_COMMAND, "status"]
+    assert not any("check-math" in step["argv"] for step in steps)
+    assert len(steps) > 1
 
 
-def test_a_plain_reset_has_no_math_step():
+def test_a_plain_reset_has_no_data_step():
     kind, title, steps = generate_page.build_job("reset", {"confirm": DB}, DB)
     assert [step["label"] for step in steps] == ["Reset the galaxy"]
 
@@ -1847,5 +1844,5 @@ def test_the_disregard_box_is_on_the_task_and_review_pages_and_reaches_the_job(s
     (job,) = no_spawn
     steps = {step["label"]: step["argv"] for step in job["steps"]}
     assert steps[generate_page.DATA_CHECK_LABEL][-1] == "--disregard-missing-data"
-    generating = [argv for label, argv in steps.items() if label not in (generate_page.DATA_CHECK_LABEL, generate_page.MATH_CHECK_LABEL)]
+    generating = [argv for label, argv in steps.items() if label != generate_page.DATA_CHECK_LABEL]
     assert generating and all(argv[-1] == "--disregard-missing-data" for argv in generating)
