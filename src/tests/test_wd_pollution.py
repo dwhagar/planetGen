@@ -261,8 +261,9 @@ def test_a_tuned_width_is_compared_with_the_reported_sample_and_not_the_bodies()
 
 
 def test_the_error_model_changes_nothing_in_the_shipped_recipes_or_targets():
-    assert {t.id for t in th.TARGETS} == {"a3-mean", "a3-sd", "a4-mean", "a4-sd"}
-    assert all(t.selection_model == "wd-pollution-detection" and t.field == "diw" for t in th.TARGETS)
+    redox = [t for t in th.TARGETS if t.row_id in ("a3", "a4")]
+    assert {t.id for t in redox} == {"a3-mean", "a3-sd", "a4-mean", "a4-sd"}
+    assert all(t.selection_model == "wd-pollution-detection" and t.field == "diw" for t in redox)
     document = copy.deepcopy(th.TARGETS.document)
     assert th.TargetTable(document).digest() == th.TARGETS.digest()
 

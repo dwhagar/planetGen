@@ -179,19 +179,26 @@ MACHINE = {
     "f3": dict(kind="option", group="f", classes=GIANT + BD, weight="window(teq_k, 700, 1300, 100)"),
     "f4": dict(kind="option", group="f", classes=GIANT, when=[c("zone", equals="h")],
                weight="window(teq_k, 1300, None, 100)"),
-    "f5": dict(kind="param", classes=GIANT, sets="metallicity",
-               dist={"kind": "normal", "log10": True, "mu": "log10(9.7*mass_jupiter**-0.45)", "sigma": 0.3,
-                     "range": [-0.5, 2.0]}),
+    "f5": dict(kind="param", classes=GIANT, sets="metallicity", tunable=True,
+               dist={"kind": "normal", "log10": True, "mu": "log10(2.6/mass_jupiter + 3.3)", "sigma": 0.26,
+                     "range": [-0.5, 2.0]},
+               source="147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses "
+                      "(Chachan 2025, arXiv 2509.20428; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to "
+                      "0.27 (Thorngren 2016, N=47; READ, COMPUTED)",
+               correction="Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 (Thorngren 2016) is 1.6 times the 147-giant fit at one "
+                          "Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample "
+                          "wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex."),
     "f6": dict(kind="bins", classes=GIANT, of="f5", bins=["10**-0.5", 1, "10**0.5", 10, "10**1.5", 100]),
-    "f7": dict(state="partly verified", limit="stellar C/O is measured (N=849); the planet tail is 6 of 69 (LExACoM) with a 0.2 to 0.3 method systematic (GEN.516)", kind="param", classes=GIANT + BD, sets="c_to_o", constants={"f_tail": [0.043, 0.087, "log"]},
+    "f7": dict(state="partly verified", limit="stellar C/O is measured (N=849); the planet tail is 6 of 69 (LExACoM) with a 0.2 to 0.3 method systematic (GEN.516)", kind="param", classes=GIANT + BD, sets="c_to_o", constants={"f_tail": [0.043, 0.087, "log"]}, tunable=True,
                dist={"kind": "mixture", "weight": "f_tail",
-                     "core": {"kind": "normal", "log10": True, "mu": "log10(0.57)", "sigma": 0.15,
+                     "core": {"kind": "normal", "log10": True, "mu": "log10(0.57)", "sigma": 0.21,
                               "range": ["log10(0.2)", "log10(0.8)"]},
                      "tail": {"kind": "uniform", "lo": 0.8, "hi": 1.5}},
                bins=[0.2, 0.35, 0.7, 0.8, 1.0, 1.5],
                source="stellar C/O median 0.47 with no star above 0.8 (N=849); planets (LExACoM, 69): median 0.57, tail "
-                      "0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.15 dex "
-                      "(Line 2021 WASP-77Ab 0.59 +/- 0.08, READ; Asplund 2021 solar 0.589)",
+                      "0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.21 dex "
+                      "reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, "
+                      "READ, gave 0.15)",
                correction="Corrected 2026-10-18 (tunable-gaps 3.4): the tail share LU[0.0013, 0.34] is outside the data "
                           "(planet tail 0.043 to 0.087) and the core centre is 0.57. Part 05's recipe 0.55*10^N(0, 0.15) "
                           "truncated to [0.2, 1.5] put 13.9 percent of giants above C/O 0.8, where about 2 to 5 percent "

@@ -44,13 +44,15 @@ def refused(match, **overrides):
 # --- the shipped table ------------------------------------------------------------------------------------------------
 
 
-def test_the_shipped_table_holds_the_white_dwarf_redox_targets_and_each_names_its_fill_and_falsifier():
+def test_the_shipped_table_holds_the_redox_targets_and_each_names_its_fill_and_falsifier():
     targets = th.TARGETS
-    assert {t.id for t in targets} == {"a3-mean", "a3-sd", "a4-mean", "a4-sd"}
+    assert {"a3-mean", "a3-sd", "a4-mean", "a4-sd"} <= {t.id for t in targets}
     for t in targets:
         assert t.tunes and t.label in th.USABLE_LABELS and t.fill_id.startswith("GEN.") and t.falsifier
-        assert t.outside({"host_type": "WD"}) == []
-        assert t.outside({"host_type": "G"}) == ["host_type"]
+    for t in targets:
+        if t.row_id in ("a3", "a4"):
+            assert t.outside({"host_type": "WD"}) == []
+            assert t.outside({"host_type": "G"}) == ["host_type"]
 
 
 def test_the_shipped_digest_is_stable_and_changes_with_a_value():
@@ -175,7 +177,8 @@ def test_the_recipes_loader_refuses_a_tunable_row_with_no_target():
     recipes = Recipes(document, register=False)
     with pytest.raises(TargetError, match="atmosphere-a:a5"):
         th.TARGETS.require(recipes.tables)
-    assert {e.id for e in RECIPES.entries if e.tunable} == {"a3", "a4"}
+    assert {"a3", "a4"} <= {e.id for e in RECIPES.entries if e.tunable}
+    assert {e.id for e in RECIPES.entries if e.tunable} == {t.row_id for t in th.TARGETS}
 
 
 # --- the comparison --------------------------------------------------------------------------------------------------
@@ -252,7 +255,9 @@ def test_a_numeric_validity_range_has_open_ends():
 # --- the selection model ---------------------------------------------------------------------------------------------
 
 
-def test_a_target_that_names_a_selection_model_nobody_built_refuses_to_simulate():
+def test_a_target_that_names_a_selection_model_nobody_built_refuses_to_simulate(monkeypatch):
+    monkeypatch.delitem(th.SELECTION_MODEL_MODULES, "kepler-recovery")
+    monkeypatch.delitem(th.SELECTION_MODELS, "kepler-recovery", raising=False)
     t = one(selection_model="kepler-recovery")
     with pytest.raises(TargetError, match="not registered"):
         th.simulate(t, lambda i: 1.0, 5)

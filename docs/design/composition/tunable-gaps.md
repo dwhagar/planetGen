@@ -186,6 +186,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.513, lane M, 2026-10-23):** rows a3 and a4 are retuned with the white-dwarf detection model (`docs/design/wd-redox-tuning.md`): the centre is -1.25 for both and the width falls from 0.45 to 0.22, inside the 0 to about 0.38 the detection model accepts; the four targets name the model. The scale conversion to row a1 and the settling are not modelled.
 
+**Built (GEN.516, lane M, 2026-10-23):** rows f5 and f7 are retuned (`docs/design/giant-planet-tuning.md`): the enrichment of giants follows the 147-giant fit of Chachan 2025 with the 0.26 dex intrinsic width, and the C/O core width rises from 0.15 to 0.21 to match the 69 retrieved planets. The harness gained three target fields for this: `scale` (a statistic of the logarithm), `threshold` and `below` (a proportion over or under a value) and `subject` (the body the row is drawn for), with `check_target`; `src/tests/test_tuned_draws.py` checks every target that names a subject.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

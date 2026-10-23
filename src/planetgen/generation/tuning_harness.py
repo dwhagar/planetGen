@@ -60,6 +60,8 @@ USABLE_LABELS = ("READ", "DATA", "COMPUTED", "2ND-HAND")
 """tuple: The labels a target may be tuned to (Boss, 3:02 AM EDT 10-17: verified and partly verified are usable). A snippet, a
 recalled value and a paper not reached are listed in the table and never tuned to."""
 
+SCALES = ("linear", "log10")
+
 STATISTICS = ("mean", "sd", "median", "proportion")
 """tuple: What a target states about the simulated sample."""
 
@@ -107,6 +109,12 @@ class Target:
         label (str): One of `LABELS`.
         validity (dict): `{quantity: (minimum, maximum)}` or `{quantity: value}`; a missing bound is open.
         selection_model (str or None): The id in `SELECTION_MODEL_ITEMS` the simulated side applies.
+        scale (str): `linear`, or `log10` when the statistic is of the base-10 logarithm of the drawn value (a metallicity in dex).
+        threshold (float or None): For a `proportion`, the draw has the property when it is above this (below it when `below`);
+            None when the sampler returns truthy values.
+        below (bool): The property is being under `threshold`.
+        subject (dict or None): `{"body_class": str, "quantities": {name: number}}`: the body the row is drawn for when the
+            target is checked (`check_target`).
         role (str): `target` (tuned to) or `test-point` (reported, never tuned to).
         solar_system (str): For a `test-point`: why the value is Solar System only.
         fill_id, falsifier (str): The gap-filling plan's fill id and the check that falsifies the fill (plan section 6.3).
@@ -125,6 +133,10 @@ class Target:
     validity: tuple = ()
     selection_model: str | None = None
     field: str = ""
+    scale: str = "linear"
+    threshold: float | None = None
+    below: bool = False
+    subject: dict | None = None
     role: str = "target"
     solar_system: str = ""
     fill_id: str = ""
@@ -220,7 +232,8 @@ class TargetTable:
         if not ident or not isinstance(ident, str):
             raise TargetError("a target has no id")
         known = {"id", "row", "statistic", "kind", "value", "sigma", "counts", "n", "source", "label", "validity",
-                 "selection_model", "field", "role", "solar_system", "fill_id", "falsifier"}
+                 "selection_model", "field", "scale", "threshold", "below", "subject", "role", "solar_system", "fill_id",
+                 "falsifier"}
         extra = sorted(set(raw) - known)
         if extra:
             raise TargetError(f"target {ident}: unknown fields {', '.join(extra)}")
@@ -270,6 +283,23 @@ class TargetTable:
             validity.append((name, bound))
         if not validity:
             raise TargetError(f"target {ident} states no validity range (a knob's scope is the range of the data)")
+        scale = raw.get("scale", "linear")
+        if scale not in SCALES:
+            raise TargetError(f"target {ident}: scale {scale!r} is none of {', '.join(SCALES)}")
+        threshold = raw.get("threshold")
+        if threshold is not None and (raw["kind"] != "proportion" or isinstance(threshold, bool)
+                                      or not isinstance(threshold, (int, float)) or not math.isfinite(threshold)):
+            raise TargetError(f"target {ident}: a threshold is a finite number and only a proportion has one")
+        below = raw.get("below", False)
+        if not isinstance(below, bool) or (below and threshold is None):
+            raise TargetError(f"target {ident}: below is true or false and needs a threshold")
+        subject = raw.get("subject")
+        if subject is not None:
+            quantities = subject.get("quantities", {}) if isinstance(subject, dict) else None
+            if (not isinstance(subject, dict) or not str(subject.get("body_class", "")).strip() or not isinstance(quantities, dict)
+                    or set(subject) - {"body_class", "quantities"}):
+                raise TargetError(f"target {ident}: the subject is {{'body_class': ..., 'quantities': {{...}}}}")
+            subject = {"body_class": subject["body_class"], "quantities": dict(quantities)}
         model = raw.get("selection_model")
         if model is not None and model not in SELECTION_MODEL_ITEMS:
             raise TargetError(f"target {ident}: selection model {model!r} is none of {', '.join(SELECTION_MODEL_ITEMS)}")
@@ -285,7 +315,7 @@ class TargetTable:
                                   f"solar_system flag; flag it as a test-point or reword the statistic")
         return Target(id=ident, row=raw["row"], statistic=raw["statistic"], kind=raw["kind"], value=value, sigma=sigma,
                       source=raw["source"], label=raw["label"], counts=counts, n=n, validity=tuple(validity),
-                      selection_model=model, field=str(raw.get("field", "")), role=role, solar_system=flag, fill_id=raw.get("fill_id", ""),
+                      selection_model=model, field=str(raw.get("field", "")), scale=scale, threshold=threshold, below=below, subject=subject, role=role, solar_system=flag, fill_id=raw.get("fill_id", ""),
                       falsifier=raw.get("falsifier", ""))
 
     def __len__(self):
@@ -435,6 +465,10 @@ def values_of(target, items):
             if not target.field:
                 raise TargetError(f"target {target.id}: the sampler returns mappings and the target names no field")
             item = item[target.field]
+        if target.scale == "log10":
+            if not item > 0:
+                raise TargetError(f"target {target.id}: the draw {item!r} has no logarithm")
+            item = math.log10(item)
         out.append(item)
     return out
 
@@ -457,7 +491,10 @@ def compare(target, values, *, quantities=None, count=None):
     values = values_of(target, values)
     if target.kind == "proportion":
         if count is None:
-            flags = [bool(v) for v in values]
+            if target.threshold is None:
+                flags = [bool(v) for v in values]
+            else:
+                flags = [(v < target.threshold) if target.below else (v > target.threshold) for v in values]
             count = (sum(flags), len(flags))
         k, n = count
         if n < 1:
@@ -523,6 +560,25 @@ def recipe_sampler(row_id, subject, recipes=None):
     if recipes is None:
         from planetgen.physics.atmosphere_recipes import RECIPES as recipes
     return lambda _i: recipes.draw_value(row_id, subject)
+
+
+def subject_of(target):
+    """The `Subject` a target's row is drawn for (`target.subject`), or None when the target names none."""
+    if target.subject is None:
+        return None
+    from planetgen.generation.possibility_table import Subject
+    return Subject(target.subject["body_class"], dict(target.subject["quantities"]))
+
+
+def check_target(target, recipes=None, n=2000, sampler=None):
+    """
+    The comparison of a target with the shipped recipe: the row drawn `n` times at the target's subject (or through `sampler`,
+    which a selection model's observation wraps), then `compare`.
+    """
+    subject = subject_of(target)
+    if subject is None:
+        raise TargetError(f"target {target.id} names no subject to draw for")
+    return simulate_and_compare(target, sampler or recipe_sampler(target.row_id, subject, recipes), n=n, quantities=subject)
 
 
 def load(path=DATA_FILE):
