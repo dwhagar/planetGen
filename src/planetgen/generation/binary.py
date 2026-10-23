@@ -165,7 +165,12 @@ class BinaryStarProxy(StellarObject):
         # do not overwrite it here with the primary-only value.
 
         # Recalculate derived properties based on effective values
-        self.habitable_zone = calculate_habitable_zone(self._effective_luminosity)
+        # The zone follows the colour of the light: the pair's temperature weighted by each star's luminosity (GEN.146),
+        # not the plain average `self.temperature` keeps.
+        light_primary, light_secondary = primary_star.luminosity, secondary_star.luminosity
+        light_temperature = ((light_primary * primary_star.temperature + light_secondary * secondary_star.temperature)
+                             / (light_primary + light_secondary))
+        self.habitable_zone = calculate_habitable_zone(self._effective_luminosity, light_temperature)
         self.system_perimeter = self._calculate_system_perimeter_static(
             self._effective_mass, galactic_center_dist_ly
         )

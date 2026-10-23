@@ -66,3 +66,8 @@ The keys are the source keys of the file. Only values computed or read from the 
 | `hp22` | Harrington Pinto et al. 2022 (arXiv:2209.09985) | Published paper; values only |
 | `coch15` | Cochran et al. 2015, Space Science Reviews 197, 9 (arXiv:1507.00761) | Published paper; values only |
 | `cor25` | Cordiner et al. 2025 (arXiv:2508.18209) | Preprint; two measured ratios only |
+
+## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
+
+Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
+maximum greenhouse rows). Published paper; values only. The paper's raw text is not in the repository.

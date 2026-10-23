@@ -290,6 +290,12 @@
       "epoch": 59,
       "first_release": "8.0.2017",
       "reason": "The population pass no longer makes a species on a homeworld whose own limits cannot hold it (undrinkable water), so those planets keep no species, civilization, polity or territory (POP.14)"
+    },
+    {
+      "epoch": 60,
+      "first_release": null,
+      "pending": true,
+      "reason": "A star's habitable zone follows its temperature (the Kopparapu runaway and maximum greenhouse edges in place of the fixed fluxes 1.1 and 0.53), so every star's zone moves and with it where planets are placed and which classes they take (GEN.146)"
     }
   ]
 }

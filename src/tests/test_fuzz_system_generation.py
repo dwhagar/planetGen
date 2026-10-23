@@ -707,7 +707,7 @@ HELPERS = {
     "disk_surface_density_scale": (formation.disk_surface_density_scale, (M_SUN,)),
     "mmsn_surface_density_gcm2": (formation.mmsn_surface_density_gcm2, (1.0, 2.7, 1.0)),
     "isolation_mass_kg": (formation.isolation_mass_kg, (1.0, 7.0, M_SUN)),
-    "calculate_habitable_zone": (orbits.calculate_habitable_zone, (L_SUN,)),
+    "calculate_habitable_zone": (orbits.calculate_habitable_zone, (L_SUN, 5772.0)),
     "calculate_galactic_orbit": (galactic_orbit.calculate_galactic_orbit, (26000.0,)),
     "circular_orbital_speed_kms": (orbits.circular_orbital_speed_kms, (1.0, 1.0)),
     "orbital_position_au": (orbits.orbital_position_au, (1.0, 10.0, 20.0, 30.0)),
@@ -877,7 +877,7 @@ def test_valid_domain_holman_wiegert(a, mu, e):
 
 @given(lum=LUM, mass=MASS, d=POS)
 def test_valid_domain_disk_helpers(lum, mass, d):
-    inner, outer = orbits.calculate_habitable_zone(lum)
+    inner, outer = orbits.calculate_habitable_zone(lum, 5772.0)
     assert 0 < inner < outer and _finite(inner, outer)
     snow = formation.snow_line_au(lum)
     sigma = formation.mmsn_surface_density_gcm2(d, snow, formation.disk_surface_density_scale(mass))

@@ -180,21 +180,21 @@ def test_sample_bounded_bell_stays_in_bounds(low, high, mode, spread):
         assert low <= value <= high
 
 
-@given(lum=st.floats(min_value=0, max_value=1e33))
-def test_habitable_zone_and_snow_line_are_ordered_and_scale_with_sqrt(lum):
-    inner, outer = orbits.calculate_habitable_zone(lum)
+@given(lum=st.floats(min_value=0, max_value=1e33), teff=st.floats(min_value=0, max_value=1e7))
+def test_habitable_zone_and_snow_line_are_ordered_and_scale_with_sqrt(lum, teff):
+    inner, outer = orbits.calculate_habitable_zone(lum, teff)
     assert 0 <= inner <= outer
     snow = formation.snow_line_au(lum)
     assert snow >= 0
     if lum > 0:
-        inner4, outer4 = orbits.calculate_habitable_zone(4 * lum)
+        inner4, outer4 = orbits.calculate_habitable_zone(4 * lum, teff)
         assert _close(inner4, 2 * inner) and _close(outer4, 2 * outer)
         assert _close(formation.snow_line_au(4 * lum), 2 * snow)
 
 
 def test_solar_reference_points():
-    inner, outer = orbits.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY)
-    assert 0.9 < inner < 1.0 < outer < 1.5
+    inner, outer = orbits.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY, 5772.0)
+    assert 0.9 < inner < 1.0 < 1.6 < outer < 1.8
     assert _close(formation.disk_surface_density_scale(physical_constants.SOLAR_MASS_TO_KG), 1.0)
     # 170 K blackbody: (278.3 K / 170 K)^2 AU for the Sun (docs/design/bulk-composition-sources-check.md)
     assert abs(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY) - 2.68) < 0.005

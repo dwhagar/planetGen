@@ -590,7 +590,7 @@ class Star(StellarObject):
             self.age, self.lifespan = self._model_age_lifespan
         else:
             self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
-        self.habitable_zone = calculate_habitable_zone(self.luminosity)
+        self.habitable_zone = calculate_habitable_zone(self.luminosity, self.temperature)
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
         self.heliosphere_radius = self.calculate_heliosphere()
         self.set_galactic_motion(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
