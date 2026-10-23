@@ -967,7 +967,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | none | open |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | none | open |
 | GEN.257 | A Fermi-bubble overlay on the Galaxy Map | none | open |
-| GEN.258 | Protostars embedded in giant molecular clouds | none | open |
+| GEN.258 | Protostars embedded in giant molecular clouds | none | done, PR #2674 |
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | done, PR #2112 |
 | GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | none | done, PR #1757 |
 | GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | done, PR #1705 |
