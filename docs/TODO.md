@@ -4716,28 +4716,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
-- [ ] **GEN.258 Protostars embedded in giant molecular clouds**
-  Step 8 of the phenomena train (catalogue section 8 item 8). The class
-  P and Q cores give 2.6e5 protostars against 1.4e6 expected; embedded
-  Q-type groups inside M clouds make up the rest. Default: accept the 5x
-  shortfall for the first release, as GEN.241 and GEN.242 stand. Done: a
-  giant molecular cloud holds embedded Q-type groups of protostars and
-  the count reaches the expectation, or Boss accepts the shortfall.
-  Later. Owner: Core, later (2026-10-15).
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the owner stays Core
-  4 (the 4:31 PM EDT lane approval of 2026-10-16); the earlier Core 3
-  owner lines are deleted.
-  Measurement (Core 5, relayed 3:41 PM EDT 2026-10-22 as the lane's clock
-  reads, with #2504): the TEST.160 representation audit does not measure
-  the protostar yield against 1.4e6; that needs the cloud counts of a
-  whole fill, so this item still tracks it.
-  Prerequisites: none. Related: GEN.242.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **GEN.263 Promote every bound compact pair to the scatter, whatever its mass**
   Step 4 (design note 4.5 and 11 item 4). A neutron star never passes
   the 14 solar mass cut, so a double neutron star would be a fill-time
