@@ -3224,7 +3224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: OPS.58.
+    Prerequisites: none.
 
   - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
     Boss (2026-10-02 02:28Z): "We're going to have to build a
@@ -5416,7 +5416,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: GEN.450,
-  SEC.33, TEST.261, GEN.636.
+  SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5624,7 +5624,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exactly two Star objects and stars.role only allows primary, secondary
   and single, so building every tree needs the N-star host that GEN.316
   retires them for, and a stars.role 'member' migration (numbered at
-  merge; 0130 is held by DB.85 and 0131 by GEN.412). The design doc says
+  merge; 0130 went to DB.85 and 0131 to OPS.58, both merged; GEN.458 takes 0132 and GEN.412 0133). The design doc says
   to move N=2 through the tree tables first, so GEN.315 is done as slice
   1: pre-placed star rows (stage A and the uncharted-system route) build
   from their stored members when the tree is one or two ordinary stars,
@@ -14438,7 +14438,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   loaders) before BinaryStarProxy, WideBinaryPair and the two-star
   probability table can retire. This part is the foundation: StarSystem
   holds N stars, the stars.role column allows 'member' (the migration is
-  numbered at merge: check main's head, 0131 is GEN.458's), and every
+  numbered at merge: check main's head; 0131 went to OPS.58, #2654, so GEN.458 takes 0132), and every
   reader and loader handles N stars, while the fill still builds only
   the pairs it builds today. Done: the same seed gives bit-identical
   sectors before and after (no generator epoch), a system with three
@@ -14555,40 +14555,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the stand-ins it replaces are retired in the registry. Owner: none
   (pool). Not needed for 8.1: Boss may pull it forward.
   Prerequisites: none. Related: GEN.403, GEN.387, GEN.531, GEN.297.
-
-- [ ] **GEN.636 StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug)**
-  Found by Bugfix 2 (relayed 7:56 AM EDT 2026-10-23 as the lane
-  reported) in `scripts/test.py full --check` on main 9ba9996; filed by
-  the TODO thread. Kind: test failing on main since GEN.325 (#2624,
-  planet survival limit). Test:
-  src/tests/test_validation.py::test_system_methods_still_delegate.
-  Failure: assert 395.17 == 116590.32,
-  `StarSystem._orbit_ceiling_au(star)` against
-  `validation.orbit_ceiling_au(star)`. GEN.325 made the generator's
-  ceiling the smaller of the galaxy Hill sphere and the survival limit
-  of the place's passing systems (about 275 AU in the example), while
-  validation.orbit_ceiling_au still returns the Hill sphere alone. Fails
-  on main: yes, every run, alone too. Reproducer: python -m pytest
-  src/tests/test_validation.py -k system_methods_still_delegate. Do:
-  decide whether validation must know the survival limit (one rule
-  shared by the generator and the validator, the intent of the test
-  name) or the validator is meant to stay looser; then make the code and
-  the test agree, with the shared rule preferred. Done: the test passes
-  on main and the generator and the validator give one ceiling.
-  GEN.301's closing `full --check` needs it. Owner: Core 4 (its GEN.325,
-  proposed by the TODO thread).
-  Decision (Core 4, relayed 8:15 AM EDT 2026-10-23 as the lane reported;
-  in its gate, not merged): the validator keeps the stable-orbit rule and
-  generation takes the tighter of that and the place's survival limit,
-  because the survival limit is a chance of outliving passing systems and
-  not a stability limit, so a check or an admin edit should not refuse or
-  trim a body past it (comets keep their own ceiling for the same
-  reason). The test now asserts that the generation ceiling equals
-  min(stable orbit, survival limit) and that a body past the survival
-  limit but inside the stable orbit validates. Test and note only, no code
-  or epoch change. Core 4 asks Boss's side nothing; say so if the shared
-  rule is wanted instead.
-  Prerequisites: none. Related: GEN.325, GEN.301.
 
 - [ ] **GEN.637 Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638)**
   Recorded by the TODO thread from Bugfix 2's handoff (7:56 AM EDT
@@ -20367,43 +20333,6 @@ clears each one.
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
 
-- [ ] **OPS.28 Generator epoch and battery digest: say whether two checkouts generate the same galaxy**
-  An integer `generator_epoch` bumped only by a PR that changes
-  generated output, kept in `src/tests/golden/epochs.json` (epoch, first
-  release of that epoch). `bump_version.py --check-pr` enforces all or
-  none: golden changed, epoch bumped, and a `generation-output: changed`
-  line in the `changes/` note. A `golden_update` tool bumps the epoch
-  and refuses under `CI`. `generator_battery_digest()` is a pure
-  database-free function over 6 to 8 tiny canned cases (about 3 to 5 s).
-  The OPS.13 history row also holds the epoch, the battery digest, the
-  lock hash and an environment JSON (libc, numpy, astropy, scipy,
-  scikit-image versions), the last 10 per galaxy as already specified;
-  the seed itself is not changed. The current galaxy's internal record
-  (ADM.50, replacing ADM.18's settings file) keeps the epoch and
-  `fp_spec`. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults taken): (1) is the same
-  galaxy on Linux, macOS and
-  Windows a goal, exact for integers, strings and structure and equal to
-  9 significant digits for floats? Default yes; if not, drop the Windows
-  and macOS CI additions and keep the epoch. (2) Is an integer epoch in
-  the version record acceptable? Default yes. (3) Does a mismatch refuse
-  a remote or rebuild run? Default: refuse on an epoch mismatch, warn on
-  a battery-digest mismatch naming the first differing case.
-  Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
-  2026-10-10 04:25Z).
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: OPS.56, OPS.57, OPS.58. Three deliverables with
-  three different clocks: the epoch counter and its PR rule (needs
-  nothing), the battery digest (needs GEN.135 and the encoder), and the
-  history row plus the galaxy record (a control-database migration and
-  the update script).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: OPS.58.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
 - [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
   Follow-up to OPS.8 (built in PR #808): check it against the research.
   Skip if Apache is absent or stopped (never start it), `configtest`
@@ -20489,38 +20418,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   lists the step in its log.
   Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
-
-- [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
-  Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). The `version_key_history` row
-  (control schema v11, OPS.13) also holds `generator_epoch`, the battery
-  digest, the lock-file hash and an environment JSON (libc, numpy, astropy, scipy, scikit-image versions): a control-database migration plus
-  `planetgen.cli.version_history`. A row is added only when the key or a
-  hash differs from the newest row (an unchanged update refreshes its
-  last-seen date), the last 10 per galaxy are kept, and
-  `requirements.lock` is pinned to LF in `.gitattributes`. The current
-  galaxy's internal record (ADM.50) keeps the epoch and `fp_spec`.
-  `version_check.galaxy_warning` names an epoch difference as the error
-  and a battery-digest difference, with the first differing case, as a
-  warning. Done: the migration with an old-schema fixture, the row, the
-  record, the check, and tests for an unchanged update, a changed lock
-  file and an epoch difference.
-  Rescatter thread finding (2026-10-16): a scatter made before the epoch
-  2 merge (#1927, 9:42 PM EDT) is unlabelled: `generation_runs` carries
-  `planetgen_version` and outcome per run (a redo run is dated), but the
-  galaxy keeps no mark of which epoch or build each scatter pass was
-  made at, so nothing can say a galaxy is epoch 1. This item's record
-  should carry the epoch per pass.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the environment JSON
-  keeps astropy, as OPS.28 names it (Boss, 2026-10-10, 2:44 PM EDT,
-  defaults approved);
-  nothing records a cut, so the missing entry in the split text is a
-  slip.
-  Prerequisites: none. Related: OPS.28.
 
 - [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
   Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
