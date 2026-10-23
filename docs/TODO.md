@@ -3200,7 +3200,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
     Backfill case (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane reported): the rule "a sector's contents come out the same whichever sectors were generated before it" still fails for the backfill, which adds its dimmer bright stars only to sectors not yet generated; filed as GEN.633, which is now a subitem and a prerequisite until Boss decides whether it is needed before 8.1.
-  Prerequisites: TEST.181, GEN.633.
+  Progress (Core 1, OPS.57 and TEST.181 merged together as #2628,
+  relayed 4:52 AM EDT 2026-10-23 as the lane reported; releases 8.0.2003
+  and 8.0.2004): TEST.181 is done and covers the cases that hold
+  (sectors reached by an earlier run's backfill in either order, 1
+  against 4 workers, the shared ID cell). GEN.633 is the only subitem
+  left, and this item stays open on it until Boss decides on his card.
+  Prerequisites: GEN.633.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -3218,7 +3224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: OPS.57, OPS.58.
+    Prerequisites: OPS.58.
 
   - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
     Boss (2026-10-02 02:28Z): "We're going to have to build a
@@ -3349,7 +3355,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: OPS.57, GEN.57.
+    Prerequisites: GEN.57.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -18983,26 +18989,6 @@ clears each one.
   the newest full archive.
   Prerequisites: ADM.89, DB.42, ADM.90, OPS.55. Related: ADM.91.
 
-- [ ] **TEST.181 The order-independence test: the same sectors at 1 and 4 workers and in two orders**
-  Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A test generates the same small set
-  of sectors (one reached by a backfill, two sharing an ID cell) at 1
-  and at 4 workers and in two orders and compares their fingerprints
-  (GEN.58's encoder now, GEN.136:a when it lands); nearest-system links
-  and population data stay out of the comparison (they are rebuilt from
-  content). Why: this is the proof GEN.57 states, and TEST.77's tier B
-  stands on it. Done: the test runs in the `changed` gate and fails when
-  a or b is reverted.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Progress (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane
-  reported): building it, the test covers what holds: sectors reached by
-  an earlier run's backfill in either order, 1 against 4 workers, and
-  the shared ID cell. The backfill case that does not hold is filed as
-  GEN.633 and is not decided here.
-  Prerequisites: none. Related: GEN.57.
-
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). TEST.77's golden galaxy runs a
@@ -20818,7 +20804,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: OPS.57, OPS.58.
+  Prerequisites: OPS.58.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
@@ -20907,29 +20893,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
-- [ ] **OPS.57 generator_battery_digest(): a database-free digest over 6 to 8 canned cases**
-  Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A pure function in the package, no
-  database and no network, over 6 to 8 tiny canned cases (a 3-system
-  sector through `generate_sector` under a bound unit seed; one
-  phenomenon; one nebula shape; one bright-star scatter on a tiny
-  region; one population stream; one `unit_seed` known answer), each
-  hashed with GEN.136's encoder into a structural and a float digest,
-  returning the overall digest and a per-case digest (design
-  generation-determinism.md 5.4, 3 to 5 s). Why: it is what OPS.15,
-  OPS.14's mismatch check and TEST.77's tier A compare. Done: the
-  function and a test that it is stable across two runs and two hash
-  seeds, and that changing one canned draw changes exactly one case's
-  digest.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  fingerprint encoder is GEN.304's (split from GEN.136, 2026-10-16), not
-  GEN.136's.
-  Prerequisites: none. Related: OPS.28.
-
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). The `version_key_history` row
@@ -20960,7 +20923,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   defaults approved);
   nothing records a cut, so the missing entry in the split text is a
   slip.
-  Prerequisites: OPS.57. Related: OPS.28.
+  Prerequisites: none. Related: OPS.28.
 
 - [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
   Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed

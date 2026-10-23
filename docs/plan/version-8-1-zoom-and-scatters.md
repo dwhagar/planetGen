@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 4:46 AM EDT 2026-10-23: 710 of 941 items finished (75.5 percent), 231 open, 23 dropped. Open by phase: phase 1 111, phase 2 28, phase 3 28, phase 4 16, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 4:49 AM EDT 2026-10-23: 712 of 941 items finished (75.7 percent), 229 open, 23 dropped. Open by phase: phase 1 109, phase 2 28, phase 3 28, phase 4 16, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -54,8 +54,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) |  | Parent of the chain. |
-| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders |  | Split from GEN.57. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | TEST.181, GEN.633 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.633 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) |  |  |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer |  | Split from DB.9. Core 1 owns migrations. |
@@ -67,13 +66,12 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | GEN.57, DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
 | GEN.627 | The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug) |  |  |
-| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases |  | Split from OPS.28. |
-| OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.57 | Split from OPS.28. |
-| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
+| OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment |  | Split from OPS.28. |
+| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
 | OPS.15 | Each update says whether it changes generated output |  | Needs the fingerprint, so phase 2. |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API |  | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
-| TEST.77 | A golden-seed regression test | OPS.57, GEN.57 |  |
+| TEST.77 | A golden-seed regression test | GEN.57 |  |
 
 ### Tech levels and species
 

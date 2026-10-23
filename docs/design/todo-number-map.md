@@ -1716,7 +1716,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.54 | The orbital update refuses to run while an update is running, with tests | none | done, PR #1782 |
 | OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | none | open |
 | OPS.56 | The generator epoch counter and the PR rule that enforces it | none | done, PR #1877 |
-| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | open |
+| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | done, PR #2628 |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | none | open |
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | done, PR #2124 |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` | none | done, PR #2227 |
@@ -2399,7 +2399,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | none | open |
 | TEST.179 | Permission matrix test: every route and page checked for every role against the catalogue | none | open |
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | none | open |
-| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | none | open |
+| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | none | done, PR #2628 |
 | TEST.182 | Put one block-first backfill into the golden galaxy | none | open |
 | TEST.183 | A test that fails when a new output path formats its own lines | none | open |
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | done, PR #2504 |
