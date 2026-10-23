@@ -839,7 +839,7 @@ def test_steps_count_from_every_sector_of_the_run_and_stop_at_the_outline():
     assert set(run_galaxy.backfill_step_targets(run, _Everywhere(), step_masses=(3.0,)).values()) == {3.0}
 
 
-def test_backfill_from_the_edge_of_every_generated_sector_or_none(mysql_config):
+def test_backfill_runs_from_the_edge_of_every_generated_sector(mysql_config):
     _seed_galaxy(mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
@@ -848,10 +848,6 @@ def test_backfill_from_the_edge_of_every_generated_sector_or_none(mysql_config):
     for address in (near, far):
         run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
 
-    args.backfill_from = "none"
-    assert run_galaxy.backfill_after_run(args, EDGE_PC, started) == {"sectors": 0, "stars": 0}
-
-    args.backfill_from = "edge"
     run_galaxy.backfill_after_run(args, EDGE_PC, started)
     conn = store.get_connection(mysql_config)
     try:
@@ -984,20 +980,20 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_shell_by_type(
 
 
 def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkeypatch):
-    """The Generate page's new galaxy ran only the star scatter, so no phenomena were ever placed: `galaxy
-    --then-scatter` follows the stars with the phenomena (GEN.185's last pass), at the limit it was given."""
+    """`galaxy` follows the star scatter with the phenomena (GEN.185's last pass), at the limit it was given; it
+    has no option to leave either out (PERF.123)."""
     _seed_galaxy(mysql_config)
     monkeypatch.setattr(run_common, "_edge_pc", lambda: EDGE_PC)
     for name in ("_run_galaxy_mode", "link_after_run", "backfill_after_run", "settle_after_run"):
         monkeypatch.setattr(run_galaxy, name, lambda *args, **kwargs: None)
-    monkeypatch.setattr(run_galaxy.run_population, "run_population_after", lambda *args, **kwargs: None)
+    monkeypatch.setattr(run_galaxy.run_population, "run_population_stage", lambda *args, **kwargs: None)
     monkeypatch.setattr(run_galaxy.run_common, "_finish_stats", lambda *args, **kwargs: None)
     calls = []
     for name in ("scatter_bright_stars", "scatter_phenomena"):
         monkeypatch.setattr(run_plan, name, lambda args, name=name: calls.append((name, args.phenomenon_min_mass)))
     _parser, parsers = generate_cli.build_parser()
     args = parsers["galaxy"].parse_args([
-        "--then-scatter", "--phenomenon-min-mass", "8", "--mysql-host", mysql_config.host,
+        "--phenomenon-min-mass", "8", "--mysql-host", mysql_config.host,
         "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
         "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database])
     run_galaxy.run_galaxy(args)

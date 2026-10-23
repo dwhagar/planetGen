@@ -395,7 +395,7 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", estimate_ok="1", **form)
     assert resp.status_code == 303
     (job,) = no_spawn
-    assert _argv(_work_steps(job)[0]) == ["galaxy"] + argv
+    assert _argv(_work_steps(job)[0]) == ["sectors"] + argv
 
 
 @pytest.mark.parametrize("form, message", [
@@ -455,7 +455,7 @@ def test_a_typed_command_opens_the_review_step_and_runs_nothing(site, client, no
     page = client.get(link["url"])
     html = page.get_data(as_text=True)
     assert page.status_code == 200 and no_spawn == []
-    assert "Review" in html and "galaxy --shell 40" in html and 'name="shell_index" value="40"' in html
+    assert "Review" in html and "sectors --shell 40" in html and 'name="shell_index" value="40"' in html
     assert 'name="review"' not in html
 
 
@@ -494,7 +494,7 @@ def test_a_started_job_keeps_its_form_and_history_offers_run_again(site, client,
         url = generate_flow.rerun_url(view)
     assert url.startswith("/admin/generate/task/add-sectors?") and "shell_index=40" in url and "review=1" in url
     page = client.get(url)
-    assert page.status_code == 200 and "galaxy --shell 40" in page.get_data(as_text=True)
+    assert page.status_code == 200 and "sectors --shell 40" in page.get_data(as_text=True)
     assert len(no_spawn) == 1
 
 
@@ -522,7 +522,7 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     resp = _post(client, action="galaxy", mode="shell", shell_index="40")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200 and no_spawn == []
-    assert _argv({"argv": asked[0]}) == ["galaxy", "--shell", "40"]
+    assert _argv({"argv": asked[0]}) == ["sectors", "--shell", "40"]
     assert "About 8.4 MB" in html and "1 m 15 s" in html and "400 GB free of 1.0 TB" in html
     form = html[html.index('id="review"'):]
     form = form[:form.index("</section>")]
@@ -630,7 +630,7 @@ def test_center_position_without_a_plan_uses_the_standard_edge(site, client, no_
                  center_x_pc="10", center_y_pc="0", center_radius_pc="20")
     assert resp.status_code == 303
     (job,) = no_spawn
-    assert _argv(job["steps"][-1])[:7] == ["galaxy", "--shell", "3", "--band", "0", "--wedge", "0"]
+    assert _argv(_work_steps(job)[0])[:7] == ["sectors", "--shell", "3", "--band", "0", "--wedge", "0"]
 
 
 def test_the_start_screen_has_a_card_per_task_and_no_folds(site, client):
@@ -720,12 +720,13 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, galaxy = _work_steps(job)    # the phenomena follow the stars inside the galaxy step
+    reset, plan, sectors, link, mass, luminosity, phenomena, backfill, settle = _work_steps(job)
     assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4"]
-    # GEN.30: the scatter comes after the sectors, inside the galaxy step.
-    assert galaxy["label"] == generate_page.NEW_GALAXY_SCATTER_LABEL
-    assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0", "--then-scatter"]
+    # GEN.30: the scatters come after the sectors, each a step of its own (PERF.123).
+    assert _argv(sectors) == ["sectors", "--radius-pc", "40.0"]
+    assert [_argv(step) for step in (link, mass, luminosity, phenomena, backfill, settle)] == [
+        ["link"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"], ["backfill"], ["settle"]]
 
 
 def test_plan_only_resets_and_plans_with_no_sectors_and_no_scatter(site, client, no_spawn):
@@ -765,7 +766,7 @@ def test_skip_all_scatters(site, client, no_spawn, action):
     (job,) = no_spawn
     labels = [step["label"] for step in _work_steps(job)]
     assert generate_page.SCATTER_LABEL not in labels and generate_page.PHENOMENA_LABEL not in labels
-    assert all("--then-scatter" not in step["argv"] for step in job["steps"])
+    assert [_argv(step)[0] for step in _work_steps(job)][-4:] == (["plan"] if action == "plan" else ["sectors", "link", "backfill", "settle"])[-4:]
     assert not any("scatter" in word for step in job["steps"] for word in step["argv"]), "no scatter of any kind runs"
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[0] == "plan" and "--no-bright-stars" not in _argv(plan)
@@ -811,7 +812,7 @@ def test_dimmer_layer_needs_a_level(site, client, no_spawn):
 
 
 def test_scatter_flags_exist_in_generate_py():
-    """Every flag the page passes is one `planetgen scatter` (or `galaxy --then-scatter`) accepts."""
+    """Every flag the page passes is one `planetgen scatter` (or `galaxy`) accepts."""
     from planetgen.cli import generate as generate_cli
 
     _parser, parsers = generate_cli.build_parser()
@@ -820,11 +821,9 @@ def test_scatter_flags_exist_in_generate_py():
     assert scatter.parse_args(["--luminosity"]).luminosity is True
     assert scatter.parse_args(["--band", "--down-to", "100"]).down_to == 100.0
     assert scatter.parse_args(["--mass", "--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
-    galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "20000",
-                                           "--backfill-from", "none"])
-    assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 20000.0
-    assert galaxy.backfill_from == "none"
-    assert parsers["galaxy"].parse_args(["--then-scatter", "--phenomenon-min-mass", "8"]).phenomenon_min_mass == 8.0
+    galaxy = parsers["galaxy"].parse_args(["--bright-star-min-luminosity", "20000"])
+    assert galaxy.bright_star_min_luminosity == 20000.0
+    assert parsers["galaxy"].parse_args(["--phenomenon-min-mass", "8"]).phenomenon_min_mass == 8.0
     assert scatter.parse_args(["--mass", "--phenomenon-min-mass", "12"]).phenomenon_min_mass == 12.0
     assert scatter.parse_args(["--phenomena", "--compact-min-mass", "star"]).compact_min_mass == "star"
 
@@ -865,8 +864,9 @@ def test_scatter_uses_the_threshold_field(site, client, no_spawn):
 def test_new_galaxy_scatters_after_its_sectors_at_the_threshold(site, client, no_spawn):
     assert _post(client, action="new_galaxy", confirm=DB, bright_min_luminosity="20000").status_code == 303
     (job,) = no_spawn
-    galaxy = _work_steps(job)[-1]
-    assert _argv(galaxy) == ["galaxy", "--then-scatter", "--bright-star-min-luminosity", "20000"]
+    mass, luminosity = [step for step in _work_steps(job) if _argv(step)[0] == "scatter"][:2]
+    assert _argv(mass) == ["scatter", "--mass", "--bright-star-min-luminosity", "20000"]
+    assert _argv(luminosity) == ["scatter", "--luminosity", "--bright-star-min-luminosity", "20000"]
 
 
 def test_the_page_has_no_backfill_checkbox_and_the_run_backfills_from_the_edge(site, client, no_spawn):
@@ -874,7 +874,7 @@ def test_the_page_has_no_backfill_checkbox_and_the_run_backfills_from_the_edge(s
     assert 'name="backfill_all"' not in html
     assert _post(client, action="galaxy", estimate_ok="1").status_code == 303
     (job,) = no_spawn
-    assert "--backfill-from" not in _argv(_work_steps(job)[-1])
+    assert [_argv(step)[0] for step in _work_steps(job)] == ["sectors", "link", "backfill", "settle"]
 
 
 # --- Prevalence (ADM.16) ------------------------------------------------------------
@@ -886,7 +886,7 @@ def test_a_changed_share_reaches_the_galaxy_run_as_a_percentage(site, client, no
                  prevalence_habitable_world="0", prevalence_comets=f"{usual['comets'] * 150:g}",
                  prevalence_moons=f"{usual['moons'] * 100:g}").status_code == 303
     (job,) = no_spawn
-    argv = _argv(_work_steps(job)[-1])
+    argv = _argv(next(step for step in _work_steps(job) if _argv(step)[0] == "sectors"))
     given = dict(argv[i + 1].split("=") for i, arg in enumerate(argv) if arg == "--prevalence")
     assert set(given) == {"habitable_world", "comets"}  # moons left at its usual share
     assert float(given["habitable_world"]) == -100
@@ -1371,7 +1371,7 @@ def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, mo
     ]
     for form in forms:
         argv, _description = generate_page.galaxy_argv(form)
-        _generate_py_args(monkeypatch, ["galaxy"] + argv)
+        _generate_py_args(monkeypatch, ["sectors"] + argv)
     num_orbits = str(limits.MAX_NUM_ORBITS)
     assert system_page.system_request({"num_orbits": num_orbits})
     _generate_py_args(monkeypatch, ["system", "--num-orbits", num_orbits])
@@ -1591,9 +1591,9 @@ def test_a_new_galaxy_scatters_at_the_form_s_mass_limit(site, client, no_spawn):
     """The plan step doesn't store the limit, so the galaxy step carries it to the scatters."""
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
     (job,) = no_spawn
-    _reset, plan, galaxy = _work_steps(job)
+    _reset, plan, _sectors, _link, mass, *_rest = _work_steps(job)
     assert _argv(plan) == ["plan"]
-    assert _argv(galaxy)[:4] == ["galaxy", "--then-scatter", "--phenomenon-min-mass", "8"]
+    assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "8"]
 
 
 @pytest.mark.parametrize("value", ["13", "7", "21", "20.5"])
@@ -1652,10 +1652,10 @@ def test_the_compact_limit_follows_the_star_setting_by_default(site, client, no_
 def test_an_unticked_compact_limit_reaches_every_scatter_step(site, client, no_spawn):
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="14", compact_min_mass="2").status_code == 303
     (job,) = no_spawn
-    _reset, plan, galaxy = _work_steps(job)
+    _reset, plan, _sectors, _link, mass, luminosity, phenomena, *_rest = _work_steps(job)
     assert _argv(plan) == ["plan"]
-    assert _argv(galaxy)[:6] == ["galaxy", "--then-scatter", "--phenomenon-min-mass", "14",
-                                 "--compact-min-mass", "2"]
+    assert _argv(mass) == ["scatter", "--mass", "--phenomenon-min-mass", "14"]
+    assert _argv(phenomena) == ["scatter", "--phenomena", "--compact-min-mass", "2"]
 
 
 

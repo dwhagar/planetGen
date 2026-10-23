@@ -8,8 +8,8 @@ needs a terminal on the server. Four actions, each a background job
 - New galaxy: wipe the database (`python3 -m planetgen.cli.reset --yes`), build the
   density skeleton (`planetgen plan`), then generate
   a first neighborhood around a random start and only then scatter the
-  bright stars, leaving those sectors out (`planetgen galaxy
-  --then-scatter`, GEN.30).
+  bright stars, leaving those sectors out (`planetgen sectors`, `link`, the scatters, `backfill` and `settle` as steps of
+  one job, GEN.30, PERF.123).
 - Plan: rebuild the density skeleton, then scatter the bright stars.
   The scatter is its own step so the job shows its progress bar and the
   count it placed; a checkbox on either form skips it.
@@ -18,7 +18,7 @@ needs a terminal on the server. Four actions, each a background job
 - Add a dimmer step: keep the bright stars already placed and add only
   those from a lower level up to the current one
   (`planetgen scatter --band --down-to N`).
-- Generate sectors: `planetgen galaxy` in any of its modes (random
+- Generate sectors: `planetgen sectors` in any of its modes (random
   start, a whole shell, around a sector, one address, ...). "Around a
   sector" names its center as a filled sector (searched by name or
   picked from `/admin/generate/sectors`'s list), a sector address, or a
@@ -157,11 +157,6 @@ SCATTER_LABEL = "Scatter the bright stars"
 
 PHENOMENA_LABEL = "Scatter the phenomena"
 
-NEW_GALAXY_SCATTER_LABEL = "Generate sectors around a random start, then scatter the bright stars and phenomena"
-"""str: New galaxy's last step (GEN.30): the sectors first, then the
-galaxy-wide scatters (bright stars, then the phenomena), which leave them
-out, then the backfill."""
-
 BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 """str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
 Plan and Rebuild the bright stars."""
@@ -179,7 +174,7 @@ there, before the reset or anything else is written."""
 
 
 ESTIMATE_TIMEOUT_S = 120
-"""int: How long the page waits for `planetgen galaxy --estimate-only`."""
+"""int: How long the page waits for `planetgen sectors --estimate-only`."""
 
 ESTIMATE_PREFIX = "ESTIMATE "
 """str: `generate.ESTIMATE_PREFIX`: the line the estimate is read from."""
@@ -201,7 +196,7 @@ class FormError(ValueError):
 def run_estimate(argv, env):
     """
     PERF.3: the size and time a Generate sectors job would take, from
-    `planetgen galaxy ... --estimate-only` (run here, while the admin
+    `planetgen sectors ... --estimate-only` (run here, while the admin
     waits, before anything is written).
 
     Args:
@@ -411,7 +406,7 @@ def _lever_text(form, row):
 
 
 def random_start_argv(form):
-    """`planetgen galaxy` arguments for a random start."""
+    """`planetgen sectors` arguments for a random start."""
     argv = []
     radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
     if radius is not None:
@@ -502,7 +497,7 @@ def center_argv(form, edge_pc=None):
 
 def galaxy_argv(form, edge_pc=None):
     """
-    `planetgen galaxy` arguments for the chosen mode. `edge_pc` is the
+    `planetgen sectors` arguments for the chosen mode. `edge_pc` is the
     plan's sector edge, which only "Around a sector" by position needs.
 
     Returns:
@@ -547,7 +542,7 @@ def galaxy_argv(form, edge_pc=None):
 
 def course_argv(form):
     """
-    `planetgen galaxy` arguments for charting a course (NAV.48, from the NAV chart page): the two ends
+    `planetgen sectors` arguments for charting a course (NAV.48, from the NAV chart page): the two ends
     (object references, as the NAV page writes them), `--course-border` when ticked, and `--yes` once the
     admin has confirmed a chart past `tuning.NAV_CHART_CONFIRM_SECTORS` sectors.
 
@@ -579,7 +574,7 @@ def course_argv(form):
 
 def span_argv(form):
     """
-    `planetgen galaxy` arguments for the span mode (ADM.29): the Shells,
+    `planetgen sectors` arguments for the span mode (ADM.29): the Shells,
     Bands and Wedges ranges, each blank for all, and the limit.
 
     Returns:
@@ -852,6 +847,16 @@ def plan_steps(generate, form):
     return steps
 
 
+def after_sectors_steps(generate, scatters=()):
+    """
+    The steps after a `planetgen sectors` step (PERF.123): `link`, the `scatters` (`scatter_steps`), the bright-star
+    `backfill` and `settle`, each for the sectors saved since the start of the newest `sectors` run (their default).
+    """
+    return [{"label": "Link the neighbours", "argv": generate + ["link"]}, *scatters,
+            {"label": "Scatter the massive stars from the neighborhood", "argv": generate + ["backfill"]},
+            {"label": "Save the sector paths", "argv": generate + ["settle"]}]
+
+
 def build_job(action, form, database, edge_pc=None):
     """
     The job a form asks for (`edge_pc`: see `galaxy_argv`). Every job
@@ -878,16 +883,15 @@ def build_job(action, form, database, edge_pc=None):
         steps = [{"label": DATA_CHECK_LABEL,
                   "argv": [python, *jobs.DATASETS_COMMAND, "status", *([DISREGARD_FLAG] if disregard else [])]}, *steps]
     for step in steps:
-        step["stages"] = step_stages(step, form)
+        step["stages"] = step_stages(step)
     return kind, title, steps
 
 
-def step_stages(step, form):
+def step_stages(step):
     """
     The stages one job step goes through (UX.89), `{"label", "skipped"}` each:
-    the stages its `galaxy` or `plan` command declares (`generation.stages`),
-    with a scatter stage left out by the form's "Skip all scatters"
-    box saying so; any other step is one stage of its own label.
+    the stages its `sectors`, `galaxy` or `plan` command declares (`generation.stages`); any other step is one stage
+    of its own label.
     """
     argv = step["argv"]
     start = len(jobs.GENERATE_COMMAND) + 1
@@ -901,11 +905,7 @@ def step_stages(step, form):
         except (SystemExit, Exception):  # noqa: BLE001 -- the step is then one stage
             found = []
         if found:
-            ticked = bool(form.get("skip_scatters"))
-            return [{"label": stage.label,
-                     "skipped": ("the \"Skip all scatters\" box is ticked"
-                                 if ticked and stage.skip and "scatter was not asked for" in stage.skip
-                                 else stage.skip)} for stage in found]
+            return [{"label": stage.label, "skipped": stage.skip} for stage in found]
     return [{"label": step["label"], "skipped": None}]
 
 
@@ -947,16 +947,13 @@ def _build_job_steps(action, form, edge_pc=None):
     generate = [python, *jobs.GENERATE_COMMAND]
     reset_step = {"label": "Reset the galaxy", "argv": [python, *jobs.RESET_COMMAND, "--yes"]}
     if action == "new_galaxy":
-        # GEN.30: the scatter runs after the sectors (`galaxy
-        # --then-scatter`), so it leaves out every sector just filled.
+        # GEN.30: the scatters run after the sectors, so they leave out every sector just filled.
         plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
-        argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form)
-        label = "Generate sectors around a random start"
-        if not form.get("skip_scatters"):
-            # The plan step doesn't store the mass limit, so the scatters take it from here.
-            argv += ["--then-scatter"] + mass_limit_argv(form) + luminosity_floor_argv(form)
-            label = NEW_GALAXY_SCATTER_LABEL
-        return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
+        sectors = {"label": "Generate sectors around a random start",
+                   "argv": generate + ["sectors"] + random_start_argv(form) + prevalence_argv(form)}
+        # The plan step doesn't store the mass limit, so the scatters take it from here.
+        scatters = [] if form.get("skip_scatters") else scatter_steps(generate, form)
+        return "new_galaxy", "New galaxy", [reset_step, plan, sectors, *after_sectors_steps(generate, scatters)]
     if action == "new_plan":
         # UX.147: the plan alone, with no sectors and no scatter, to add sectors by hand on the Galaxy Map.
         plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
@@ -974,7 +971,8 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "galaxy":
         argv, description = galaxy_argv(form, edge_pc)
         label = f"Generate sectors {description}"
-        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form) + directive_argv(form)}]
+        sectors = {"label": label, "argv": generate + ["sectors"] + argv + prevalence_argv(form) + directive_argv(form)}
+        return "galaxy", label, [sectors, *after_sectors_steps(generate)]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     if action == "check_db":
@@ -1456,12 +1454,15 @@ def estimate_needed(kind, form):
 
 
 def estimate_for(kind, steps, database, env):
-    """The size and time of the job's last step (`run_estimate`, cached by `estimatecache`).
+    """The size and time of the job's `planetgen sectors` step, or its last step when it has none (`run_estimate`,
+    cached by `estimatecache`).
 
     Raises:
         FormError: The estimate refused the arguments.
     """
-    argv = steps[-1]["argv"]
+    first = 1 + len(jobs.GENERATE_COMMAND)
+    sectors = [step for step in steps if step["argv"][first:first + 1] == ["sectors"]]
+    argv = (sectors[0] if sectors else steps[-1])["argv"]
     return estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
                                   lambda: run_estimate(argv, env))
 

@@ -63,8 +63,9 @@ def _build(config):
     target = mysql_argv(config)
     run_cli("plan", ["--quiet", "--cell-star-ceiling", "1e12", "--nuclear-amplitude", "0"] + target)
     with forced_system_config(PLANETS=True):
-        run_cli("galaxy", ["--shell", "1", "--band", "0", "--limit", "3", "--num-systems", "6", "--population",
-                           "--yes", "--quiet"] + target)
+        run_cli("sectors", ["--shell", "1", "--band", "0", "--limit", "3", "--num-systems", "6",
+                            "--yes", "--quiet"] + target)
+        run_cli("population", ["--quiet"] + target)
     conn = store.get_connection(config)
     try:
         sector_id = conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]

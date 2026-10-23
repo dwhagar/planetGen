@@ -50,7 +50,7 @@ def _settings(mysql_config):
 
 
 def _first_scatter(mysql_config, mass="12"):
-    """The mass pass then the luminosity pass, as a `galaxy --then-scatter` run lists them."""
+    """The mass pass then the luminosity pass, as a `galaxy` run lists them."""
     _seed(mysql_config)
     _run(mysql_config, "--mass", "--phenomenon-min-mass", mass)
     _run(mysql_config, "--luminosity")

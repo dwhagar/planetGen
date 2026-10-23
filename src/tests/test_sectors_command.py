@@ -36,14 +36,14 @@ def test_the_stages_of_a_sectors_run_are_the_sectors_alone():
     assert all(step.kind in commands.REGISTRY for step in wrapper.steps_for("sectors", _args("sectors")))
 
 
-def test_the_sector_options_are_the_same_on_sectors_and_galaxy_and_the_later_stages_are_only_on_galaxy(capsys):
+def test_the_sector_options_are_the_same_on_sectors_and_galaxy_and_neither_leaves_a_later_stage_out(capsys):
     sectors_help = generate.build_parser()[1]["sectors"].format_help()
     galaxy_help = generate.build_parser()[1]["galaxy"].format_help()
     for option in ("--shell", "--band", "--wedge", "--shells", "--course", "--center-sector",
                    "--radius-pc", "--neighborhoods", "--estimate-only", "--limit"):
         assert option in sectors_help and option in galaxy_help, option
     for option in ("--then-scatter", "--no-settle", "--backfill-from"):
-        assert option in galaxy_help and option not in sectors_help, option
+        assert option not in galaxy_help and option not in sectors_help, option
     with pytest.raises(SystemExit):
         generate.build_parser()[0].parse_args(["sectors", "--then-scatter"])
 

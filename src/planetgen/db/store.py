@@ -7985,6 +7985,14 @@ def start_generation_run(conn, command, arguments, run_seed=None):
     return run_id
 
 
+def newest_sectors_run_start(conn):
+    """When the newest `sectors` or `galaxy` run started (`generation_runs.started_at`, the database's clock), the
+    default `--since` of `planetgen link`, `backfill` and `settle`; `None` when no such run is recorded."""
+    row = conn.execute("SELECT started_at FROM generation_runs WHERE command IN ('sectors', 'galaxy') "
+                       "ORDER BY id DESC LIMIT 1").fetchone()
+    return None if row is None else row["started_at"]
+
+
 def finish_generation_run(conn, run_id, outcome):
     """Records how run `run_id` ended (`ok`, `failed` or `interrupted`) and
     when, and commits."""

@@ -60,10 +60,6 @@ shell from about shell 12 on. Anything larger takes a real, unbounded amount
 of time and disk, so it needs an explicit choice."""
 
 
-BACKFILL_FROM_CHOICES = ("edge", "none")
-"""tuple: `--backfill-from`'s choices (GEN.30, GEN.98)."""
-
-
 def _format_address(address):
     """`(shell, band, wedge)` as the words the CLI prints."""
     shell_index, band_index, wedge_index = address
@@ -621,11 +617,9 @@ def _backfill_on_queue(args, started_at, center_pc=None):
 def backfill_after_run(args, edge_pc, started_at):
     """
     The bright-star backfill once a `galaxy` run has generated every
-    sector it was asked for (GEN.30, GEN.98): out from the run's edge
-    (`--backfill-from edge`, the default), the backfill distance past the
+    sector it was asked for (GEN.30, GEN.98): out from the run's edge, the backfill distance past the
     farthest generated sector in every direction (the union of the tier
-    radii around every sector the run generated), or not at all (`none`).
-    Nothing when the run generated no sector.
+    radii around every sector the run generated). Nothing when the run generated no sector.
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -636,10 +630,7 @@ def backfill_after_run(args, edge_pc, started_at):
     Returns:
         dict: `backfill_bright_stars_around`'s summary (zeros when skipped).
     """
-    mode = getattr(args, "backfill_from", "edge") or "edge"
     summary = {"sectors": 0, "stars": 0}
-    if mode == "none":
-        return summary
     config = store.mysql_config_from_args(args)
     conn = store.get_connection(config)
     try:
@@ -917,7 +908,7 @@ def settle_after_run(args, started_at):
     The last step of a `galaxy` run (GEN.126): once every sector, bright star and population is
     final, saves the path of every body in the sectors the run created and in the sectors around
     them, so each path sees the final set of neighbours whatever order the workers filled sectors in. On the new
-    queue (PERF.107): the `settle-sector-paths` command, one unit. Skipped with `--no-settle` (and for an estimate).
+    queue (PERF.107): the `settle-sector-paths` command, one unit.
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -926,8 +917,6 @@ def settle_after_run(args, started_at):
     Returns:
         int: How many paths were saved (0 when skipped or nothing was generated).
     """
-    if getattr(args, "no_settle", False):
-        return 0
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         created = sector_paths.sector_ids_since(conn, started_at)
@@ -1084,6 +1073,26 @@ def _default_generation_args(config=None):
     return args
 
 
+def _resolve_since(args):
+    """Fills in `args.since` when `--since` was not given: the start of the newest `sectors` or `galaxy` run.
+
+    Raises:
+        SystemExit: No such run is recorded, so there is no start to work from.
+    """
+    if args.since is not None:
+        return
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        args.since = store.newest_sectors_run_start(conn)
+    finally:
+        conn.close()
+    if args.since is None:
+        log.error("No 'sectors' or 'galaxy' run is recorded, so there is no start time: give --since TIME.")
+        raise SystemExit(1)
+    log.normal(f"Working on the sectors saved since {args.since:%Y-%m-%d %H:%M:%S}, the start of the newest "
+               f"'sectors' or 'galaxy' run.")
+
+
 def _sectors_made_since(args):
     """The ids of the galaxy sectors saved at or after `args.since` (the database's clock, `--since`)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
@@ -1099,6 +1108,7 @@ def run_link(args):
     `link-neighbours` command, one unit): containment, nearest systems and quadrants, and the new systems merged into the
     lists of the sectors around them. Nothing else; a failure ends the run.
     """
+    _resolve_since(args)
     stages.begin(stages.for_command("link", args), args, "link")
     created = _sectors_made_since(args)
     if not created:
@@ -1120,6 +1130,7 @@ def run_backfill(args):
     (`scatter-backfill`, GEN.30): the sectors a face away from them get the stars born from 1, 2, 5 and 8 solar masses
     up, each only where it is not drawn yet. Nothing else.
     """
+    _resolve_since(args)
     stages.begin(stages.for_command("backfill", args), args, "backfill")
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
@@ -1144,6 +1155,7 @@ def run_settle(args):
     `planetgen settle --since TIME` (PERF.123, GEN.126): saves the path of every body in the sectors saved since `TIME` and
     in the sectors around them (`settle-sector-paths`), so each path sees the final set of neighbours. Nothing else.
     """
+    _resolve_since(args)
     stages.begin(stages.for_command("settle", args), args, "settle")
     created = _sectors_made_since(args)
     if not created:
@@ -2533,11 +2545,10 @@ def run_galaxy(args):
         link_after_run(args, started_at)
     # GEN.30: the bright stars come after the sectors, so neither the
     # scatter nor the backfill draws stars for a sector the run filled.
-    if getattr(args, "then_scatter", False):
-        run_plan.scatter_bright_stars(args)
-        run_plan.scatter_phenomena(args)    # the last pass of GEN.185: the other phenomena, after the stars
+    run_plan.scatter_bright_stars(args)
+    run_plan.scatter_phenomena(args)        # the last pass of GEN.185: the other phenomena, after the stars
     backfill_after_run(args, edge_pc, started_at)
-    run_population.run_population_after(args)
+    run_population.run_population_stage(args)
     settle_after_run(args, started_at)
     nebula_blocks_after_run(args)
     stages.finish()

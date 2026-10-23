@@ -160,11 +160,10 @@ def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(mysql_config, mon
     monkeypatch.setenv("PLANETGEN_GENERATION_STATS", "1")
     _generate(mysql_config, monkeypatch, "plan", "--nuclear-amplitude", "0", "--edge=160pc",
               "--seed", galaxySeed.format_seed(SEED), *REFERENCE_SHAPE_ARGV)
-    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "2", "--num-systems", "2",
-              "--backfill-from", "none")
+    _generate(mysql_config, monkeypatch, "sectors", "--shell", "1", "--limit", "2", "--num-systems", "2")
     conn = store.get_connection(mysql_config)
     try:
-        run_id = conn.execute("SELECT id FROM generation_runs WHERE command = 'galaxy'").fetchone()["id"]
+        run_id = conn.execute("SELECT id FROM generation_runs WHERE command = 'sectors'").fetchone()["id"]
         sectors = {row["id"] for row in conn.execute("SELECT id FROM sectors").fetchall()}
         rows = conn.execute("SELECT sector_id, kind, object_count FROM object_timing_stats WHERE run_id = ?",
                             (run_id,)).fetchall()

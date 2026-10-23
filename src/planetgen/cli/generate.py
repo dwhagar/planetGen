@@ -479,10 +479,6 @@ def add_shared_generation_options(parser):
                              "process. Default: 80%% of this machine's cores (one fewer when MySQL runs "
                              "here too), or PLANETGEN_WORKERS; 1 generates one sector at a time in this "
                              "process.")
-    parser.add_argument('--population', action='store_true',
-                        help="Also run the population pass (species, civilizations, territories) "
-                             "after the sectors are saved. Off by default; 'planetgen population' "
-                             "runs it any time.")
     parser.add_argument('--strict', action='store_true', help=STRICT_HELP)
 
     add_logging_arguments(parser)
@@ -529,7 +525,7 @@ def validate_shared_generation_args(args, parser):
         parser.error("--density must be a positive number.")
 
     if args.density is None and args.num_systems is None:
-        # `galaxy` mode leaves both None rather than defaulting to a flat
+        # `galaxy` and `sectors` modes leave both None rather than defaulting to a flat
         # count here -- run_shell_batch/run_local_neighborhood compute each
         # sector's own --density from the galaxy skeleton's real
         # position-based relative_density instead (see their own
@@ -581,6 +577,10 @@ def add_sector_arguments(parser):
     parser.add_argument('--num-sectors', type=int, default=1,
                         help="Generate this many independent sectors, each with no galactic positioning, "
                              "saving all of them into the same database. Defaults to 1.")
+    parser.add_argument('--population', action='store_true',
+                        help="Also run the population pass (species, civilizations, territories) "
+                             "after the sectors are saved. Off by default; 'planetgen population' "
+                             "runs it any time.")
     parser.add_argument('--yes', action='store_true',
                         help="With --num-sectors > 1: don't ask before generating (the size and time "
                              "question a terminal gets). A run the database disk can't hold is still refused.")
@@ -733,41 +733,23 @@ def add_sectors_arguments(parser):
 def add_galaxy_arguments(parser):
     """
     Adds the `galaxy` subcommand's own options -- on top of whatever `add_shared_generation_options` already added
-    -- to `parser`: the sector options (`add_sectors_arguments`) and the options of the stages after the sectors
-    (`--no-settle`, the backfill and the scatters).
+    -- to `parser`: the sector options (`add_sectors_arguments`) and the options of the scatters after the sectors.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     add_sectors_arguments(parser)
-    parser.add_argument('--no-settle', action='store_true',
-                        help="Skip the last step of the run, which saves the path every star system, "
-                             "rogue planet and comet takes through its sector (for the sectors the run "
-                             "created and the ones around them). 'planetgen orbits' saves them later.")
-    backfill_group = parser.add_argument_group("bright stars after the run")
-    backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="edge",
-                                help="Once every sector of the run is generated, backfill the bright stars "
-                                     "out from the run's edge ('edge', the default) -- or not at all "
-                                     "('none'). Four steps outward (a face apart, no diagonals) "
-                                     "around the generated sectors get every star born from 1 solar mass "
-                                     "up in the nearest step, 2 in the next, then 5, then 8, and the "
-                                     "backfill never adds stars to a sector already generated.")
-    backfill_group.add_argument('--then-scatter', action='store_true',
-                                help="After the sectors and before the backfill, scatter the bright stars "
-                                     "galaxy-wide (as 'planetgen scatter --mass' and '--luminosity'), then the "
-                                     "phenomena (as 'planetgen scatter --phenomena'), leaving out "
-                                     "every sector already generated. A new galaxy uses this, so the "
-                                     "scatter never draws stars for sectors it would fill anyway.")
-    backfill_group.add_argument('--bright-star-min-luminosity', type=finite_float,
-                                default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
-                                help="With --then-scatter: the scatter's threshold, solar luminosities. "
-                                     f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
-    backfill_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
-                                help="With --then-scatter: the stellar mass limit of the scatters, solar "
-                                     "masses; blank keeps the one already stored, else "
-                                     f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
-    backfill_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
-                                help="With --then-scatter: " + COMPACT_MIN_MASS_HELP)
+    scatter_group = parser.add_argument_group("the scatters after the sectors")
+    scatter_group.add_argument('--bright-star-min-luminosity', type=finite_float,
+                               default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+                               help="The scatter's threshold, solar luminosities. "
+                                    f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
+    scatter_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
+                               help="The stellar mass limit of the scatters, solar "
+                                    "masses; blank keeps the one already stored, else "
+                                    f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
+    scatter_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
+                               help=COMPACT_MIN_MASS_HELP)
 
 
 def validate_galaxy_args(args, parser):
@@ -785,11 +767,10 @@ def validate_galaxy_args(args, parser):
                                           `--help`/usage text is shown).
     """
     check_compact_mass_limit(args, parser)
-    if args.then_scatter:
-        try:
-            args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
-        except ValueError as exc:
-            parser.error(f"--bright-star-min-luminosity: {exc}")
+    try:
+        args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
+    except ValueError as exc:
+        parser.error(f"--bright-star-min-luminosity: {exc}")
     validate_sectors_args(args, parser)
 
 
@@ -1163,10 +1144,10 @@ def _database_time(text):
 
 def add_since_arguments(parser):
     """Adds the options of a command that works on the galaxy sectors saved since a time (`link`, `backfill`, `settle`,
-    PERF.123): `--since` (the database's clock; a `galaxy` run says its start time), then the common ones."""
-    parser.add_argument('--since', type=_database_time, required=True, metavar='TIME',
+    PERF.123): `--since` (the database's clock; a `sectors` or `galaxy` run says its start time), then the common ones."""
+    parser.add_argument('--since', type=_database_time, default=None, metavar='TIME',
                         help="Work on the galaxy sectors saved at or after TIME, 'YYYY-MM-DD HH:MM:SS' on the "
-                             "database's clock.")
+                             "database's clock. Default: the start of the newest 'sectors' or 'galaxy' run.")
     add_fill_arguments(parser)
 
 

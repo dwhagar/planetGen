@@ -25,6 +25,11 @@ def _galaxy(*flags):
     return parsers["galaxy"].parse_args(list(flags))
 
 
+def _sectors(*flags):
+    _parser, parsers = generate_cli.build_parser()
+    return parsers["sectors"].parse_args(list(flags))
+
+
 def _plan(*flags):
     _parser, parsers = generate_cli.build_parser()
     return parsers["plan"].parse_args(list(flags))
@@ -45,19 +50,15 @@ def _labels(found):
     return [(stage.key, stage.skip is not None) for stage in found]
 
 
-def test_a_random_start_galaxy_run_has_nine_stages_with_the_unasked_ones_skipped():
-    found = stages.galaxy_stages(_galaxy("--then-scatter"))
+def test_a_random_start_galaxy_run_has_nine_stages_and_skips_none_of_them():
+    found = stages.galaxy_stages(_galaxy())
     assert _labels(found) == [
         ("start", False), ("neighborhood", False), ("link", False), ("mass", False), ("luminosity", False),
-        ("phenomena", False), ("backfill", False), ("population", True), ("settle", False)]
-    assert "population" in found[7].skip
+        ("phenomena", False), ("backfill", False), ("population", False), ("settle", False)]
 
 
-def test_without_then_scatter_the_three_scatter_stages_are_skipped_and_still_numbered():
-    found = stages.galaxy_stages(_galaxy("--backfill-from", "none", "--no-settle"))
-    assert len(found) == 9
-    assert {stage.key for stage in found if stage.skip} == {"mass", "luminosity", "phenomena", "backfill",
-                                                            "population", "settle"}
+def test_a_sectors_run_has_the_sector_stages_alone():
+    assert [stage.key for stage in stages.for_command("sectors", _sectors())] == ["start", "neighborhood"]
 
 
 def test_a_galaxy_run_with_an_address_has_one_sector_stage():
@@ -86,7 +87,7 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
-    stages.begin(stages.galaxy_stages(_galaxy("--then-scatter")))
+    stages.begin(stages.galaxy_stages(_galaxy()))
     stages.enter("start")
     stages.enter("link")           # "neighborhood" never ran
     stages.skip("mass", "no layers")
@@ -97,7 +98,7 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
     assert "Stage 2 of 9: Generate the neighborhood -- skipped: not needed." in text
     assert "Stage 4 of 9: Scatter the massive stars -- skipped: no layers." in text
-    assert "Stage 8 of 9: Run the population pass -- skipped: the population pass was not asked for." in text
+    assert "Stage 8 of 9: Run the population pass -- skipped: not needed." in text
     assert "Stage 9 of 9: Save the sector paths." in text
     assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 9
 
@@ -119,14 +120,14 @@ def test_the_new_galaxy_job_counts_every_stage_of_every_step():
     steps = _steps("new_galaxy", {"confirm": "db"})
     found = jobs.job_stages(steps)
     assert [s["label"] for s in found][:3] == [generate_page.DATA_CHECK_LABEL, "Reset the galaxy", "Plan the galaxy"]
-    assert len(found) == 12 and found[-1]["n"] == 12
-    assert [s["skipped"] is not None for s in found].count(True) == 1     # the population pass
+    assert len(found) == 11 and found[-1]["n"] == 11
+    assert not any(s["skipped"] for s in found)
 
 
-def test_ticking_skip_the_scatter_lists_those_stages_as_skipped_with_that_reason():
+def test_ticking_skip_the_scatter_leaves_the_scatter_steps_out():
     found = jobs.job_stages(_steps("new_galaxy", {"confirm": "db", "skip_scatters": "on"}))
     scatter = [s for s in found if s["label"].startswith("Scatter") and "neighborhood" not in s["label"]]
-    assert len(scatter) == 3 and all("box is ticked" in s["skipped"] for s in scatter)
+    assert scatter == [] and len(found) == 9
 
 
 def test_a_plan_job_lists_its_scatter_steps_stages():
@@ -137,13 +138,13 @@ def test_a_plan_job_lists_its_scatter_steps_stages():
 
 def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     steps = _steps("new_galaxy", {"confirm": "db"})
-    job = {"stages": jobs.job_stages(steps), "step": 4, "finished": False,
+    job = {"stages": jobs.job_stages(steps), "step": 7, "finished": False,
            "progress": {"stage": {"index": 4, "total": 9, "label": "Scatter the massive stars", "skipped": None}}}
     view = generate_page.stage_view(job)
-    assert view["stage_text"] == "Stage 7 of 12: Scatter the massive stars"
+    assert view["stage_text"] == "Stage 8 of 12: Scatter the massive stars"
     states = [s["state"] for s in view["stage_list"]]
-    assert states[:6] == ["done"] * 6 and states[6] == "running" and "waiting" in states
-    assert [s["state"] for s in view["stage_list"] if s["state"] == "skipped"] == ["skipped"]
+    assert states[:7] == ["done"] * 7 and states[7] == "running" and "waiting" in states
+    assert "skipped" not in states
 
 
 # --- PERF.56: each stage's time, stored with the settings it ran with ---------------------
@@ -166,8 +167,8 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
-    args = _galaxy("--then-scatter", "--phenomenon-min-mass", "16", "--bright-star-min-luminosity", "9000",
-                   "--workers", "2", "--no-settle", "--mysql-host", mysql_config.host,
+    args = _galaxy("--phenomenon-min-mass", "16", "--bright-star-min-luminosity", "9000",
+                   "--workers", "2", "--mysql-host", mysql_config.host,
                    "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
                    "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
     stages.begin(stages.galaxy_stages(args), args, "galaxy")
@@ -187,8 +188,7 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     assert metrics == {"shells": 40, "shells_modified": 7, "objects": 120}
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
-    assert history["population"]["skipped"] and "population pass" in history["population"]["skip_reason"]
-    assert history["settle"]["skipped"] and history["link"]["skipped"] is True
+    assert history["population"]["skipped"] and history["settle"]["skipped"] and history["link"]["skipped"] is True
     assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 9
 
 
@@ -248,10 +248,8 @@ def test_an_estimate_prefers_the_runs_with_the_same_settings(control_config, mon
 
 def test_the_backfill_stage_is_the_mass_scatter_from_the_neighborhood():
     # GEN.187: the backfill is now the mass rings around the generated sectors.
-    (found,) = [stage for stage in stages.galaxy_stages(_galaxy("--then-scatter")) if stage.key == "backfill"]
-    assert found.label == "Scatter the massive stars from the neighborhood"
-    (off,) = [stage for stage in stages.galaxy_stages(_galaxy("--backfill-from", "none")) if stage.key == "backfill"]
-    assert off.skip and "--backfill-from none" in off.skip
+    (found,) = [stage for stage in stages.galaxy_stages(_galaxy()) if stage.key == "backfill"]
+    assert found.label == "Scatter the massive stars from the neighborhood" and found.skip is None
 
 
 def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(control_config):
@@ -287,7 +285,7 @@ def test_the_whole_job_stores_its_shells_per_second_over_all_its_layers(control_
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
-    args = _galaxy("--then-scatter", "--phenomenon-min-mass", "16", "--workers", "2", "--mysql-host", mysql_config.host,
+    args = _galaxy("--phenomenon-min-mass", "16", "--workers", "2", "--mysql-host", mysql_config.host,
                    "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
                    "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
     stages.begin(stages.galaxy_stages(args), args, "galaxy")
@@ -333,7 +331,7 @@ def test_the_scatters_are_stored_on_their_own_and_added_up_for_a_scatter_with_no
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
-    args = _galaxy("--then-scatter", "--workers", "2", "--mysql-host", mysql_config.host,
+    args = _galaxy("--workers", "2", "--mysql-host", mysql_config.host,
                    "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
                    "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
     stages.begin(stages.galaxy_stages(args), args, "galaxy")
@@ -419,7 +417,7 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "12")
-    stages.begin(stages.galaxy_stages(_galaxy("--then-scatter")))
+    stages.begin(stages.galaxy_stages(_galaxy()))
     stages.enter("start")
     stages.enter("settle")
     stages.finish()
@@ -459,7 +457,7 @@ def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_
 
 def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
     """PERF.145: no stage appears twice in a run's log, whichever command, with or without the runner's numbering."""
-    for command, make in (("galaxy", lambda: stages.galaxy_stages(_galaxy("--then-scatter"))),
+    for command, make in (("galaxy", lambda: stages.galaxy_stages(_galaxy())),
                           ("plan", lambda: stages.plan_stages(_plan()))):
         for env in ({}, {stages.STAGE_OFFSET_ENV: "2", stages.STAGE_TOTAL_ENV: "30"}):
             lines = []
@@ -482,7 +480,7 @@ def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
 def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "8")
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "9")
-    stages.begin(stages.galaxy_stages(_galaxy("--then-scatter")))
+    stages.begin(stages.galaxy_stages(_galaxy()))
     try:
         assert stages._numbering() == (0, 9)
     finally:
@@ -494,8 +492,8 @@ def test_the_runner_and_the_stages_agree_on_the_variables_that_number_a_jobs_sta
     assert (job_runner.STAGE_OFFSET_ENV, job_runner.STAGE_TOTAL_ENV) == (stages.STAGE_OFFSET_ENV, stages.STAGE_TOTAL_ENV)
 
 
-def test_the_new_galaxy_log_counts_twelve_tasks_not_four(tmp_path):
-    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 11 stages (12 and 4 with the data check, GEN.590)."""
+def test_the_new_galaxy_log_counts_twelve_tasks_not_five(tmp_path):
+    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 12 stages (13 and 5 with the data check, GEN.590)."""
     import sys
     from planetgen.web import job_runner
     steps = _steps("new_galaxy", {"confirm": "db"})
@@ -503,7 +501,7 @@ def test_the_new_galaxy_log_counts_twelve_tasks_not_four(tmp_path):
               "argv": [sys.executable, "-c", "import os; print(os.environ['PLANETGEN_STAGE_OFFSET'], os.environ['PLANETGEN_STAGE_TOTAL'])"]}
              for step in steps]
     counts = job_runner._step_stage_counts(shown)
-    assert counts == [1, 1, 1, 9] and sum(counts) == 12
+    assert counts == [1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1] and sum(counts) == 12
     job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
     job_dir.mkdir(parents=True)
     (job_dir / "job.json").write_text(json.dumps({
@@ -511,10 +509,10 @@ def test_the_new_galaxy_log_counts_twelve_tasks_not_four(tmp_path):
         "cwd": str(tmp_path), "env": {}, "steps": shown}))
     assert job_runner.run(str(job_dir)) == 0
     log_text = (job_dir / "output.log").read_text()
-    assert "=== Stage 1 of 12: " in log_text and "=== Stage 3 of 12: " in log_text
-    assert "=== Stages 4 to 12 of 12: " in log_text and "of 4" not in log_text
-    assert "=== Stages 4 to 12 exited with status 0" in log_text
-    assert "\n3 12\n" in log_text      # the last step's process was told its stages start at 4 of 12
+    assert "=== Stage 1 of 12: " in log_text and "=== Stage 4 of 12: " in log_text
+    assert "=== Stages 5 to 6 of 12: " in log_text and "of 5" not in log_text
+    assert "=== Stages 5 to 6 exited with status 0" in log_text
+    assert "\n4 12\n" in log_text      # the sectors step's process was told its stages start at 5 of 12
 
 
 def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_jobs_until_the_last(monkeypatch):

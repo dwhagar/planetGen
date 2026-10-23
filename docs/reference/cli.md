@@ -267,21 +267,17 @@ number of sectors in shell 100,000.
 The web Generate page and the API check the same bounds
 (`src/planetgen/generation/limits.py`).
 
-After the sectors, a run saves the path every star system, rogue planet and
-comet takes through its sector, for the sectors it created and the ones around
-them; `--no-settle` skips that step (`planetgen orbits` saves the paths later).
-Once every sector of the run is generated, the bright stars around the run's
-edge are backfilled: four steps outward around the generated sectors (a face
-apart, no diagonals) get every star born from 1 solar mass up in the nearest
-step, 2 in the next, then 5, then 8, and a sector already generated never
-gets any. `--backfill-from none` skips it (`edge` is the default).
-`--then-scatter` first scatters the bright stars galaxy-wide, as
-`planetgen scatter --mass` and `scatter --luminosity` do, and then the phenomena,
-as `scatter --phenomena` does, leaving out every sector already generated; a new
-galaxy uses it so the scatter never draws stars for sectors the run fills
-anyway. With it, `--bright-star-min-luminosity` (9000 solar luminosities by
-default), `--phenomenon-min-mass` and `--compact-min-mass` set the
-scatter, as on `scatter`, which is described below.
+A `galaxy` run does every stage (PERF.123), with no option to leave one out: the sectors, the link to their
+neighbours, the galaxy-wide scatters, the backfill, the population pass and the paths. After the sectors it scatters
+the bright stars galaxy-wide, as `planetgen scatter --mass` and `scatter --luminosity` do, and then the phenomena, as
+`scatter --phenomena` does, leaving out every sector already generated, so the scatter never draws stars for sectors
+the run filled; `--bright-star-min-luminosity` (9000 solar luminosities by default), `--phenomenon-min-mass` and
+`--compact-min-mass` set the scatters, as on `scatter`, which is described below. Once every sector of the run is
+generated, the bright stars around the run's edge are backfilled: four steps outward around the generated sectors (a
+face apart, no diagonals) get every star born from 1 solar mass up in the nearest step, 2 in the next, then 5, then 8,
+and a sector already generated never gets any. Last it saves the path every star system, rogue planet and comet takes
+through its sector, for the sectors it created and the ones around them. Whoever wants fewer stages runs the commands
+in turn: `planetgen sectors`, then `link`, `scatter`, `backfill`, `population` and `settle`, as the Generate page does.
 
 ### Parallel generation
 
@@ -535,7 +531,7 @@ the rest of its systems from dimmer stars only, so its expected total is
 unchanged. Every system's age comes from the stellar population mix where
 its sector sits (young stars crowd the arms near the plane; the bulge is
 old). Every option belongs to one kind and is refused with another. `planetgen plan` takes none of them, and
-a plan alone places no stars (and empties what an earlier plan's scatters left); `galaxy --then-scatter` runs the
+a plan alone places no stars (and empties what an earlier plan's scatters left); `galaxy` runs the
 kinds as steps of one run.
 
 A scatter draws only where none of its kind is stored (Boss's F7): it stops and names the clear to run first, so
@@ -550,9 +546,9 @@ setting, clear it and draw it again; to change the mass limit, clear `--luminosi
 
 `planetgen clean-nebula-field` (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (`tuning.NEBULA_FIELD_KEEP`): without `--apply` it counts, per class, the stored field clouds the rule now rejects and changes nothing; `--apply` deletes them (everything inside them loses its `inside_nebula_id`, and containment is refreshed in the sectors they reached). A nebula that was not made by the field is left alone. `planetgen scatter --nebula-field` then draws the `nebula_field` table again.
 
-`planetgen sectors` (PERF.123) is the sector-generating part of `galaxy` as a command of its own: it takes every mode and sector option `galaxy` does (`--shell`, `--band`, `--wedge`, a span, `--course`, `--center-sector`, the random-start options, `--limit`, `--yes`, `--estimate-only`, and the generation options) and none of the later stages' options (`--then-scatter`, `--no-settle`, `--backfill-from`, the scatter limits). It saves the sectors unlinked and says the run's start time on the database's clock; `planetgen link`, `backfill` and `settle` then take that time as `--since`.
+`planetgen sectors` (PERF.123) is the sector-generating part of `galaxy` as a command of its own: it takes every mode and sector option `galaxy` does (`--shell`, `--band`, `--wedge`, a span, `--course`, `--center-sector`, the random-start options, `--limit`, `--yes`, `--estimate-only`, and the generation options) and none of the later stages' options (the scatter limits). It saves the sectors unlinked and says the run's start time on the database's clock; `planetgen link`, `backfill` and `settle` then take that time as `--since`.
 
-`planetgen link`, `planetgen backfill` and `planetgen settle` (PERF.123) are the last three stages of a `galaxy` run as commands of their own, each for the galaxy sectors saved at or after `--since TIME` (`YYYY-MM-DD HH:MM:SS` on the database's clock; a `galaxy` run says its start time near its start). `link` links those sectors to their neighbours (containment, nearest systems and quadrants, and the new systems merged into the sectors around them). `backfill` draws the bright stars out from them, each sector only where it is not drawn yet. `settle` saves the path of every body in them and in the sectors around them. Each is one run through the work queue, takes only `--since`, `--workers` and the connection options, can be run again, and does nothing (starts no run) when no sector was saved since `TIME`.
+`planetgen link`, `planetgen backfill` and `planetgen settle` (PERF.123) are the last three stages of a `galaxy` run as commands of their own, each for the galaxy sectors saved at or after `--since TIME` (`YYYY-MM-DD HH:MM:SS` on the database's clock; a `sectors` or `galaxy` run says its start time near its start; without `--since`, the start of the newest `sectors` or `galaxy` run). `link` links those sectors to their neighbours (containment, nearest systems and quadrants, and the new systems merged into the sectors around them). `backfill` draws the bright stars out from them, each sector only where it is not drawn yet. `settle` saves the path of every body in them and in the sectors around them. Each is one run through the work queue, takes only `--since`, `--workers` and the connection options, can be run again, and does nothing (starts no run) when no sector was saved since `TIME`.
 
 `planetgen fill-map-luminosity` (DB.23, GEN.201) fills `phenomenon_scatter.map_luminosity_sol`, the luminosity a star of a row's mass would have on the Galaxy Map, for a galaxy scattered before schema v84: id-range batches of 200,000 rows, each its own short statement and commit, resumable (it only fills rows still empty). A new scatter writes the value with each row. `planetgen rescore-habitability` (GEN.217) re-derives the stored habitability numbers of every planet and moon from its stored conditions: the flux swing of a body in a double-star system (loading that system, as generation does), the PHI-6 index, the six domains and their tiers, the survival equipment levels and the note. It is for a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is worked out from the same conditions whenever a page is drawn. Nothing else is touched; each batch of 500 systems is its own transaction and the result is the same however often it is run, so a stopped run is started again. A gas giant and a body saved before schema v76 (no score) are left alone. Both take only `--workers` and the connection options.
 
@@ -621,8 +617,7 @@ planetgen population --rescan            # forget everything and start over (new
 planetgen population --territories-only  # only recompute who owns which system
 ```
 
-`planetgen sector` and `planetgen galaxy` run it after saving when
-given `--population`. The install scripts offer it (y/N,
+`planetgen sector` runs it after saving when given `--population`, and `planetgen galaxy` always runs it as one of its stages. The install scripts offer it (y/N,
 default N after 30 seconds; `POPULATION=1` or `-Population` runs it
 without asking). The website hides species, polities and the Galaxy
 Map's Territories overlay until it has made something to show
