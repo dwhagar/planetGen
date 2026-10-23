@@ -19,3 +19,6 @@
   size-frequency laws of belts, comets, Kuiper belt objects and interstellar objects, and binary and satellite fractions by
   size, with the numbers read in each paper). The size-law note corrects the interstellar object density in
   `unified-star-like-objects.md`: 0.1 to 0.2 per au3 is 7e14 to 1.8e15 per pc3, not 1e12.
+- **The unit docs describe the registry (DOC.70).** `docs/design/units-and-number-formatting.md` now says where the units live
+  (the unit registry, `Quantity`, the relations, the field declarations, the column registry, the display ladders, the
+  browser copy) and that the registry is the only unit table; `docs/database-schema.md` has a "Units of a column" section.
