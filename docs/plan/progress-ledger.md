@@ -1082,3 +1082,4 @@ Baseline: PR #1817.
 | GEN.498 | 8.1 | Composition tables |
 | GEN.496 | 8.1 | Composition tables |
 | PERF.150 | 8.1 | Queue, caches and performance |
+| GEN.470 | 8.1 | Composition tables |
