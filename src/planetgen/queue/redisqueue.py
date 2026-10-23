@@ -218,6 +218,11 @@ TASK_RETRIES = 1
 POLL_SECONDS = 0.05
 """float: How often `RQExecutor.wait` reads the tasks' states."""
 
+WORKER_CRASH_LIMIT = 10
+"""int: How many of a run's workers may exit with a failure in a row, with no task finished in between, before the run
+fails. A worker that cannot start (an import error, no memory, a Redis it cannot reach) is started again at once while
+tasks wait, and without a limit that goes on for ever, a process every few milliseconds (TEST.295)."""
+
 STOP_GRACE_SECONDS = 1.5
 """float: How long a stopped worker gets between the two stop signals. RQ's first SIGTERM is a warm shutdown (the
 work horse finishes its task), the second a cold one (the horse is killed); RQ ignores a second signal that comes
@@ -350,9 +355,26 @@ class RQExecutor:
         self.queue = queue(name, self.connection)
         self._procs = {}  # worker name -> its process
         self._started = 0
+        self._counted = set()  # names of the workers whose failed exit is in `_crash_streak`
+        self._crash_streak = 0
+        self._broken = None  # the `WorkerDied` that ends the run once `WORKER_CRASH_LIMIT` workers failed in a row
 
     def _fill_workers(self):
-        """Starts workers until `workers` of the run's own are alive."""
+        """Starts workers until `workers` of the run's own are alive, unless `WORKER_CRASH_LIMIT` of them in a row
+        exited with a failure (then `_broken` says so and none is started)."""
+        for name, proc in self._procs.items():
+            code = proc.poll()
+            if code not in (None, 0) and name not in self._counted:
+                self._counted.add(name)
+                self._crash_streak += 1
+                last = (name, code)
+                if self._crash_streak >= WORKER_CRASH_LIMIT and self._broken is None:
+                    self._broken = WorkerDied(
+                        f"{self._crash_streak} workers in a row exited with a failure and no task finished in "
+                        f"between (the last, {last[0]}, with code {last[1]}); their output is discarded, so run "
+                        f"`{' '.join(worker_argv([self.queue.name], self.url, last[0]))}` to see why")
+        if self._broken is not None:
+            return
         alive = sum(1 for proc in self._procs.values() if proc.poll() is None)
         for _ in range(self.workers - alive):
             self._started += 1
@@ -388,6 +410,8 @@ class RQExecutor:
                 continue
             status = job.get_status(refresh=False)
             future.status = getattr(status, "value", status)
+            if future.status == "finished":
+                self._crash_streak = 0
             if future.status == "failed" and job.retries_left:
                 future.status = "queued"  # RQ puts it back for another worker
             elif future.status == "started" and self._worker_gone(job.worker_name):
@@ -408,6 +432,8 @@ class RQExecutor:
                 return done
             if self.queue.count:
                 self._fill_workers()
+            if self._broken is not None:
+                raise self._broken
             time.sleep(POLL_SECONDS)
 
     def channel(self, name):
@@ -463,6 +489,8 @@ class RQExecutor:
                 break
             if self.queue.count:
                 self._fill_workers()
+            if self._broken is not None:
+                break
             time.sleep(POLL_SECONDS)
         for proc in self._procs.values():
             try:

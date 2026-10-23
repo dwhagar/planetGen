@@ -134,6 +134,25 @@ def test_a_dead_worker_never_hangs_the_run(control_config, attempt):
     assert isinstance(outcome.get("raised"), redisqueue.WorkerDied)
 
 
+def test_workers_that_die_at_start_fail_the_run_instead_of_being_started_for_ever(monkeypatch, redis_server):
+    """TEST.295: with every worker exiting at once, tasks waiting and the queue never empty, the executor started a
+    worker every few milliseconds (752 in 21 s) and the run never ended."""
+    started = []
+
+    def dying(names, url, name=None, python=None, burst=True):
+        started.append(name)
+        return [sys.executable, "-c", "raise SystemExit(3)"]
+
+    monkeypatch.setattr(redisqueue, "worker_argv", dying)
+    began = time.monotonic()
+    with pytest.raises(redisqueue.WorkerDied, match=r"10 workers in a row exited with a failure.*code 3"):
+        with workQueue.WorkQueue("Workers die at start", workers=2) as queue:
+            for n in range(4):
+                queue.submit("die", f"n{n}", _square, n)
+    assert time.monotonic() - began < 60
+    assert redisqueue.WORKER_CRASH_LIMIT <= len(started) <= redisqueue.WORKER_CRASH_LIMIT + 2, started
+
+
 def test_a_run_whose_record_stands_still_is_taken_for_hung(control_config):
     """TEST.277: the wait of the test above gives up on a run that changes nothing, and not before."""
     never = threading.Event()
