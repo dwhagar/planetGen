@@ -1114,3 +1114,5 @@ Baseline: PR #1817.
 | GEN.403 | 8.1 | Galaxy laws build |
 | GEN.284 | 8.1 | Galactic core and halo |
 | TEST.196 | 8.1 | The headline closes |
+| GEN.468 | 8.1 | Composition research and design |
+| GEN.465 | 8.1 | Composition research and design |

@@ -520,7 +520,7 @@ Test targets only, never presets. Each should be reproduced by the stated law wi
 8. Mumma and Charnley 2011 (Annu. Rev.): comet volatile tables; Bardyn et al. 2017: comet refractory composition. NOT REACHED.
 9. Nimmo and McKinnon: Pluto interior and ice fraction. NOT REACHED.
 10. Crida and Charnoz 2012: ring-origin moon composition and rules. Abstract READ; full text garbled. NOT REACHED.
-11. Metal weight percent per chondrite group (Lodders 2021 Fe split, or Rubin). Only RECALLED values.
+11. Metal weight percent per chondrite group (Lodders 2021 Fe split, or Rubin). Volume percent per group is now READ (Weisberg, McCoy and Krot 2006 Table 1; part H section 3.5) with a COMPUTED weight percent for the ordinary groups; the measured weight percent per group is still NOT REACHED.
 12. Moon counts and mass partition from circumplanetary-disk models (Sasaki Table 1 only gives one set).
 13. Low-pressure compaction pressure P0 for water ice and for ice-rock mixtures.
 14. Lodders 2003 (reachable on IOP but bot-checked): use Lodders 2021 instead (done).

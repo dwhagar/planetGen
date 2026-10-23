@@ -236,7 +236,7 @@ Bulk silicate Earth totals for a bulk silicate mass of 4.03e24 kg (the mass Dye 
 
 Refractory and volatile behaviour (COMPUTED from the table above): Th/U is the same in CI (3.70) and the bulk silicate Earth (3.71), so Th and U track each other. K/U is 67 407 in CI and 11 354 in the bulk silicate Earth, a depletion factor of 0.168: K is volatile and must be drawn separately from Th and U. Th and U are lithophile and refractory, so they follow Al, Ca and Ti; the bulk silicate Earth is enriched over CI by a factor of about 2.8 in Th (0.0849 over 0.030), the same factor that applies to Al2O3 (4.5 over 1.59, 2.8). Use that: Th and U in the silicate part scale with the refractory (Al) enrichment of the body.
 
-Condensation temperatures (50 percent, nebular pressure 1e-4 bar, from Lodders, Palme and Gail 2009, arXiv:0901.1149, Table 1, READ): Th 1659 K, Al 1653 K, U 1610 K, Ti 1582 K (all refractory, host phase hibonite or titanite); Na 958 K and Rb 800 K (moderately volatile). Potassium is not in the part of the table that could be read; its value of 1006 K is RECALLED. The ordering Th, U above Mg and Si (1354 K), and Na and K well below them, is the physical reason for the volatile K and the refractory Th and U. The solar and CI abundance tables of Asplund et al. 2009 (arXiv:0909.0948) were also downloaded; the paper states that its proto-solar values for radioactive nuclides come from Lodders, Palme and Gail 2009 (READ, text).
+Condensation temperatures (50 percent, nebular pressure 1e-4 bar, from Lodders, Palme and Gail 2009, arXiv:0901.1149, Table 1, READ): Th 1659 K, Al 1653 K, U 1610 K, Ti 1582 K (all refractory, host phase hibonite or titanite); Na 958 K and Rb 800 K (moderately volatile). Potassium is not in the part of that table that could be read; its value of 1006 K is now READ in Lodders 2003 (feldspar, solar-system composition; see part H section 3.4). The ordering Th, U above Mg and Si (1354 K), and Na and K well below them, is the physical reason for the volatile K and the refractory Th and U. The solar and CI abundance tables of Asplund et al. 2009 (arXiv:0909.0948) were also downloaded; the paper states that its proto-solar values for radioactive nuclides come from Lodders, Palme and Gail 2009 (READ, text).
 
 #### 2.8c Heat with time
 
@@ -326,7 +326,7 @@ Dose from the reservoirs (COMPUTED from table 2.8b and the factors above; nGy/h;
 | Upper continental crust (felsic) | 72.1 | 70.9 | 0.632 | COMPUTED |
 | World soil mean check: 33 Bq/kg U, 45 Th, 420 K | 60.1 | n/a | 0.527 | COMPUTED |
 
-The soil activities 33 / 45 / 420 Bq/kg are the UNSCEAR world means, RECALLED (the original UNSCEAR report was not opened), so the last row is a sanity check only. Spread from ultramafic to felsic: a factor of about 650. The repo's `GROUND_MSV_YR = 0.48` mSv/yr agrees with UNSCEAR's total terrestrial external effective dose, indoors plus outdoors (RECALLED, verify): it includes buildings, which a wild planet does not have. Outdoor, full-time, 0.7 Sv/Gy (RECALLED) from the 60 nGy/h soil mean is 0.37 mSv/yr.
+The soil activities 33 / 45 / 420 Bq/kg were the UNSCEAR world means as RECALLED; UNSCEAR 2008 Annex B is now READ (part H section 3.3): 33 (238U), 32 (226Ra), 45 (232Th) and 412 (40K) Bq/kg, so 412 replaces 420, and the last row is a sanity check only. Spread from ultramafic to felsic: a factor of about 650. The repo's `GROUND_MSV_YR = 0.48` mSv/yr agrees with UNSCEAR's total terrestrial external effective dose, indoors plus outdoors (0.48 mSv/yr, UNSCEAR 2008 Table 12, READ in part H section 3.3): it includes buildings, which a wild planet does not have. Outdoor, full-time, 0.7 Sv/Gy (RECALLED) from the 60 nGy/h soil mean is 0.37 mSv/yr.
 
 Radon: the repo adds a flat 0.5 mSv/yr above 1000 Pa. No source for radon dose per unit of uranium, emanation fraction or atmospheric mixing was reached (NOT REACHED). Radon in air scales with Ra-226 in the soil, so with U, and needs open soil and an atmosphere that holds radon; the rule in section 3 is a placeholder scaling.
 
@@ -565,7 +565,7 @@ Measured bodies, used only to check the laws, never as presets.
 | Mars dose under 16 g/cm2 | 6.2 cGy/yr absorbed, peak 6.6 at 40 g/cm2 | Dartnell 2007 | dose-depth shape | READ |
 | Lunar orbit absorbed dose | 0.22 to 0.27 mGy/day | arXiv:2001.11028 | free-space GCR | READ |
 | Arrokoth geometric albedo | 0.21 (550 nm), 0.24 (610 nm) | arXiv:2003.01224 | dark red ice | READ |
-| World soil gamma | 60 nGy/h (from 33 / 45 / 420 Bq/kg) | RECALLED activities | gamma conversion | COMPUTED |
+| World soil gamma | 60 nGy/h (from 33 / 45 / 420 Bq/kg; UNSCEAR 2008 gives 33 / 45 / 412 and 58 nGy/h outdoors) | activities now READ (part H) | gamma conversion | COMPUTED |
 | Proton range | PSTAR table 2.9c | NIST PSTAR | stopping | READ |
 | Elemental ratios of chondrites | K/U 67 407 (CI) and 11 354 (BSE); Th/U 3.7 | table 2.8b | refractory/volatile rule | COMPUTED |
 | Asteroid heat sources | Al-26 plus long-lived heat of chondrites | part D section 2.5 | cross-check with D | READ |
@@ -580,7 +580,7 @@ Ranked by effect on the design.
 1. A K depletion survey for rocky bodies: McCubbin et al. 2012 (K variation across Solar System bodies, cited by Nimmo et al. 2020) and Lodders 2003, ApJ 591, 1220 (the IOP page opened but only the abstract; the K condensation temperature of 1006 K is RECALLED). Gives the distribution of `d_K`.
 2. Original geochemical references behind publisher walls, to turn the pyrolite-package numbers (2ND-HAND) into READ: Palme and O'Neill 2014 (Treatise on Geochemistry 3.1, Elsevier), Rudnick and Gao 2014 (Treatise 4.1), McDonough and Sun 1995 (Chem. Geol. 120, 223), Gale et al. 2013 (Geochem. Geophys. Geosyst. 14, 489, AGU), Workman and Hart 2005 (EPSL 231, 53). Elsevier and AGU pages were refused.
 3. Komatiite, Mars, Venus and lunar crust oxide tables: Taylor and McLennan (Planetary Crusts, 2009), Wanke and Dreibus on Martian soil, Arndt on komatiite; each would give a calibration row.
-4. Radon: UNSCEAR 2008 Annex B (Ra-226 to radon emanation, indoor and outdoor dose, soil Ra-226 activities) to replace the flat 0.5 mSv/yr and the 33 / 45 / 420 Bq/kg world soil means (RECALLED).
+4. Radon: UNSCEAR 2008 Annex B (Ra-226 to radon emanation, indoor and outdoor dose, soil Ra-226 activities) to replace the flat 0.5 mSv/yr and the 33 / 45 / 420 Bq/kg world soil means. Done in part of GEN.465 (part H section 3.3): the soil means are READ, indoor radon is log-normal with geometric mean 45 Bq/m3 and GSD 2.1; the radon emanation fraction from soil Ra-226 is still not found.
 5. Ground-depth dose profile for non-Mars cases: Geant4 or published dose-depth curves for the Moon and thick atmospheres (Dartnell's Fig. 6 data digitised; Schwadron, Wilson or Dartnell follow-ups). Gives the build-up amplitude and Lambda in the ground.
 6. Space weathering darkening amplitude (the `d` in 2.7) per mineral type: Hapke-type models and lunar sample reflectance (Pieters et al.; Lucey), and the fresh-to-weathered ratio for anorthositic, basaltic and ultramafic regolith.
 7. Visible reflectance of CO2, CH4, NH3, N2, SO2 and tholin frosts and of Mars dust, with grain-size dependence (Grundy and Fink; Cruikshank; Mars Pancam dust papers behind publishers).
@@ -597,7 +597,7 @@ Ranked by effect on the design.
 3. Sulfur melting point 388.4 K, iron melting point 1811 K, iron enthalpy of vaporisation 340 kJ/mol, SO2 enthalpy of fusion 7.4 kJ/mol.
 4. Dose-equivalent factor 0.7 Sv/Gy and the UNSCEAR 0.48 mSv/yr total terrestrial dose (it explains the repo's `GROUND_MSV_YR`).
 5. World soil means 33 / 45 / 420 Bq/kg.
-6. Condensation temperature of K, 1006 K (Th, U, Na are READ in 2.8b).
+6. Condensation temperature of K, 1006 K (Th, U, Na are READ in 2.8b). Now READ in Lodders 2003 (part H section 3.4).
 7. Calorimetric Cp of forsterite near 300 K (about 840 J/kg/K) used to state the Debye overestimate.
 8. Continental crust holds about 40 percent of Th and U of the bulk silicate Earth.
 9. Gas phase data values in the CSV that are marked H come from CRC files read in the `chemicals` package; a few (CO Hvap, Ar Hvap, H2 Hvap) were not cross-checked with NIST.

@@ -9286,7 +9286,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one switch with both values selectable, the Marboeuf-derived sequence
   (water 0.14 to 0.39 of the solids) as the research draft's default and
   the Lodders, Zeng, Venturini, Bitsch and Burn convention (about 0.5);
-  GEN.468 stays open to settle the factor of two from a source. Changes
+  GEN.468 is done (Core 4, #2644, 7:04 AM EDT 2026-10-23 as the lane reported): the factor of two is narrowed, not settled (different denominators plus a real ice/rock difference, equilibrium about 2.0 against comets about 1.0), the default stays Marboeuf-derived and the switch names its denominator (docs/design/body-composition-parts/H-gen465-second-pass-tables.md section 2). Changes
   stored values, so it ships with a generator epoch bump and joins the
   one rescatter of 8.4. Done: a test checks the draw's median and
   scatter against the stated values, that the same system gives the same
@@ -9686,33 +9686,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescatter of 8.4", this wins.
   Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
-- [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread.
-  Reachable since the network was widened and not yet extracted (master
-  section 8): UNSCEAR 2008 Annex B (radon and soil Ra-226), the VizieR
-  catalogue pages (Brewer and Fischer 2016 tables, the joint Fe, Mg and
-  Si distribution), and the Zenodo record 10527170 (planet-by-planet ice
-  fractions of the steam-world and migration populations); the lane also
-  lists loading the Lodders 2021 chondrite table (all 11 groups, ppm per
-  element, K, Th, U) and verifying the RECALLED metal weight percents
-  per group as small read-only jobs (part D section 6, group 1), and the
-  unreached references of parts A to E (each part's section 5) that a
-  newly reachable host may now serve. A read-only research thread: reads
-  each source, labels every number read, second-hand or not found,
-  writes the extracted tables to /mnt/project-files/design-drafts/, and
-  says what stays Boss's. Done: each source above is read or marked not
-  reachable, the tables are in the draft folder with their labels, and
-  the TODO thread merges them into docs/design and relabels the rows it
-  can. Unowned: any read-only thread.
-  Prerequisites: none. Related: GEN.426, GEN.427, GEN.435, GEN.436,
-  GEN.457.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.466 Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -9800,54 +9773,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
   close the 1e20 kg porosity jump by moving the hand-over (density stays
   1.32 to 1.35 times low up to 3e23 kg).
-
-- [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread. Master
-  section 5 decision 2 and part C section 2.2: Marboeuf 2014 gives an
-  ice-to-rock ratio of 1 +/- 0.5 over all ices, which makes water 0.14
-  to 0.39 of the solids, while the convention of Lodders, Zeng,
-  Venturini, Bitsch and Burn is about 0.5; no source read resolves the
-  factor of two. Boss decided (2026-10-17, 1:21 AM EDT, card "Keep the
-  switch"): both values stay selectable through one switch with the
-  research draft's default (the Marboeuf-derived sequence) until a
-  source settles it, and this research stays open. A read-only research
-  thread (or Boss for the walled paper: Lodders 2003, ApJ 591, 1220,
-  full text; master section 8 rank 1): reads the full text and the
-  condensation-sequence tables, the water share of the solids against
-  the formation distance in the planet-population studies (Venturini,
-  Bitsch, Burn, the NGPPS tables and the Zenodo record 10527170 of
-  GEN.465), and says which value the physics supports and in which
-  range. Done: the factor of two is explained or narrowed with every
-  number labelled read, second-hand or not found, the result is in
-  docs/design/body-composition-research.md section 5, and the default of
-  the switch is set or kept with the reason. Unowned: any read-only
-  thread.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Lodders 2003 (Astrophys. J. 591, 1220,
-  doi 10.1086/375492) has a free IOP PDF; a thread retries it for the
-  condensation temperatures (BC1).
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC1: Lodders 2003 (condensation temperatures) is behind a
-  captcha from the build container, so a person has to fetch it; nothing
-  is blocked, the oxygen-budget water share reproduces 0.14 to 0.39
-  (all-methane limit 0.54), and the ice forms near 150 K by
-  Clausius-Clapeyron at nebular pressure. The keep-the-switch decision
-  stands.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 16, "Keep 170 K
-  centre": the snow line keeps the 170 K blackbody centre
-  (`SNOW_LINE_AU_AT_1_LSUN = 2.7`) with 0.2 dex of scatter; 150 K lies
-  inside that scatter and is noted, not a second centre.
-  Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
