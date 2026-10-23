@@ -187,11 +187,16 @@ sectors.
 **Validation before generation.** Every `planetgen galaxy` mode (an address, a
 span of shells, bands and wedges, a neighborhood, a random start, a course)
 and visit-time generation (`generate.ensure_sector_generated`) ask
-`skeleton.GalaxyBounds.contains(shell, band)` first. An address outside is
-refused with the reason (`describe_miss`), even with `--density` or
-`--num-systems`. A neighborhood near the edge leaves out the sectors past it.
-A random start draws a uniformly random sector from inside the outline, every
-sector equally likely (`GalaxyBounds.random_address`). `planetgen galaxy`
+`skeleton.GalaxyBounds.contains(shell, band)` first, and that asks only
+whether the cell is inside the grid's reach (GEN.235): the one refusal, with
+the reason (`describe_beyond_reach`). A cell outside the outline but inside
+the reach is not refused: it is generated from its own density with a random
+draw around the expected count, however sparse (GEN.76), even with
+`--density` or `--num-systems`. The outline only shapes the choices nobody
+named: a random start draws a uniformly random sector from inside the
+outline, every sector equally likely (`GalaxyBounds.random_address`), and a
+neighborhood, the map's planned slots and a span that names no range stay
+inside it (`GalaxyBounds.qualifies`). `planetgen galaxy`
 refuses to run before `planetgen plan`.
 
 **Bright stars (schema v43).** `planetgen plan` also places every star at or
@@ -286,8 +291,8 @@ cell holding their position; `sector_stats` is counted again; and
   its new sector in the conversion; positions are unchanged.
 - **Validate before generating.** Earlier random starts drew from a fixed
   region that could land outside the galaxy; checking afterwards wasted
-  generation. Storing the outline lets every path refuse a bad address up
-  front.
+  generation. Storing the reach lets every path refuse an address the grid
+  cannot name up front; the outline only says which cells are planned.
 - **Parsecs for galaxy scale.** Milliparsecs give 8-digit numbers across the
   galaxy, and light-years would need an AU round trip to compare with the
   `_mpc` sector columns. Parsecs stay in the same unit family as
