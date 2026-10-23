@@ -18,6 +18,8 @@ from planetgen.galaxy.navigation import course_between
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy.sector import SpaceSector
 
+from tests.test_parallel_generation import make_database  # noqa: F401 -- a fixture
+
 _POSITION = {"center_x_pc": 8000.0, "center_y_pc": 20.0, "center_z_pc": 5.0, "galactic_radius_pc": 8000.03}
 
 
@@ -156,3 +158,28 @@ def test_a_remnant_core_gets_its_own_core_id(mysql_config):
     assert objectId.parse_id(remnant.name)["kind"] == "supernova-remnant"
     core = objectId.parse_id(remnant.compact_remnant.name)
     assert core["kind"] in ("black-hole-core", "neutron-star-core")
+
+
+def _collision_numbers(config, order):
+    """Saves one rogue planet at one point in each of three sectors, in `order`; returns `{wedge: collision number}`."""
+    for wedge in order:
+        sector = SpaceSector(f"Sector {wedge}", edge_ly=11.5)
+        sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet", position=(1.0, 2.5, 1.0))
+        position = {**_POSITION, "shell_index": 1, "band_index": 0, "wedge_index": wedge}
+        store.save_sector(sector, config=config, galaxy_position=position)
+    conn = store.get_connection(config)
+    try:
+        rows = conn.execute("SELECT s.wedge_index, r.name FROM rogue_planets r JOIN sectors s ON s.id = r.sector_id"
+                            ).fetchall()
+    finally:
+        conn.close()
+    assert len({row["name"] for row in rows}) == len(rows) == 3
+    return {row["wedge_index"]: objectId.collision(int(row["name"], 16)) for row in rows}
+
+
+def test_collision_numbers_follow_the_sector_addresses_whichever_saves_first(make_database):
+    """GEN.307: objects of three sectors that share an ID get 0, 1, 2 in the order of the sectors' addresses, in
+    whatever order the sectors were saved."""
+    results = [_collision_numbers(make_database(), order) for order in ((0, 1, 2), (2, 1, 0), (1, 2, 0))]
+    assert results[0] == {0: 0, 1: 1, 2: 2}
+    assert results[0] == results[1] == results[2]

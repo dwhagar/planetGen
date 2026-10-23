@@ -2722,15 +2722,17 @@ def _placement_center(placement):
     return tuple(placement[f"center_{axis}_pc"] for axis in "xyz")
 
 
-def _claim_object_ids(conn, items):
+def _claim_object_ids(conn, items, address=None):
     """
     Names each object by its 64-bit object ID (GEN.64, `objectId`):
-    `items` is `(obj, kind, center_pc)` triples, in generation order. An
-    ID already held -- by an earlier item here, or by a stored row of the
-    same table -- takes the next collision number (`objectId.bump`) until
-    it is free, so the
-    first object in generation order keeps collision number 0. Sets each
-    `obj.name`, and when `insert_sector` holds a reservation map
+    `items` is `(obj, kind, center_pc)` triples, in generation order, from
+    the sector at `address` (`(shell, band, wedge)`, `None` for an object
+    saved on its own). Objects of one kind that share an ID take the
+    collision numbers 0, 1, 2 ... in the order of their sectors' addresses
+    and then their generation order (GEN.307), whichever sector saved
+    first: when a stored object of a higher address holds a number this
+    one outranks, the stored one moves up to the next (`_rank_chain`). Sets
+    each `obj.name`, and when `insert_sector` holds a reservation map
     (`prereserved_names`), records each object there as needing no
     registry entry.
     """
@@ -2739,34 +2741,73 @@ def _claim_object_ids(conn, items):
         by_table.setdefault(OBJECT_ID_TABLES[kind], []).append((obj, objectId.pack(kind, center)))
     prereserved = getattr(conn, "prereserved_names", None)
     for table, entries in by_table.items():
-        checked = {objectId.format_id(object_id) for _obj, object_id in entries}
-        stored = _stored_names(conn, table, sorted(checked))
-        taken = set()
+        groups = {}
         for obj, object_id in entries:
-            name = objectId.format_id(object_id)
-            while True:
-                if name not in checked:  # a bumped ID: ask about it too
-                    checked.add(name)
-                    stored |= _stored_names(conn, table, [name])
-                if name not in taken and name not in stored:
-                    break
-                object_id = objectId.bump(object_id)
-                name = objectId.format_id(object_id)
-            taken.add(name)
-            obj.name = name
-            if prereserved is not None:
-                prereserved[id(obj)] = (None, None)
+            groups.setdefault(object_id, []).append(obj)
+        taken = set()
+        for base, objs in groups.items():
+            for obj, name in zip(objs, _rank_chain(conn, table, base, len(objs), address, taken)):
+                obj.name = name
+                if prereserved is not None:
+                    prereserved[id(obj)] = (None, None)
 
 
-def _stored_names(conn, table, names):
-    """The `names` (upper-cased) `table` already has a row for."""
-    found = set()
-    for first in range(0, len(names), _NAME_BATCH):
-        chunk = names[first:first + _NAME_BATCH]
-        found.update(row["name"].upper() for row in conn.execute(
-            f"SELECT name FROM {table} WHERE name IN ({', '.join('?' * len(chunk))})", tuple(chunk),
-        ).fetchall())
-    return found
+def _address_of(galaxy_position):
+    """`(shell, band, wedge)` of a sector's galaxy position, `None` when it has none."""
+    if not galaxy_position or galaxy_position.get("shell_index") is None:
+        return None
+    return (galaxy_position["shell_index"], galaxy_position["band_index"], galaxy_position["wedge_index"])
+
+
+def _address_key(address):
+    """The order of sector addresses: `(shell, band, wedge)`, an object saved on its own after every sector."""
+    return (0,) + tuple(address) if address is not None else (1, 0, 0, 0)
+
+
+def _chain(base, length):
+    """The first `length` IDs of `base`'s collision chain (`objectId.bump`) as names."""
+    names, object_id = [], base
+    for _ in range(length):
+        names.append(objectId.format_id(object_id))
+        object_id = objectId.bump(object_id)
+    return names
+
+
+def _rank_chain(conn, table, base, count, address, taken):
+    """
+    The names of `count` new objects whose ID is `base`, from one sector at `address`: the first free numbers of the
+    chain, except where a stored object of a higher address holds one: the numbers are then given out in the order of
+    the addresses (and, in one sector, of the order the objects were stored in), so the stored objects of the higher
+    addresses move up past the new ones. `taken` holds the names this call has already handed out; this adds its own.
+    """
+    length = count + 16
+    while True:
+        names = [name for name in _chain(base, length) if name not in taken]
+        holders = conn.execute(
+            f"SELECT t.id, t.name, s.shell_index, s.band_index, s.wedge_index FROM {table} t"
+            f" LEFT JOIN sectors s ON s.id = t.sector_id WHERE t.name IN ({', '.join('?' * len(names))})",
+            tuple(names)).fetchall()
+        if len(holders) + count < len(names):
+            break
+        length *= 2
+
+    def rank(row):
+        stored = None if row["shell_index"] is None else (row["shell_index"], row["band_index"], row["wedge_index"])
+        return _address_key(stored), row["id"]
+
+    mine = _address_key(address)
+    lower = sorted((row for row in holders if rank(row)[0] <= mine), key=rank)
+    higher = sorted((row for row in holders if rank(row)[0] > mine), key=rank)
+    if not higher:
+        held = {row["name"].upper() for row in holders}
+        given = [name for name in names if name not in held][:count]
+    else:
+        given = names[len(lower):len(lower) + count]
+        for row, name in zip(lower + higher, names[:len(lower)] + names[len(lower) + count:]):
+            if row["name"].upper() != name:
+                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (name, row["id"]))
+    taken.update(given)
+    return given
 
 
 _AU_KM = physical_constants.AU_TO_KM
@@ -6863,7 +6904,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         # rest go through the name registry. A bright-sweep system is named
         # by the registry like any system.
         by_id = _sector_object_ids(sector, galaxy_position)
-        _claim_object_ids(conn, by_id)
+        _claim_object_ids(conn, by_id, _address_of(galaxy_position))
         claimed = {id(obj) for obj, _kind, _center in by_id}
         named = [entry.star_system for entry in sector.entries if id(entry.star_system) not in claimed]
         named += [entry.phenomenon for entry in sector.phenomena
