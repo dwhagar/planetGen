@@ -146,9 +146,19 @@ def habitability_symbol(name, tier, detail=None):
     return Markup(habitability_symbols.symbol_html(name, tier, static_url("icons.svg"), detail))
 
 
-def habitability_symbol_row(body, with_overall=True):
-    """The symbols of one body's row (`habitability_symbols.symbol_row`), overall first; empty for an unscored body."""
-    return Markup(habitability_symbols.symbol_row(body, static_url("icons.svg"), with_overall))
+def habitability_symbol_row(body, with_overall=True, with_life=True):
+    """The symbols of one body's row (`habitability_symbols.symbol_row`), overall first and the life cluster last;
+    empty for an unscored body."""
+    return Markup(habitability_symbols.symbol_row(body, static_url("icons.svg"), with_overall, with_life))
+
+
+def habitability_life(name, score):
+    """One life score (UX.101) as markup: `name` is microbial, flora, fauna or sentient, `score` a whole number 0 to 9.
+
+    Raises:
+        ValueError: `name` or `score` is not one the life symbols have.
+    """
+    return Markup(habitability_symbols.life_html(name, score, static_url("icons.svg")))
 
 
 def math_check_failures():
@@ -186,6 +196,7 @@ def _template_globals():
         "icon": icon,
         "habitability_symbol": habitability_symbol,
         "habitability_symbol_row": habitability_symbol_row,
+        "habitability_life": habitability_life,
         "page_url": page_url,
         "current_admin": current_admin,
         "admin_shell": lambda section: adminregistry.shell(section, page_url, current_admin()),

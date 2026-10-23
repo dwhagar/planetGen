@@ -175,3 +175,64 @@ def test_the_tier_classes_the_symbols_use_are_drawn_by_the_stylesheet():
     for tier in TIER_NAMES:
         assert re.search(rf"^\.tier-{tier.lower()} \{{ color: var\(--tier-{tier.lower()}\); \}}", css, re.M)
     assert ".hab-symbol {" in css
+
+
+# --- the life scores (Boss, 6:14 PM EDT 2026-10-23) -----------------------------------------------
+
+def test_there_are_four_life_symbols_in_the_sprite_drawn_in_the_text_colour():
+    sprite = _sprite()
+    assert symbols.LIFE_NAMES == ("microbial", "flora", "fauna", "sentient")
+    assert set(symbols.LIFE_LABELS) == set(symbols.LIFE_SHAPES) == set(symbols.LIFE_SPRITE_IDS) \
+        == set(symbols.LIFE_NAMES)
+    for sprite_id in symbols.LIFE_SPRITE_IDS.values():
+        symbol = sprite[sprite_id]
+        assert symbol.get("viewBox") == "0 0 24 24" and list(symbol)
+        for shape in symbol:
+            assert shape.get("fill") in (None, "currentColor") and shape.get("stroke") is None
+
+
+@pytest.mark.parametrize("name", symbols.LIFE_NAMES)
+@pytest.mark.parametrize("score", range(10))
+def test_a_life_score_is_a_shape_a_number_and_one_label(name, score):
+    root = _parse(symbols.life_html(name, score, SPRITE_URL))
+    words = f"{symbols.LIFE_LABELS[name]}: none" if score == 0 else f"{symbols.LIFE_LABELS[name]}: {score} of 9"
+    assert root.get("role") == "img" and root.get("aria-label") == words and root.get("title") == words
+    assert root.find(f"{SVG}svg").get("aria-hidden") == "true"
+    assert root.find(f"{SVG}svg/{SVG}use").get("href") == f"{SPRITE_URL}#life-{name}"
+    number = root.find(f"{SVG}span")
+    assert number.text == str(score) and number.get("aria-hidden") == "true"
+    assert ("hab-life-none" in root.get("class")) == (score == 0)
+
+
+@pytest.mark.parametrize("name,score", [("noise", 1), ("flora", 10), ("flora", -1), ("flora", None), ("flora", 2.5),
+                                         ("flora", True), ("flora", "3")])
+def test_a_life_name_or_score_the_symbols_do_not_have_is_refused(name, score):
+    with pytest.raises(ValueError):
+        symbols.life_html(name, score, SPRITE_URL)
+
+
+def _life_body(**scores):
+    return {**_body(), **{f"life_{name}": scores.get(name, 0) for name in symbols.LIFE_NAMES}}
+
+
+def test_the_life_cluster_is_the_four_scores_in_order_and_the_row_ends_with_it():
+    body = _life_body(microbial=9, flora=4, sentient=1)
+    cluster = _parse(symbols.life_row(body, SPRITE_URL))
+    assert [span.get("aria-label") for span in cluster.findall(f"{SVG}span")] == [
+        "Microbial life: 9 of 9", "Flora: 4 of 9", "Fauna: none", "Sentient life: 1 of 9"]
+    row = _parse(symbols.symbol_row(body, SPRITE_URL))
+    assert row[-1].get("class") == "hab-life-cluster" and len(row.findall(f"{SVG}svg")) == 7
+    assert len(_parse(symbols.symbol_row(body, SPRITE_URL, with_life=False)).findall(f"{SVG}span")) == 0
+
+
+def test_a_body_without_life_scores_draws_no_cluster_and_the_old_row_is_unchanged():
+    assert symbols.life_row(_body(), SPRITE_URL) == ""
+    assert symbols.life_row({**_life_body(), "life_fauna": None}, SPRITE_URL) == ""
+    assert "hab-life" not in symbols.symbol_row(_body(), SPRITE_URL)
+
+
+def test_the_life_template_global_is_markup():
+    app = create_app()
+    with app.test_request_context("/"):
+        rendered = render_template_string("{{ habitability_life('flora', 3) }}")
+    assert 'aria-label="Flora: 3 of 9"' in rendered and "&lt;" not in rendered
