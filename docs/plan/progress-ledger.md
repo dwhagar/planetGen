@@ -1102,3 +1102,4 @@ Baseline: PR #1817.
 | PERF.164 | 8.1 | The headline closes |
 | GEN.325 | 8.1 | Globular clusters |
 | TEST.288 | 8.1 | Bugs and flaky tests |
+| GEN.625 | 8.1 | Reproducible galaxies |
