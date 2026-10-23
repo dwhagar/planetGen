@@ -278,8 +278,7 @@
     },
     {
       "epoch": 57,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2009",
       "reason": "A galaxy's satellites are drawn from its halo (a Poisson count of subhalos, an occupation draw, stellar masses from the stellar-to-halo relation, sizes, metallicities and ages from laws, an Einasto radial distribution inside the virial radius) instead of the Milky Way's eleven rows (GEN.369, GEN.624); its globular cluster count follows its halo mass instead of a fixed 157 (GEN.403); the outline takes components in by density reach and a random start is redrawn until its sector expects a system (GEN.627). Every seed's components, outline and random starts differ."
     }
   ]
