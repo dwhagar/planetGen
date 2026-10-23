@@ -1087,3 +1087,4 @@ Baseline: PR #1817.
 | GEN.307 | 8.1 | Reproducible galaxies |
 | GEN.623 | 8.1 | Composition tables |
 | GEN.495 | 8.4 | Surface and small bodies |
+| GEN.626 | 8.1 | Reproducible galaxies |

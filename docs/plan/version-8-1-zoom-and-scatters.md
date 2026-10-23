@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 11:57 PM EDT 2026-10-22: 694 of 931 items finished (74.5 percent), 237 open, 23 dropped. Open by phase: phase 1 117, phase 2 29, phase 3 26, phase 4 17, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 is still free). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 12:22 AM EDT 2026-10-23: 695 of 931 items finished (74.7 percent), 236 open, 23 dropped. Open by phase: phase 1 116, phase 2 29, phase 3 26, phase 4 17, phase 5 33, phase 6 15. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 is still free). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -65,10 +65,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | DB.47 | Split from DB.9. Core 1 owns migrations. |
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | GEN.57, DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
-| GEN.625 | Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug) | GEN.626, GEN.628 |  |
+| GEN.625 | Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug) | GEN.628 |  |
 | GEN.628 | The nuclear disc is a fixed 61 times the nuclear cluster, 21 percent of a small galaxy's stars against about 3 percent for the Milky Way: draw it from a law (bug, needs a generator epoch) |  |  |
 | GEN.627 | The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug) |  |  |
-| GEN.626 | The plan's crest line and planned-share figure are wrong: print them from the built density, not a table and a fixed system mass (bug) |  |  |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests |  | Split from GEN.136. |
 | GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | GEN.305 | Research follow-up to GEN.58 (built). |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases |  | Split from OPS.28. |
