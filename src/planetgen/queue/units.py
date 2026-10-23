@@ -19,8 +19,10 @@ cuts a stage into its units and starts a run; this file queues, runs and follows
 * **The starter follows** (`follow_stage`): it reads the done set, the stored results and the units' progress
   every poll, hands them to the caller, and replaces a dead worker as it goes. It is a client: if it dies, the run
   goes on as far as its workers take it, and the Queue page (PERF.99) can show and clear it.
-* **A failed unit ends the run** (`unit_failed`, RQ's `on_failure` after the one retry); the units still waiting
-  see the run is no longer live and do nothing.
+* **A failed unit ends the run** (`unit_failed`, RQ's `on_failure`, which RQ calls on every failure, before it decides
+  on the retry); the units still waiting see the run is no longer live and do nothing. A unit that is already in
+  the done set did its work: a failure after that is RQ's own bookkeeping, and neither ends the run nor runs the
+  unit again.
 
 The unit that completes the last stage finishes the run; the unit that completes an earlier one has the wrapper queue
 the next (`wrapper.advance`).
@@ -165,7 +167,7 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
     """
     conn = rq.get_current_job().connection
     state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
-    if runrecord._s(state) != "running":
+    if runrecord._s(state) != "running" or conn.sismember(runrecord.done_key(run_id, stage), unit):
         return {"skipped": True}
     fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))      # GEN.599: the run's own switch, in every worker
     wanted = runrecord._s(debug)
@@ -242,8 +244,14 @@ def warm_shape(unit_args):
 
 
 def unit_failed(job, connection, exc_type, exc_value, _traceback):
-    """RQ's `on_failure` for a unit: the run fails, with the unit and the error recorded."""
+    """RQ's `on_failure` for a unit: the run fails, with the unit and the error recorded, unless the unit's result is
+    already stored and counted (RQ failed it after it was done, say `ValueError: Execution ... not found in Redis`
+    when it cleaned up): its sector or shells are saved, so the run goes on."""
     run_id, stage, unit = job.args[:3]
+    if connection.sismember(runrecord.done_key(run_id, stage), unit):
+        log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
+                  f"{exc_value}); the run goes on.")
+        return
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {stage} failed: {exc_type.__name__}: {exc_value}")
 
