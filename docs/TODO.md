@@ -5416,7 +5416,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: GEN.450,
-  SEC.33, TEST.261.
+  SEC.33, TEST.261, GEN.636.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -14556,6 +14556,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (pool). Not needed for 8.1: Boss may pull it forward.
   Prerequisites: none. Related: GEN.403, GEN.387, GEN.531, GEN.297.
 
+- [ ] **GEN.636 StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug)**
+  Found by Bugfix 2 (relayed 7:56 AM EDT 2026-10-23 as the lane
+  reported) in `scripts/test.py full --check` on main 9ba9996; filed by
+  the TODO thread. Kind: test failing on main since GEN.325 (#2624,
+  planet survival limit). Test:
+  src/tests/test_validation.py::test_system_methods_still_delegate.
+  Failure: assert 395.17 == 116590.32,
+  `StarSystem._orbit_ceiling_au(star)` against
+  `validation.orbit_ceiling_au(star)`. GEN.325 made the generator's
+  ceiling the smaller of the galaxy Hill sphere and the survival limit
+  of the place's passing systems (about 275 AU in the example), while
+  validation.orbit_ceiling_au still returns the Hill sphere alone. Fails
+  on main: yes, every run, alone too. Reproducer: python -m pytest
+  src/tests/test_validation.py -k system_methods_still_delegate. Do:
+  decide whether validation must know the survival limit (one rule
+  shared by the generator and the validator, the intent of the test
+  name) or the validator is meant to stay looser; then make the code and
+  the test agree, with the shared rule preferred. Done: the test passes
+  on main and the generator and the validator give one ceiling.
+  GEN.301's closing `full --check` needs it. Owner: Core 4 (its GEN.325,
+  proposed by the TODO thread).
+  Prerequisites: none. Related: GEN.325, GEN.301.
+
+- [ ] **GEN.637 Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638)**
+  Recorded by the TODO thread from Bugfix 2's handoff (7:56 AM EDT
+  2026-10-23 as the lane reported) and the coordinator's relay. GEN.625
+  (#2627, epoch 55) was measured over 1,000 seeds: the grid warning rate
+  went from 17.5 percent to 0, mean mass 4.3e9, mean disc scale length
+  1,224 pc. Its note says the sweep is re-run after GEN.624 and GEN.403,
+  which merged in #2638 (epoch 57); that re-run has not been done by any
+  lane. Do: run the same 1,000-seed all-Auto sweep on main and report
+  the warning rate, mean mass and mean scale length against the numbers
+  above. Done: the rate is still 0 and the means are within the earlier
+  spread, or what moved is filed as an item. Owner: Core 1 (ran the
+  GEN.625 measurement; proposed by the TODO thread).
+  Prerequisites: none. Related: GEN.625, GEN.624, GEN.403.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19680,6 +19717,25 @@ clears each one.
   on, find the thread or lock the forked child inherits, and start the
   workers in a way that cannot deadlock (spawn, or fork before threads).
   Prerequisites: none. Related: TEST.287, TEST.290, TEST.291.
+
+- [ ] **TEST.294 The dependency map missed test_validation.py::test_system_methods_still_delegate when GEN.325 changed StarSystem._orbit_ceiling_au, so the changed gate let a failing test reach main (bug)**
+  Found by Bugfix 2 (relayed 7:56 AM EDT 2026-10-23 as the lane
+  reported) in the same `full --check`; filed by the TODO thread. Kind:
+  dependency map miss. After GEN.325 (#2624) changed
+  StarSystem._orbit_ceiling_au in generation/system.py, `scripts/test.py
+  changed` would not have selected
+  src/tests/test_validation.py::test_system_methods_still_delegate,
+  which calls that method; the check reports 1 of 1 not selected. So the
+  change gate let a failing test reach main. Reproducer: on a checkout
+  of the commit before #2624, apply the #2624 diff and run `python3
+  scripts/test.py changed --dry-run` (or the depmap `--changed` command)
+  and look for test_validation.py. Do: find why the map misses the edge
+  (a method called through an instance returned by a helper, a name the
+  static scan cannot resolve) and add the edge or a fallback that
+  selects the tests of every file that names the method. Done: the #2624
+  diff selects test_validation.py, and the full-check comparison reports
+  0 not selected on main. Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: GEN.325.
 
 ## USR: User accounts
 
