@@ -8681,6 +8681,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   3-option card (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC, in the Core 4
   thread). Core 4 waits on his tap before building.
+  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
+  coordinator), card
+  cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC): option 1, a
+  Schmidt index that rises at low gas density. Core 4 builds it; the
+  observed gradient stays a test target, never an input.
   Prerequisites: none. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 - [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
@@ -15462,6 +15467,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged with its epoch. Owner: Performance (proposed by the TODO
   thread, because the lane found it and PERF.146 lives there; the
   coordinator can move it).
+  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
+  coordinator)): not in 8.1, option 1. The member-tree draw stays as it
+  is; the item moves to the version 'later' page, phase 3, and waits
+  there with its measured figures (53 percent of a band unit) until Boss
+  asks for it. Needs a generator epoch when built.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.166 The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug)**
@@ -15483,6 +15493,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cost is on this item and Boss agrees to leave it, or the replacement
   is merged with its epoch. Owner: none for now (needs Boss's word;
   pool).
+  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
+  coordinator)): leave it, option 1. No epoch is spent; the item moves
+  to the version 'later' page, phase 3, and is built only if a later
+  measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
 - [ ] **PERF.167 The phenomenon scatter on a large galaxy runs over an hour and stores over 66 million rows without finishing**
@@ -15514,7 +15528,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
 
-- [ ] **PERF.170 The start-up math check (the TEST.68 gate, 2.5 s for 60 checks) runs before every bulk run: skip it or stamp a pass on disk? (open question for Boss)**
+- [ ] **PERF.170 A flag that skips the start-up math check (the TEST.68 gate, 2.5 s for 60 checks) before a bulk run**
   Found by the Performance lane in PERF.165 (relayed 6:27 AM EDT
   2026-10-23 as the lane reported); filed by the TODO thread as an open
   question. Every bulk run (plan, scatter, fill) starts with the TEST.68
@@ -15528,6 +15542,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default stands until Boss says otherwise): leave it. Do: nothing
   unless Boss says to change it. Done: Boss answers, or the default
   stands. Owner: none.
+  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
+  coordinator)): skip the math check, option 3, so this is now a build
+  item and not an open question. Do: add a flag to the bulk commands
+  (plan, scatter, fill and the other bulk runs) that skips the TEST.68
+  check, say in the run log when it was skipped, and leave the check on
+  by default; no stamp on disk. Done: the flag exists on every bulk run
+  that starts the check, a test covers the skipped and the default path,
+  and the log line names the skip. Owner: Performance (named by the
+  coordinator, 12:27 PM EDT).
   Prerequisites: none. Related: PERF.165, PERF.41.
 
 ## DB: Database and schema

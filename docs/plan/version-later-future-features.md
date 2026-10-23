@@ -48,3 +48,14 @@ The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it |  | Waits on a scikit-image release. Core 5 found it. |
+
+## Phase 3: Speed-ups that change generated values
+
+Boss, 12:27 PM EDT 2026-10-23 (cards): not in 8.1; each needs a generator epoch and Boss's word before it starts.
+
+### Value-changing speed-ups
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word |  | Boss: not in 8.1 (12:27 PM EDT 2026-10-23). |
+| PERF.166 | The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug) |  | Boss: leave it (12:27 PM EDT 2026-10-23); build only if a measurement after PERF.165 says it is worth an epoch. |
