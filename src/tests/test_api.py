@@ -761,6 +761,30 @@ def test_db_query_param_rejects_unknown_database(client):
     assert "error" in response.get_json()
 
 
+def test_db_query_param_rejects_a_prefixed_schema_that_holds_no_galaxy(client, mysql_config):
+    """API.32: a schema sharing the prefix that is no galaxy (the real `planetgen_control` on a machine whose test
+    control schema has another name) is not selectable: it used to answer 500 from its first missing table."""
+    import uuid
+
+    stray = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+    admin_conn = _db.get_connection(
+        _db.MySQLConfig(host=mysql_config.host, port=mysql_config.port,
+                        user=mysql_config.user, password=mysql_config.password, database=""),
+        ensure_schema=False,
+    )
+    try:
+        admin_conn.execute(f"CREATE DATABASE `{stray}`")
+        admin_conn.execute(f"CREATE TABLE `{stray}`.admins (id INT PRIMARY KEY)")
+        for path in ("/api/sectors", "/api/containers"):
+            response = client.get(f"{path}?db={stray}")
+            assert response.status_code == 404 and "error" in response.get_json(), (path, response.status_code)
+        with pytest.raises(ValueError, match="No such database"):
+            _db.resolve_database(mysql_config, stray)
+    finally:
+        admin_conn.execute(f"DROP DATABASE IF EXISTS `{stray}`")
+        admin_conn.close()
+
+
 def test_the_control_database_is_never_listed_or_selectable(client, seeded_sector, monkeypatch, tmp_path):
     """The control schema (admin logins, sessions, API keys) shares the
     `planetgen` prefix by default (`planetgen_control`); it must not show
