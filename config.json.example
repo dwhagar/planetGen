@@ -87,6 +87,11 @@
   "login_allowlist": [],
   "admin_cookie_insecure": false,
   "secret_key": "",
+  "password_hash": {
+    "memory_kib": 19456,
+    "time_cost": 2,
+    "parallelism": 1
+  },
   "proxy_fix": {
     "x_for": 0,
     "x_proto": 0,

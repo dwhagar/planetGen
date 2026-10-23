@@ -23,7 +23,7 @@ from planetgen.describe import model
 from planetgen.util import logpaths
 
 from planetgen.web.app import create_app
-from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.authz import session_cookie_name
 from planetgen.api.config import Config
 from planetgen.db import store as _db
 from planetgen.admin import auth as adminAuth
@@ -2043,17 +2043,18 @@ def test_change_credentials_logs_out_other_sessions_but_not_the_caller(
     assert other.post("/api/auth/login", json={
         "username": "admin", "password": first_admin_password}).status_code == 200
     assert other.get("/api/auth/me").status_code == 200
-    old_cookie = default_admin_client.get_cookie(SESSION_COOKIE_NAME).value
+    cookie_name = session_cookie_name(default_admin_client.application.config.get("SESSION_COOKIE_SECURE", True))
+    old_cookie = default_admin_client.get_cookie(cookie_name).value
 
     response = default_admin_client.post("/api/auth/change-credentials", json={
         "current_password": first_admin_password, "new_username": "renamed", "new_password": TEST_ADMIN_PASSWORD,
     })
     assert response.status_code == 200
-    assert default_admin_client.get_cookie(SESSION_COOKIE_NAME).value != old_cookie
+    assert default_admin_client.get_cookie(cookie_name).value != old_cookie
     assert default_admin_client.get("/api/auth/me").get_json()["username"] == "renamed"
     assert other.get("/api/auth/me").status_code == 401
     stale = default_admin_client.application.test_client()
-    stale.set_cookie(SESSION_COOKIE_NAME, old_cookie, domain="localhost")
+    stale.set_cookie(cookie_name, old_cookie, domain="localhost")
     assert stale.get("/api/auth/me").status_code == 401
 
 

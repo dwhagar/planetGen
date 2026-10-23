@@ -10,13 +10,10 @@ Session tokens and API keys are `secrets.token_urlsafe` values, shown to
 the caller exactly once (at login / at key creation) and never persisted
 -- only their SHA-256 hash (`_hash_token`) is stored, so a database read
 alone can't be used to impersonate either. Passwords are hashed with
-`werkzeug.security.generate_password_hash` (salted, PBKDF2-SHA256 with
-600,000 rounds: `PASSWORD_HASH_METHOD`), imported lazily inside the
-two functions that need it rather than at module import time, so this
-module (and everything in `planetgen` that imports it transitively)
-stays importable without the `api` extra installed -- matching this
-package's existing boundary where `flask`/`werkzeug` are optional, needed
-only by `planetgen/api/`.
+Argon2id (`argon2-cffi`, salted, at the cost the `password_hash` settings
+name: `hash_parameters`). A hash an older release stored (PBKDF2 or scrypt,
+checked with `werkzeug.security`) still verifies, and the next successful
+login re-hashes it (`needs_rehash`).
 
 Every function here takes an already-open `Connection` (to the control
 schema -- see `planetgen.db.store.get_control_connection`) rather than
@@ -34,9 +31,12 @@ import secrets
 import time
 
 import pymysql
+from argon2 import PasswordHasher, Type
+from argon2.exceptions import InvalidHashError, VerificationError
 
 from planetgen.db import store
 from planetgen.admin import activity_log
+from planetgen.util.settings import get_settings
 
 LAST_SEEN_REFRESH_SECONDS = 60
 """int: A session's `last_seen_at` is written at most this often (ADM.53)."""
@@ -54,6 +54,12 @@ MIN_PASSWORD_LENGTH = 12
 """int: Minimum length `validate_password_policy` accepts for a new
 password -- applies to every credential change, not just the forced one
 off the seeded default."""
+
+MAX_PASSWORD_LENGTH = 1024
+"""int: Longest password `validate_password_policy` accepts, and the longest
+`verify_password` and `hash_password` take. None existed before (SEC.32):
+every sign-in attempt reads the whole submitted password, so a bound keeps
+the work of one attempt fixed."""
 
 MAX_USERNAME_LENGTH = 64
 """int: `admin_users.username` is VARCHAR(64)."""
@@ -88,37 +94,78 @@ class WrongPasswordError(AuthError):
     change, so the caller can count it as a failed sign-in (SEC.20)."""
 
 
-PASSWORD_HASH_METHOD = "pbkdf2:sha256:600000"
-"""str: How new password hashes are made (SEC.25): PBKDF2-HMAC-SHA256 with
-600,000 rounds, OWASP's recommendation. werkzeug's default until
-2026-10-01 was scrypt with N = 2^15 (about 100 ms here, under OWASP's
-N = 2^17 minimum); N = 2^17 needs 128 MiB per check, which the web
-server's five threads at once could turn into a memory spike on a host
-that has already been OOM-killed once, so PBKDF2 at about the same cost
-in time and next to nothing in memory was chosen instead. A successful
-login re-hashes a password stored with any other method
-(`needs_rehash`)."""
+ARGON2ID_PREFIX = "$argon2id$"
+"""str: What every hash `hash_password` makes starts with; `verify_password`
+sends a stored hash by its prefix (anything else is an older release's
+werkzeug hash: `pbkdf2:` or `scrypt:`)."""
+
+_OLD_HASH_PREFIXES = ("pbkdf2:", "scrypt:")
+
+_hashers = {}
+
+
+def hash_parameters():
+    """
+    The Argon2id cost new hashes are made with, from the `password_hash`
+    settings: `(memory_kib, time_cost, parallelism)`. The defaults, 19 MiB,
+    2 passes and 1 thread, are OWASP's minimum for Argon2id (SEC.32); a host
+    with memory to spare raises the first. Argon2id replaced PBKDF2 (SEC.25)
+    because PBKDF2 costs an attacker's GPUs next to nothing in memory.
+    """
+    section = get_settings().password_hash
+    return section.memory_kib, section.time_cost, section.parallelism
+
+
+def _hasher():
+    parameters = hash_parameters()
+    hasher = _hashers.get(parameters)
+    if hasher is None:
+        memory_kib, time_cost, parallelism = parameters
+        hasher = _hashers[parameters] = PasswordHasher(
+            time_cost=time_cost, memory_cost=memory_kib, parallelism=parallelism, type=Type.ID)
+    return hasher
 
 
 def hash_password(password):
-    """Returns a salted hash of `password` (`werkzeug.security.
-    generate_password_hash` with `PASSWORD_HASH_METHOD`) -- never the
-    plaintext, never a reversible encoding."""
-    from werkzeug.security import generate_password_hash
-    return generate_password_hash(password, method=PASSWORD_HASH_METHOD)
+    """Returns a salted Argon2id hash of `password` at `hash_parameters` --
+    never the plaintext, never a reversible encoding.
+
+    Raises:
+        ValueError: `password` is longer than `MAX_PASSWORD_LENGTH`.
+    """
+    if len(password) > MAX_PASSWORD_LENGTH:
+        raise ValueError(f"password must be at most {MAX_PASSWORD_LENGTH} characters")
+    return _hasher().hash(password)
 
 
 def needs_rehash(password_hash):
-    """Whether a stored hash was made with settings other than
-    `PASSWORD_HASH_METHOD` (an older install's scrypt, for example)."""
-    return not (password_hash or "").startswith(PASSWORD_HASH_METHOD + "$")
+    """Whether a stored hash should be replaced at the next login: it is not
+    Argon2id (an older release's PBKDF2 or scrypt) or it was made with other
+    numbers than `hash_parameters` now names (a weaker setting, SEC.32)."""
+    if not (password_hash or "").startswith(ARGON2ID_PREFIX):
+        return True
+    try:
+        return _hasher().check_needs_rehash(password_hash)
+    except InvalidHashError:
+        return True
 
 
 def verify_password(password, password_hash):
-    """Returns whether `password` matches a hash `hash_password` produced
-    (`werkzeug.security.check_password_hash`, constant-time)."""
-    from werkzeug.security import check_password_hash
-    return check_password_hash(password_hash, password)
+    """Returns whether `password` matches a stored hash: Argon2id (what
+    `hash_password` makes) or an older release's werkzeug PBKDF2 or scrypt
+    hash, sent by the hash's prefix. A password over `MAX_PASSWORD_LENGTH`,
+    or a hash in no known form, never matches (and costs no hashing)."""
+    if not isinstance(password, str) or len(password) > MAX_PASSWORD_LENGTH or not isinstance(password_hash, str):
+        return False
+    if password_hash.startswith(ARGON2ID_PREFIX):
+        try:
+            return _hasher().verify(password_hash, password)
+        except (VerificationError, InvalidHashError):
+            return False
+    if password_hash.startswith(_OLD_HASH_PREFIXES):
+        from werkzeug.security import check_password_hash
+        return check_password_hash(password_hash, password)
+    return False
 
 
 def _hash_token(raw_token):
@@ -169,7 +216,7 @@ def is_common_password(password):
 def validate_password_policy(password, username=None):
     """
     Raises `AuthError` if `password` fails the policy: at least
-    `MIN_PASSWORD_LENGTH` characters, not (case-insensitively) the
+    `MIN_PASSWORD_LENGTH` and at most `MAX_PASSWORD_LENGTH` characters, not (case-insensitively) the
     username, not on the bundled list of common and breached passwords
     (SEC.24, NIST SP 800-63B-4), and not just the username or a site word
     (`SITE_WORDS`) with a few characters added. No composition rules
@@ -177,6 +224,8 @@ def validate_password_policy(password, username=None):
     """
     if not isinstance(password, str) or len(password) < MIN_PASSWORD_LENGTH:
         raise AuthError(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
+    if len(password) > MAX_PASSWORD_LENGTH:
+        raise AuthError(f"password must be at most {MAX_PASSWORD_LENGTH} characters")
     if username and password.lower() == username.lower():
         raise AuthError("password must not match the username")
     if is_common_password(password):
@@ -288,7 +337,7 @@ _dummy_password_hash = None
 """str: A real `hash_password` hash of a random value, checked against
 when the submitted username doesn't exist so that path costs the same
 hash work as a wrong password (see `authenticate`). Computed at import
-when `werkzeug` is installed, else on first use."""
+when the settings allow, else on first use."""
 
 
 def _get_dummy_password_hash():
@@ -300,7 +349,7 @@ def _get_dummy_password_hash():
 
 try:
     _get_dummy_password_hash()
-except ImportError:  # no `api` extra: nothing here authenticates anyway
+except ValueError:  # settings that don't fit the model: the error shows where they are read
     pass
 
 

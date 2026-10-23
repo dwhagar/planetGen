@@ -7,7 +7,7 @@ off the seeded default, "who am I", and API key management. See
 logic and `authz.py` for the `require_admin` decorator every other
 write/admin route in this API uses.
 
-The session cookie (`authz.SESSION_COOKIE_NAME`) is `HttpOnly` (never
+The session cookie (`authz.session_cookie_name`) is `HttpOnly` (never
 readable from JS -- irrelevant to XSS exfiltration), `Secure` (never sent
 over plain HTTP -- see `config.SESSION_COOKIE_SECURE`, on by default
 since this deployment already terminates TLS via Let's Encrypt/Apache),
@@ -26,7 +26,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import log
 
-from .authz import SESSION_COOKIE_NAME, audit, require_admin
+from .authz import audit, require_admin, session_cookie_name
 from .common import ApiError, get_control_db, require_json_body
 from .limiter import limiter
 from .schemas import (
@@ -62,7 +62,7 @@ def _admin_public_dict(admin):
 
 def _set_session_cookie(resp, raw_token):
     resp.set_cookie(
-        SESSION_COOKIE_NAME,
+        session_cookie_name(),
         raw_token,
         max_age=adminAuth.SESSION_TTL_HOURS * 3600,
         httponly=True,
@@ -127,7 +127,9 @@ def _clear_session_cookie(resp):
     # a cookie by (name, domain, path) together, so deleting with a
     # different path wouldn't clear the one actually set on login; it would
     # just set a second, separate empty cookie under the old path.
-    resp.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    # A `__Host-` cookie is only replaced by a response that is Secure too.
+    resp.delete_cookie(session_cookie_name(), path="/",
+                       secure=current_app.config.get("SESSION_COOKIE_SECURE", True))
 
 
 @bp.route("/login", methods=["POST"])
@@ -251,7 +253,7 @@ def login_totp():
 @require_admin(session_only=True)
 def logout():
     """`POST /api/auth/logout` -- ends the current session, clears the cookie."""
-    adminAuth.end_session(get_control_db(), request.cookies.get(SESSION_COOKIE_NAME))
+    adminAuth.end_session(get_control_db(), request.cookies.get(session_cookie_name()))
     activity_log.event("AUTH", "logout", user=g.admin_user["username"])
     resp = jsonify({"status": "ok"})
     _clear_session_cookie(resp)

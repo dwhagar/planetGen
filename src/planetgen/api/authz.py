@@ -11,7 +11,7 @@ actual credential/session/key logic this wraps.
 
 from functools import wraps
 
-from flask import g, request
+from flask import current_app, g, request
 
 from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import log
@@ -20,6 +20,23 @@ from . import ids
 from .common import ApiError, get_control_db
 
 SESSION_COOKIE_NAME = "pg_admin_session"
+"""str: The session cookie's name when it is not Secure (local development
+over plain HTTP, `admin_cookie_insecure`); see `session_cookie_name`."""
+
+HOST_SESSION_COOKIE_NAME = "__Host-" + SESSION_COOKIE_NAME
+"""str: Its name when it is Secure (SEC.32): the `__Host-` prefix makes the
+browser refuse a copy that a sibling sub-domain, or a page over plain HTTP,
+sets for this host (it accepts one only if it is Secure, has Path=/ and no
+Domain, which is how the cookie is set)."""
+
+
+def session_cookie_name(secure=None):
+    """The session cookie's name: `HOST_SESSION_COOKIE_NAME` when it is
+    sent Secure, else `SESSION_COOKIE_NAME`. `secure` defaults to this app's
+    `SESSION_COOKIE_SECURE`."""
+    if secure is None:
+        secure = current_app.config.get("SESSION_COOKIE_SECURE", True)
+    return HOST_SESSION_COOKIE_NAME if secure else SESSION_COOKIE_NAME
 
 _BEARER_PREFIX = "Bearer "
 
@@ -64,7 +81,7 @@ def _current_admin():
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith(_BEARER_PREFIX):
         return api_key_admin(auth_header[len(_BEARER_PREFIX):].strip())
-    return adminAuth.validate_session(conn, request.cookies.get(SESSION_COOKIE_NAME))
+    return adminAuth.validate_session(conn, request.cookies.get(session_cookie_name()))
 
 
 def require_admin(fresh=False, session_only=False, scope="admin"):
@@ -153,7 +170,7 @@ def _log_refusal(bearer):
     """
     if bearer:
         activity_log.event("AUTHZ", "apikey.invalid", path=request.path)
-    elif request.cookies.get(SESSION_COOKIE_NAME):
+    elif request.cookies.get(session_cookie_name()):
         activity_log.event("AUTHZ", "session.invalid", path=request.path)
     elif request.path != "/api/auth/me":
         activity_log.event("AUTHZ", "login.required", path=request.path)
