@@ -34,13 +34,14 @@ The families, by what the recipe drew:
 | a coma row (`k`: a comet or an icy asteroid) | `coma` | `mixture_coma` |
 | an evolved-terrestrial row (`j1` Venus-like, `j2` Mars-like, `j5` abiotic oxygen) | `venus`, `mars`, `abiotic-oxygen` | `mixture_evolved` |
 | a cold-body row (`j3` Titan-like, `j4` Pluto-like) | `titan`, `frost` | `mixture_evolved` |
-| airless white-dwarf planet (`l2`) | `airless` (no gas: empty `mole_fractions`) | |
+| a molten surface (a hot-zone lava row `i` with the dayside temperature `tp_k` at or above `mixture_lava.MELT_MIN_K`; the silicate-vapour exosphere `l1` of a white-dwarf or pulsar planet at the surface temperature) | `lava` | `mixture_lava` |
+| airless white-dwarf planet (`l2`, or `l1` of a surface below `MELT_MIN_K`) | `airless` (no gas: empty `mole_fractions`) | |
 | anything else rocky (`a` to `c`, `e1`, `e3`, `e4`) | `rocky` | `mixture_rocky` |
 """
 
 import dataclasses
 
-from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_evolved, mixture_giant, mixture_rocky
+from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_evolved, mixture_giant, mixture_lava, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, MixtureError  # noqa: F401  (the public names of the result)
 
@@ -94,8 +95,13 @@ def required_inputs(body_class):
     return tuple(sorted(((names - drawn) & set(atmosphere_recipes.INPUTS)) | chemistry))
 
 
-def family_of(recipe):
-    """The family the recipe's draw calls for (see the module text)."""
+def _surface_temperature(subject, name):
+    value = subject.get(name)
+    return subject.get("ts_k") if value is None else value
+
+
+def family_of(recipe, subject):
+    """The family the recipe's draw and the subject's surface temperature call for (see the module text)."""
     groups = recipe.groups
     if "g" in groups:
         return "brown-dwarf"
@@ -105,8 +111,16 @@ def family_of(recipe):
         return "giant"
     if "k" in groups:
         return "coma"
-    if "l" in groups and groups["l"].name == "l2":
-        return "airless"
+    if "l" in groups:
+        if groups["l"].name == "l2":
+            return "airless"
+        if groups["l"].name == "l1":
+            temperature = _surface_temperature(subject, "ts_k")
+            return "lava" if temperature is not None and temperature >= mixture_lava.MELT_MIN_K else "airless"
+    if "i" in groups:
+        temperature = _surface_temperature(subject, "tp_k")
+        if temperature is not None and temperature >= mixture_lava.MELT_MIN_K:
+            return "lava"
     if "j" in groups:
         return mixture_evolved.FAMILY_OF_ROW[groups["j"].name]
     if "e" in groups and groups["e"].name == "e2":
@@ -134,7 +148,7 @@ def draw_mixture(subject):
         recipe = RECIPES.draw_all(subject, categories=CATEGORIES)
     except KeyError as error:
         raise MixtureError(str(error)) from error
-    family = family_of(recipe)
+    family = family_of(recipe, subject)
     if family == "rocky":
         result = mixture_rocky.outgassed_mixture(subject, recipe)
     elif family == "coma":
@@ -142,6 +156,8 @@ def draw_mixture(subject):
     elif family == "airless":
         result = MixtureDraw(mole_fractions={}, family="airless", drawn={g: d.name for g, d in recipe.groups.items()}, redox_diw=None,
                              temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
+    elif family == "lava":
+        result = mixture_lava.vapour_mixture(subject, recipe, temperature_name="ts_k" if "l" in recipe.groups else "tp_k")
     elif family in mixture_evolved.FAMILIES:
         result = mixture_evolved.draw(subject, recipe, family)
     elif family == "envelope":

@@ -23,14 +23,27 @@ def drawn(**groups):
 
 
 def test_the_family_follows_the_groups_the_recipe_drew():
-    assert md.family_of(drawn(g="g2", f="f3")) == "brown-dwarf"
-    assert md.family_of(drawn(f="f4", h="h2")) == "hot-jupiter"
-    assert md.family_of(drawn(f="f1")) == "giant"
-    assert md.family_of(drawn(e="e2", f="f2")) == "giant"           # a class of giants stays a giant
-    assert md.family_of(drawn(e="e1", f="f2")) == "giant"
-    assert md.family_of(drawn(e="e2")) == "envelope"
+    cold = Subject("A", {"ts_k": 300.0, "tp_k": 300.0})
+    assert md.family_of(drawn(g="g2", f="f3"), cold) == "brown-dwarf"
+    assert md.family_of(drawn(f="f4", h="h2"), cold) == "hot-jupiter"
+    assert md.family_of(drawn(f="f1"), cold) == "giant"
+    assert md.family_of(drawn(e="e2", f="f2"), cold) == "giant"           # a class of giants stays a giant
+    assert md.family_of(drawn(e="e1", f="f2"), cold) == "giant"
+    assert md.family_of(drawn(e="e2"), cold) == "envelope"
     for rocky in (drawn(e="e1"), drawn(e="e3"), drawn(e="e4"), drawn(a="a6", b="b1", c="c3")):
-        assert md.family_of(rocky) == "rocky"
+        assert md.family_of(rocky, cold) == "rocky"
+
+
+def test_the_family_of_the_evolved_cold_coma_and_molten_rows():
+    cold, hot = Subject("A", {"ts_k": 300.0, "tp_k": 300.0}), Subject("A", {"ts_k": 2000.0, "tp_k": 2000.0})
+    for row, family in (("j1", "venus"), ("j2", "mars"), ("j3", "titan"), ("j4", "frost"), ("j5", "abiotic-oxygen")):
+        assert md.family_of(drawn(a="a6", j=row), cold) == family
+    assert md.family_of(drawn(k="k1"), cold) == "coma"
+    assert md.family_of(drawn(l="l2"), hot) == "airless"
+    assert md.family_of(drawn(l="l1"), hot) == "lava"
+    assert md.family_of(drawn(l="l1"), cold) == "airless"                  # a surface below the melting temperature has no vapour
+    assert md.family_of(drawn(a="a6", i="i2"), hot) == "lava"
+    assert md.family_of(drawn(a="a6", i="i1"), cold) == "rocky"           # a hot-zone body that is not molten outgasses
 
 
 def test_every_gas_the_solver_can_make_of_the_budget_elements_is_in_the_gas_table():

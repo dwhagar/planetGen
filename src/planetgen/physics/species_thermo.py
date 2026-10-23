@@ -122,6 +122,26 @@ class Species:
         """The standard molar Gibbs energy over R T (the chemical potential of the pure phase at 1 bar)."""
         return self.h_over_rt(temperature_k) - self.s_over_r(temperature_k)
 
+    def supercooled_g_over_rt(self, temperature_k, below_k):
+        """
+        The Gibbs energy over R T of a liquid below its melting point, from its own lowest fit extended down to `below_k` K
+        (a liquid's heat capacity changes little over several hundred kelvin: the database's liquid oxides are constant-Cp fits).
+
+        Raises:
+            ValueError: `temperature_k` is below `below_k`, or above the fits.
+        """
+        first = self.fits[0]
+        if temperature_k >= first.t_min_k:
+            return self.g_over_rt(temperature_k)
+        if temperature_k < below_k:
+            raise ValueError(f"{self.name}: the supercooled liquid is only taken down to {below_k:g} K, not {temperature_k:g} K")
+        t = temperature_k
+        a1, a2, a3, a4, a5, a6, a7 = first.a
+        b1, b2 = first.b
+        h = -a1 / t ** 2 + a2 * math.log(t) / t + a3 + a4 * t / 2 + a5 * t ** 2 / 3 + a6 * t ** 3 / 4 + a7 * t ** 4 / 5 + b1 / t
+        s = -a1 / (2 * t ** 2) - a2 / t + a3 * math.log(t) + a4 * t + a5 * t ** 2 / 2 + a6 * t ** 3 / 3 + a7 * t ** 4 / 4 + b2
+        return h - s
+
 
 def _load():
     with open(DATA_FILE, encoding="utf-8") as handle:
