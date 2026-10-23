@@ -960,19 +960,22 @@ with `clamp()`.
   item, system and phenomenon pages, nebula and remnant pages listing
   what is inside them, and the new API `GET
   /api/phenomena/<type>/<id>/contents`. The cluster and region part
-  waits on DB.85 (globular clusters and superbubbles are not stored as
-  containers).
+  waits on DB.85, which has since merged (#2582: globular clusters and
+  superbubbles are stored as containers), so it is unblocked.
   Progress (Core 2, UX.144 merged in part as #2485, 12:52 PM EDT
   2026-10-22 as the lane reported): the Location block is on item, system
   and phenomenon pages (the chain from the galaxy down, each a link), nebula and remnant
   pages list what is inside them, through the new API `GET
   /api/phenomena/<type>/<id>/contents`. Still open here: the 'Inside:'
-  line naming a containing globular cluster or superbubble, which waits
-  on DB.85 (no such records are stored as containers).
+  line naming a containing globular cluster or superbubble. DB.85
+  merged as #2582 (10:39 PM EDT 2026-10-22 as the coordinator relayed:
+  globular clusters and superbubbles are now stored as containers,
+  schema v130), so this remainder is unblocked and waits only for an
+  owner.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
   held it before; this replaces any earlier owner line).
-  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143, DB.85.
+  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 - [ ] **UX.146 The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug)**
   Boss (8:20 PM EDT 2026-10-22), testing the top menu bar, filed by the
@@ -9162,7 +9165,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.478, GEN.498. Related: GEN.409,
+  Prerequisites: GEN.428, GEN.478. Related: GEN.409,
   GEN.411,
   GEN.422,
   GEN.428.
@@ -11609,62 +11612,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window with Clausius-Clapeyron beyond, flagged and doubled in width,
   stays.
   Prerequisites: GEN.470. Related: GEN.470, GEN.452, GEN.410, GEN.427.
-
-- [ ] **GEN.498 One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-4 (part G3, extends part F item F2). Sossi 2020
-  puts Earth's magma ocean at delta-IW +0.5 on its own scale; the same
-  gas ratios are delta-IW 0.0 on the Hirschmann 2021 scale, so the
-  generator must fix one reference. QFM is IW + 3.1 to 3.6 (1 bar, 2200
-  to 1500 K) and +3.4 to 4.0 (1 GPa); the CO2 > CO crossover is IW + 1.0
-  to 1.4, so the +2 boundary the note calls QFM is right but is not QFM.
-  No per-planet delta-IW distribution is published: part G3 F8 gives a
-  labelled parametrisation built from Doyle 2019, Deng 2020, Guimond
-  2023 and the Rubie to Siebert range, with the stored quantities it
-  needs. Do: fix the Hirschmann 2021 scale as the one reference, store
-  delta-IW on it (DB.69), convert the Sossi and Frost buffers, and keep
-  +0.5 as a Sossi-scale calibration target only. Done: a test checks
-  that the CO2/CO and H2O/H2 ratios reproduce Sossi's equation 4 on the
-  stored scale, and that no constant is on another scale. Owner: Core 4
-  (proposed, with the composition chain).
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/tunable-gaps.md): decision D3: the white-dwarf delta-IW is
-  the core-formation scale and rows a1 and a2 are the surface
-  magma-ocean scale; add the conversion test between them to this item's
-  tests.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
-  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
-  Sossi 2020 is already read.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AT.a1 and a2: Gaillard and Scaillet
-  2014 (equations 1 to 11 without coefficients; its text claims
-  convergence to FMQ-2 +-0.5 at 10 to 0.01 bar while its own Figure 2
-  shows about FMQ-2.75 with 0.7 dex spread at 0.01 bar) and Pahlevan,
-  Schaefer and Hirschmann (Earth only, last magma-ocean equilibration
-  above IW+1, H2/H2O below 0.3; its Figure 5 top axis contradicts its
-  Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
-  oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
-  and 2022 are not uploaded.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Stand-ins (Blocker 2 via the coordinator, 9:25 PM EDT 2026-10-22, as
-  the lane reported): the coefficients from Hirschmann 2021 and Sossi
-  2020 are recalled and labelled stand-ins in the stand-in registry,
-  because par.nsf.gov and PMC do not resolve from the lane environment.
-  Replacing them with the printed values needs those two hosts opened
-  for lanes (an open question for Boss, listed in
-  docs/plan/execution-notes.md under Needs Boss); the labelled values
-  stay until then and are replaced when read.
-  Prerequisites: none. Related: GEN.451, DB.69, GEN.422, GEN.456.
-  Owner: Blocker 2 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; after GEN.599, second of GEN.416, GEN.498, GEN.496). This replaces any earlier owner line on this item.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
   Body composition research lane check of Boss's second research note
@@ -15344,8 +15291,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/galaxy-size-levers.md states the new Auto draws. Generator epoch: the draws
   change generated values, so this needs a generator epoch; 51 is the
   next free number and the epochs file must stay contiguous, so the
-  first of this item, DB.85 and PERF.123 slice C to merge takes 51, the
-  next 52 and so on, numbered at merge. Owner: Core 1, first in its
+  first of this item and PERF.123 slice C to merge takes 51, the
+  next 52 and so on, numbered at merge (DB.85 merged as #2582 without
+  an epoch). Owner: Core 1, first in its
   queue, ahead of GEN.304 (the coordinator, relayed Boss's note 8:28 PM
   EDT 2026-10-22).
   Owner: Core 1, holds this item only from the plan-number bugs; it is
@@ -16900,7 +16848,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460, GEN.498. Related:
+  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460. Related:
   DB.67,
   DB.68.
   Part F of the Body composition research lane
@@ -17366,25 +17314,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   open item that adds a `sectors` column is checked against it. Owner:
   not assigned (the DB items chain lane after its listed order).
   Prerequisites: none. Related: DB.18, DB.44.
-
-- [ ] **DB.85 Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds**
-  Found by Core 2 (relayed 9:33 AM EDT 2026-10-22, while building UX.144
-  and MAP.254), filed by the TODO thread. Globular clusters and
-  superbubbles are not stored as containers, so nothing can say 'this
-  star is inside cluster X' or list what is inside one, and the Location
-  block of UX.144 and the 'Inside:' line cannot name them. Do: store
-  each globular cluster and each superbubble as a container (a row with
-  its Object ID, kind, centre, extent and the region it belongs to) and
-  a way to ask which containers hold a point and what a container holds,
-  as the nebula and remnant pages already do for their contents (`GET
-  /api/phenomena/<type>/<id>/contents`). Done: for a star inside a
-  globular cluster and a star inside a superbubble, the query names the
-  container; a container lists what it holds; the stored rows come from
-  the generator with no fixed content. Owner: the DB items chain lane, started after DB.58 and DB.62 merged (the
-  coordinator, relayed 7:03 PM EDT 2026-10-22 as the lane's clock reads;
-  Core 2 asked for it). Numbers: revision 0130 and generator epoch 51,
-  given to the lane at 7:06 PM EDT.
-  Prerequisites: none. Related: UX.144, MAP.254, UX.143.
 
 - [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
   Found by Core 1 (relayed 1:03 PM EDT 2026-10-22 as the lane's clock
