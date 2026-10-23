@@ -71,6 +71,7 @@ from planetgen.db.query import (
     galaxy_locate,
     galaxy_stage,
     galaxy_edge_pc,
+    galaxy_nebula_cover,
     galaxy_window,
     galaxy_tiles,
     list_phenomena,
@@ -1165,6 +1166,22 @@ def galaxy_window_route():
         conn = get_db()
         return jsonify(galaxy_window(conn, request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW,
                                      galaxy_edge_pc(conn)))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/nebula-cover")
+def galaxy_nebula_cover_route():
+    """
+    The share of each cell inside a nebula for a Galaxy Map stage (`?at=m.shell.band.wedge`, or none for the galaxy)
+    or window (`?at=` the middle cell and `?g=` the cells across), filled cells and unfilled alike -- see
+    `db.query.galaxy_nebula_cover`. Called by `/galaxy/stage` and `/galaxy/window` (`planetgen/web/galaxy_views.py`),
+    which add it to their payloads; it is not cached with them because it changes without a sector changing.
+    """
+    try:
+        conn = get_db()
+        return jsonify(galaxy_nebula_cover(conn, request.args.get("at") or None, request.args.get("g") or None,
+                                           galaxy_edge_pc(conn)))
     except ValueError as exc:
         raise ApiError(str(exc))
 

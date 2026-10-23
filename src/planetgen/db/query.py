@@ -41,7 +41,7 @@ import pymysql
 from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, get_galaxy_shape_pins, sector_deletions, surrounding_cloud,
 )
-from planetgen.db import countcache, hostednebula, point_columns
+from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -5287,6 +5287,54 @@ def galaxy_window(conn, at, g, edge_pc):
         "at": format_drill_key(centre), "g": width, "child_m": centre.m,
         "cells": [[c.shell, c.band, c.wedge] for c in cells], "children": children, "sectors": None,
     }
+
+
+def galaxy_nebula_cover(conn, at=None, g=None, edge_pc=None):
+    """
+    The nebula cover of the cells a Galaxy Map stage or window shows (MAP.174): the share of each cell inside a nebula,
+    for the cells that hold a generated sector and the cells that do not, from the stored aggregates
+    (`db.nebula_blocks`, MAP.172), which are made from the seed's nebula field and the stored nebulae and so need no
+    sector. It is read beside the stage and the window, not in them, because those are cached by the sectors that
+    changed and the aggregates change without one (a re-drawn field, a nebula stored after a run's sectors).
+
+    Cells of a sector have no stored cover (the aggregates are of the blocks above a sector), so their list is empty.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        at (str or None): A block key `m.shell.band.wedge`. Without `g`, the stage of `at` (none: the galaxy); with
+            `g`, the middle cell of a window.
+        g (int or str, optional): The window's width in cells, as `galaxy_window` takes it.
+        edge_pc (float, optional): The sector edge in parsecs (a window needs it); read when left out.
+
+    Returns:
+        dict: `at` (the canonical key or `None`), `child_m` (the cells' size) and `cells` (`[[shell, band, wedge,
+            cover], ...]`, sorted, only cells with a cover above zero).
+
+    Raises:
+        ValueError: On a malformed or impossible `at` or `g`.
+    """
+    if g is not None:
+        centre = parse_window_key(at or "")
+        width = check_width(g)
+        child_m = centre.m
+        if child_m == 1:
+            return {"at": format_drill_key(centre), "child_m": 1, "cells": []}
+        edge_pc = galaxy_edge_pc(conn) if edge_pc is None else edge_pc
+        cells = [(c.shell, c.band, c.wedge) for c in window_cells(centre, edge_pc, width)]
+        key = format_drill_key(centre)
+    elif at is None or at == "":
+        found = nebula_blocks.covers(conn, DRILL_TOP)
+        return {"at": None, "child_m": DRILL_TOP,
+                "cells": [[*cell, cover] for cell, cover in sorted(found.items())]}
+    else:
+        block = parse_drill_key(at)
+        child_m = block.m // DRILL_STEP
+        key = format_drill_key(block)
+        if child_m == 1:
+            return {"at": key, "child_m": 1, "cells": []}
+        cells = [(c.shell, c.band, c.wedge) for _shell, group in drill_children(block) for c in group]
+    found = nebula_blocks.covers(conn, child_m, cells)
+    return {"at": key, "child_m": child_m, "cells": [[*cell, cover] for cell, cover in sorted(found.items())]}
 
 
 def _sector_sums(row):
