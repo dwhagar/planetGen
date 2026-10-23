@@ -1,0 +1,64 @@
+{#- planetgen/web/templates/partials/ui_fields.html -- the one form field (UX.124): a labelled Shoelace `sl-input`,
+    `sl-select` or `sl-checkbox` with its name, required flag and a slot for the server's validation error. Import it
+    `from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox`.
+
+    Without script the element is not defined (shoelace-theme.css hides it), so each field also writes the plain
+    control into a <noscript>: the page posts as it always did with scripts off, and with scripts on the <noscript>
+    is not drawn. A field that needs a datalist stays a native control (a datalist cannot reach into the shadow
+    root); the hidden, submit, password and one-time-code fields stay native too (decided).
+
+    `error` is the server's text for this field: it shows under the field (role "alert") and marks it invalid. Extra
+    keyword arguments are written as attributes on both the element and the plain control (placeholder, min, max, step,
+    inputmode, autocomplete, enterkeyhint, maxlength). `bare` keeps the label for screen readers and hides it. -#}
+{%- macro _attrs(attrs) -%}
+{%- for key, val in attrs.items() %}{% if val is sameas true %} {{ key }}{% elif val is not none and val is not sameas false %} {{ key }}="{{ val }}"{% endif %}{% endfor -%}
+{%- endmacro -%}
+
+{%- macro ui_input(name, label, value="", type="text", error=none, required=False, bare=False, clearable=False) -%}
+<div class="ui-field{% if bare %} ui-field-bare{% endif %}">
+  <sl-input name="{{ name }}" type="{{ type }}" label="{{ label }}" value="{{ value }}"
+    {%- if required %} required{% endif %}{% if clearable %} clearable{% endif %}{% if error %} data-invalid{% endif %}
+    {{- _attrs(kwargs) }}>
+    {%- if error %}<span slot="help-text" class="field-error" role="alert">{{ error }}</span>{% endif -%}
+  </sl-input>
+  <noscript><label class="search-field">{{ label }}
+    <input type="{{ type }}" name="{{ name }}" value="{{ value }}"{% if required %} required{% endif %}{{ _attrs(kwargs) }}>
+    {%- if error %}<span class="field-error" role="alert">{{ error }}</span>{% endif -%}
+  </label></noscript>
+</div>
+{%- endmacro -%}
+
+{#- `options` is a list of objects with `value` and `label`; `value` is the chosen one. -#}
+{%- macro ui_select(name, label, options, value="", error=none, required=False) -%}
+<div class="ui-field">
+  <sl-select name="{{ name }}" label="{{ label }}" value="{{ value }}"
+    {%- if required %} required{% endif %}{% if error %} data-invalid{% endif %}{{ _attrs(kwargs) }}>
+    {%- for option in options %}
+    <sl-option value="{{ option.value }}">{{ option.label }}</sl-option>
+    {%- endfor %}
+    {%- if error %}<span slot="help-text" class="field-error" role="alert">{{ error }}</span>{% endif %}
+  </sl-select>
+  <noscript><label class="search-field">{{ label }}
+    <select name="{{ name }}"{% if required %} required{% endif %}{{ _attrs(kwargs) }}>
+      {%- for option in options %}
+      <option value="{{ option.value }}"{% if option.value|string == value|string %} selected{% endif %}>{{ option.label }}</option>
+      {%- endfor %}
+    </select>
+    {%- if error %}<span class="field-error" role="alert">{{ error }}</span>{% endif -%}
+  </label></noscript>
+</div>
+{%- endmacro -%}
+
+{#- The label is the text, or (called with {% call %}) the markup in the block. -#}
+{%- macro ui_checkbox(name, label=none, value="1", checked=False, error=none, required=False) -%}
+<div class="ui-field ui-field-check">
+  <sl-checkbox name="{{ name }}" value="{{ value }}"
+    {%- if checked %} checked{% endif %}{% if required %} required{% endif %}{% if error %} data-invalid{% endif %}{{ _attrs(kwargs) }}>
+    {{- caller() if caller else label -}}
+    {%- if error %}<span slot="help-text" class="field-error" role="alert">{{ error }}</span>{% endif -%}
+  </sl-checkbox>
+  <noscript><label><input type="checkbox" name="{{ name }}" value="{{ value }}"{% if checked %} checked{% endif %}{% if required %} required{% endif %}{{ _attrs(kwargs) }}> {{ caller() if caller else label }}</label>
+    {%- if error %} <span class="field-error" role="alert">{{ error }}</span>{% endif -%}
+  </noscript>
+</div>
+{%- endmacro -%}

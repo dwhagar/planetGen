@@ -1,5 +1,6 @@
 {#- The What's nearby page (web/nearby_page.py). -#}
 {% extends "base.html" %}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {% block subhead %}
 {%- if place_name and not pickers %}
 <p class="badges">
@@ -9,7 +10,7 @@
 {%- endif %}
 {% endblock %}
 {% block content %}
-{%- if error %}
+{%- if error and error_field != "distance" %}
 <section class="panel"><p class="error" role="alert">{{ error }}</p></section>
 {%- endif %}
 
@@ -25,13 +26,7 @@
     <input type="hidden" name="{{ name }}" value="{{ value }}">
     {%- endfor %}
     <div class="search-fields">
-      <label class="search-field">{{ picker.label }}
-        <select name="{{ picker.field }}">
-          {%- for option in picker.options %}
-          <option value="{{ option.value }}">{{ option.label }}</option>
-          {%- endfor %}
-        </select>
-      </label>
+      {{ ui_select(picker.field, picker.label, picker.options, picker.options[0].value) }}
     </div>
     <div class="search-actions">
       <button type="submit" class="btn">{{ picker.button }}</button>
@@ -47,9 +42,7 @@
   <h2 id="point-heading">Or a point in space</h2>
   <form method="get" action="{{ url_for('web.nearby') }}" class="search-form">
     <div class="search-fields">
-      <label class="search-field">Galaxy-frame x, y, z in parsecs
-        <input type="text" name="place" placeholder="0, 0, 0" inputmode="decimal" required>
-      </label>
+      {{ ui_input("place", "Galaxy-frame x, y, z in parsecs", "", required=True, placeholder="0, 0, 0", inputmode="decimal") }}
     </div>
     <div class="search-actions">
       <button type="submit" class="btn">Continue</button>
@@ -64,14 +57,13 @@
   <form method="get" action="{{ url_for('web.nearby') }}" class="search-form">
     <input type="hidden" name="place" value="{{ place_param }}">
     <div class="search-fields">
-      <label class="search-field">Distance in parsecs (up to {{ max_distance|int }})
-        <input type="number" name="distance" value="{{ distance_text }}" min="0.01" max="{{ max_distance }}" step="any" required>
-      </label>
+      {{ ui_input("distance", "Distance in parsecs (up to " ~ max_distance|int ~ ")", distance_text, type="number", required=True,
+                  error=error if error_field == "distance" else none, min="0.01", max=max_distance, step="any") }}
     </div>
     <fieldset class="search-field">
       <legend>Only these kinds (none ticked: everything)</legend>
       {%- for option in kind_options %}
-      <label><input type="checkbox" name="kinds" value="{{ option.value }}"{% if option.checked %} checked{% endif %}> {{ option.label }}</label>
+      {{ ui_checkbox("kinds", option.label, option.value, option.checked) }}
       {%- endfor %}
     </fieldset>
     <div class="search-actions">
