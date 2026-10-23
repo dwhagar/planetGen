@@ -4112,6 +4112,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Blocker 3 (Boss asked for it on the blocker list, 4:25 PM EDT
   2026-10-22; the coordinator, relayed 3:25 PM EDT 2026-10-22 as the lane's clock reads). Takes an epoch: ask the TODO
   thread for the next free number.
+  Blocker 3, relayed about 1:12 PM EDT 2026-10-23 as the lane reported:
+  three tests' numbers move with this item and are updated in its PR:
+  the habitable-world base share 0.253 to 0.422
+  (tuning.PREVALENCE_BASE_SHARES, remeasured over 20,000 systems), the
+  ecosphere share of planets about 6 to 12 percent, and the class K mean
+  temperature in the ecosphere 195 K; the class tuning against the final
+  zone edges is the GEN.29 sweep's.
   Prerequisites: none.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
@@ -15498,7 +15505,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.170 A flag that skips the start-up math check (the TEST.68 gate, 2.5 s for 60 checks) before a bulk run**
+- [ ] **PERF.170 The math check (the TEST.68 gate) runs at every update and from the admin suite, and no longer before every generation**
   Found by the Performance lane in PERF.165 (relayed 6:27 AM EDT
   2026-10-23 as the lane reported); filed by the TODO thread as an open
   question. Every bulk run (plan, scatter, fill) starts with the TEST.68
@@ -15525,6 +15532,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reported): being built as --skip-math-check on every command plus a
   'Skip the math check' box on the Generate page; the check still runs
   by default; its gate was running (about 2 hours).
+  Superseded by Boss, 1:14 PM EDT 2026-10-23 (typed in the project chat,
+  relayed by the coordinator): "No longer do the math check before every
+  generation. Instead do the math check at every update and a math check
+  can be performed from the admin suite." This replaces the skip flag
+  and the Generate page box above, which Performance had in build
+  (--skip-math-check, 12:54 PM EDT as the lane reported). Do: (a) remove
+  the TEST.68 check from the start of every bulk run and every generate
+  command (plan, scatter, fill and the rest), with no flag and no stamp
+  on disk; (b) run it at every update (`./update.sh` runs it and stops
+  with the failing checks named); (c) add an admin suite action that
+  runs it on demand and shows the result. Done: no generate or bulk
+  command runs the check; `./update.sh` runs it; the admin suite has a
+  button that runs it and shows each failing check; tests cover each of
+  the three; the docs that say a run starts with the check are
+  corrected. Owner: Performance (named by the coordinator).
   Prerequisites: none. Related: PERF.165, PERF.41.
 
 - [ ] **PERF.171 The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter**
@@ -19577,6 +19599,17 @@ clears each one.
   redis://127.0.0.1:6379/0, flushed before the gate, no stale keys; 4
   cores at load about 10 (4 xdist workers, a second 2-worker scan on
   Redis port 6390, headless Chromium at 100 to 150 percent CPU).
+  Progress (Bug Hunt, #2683 merged about 1:16 PM EDT 2026-10-23 as the
+  lane reported, gate green at 22,724 passed): the original hang did not
+  reproduce (17 loops beside 8 CPU burners, all clean), but Core 5's
+  stack fits a real gap that Bug Hunt reproduced: RQExecutor restarted a
+  worker the moment it exited while tasks waited, so workers that die at
+  start (an import error, out of memory, an unreachable Redis; their
+  output is discarded) were started without limit (752 in 21 s). The run
+  now fails after 10 workers in a row die, with the exit code and the
+  command to see why. This item stays open as 'cause of the dying
+  workers unknown': if it recurs, the error now names the exit code.
+  Done is unchanged except that a recurrence is now diagnosable.
   Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
 
 - [ ] **TEST.296 test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug)**
@@ -19593,6 +19626,20 @@ clears each one.
   seed or a test that does not assume a count). Done: the test passes 50
   times in a row at -n 4 and the cause is on this item. Owner: Bug Hunt
   (proposed by the TODO thread).
+  Second sighting, in another test (Blocker 3, relayed about 1:12 PM EDT
+  2026-10-23 as the lane reported):
+  src/tests/test_population_rescans.py::test_territories_only_skips_new_worlds
+  failed once in a full changed gate on the GEN.146 branch at `assert
+  model.run_pass(conn)["new_species"] >= 1` (got 0); it passed 15 of 15
+  alone; frequency about once in 3 full gates. Likely common cause
+  (Blocker 3's reading, not confirmed): the helper `_civilized_system`
+  in test_population.py generates randomly and only checks that a planet
+  has a life timeline, while POP.14 (#2651) places no species on a
+  homeworld whose own limits cannot hold it, so a drawn system can end
+  with no species and new_species is 0 or 1. Reproducer: loop the two
+  tests, or seed the generation in `_civilized_system` and require a
+  species row. Done now also covers
+  test_population_rescans.py::test_territories_only_skips_new_worlds.
   Prerequisites: none. Related: TEST.290, TEST.289.
 
 - [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**

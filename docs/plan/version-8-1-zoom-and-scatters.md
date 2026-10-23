@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 1:05 PM EDT 2026-10-23: 738 of 953 items finished (77.4 percent), 215 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 104, phase 2 27, phase 3 25, phase 4 14, phase 5 31, phase 6 14. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 1:15 PM EDT 2026-10-23: 738 of 953 items finished (77.4 percent), 215 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 104, phase 2 27, phase 3 25, phase 4 14, phase 5 31, phase 6 14. Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -402,7 +402,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.170 | A flag that skips the start-up math check (the TEST.68 gate, 2.5 s for 60 checks) before a bulk run |  |  |
+| PERF.170 | The math check (the TEST.68 gate) runs at every update and from the admin suite, and no longer before every generation |  |  |
 | PERF.161 | bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass |  |  |
 | PERF.171 | The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter |  | Performance suggested it; low rank. |
 | PERF.160 | fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client |  |  |
