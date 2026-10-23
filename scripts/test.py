@@ -146,6 +146,23 @@ def _progress_modules():
     return buildid, progress_log, redis_cleanup, reuse
 
 
+def check_without_changes(base):
+    """The refusal for `full --check` when nothing differs from `base`, else "". The check lists the failures the
+    changed-only selection would have missed, so with no changes it would list every failure (TEST.294: a check on a
+    checkout that is already main compares main with itself)."""
+    sys.path.insert(0, os.path.join(ROOT, "src"))
+    try:
+        from tests import depmap
+    finally:
+        sys.path.pop(0)
+    changed = depmap.changed_files(base)
+    if changed is None or changed:
+        return ""
+    return ("no file differs from " + (base or "where this branch left origin/main") + ", so every failure would "
+            "read as one the selection misses. Pass --base <the commit before the change>, e.g. the parent of the "
+            "merge you are checking.")
+
+
 def clear_test_redis():
     """Removes what earlier runs left on the test Redis (TEST.152, src/tests/redis_cleanup.py); the sentence to print, or ""."""
     return _progress_modules()[2].clean()[1]
@@ -364,6 +381,11 @@ def main(argv=None):
         parser.error(f"`{args.command}` takes no areas")
     if args.check and args.command != "full":
         parser.error("`--check` goes with `full`")
+    if args.check:
+        refusal = check_without_changes(args.base)
+        if refusal:
+            print(f"scripts/test.py full --check: {refusal} Nothing was run.", flush=True)
+            return 2
     if args.global_docs:
         os.environ["PLANETGEN_GLOBAL_DOCS"] = "1"
     extra = depmap_options(args.command, args.base, args.check) + extra

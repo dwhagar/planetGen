@@ -6,6 +6,7 @@ import copy
 import json
 import math
 import concurrent.futures
+import multiprocessing
 import statistics
 
 import pytest
@@ -177,7 +178,7 @@ def test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers():
     seeds = list(range(8))
     serial = [_worker(s) for s in seeds]
     assert serial == [_worker(s) for s in seeds] and serial[0] != serial[1]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as pool:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=multiprocessing.get_context("spawn")) as pool:
         assert list(pool.map(_worker, seeds)) == serial
 
 
