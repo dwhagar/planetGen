@@ -64,6 +64,8 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
+                         " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138 (GEN.414)
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
                          + ", ALGORITHM=COPY")  # v137 (GEN.656)
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in equipment.FIELDS)

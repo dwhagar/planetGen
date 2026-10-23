@@ -74,7 +74,7 @@ from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
+from planetgen.physics import activity, aerosols, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -1543,6 +1543,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (138, _column_marker("planets", "tau_cloud")),
     (137, _column_marker("planets", "temp_swing_k")),
     (136, _column_marker("planets", "eq_body")),
     (135, _column_marker("planets", "ozone_column_du")),
@@ -3004,6 +3005,7 @@ BODY_FIELDS = (
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
+    object_rows.each(aerosols.BODY_FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
 )
