@@ -65,6 +65,7 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE stars DROP COLUMN slot, ALGORITHM=COPY")    # v133 (GEN.630)
         conn.execute("ALTER TABLE stars DROP COLUMN snow_line_km, ALGORITHM=COPY")
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN born_beyond_snow_line, ALGORITHM=COPY")

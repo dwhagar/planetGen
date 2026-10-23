@@ -83,7 +83,11 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 4 -> 5 to add `runaway_origin` (GEN.329): how a runaway star came to move so fast, `"supernova"` or `"dynamical"`
 # (`None` for a system that is not a runaway). A pre-v5 save has no key and reads as `None`.
-SERIALIZATION_SCHEMA_VERSION = 5
+#
+# Bumped 5 -> 6 to add `member_stars` and `star_slots` (GEN.630): the stars beyond the pair of a system of more than two stars
+# and where each star hangs in the tree (`None`/`[]` for a single star and a pair). A pre-v6 save has neither key and reads
+# as no members.
+SERIALIZATION_SCHEMA_VERSION = 6
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -150,6 +154,16 @@ class StarSystem:
     saved (a generated binary's one node is made from its pair then, `db.orbit_trees.binary_nodes`) or for a single star;
     a loaded system has the tree that was stored. A system built from a stored tree (`member_tree`) has the stored node
     from the start."""
+
+    member_stars = ()
+    """tuple of Star: The stars beyond the pair (`stars[2:]`) of a system of more than two stars (GEN.630); empty for a
+    single star and a pair, which is every system the fill builds until GEN.631. Each is stored as a `member` row of
+    `stars` and has no planets of its own yet (an S-type window around it is GEN.332's)."""
+
+    star_slots = None
+    """tuple or None: Where each star of `stars` hangs in `orbit_nodes`, as `(node_no, slot)` in `stars` order (slot 0 or
+    1: the child of that node); `None` for a single star and for a pair on the one root node (the primary in slot 0, the
+    secondary in slot 1), which is every system the fill builds. A system with `member_stars` says it."""
 
     tree_built = False
     """bool: The system was built from the tree its scatter row stored and holds every member of it (GEN.315): the
@@ -1365,6 +1379,8 @@ class StarSystem:
             "runaway_origin": self.runaway_origin,
             "runaway_direction": list(self.runaway_direction) if self.runaway_direction is not None else None,
             "orbit_nodes": [dataclasses.asdict(node) for node in self.orbit_nodes],
+            "member_stars": [star.to_dict() for star in self.member_stars],
+            "star_slots": [list(place) for place in self.star_slots] if self.star_slots is not None else None,
         }
 
     @classmethod
@@ -1475,6 +1491,10 @@ class StarSystem:
         )
 
         system.orbit_nodes = tuple(OrbitNode(**node) for node in data.get("orbit_nodes", ()))
+        system.member_stars = tuple(Star.from_dict(member, system_config) for member in data.get("member_stars", ()))
+        system.stars = system.stars + list(system.member_stars)
+        slots = data.get("star_slots")
+        system.star_slots = tuple(tuple(place) for place in slots) if slots is not None else None
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")

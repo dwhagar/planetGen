@@ -2242,6 +2242,7 @@ stars = sa.Table(
     sa.Column('uid', mysql.BINARY(12), nullable=True),
     sa.Column('metallicity_fe_h', mysql.DOUBLE(), nullable=True),
     sa.Column('parent_node_id', mysql.SMALLINT(), nullable=True),
+    sa.Column('slot', mysql.TINYINT(unsigned=True), nullable=True),
     sa.Column('state', sa.String(16), nullable=True),
     sa.Column('flags', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('offset_x_au', mysql.DOUBLE(), nullable=True),
@@ -2268,7 +2269,7 @@ stars = sa.Table(
     sa.Index('uq_stars_uid', 'uid', unique=True),
     sa.ForeignKeyConstraint(['cluster_id'], ['galaxy_components.id'], name='fk_stars_cluster', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_stars_star_system', ondelete='CASCADE'),
-    sa.CheckConstraint("(`role` in (_utf8mb4'primary',_utf8mb4'secondary',_utf8mb4'single'))", name='stars_chk_1'),
+    sa.CheckConstraint("(`role` in (_utf8mb4'primary',_utf8mb4'secondary',_utf8mb4'single',_utf8mb4'member'))", name='stars_chk_1'),
     mysql_engine="InnoDB",
 )
 

@@ -1417,6 +1417,8 @@
 --   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
 -- v132 (GEN.458): `stars.snow_line_km`, the star's own snow line (drawn once, 0.2 dex around the 170 K blackbody position, then stored), and `planets.born_beyond_snow_line`
 --   and `moons.born_beyond_snow_line`, whether the body formed beyond its star's line (a moon takes its planet's). The fixed 2.7 AU constant is gone from the generator.
+-- v133 (GEN.630): `stars.role` also takes 'member' (a star of a system of more than two), and `stars.slot` says which child (0 or 1) of its parent node a star is.
+--   A pair already stored gets its slots from its roles. Nothing else changes.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1993,7 +1995,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
 CREATE TABLE IF NOT EXISTS stars (
     id                        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     star_system_id            BIGINT UNSIGNED NOT NULL,
-    role                      VARCHAR(16) NOT NULL CHECK (role IN ('primary', 'secondary', 'single')),
+    role                      VARCHAR(16) NOT NULL CHECK (role IN ('primary', 'secondary', 'single', 'member')),  -- v133 (GEN.630): 'member'
     name                      VARCHAR(255) NOT NULL,
     star_type                 VARCHAR(64) NOT NULL,   -- Star.type, e.g. "G2V Yellow Main Sequence Star"
     yerkes_class              VARCHAR(16) NOT NULL,
@@ -2041,6 +2043,7 @@ CREATE TABLE IF NOT EXISTS stars (
     -- v95 (GEN.158): the star's [Fe/H] in dex against the Sun; NULL for a row saved before v95.
     metallicity_fe_h      DOUBLE,
     parent_node_id              SMALLINT NULL,  -- v104 (DB.53)
+    slot                        TINYINT UNSIGNED NULL,  -- v133 (GEN.630): 0 or 1, the child of its parent node this star is
     state                       VARCHAR(16) NULL,  -- v104 (DB.53)
     flags                       SMALLINT UNSIGNED NULL,  -- v104 (DB.53)
     offset_x_au                 DOUBLE NULL,  -- v104 (DB.53)

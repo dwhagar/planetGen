@@ -74,8 +74,11 @@ def _star_around(planet_or_belt, stars, system):
     return f"star:{stars[0]['id']}" if stars else "barycenter"
 
 
-def _stars(stars, row):
+def _stars(conn, system_id, stars, row):
     """The scene's stars, positioned in the system frame."""
+    offsets = {r["id"]: r for r in conn.execute(
+        "SELECT id, offset_x_au, offset_y_au, offset_z_au FROM stars WHERE star_system_id = ? AND role = 'member'",
+        (system_id,)).fetchall()}
     primary_xyz = _xyz(row, "binary_primary_position_")
     secondary_xyz = _xyz(row, "binary_secondary_position_")
     mutual_xyz = _xyz(row, "binary_mutual_position_")
@@ -103,6 +106,9 @@ def _stars(stars, row):
                 "phase_deg": row["binary_mutual_orbital_phase_deg"],
                 "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
             }
+        elif star["role"] == "member":    # GEN.630: a star beyond the pair, at the offset its row stores
+            item["position_km"] = [(offsets[star["id"]][f"offset_{axis}_au"] or 0.0) * constants.AU_TO_KM
+                                   for axis in "xyz"]
         elif row["is_binary"] and row["binary_configuration"] == "close":
             item["position_km"] = primary_xyz
         out.append(item)
@@ -110,21 +116,14 @@ def _stars(stars, row):
 
 
 def _tree(conn, system_id, stars, row):
-    """The scene's `tree`: the system's `orbit_nodes` and where each star hangs in them. A star takes the free slot of
-    its parent node (a pair's primary is slot 0, its secondary slot 1; a slot a child node holds is not free), in the
-    order of its id."""
+    """The scene's `tree`: the system's `orbit_nodes` and where each star hangs in them, the node and the slot its row
+    stores (a pair's primary is slot 0, its secondary slot 1), in the order of its id."""
     nodes = orbit_trees.read_nodes(conn, system_id)
-    parent_of = {r["id"]: r["parent_node_id"] for r in conn.execute(
-        "SELECT id, parent_node_id FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
-    taken = {}
-    for node in nodes:
-        if node.parent_node_no is not None:
-            taken.setdefault(node.parent_node_no, set()).add(node.slot)
+    places = {r["id"]: r for r in conn.execute(
+        "SELECT id, parent_node_id, slot FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
     members = []
     for number, star in enumerate(sorted(stars, key=lambda s: s["id"])):
-        parent = parent_of[star["id"]]
-        slot = next(k for k in range(len(stars)) if k not in taken.setdefault(parent, set()))
-        taken[parent].add(slot)
+        parent, slot = places[star["id"]]["parent_node_id"], places[star["id"]]["slot"] or 0
         members.append({"ref": f"star:{star['id']}", "member_no": number, "parent_node_no": parent, "slot": slot,
                         "mass_solar": star["mass_kg"] / constants.SOLAR_MASS_TO_KG})
     origin = members[0]["ref"] if row["binary_configuration"] == "wide" else None
@@ -216,7 +215,7 @@ def build_scene(conn, system_id):
             "heliopause_au": detail["heliopause_au"],
         },
         "epoch": epoch, "epoch_unix": epoch_unix,
-        "stars": _stars(stars, row),
+        "stars": _stars(conn, system_id, stars, row),
         "tree": _tree(conn, system_id, stars, row),
         "planets": planets,
         "belts": [_belt(b, _star_around(b, stars, row)) for b in detail["belts"]],
