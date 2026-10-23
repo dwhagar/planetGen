@@ -15123,7 +15123,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each AD item's builder; GEN.599 builds the option. Not a request for
   Boss's data: Boss has provided all the AD1 data he can (3:07 PM EDT
   2026-10-18).
-  Prerequisites: GEN.599. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
 
 - [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
   Filed from Boss's sweep answer on fork 8 (6:08 to 6:10 PM EDT
@@ -15138,42 +15138,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its test (TEST.215) still passing. Suggested owner: a research
   thread, then Core 4 (the comet sampler lane); version 8.4.
   Prerequisites: none.
-
-- [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
-  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
-  revision of my previous choice, have the best possible fallback if the
-  files are not there, but the generate process must be explicitly said
-  to disregard missing files. Also-also, the updater / downloader should
-  list the file URL it's loading as well." This replaces the 'Require
-  the data' rule (Boss, 9:38 AM EDT 2026-10-18, GEN.590) and the
-  refuse-or-fall-back cards of GEN.594. Today
-  `run_galaxy.require_datasets` refuses a bulk run while any catalogue
-  file is missing, and `fetch.DataMissing` is raised by readers, so no
-  value ever comes from a fallback (src/planetgen/datasets/fetch.py,
-  stellar_abundances.py). Do: keep the refusal as the default, with a
-  plain message naming each missing file, its URL and the setup command
-  (`python3 -m planetgen.cli.datasets fetch KEY`); add one explicit
-  option that tells the run to disregard missing files (proposed:
-  `--disregard-missing-data` on the CLI commands and `update.sh` runs,
-  and a labelled checkbox on the Generate page and a field on the API
-  job, off by default; the owner may pick the exact words); with it set,
-  every reader of a missing dataset takes its best possible fallback
-  (the labelled stand-in of the gap registry, section 6.6, or for star
-  composition the best available relation), never silently: the run
-  header (CLI banner, job log and the Generate page's job text) prints
-  that the option is on, each missing dataset and the fallback in its
-  place, and the run record stores the list so a later page can show
-  that the galaxy used stand-ins. No silent fallback anywhere: a reader
-  that finds a missing file with the option off raises `DataMissing` as
-  now. Done: tests with the GEN.548 fixtures show that a run with a
-  missing file and no option refuses with the file names and URLs; with
-  the option it runs, prints each fallback in the header and stores the
-  list; an option typed on a command that reads no data does nothing
-  harmful; the star composition (GEN.590) path is covered the same way;
-  the README row (DOC.72) and docs/cli.md say how to use it. Owner:
-  Blocker 2 proposed (it picks the work up after or between its seven
-  items, the coordinator may move it).
-  Prerequisites: none. Related: GEN.594, GEN.548, GEN.600, DOC.72.
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
@@ -22394,6 +22358,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and `status` print each file's URL and update.sh and install.sh show
   those lines, docs/cli.md updated); this item still owns the README row
   for it.
+  Owner: the TODO thread (docs-only change with its catalogue test; this
+  replaces any earlier owner line on this item).
+  GEN.599 is merged as #2560 (relayed 9:10 PM EDT 2026-10-22 as the lane
+  reported: the refusal names every missing file, its URL and the setup
+  command; `--disregard-missing-data` on every subcommand, the API
+  field, the Generate task and the Review pages; fallbacks SC1 none, SC2
+  Chandrasekhar radius, SC3 Chamel and Haensel 2008 crust; no
+  migration). The README row for the refusal, the flag and the printed
+  fallback is this item's, now unblocked; the TODO thread writes it with
+  the README section and its catalogue test (the coordinator, 9:10 PM
+  EDT 2026-10-22: record the DOC.72 README row as the TODO thread's).
+  The README check compares the flag name and the refusal text with the
+  code.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 - [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
