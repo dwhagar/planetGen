@@ -268,8 +268,7 @@
     },
     {
       "epoch": 55,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2002",
       "reason": "An all-Auto galaxy draws its disc size and flatness again until the shape raises none of the plan's grid warnings (the disc's crest under 20 times the one-star density, a scale height under 8 pc, a bulge under 4 pc) and the flatness is inside the Structure dial's range, so about one seed in five gets another size and flatness, and the average default galaxy is smaller (GEN.625)"
     }
   ]
