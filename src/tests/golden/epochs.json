@@ -293,8 +293,7 @@
     },
     {
       "epoch": 60,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2033",
       "reason": "A star's habitable zone follows its temperature (the Kopparapu runaway and maximum greenhouse edges in place of the fixed fluxes 1.1 and 0.53), so every star's zone moves and with it where planets are placed and which classes they take (GEN.146)"
     }
   ]
