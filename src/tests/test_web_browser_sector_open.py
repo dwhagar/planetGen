@@ -141,23 +141,53 @@ def _spot(page, point):
     return (spot["x"], spot["y"]) if left < spot["x"] < right and top < spot["y"] < bottom else None
 
 
+PICK_WAIT_MS = 3000
+"""int: How long a click on a star may take to name it in the panel."""
+
+PICK_TRIES = 4
+"""int: How many times a star is clicked, where it is drawn then, before the next star is tried."""
+
+
+def _steady_spot(page, point, samples=4):
+    """Where `point` falls on the page once it has held the same place for `samples` looks 150 ms apart (rounded to a
+    pixel), or its last place if it keeps moving: after the flight ends the map can still settle, and on a loaded
+    machine a star moved 100 px between being worked out and being clicked (TEST.291)."""
+    held, steady, spot = None, 0, None
+    for _ in range(40):
+        spot = _spot(page, point)
+        now = None if spot is None else (round(spot[0]), round(spot[1]))
+        steady = steady + 1 if now is not None and now == held else 0
+        held = now
+        if steady >= samples:
+            break
+        page.wait_for_timeout(150)
+    return spot
+
+
 def _picks_a_star(page, points):
-    """Clicks each star where it is drawn (worked out again at each click, in case the view has moved) until the
-    panel names a star; returns its name."""
+    """Clicks each star where it is drawn (worked out again at each click, once it holds still) until the panel names a
+    star; returns its name."""
     info = page.locator(INFO)
     names = {name for name, _point in points}
-    for name, point in points:
-        spot = _spot(page, point)
-        if not spot:
-            continue
-        x, y = spot
-        page.mouse.move(x, y)
-        page.wait_for_timeout(100)
-        page.mouse.click(x, y)
-        page.wait_for_timeout(200)
-        heading = info.locator("h3").inner_text() if info.locator("h3").count() else None
-        if heading in names:
-            return heading
+    for _name, point in points:
+        for _ in range(PICK_TRIES):
+            spot = _steady_spot(page, point)
+            if not spot:
+                break
+            x, y = spot
+            page.mouse.move(x, y)
+            page.wait_for_timeout(100)
+            page.mouse.click(x, y)
+            # The panel names the star once the page has handled the click; on a loaded machine that takes longer than
+            # the 200 ms this used to wait, and the click was then taken for a miss (TEST.291).
+            try:
+                page.wait_for_function("""([selector, names]) => {
+                    const heading = document.querySelector(selector + " h3");
+                    return !!heading && names.includes(heading.innerText.trim());
+                }""", arg=[INFO, sorted(names)], timeout=PICK_WAIT_MS)
+            except sync_api.TimeoutError:
+                continue
+            return info.locator("h3").inner_text()
     return None
 
 
