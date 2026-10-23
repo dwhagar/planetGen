@@ -1064,3 +1064,4 @@ Baseline: PR #1817.
 | TEST.282 | 8.1 | Bugs and flaky tests |
 | NAV.17 | 8.5 | Saved courses |
 | PERF.146 | 8.1 | The headline closes |
+| GEN.599 | 8.1 | Queue, caches and performance |
