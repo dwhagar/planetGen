@@ -48,6 +48,11 @@ def test_the_sector_options_are_the_same_on_sectors_and_galaxy_and_the_later_sta
         generate.build_parser()[0].parse_args(["sectors", "--then-scatter"])
 
 
+def test_a_sectors_run_takes_the_density_of_the_plan_not_a_flat_ten_systems():
+    args = _args("sectors", "--shell", "3", "--band", "0", "--wedge", "0")
+    assert args.num_systems is None and args.density is None
+
+
 def test_the_modes_are_refused_the_same_way_on_sectors():
     with pytest.raises(SystemExit):
         _args("sectors", "--course", "a", "b", "--shell", "1")

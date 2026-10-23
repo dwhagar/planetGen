@@ -507,7 +507,7 @@ def validate_shared_generation_args(args, parser):
         # to the flat default there is harmless, since
         # `ensure_sector_generated` immediately overwrites both fields
         # right after with its own already-computed density anyway.
-        if getattr(args, 'command', None) != 'galaxy':
+        if getattr(args, 'command', None) not in ('galaxy', 'sectors'):
             args.num_systems = 10
 
     if args.num_systems is not None:
