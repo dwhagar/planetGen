@@ -15945,6 +15945,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test covers a 202 answer. Owner: Performance (proposed by the TODO
   thread, because the lane found it and PERF.146 lives there; the
   coordinator can move it).
+  Progress (Performance, PERF.164 merged as #2623, relayed 4:15 AM EDT
+  2026-10-23 as the lane reported): at the medium size (4e9) the warm-up
+  takes 27.8 minutes and still fails on the /search check answering 202
+  (its deep-tiles phase builds 1,665 tiles in 948 s); it is the largest
+  single cost at both sizes, 74 minutes with it and 46 without. Measured
+  numbers: docs/design/generation-performance.md, section 'What medium
+  and large show'.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.157 The warm-up reads 95.9 million rows for 1,044 deep tiles, about 92,000 rows a tile**
@@ -16035,22 +16042,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator can move it).
   Prerequisites: none. Related: PERF.146.
 
-- [ ] **PERF.164 The generation performance report holds only the small size: measure medium and large after PERF.163 and re-rank**
-  Follow-up to PERF.146 (merged as #2559, about 9:10 PM EDT 2026-10-22
-  as the Performance lane reported; the benchmark suite `planetgen
-  benchmark --suite`, the report docs/design/generation-performance.md
-  and value-neutral speedups). PERF.146 shipped with the small size
-  measured; its Done line asks for small, medium and large. Do: run the
-  suite at the medium and large sizes on a full-size machine after
-  PERF.163 (the plan stage's cache bug) lands, add the numbers and the
-  per-star and per-cell times to the report, and re-rank the
-  optimization list if the large run changes the order. Done: the report
-  holds measured medium and large rows with the run-to-run spread and
-  the ranked list is checked against them. Owner: the Performance
-  thread, after PERF.163 (the Performance lane, relayed 9:04 PM EDT
-  2026-10-22).
-  Prerequisites: none. Related: PERF.146, PERF.163.
-
 - [ ] **PERF.165 The plan stage still stores 22,267 components row by row and spends about 10 s outside its unit (plan_shape twice, math check, queue start-up) (bug)**
   Found by the Performance lane in PERF.163 (merged as #2576, relayed
   10:25 PM EDT 2026-10-22 as the lane reported); Boss's live observation
@@ -16090,6 +16081,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is merged with its epoch. Owner: none for now (needs Boss's word;
   pool).
   Prerequisites: none. Related: PERF.163, PERF.165.
+
+- [ ] **PERF.167 The phenomenon scatter on a large galaxy runs over an hour and stores over 66 million rows without finishing**
+  Found by the Performance lane in PERF.164 (merged as #2623; relayed
+  4:15 AM EDT 2026-10-23 as the lane reported); filed by the TODO
+  thread. Kind: cost, value-neutral. Measured on the benchmark suite
+  (`planetgen benchmark --suite --size large`, 5e10 solar masses): the
+  plan took 43 s, the massive stars 4.0 min, the bright stars 11.4 min,
+  then the phenomenon scatter hit the lane's 60 minute cap with 66.0
+  million rows stored and was not done, so a large run is at least 1.3
+  hours and the steps after the phenomena were not measured. For
+  comparison the phenomena take 4.3 min for 3.1 million rows at small
+  (3e7) and 14.1 min for 6.7 million rows at medium (4e9), so the large
+  galaxy has more than ten times the medium galaxy's rows by the time it
+  was stopped. This is item 3 of the ranked list in
+  docs/design/generation-performance.md: the database is the cost, not
+  the Python. Reproducer: `planetgen benchmark --suite --size large
+  --steps phenomena` (or the scatter step alone) on a full-size machine;
+  fails on main, every run. Do: batch and index the phenomenon inserts
+  (larger insert batches, fewer secondary indexes while the rows go in
+  and add them after), without changing a drawn value. Whether a large
+  galaxy should hold this many phenomena is a modelling question, not
+  part of this item: GEN.624 (the satellites scale with the galaxy mass)
+  changes the row counts, so re-measure after it lands. Done: the large
+  galaxy's phenomenon scatter finishes inside the suite's step cap with
+  the same rows (same fingerprint), and the report's large column is
+  filled for every step after it. Owner: Performance (proposed by the
+  TODO thread, because the lane found it and PERF.146 lives there; the
+  coordinator can move it).
+  Prerequisites: none. Related: PERF.146, PERF.164, PERF.165, GEN.624.
 
 ## DB: Database and schema
 
@@ -17473,6 +17493,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: API.5, API.15, API.30.
+
+- [ ] **API.32 GET /api/containers answers 500 to a hostile query string (bug)**
+  Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
+  lane reported) in its gate for PERF.164, a change that touches only
+  the benchmark suite and docs; filed by the TODO thread. Kind: bug.
+  Test:
+  src/tests/test_fuzz_web_routes.py::test_get_routes_survive_hostile_query[GET
+  /api/containers]. Failure: the route gets a 500 from /api/containers;
+  the test fails alone too. Reproducer: `pytest
+  src/tests/test_fuzz_web_routes.py -k containers`. Fails on main: very
+  likely (the lane's diff does not touch the route; not yet checked on a
+  clean main). Frequency: every run. The route was added by DB.85 (`GET
+  /api/containers[?kind=globular_cluster|superbubble]` in
+  src/planetgen/api/routes.py). Do: find which hostile value reaches the
+  handler unvalidated (the kind filter is the likely one), answer 400
+  with the error body the other routes use, and add the value to the
+  route's own test. Done: the fuzz test passes for /api/containers, the
+  route answers 400 for an unknown kind, and the other container routes
+  (`/api/containers/at`, `/<id>`, `/<id>/contents`) pass the same fuzz.
+  Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: DB.85.
 
 ## ADM: Admin tools
 
@@ -20185,6 +20226,22 @@ clears each one.
   key. Done: both pass 50 times in a row at -n 4. Owner: Bug Hunt
   (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.284, TEST.288, TEST.280.
+
+- [ ] **TEST.290 test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug)**
+  Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
+  lane reported) in its gate for PERF.164; neither test is touched by
+  the diff. Kind: flaky test. Tests:
+  src/tests/test_work_units.py::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units
+  and
+  src/tests/test_galaxy_seed.py::test_a_new_seed_replaces_the_old_only_before_any_sector.
+  Failure text: not given by the lane; both passed alone at load 5.9.
+  Fails on main: unknown. Frequency: once each in one gate (4 workers).
+  Reproducer: none yet. Do: run both at -n 4 beside a loaded machine 50
+  times, capture the first failure text, find the state they share with
+  another worker (a Redis key, a control-database row or a galaxy name),
+  and scope it per test. Done: both pass 50 times in a row at -n 4.
+  Owner: Bug Hunt (proposed by the TODO thread).
+  Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
 ## USR: User accounts
 
