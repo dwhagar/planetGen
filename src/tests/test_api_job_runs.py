@@ -47,11 +47,13 @@ def test_regenerating_a_sector_is_a_run_of_the_sector_a_backfill_and_a_settle(my
 def test_a_neighborhood_job_runs_its_sectors_through_the_wrapper(mysql_config, conn):
     center = _a_galaxy_sector(mysql_config)
     result = api_jobs.generate_neighborhood(center, 25.0, mysql_config)
-    assert result["generated"] >= 1 and len(_all_sectors(mysql_config)) == 1 + result["generated"]
     titles, runs = _titles(conn)
-    assert titles[0] == f"Sectors (around sector {center})"
-    assert titles[-2:] == ["Bright-star backfill", "Sector paths"]
-    assert {run["state"] for run in runs} == {"done"}
+    # TEST.289: this failed once under a gate's four workers with no text; the answer, the sectors and the runs go in the message.
+    saw = (result, len(_all_sectors(mysql_config)), titles, [(run["title"], run["state"]) for run in runs])
+    assert result["generated"] >= 1 and len(_all_sectors(mysql_config)) == 1 + result["generated"], saw
+    assert titles[0] == f"Sectors (around sector {center})", saw
+    assert titles[-2:] == ["Bright-star backfill", "Sector paths"], saw
+    assert {run["state"] for run in runs} == {"done"}, saw
 
 
 def test_the_settle_job_is_a_run_of_the_named_sectors(mysql_config, conn):

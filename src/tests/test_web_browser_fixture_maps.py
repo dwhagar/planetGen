@@ -2241,9 +2241,20 @@ def _crumbs_on_a_fresh_load(page):
     """The steps a new page shows for this page's URL."""
     _url_settled(page)
     other = page.context.new_page()
+    seen = []
+    other.on("pageerror", lambda error: seen.append(f"page error: {error}"))
+    other.on("console", lambda message: seen.append(f"console {message.type}: {message.text}")
+             if message.type in ("error", "warning") else None)
     try:
         other.goto(page.url)
-        other.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+        try:
+            other.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+        except sync_api.TimeoutError:
+            # TEST.287: a fresh load of this address showed no steps in 120 s on a loaded machine, once in two runs.
+            body = other.evaluate("() => (document.body ? document.body.innerText : '').slice(0, 600)")
+            raise AssertionError(
+                f"no steps on a fresh load of {page.url}: now at {other.url}, titled {other.title()!r}; "
+                f"the page said {body!r}; it logged {seen[-8:]}") from None
         _settle(other)
         return _crumbs(other)
     finally:

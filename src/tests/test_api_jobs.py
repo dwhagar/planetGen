@@ -131,9 +131,13 @@ def test_a_slow_edit_answers_202_with_the_job_id(admin_client, redis_server, mon
     assert _wait(job_id)["state"] == "succeeded"
 
 
-def test_a_quick_edit_answers_in_the_same_response(admin_client, redis_server):
+def test_a_quick_edit_answers_in_the_same_response(admin_client, redis_server, monkeypatch):
+    # The route waits SHORT_WAIT_SECONDS for the worker and answers 202 after that; on a machine running a whole gate a
+    # worker can take longer than 8 s to start, so the test waits for the work, not for the clock (TEST.289).
+    patient = api_jobs.wait
+    monkeypatch.setattr(api_jobs, "wait", lambda job_id, seconds=120.0: patient(job_id, seconds))
     response = admin_client.post("/api/systems", json={})
-    assert response.status_code == 201 and response.get_json()["id"]
+    assert response.status_code == 201 and response.get_json()["id"], (response.status_code, response.get_data(as_text=True)[:300])
 
 
 def test_an_edit_is_503_without_redis(admin_client, monkeypatch):
