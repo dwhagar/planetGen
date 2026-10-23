@@ -7812,78 +7812,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
 
-- [ ] **GEN.417 Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/sky-colour-analysis.md): `planetgen/physics/sky.py`:
-  tau(lambda) = N_col times the sum of the mole fractions times each
-  gas's cross section, N_col = P / (m_bar g), the standard cross section
-  24 pi^3 / (lambda^4 N_s^2) times ((n^2 - 1)/(n^2 + 2))^2 times the
-  King factor, with n and the King factor from the table of GEN.410 and
-  the mole fractions from the stored mixture (GEN.411). Test values from
-  the sources check, section 3: tau at 350, 443, 550, 670, 865 nm for one
-  bar of Earth air is 0.62, 0.23, 0.10, 0.043, 0.015, and the air mass of
-  Kasten and Young is an Earth fit only (other worlds use the Chapman
-  function). Done: Earth's
-  air column gives tau 0.0969 at 550 nm (computed in the sources check,
-  tolerance 2 percent; Bucholtz 1995 itself was not reached) and the
-  exponent near -4.08 across the visible; doubling the pressure doubles tau; a
-  pure hydrogen air scatters 0.20 as much per molecule as
-  nitrogen (helium 0.013, carbon dioxide 2.5); no NaN for any generated class.
-  Merged research (2026-10-17): part 02 has the Rayleigh cross sections
-  and their errors (the CO2 value at 532 nm is 13.3e-27 cm2, measured in
-  He 2021, the earlier snippet 12.4e-27 is dropped), the air mass and
-  Chapman function and the blackbody chromaticity for GEN.416; the Earth
-  tau_R test value 0.0969 is computed, the originals (Bucholtz 1995
-  Table 3, Penndorf 1957, Hulburt 1953, Bogaard 1978) were not reached
-  and stay on Boss's list.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): the Rayleigh cross section with the King
-  factor F = (6 + 3 rho) / (6 - 7 rho), F(N2) = 1.034 + 3.17e-4 /
-  lambda^2 (lambda in micron), F(CO2) about 1.15, F(Ar) = 1.00, and SO2
-  and H2S with depolarization above 0.04 (King factors above 1.20), from
-  Bates 1984, Bucholtz 1995, Sneep and Ubachs 2005 and Bogaard 1978; the
-  lane's part 02 carries the verified depolarization spreads, which the
-  design compares with these. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Rayleigh references: the reference density is per
-  gas (288.15 K for N2, Ar, CO2, CO and CH4; 273.15 K for O2) and no
-  coefficient of Boss's note is adopted; the SO2 and H2S King factors
-  above 1.20 are contradicted (the Bogaard 1978 depolarizations are on
-  Boss's research list).
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the per-gas refractive
-  index and King factor formulas and the cross sections at 532 nm;
-  compare with finding 14.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): no Rayleigh coefficient of
-  the note replaces a verified one; use the part 02 table and the
-  first-report formulas; the note's N_s = 2.54743e19 cm^-3 is right; the
-  King-factor-above-1.20 claim is unsupported.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the Earth
-  Rayleigh test value is 0.09721 at 550 nm (Bucholtz Table 4, 1962 US
-  Standard, read from Boss's papers, GEN.422, 2026-10-17, 12:10 to 12:13
-  PM EDT), replacing the computed 0.0969, at the same 2 percent
-  tolerance.
-  Decided (Boss, contradiction sweep card, tapped 7:23 AM EDT 2026-10-21
-  and "Store both, use spread", as the coordinator reported it): the CO2
-  Rayleigh cross section at 532 nm stores both values (He 2021,
-  13.3e-27; Sneep and Ubachs, 12.4e-27) and the draw uses the spread
-  between them.
-  Prerequisites: GEN.411. Related: GEN.418, VIEW.14.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane G (bands).
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "sky color and atmosphere color
@@ -7901,7 +7829,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-cyan with an orange sun, a 9 MPa CO2 world is white;
   deterministic and free of NaN for every class; the label says when
   aerosols dominate the answer.
-  Prerequisites: GEN.417, GEN.413, GEN.414, DB.67, DB.68,
+  Prerequisites: GEN.413, GEN.414, DB.67, DB.68,
   GEN.441, GEN.462.
   The ground's bounce reads the surface composition of GEN.441 (the
   ground's colour and reflectance) where it is stored.
@@ -8838,7 +8766,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.417, GEN.413, GEN.414. Related: GEN.444,
+  Prerequisites: GEN.413, GEN.414. Related: GEN.444,
   GEN.445, GEN.423, GEN.412, GEN.418.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
@@ -15262,7 +15190,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   also reads size and surface gravity; the class code carries a size
   tier (S and V become tiers, not letters, as the class lane reported).
 
-- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of adaptations before it gives up: redraw the surface, restrict the planet parameters, more starting water, aquifers, regenerate the planet, adapt the system, regenerate the star, then the best result**
+- [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
   doing compositions, let's leave out the class designation until planet
@@ -15292,14 +15220,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (5) regenerate the planet in the same slot (whole new body from a
   derived sub-seed, never an edit); (6) adapt the system (6a place the
   zone planet in the outer part of the zone, 6b move or remove a giant
-  that blocks the slot, 6c add a second, then a third star); (7)
-  regenerate the star (the red dwarf failures: a failing M dwarf is
-  redrawn up to N times; a failing G or K star keeps its star and goes
-  to step 8 unless Boss wants those redrawn); (8) give up with the best
-  result found, Yellow if Suitability allows, recorded as unmet or
-  fallback, never silently. Each step has an attempt cap and a seed per
+  that blocks the slot); (7) add a brighter, heavier primary (Boss, 7:23
+  PM EDT, correcting the earlier companion idea): the failing red dwarf
+  system is kept unchanged (stars, planets, moons, belts, ids) and
+  becomes the secondary of a WIDE binary; the new primary gets its own
+  planets and the habitable steps run on its zone; repeat once for a
+  third star; wide-binary stability (separation floor from both systems'
+  reach, S-type limit, triple rule) is part of the step; the main new
+  code is a member-tree mode that adds a primary above an existing
+  system, plus designation changes (A becomes B); (8) regenerate the star
+  (the last resort; a failing M dwarf is redrawn up to N times; a failing
+  G or K star keeps its star and goes to step 9 unless Boss wants those
+  redrawn); (9) give up with the best result found, Yellow if Suitability
+  allows, recorded as unmet or fallback, never silently. Each step has an attempt cap and a seed per
   (step, attempt); suggested caps K1 8, K2 6, K3 6, K4 1, K5 6, K6 4
-  each, K7 8 stars (design values), and a budget of attempts per request
+  each, K7 4 per added primary, K8 8 stars (design values), and a budget of attempts per request
   so a directed sector cannot run for ever. The outcome records the step
   reached and how many star draws it took. Design:
   /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md
@@ -20859,6 +20794,20 @@ clears each one.
   Owner: none (pool); Bug Hunt proposed.
   Prerequisites: none.
 
+- [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
+  Finding of Habitability lane G (PR #2724, 2026-10-23, about 7:25 PM
+  EDT as the lane reported) and the Debug mode thread (PR #2723): the
+  only red in the full suite (22045 passed otherwise) on a lane machine;
+  fails identically on origin/main; the cause is the MySQL grant of the
+  test database user in this environment, not the code. Kind:
+  environment-dependent test; fails on main on the lane machines every
+  run. Do: make the test create what it needs without a grant it does
+  not have, or skip it with a stated reason when the user lacks the
+  grant (never skip silently), and say in the environment settings
+  (OPS.62 area) what grant the test user needs. Owner: none (pool); Bug
+  Hunt proposed.
+  Prerequisites: none. Related: TEST.302, OPS.62.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21624,6 +21573,46 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
+
+- [ ] **OPS.65 Debug mode wrote almost nothing to stdout: planetgen system --debug printed 3 lines because the generation runs in queue workers whose stdout is /dev/null (bug)**
+  Finding of the Debug mode thread (2026-10-23, audit
+  /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
+  at 5:20 PM EDT and 5:35 PM EDT), filed by the TODO thread at the
+  thread's word (7:22 PM EDT). Boss: debug mode is supposed to log every
+  decision, however small, to stdout with timestamps and to the debug
+  log, every function takes the debug option. On main (0b1e5c2) the
+  narration went only to the debug log file and only when config.json
+  had debug true. Fixed by PR #2723 (open at 7:22 PM EDT: workers relay
+  their log lines through a Redis stream to the command that started the
+  run, one ISO-timestamp format, tracing in draw.Stream, every command
+  takes --debug and --debug-areas, the Generate page tasks get a Debug
+  box, and the opt-in branch area Boss approved at 5:55 PM EDT is built
+  in the same PR so it is not an open item). Retire this item when #2723
+  merges. Boss declined an API debug field (5:56 PM EDT): not filed.
+  Owner: the Debug mode thread.
+  Prerequisites: none. Related: OPS.64.
+
+- [ ] **OPS.66 Remove the unused older executor in src/planetgen/queue/work.py: RQExecutor, _rq_task and the --debug FILE worker plumbing**
+  Finding of the Debug mode thread (2026-10-23, audit
+  /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
+  at 5:20 PM EDT and 5:35 PM EDT), filed by the TODO thread at the
+  thread's word (7:22 PM EDT). Nothing in a run uses them (the audit).
+  No shim. Done: the code and its tests are gone, the worker still takes
+  --debug through the new path of PR #2723, and the suite passes. Owner:
+  none (pool); after #2723 merges; the Debug mode thread proposed.
+  Prerequisites: OPS.65. Related: OPS.65.
+
+- [ ] **OPS.67 Detached helpers (the background planetgen warm a run starts, an auto-started worker's own lifecycle) write the debug log file only: decide whether they relay to stdout**
+  Finding of the Debug mode thread (2026-10-23, audit
+  /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
+  at 5:20 PM EDT and 5:35 PM EDT), filed by the TODO thread at the
+  thread's word (7:22 PM EDT). Default until Boss answers: they keep
+  writing the debug log file only, because they outlive the command that
+  started them and have no stdout to relay to. If Boss wants them
+  relayed, the helper streams through the same Redis relay while the
+  starting command waits, with a cap. Boss decision (a card, option 1
+  the default). Owner: none (pool).
+  Prerequisites: OPS.65. Related: OPS.65.
 
 ## DOC: Documentation
 
@@ -22580,7 +22569,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-  Prerequisites: VIEW.12, VIEW.13, VIEW.6, GEN.417, GEN.418. Related:
+  Prerequisites: VIEW.12, VIEW.13, VIEW.6, GEN.418. Related:
   VIEW.2.
 
 - [ ] **VIEW.15 Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API**
