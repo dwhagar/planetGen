@@ -2497,8 +2497,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) | none | open |
 | TEST.282 | test_precision imports calculate_hill_sphere from generation.star, where GEN.565d moved it away: ImportError on main (bug) | none | done, PR #2547 |
 | TEST.283 | Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups | none | done, audits run on main dd6d46d0 (9:57 PM EDT) |
-| TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails on main: 2 uncharted where 3 are expected (bug) | none | open |
-| TEST.285 | test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug) | none | open |
+| TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) | none | open |
+| TEST.285 | test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug) | none | done, PR #2602 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

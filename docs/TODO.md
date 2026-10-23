@@ -20105,7 +20105,7 @@ clears each one.
   itself, which is MAP.210.
   Prerequisites: none. Related: MAP.210, MAP.209.
 
-- [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails on main: 2 uncharted where 3 are expected (bug)**
+- [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug)**
   Found by the Performance lane (relayed 10:25 PM EDT 2026-10-22 as the
   lane reported) while re-running the ten failures it had seen, on
   current main with the control database present. Kind: test fails on
@@ -20135,36 +20135,23 @@ clears each one.
   Apache or another web server answers on its machine (TEST.279 was an
   unfaked HTTP call answered by Apache with a 404), and its MySQL
   version (8.0 is the minimum).
+  Correction (Performance, relayed 12:44 AM EDT 2026-10-23 as the lane
+  reported): the '2 against 3' belongs to a different test,
+  test_count_cache.py::test_the_uncharted_count_follows_a_rescatter_and_a_reset
+  (assert 2 == 3), and
+  test_a_count_under_an_unchanged_stamp_is_not_made_again (assert 2 ==
+  1); both passed alone on rerun, so they were load or order and are not
+  filed. The failure of this item is the assertion `'Black Hole
+  (Stellar)' in <page>`: the page rendered without the class name. It
+  failed only inside `scripts/test.py changed` (4 xdist workers, load
+  about 5.5 to 6.5) in two gates and passes alone (9 passed at cd5542f,
+  main plus the PERF.164 commits, git status clean). That machine: MySQL
+  8.0.46 on Ubuntu 24.04, Redis local, nothing answers on port 80 (no
+  Apache). It looks load-dependent. Next: Bug Hunt runs it in a loop
+  under load (the Performance lane can do the same after its medium
+  suite) to find what the page depends on that load changes; the earlier
+  request for more output is withdrawn.
   Prerequisites: none. Related: TEST.275.
-
-- [ ] **TEST.285 test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug)**
-  Found by Core 3 (relayed 11:32 PM EDT 2026-10-22 as the lane reported)
-  in its GEN.315 gate (21,243 tests passed, this the only red; nothing
-  in its diff touches the plan step). Kind: environment-dependent test.
-  Test:
-  src/tests/test_benchmark_suite.py::test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases.
-  Failure text: the plan step exits 1 ('FAILED') and the test asserts
-  exit_code == 0; the step log is a list of zenodo.org EOS17, EOS18 and
-  EOS19 download URLs, so the step needs the static downloads (the setup
-  step) or network. Fails on main: expected yes on any machine without
-  the datasets, not confirmed on main itself. Frequency: every run on a
-  machine without the datasets. Reproducer: on a fresh lane machine,
-  python3 -m pytest src/tests/test_benchmark_suite.py -k
-  real_run_of_the_plan. Do: by the missing-files rule (Boss, 5:53 PM EDT
-  2026-10-21) a generate run refuses when files are missing, so the test
-  must say what it needs: either fetch the datasets first (python3 -m
-  planetgen.cli.datasets fetch) or skip with a message naming the
-  missing files and the setup command, or pass the explicit
-  --disregard-missing-data of GEN.599 if the test is about the JSON and
-  the databases, not the physics. Fix the test, not the rule. Done: the
-  test passes or skips with that message on a machine without the
-  datasets, and passes with them. Owner: Bug Hunt (proposed by the TODO
-  thread, after TEST.275).
-  Confirmed (Bug Hunt, relayed 12:38 AM EDT 2026-10-23 as the lane
-  reported): it fails on the Bug Hunt lane too, in the gate of #2600,
-  because that machine has no static downloads; every other test in the
-  gate was green.
-  Prerequisites: none. Related: TEST.275, TEST.284, GEN.599.
 
 ## USR: User accounts
 
