@@ -16066,6 +16066,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one-unit registry commands. F3: each API job is a small run of its own.
   F4: `planetgen sector` and `planetgen system` go through the wrapper
   (each a one-command run).
+  F3 and F4 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported, main dd6d46d0): `planetgen sector`, `planetgen
+  system` and each API job now run through the wrapper as runs of their
+  own. Core 5's own wait-for-turn for API jobs was removed, because
+  PERF.153 (#2562) makes every run wait in line. Still open here: F1 and
+  F2 and the Generate page, reset, check-math and data-check parts,
+  which remain with PERF.123 to PERF.125.
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
@@ -16110,6 +16116,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill, population, settle) and prints it with `--estimate-only`;
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
+  Slice 1 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported): the link, backfill and settle commands (settle --since).
+  Slices 2 to 2c are next after TEST.283 (branch claude/core5-perf123b);
+  the random-start slice C still needs its generator epoch numbered at
+  merge (the epochs file must stay contiguous), and slice D follows.
   Prerequisites: none. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
@@ -20868,23 +20878,6 @@ clears each one.
   proposed by the TODO thread, because the lane named the area; the
   coordinator can move it).
   Prerequisites: none. Related: MAP.210, MAP.209.
-
-- [ ] **TEST.283 Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups**
-  PERF.146 (merged as #2559) changed generation code with value-neutral
-  speedups (scatter once-per-worker setup, bright-star tier lookups,
-  system-mass arithmetic), bit-identical and without an epoch. The goal
-  of PERF.146 says the closing audits are re-run when an optimization
-  touches generation code. Do: re-run the whole-sphere audits TEST.185,
-  TEST.184, TEST.159 and TEST.160 on main as it stands after #2559 and
-  file any finding; any audit that fails on main files its finding to
-  the TODO thread (kind, test, text, fails-on-main, frequency,
-  reproducer). Done: the four audits pass on main after #2559, or each
-  failure is filed with its owner. Owner: Core 5 after its current gate
-  (the coordinator, relayed 9:05 PM EDT 2026-10-22). Related to the
-  release gates: SEC.33 and TEST.261 run on final code and do not wait
-  for this.
-  Prerequisites: none. Related: PERF.146, TEST.159, TEST.160, TEST.184,
-  TEST.185.
 
 ## USR: User accounts
 

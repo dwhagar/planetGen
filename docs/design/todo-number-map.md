@@ -2492,7 +2492,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.280 | Five tests are refused as Busy in a full gate because workers share the default Redis database (race) | none | open |
 | TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) | none | open |
 | TEST.282 | test_precision imports calculate_hill_sphere from generation.star, where GEN.565d moved it away: ImportError on main (bug) | none | done, PR #2547 |
-| TEST.283 | Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups | none | open |
+| TEST.283 | Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups | none | done, audits run on main dd6d46d0 (9:57 PM EDT) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
