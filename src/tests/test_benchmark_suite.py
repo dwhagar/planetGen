@@ -158,10 +158,18 @@ def test_a_step_over_its_time_is_stopped_and_recorded_as_not_finished(tmp_path):
 
 
 @pytest.mark.real_queue
+@pytest.mark.real_datasets
 @pytest.mark.fresh_database
 def test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases(mysql_config, tmp_path):
     if not os.environ.get("PLANETGEN_REDIS_URL"):
         pytest.skip("needs the Redis queue")
+    # The suite times the real generator, so its plan step starts a process that refuses to run without the downloaded
+    # data (GEN.590) and the suite takes no fallback for it: a benchmark on stand-ins would measure something else.
+    from planetgen.datasets import catalogue
+    missing = catalogue.missing()
+    if missing:
+        pytest.skip("the plan step needs the downloaded data files, which setup fetches ('python3 -m planetgen.cli.datasets "
+                    "fetch'); missing: " + "; ".join(located.describe() for located in missing))
     out = tmp_path / "suite.json"
     argv = ["--suite", "--size", "tiny", "--steps", "plan", "--workers", "1", "--step-timeout", "20",
             "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
