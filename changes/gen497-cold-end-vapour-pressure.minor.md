@@ -1,5 +1,0 @@
-**Headline:** The vapour pressures of the coldest ices now follow the laboratory measurements, and solid carbon dioxide follows Span and Wagner.
-
-### Changed
-- **The laboratory-corrected cold end (GEN.497).** `physics/saturation.py` serves nitrogen, carbon monoxide, methane, oxygen and ammonia from the quartz-crystal-microbalance fits of Grundy et al. 2024 and Blakley et al. 2024 where the Fray and Schmitt polynomial is wrong in the cold (carbon monoxide near 25 K was up to 15 times too high), up to the temperature at which each meets the polynomial. Under the fit's range the curve is Clausius-Clapeyron and flagged `below-fit`. `tuning.COLD_END_LABORATORY_CORRECTION` switches the 1.19 +/- 0.03 of the 2026 Grundy preprint (on by default).
-- **Solid carbon dioxide is Span and Wagner 1996 equation 3.12.** The two Fray and Schmitt fits are gone; the test targets are 842.65 Pa at 150 K and 103971 Pa at 195 K, and out-of-range calls under 85 K are flagged. No generator reads the function yet, so no generated output changes.
