@@ -283,8 +283,7 @@
     },
     {
       "epoch": 58,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2012",
       "reason": "The velocity dispersion the wide-pair and planet limits read is the profile's one-axis value (the three-axis total over root 3), so the thin disc's, bulge's and halo's limits use a dispersion root 3 smaller than before and the cluster, satellite and nuclear populations (whose constants are one-axis) keep theirs: a wide pair's widest axis and a planet's outermost orbit change in every galaxy-placed system (GEN.284)"
     }
   ]
