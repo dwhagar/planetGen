@@ -1119,3 +1119,6 @@ Baseline: PR #1817.
 | ADM.125 | 8.1 | Admin control suite |
 | PERF.169 | 8.1 | The headline closes |
 | POP.14 | 8.1 | Tech levels and species |
+| GEN.636 | 8.1 | The headline closes |
+| OPS.58 | 8.1 | Reproducible galaxies |
+| OPS.28 | 8.1 | Reproducible galaxies |
