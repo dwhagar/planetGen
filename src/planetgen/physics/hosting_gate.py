@@ -235,12 +235,12 @@ SATELLITE_SHARE = pt.REGISTRY.register(pt.Table(
         pt.Row("belt rubble pile with a satellite", ("belt-small-body",), 0.16,
                source="Jacobson et al. 2016 (arXiv:1605.06157): the modelled steady-state binary fraction 16 +- 6 percent; "
                       "Margot et al. 2015: small main-belt binaries are discovered about as often as near-Earth ones",
-               state=pt.STAND_IN, replacement="a measured small-body binary fraction (GEN.580 follow-up)",
+               state=pt.STAND_IN, replacement="a measured small-body binary fraction",
                conditions=(pt.Condition("diameter_m", SIZE_CUT_M, PHOTOMETRIC_BINARY_MAX_DIAMETER_M),)),
         pt.Row("large small body with a satellite", ("inner-small-body", "belt-small-body"), 0.05,
                source="Margot et al. 2015: 16 satellites among over 300 large main-belt asteroids surveyed (about 0.05), "
                       "detectability-limited, 'substantially smaller than 16 percent'",
-               state=pt.STAND_IN, replacement="a debiased satellite fraction of large asteroids (GEN.580 follow-up)",
+               state=pt.STAND_IN, replacement="a debiased satellite fraction of large asteroids",
                conditions=(pt.Condition("diameter_m", PHOTOMETRIC_BINARY_MAX_DIAMETER_M, None),)),
         pt.Row("cold trans-neptunian binary", ("trans-neptunian-cold",), 0.22,
                source="Stephens and Noll 2006 via Noll et al. 2008 (astro-ph/0703134): 22 +10 -5 percent of classical "
@@ -255,8 +255,8 @@ SATELLITE_SHARE = pt.REGISTRY.register(pt.Table(
                conditions=(pt.Condition("diameter_m", TRANS_NEPTUNIAN_MIN_DIAMETER_M, None),)),
         pt.Row("no satellites", (pt.ANY_CLASS,), _no_satellites_weight,
                source="the rest of the rows above (1 minus the chance of a satellite)", state=pt.STAND_IN,
-               replacement="measured satellite fractions by size (GEN.580 follow-up)")],
-    description="Whether a small body, by population and size, has a satellite (GEN.579); the size cut is `SIZE_CUT_M`."))
+               replacement="measured satellite fractions by size")],
+    description="Whether a small body, by population and size, has a satellite; the size cut is `SIZE_CUT_M`."))
 
 
 def satellite_share(host):

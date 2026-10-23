@@ -153,7 +153,7 @@ COMPACT_CORE_TABLE = pt.REGISTRY.register(pt.Table(
                   "2024); gravity cannot see one under about 10 Earth masses; the share is a placeholder."),
      pt.Row("no compact core", (pt.ANY_CLASS,), pt.OPEN, "open", state=pt.OPEN_STATE,
             notes="Convective mixing or a giant impact removed it, or it never formed (Helled and Stevenson 2024).")],
-    description="Whether a giant has a compact core of heavy elements (GEN.642)."))
+    description="Whether a giant has a compact core of heavy elements."))
 
 
 class InteriorError(ValueError):
