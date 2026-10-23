@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1999] - 2026-10-23
+
+**Headline:** The generation performance report now covers the medium and large galaxy, and the benchmark suite can carry on after a stopped run.
+
+### Added
+- **`planetgen benchmark --suite --resume SUFFIX`** carries on in the scratch databases of a run that was stopped or failed, with `--steps` naming the steps left. The suite now keeps those databases when a step did not finish, prints the suffix at the start and prints a line as each step ends, so a run killed part-way (a container restart) keeps what finished.
+
+### Changed
+- `docs/design/generation-performance.md` has the small, medium and large times side by side: the medium galaxy takes 46 minutes without the warm-up and 74 with it; the warm-up is the largest single cost and still fails on the search page answering 202.
+
 ## [8.0.1998] - 2026-10-23
 
 **Headline:** A galaxy's nuclear stellar disc now follows a published law of its stellar mass instead of a fixed 61 times its nuclear cluster.
