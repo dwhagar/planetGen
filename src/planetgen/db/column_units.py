@@ -786,11 +786,11 @@ TABLES = {
             "habitable_world", "asteroid_belt", "comets", "large_star", "moons", "planets", "intelligent_life",
             "binary_system", "wide_binary",
         ),
-        "count": ("max_planets", "num_orbits"),
+        "count": ("max_planets", "num_orbits", "stars", "max_stars"),
         "ratio": (
             "prevalence_habitable_world", "prevalence_asteroid_belt", "prevalence_comets", "prevalence_large_star",
             "prevalence_moons", "prevalence_max_planets", "prevalence_intelligent_life", "prevalence_binary_system",
-            "prevalence_wide_binary", "prevalence_planets",
+            "prevalence_wide_binary", "prevalence_planets", "prevalence_multi_star",
         ),
     },
     "system_name_registry": {

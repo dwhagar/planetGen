@@ -3421,7 +3421,24 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.928,       # binaries that are wide pairs
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
+    "multi_star": 0.0045,       # systems with five or more stars (see below)
 }
+# `multi_star` is not measured from generated systems: `StarSystem` builds only a
+# single star, a close pair or a wide pair until the member-tree host lands
+# (GEN.630), so no run yet has five stars. It is the `star-count` table's
+# five-or-more columns (`generation.multistar.star_count_weights`) averaged over the
+# placed star's initial mass function (`IMF_BREAKS_SOL`, `IMF_SLOPES`, 2,000 log bins
+# from 0.08 to 150 solar masses), before any age or remnant, 0.447% of systems.
+# Remeasure it from generated systems once GEN.630 merges.
+
+# The most stars a system may hold (`SystemConfig.MAX_STARS`, GEN.267; the
+# member-tree draw's cap, multi-star-systems.md 11 item 11). 12 is Boss's default
+# of 2026-10-15 6:08 PM EDT; the ceiling a user may raise the cap to is a stand-in:
+# a chain of axis ratio 3 fits a dozen levels (section 3 item 1), so a few dozen stars
+# is as many as branching could hold in the 1e6 span of axes, and a stored tree of
+# more would be unreadable on a system map. Gap plan registry: "stars ceiling".
+MAX_STARS_DEFAULT = 12
+MAX_STARS_CEILING = 64
 
 # How many comets a star that DOES get any (per SYSTEM_COMET_CHANCE, or
 # `SystemConfig.COMETS = True` forcing at least this many) actually

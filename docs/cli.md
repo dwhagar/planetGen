@@ -63,6 +63,8 @@ Most `system` options use a `+name`/`-name` tri-state syntax (these forcing opti
 *   `+planets` / `-planets`: Ensure the system has at least one planet or asteroid belt, or none at all (star only).
 *   `--system-file`, `-f <path>`: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.
 *   `--num-orbits <int>`: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.
+*   `--stars <int>`: Force the number of stars in the system, from 1 up to the cap (GEN.267). 1 is a single star, 2 a pair, more a tree of pairs; the system file's `stars` key does the same. Carried in the config for the member-tree host (GEN.630) to read, which is not built yet, so until it lands a system still comes out a single star or a pair whatever the count. Stored with the config (`system_configs.stars`).
+*   `--max-stars <int>`: The most stars a system may hold, the cap on the star-count draw (default 12, at most 64; the system file's `max_stars` key). Stored with the config (`system_configs.max_stars`). Also on `sector` and `galaxy`.
 *   `--format <text|markdown|wikitext>`: How `--output` writes the system: plain text for the terminal (the default), Markdown or MediaWiki text (the same description the site shows; UX.106).
 *   `--output`, `-o <file>`: Writes the system's description (in `--format`) to `file` instead of saving the system to the database; `-` writes it to stdout. The admin site's one-off system page (`/admin/generate/system`) does the same from the browser.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
@@ -82,6 +84,8 @@ Most `system` options use a `+name`/`-name` tri-state syntax (these forcing opti
 *   `+intelligent_life`/`-intelligent_life` cannot be combined with `-habitable_world`.
 *   `+habitable_world` and `+asteroid_belt` together cannot be combined with `-large_star` (both objects require the room a large star provides).
 *   `--num-orbits` cannot be combined with `-planets`.
+*   `--stars` must be a whole number of at least 1, and no more than `--max-stars` (12 unless raised; `--max-stars` itself is from 1 to 64). The error says which: "stars 13 is more than the cap of 12 stars; raise the cap with --max-stars (at most 64)".
+*   `--stars 1` cannot be combined with `+binary_system` or `+wide_binary` (a single star has no companion), and `--stars 2` or more cannot be combined with `-binary_system`. `--stars 3` with `+binary_system` is allowed: the system has a companion, and the rest of the tree is the host's. `--system-file` keys are checked the same way, against the command line's values when both give one.
 *   `--num-orbits` must be from 0 to 500 (the generator's own ceiling on objects in a system).
 *   `--flavor-chance-system` must be a float between 0.0 and 1.0.
 *   `--flavor-chance-planet` must be a float between 0.0 and 1.0.
@@ -100,6 +104,8 @@ it, `system` exits with an error and saves nothing.
   "name": "Sol",
   "age": "young",
   "num_orbits": 5,
+  "stars": 3,
+  "max_stars": 12,
   "habitable_world": true,
   "asteroid_belt": true,
   "slots": [
@@ -133,7 +139,7 @@ Sector-specific options:
 *   `--directive <minimum>`, `--directive-attempts <n>`: Redraws each sector until it holds at least this much: `systems>=N`, `habitable>=N` or `type:X>=N` (X is one of O B A F G K M wd bh ns). Repeat `--directive` for more than one minimum. After `--directive-attempts` draws (200 by default) the closest sector is kept and the run reports which minimum it missed.
 *   `--star-mix <single> <close> <wide>`: The share of systems, in percent, with one star, a close binary and a wide pair; the three must total 100. It replaces `--prevalence` for `binary_system` and `wide_binary`, which it cannot be combined with.
 *   `--num-sectors <int>`, `--yes`, `--estimate-only`, `--workers <int>`, `--population`, `--strict`: A run of more than one sector works as a `galaxy` run does (see [Size and time estimates](#size-and-time-estimates) and [Parallel generation](#parallel-generation)); `--strict` turns the warnings the console would otherwise go ahead after into errors that stop the run with nothing generated.
-*   `--prevalence <feature>=<percent>`: Makes a feature more or less common across every system the run generates, as a percentage of its normal chance: `--prevalence comets=+50` gives 1.5 times as many systems with comets, `--prevalence binary_system=-100` none at all. Repeat it for more features (also on `galaxy`). The features are the forcing options' names: `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons` (each planet's chance of moons), `max_planets` (the chance a star gets the most orbits it can hold), `intelligent_life` (the population pass's chance of a civilization), `binary_system`, `wide_binary` and `planets`. Each system stores the setting with its config.
+*   `--prevalence <feature>=<percent>`: Makes a feature more or less common across every system the run generates, as a percentage of its normal chance: `--prevalence comets=+50` gives 1.5 times as many systems with comets, `--prevalence binary_system=-100` none at all. Repeat it for more features (also on `galaxy`). The features are the forcing options' names: `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons` (each planet's chance of moons), `max_planets` (the chance a star gets the most orbits it can hold), `intelligent_life` (the population pass's chance of a civilization), `binary_system`, `wide_binary`, `planets` and `multi_star` (the chance of five or more stars: `--prevalence multi_star=+100` doubles it, `-100` allows none; GEN.267). Each system stores the setting with its config. `--max-stars <int>` sets the cap on the star count for every system (see `system`); `--stars` is for a single system only and is refused here.
 *   `--mysql-host <host>`, `--mysql-port <port>`, `--mysql-user <user>`, `--mysql-password <password>`, `--mysql-database <database>`: Where the generated sector is saved. Each defaults to the matching `$PLANETGEN_MYSQL_*` environment variable, or a built-in default (`127.0.0.1:3306`, user/database `planetgen`) -- see [`database-schema.md`](database-schema.md).
 
 Each run saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus any exotic phenomena — to the MySQL database described in [`database-schema.md`](database-schema.md), printing only a short status line and summary per saved sector to the console (`--debug` shows more). The wiki page is rendered from those rows whenever it's viewed, not stored.

@@ -1419,6 +1419,8 @@
 --   and `moons.born_beyond_snow_line`, whether the body formed beyond its star's line (a moon takes its planet's). The fixed 2.7 AU constant is gone from the generator.
 -- v133 (GEN.630): `stars.role` also takes 'member' (a star of a system of more than two), and `stars.slot` says which child (0 or 1) of its parent node a star is.
 --   A pair already stored gets its slots from its roles. Nothing else changes.
+-- v134 (GEN.267): `system_configs` also keeps the star count a system was forced to (`stars`), the cap on it (`max_stars`, 12 unless raised) and the prevalence of five or more stars
+--   (`prevalence_multi_star`), so a stored config regenerates with the same count.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1802,7 +1804,10 @@ CREATE TABLE IF NOT EXISTS system_configs (
     prevalence_intelligent_life DOUBLE NOT NULL DEFAULT 0,
     prevalence_binary_system DOUBLE NOT NULL DEFAULT 0,
     prevalence_wide_binary DOUBLE NOT NULL DEFAULT 0,
-    prevalence_planets DOUBLE NOT NULL DEFAULT 0
+    prevalence_planets DOUBLE NOT NULL DEFAULT 0,
+    stars             TINYINT UNSIGNED,  -- v134 (GEN.267): the forced number of stars, NULL when left to chance
+    max_stars         TINYINT UNSIGNED NOT NULL DEFAULT 12,  -- v134: the cap on the star count
+    prevalence_multi_star DOUBLE NOT NULL DEFAULT 0  -- v134: the chance of five or more stars, percent from usual
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Child table for the variable-length SLOTS recipe list

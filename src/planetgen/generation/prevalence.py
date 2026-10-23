@@ -11,7 +11,9 @@ systems with it, -100 none, and 0 (the default) leaves it alone.
 A feature decided by one draw (comets, a binary companion, a wide pair,
 a planet's moons, the most orbits a star can hold, and intelligent life:
 the population pass's `CIVILIZATION_CHANCE`) has that draw's chance
-scaled (`scaled_chance`). A feature that comes out of many draws (a
+scaled (`scaled_chance`). `multi_star` (GEN.267) scales the chance of five
+or more stars, the columns of the `star-count` table the member-tree draw
+reads (`multi_star_scale`). A feature that comes out of many draws (a
 habitable world, an asteroid belt, a large star, any planets at all) has
 no single chance to scale, so its usual share is
 measured (`tuning.PREVALENCE_BASE_SHARES`) and each system is forced to
@@ -24,7 +26,7 @@ from planetgen import tuning
 from planetgen.util import draw
 
 FEATURES = ("habitable_world", "asteroid_belt", "comets", "large_star", "moons", "max_planets",
-            "intelligent_life", "binary_system", "wide_binary", "planets")
+            "intelligent_life", "binary_system", "wide_binary", "planets", "multi_star")
 """tuple[str]: Every feature with a prevalence: the forcing options' names."""
 
 MEASURED_FEATURES = tuple(tuning.PREVALENCE_BASE_SHARES)
@@ -53,6 +55,17 @@ def percent_for_share(feature, share):
 def percent(config, feature):
     """`config`'s prevalence for `feature`, in percent (0 when unset)."""
     return float((getattr(config, "PREVALENCE", None) or {}).get(feature) or 0.0)
+
+
+def multi_star_scale(config):
+    """
+    The factor on the chance of five or more stars (the `prevalence` argument of `multistar.draw_member_tree` and
+    `hosts.star_count_weights`): 1 at the default, 1.5 for +50, 0 for -100 (no system of five or more).
+
+    Args:
+        config (SystemConfig): The system's config.
+    """
+    return max(0.0, 1.0 + percent(config, "multi_star") / 100.0)
 
 
 def scaled_chance(config, feature, chance):

@@ -1543,6 +1543,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (134, _column_marker("system_configs", "max_stars")),
     (133, _column_marker("stars", "slot")),
     (132, _column_marker("stars", "snow_line_km")),
     (131, _column_marker("generation_runs", "generator_epoch")),
@@ -1938,8 +1939,8 @@ def insert_system_config(conn, config: SystemConfig) -> int:
         INSERT INTO system_configs (
             habitable_world, asteroid_belt, comets, large_star, moons,
             max_planets, planets, star_type, name, age, intelligent_life,
-            binary_system, wide_binary, num_orbits, {prevalence_columns}
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {prevalence_marks})
+            binary_system, wide_binary, num_orbits, stars, max_stars, {prevalence_columns}
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {prevalence_marks})
         """.format(prevalence_columns=", ".join(f"prevalence_{feature}" for feature in PREVALENCE_FEATURES),
                    prevalence_marks=", ".join("?" for _ in PREVALENCE_FEATURES)),
         (
@@ -1957,6 +1958,8 @@ def insert_system_config(conn, config: SystemConfig) -> int:
             _tristate(config.BINARY_SYSTEM),
             _tristate(config.WIDE_BINARY),
             config.NUM_ORBITS,
+            config.STARS,
+            config.MAX_STARS,
             *(float((config.PREVALENCE or {}).get(feature) or 0.0) for feature in PREVALENCE_FEATURES),
         ),
     )
@@ -8474,6 +8477,8 @@ def load_system_config(conn, config_id) -> SystemConfig:
         "binary_system": _tristate_from_db(row["binary_system"]),
         "wide_binary": _tristate_from_db(row["wide_binary"]),
         "num_orbits": row["num_orbits"],
+        "stars": row["stars"],
+        "max_stars": row["max_stars"],
         "slots": slots,
         "prevalence": {feature: row[f"prevalence_{feature}"] for feature in PREVALENCE_FEATURES
                        if row[f"prevalence_{feature}"]},

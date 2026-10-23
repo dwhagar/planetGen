@@ -38,6 +38,8 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE system_configs DROP COLUMN stars, DROP COLUMN max_stars, DROP COLUMN prevalence_multi_star,"
+                     " ALGORITHM=COPY")  # v134
         conn.execute("ALTER TABLE stars DROP COLUMN slot")  # v133
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN generator_epoch, DROP COLUMN fp_spec, DROP COLUMN battery_digest,"
                      " DROP COLUMN battery_cases")  # v131
