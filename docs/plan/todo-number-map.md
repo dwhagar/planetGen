@@ -2708,7 +2708,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) | none | open |
 | TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) | none | open |
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | done, PR #2945 |
-| TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | open |
+| TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | closed, no change (not reproduced: the file passes 103 of 103 alone on a clean four-core machine, Bug Hunt 7:38 AM EDT 2026-10-24; load-bound, see TEST.302) |
 | TEST.306 | Five physics modules are imported only by tests and no item names them | none | done, no code (2:59 AM EDT 2026-10-24: Bug Hunt checked, nothing deleted; GEN.197, GEN.110, GEN.479 and GEN.428 name the modules) |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) | none | open |
 | TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | none | dropped (Boss, 10:26 PM EDT 2026-10-23: tests ride with each body-rendering item) |
@@ -2726,7 +2726,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.320 | test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug) | none | open |
 | TEST.321 | test_web_browser_tables: the jump box test flakes under load (bug) | none | open |
 | TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | done, PR #2881 |
-| TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | open |
+| TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | closed, no change (not reproduced: the file passes 103 of 103 alone on a clean four-core machine, Bug Hunt 7:38 AM EDT 2026-10-24; load-bound, see TEST.302) |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) | none | open |
 | TEST.325 | test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug) | none | done, PR #2881 |
 | TEST.326 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug) | none | dropped (duplicate of TEST.313, TODO 4:07 AM EDT 2026-10-24) |
