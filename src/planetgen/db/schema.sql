@@ -1417,6 +1417,10 @@
 --   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
 -- v132 (GEN.458): `stars.snow_line_km`, the star's own snow line (drawn once, 0.2 dex around the 170 K blackbody position, then stored), and `planets.born_beyond_snow_line`
 --   and `moons.born_beyond_snow_line`, whether the body formed beyond its star's line (a moon takes its planet's). The fixed 2.7 AU constant is gone from the generator.
+-- v144 (DB.69, GEN.428): `planets` and `moons` gain the bulk composition: `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction` and `envelope_mass_fraction`
+--   (with the existing `water_mass_fraction`, the five shares of the whole body's mass add up to 1), the rock's `rock_feo_fraction`, `rock_al2o3_fraction` and
+--   `rock_mg_si_ratio`, the envelope's `envelope_helium_fraction` and `envelope_z_fraction`, a small body's `porosity`, `carbon_rock` and `composition_origin`
+--   ('drawn' or 'inverse'). The mass, radius and density of a rocky body follow from them (`physics/bulk_structure.py`). NULL on a row saved before v144.
 -- v133 (GEN.630): `stars.role` also takes 'member' (a star of a system of more than two), and `stars.slot` says which child (0 or 1) of its parent node a star is.
 --   A pair already stored gets its slots from its roles. Nothing else changes.
 -- v134 (GEN.267): `system_configs` also keeps the star count a system was forced to (`stars`), the cap on it (`max_stars`, 12 unless raised) and the prevalence of five or more stars
@@ -2309,6 +2313,18 @@ CREATE TABLE IF NOT EXISTS planets (
     bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
     greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
     albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
+    metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
+    rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
+    ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
+    envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
+    rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
+    rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
+    rock_mg_si_ratio            DOUBLE,  -- v144: the rock's molar Mg/Si
+    envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
+    envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
+    porosity                    DOUBLE,  -- v144: the void share of a small body's volume
+    carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
+    composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2528,6 +2544,18 @@ CREATE TABLE IF NOT EXISTS moons (
     bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
     greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
     albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
+    metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
+    rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
+    ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
+    envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
+    rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
+    rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
+    rock_mg_si_ratio            DOUBLE,  -- v144: the rock's molar Mg/Si
+    envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
+    envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
+    porosity                    DOUBLE,  -- v144: the void share of a small body's volume
+    carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
+    composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

@@ -6,10 +6,9 @@ docs/design/composition/composition-spine-contracts.md)
 =============================================================================================================
 
 What a body is made of in bulk, as mass fractions of the whole body, read through one accessor so no
-lane reads the columns that hold it. This first slice is the data class and the accessor; the draw
-(`draw_bulk`, GEN.428) and the derived radius, density and gravity (GEN.429, `physics/bulk_structure.py`)
-come in the PRs that follow, and the columns (DB.69) arrive with the draw. Until then no body carries the
-attributes, and `bulk_fractions` returns `None` for every body.
+lane reads the columns that hold it. The draw is `physics/bulk_draw.py` (GEN.428)
+and the derived radius, density and gravity are `physics/bulk_structure.py` (GEN.429). The columns (DB.69) are on `planets`
+and `moons` from schema 144; a body saved before has none of them and `bulk_fractions` returns `None` for it.
 
 The five fractions add up to 1 (to `SUM_TOLERANCE`):
 
@@ -21,7 +20,7 @@ The five fractions add up to 1 (to `SUM_TOLERANCE`):
 
 Use:
 
-    bulk = bulk_composition.bulk_fractions(planet)       # BulkFractions, or None before GEN.428
+    bulk = bulk_composition.bulk_fractions(planet)       # BulkFractions, or None for a body saved before schema 144
     if bulk is not None:
         dry_core_fraction = bulk.metal / (bulk.metal + bulk.rock)
 """
@@ -58,6 +57,14 @@ FLAG_ATTRIBUTES = {"carbon_rock": "carbon_rock", "origin": "composition_origin"}
 
 BODY_FIELDS = (*FRACTION_ATTRIBUTES.values(), *DETAIL_ATTRIBUTES.values(), *FLAG_ATTRIBUTES.values())
 """tuple: Every attribute (and column) a body holds for its bulk composition."""
+
+
+NEW_FIELDS = tuple(name for name in BODY_FIELDS if name != "water_mass_fraction")
+"""tuple: The attributes DB.69 added to `planets` and `moons`; `water_mass_fraction` was already a column (GEN.88) and `hydrosphere`
+keeps it."""
+
+COLUMN_FIELDS = tuple(name for name in NEW_FIELDS if name != "carbon_rock")
+"""tuple: `NEW_FIELDS` that store as they are; `carbon_rock` is a flag stored as a tristate."""
 
 
 class CompositionError(ValueError):

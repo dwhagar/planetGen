@@ -120,6 +120,7 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         mass_earth = math.exp(draw.uniform(math.log(low), math.log(high)))
         radius_km = min(max_radius_km, max(min_radius_km, _radius_km(mass_earth, (low_density + high_density) / 2.0)))
         planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
+                              mass=mass_earth * constants.EARTH_MASS_TO_KG,
                               planet_class=tuning.PULSAR_DISC_CLASS, moon_count=0))
     log.choice("Pulsar planets", f"{len(planets)} disc planets",
                f"origin disc, {count} drawn, masses {low:.3g} to {high:.3g} Earth masses")

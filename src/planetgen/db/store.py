@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import activity, aerosols, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
+from planetgen.physics import activity, aerosols, atmosphere, bulk_composition, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -2906,6 +2906,9 @@ BODY_FIELDS = (
     object_rows.each(magnetism.BODY_FIELDS),
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.each(radiogenic.BODY_FIELDS),
+    object_rows.each(bulk_composition.COLUMN_FIELDS),
+    object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
+                         lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),

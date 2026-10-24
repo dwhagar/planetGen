@@ -7,9 +7,9 @@ The design is docs/design/habitability/activity-magnetism-radiation-hydrosphere.
 section 5. Both star-system bodies (`generate_hydrosphere`) and rogue
 planets (`physics.rogue_surface`) use the functions here.
 
-1. **Inventory.** A rocky body's water mass fraction is drawn log-uniformly
-   from its class's range (`WATER_MASS_FRACTION`, planetGen's defaults;
-   Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
+1. **Inventory.** A rocky body's water mass fraction is drawn with its bulk
+   composition (`bulk_draw`, GEN.428) log-uniformly from its class's range
+   (`WATER_MASS_FRACTION`, planetGen's defaults; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
    than ten Earth oceans (`MANTLE_MAX_WATER_FRACTION`). Gas giants have no
    hydrosphere (every field `None`).
@@ -240,8 +240,10 @@ def ocean_class(body, hp_ice_km, surface_fraction, covered):
 
 
 def _clear(body):
+    """Clears what the hydrosphere sets; the water mass fraction is the bulk composition's (`bulk_draw`) and stays."""
     for field in HYDROSPHERE_FIELDS:
-        setattr(body, field, None)
+        if field != "water_mass_fraction":
+            setattr(body, field, None)
 
 
 def generate_hydrosphere(body, internal_flux_w_m2):
@@ -252,12 +254,13 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     _clear(body)
     if body.body_type == "g":
         return
-    w = log_uniform(*WATER_MASS_FRACTION.get(body.planet_class, DEFAULT_WATER_MASS_FRACTION))
+    w = body.water_mass_fraction
+    if w is None:
+        raise ValueError(f"{body.planet_class!r} has no water mass fraction: its bulk composition is drawn first")
     surface_w = surface_water_fraction(w)
     gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
     layer_km = water_layer_depth_km(body.mass, body.radius, surface_w)
     covered = ocean_fraction(layer_km, gravity)
-    body.water_mass_fraction = w
     body.ocean_fraction = covered
     body.land_fraction = 1.0 - covered
     column_km = layer_km / covered if covered else 0.0

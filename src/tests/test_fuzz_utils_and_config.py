@@ -306,24 +306,6 @@ def test_reflex_offset_is_a_sum_of_two_body_terms(parent, children):
     assert orbits.calculate_reflex_offset(parent, []) == (0.0, 0.0, 0.0)
 
 
-@given(radius=st.floats(0, 1e6), density=st.floats(0, 100))
-def test_calculate_object_mass_with_given_density(radius, density):
-    volume, mass = planet_physics.calculate_object_mass("M", radius, {}, {}, object_density=density)
-    assert _close(volume, 4 / 3 * math.pi * radius ** 3)
-    assert _close(mass, volume * physical_constants.KM_TO_M_FACTOR ** 3 * density * 1000)
-    assert mass >= 0
-
-
-@pytest.mark.parametrize("planet_class", sorted(tuning.PLANET_CLASSES))
-def test_calculate_object_mass_random_density_within_class_range(planet_class):
-    kind = tuning.PLANET_CLASSES[planet_class]["type"]
-    lo, hi = physical_constants.PLANET_DENSITY[kind]
-    volume, mass = planet_physics.calculate_object_mass(planet_class, 1000.0, tuning.PLANET_CLASSES,
-                                               physical_constants.PLANET_DENSITY)
-    density = mass / (volume * physical_constants.KM_TO_M_FACTOR ** 3 * 1000)
-    assert lo - 1e-9 <= density <= hi + 1e-9
-
-
 @given(letter=st.characters(), yerkes=st.sampled_from(["V", "III", "Ia", "VII", "IV", "sd", ""]),
        age=st.floats(0, 20), lifespan=st.one_of(st.just(math.inf), st.floats(0, 1e4)),
        proxy=st.booleans())

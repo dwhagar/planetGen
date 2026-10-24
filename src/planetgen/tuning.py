@@ -3144,7 +3144,7 @@ ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
 
 RADIOGENIC_SILICATE_MASS_FRACTION = 0.675
 """float: The heat-producing (bulk silicate) share of a rocky body's mass: the Earth's 1 minus its core mass fraction 0.325 (part E
-2.8e). A stand-in for every body until GEN.428 draws the body's own core and mantle."""
+2.8e). The stand-in for a body with no stored composition; `radiogenic.rock_inputs` reads the drawn one (GEN.428)."""
 
 GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 """tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the

@@ -145,3 +145,10 @@ The seven-coefficient polynomials of 54 gas species (`scripts/build_thermo_table
 | Source | Terms known |
 |---|---|
 | McBride, Gordon and Reno 1993, NASA Technical Memorandum 4513, "Coefficients for Calculating Thermodynamic and Transport Properties of Individual Species" | A publication of the United States government (NASA); United States government works are not under copyright. The coefficients were read from the `nasa_gas.yaml` file of the Cantera project (BSD licence; the file is not kept and none of its code is used) |
+
+## The water layer of the structure solver (`src/planetgen/physics/bulk_structure.py`, GEN.429)
+
+| Source | What was kept | Terms known |
+|---|---|---|
+| NIST Chemistry WebBook fluid properties for water (IAPWS-95), isotherm at 300 K from 0.1 to 950 MPa, read 2026-10-23 | Twenty density values | NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was sought; values only |
+| Ice VI, VII and X reference points | Read from the materials table (`journaux2020`, `seager2007`) | As the materials table |

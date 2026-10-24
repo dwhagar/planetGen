@@ -40,8 +40,8 @@ confirmed from a paper; Rule applied: verified) and Rudnick and Gao 2014 Table 1
 only: the bulk silicate Earth is the reference the star's offset scales, never a preset.
 
 Stand-ins this module labels (until the item that replaces each): the bulk silicate share of a body's mass
-(`tuning.RADIOGENIC_SILICATE_MASS_FRACTION`, the Earth's 1 minus its core fraction; GEN.428 draws the body's own), the aluminium share
-of that silicate (`BULK_SILICATE_EARTH_AL_MASS_FRACTION`; GEN.428), the isotope split at formation (the Solar System's birth mix for every star; an
+(the body's own rock share, `rock_inputs`; `tuning.RADIOGENIC_SILICATE_MASS_FRACTION`, the Earth's 1 minus its core fraction, for a body with none stored), the aluminium share
+of that silicate (`BULK_SILICATE_EARTH_AL_MASS_FRACTION`, scaled by the body's Al2O3 in `rock_inputs`), the isotope split at formation (the Solar System's birth mix for every star; an
 age law for the r-process contribution is not read), the surface rock (`SURFACE_RESERVOIRS`, a basaltic crust with a drawn felsic
 share; GEN.441 gives the ground type), and 235U's gamma series (left out of the dose; 4 percent on Earth, more on a young body).
 """
@@ -52,7 +52,7 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import elements
+from planetgen.physics import bulk_composition, elements
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.util import draw
@@ -88,8 +88,8 @@ CI_CHONDRITE_K_OVER_U = 546.0 / 0.0081
 bulk silicate Earth has 11927 with the values above, a depletion of 0.177."""
 
 BULK_SILICATE_EARTH_AL_MASS_FRACTION = 0.0238
-"""float: Aluminium in the bulk silicate Earth, 2.38 weight percent (part E 2.8f). A stand-in for any body until GEN.428 draws the
-body's own Al2O3."""
+"""float: Aluminium in the bulk silicate Earth, 2.38 weight percent (part E 2.8f). The stand-in for a body with no drawn Al2O3
+(`rock_inputs` scales it by the body's own)."""
 
 SOLAR_AL26_RATIO = 5.23e-5
 """float: 26Al/27Al at formation of the Solar System, (5.23 +- 0.13)e-5 (Lugaro et al. 2018, arXiv:1808.00233 Table 2; READ)."""
@@ -226,16 +226,34 @@ def heat_w(content, silicate_mass_kg, age_gy, aluminium=BULK_SILICATE_EARTH_AL_M
 
 def radiogenic_flux_w_m2(content, mass_kg, radius_km, age_gy, silicate_fraction=None, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
     """The radiogenic heat reaching the surface, W/m2: the bulk silicate's heat (`silicate_fraction` of the mass, the stand-in
-    `tuning.RADIOGENIC_SILICATE_MASS_FRACTION` until GEN.428 draws the body's) over 4 pi R^2."""
+    `tuning.RADIOGENIC_SILICATE_MASS_FRACTION` for a body with no stored composition) over 4 pi R^2."""
     if silicate_fraction is None:
         silicate_fraction = tuning.RADIOGENIC_SILICATE_MASS_FRACTION
     area_m2 = 4.0 * math.pi * (radius_km * 1000.0) ** 2
     return heat_w(content, mass_kg * silicate_fraction, age_gy, aluminium) / area_m2
 
 
-def heat_flow_w_m2(content, mass_kg, radius_km, age_gy, silicate_fraction=None):
+def heat_flow_w_m2(content, mass_kg, radius_km, age_gy, silicate_fraction=None, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
     """The total heat flowing out, W/m2: the radiogenic flux over the Urey ratio, the rest being the cooling of the interior."""
-    return radiogenic_flux_w_m2(content, mass_kg, radius_km, age_gy, silicate_fraction) / content.urey_ratio
+    return radiogenic_flux_w_m2(content, mass_kg, radius_km, age_gy, silicate_fraction, aluminium) / content.urey_ratio
+
+
+BULK_SILICATE_EARTH_AL2O3_FRACTION = 0.045
+"""float: Al2O3 in the bulk silicate Earth, 4.5 weight percent (McDonough and Sun 1995): the rock whose aluminium is
+`BULK_SILICATE_EARTH_AL_MASS_FRACTION`."""
+
+
+def rock_inputs(body):
+    """`(silicate_fraction, aluminium)` of `body`'s own rock for `heat_flow_w_m2` (GEN.428): the rock's share of its mass and its
+    aluminium, the bulk silicate Earth's scaled by the body's Al2O3 over Earth's. `(None, the Earth's)` (the stand-ins) for a body with
+    no stored composition or whose Al2O3 is not drawn."""
+    fractions = bulk_composition.bulk_fractions(body)
+    if fractions is None:
+        return None, BULK_SILICATE_EARTH_AL_MASS_FRACTION
+    aluminium = BULK_SILICATE_EARTH_AL_MASS_FRACTION
+    if fractions.rock_al2o3 is not None:
+        aluminium *= fractions.rock_al2o3 / BULK_SILICATE_EARTH_AL2O3_FRACTION
+    return fractions.rock, aluminium
 
 
 # --- The draws --------------------------------------------------------------------------------------------------------------
@@ -306,7 +324,7 @@ def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0):
         offset_dex (float or None): The host star's Th/U offset (`star_offset_dex`); `None` takes the host-less draw.
         rng: The draw source (`planetgen.util.draw` by default).
         refractory_enrichment (float): How many times the Earth's share the body's refractory elements (Al, Th, U) are in its
-            silicate; 1 until GEN.428 draws the body's Al2O3 (part E 2.8b: Th and U scale with it).
+            silicate; the body's Al2O3 over the bulk silicate Earth's (part E 2.8b: Th and U scale with it; `rock_inputs`), 1 for a body with none.
 
     Returns:
         Content: At formation, in the bulk silicate.
