@@ -161,6 +161,17 @@ def test_the_carbon_oxide_corners_103p_and_hale_bopp_are_reached_by_the_draw():
     assert co_poor and co_rich
 
 
+
+def test_67p_bulk_carbon_oxide_ratio_is_inside_the_central_99_percent_of_the_short_period_draw():
+    # GEN.629: S = (CO + CO2)/H2O scatters as single comets do (0.2 dex), not as the median's uncertainty (0.1 dex)
+    sample = _sample("jupiter_family", 10000, seed=29)
+    totals = sorted(v.percent["CO"] + v.percent["CO2"] for v in sample)
+    target = COMETS["67P"]["CO"] + COMETS["67P"]["CO2"]
+    assert totals[50] < target < totals[-51]
+    assert statistics.median(totals) == pytest.approx(cp.TOTAL_CARBON_OXIDE["median_percent"], rel=0.05)
+    together = [v for v in sample if abs(v.percent["CO"] - 3.1) < 1.0 and abs(v.percent["CO2"] - 4.7) < 1.5]
+    assert len(together) >= 10
+
 # --- determinism ------------------------------------------------------------------------------------------------
 
 def _worker(seed):
