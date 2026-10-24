@@ -1602,6 +1602,19 @@ def _finite_row(row):
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
+def _put_star_temperatures(stars, planets):
+    """MAP.244: each planet and moon row carries `_star_temperature_k`, the effective temperature of the star it orbits (the primary for
+    a close pair, whose planets have no `star_id`), which `bodylook.air_colour` needs for the colour of its air."""
+    if not stars:
+        return
+    by_id = {star["id"]: star.get("temperature_k") for star in stars}
+    for planet in planets:
+        temperature = by_id.get(planet.get("star_id"), stars[0].get("temperature_k"))
+        planet["_star_temperature_k"] = temperature
+        for moon in planet.get("moons") or []:
+            moon["_star_temperature_k"] = temperature
+
+
 def _finite_body(row):
     """`_finite_row` for a planet or moon (and its moons), or `None` when
     it has no usable position or distance left to draw it at."""
@@ -1674,6 +1687,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     planets = [planet for planet in map(_finite_body, planets) if planet is not None]
     belts = [_finite_row(belt) for belt in belts]
     facilities = [_finite_row(facility) for facility in facilities] if facilities else facilities
+    _put_star_temperatures(stars, planets)
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
         scenes = _render_wide_binary_scenes(system, stars, planets, belts, facilities)

@@ -66,3 +66,38 @@ def test_look_json_is_compact_and_round_trips():
 
 def test_look_is_the_same_for_the_same_row():
     assert bl.look_json(bl.planet_look(_planet())) == bl.look_json(bl.planet_look(_planet()))
+
+
+def _earth_air(**over):
+    row = _planet(gravity_g=1.0, _star_temperature_k=5772.0, p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95, p_co2_kpa=0.04)
+    row.update(over)
+    return row
+
+
+def _channels(hex_colour):
+    return [int(hex_colour[i:i + 2], 16) for i in (1, 3, 5)]
+
+
+def test_the_glow_is_the_atmosphere_colour_of_the_stored_air_under_its_star():
+    """MAP.244: the temperature gesture is gone; the limb colour follows the air and the star."""
+    sun = bl.planet_look(_earth_air())["glow"]
+    dwarf = bl.planet_look(_earth_air(_star_temperature_k=3300.0))["glow"]
+    r, g, b = _channels(sun)
+    assert b == 255 and b > g > r and sun != "#bfe3ff"
+    assert _channels(dwarf)[2] < b                          # a red dwarf's air is not blue
+    assert bl.planet_look(_earth_air(surface_temperature_k=400.0))["glow"] == sun        # temperature no longer decides it
+
+
+def test_thick_carbon_dioxide_glows_orange_and_a_row_without_a_star_has_no_glow():
+    venus = bl.planet_look(_earth_air(atmosphere="Carbon Dioxide", atmospheric_pressure_pa=9.2e6, gravity_g=0.9, p_co2_kpa=8880.0,
+                                      p_n2_kpa=320.0, p_o2_kpa=0.0, p_ar_kpa=0.0))
+    r, g, b = _channels(venus["glow"])
+    assert r > g > b
+    unknown = bl.planet_look(_earth_air(_star_temperature_k=None))
+    assert unknown["atm"] is True and "glow" not in unknown
+
+
+def test_a_giant_glows_with_the_colour_of_the_air_above_its_clouds():
+    giant = bl.planet_look(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
+                                   surface_temperature_k=130.0, _star_temperature_k=5772.0, p_h2_kpa=86.0))
+    assert giant["body"] == "gas" and len(giant["glow"]) == 7

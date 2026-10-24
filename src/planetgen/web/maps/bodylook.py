@@ -18,7 +18,9 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     color       the base colour as `#rrggbb`: a star's colour, a solid world's land colour, a giant's cloud top
     quality     "estimate" while `color` comes from temperature and body family alone (MAP.274 replaces it with
                 the composition colour), absent for a star
-    glow        atmosphere limb colour (`#rrggbb`), present only with an atmosphere
+    glow        atmosphere limb colour (`#rrggbb`): the atmosphere colour of the body's air under its star (MAP.244,
+                `physics/atmosphere_colour.py`), present only when the body has air and the row carries its star's
+                temperature (`_star_temperature_k`, put there by `systemmap.py`)
     atm         true when the body has an atmosphere
     pkpa        surface pressure, kPa
     tempK       mean surface temperature, K (a star's effective temperature)
@@ -40,7 +42,9 @@ the thing they are, and they are deliberately not photographs of any one world.
 import hashlib
 import json
 import math
+from types import SimpleNamespace
 
+from planetgen.physics import atmosphere, atmosphere_colour, giant_colour
 from planetgen.web.maps.starmap import star_color
 
 LOOK_VERSION = 1
@@ -102,15 +106,22 @@ def giant_color(temp_k):
     return _DEFAULT_LAND_COLOR if temp_k is None else _band(_GIANT_BANDS, temp_k)
 
 
-def glow_color(temp_k):
-    """The atmosphere rim colour: orange-hazy when hot, pale blue when cold, sky blue between."""
-    if temp_k is None:
-        return "#bcdfff"
-    if temp_k >= 320.0:
-        return "#ffb066"
-    if temp_k <= 200.0:
-        return "#bcd7ff"
-    return "#bfe3ff"
+def air_colour(planet):
+    """
+    The `AtmosphereColour` (a solid world) or `GiantColour` (a giant) of a planet or moon row: its stored mixture and ozone column
+    under its star (`_star_temperature_k`). `None` when it has no air, no star temperature or no stored mixture.
+    """
+    atmosphere_text = planet.get("atmosphere")
+    temperature = planet.get("_star_temperature_k")
+    if not atmosphere_text or atmosphere_text == "None" or not temperature:
+        return None
+    body = SimpleNamespace(
+        body_type=planet.get("body_type"), gravity=planet.get("gravity_g"), atmospheric_pressure=planet.get("atmospheric_pressure_pa"),
+        planet_class=planet.get("planet_class"), ozone_column_du=planet.get("ozone_column_du"), star=SimpleNamespace(temperature=temperature),
+        **{f"p_{gas}_kpa": planet.get(f"p_{gas}_kpa") for gas in atmosphere.SPECIES})
+    if planet.get("body_type") == "g":
+        return giant_colour.body_giant_colour(body)
+    return atmosphere_colour.body_atmosphere_colour(body)
 
 
 def _put(look, key, value):
@@ -137,7 +148,9 @@ def planet_look(planet, kind="planet"):
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
     if has_atmosphere:
         look["atm"] = True
-        look["glow"] = glow_color(temp_k)
+        colour = air_colour(planet)
+        if colour is not None:
+            look["glow"] = (colour.atmosphere if gas else colour).hex
     pressure_pa = planet.get("atmospheric_pressure_pa")
     _put(look, "pkpa", _rounded(pressure_pa / 1000.0 if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))

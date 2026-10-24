@@ -27,7 +27,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import air_column, atmosphere_colour as colour_model, two_stream
+from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, two_stream
 
 REFERENCE_BAR_PA = 1.0e5
 """float: The radius level of a giant (decision 9), Pa; the reference level is never deeper."""
@@ -133,3 +133,19 @@ def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_p
                                             spread_x=spread_x, spread_y=spread_y)
     bands = any(column.fraction(gas) > PARTIAL_ABOVE for gas in BAND_GASES)
     return GiantColour(result, float(p_ref_pa), "partial" if bands else "full", isinstance(albedo, np.ndarray))
+
+
+def body_giant_colour(body):
+    """
+    The `GiantColour` of a gas or ice giant row from what it stores (its mixture, gravity and star's temperature), read at 1 bar over the
+    dark deep gas: the stored cloud decks do not exist yet (DB.68), so this is the colour of the air above the deck, which is also what a
+    limb of the planet shows. `None` for a body with no mixture, no gravity or no star temperature.
+    """
+    temperature = getattr(getattr(body, "star", None), "temperature", None)
+    gravity = (getattr(body, "gravity", None) or 0.0) * constants.EARTH_GRAVITY
+    if not temperature or temperature <= 0.0 or gravity <= 0.0:
+        return None
+    mixture = air_column.partials_pa(body)
+    if sum(mixture.values()) <= 0.0:
+        return None
+    return giant_atmosphere_colour(mixture, gravity, temperature_k=temperature)
