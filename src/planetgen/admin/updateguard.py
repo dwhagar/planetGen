@@ -36,6 +36,7 @@ import time
 from datetime import datetime, timezone
 
 from planetgen.admin import maintenance
+from planetgen.queue import stopall
 
 UPDATE_CAUSE = "update"
 """str: The maintenance `cause` of an update."""
@@ -131,10 +132,15 @@ def inside_update():
 def refuse_while_updating(what):
     """
     Raises `UpdateRunning` naming `what` when an update runs. The update's own commands (`inside_update`) pass.
+    Raises `UpdateRunning` too when everything was stopped (`stopall`, PERF.186), saying so.
 
     Args:
         what (str): What was about to start ("A Generate job", "The orbital update").
     """
+    try:
+        stopall.refuse_while_stopped(what)      # PERF.186: stopped, then not even an update's own commands start work
+    except stopall.Stopped as exc:
+        raise UpdateRunning(str(exc)) from exc
     if inside_update() or not is_updating():
         return
     raise UpdateRunning(f"{what} can't start: the site is being updated. Try again when the update has finished "

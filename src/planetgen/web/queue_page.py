@@ -50,6 +50,11 @@ ACTION_TEXT = {
     "queue-pause": ("Pause the queue", "No run starts or takes another unit until you resume the queue. "
                                        "Running units finish first."),
     "queue-resume": ("Resume the queue", "Runs waiting for the queue start again, one at a time."),
+    "queue-stop-all": ("Stop everything", "Cancels every run and the Generate page's job, empties every queue, and ends "
+                                          "every planetgen worker and command process on this server with the processes "
+                                          "they started. Nothing starts again, not even from the map, until you press "
+                                          "Resume. What the runs already saved stays; the runs must be started again."),
+    "queue-resume-all": ("Resume", "Lifts the stop: work can start again. Nothing is started by this."),
 }
 
 
@@ -162,6 +167,12 @@ def _retry_plan(run):
                 "steps": [{"label": label, "argv": [jobs.python_executable(), *jobs.GENERATE_COMMAND, *argv]}],
                 "database": run.get("database"), "describe": label}
     return None
+
+
+def _stopped_view(stopped):
+    """The stop-all hold for the page: `stopped`, who and when (ISO)."""
+    stopped = stopped or {}
+    return {"stopped": bool(stopped.get("stopped")), "by": stopped.get("by"), "at": _iso(stopped.get("at"))}
 
 
 def _status_view(status):
@@ -292,7 +303,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), jobs_table=jobs_table, workers=workers,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -434,6 +445,17 @@ def admin_queue_action():
         if action == "queue-pause":
             ok = apiclient.admin_work_queue(cookie_header, "pause")
             message = "The queue is paused." if ok else "The queue was already paused."
+        elif action == "queue-stop-all":
+            done = apiclient.admin_work_stop_all(cookie_header)
+            message = (f"Everything is stopped: {done['runs']} run(s) cancelled"
+                       f"{' and the Generate job' if done['job'] else ''}, {done['queued']} queued job(s) removed, "
+                       f"{done['killed']} process(es) ended. Nothing starts until you press Resume.")
+            if done["survivors"]:
+                error = (f"{len(done['survivors'])} process(es) belong to another user and could not be ended from here; "
+                         f"run 'sudo planetgen queue stop-all' on the server (pids {', '.join(map(str, done['survivors']))}).")
+        elif action == "queue-resume-all":
+            ok = apiclient.admin_work_queue(cookie_header, "resume-all")
+            message = "Resumed: work can start again." if ok else "Nothing was stopped."
         elif action == "queue-resume":
             ok = apiclient.admin_work_queue(cookie_header, "resume")
             message = "The queue is running again." if ok else "The queue wasn't paused."

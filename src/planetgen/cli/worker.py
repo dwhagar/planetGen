@@ -21,7 +21,7 @@ import rq
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import pause, redisqueue, units, work, workers
+from planetgen.queue import pause, redisqueue, stopall, units, work, workers
 from planetgen.util import log
 
 WARM_MODULES = (
@@ -112,11 +112,20 @@ def worker_class():
                 log.debug("worker restarts itself: the release on disk is not the one it loaded", area="queue")
                 self.register_death()
                 os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
+            self._exit_if_stopped()
             self._wait_while_paused()
             result = super().dequeue_job_and_maintain_ttl(*args, **kwargs)
             if result is not None:
+                self._exit_if_stopped()
                 self._wait_while_paused()
             return result
+
+        def _exit_if_stopped(self):
+            """PERF.186: a worker that is still alive when everything is stopped ends before it takes or starts a job."""
+            if stopall.is_stopped():
+                log.debug("worker exits: everything was stopped", area="queue")
+                self.register_death()
+                os._exit(0)
 
     return WarmWorker
 

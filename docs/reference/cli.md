@@ -30,6 +30,7 @@ planetgen check-db [options]    # look for damage in the database (writes nothin
 planetgen versions              # the version keys the updates recorded
 planetgen benchmark [options]   # time where generation spends its time, in scratch databases
 planetgen warm [FAMILY|PHASE ...]     # build the site's caches ahead of the first visit
+planetgen queue stop-all|resume|status  # stop everything and hold, lift the hold, or show it
 planetgen commands              # every command the work queue can run
 planetgen command-run KIND ARGS # one unit of one of them, alone
 ```
@@ -720,6 +721,10 @@ planetgen warm [FAMILY|PHASE ...] [--cap N]
 ```
 
 The warm-up runs in five phases (PERF.141): `opening` (`object-index`, `galaxy-map`, `lists`: the object index, the opening views and the first page of each list), `built-levels` (`galaxy-nodes`), `deep-nodes` (`galaxy-deep-nodes`), `objects` (`sectors`, `systems`, `phenomena`) and `search`. After each phase it prints one line: what it built, what was already stored, what the cache budget (`cache.max_mb`) or the cap left out, or `unchanged, nothing built` when the data under it has not changed since the last run. After a generation run, `planetgen orbits`, an edit or any other change that moves a data version tag it also starts by itself in the background (`planetgen warm --on-change DATABASE`, which waits `cache.warm_settle_seconds` for more changes and then warms once; off with `cache.warm_on_change`, never during an update). `FAMILY` is any of the families above and `PHASE` any of the phase names, a phase standing for all its families (the list is those, in order, whatever order they are named in); `--cap` overrides `page_cache.warm_max_objects`.
+
+## Stop everything
+
+`planetgen queue stop-all` (PERF.186) is the emergency stop, the same routine as the Stop everything button on the admin Queue page. It writes a hold in the state folder (`stopped.json`, which survives a restart of Redis, the web server and the host), cancels the Generate page's job and every live run, empties every queue, and ends every planetgen worker, job runner and command process on the host together with the processes they started (SIGTERM, then SIGKILL after five seconds, looking again for what the dying ones started). While the hold is on nothing starts: no worker, run, Generate job, orbital update or cache warm-up, and the site's map prefetch queues nothing; a worker that is still alive ends before it takes a job. `planetgen queue resume` lifts the hold (and the queue pause); `planetgen queue status` says whether it is on and how many planetgen processes run. Run it as root so every process can be ended; the pids it could not end are listed and the command exits 1. `--no-hold` ends everything but leaves no hold, which is what `sudo ./update.sh --kill-all` runs before the update guard. It works with no Redis answering, and `python3 -m planetgen.cli.queue stop-all` runs it with little else imported.
 
 ## Helper tools
 

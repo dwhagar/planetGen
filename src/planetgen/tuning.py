@@ -4553,3 +4553,23 @@ SLOW_PAGE_ESTIMATE_SECONDS = 60
 
 SLOW_PAGE_TIMING_SECONDS = 7 * 86400
 """int: How long the build time of a request is remembered in Redis. A planetGen default."""
+
+# --- Nightly New galaxy smoke run (PERF.183) ---------------------------------------------------
+
+SMOKE_RADIUS_PC = 12.0
+"""float: The radius, in parsecs, of the one neighborhood the nightly smoke run (`planetgen.cli.smoke`) fills, with
+the scatters on: small enough to finish in minutes, large enough to run every step of a New galaxy job. A planetGen
+default."""
+
+SMOKE_BUDGET_MB = {"mysql": 1800, "workers": 1400, "step": 600, "host": 5000}
+"""dict: The most memory, in megabytes, the smoke run may peak at in any one step of the job, by group (`memwatch`):
+`mysql` (every mysqld), `workers` (every planetgen worker process), `step` (the step's own process tree) and `host`
+(the whole host's memory in use). A step over any of them fails the run, so a change that makes a step hold far more
+memory is caught the night it merges and not on the first big galaxy. Set about twice the first measured run (906 MB
+MySQL, 661 MB workers, 271 MB a step, 2,535 MB host in the worst step, 10-24). A planetGen default."""
+
+SMOKE_STEP_BUDGET_MB = {"Scatter the phenomena": {"mysql": 1500, "workers": 1500, "step": 9000, "host": 12000}}
+"""dict: Budgets of single steps (by the step's label on the Generate page) that replace `SMOKE_BUDGET_MB` for it. The
+phenomena scatter held 6,391 MB in its own process on the first measured run (a 12 pc neighborhood, host 8,655 MB),
+far above every other step: its budget is set about 1.4 times that so it cannot get worse, and is lowered when the
+step is fixed. A planetGen default."""

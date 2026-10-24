@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2242] - 2026-10-24
+
+**Headline:** A real Stop everything: one button, one command and one update option end every run, queue and worker process on the server and keep it quiet until you resume.
+
+### Added
+- **PERF.186: Stop everything.** The admin Queue page has a Stop everything button (and `planetgen queue stop-all` the same on the command line). It cancels the Generate page's job and every live run, empties every queue, and ends every planetgen worker, job runner and command process on the server together with the processes they started. It also writes a hold that survives a restart of Redis, the web server and the host: while it is on, no worker, run, Generate job, orbital update or cache warm-up starts, the map queues no background work, and a banner on every admin page says so. Resume (the button, or `planetgen queue resume`) lifts it. It works when Redis is not answering.
+- **PERF.186: `./update.sh --kill-all`.** Runs the same stop and clear before the update, only when you give it. It leaves no hold behind.
+
+### Fixed
+- **PERF.186: Cancel left work running.** A job whose runner had died (killed by the memory killer, a restart) showed as interrupted and Cancel did nothing, while its step and the processes of that step went on using the host. Cancel now ends them, cancels the job's runs and frees the job lock. A running step that ignores the request to stop (it caught the signal or hung in a database call) is now killed after 20 seconds.
+- **PERF.185: the process list was read cut off to the terminal's width** where the terminal sets one, so a worker whose command line was long could be missed by the host cap. It is now read in full, here and in the memory watch.
+
+## [8.0.2241] - 2026-10-24
+
+**Headline:** Every Generate job log now says how much memory each step used, and a nightly small New galaxy run fails when a step uses far more than its budget.
+
+### Added
+- **PERF.183: memory per step in every job log.** While a Generate job runs, the job runner looks every two seconds at MySQL, the planetgen workers, the step's own processes and the whole host, and after each step writes one line to the job log ("Memory peak: MySQL 884 MB, 6 workers 2,310 MB, the step itself 256 MB, the whole host 3,100 of 15,990 MB.") and keeps the figures in `memory.json` in the job folder. The figures are proportional set sizes, so a work horse forked from its worker is not counted twice.
+- **PERF.183: the nightly New galaxy smoke run.** `python -m planetgen.cli.smoke` runs the real New galaxy job for one small neighborhood in scratch databases (dropped afterwards), prints the peaks of every step against their budgets (`tuning.SMOKE_BUDGET_MB`, or `--budget GROUP=MB`) and exits 1 when a step is over, 2 when a step failed. `examples/maintenance/install-maintenance-timer.sh --with-smoke-timer` installs a systemd timer for it at 04:30 every night, so a change that makes a step hold far more memory is caught the night it merges, not on the first big galaxy.
+- **PERF.183: the first measured run found a hog.** On a 12 pc neighborhood every step stayed under 1 GB (most of them under 300 MB in their own process) except the phenomena scatter, whose own process held 6.4 GB (host 8.7 GB). Its budget is set 1.4 times that so it cannot get worse until it is fixed; every other step is judged against about twice its measured peak.
+
+## [8.0.2240] - 2026-10-24
+
+**Headline:** The every-button browser test waits for the 3D system view to finish loading before it clicks.
+
+### Fixed
+- **`test_every_plain_button_does_something[web.system]` timed out on a body-list button of the 3D view (TEST.350).** The system page opens in 3D by default and rebuilds its "Bodies in this view" list once the scene has loaded, so a button clicked just before that was "not stable" and the click waited out its two minutes. The test now waits for the 3D view to be ready (or hidden) after every page load.
+TODO items resolved: TEST.350. Added: none.
+
 ## [8.0.2239] - 2026-10-24
 
 **Headline:** The facility and population system page tests follow what UX.173 and UX.176 moved to the body's own page.

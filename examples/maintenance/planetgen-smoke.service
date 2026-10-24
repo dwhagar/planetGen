@@ -1,0 +1,31 @@
+# examples/maintenance/planetgen-smoke.service
+#
+# Runs the nightly New galaxy smoke run (PERF.183, `planetgen.cli.smoke`): a small galaxy through every step of the
+# Generate page's New galaxy job, in scratch databases that are dropped at the end, with the memory of MySQL, the
+# planetgen workers, each step and the host watched. The run fails (so `systemctl status` and the journal show it)
+# when a step peaked above its budget (`tuning.SMOKE_BUDGET_MB`), which is how a change that makes a step hold far
+# more memory is caught the night it lands and not on the first big galaxy.
+#
+# The account in /etc/planetgen/maintenance.env must be allowed to create and drop databases (the scratch ones are
+# named planetgen_smoke_*). Run it on a quiet host: the workers figure counts every planetgen worker on the host.
+#
+# Installed by install-maintenance-timer.sh --with-smoke-timer.
+
+[Unit]
+Description=planetGen nightly New galaxy smoke run (memory per step)
+After=network-online.target
+Wants=network-online.target
+# Never during an update: it would test code that is being replaced.
+After=planetgen-update.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/lib/planetGen/src
+EnvironmentFile=-/etc/planetgen/maintenance.env
+# Exit 1: a step peaked above its budget. Exit 2: a step failed, so there is no memory to judge. The report is in the journal.
+ExecStart=/usr/local/planetgen/venv/bin/python -m planetgen.cli.smoke --output /var/lib/planetGen/smoke-last.json
+# The run is minutes, not hours; a hung one must not hold the night.
+TimeoutStartSec=3h
+# Behind the real work for CPU and disk.
+Nice=10
+IOSchedulingClass=idle

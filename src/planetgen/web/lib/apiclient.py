@@ -1259,6 +1259,14 @@ def admin_work_queue(cookie_header, action):
     return body["ok"]
 
 
+def admin_work_stop_all(cookie_header):
+    """`POST /api/admin/work/queue` `stop-all` -- stops everything and holds (PERF.186). Returns the summary
+    (`runs`, `queued`, `job`, `killed`, `survivors`, `already`)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/work/queue", cookie_header=cookie_header,
+                                              json_body={"action": "stop-all"}, timeout=120)
+    return body["summary"]
+
+
 def admin_work_workers(cookie_header, count=None, ludicrous=False):
     """`GET`, or with `count` / `ludicrous` `POST`, `/api/admin/work/workers` -- the bulk worker count (ADM.15):
     `{"wanted", "live", "ludicrous", "cpus"}`."""

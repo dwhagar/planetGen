@@ -1,0 +1,17 @@
+# examples/maintenance/planetgen-smoke.timer
+#
+# Fires planetgen-smoke.service (see that file) every night at 04:30, after the 03:00 update and the 03:30 orbit
+# update of the first of the month have finished (the monthly ones take minutes). A fixed time, no random delay, so
+# the nights are comparable.
+#
+# Installed by install-maintenance-timer.sh --with-smoke-timer.
+
+[Unit]
+Description=Run planetGen's New galaxy smoke run every night
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

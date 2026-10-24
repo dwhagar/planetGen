@@ -224,6 +224,10 @@ def test_perf185_many_callers_together_never_pass_the_host_cap(lane, monkeypatch
         thread.start()
     for thread in threads:
         thread.join()
+    assert len(started) <= 4                                  # never past the cap, however the threads interleaved
+    for _ in range(10):                                       # callers that lost the race to the lock ask again later
+        for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
+            workers.ensure_workers(name, connection)
     assert len(started) == 4
     assert int(connection.get(workers.REFUSED_KEY)) >= 1
     assert len(lines) == 1 and "cap is 4" in lines[0]                                 # said once, not at every poll

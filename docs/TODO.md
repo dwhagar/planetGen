@@ -14481,20 +14481,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none yet.
   Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
 
-- [ ] **PERF.183 Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget**
-  Efficiency scan suggestion 7, applied by Boss ("ALL", 2:21 PM EDT
-  2026-10-24). Boss found the MySQL out-of-memory (PERF.181) and the
-  Redis crash (PERF.173) by running New galaxy himself. Do: a nightly
-  run of New galaxy on a test box (the 108 sector size that reproduces
-  Stage 7) that records each stage's time and the peak resident memory
-  of mysqld and the workers, prints it in the stage log, and fails when
-  a stage exceeds a stored budget; the budget lives with the other
-  tuning values. PERF.182 (finish an incomplete run, 8.2) makes a failed
-  night cheap to resume. Done: the smoke runs unattended, a deliberate
-  memory regression makes it fail, and the report line appears in the
-  stage log. Owner: Lane OOM, after PERF.181 merges.
-  Prerequisites: none. Related: PERF.181, PERF.173, PERF.182.
-
 - [ ] **PERF.184 Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug)**
   Boss's live observation (relayed 2:34 PM EDT 2026-10-24 by the
   coordinator; filed by the TODO thread). Kind: wrong output. When the
@@ -14511,31 +14497,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   arrive; tests for both. Owner: Core 5 (the queue and speed lane;
   proposed by the TODO thread because no lane owns estimates since
   PERF.178 went to a finished lane).
+  Red test (2026-10-09): Update 4:30 PM EDT 2026-10-24: the coordinator
+  reports
+  test_eta_estimator.py::test_the_queue_page_shows_a_range_or_estimating
+  fails on main after #3078 (PERF.186 and PERF.183). Core 5 owns this
+  item and the estimator: confirm whether #3078 broke it or it was
+  already red, then fix the test or the page without weakening the test.
+  Done includes that test passing on main.
   Prerequisites: none. Related: PERF.178, PERF.174.
 
-- [ ] **PERF.186 CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug)**
-  Boss's live observation (relayed 3:13 PM EDT 2026-10-24 by the
-  coordinator; filed by the TODO thread). Boss: 'my system is still
-  saturated with python processes, I told it to cancel but it has not
-  actually cancelled, this is a serious problem. I need a functional way
-  to end all tasks and not start any more until I tell it to do
-  something new.' Kind: crash/safety, blocks his testing. Do: (1) find
-  why Cancel leaves worker processes running after PERF.99's 'Cancel
-  stops a run at once' (units already in a worker, workers started by
-  other callers, or workers restarted by ensure_workers after the
-  cancel) and fix it. (2) A Stop everything action, on the admin Queue
-  page and as a command (`planetgen queue stop-all`), that cancels every
-  run, empties every queue, kills every planetgen worker process and its
-  children on the host, and sets a stored pause flag. (3) While the
-  pause flag is set nothing starts: ensure_workers, the Generate page,
-  the CLI commands and update.sh steps refuse with one plain line saying
-  the system is paused and how to resume; a visible banner on every
-  admin page and a Resume button (and `planetgen queue resume`) clear
-  it. The flag survives restarts. Done: tests that a stopped host has no
-  planetgen worker processes left and that nothing starts while paused;
-  Boss can run New galaxy again after Resume. Owner: Lane OOM, ahead of
-  PERF.183. Related: PERF.181, PERF.99, PERF.173.
-  Prerequisites: none. Related: PERF.181, PERF.173, PERF.183.
+- [ ] **PERF.187 The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug)**
+  Found by Lane OOM in its PERF.186 and PERF.183 work (merged as #3078;
+  relayed 4:30 PM EDT 2026-10-24 as the coordinator relayed; filed by
+  the TODO thread). Kind: memory fault on the host Boss saw saturated
+  and out of memory. Do: profile the phenomena scatter step on a large
+  galaxy, find which structure it keeps whole (the full set of candidate
+  phenomena, a per-sector table, or both), and make it stream or work in
+  bounded batches; add a memory-ceiling test for the step (the host cap
+  of PERF.185 is 31 workers, so six such steps would not fit in 16 GB).
+  Done: the step stays under a stated ceiling on a large galaxy, a test
+  pins the ceiling, and the output is unchanged (or the epoch is taken
+  if it is not). Owner: Lane OOM (Boss's lane for host memory). High
+  priority.
+  Prerequisites: none. Related: PERF.185, PERF.186, PERF.181.
 
 ## DB: Database and schema
 
@@ -18827,6 +18811,12 @@ clears each one.
   the likely causes) and fix the page or the stale tests without
   weakening them. Done: all pass on main, alone and in the suite. Owner:
   Bug Hunt (main-green rule). Related: TEST.347, TEST.346.
+  Progress (2026-10-09): Update 4:26 PM EDT 2026-10-24: Bug Hunt merged
+  #3075 (as the coordinator relayed): the Python half, 20 facility and
+  population page tests, with test fixes only. One browser test is still
+  open
+  (test_web_browser_controls::test_every_plain_button_does_something[web.system]);
+  the item stays open until it passes on main.
   Prerequisites: none. Related: TEST.346, TEST.347, TEST.348.
 
 - [ ] **TEST.352 test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug)**

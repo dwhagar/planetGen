@@ -25,6 +25,10 @@
 # unattended updates mean (whatever's on the tracked branch gets pulled
 # and deployed automatically, with no human review in between).
 #
+# --with-smoke-timer: also install planetgen-smoke.service/.timer (PERF.183), the nightly New galaxy smoke run at 04:30
+# that fails when a step of a small New galaxy peaks above its memory budget. Linux (systemd) only; the account in
+# /etc/planetgen/maintenance.env must be allowed to create and drop databases.
+#
 # What it does:
 #   1. Installs planetgen-orbits@.service/.timer (always) and
 #      planetgen-update.service/.timer (unless --skip-update-timer) into
@@ -51,10 +55,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install_update_timer=1
+install_smoke_timer=0
 args=()
 for arg in "$@"; do
     if [[ "$arg" == "--skip-update-timer" ]]; then
         install_update_timer=0
+    elif [[ "$arg" == "--with-smoke-timer" ]]; then
+        install_smoke_timer=1
     else
         args+=("$arg")
     fi
@@ -85,6 +92,9 @@ if [[ "$(uname -s)" == Darwin ]]; then
     SCRIPT_DIR="$REPO_DIR"  # what deploy-common.sh's helpers expect
     # shellcheck source=../../scripts/deploy-common.sh
     source "$REPO_DIR/scripts/deploy-common.sh"
+    if [[ "$install_smoke_timer" -eq 1 ]]; then
+        echo "  --with-smoke-timer is for systemd only; run 'python -m planetgen.cli.smoke' by hand on macOS."
+    fi
     mkdir -p "$MACOS_LOG_DIR"
     chown _www:_www "$MACOS_LOG_DIR"
     echo "== Installing launchd daemons =="
@@ -119,6 +129,12 @@ else
     echo "  --skip-update-timer given -- not installing planetgen-update.service/.timer"
 fi
 
+if [[ "$install_smoke_timer" -eq 1 ]]; then
+    install -m 644 "$SCRIPT_DIR/planetgen-smoke.service" /etc/systemd/system/planetgen-smoke.service
+    install -m 644 "$SCRIPT_DIR/planetgen-smoke.timer" /etc/systemd/system/planetgen-smoke.timer
+    echo "  installed planetgen-smoke.service and planetgen-smoke.timer"
+fi
+
 echo
 echo "== 2/3: Setting up credentials file =="
 ENV_FILE=/etc/planetgen/maintenance.env
@@ -144,6 +160,10 @@ for db in "${databases[@]}"; do
     systemctl enable --now "planetgen-orbits@${db}.timer"
     echo "  enabled planetgen-orbits@${db}.timer (fires 03:30 on the 1st of each month)"
 done
+if [[ "$install_smoke_timer" -eq 1 ]]; then
+    systemctl enable --now planetgen-smoke.timer
+    echo "  enabled planetgen-smoke.timer (fires 04:30 every night; last report: journalctl -u planetgen-smoke.service)"
+fi
 
 echo
 echo "Done. Check scheduled runs with:"
