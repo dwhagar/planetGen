@@ -21,7 +21,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI |  | Split from USR.2. |
-| USR.3 | SMTP settings in the admin config | ADM.86, USR.26 |  |
+| USR.3 | SMTP settings in the admin config | USR.26 |  |
 | USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links |  | Foundation found in the review. |
 | USR.5 | Email loop for setting and resetting passwords | USR.3, USR.28 |  |
 | USR.4 | Invite-only sign-up by unique link | USR.26, USR.3, USR.28, USR.5 |  |

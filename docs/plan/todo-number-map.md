@@ -474,7 +474,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | none | done, PR #1857 |
 | ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | done, PR #1875 |
 | ADM.85 | Settings backups, restore, import and export on the settings page | none | done, PR #1905 |
-| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
+| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | done, PR #3083 |
 | ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | none | done, PR #1857 |
 | ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive | none | open |
 | ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | none | open |
@@ -1441,7 +1441,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.711 | Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | open |
 | GEN.712 | The materials row complex_organics has a density of 1.5 g/cm3 but Choukroun 2020 gives about 2 g/cm3 (bug) | none | done, PR #2995 |
 | GEN.713 | Research the size law and the cut for long-period and interstellar comets (blocks GEN.559) | none | done, report reports/gen713-comet-size-law-2026-10-24.md (Lane K, about 2:30 PM EDT 2026-10-24 as the lane reported) |
-| GEN.714 | Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug) | none | open |
+| GEN.714 | Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug) | none | done, PR #3084 |
 | GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 | none | open |
 | GEN.716 | add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug) | none | open |
 | GEN.717 | The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K | none | open |
@@ -2169,7 +2169,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links | none | open |
 | USR.29 | Vessel and station objects: add, move along a course and list, with ownership | none | open |
 | USR.30 | Add a ship or station from a page and see it and its track on the maps | none | open |
-| USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 | none | open |
+| USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 | none | done, PR #3083 |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |

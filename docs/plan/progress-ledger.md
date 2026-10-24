@@ -1376,3 +1376,6 @@ Baseline: PR #1817.
 | PERF.186 | 8.1 | The headline closes |
 | GEN.645 | 8.1 | Habitability system |
 | GEN.686 | 8.1 | Consistency |
+| USR.31 | 8.1 | Admin and API housekeeping |
+| ADM.86 | 8.1 | Admin and API housekeeping |
+| GEN.714 | 8.1 | Surface and small bodies |
