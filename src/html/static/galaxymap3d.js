@@ -72,8 +72,8 @@ const {
   POINT_FADE, cloudSizeShare, opacitySum, starShare,
 } = await import(`./starfade.js${VERSION_QUERY}`);
 const {
-  POINT_PX, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare, unchartedKeep,
-  phenomenonLuminositySol, pointBrightness,
+  GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare,
+  unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
 const { fetchCutTiles, tileBoxOf } = await import(`./galaxytilecut.js${VERSION_QUERY}`);
 const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
@@ -1601,7 +1601,9 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vShown;",
       "attribute float starSize;",
       "attribute float starCore;",
-      "attribute float starGlow;",
+      // x: the grown halo's strength; y, z: the far halo's strength and width beyond the point (one attribute: a
+      // vertex shader has 16 at most).
+      "attribute vec3 starGlow;",
       "attribute float starBright;",
       "attribute float starPointBright;",
       "attribute vec3 starColor;",
@@ -1617,6 +1619,7 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vCore;",
       "varying float vGlow;",
       "varying float vBright;",
+      "varying float vWhiten;",
       "void main() {",
       "  vColor = starColor;",
       "  float zoomShown = starTile;",
@@ -1641,11 +1644,14 @@ function initGalaxyMap3d(canvasEl, data) {
       "  float arrive = mix(1.0, zoomShown, zoomFadeOn);",
       "  float grow = pointGrow(dist) * arrive;",
       "  float pointPx = " + POINT_PX.toFixed(2) + ";",
-      "  float sizePx = pointPx + max(starSize - pointPx, 0.0) * grow;",
+      // A far point keeps a halo of its own luminosity in its own color (starpoint.js's pointSizePx).
+      "  float farPx = pointPx + starGlow.z;",
+      "  float sizePx = farPx + max(starSize - farPx, 0.0) * grow;",
       "  float corePx = pointPx + max(starCore - pointPx, 0.0) * grow;",
       "  gl_PointSize = sizePx * pixelRatio;",
       "  vCore = corePx / sizePx;",
-      "  vGlow = starGlow * grow;",
+      "  vGlow = mix(starGlow.y, starGlow.x, grow);",
+      "  vWhiten = mix(" + POINT_WHITEN.toFixed(3) + ", " + GROWN_WHITEN.toFixed(3) + ", grow);",
       "  vBright = mix(starPointBright, starBright, grow) * mix(1.0, fluxGain(appMag, magLimit), magOn);",
       // Outside the wedge shown (setWedgeClip): dropped.
       "  if (starClipped > 0.5) {",
@@ -1663,13 +1669,14 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vGlow;",
       "varying float vShown;",
       "varying float vBright;",
+      "varying float vWhiten;",
       "void main() {",
       "  #include <logdepthbuf_fragment>",
       "  float r = length(gl_PointCoord * 2.0 - 1.0);",
       "  if (r > 1.0) discard;",
       "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
       "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
-      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * 0.6 * vBright), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
+      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * vWhiten * vBright), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
       "}",
     ].join("\n"),
     transparent: true,
@@ -1742,7 +1749,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var colors = new Float32Array(3 * n);
     var sizes = new Float32Array(n);
     var cores = new Float32Array(n);
-    var glows = new Float32Array(n);
+    var glows = new Float32Array(3 * n);
     var brights = new Float32Array(n);
     var absMags = new Float32Array(n);
     var tierMags = new Float32Array(n);
@@ -1776,7 +1783,7 @@ function initGalaxyMap3d(canvasEl, data) {
         glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
       }, starLightBoost(luminosity));
       sizes[i] = Math.max(halo.sizePx, 2 * cores[i] + 2);
-      glows[i] = halo.glow;
+      glows.set([halo.glow, pointHaloGlow(t), pointHaloPx(t)], 3 * i);
       brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
       pointBrights[i] = pointBrightness(t);
     });
@@ -1785,7 +1792,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starColor", new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute("starSize", new THREE.BufferAttribute(sizes, 1));
     geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
-    geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
+    geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 3));
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
     geometry.setAttribute("starPointBright", new THREE.BufferAttribute(pointBrights, 1));
     geometry.setAttribute("starAbsMag", new THREE.BufferAttribute(absMags, 1));

@@ -34,7 +34,9 @@ const { cssVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
-const { POINT_PX, STAR_POINT_GLSL, pointBrightness } = await import(`./starpoint.js${VERSION_QUERY}`);
+const {
+  GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, pointBrightness, pointHaloGlow, pointHaloPx,
+} = await import(`./starpoint.js${VERSION_QUERY}`);
 
 // What an object in an uncharted sector says of itself (MAP.162).
 const UNCHARTED_NOTE = "Uncharted: its sector is not charted yet";
@@ -468,9 +470,19 @@ var POINT_RING_MIN_PX = 20;
 // carries: 0.75 for the faintest star to 1 for the most luminous, as
 // planetgen/web/maps/starmap.py's `_star_light` sets it), never above its own
 // (a rogue planet is dimmer than a faint star at any distance).
+function lightShare(light) {
+  return Math.min(1, Math.max(0, (light.bright - 0.75) / 0.25));
+}
+
 export function lightFarBright(light) {
-  var share = Math.min(1, Math.max(0, (light.bright - 0.75) / 0.25));
-  return Math.min(light.bright, pointBrightness(share));
+  return Math.min(light.bright, pointBrightness(lightShare(light)));
+}
+
+// The far halo of a light (starpoint.js's pointHaloPx and pointHaloGlow, by the same luminosity share), never
+// stronger than its own grown glow (a rogue planet has none).
+export function lightFarHalo(light) {
+  var share = lightShare(light);
+  return { px: pointHaloPx(share), glow: Math.min(light.glow, pointHaloGlow(share)) };
 }
 
 var POINT_VERTEX_SHADER = [
@@ -480,6 +492,8 @@ var POINT_VERTEX_SHADER = [
   "attribute float pointSize;",
   "attribute float pointCore;",
   "attribute float pointGlow;",
+  "attribute float pointHaloPx;",
+  "attribute float pointHaloGlow;",
   "attribute float pointBright;",
   "attribute float pointFarBright;",
   "attribute float pointWhiten;",
@@ -492,16 +506,18 @@ var POINT_VERTEX_SHADER = [
   "varying float vWhiten;",
   "void main() {",
   "  vColor = pointColor;",
-  "  vWhiten = pointWhiten;",
   "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
   // MAP.208: a point of light POINT_PX across until the camera is about a
   // sector away, then grown to its size and glow (static/starpoint.js).
   "  float grow = pointGrow(length(mvPosition.xyz));",
   "  float pointPx = " + POINT_PX.toFixed(2) + ";",
-  "  float sizePx = pointPx + max(pointSize - pointPx, 0.0) * grow;",
+  // A far point keeps a halo of its own luminosity in its own color (starpoint.js's pointSizePx).
+  "  float farPx = pointPx + pointHaloPx;",
+  "  float sizePx = farPx + max(pointSize - farPx, 0.0) * grow;",
   "  float corePx = pointPx + max(pointCore - pointPx, 0.0) * grow;",
   "  vCore = corePx / sizePx;",
-  "  vGlow = pointGlow * grow;",
+  "  vGlow = mix(pointHaloGlow, pointGlow, grow);",
+  "  vWhiten = pointWhiten * mix(" + (POINT_WHITEN / GROWN_WHITEN).toFixed(4) + ", 1.0, grow);",
   "  vBright = mix(min(pointFarBright, pointBright), pointBright, grow);",
   "  gl_Position = projectionMatrix * mvPosition;",
   "  gl_PointSize = sizePx * pixelRatio;",
@@ -525,7 +541,7 @@ var POINT_FRAGMENT_SHADER = [
   "  if (r > 1.0) discard;",
   "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
   "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
-  "  vec3 lit = mix(vColor, vec3(1.0), 0.6 * vBright * vWhiten);",
+  "  vec3 lit = mix(vColor, vec3(1.0), " + GROWN_WHITEN.toFixed(3) + " * vBright * vWhiten);",
   "  vec3 coreColor = mix(lit, vColor * 0.55, lightBackground);",
   "  gl_FragColor = vec4(mix(vColor, coreColor, core), clamp(core * vBright + halo, 0.0, 1.0) * fade);",
   "}",
@@ -540,6 +556,8 @@ function makePointsOfLight(entries, lightBackground) {
   var sizes = new Float32Array(n);
   var cores = new Float32Array(n);
   var glows = new Float32Array(n);
+  var haloPxs = new Float32Array(n);
+  var haloGlows = new Float32Array(n);
   var brights = new Float32Array(n);
   var farBrights = new Float32Array(n);
   var whitens = new Float32Array(n);
@@ -553,6 +571,9 @@ function makePointsOfLight(entries, lightBackground) {
     sizes[i] = light.sizePx;
     cores[i] = light.corePx;
     glows[i] = light.glow * dim;
+    var farHalo = lightFarHalo(light);
+    haloPxs[i] = farHalo.px;
+    haloGlows[i] = farHalo.glow * dim;
     brights[i] = light.bright * dim;
     farBrights[i] = lightFarBright(light) * dim;
     whitens[i] = light.whiten != null ? light.whiten : 1;
@@ -563,6 +584,8 @@ function makePointsOfLight(entries, lightBackground) {
   geometry.setAttribute("pointSize", new THREE.BufferAttribute(sizes, 1));
   geometry.setAttribute("pointCore", new THREE.BufferAttribute(cores, 1));
   geometry.setAttribute("pointGlow", new THREE.BufferAttribute(glows, 1));
+  geometry.setAttribute("pointHaloPx", new THREE.BufferAttribute(haloPxs, 1));
+  geometry.setAttribute("pointHaloGlow", new THREE.BufferAttribute(haloGlows, 1));
   geometry.setAttribute("pointBright", new THREE.BufferAttribute(brights, 1));
   geometry.setAttribute("pointFarBright", new THREE.BufferAttribute(farBrights, 1));
   geometry.setAttribute("pointWhiten", new THREE.BufferAttribute(whitens, 1));
@@ -802,7 +825,8 @@ export function buildSectorScene(data, options) {
     group.add(pointsOfLight);
   }
 
-  var POINT_ATTRIBUTES = ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointFarBright", "pointWhiten"];
+  var POINT_ATTRIBUTES = ["pointColor", "pointSize", "pointCore", "pointGlow", "pointHaloPx", "pointHaloGlow", "pointBright",
+    "pointFarBright", "pointWhiten"];
 
   // Writes point `i`'s look: its entry's current light, or nothing at all
   // while its kind is hidden.
@@ -818,6 +842,9 @@ export function buildSectorScene(data, options) {
     geometry.getAttribute("pointSize").array[i] = shown ? light.sizePx * mark : 0;
     geometry.getAttribute("pointCore").array[i] = shown ? light.corePx * mark : 0;
     geometry.getAttribute("pointGlow").array[i] = shown ? light.glow * dim * mark : 0;
+    var farHalo = lightFarHalo(light);
+    geometry.getAttribute("pointHaloPx").array[i] = shown ? farHalo.px * mark : 0;
+    geometry.getAttribute("pointHaloGlow").array[i] = shown ? farHalo.glow * dim * mark : 0;
     geometry.getAttribute("pointBright").array[i] = shown ? Math.min(1, light.bright * dim * mark) : 0;
     geometry.getAttribute("pointFarBright").array[i] = shown ? Math.min(1, lightFarBright(light) * dim * mark) : 0;
     geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;

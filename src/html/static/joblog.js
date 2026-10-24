@@ -58,7 +58,7 @@ export async function createJobLog(pre) {
       convertEol: true,
       disableStdin: true,
       scrollback: 20000,
-      fontSize: 13,
+      fontSize: 13,      // style.css repeats the font and size for .job-terminal .xterm-rows (UX.148)
       fontFamily: color("--font-mono", "monospace"),
       cursorInactiveStyle: "none",
       theme: { background: color("--bg", "#14151e"), foreground: color("--text", "#e7e9f3") },

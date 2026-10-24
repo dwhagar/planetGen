@@ -1,0 +1,5 @@
+**Headline:** Stars on the Galaxy Map glow at every distance, the glow's size and strength from the star's luminosity and its colour from the star's temperature.
+
+### Fixed
+- **Stars on the map did not glow (Boss's live observation).** Since MAP.208 a star farther than about three sectors from the camera was a 1.5 pixel point with no halo and a core whitened toward white, so only stars near the camera glowed and the rest read as white dots. A far point now keeps a halo of its own (`starpoint.js`: `POINT_HALO_PX` 3 to 12 pixels and `POINT_HALO_GLOW` 0.3 to 0.75, faint star to bright star by luminosity), which grows smoothly into the full halo near a sector, and its core is whitened less (`POINT_WHITEN`), so the star's blackbody colour shows. The Galaxy Map and the sector scene draw it the same way; the far halo shares one shader attribute with the grown glow, since a vertex shader holds 16 at most. Tests in `starpoint.test.mjs`.
+TODO items resolved: none (the stars-glow bug is being filed by the TODO thread). Added: none.
