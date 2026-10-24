@@ -1350,7 +1350,7 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     (the fixture's generated sectors are all in the core, thousands of
     parsecs away), in a close view of the block as well as a far one."""
     _open_window(page, map_site, 3, 250, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
+    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
 
 
 # --- NAV.40: bookmarks keep a course pick ---------------------------------------------
