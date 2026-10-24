@@ -165,12 +165,22 @@ def _fake_sector(db, sector_id):
 
 
 def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
-    offset = (offsets or {}).get("sectors", 0)
+    offsets = offsets or {}
+    offset = offsets.get("sectors", 0)
     rows = [{"id": i, "name": f"Found {i:03d}", "edge_mpc": 3.07} for i in range(120)]
     panel = {"rows": rows[offset:offset + limit], "total": 120, "total_capped": False, "limit": limit,
              "offset": offset, "truncated": False}
     results = {name: None for name in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     results["sectors"] = panel
+    if texts.get("planet_q"):
+        tiers = {f"tier_{d}": i % 4 for i, d in enumerate(("pressure", "temperature", "air", "water", "radiation",
+                                                           "suitability"))}
+        planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_chemical": None,
+                    "radius_km": 6371.0, "star_system_id": 7, "system_name": "Kepler-42", "sector_id": None,
+                    "equipment_tier": 1, "phi4": 0.5, **tiers} for i in range(120)]
+        results = {name: None for name in results}
+        results["planets"] = {"rows": planets[offsets.get("planets", 0):][:limit], "total": 120, "total_capped": False,
+                              "limit": limit, "offset": offsets.get("planets", 0), "truncated": False}
     return {"facets": {}, "autocomplete": {"sectors": [], "systems": [], "stars": [], "planets": [], "moons": []},
             "facet_labels": {}, "results": results}
 
@@ -363,7 +373,7 @@ def test_filters_narrow_the_rows_and_the_other_menu(page, table_site):
     _open(page, table_site)
     kind = page.locator(".datatable-facet[data-param='type']")
     kind.locator("summary").click()
-    kind.get_by_label("Rogue Planet").check()
+    kind.locator("sl-checkbox", has_text="Rogue Planet").click()
     rogue = sum(1 for row in ROWS if row["type"] == "rogue_planet")
     _wait_count(page, f"{rogue} phenomena match")
     assert parse_qs(urlparse(page.url).query) == {"type": ["rogue_planet"]}
@@ -377,7 +387,7 @@ def test_filters_narrow_the_rows_and_the_other_menu(page, table_site):
     assert descriptor.locator("li:not([hidden])").count() == 2
     assert descriptor.locator("li", has_text="Gas giant").inner_text().endswith(f"({rogue // 2})")
 
-    descriptor.get_by_label("Gas giant").check()
+    descriptor.locator("sl-checkbox", has_text="Gas giant").click()
     _wait_count(page, f"{rogue // 2} phenomena match")
     assert parse_qs(urlparse(page.url).query) == {"type": ["rogue_planet"], "descriptor": ["gas giant"]}
 
@@ -399,7 +409,7 @@ def test_the_rows_show_before_the_filter_counts_arrive(page, table_site):
     _open(page, table_site)
     kind = page.locator(".datatable-facet[data-param='type']")
     kind.locator("summary").click()
-    kind.get_by_label("Rogue Planet").check()
+    kind.locator("sl-checkbox", has_text="Rogue Planet").click()
     rogue = sum(1 for row in ROWS if row["type"] == "rogue_planet")
     _wait_count(page, f"{rogue} phenomena match")                       # the rows and the count line are in
     deadline = time.monotonic() + 10
@@ -416,7 +426,7 @@ def test_a_filtered_address_loads_filtered(page, table_site):
     _open(page, table_site, "?type=black_hole&sort=name&order=desc")
     holes = sum(1 for row in ROWS if row["type"] == "black_hole")
     assert _count_line(page) == f"{holes} phenomena match"
-    assert page.locator(".datatable-facet[data-param='type'] input:checked").count() == 1
+    assert page.locator(".datatable-facet[data-param='type'] sl-checkbox[checked]").count() == 1
     assert _first_names(page, 1)[0] == "Phenomenon 229"
 
 
@@ -462,7 +472,7 @@ def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
 
     facet = page.locator("#systems-table .datatable-facet", has_text="Stars")
     facet.locator("summary").click()
-    facet.get_by_label("Binary").check()
+    facet.locator("sl-checkbox", has_text="Binary").click()
     page.locator("#systems-table .datatable-count-line", has_text="65 systems match") \
         .wait_for(state="attached", timeout=10000)
     query = parse_qs(urlparse(page.url).query)
@@ -512,7 +522,8 @@ def test_the_uncharted_jump_box_begins_the_list_at_a_typed_value_and_says_when_i
     assert page.goto(f"{table_site}/systems?uncharted=1&uncharted_sort=temperature", wait_until="load").status == 200
     page.locator("#uncharted_systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     box = page.locator("#uncharted_systems-table .datatable-jump input[type='text']")
-    assert box.is_visible() and "Kelvin" in box.get_attribute("placeholder")
+    box.wait_for(state="visible", timeout=15000)  # the field is drawn once Shoelace has defined it (UX.124)
+    assert "Kelvin" in box.get_attribute("placeholder")
     box.fill("4000")
     page.locator("#uncharted_systems-table .datatable-jump button").click()
     page.locator("#uncharted_systems-table .datatable-count-line", has_text="30 uncharted stars from \u201c4000\u201d") \
@@ -611,7 +622,7 @@ def test_the_api_keys_scroll_filter_and_keep_their_revoke_buttons(page, admin_si
     names = form.locator("input[type=hidden]").evaluate_all("els => els.map(e => e.name)")
     assert names == ["action", "key_id", "csrf_token"]
     page.locator("#api-keys summary", has_text="Status").click()
-    page.locator("#api-keys input[value='revoked']").check()
+    page.locator("#api-keys sl-checkbox[value='revoked']").click()
     page.locator("#api-keys .datatable-count-line", has_text="24 keys match").wait_for(state="attached", timeout=10000)
 
 
@@ -632,6 +643,22 @@ def test_search_results_scroll_through_every_match(page, table_site):
     page.locator("#search-sectors .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
     page.locator("#search-sectors tbody tr[data-index]", has_text="Found 119").wait_for(state="attached", timeout=10000)
     assert page.url.endswith("sector_q=Found")
+
+
+def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts(page, table_site):
+    """UX.100: the first rows come from the page, the rest from `datatable.js`; both draw seven symbols from the sprite."""
+    assert page.goto(f"{table_site}/search?planet_q=World", wait_until="load").status == 200
+    page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    first = page.locator("#search-planets tbody tr", has_text="World 000").first
+    assert first.locator("svg.hab-symbol").count() == 7
+    page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    last = page.locator("#search-planets tbody tr[data-index]", has_text="World 119")
+    last.wait_for(state="attached", timeout=10000)
+    assert last.locator("svg.hab-symbol").count() == 7
+    labels = last.locator("svg.hab-symbol").evaluate_all("els => els.map(e => e.getAttribute('aria-label'))")
+    assert labels[0].startswith("Overall habitability: ") and "Pressure: Blue" in labels
+    assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
+    assert last.locator("svg.hab-symbol.tier-red").count() >= 1
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------
@@ -666,14 +693,14 @@ def test_apply_filters_works_when_the_first_load_fails(page, table_site):
     assert apply.is_visible()
     kind = page.locator(".datatable-facet[data-param='type']")
     kind.locator("summary").click()
-    kind.get_by_label("Rogue Planet").check()
+    kind.locator("sl-checkbox", has_text="Rogue Planet").click()
     failing[0] = False                      # the server answers from here on
     with page.expect_navigation(timeout=10000):
         apply.click()
     # The server was asked for the filtered page: its address carries the filter (the test site renders every
     # row whatever the address says, so the count line is not what this checks).
     assert parse_qs(urlparse(page.url).query) == {"type": ["rogue_planet"]}
-    assert page.locator(".datatable-facet[data-param='type'] input:checked").count() == 1
+    assert page.locator(".datatable-facet[data-param='type'] sl-checkbox[checked]").count() == 1
 
 
 def test_apply_filters_retries_a_reload_that_failed(page, table_site):
@@ -682,7 +709,7 @@ def test_apply_filters_retries_a_reload_that_failed(page, table_site):
     page.route("**/table/**", lambda route: route.abort())
     kind = page.locator(".datatable-facet[data-param='type']")
     kind.locator("summary").click()
-    kind.get_by_label("Rogue Planet").check()
+    kind.locator("sl-checkbox", has_text="Rogue Planet").click()
     apply = page.locator(".datatable-apply")
     assert apply.is_visible()
     page.unroute("**/table/**")

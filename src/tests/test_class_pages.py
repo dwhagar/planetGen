@@ -362,6 +362,16 @@ def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(c
     assert "pulsar" in html and "1,000 Sv a year" in html
 
 
+def test_habitability_levels_page_draws_each_symbol_in_every_rating_colour(client):
+    from planetgen.web.lib import habitability_symbols
+
+    html = _html(client, "/classes/habitability")
+    for name, label in habitability_symbols.LABELS.items():
+        for tier, colour in enumerate(("Blue", "Green", "Yellow", "Red")):
+            assert f'aria-label="{label}: {colour}"' in html, (name, tier)
+            assert f'#hab-{name}"' in html
+
+
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):
     """GEN.219: no number on the page is typed in; it is the limit the score reads."""
     from planetgen.physics import habitability

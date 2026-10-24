@@ -14,11 +14,15 @@ JavaScript the page refreshes itself every few seconds (`<noscript>`).
 
 A view that built a slow answer in the request because the queue could not take it (`slowpages.take_notice`) says
 so at the top of its page (`slow_notice`, a template global: `slowpages.take_notice`).
+
+The cache warm-up (PERF.104, `config.WARMUP`) is not a visitor: it visits to fill the page cache, so its requests
+never wait for a job (PERF.156). A slow page is built in the warm-up's own request, as it always was, and the unit
+that visited it has the answer cached when it ends; waiting on `202` would count the loading page as a failed visit.
 """
 
 import functools
 
-from flask import request
+from flask import current_app, request
 
 from planetgen.util.format import format_duration_seconds, format_number
 from planetgen.web.helpers import render_page
@@ -82,6 +86,8 @@ def slow_route(title, section=None, breadcrumbs=(), description=None):
     def decorate(view):
         @functools.wraps(view)
         def wrapper(*args, **kwargs):
+            if current_app.config.get("WARMUP"):
+                return view(*args, **kwargs)
             slowpages.take_notice()      # one left from another request on this thread isn't this page's
             try:
                 with slowpages.allow_pending(retry=request.headers.get(RETRY_HEADER) == "1"):

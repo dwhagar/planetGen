@@ -3,9 +3,11 @@
     scripts off: the sort links and the filter form are plain GETs and the
     pager pages through. With scripts on, datatable.js takes the same markup
     over (it hides the pager and fetches rows as they scroll into view). -#}
+{% from "partials/ui_fields.html" import ui_input, ui_checkbox with context %}
 {% macro cell(c) -%}
 {%- if c.swatch %}<svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ c.swatch }}"/></svg> {% endif -%}
 {%- if c.form %}<form method="post" action="{{ c.form.action }}" class="table-form">{% for name, value in c.form.fields %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}<button type="submit" class="btn" aria-label="{{ c.form.label }}">{{ c.form.button }}</button></form>
+{%- elif c.symbols %}<span class="hab-symbols">{% for symbol in c.symbols %}{{ habitability_symbol(symbol.name, symbol.tier) }}{% endfor %}</span>
 {%- elif c.parts %}{% for part in c.parts %}{% if part is string %}{{ part }}{% else %}<a href="{{ part.href }}">{{ part.text }}</a>{% endif %}{% endfor %}
 {%- elif c.href %}<a href="{{ c.href }}"{% if c.label %} aria-label="{{ c.label }}"{% endif %}>{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
 {%- if c.map_target %} <button type="button" class="icon-btn" data-map-target="{{ c.map_target }}" title="Show on map" aria-label="Show {{ c.text }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif -%}
@@ -24,8 +26,7 @@
       <summary>{{ facet.label }}{% if facet.selected %} <span class="datatable-selected">({{ facet.selected }} chosen)</span>{% endif %}</summary>
       <ul class="datatable-options">
         {%- for option in facet.options %}
-        <li><label><input type="checkbox" name="{{ facet.param }}" value="{{ option.value }}"{% if option.checked %} checked{% endif %}>
-          <span class="datatable-option-label">{{ option.label }}</span> <span class="datatable-count">({{ option.count }})</span></label></li>
+        <li>{% call ui_checkbox(facet.param, value=option.value, checked=option.checked) %}<span class="datatable-option-label">{{ option.label }}</span> <span class="datatable-count">({{ option.count }})</span>{% endcall %}</li>
         {%- endfor %}
       </ul>
     </details>
@@ -41,7 +42,7 @@
     {%- for name, value in t.jump.fields %}
     <input type="hidden" name="{{ name }}" value="{{ value }}">
     {%- endfor %}
-    <label>Starting at <input type="text" name="{{ t.jump.param }}" value="{{ t.jump.start }}" maxlength="80" autocomplete="off" placeholder="{{ t.jump.hint }}"></label>
+    {{ ui_input(t.jump.param, "Starting at", t.jump.start, maxlength="80", autocomplete="off", placeholder=t.jump.hint) }}
     <button type="submit" class="btn btn-small">Go</button>
     <a class="datatable-jump-clear" href="{{ t.jump.clear_href }}"{% if not t.jump.start %} hidden{% endif %}>Back to the top</a>
   </form>

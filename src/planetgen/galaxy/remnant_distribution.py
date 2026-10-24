@@ -106,7 +106,8 @@ def pulsar_radial_factor(radius_pc):
     reference = scales.reference_radius_pc()
     if radius_pc <= 0.0:
         return 0.0
-    pulsars = (radius_pc / reference) ** tuning.PULSAR_RADIAL_A * math.exp(
-        -tuning.PULSAR_RADIAL_B * (radius_pc - reference) / reference)
-    stars = math.exp(-(radius_pc - reference) / scales.disk_scale_length_pc())
-    return min(pulsars / stars, 2.0)
+    # The ratio is taken in logarithms: far out the disk's exponential underflows to zero, and the old quotient divided by it.
+    log_ratio = (tuning.PULSAR_RADIAL_A * math.log(radius_pc / reference)
+                 - tuning.PULSAR_RADIAL_B * (radius_pc - reference) / reference
+                 + (radius_pc - reference) / scales.disk_scale_length_pc())
+    return min(math.exp(min(log_ratio, math.log(2.0))), 2.0)

@@ -2,7 +2,7 @@
 
 """
 The system page's body list (`planetgen/web/lib/systempage.py`, UX.7 and
-UX.12): one type chip, the habitable-moon chip, moons in their own group,
+UX.12): the habitable chip, the PHI-6 symbols (UX.100), the habitable-moon chip, moons in their own group,
 belt distances, and comets ordered in among the planets by semi-major
 axis. Plain dicts in the `queryDb.system_detail` shape; no database.
 """
@@ -39,17 +39,16 @@ def _system(planets=(), belts=(), comets=()):
             "binary_configuration": None}
 
 
-def test_one_type_chip_per_planet():
+def test_a_row_names_its_class_and_no_type_label():
+    """UX.32: a row shows the class and a Habitable class chip, never a Terrestrial or Gas Giant label."""
     html = system_list_html(_system([
         _body(1, "Rocky", 1.0, habitable=True, index=0),
         _body(2, "Dry", 1.5, index=1),
         _body(3, "Giant", 5.2, body_type="g", planet_class="J", index=2),
     ]), _SECTIONS)
-    rocky = html[html.index("Rocky"):html.index("Dry")]
-    assert "Habitable class" in rocky and "Terrestrial" not in rocky
-    dry = html[html.index("Dry"):html.index("Giant")]
-    assert "Terrestrial" in dry and "Habitable class" not in dry
-    assert "Gas Giant" in html[html.index("Giant"):]
+    assert "Habitable class" in html[html.index("Rocky"):html.index("Dry")]
+    assert html.count("Habitable class") == 1
+    assert "Terrestrial" not in html and "Gas Giant" not in html
     assert "Habitable: " not in html
 
 
@@ -58,6 +57,7 @@ def test_habitable_moon_chip_and_moon_group():
     html = system_list_html(_system([_body(1, "Polyphemus", 5.0, body_type="g", moons=[moon])]), _SECTIONS)
     assert "Habitable-class moon" in html
     assert '<details class="moon-group"><summary>1 moon of Polyphemus</summary>' in html
+    assert '<span class="stat">1 moon</span>' in html  # the count on the planet's row
     # The group follows the planet's own row rather than sitting inside it.
     assert html.index("</details>") < html.index('class="moon-group"')
     no_moon = system_list_html(_system([_body(1, "Plain", 1.0, moons=[_body(9, "Rock", 0.002)])]), _SECTIONS)
@@ -106,15 +106,42 @@ def test_comet_orbit_key():
     assert comet_orbit_key_km(_comet(1, "b", 1.0, 1.0, orbit_type="parabolic")) == (1, AU_KM)
 
 
-def test_a_scored_body_shows_each_phi4_factor_and_the_three_scores():
-    """UX.90: the six factor colours and the stored scores are visible text."""
-    body = _body(1, "Rocky", 1.0)
-    body.update(equipment_tier=1, phi4=0.8, tier_pressure=0, tier_temperature=1, tier_air=2, tier_water=0,
-                tier_radiation=3, tier_suitability=1, phi_bio=0.5, phi_cpx=0.25, phi_tech=0.75)
-    html = _planet_row_html(body, {"planets": {}, "moons": {}})
-    for text in ("Pressure: Blue", "Temperature: Green", "Air: Yellow", "Water: Blue", "Radiation: Red", "Suitability: Green",
-                 "Microbial 0.50", "Complex life 0.25", "Human operability 0.75"):
-        assert text in html
+_SPRITE = "/static/icons.svg"
+
+
+def _scored(body, phi4=0.8, **tiers):
+    values = {f"tier_{domain}": 0 for domain in ("pressure", "temperature", "air", "water", "radiation", "suitability")}
+    body.update(equipment_tier=1, phi4=phi4, **{**values, **{f"tier_{k}": v for k, v in tiers.items()}})
+    return body
+
+
+def test_a_scored_body_shows_its_symbols_and_no_notes():
+    """UX.100: the row carries the overall symbol and the six domains, coloured by rating, and none of the old notes."""
+    body = _scored(_body(1, "Rocky", 1.0), pressure=0, temperature=1, air=2, water=0, radiation=3, suitability=1)
+    html = _planet_row_html(body, {"planets": {}, "moons": {}}, sprite_url=_SPRITE)
+    for label in ("Overall habitability: Green", "Pressure: Blue", "Temperature: Green", "Air chemistry: Yellow",
+                  "Water chemistry: Blue", "Radiation: Red", "Suitability: Green"):
+        assert f'aria-label="{label}"' in html, label
+    assert html.count("hab-symbol ") == 7
+    assert html.index("Overall habitability") < html.index("Pressure: Blue")
+    # The notes the symbols replace: the PHI-6 tooltip, the colour chips with words and the three scores.
+    for gone in ("PHI-6", "habitability-detail", "Microbial", "Complex life", "Human operability", "Pressure: Blue</span>"):
+        assert gone not in html, gone
+    # The symbols sit in the row's summary line with the other stats.
+    assert html.index("hab-symbols") < html.index("</summary>")
+
+
+def test_unscored_bodies_and_pages_without_a_sprite_draw_no_symbols():
+    unscored = _body(1, "Giant", 5.0, body_type="g")
+    assert "hab-symbol" not in _planet_row_html(unscored, {"planets": {}, "moons": {}}, sprite_url=_SPRITE)
+    body = _scored(_body(2, "Rocky", 1.0))
+    assert "hab-symbol" not in _planet_row_html(body, {"planets": {}, "moons": {}})
+
+
+def test_a_moon_row_carries_its_symbols_too():
+    moon = _scored(_body(9, "Pandora", 0.002), radiation=2)
+    html = system_list_html(_system([_body(1, "Plain", 1.0, moons=[moon])]), _SECTIONS, sprite_url=_SPRITE)
+    assert html.count('aria-label="Radiation: Yellow"') == 1
 
 
 def test_every_body_row_has_an_anchor():

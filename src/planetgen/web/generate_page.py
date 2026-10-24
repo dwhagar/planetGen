@@ -147,7 +147,7 @@ FINDER_PAGE_SIZE = 50
 """int: Sectors per page in the "Around a sector" list (every web list
 pages 50 rows)."""
 
-CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
+CONFIRM_ACTIONS = frozenset({"new_galaxy", "new_plan", "reset"})
 
 BAND_LABEL = "Add a dimmer step of bright stars"
 
@@ -957,6 +957,10 @@ def _build_job_steps(action, form, edge_pc=None):
             argv += ["--then-scatter"] + mass_limit_argv(form) + luminosity_floor_argv(form)
             label = NEW_GALAXY_SCATTER_LABEL
         return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
+    if action == "new_plan":
+        # UX.147: the plan alone, with no sectors and no scatter, to add sectors by hand on the Galaxy Map.
+        plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)}
+        return "new_plan", "Plan a new galaxy", [reset_step, plan]
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
     if action == "redo_scatters":

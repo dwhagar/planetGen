@@ -35,6 +35,8 @@ def test_a_typed_line_fills_the_form_the_old_form_would_have_filled(line, argv):
     ("scatter", "scatters", {}, False),
     ("scatters", "scatters", {}, False),
     ("new galaxy", "new-galaxy", {}, False),
+    ("plan", "plan-only", {}, False),
+    ("plan only", "plan-only", {}, False),
     ("wipe", "wipe", {}, False),
 ])
 def test_the_other_commands_open_a_task(line, task, fields, review):

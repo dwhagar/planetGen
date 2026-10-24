@@ -2,6 +2,98 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2052] - 2026-10-24
+
+**Headline:** The pulsar share no longer divides by zero at a galactic radius beyond about 580 kpc.
+
+### Fixed
+- **`pulsar_radial_factor` raised `ZeroDivisionError` beyond about 580 kpc (GEN.622).** The pulsar profile and the disk's own exponential are now divided in logarithms, so the factor reaches its cap of 2 (or its asymptote) instead of dividing by an underflowed zero. A test covers 579 kpc, 581 kpc and 10,000 kpc.
+
+## [8.0.2051] - 2026-10-24
+
+**Headline:** Planet and moon lists now show the habitability symbols instead of the long notes.
+
+### Changed
+- **Habitability symbols in the lists (UX.100).** On a system page each planet and moon row now shows the overall rating symbol and the six domain symbols (pressure, temperature, air chemistry, water chemistry, radiation, suitability), each in its Blue, Green, Yellow or Red colour with the rating in its tooltip, beside the equipment chip. The notes they replace (the long tooltip, the per-domain colour words and the three stored scores) are gone from the row; the description below it says in words where the world falls in each category. A row names its class and a "Habitable class" chip, no longer a Terrestrial or Gas Giant label, and counts its moons. The Search page's planet and moon panels gain a Habitability column of the same symbols, and their API rows carry `phi4` and the six `tier_<domain>` ratings. The `hab_note` field the system detail API added to each planet and moon is removed.
+
+## [8.0.2050] - 2026-10-23
+
+**Headline:** The composition spine's interfaces are published: a body's bulk composition and an atmosphere's mixture are each read through one accessor, so the radiation, colour and habitability work can build against them before the draws land.
+
+### Added
+- **Bulk composition accessor (GEN.428, first slice).** `planetgen.physics.bulk_composition` holds `BulkFractions` (metal, rock, water, ice and envelope as shares of the whole body, with the rock's FeO, Al2O3 and Mg/Si, the envelope's helium and heavy elements, the porosity, a carbon-rock flag and whether the composition was drawn or worked back) and `bulk_fractions(body)`, which returns `None` until a body carries the fractions. The attribute names are the contract of DB.69.
+- **Atmosphere mixture accessor (GEN.411, first slice).** `planetgen.physics.mixture` gives `partial_pressures_pa(body)` (gas-table formula to Pa), `total_pressure_pa`, `mole_fractions` and `mean_molar_mass_kg_mol`. It reads the ten stored partial pressures today; readers use it so the storage can move to a table that holds any gas (DB.71) without a change to them.
+- **The contracts** are in `docs/design/composition-spine-contracts.md`: the field and column names, the units, the order of the draws, the hook points in `generate_planet_properties` and the files the spine lane edits.
+- Nothing stored or drawn changes: no generator epoch.
+
+## [8.0.2049] - 2026-10-23
+
+**Headline:** The six PHI-6 habitability domains and the overall rating now have their own symbols, drawn in the rating's colour.
+
+### Added
+- **The PHI-6 symbols (UX.101).** Radiation, temperature, pressure, air chemistry, water chemistry, suitability and the overall rating are seven vector shapes in the site's icon sprite. `habitability_symbol(domain, tier)` (and `habitability_symbol_row(body)` for a planet or moon row) draws one in its Blue, Green, Yellow or Red colour, in both themes, with the domain and the colour in its tooltip and screen-reader text so colour is never the only sign. The habitability levels page shows every symbol in every colour.
+
+## [8.0.2048] - 2026-10-23
+
+**Headline:** The cache warm-up now finishes on a large galaxy, in about 40 percent less time.
+
+### Fixed
+- **`planetgen warm` stopped after its fourth phase on a large galaxy (PERF.156).** A slow page answers `202` with a progress bar while a job builds it, and the warm-up counted that as a page that did not answer. The warm-up now builds a slow page in its own request, so the answer is cached when it ends.
+- **A tile of the Galaxy Map lost its bright stars when its query ran past three seconds (PERF.157).** The bright-star piece chose how to read by the box's share of the disc's area, not its height, and walked a whole population index for boxes far above the plane; it chooses by the box's share of the stars now. Of 660 sampled tiles at the default galaxy size 58 were served without their bright stars before, 1 after.
+
+### Changed
+- **The tile builder reads far fewer rows (PERF.157).** The scattered-point query lists a range per shell instead of one range over all of them, which for a 256 pc tile at the centre was a scan of the 3.6 million row table (22.4 million rows over 83 sampled tiles, 1.6 million now). The warm-up at the default size takes 6.5 minutes instead of 10.8.
+- **Scattered multi-star systems set their member counts in one statement per batch (PERF.158).** The band scatter at the default size takes 536 seconds instead of 617.
+
+## [8.0.2047] - 2026-10-23
+
+**Headline:** The Generate Start screen has a "Plan a new galaxy and stop" card: wipe, plan, no sectors and no scatter.
+
+### Fixed
+- **There was no clear way to make just a galaxy plan from the web interface (UX.147).** The only plan-only path was "Plan the galaxy again and scatter" under "Change what is scattered", with the scatters switched off, and it keeps the sectors already made. A new "Plan a new galaxy and stop" card on the Start screen takes the galaxy shape and the typed database name, deletes everything, and plans, then stops: no sectors and no scatter, so the Galaxy Map shows the sector layout and sectors are added by hand with "Add sectors". The command box opens it with `plan` or `plan only`.
+
+TODO items resolved: UX.147. Added: none.
+
+## [8.0.2046] - 2026-10-23
+
+**Headline:** A world's cosmic-ray dose now follows the measured and simulated curves, with a field factor that depends on the air above the ground.
+
+### Changed
+
+- **Cosmic-ray dose against the column (GEN.453).** The dose under a column of air is the no-field curve through the proton-primary air showers of Atri et al. 2013 (553, 263, 17.2, 3.02 and 0.65 mSv/yr at 100, 200, 500, 700 and 1036 g/cm2), a Moon (500 mSv/yr) to Mars (232 mSv/yr at 21 g/cm2, Hassler 2014) stand-in below 100 g/cm2 until a shower run replaces it, and a muon floor (Crouch) under the tail past 1036 g/cm2. The old curve was 1.5 to 2.7 times low from 100 to 1036 g/cm2 (a 0.05 bar Earth-gravity world with an Earth dipole goes from 88 to 119 mSv/yr; sea level from 0.22 to 0.34 against the measured 0.32). A body's solar-modulation level is a seeded draw of 0.5 to 1.64 of the mean (`tuning.GCR_SOLAR_MODULATION_RANGE`, the Mars spread), so the same sky gives a body a spread of doses.
+- **The field's cut depends on the column.** The flat factor of 0.6 is gone: the ratio of the shower runs with a dipole to those with none (Atri 2013, Griessmeier et al. 2016) is looked up by the dipole's equivalent moment and the column (0.31, 0.37, 0.51, 0.61 and 0.52 for an Earth field at 100, 200, 500, 700 and 1036 g/cm2), is never above 1, and takes the nearest run beyond 10 Earth moments or outside 100 to 1036 g/cm2.
+- **The cutoff scales with moment over radius squared.** The vertical Stormer cutoff is `c mu0 M / (4 pi r^2) / 4`: 14.34 GV for Earth (the old constant was 14.9) and four times that for a body of half Earth's radius with the same moment, where the old law used the cube of the radius.
+- **The stellar-particle cutoff uses NIST PSTAR.** The kinetic energy a proton needs to cross a column comes from the PSTAR range tables (`physics/proton_range.py`, 17 materials, data `physics/data/proton_range.json` built by `scripts/build_proton_range.py`), not from the power law `R = 0.0022 E^1.77`, which was 5 times too long at 10 GeV. The module also adds mass stopping powers for mixtures (Bragg), for the surface dose items that follow.
+- **Figures with no source are marked.** The Europa 5.4 Sv/day figure in the activity design file is marked unsourced and the Mars figure cites the paper it was read in.
+
+generation-output: changed
+
+## [8.0.2045] - 2026-10-23
+
+**Headline:** The scattering depth of any atmosphere follows from its stored gases, pressure and gravity (Earth air 0.097 at 550 nm), the first step of the radiation chain.
+
+### Added
+- **GEN.417: Rayleigh optical depth of the mixture.** `physics/air_column.py` turns a body's stored partial pressures and gravity into an air column (column mass, mean molar mass, molecules of each gas per square centimetre; the unstored helium or ammonia balance of a class template completes it), and `physics/rayleigh.py` sums the per-gas cross sections of the gas table over it at any wavelength from 200 to 1100 nm (a three-point fit of `A lambda^-4 (1 + B / lambda^2)^2` per gas). Dry Earth air gives 0.0970 at 550 nm (Bucholtz 1995: 0.09721), 92 bar of Venus-like air 16.4, 1 bar of hydrogen and helium 0.093. Pure functions of stored values: no column, no migration, no generator epoch.
+
+## [8.0.2044] - 2026-10-23
+
+**Headline:** The installers and the cloud setup script are checked on Ubuntu 24.04 and 26.04 LTS.
+
+### Changed
+- **Ubuntu 24.04 and 26.04 LTS are both supported and tested.** `install.sh` and `update.sh` were run against each release's own packages (Python 3.12 or 3.14, MySQL 8.0 or 8.4, Apache with the matching mod_wsgi, Redis 7 or 8). INSTALL.md now lists the one `apt install` line and what each release ships, and notes that MySQL 8.4 has no `mysql_native_password`.
+- **A venv whose Python is gone is made again.** After an in-place release upgrade the venv's `python` is a dangling link to the Python the upgrade removed, and `python3 -m venv` left it as it was; `install-python-deps.sh` now removes that venv and makes it from the new `python3`, so `sudo ./update.sh` after an upgrade from 24.04 to 26.04 repairs the site.
+- **The cloud environment setup script (`examples/cloud-environment/setup-planetgen-env.sh`) runs on both releases.** It installs `python3-pip` (a minimal 26.04 image has none), no longer imports `markdown` (not a dependency, so its final check failed the whole setup), and checks `argon2`, `sqlalchemy`, `alembic`, `pydantic` and `cryptography` instead.
+- **The test suite passes on Python 3.14 and MySQL 8.4 (Ubuntu 26.04's versions):** two tests assumed Python 3.12 behaviour (the wording of `math.sqrt(-1)`'s error, and the default way a process pool starts its workers) and now state what they need.
+
+## [8.0.2043] - 2026-10-23
+
+**Headline:** The search, nearby and chart forms and the table filters use one field look, with the server's error shown on the field it is about.
+
+### Changed
+- **One form-field look and error slot (UX.124).** A new `--line` colour (3:1 or more against the panel in light and dark) is the edge of every field, and the macros in `partials/ui_fields.html` draw a labelled Shoelace `sl-input`, `sl-select` or `sl-checkbox` with the server's validation error under it. The search page, What's nearby, the Plot Course chart form and the data tables' "Starting at" box and filter menus use them; the What's nearby distance error now shows under the distance box. With script off each field is a plain control in a `<noscript>`, so every form still posts. Fields with a `datalist`, and the hidden, submit, password and one-time-code fields, stay native.
+
+TODO items resolved: none. Added: none.
+
 ## [8.0.2042] - 2026-10-23
 
 **Headline:** A system's star count can be forced (`--stars N`), the cap on it set (`--max-stars N`, 12 unless raised), and the chance of five or more stars changed (`--prevalence multi_star=PERCENT`); the host that reads them is the next step.

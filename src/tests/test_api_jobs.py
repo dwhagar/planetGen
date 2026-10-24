@@ -35,7 +35,8 @@ def test_a_job_runs_and_reports_its_result(redis_server):
 
 def test_a_failed_job_reports_its_error(redis_server):
     job = _wait(api_jobs.submit(math.sqrt, -1))
-    assert job["state"] == "failed" and "math domain error" in job["error"]
+    # The wording of the ValueError changed in Python 3.14 ("math domain error" before), so only its type is held.
+    assert job["state"] == "failed" and job["error"].startswith("ValueError")
 
 
 @pytest.mark.parametrize("job_id", ["", "../x", "ABCDEF0123456789", "0" * 15, "0" * 17])

@@ -23,7 +23,8 @@ A table's `load(state, limit, offset, want_facets)` returns a `Result` from
 the API; its rows are lists of cells, one per column, each a dict with
 `text`, and optionally `href` (a link, with `label` as its accessible name) and `muted` (shown as a dash or "None"
 in italics). A cell may instead carry `parts`, a list of plain strings and
-`{"text", "href"}` links (a Location cell's nearest-neighbor links), and
+`{"text", "href"}` links (a Location cell's nearest-neighbor links), `symbols` (the PHI-6 symbols of a planet or moon,
+UX.100: `[{"name", "tier", "label"}]`, tier 0 to 3, drawn from the icon sprite), and
 `map_target` (a key the Sector Map knows, which adds a "Show on map" button
 after the text), or `form`: `{"action", "button", "label", "fields": [[name, value], ...]}`, a
 POST button (an admin's Revoke) whose fields include the CSRF token. No cell ever holds markup: the browser fills it with text

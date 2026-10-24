@@ -1140,3 +1140,14 @@ Baseline: PR #1817.
 | GEN.638 | 8.1 | The headline closes |
 | PERF.170 | 8.1 | The headline closes |
 | GEN.267 | 8.1 | Multi-star and compact systems |
+| UX.124 | 8.1 | Admin control suite |
+| OPS.63 | 8.1 | Bugs and flaky tests |
+| GEN.417 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.453 | 8.1 | Radiation chain for habitability (GEN.445) |
+| UX.147 | 8.1 | Generate page and directives |
+| PERF.160 | 8.1 | The headline closes |
+| PERF.158 | 8.1 | The headline closes |
+| PERF.157 | 8.1 | The headline closes |
+| PERF.156 | 8.1 | The headline closes |
+| UX.101 | 8.1 | Habitability system |
+| GEN.622 | 8.1 | Bulk composition |

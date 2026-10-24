@@ -41,13 +41,12 @@ def test_earth_is_blue_everywhere_and_needs_no_kit():
     assert [scored[f"tier_{domain}"] for domain in hw.DOMAINS] == [0] * 6
     assert scored["phi4"] == pytest.approx(1.0)
     assert scored["phi_bio"] > 0.8 and scored["phi_cpx"] > 0.8 and scored["phi_tech"] > 0.95
-    assert hw.note(scored) == "All six domains Blue"
 
 
 def test_the_air_decides_the_kit():
     carbon_dioxide = hw.compute(_earth(p_co2_kpa=3.0))
     assert carbon_dioxide["equipment_tier"] == 2  # mask and scrubber
-    assert "Air" in hw.note(carbon_dioxide)
+    assert carbon_dioxide["tier_air"] > 0
     thin = hw.compute(_earth(atmospheric_pressure_pa=30000.0, p_o2_kpa=6.0, p_n2_kpa=23.5))
     assert thin["equipment_tier"] == 1  # a mask: enough pressure, too little oxygen
     vacuum = hw.compute(_earth(atmospheric_pressure_pa=0.0, **{f"p_{g}_kpa": 0.0 for g in ("o2", "n2", "ar", "co2", "h2o")}))
@@ -169,7 +168,6 @@ def test_a_neutron_stars_planets_get_the_lowest_tier():
             seen += 1
             assert body.equipment_tier == 4 and body.tier_radiation == 3
             assert hw.compact_host_name(body.star) in ("pulsar", "neutron star")
-            assert hw.note({}, hw.compact_host_name(body.star)).startswith(("Planet of a pulsar", "Planet of a neutron star"))
     assert seen
 
 
@@ -180,7 +178,7 @@ def test_hosts_are_named_by_their_class_and_a_black_hole_planet_is_lethal():
     assert hw.compact_host_name(types.SimpleNamespace(yerkes_class="V")) is None
     lethal = hw.compute(_earth(), compact_host="black hole")
     assert lethal["equipment_tier"] == 4 and lethal["tier_radiation"] == 3
-    assert lethal["phi_bio"] == 0.0 and "black hole" in hw.note(lethal, "black hole")
+    assert lethal["phi_bio"] == 0.0
 
 
 def _system_with_rocky_worlds():
@@ -269,7 +267,7 @@ def test_the_page_chip_names_the_kit_and_takes_the_worst_domains_colour():
     from planetgen.web.lib import systempage
     scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
     chip = systempage._habitability_chip(scored)
-    assert "flag-tier-2" in chip and "Mask and scrubber" in chip and "PHI-6" in chip
+    assert "flag-tier-2" in chip and "Mask and scrubber" in chip and "title=" not in chip
     assert systempage._habitability_chip({"equipment_tier": None}) == ""
     assert systempage._habitability_chip({}) == ""
 

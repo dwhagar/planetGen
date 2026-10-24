@@ -49,7 +49,7 @@ from planetgen.generation.phenomena.rogue import format_comet_composition_summar
 from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 
-from . import bp, tables
+from . import bp, static_url, tables
 from . import edit_actions, item_pages, system_facilities, system_species
 from .class_pages import class_url
 from .helpers import (
@@ -368,7 +368,8 @@ def system(system_id):
         system_list_html=trusted_html(system_list_html(detail, sections, class_url, facilities,
                                                        species=_species_by_planet(db, detail),
                                                        admin_rows={row["target"]: row for row in edit_rows},
-                                                       habitability_url=page_url("habitability_levels"))),
+                                                       habitability_url=page_url("habitability_levels"),
+                                                       sprite_url=static_url("icons.svg"))),
         territory=_territory(db, system_id),
         stars_html=trusted_html(stars_html(detail["stars"], class_url,
                                            star_notes_html(detail, sections, class_url, facilities))),
