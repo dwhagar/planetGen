@@ -1365,3 +1365,5 @@ Baseline: PR #1817.
 | UX.183 | 8.1 | Habitability system |
 | TEST.351 | 8.1 | Bugs and flaky tests |
 | GEN.672 | 8.1 | Mixture and stored values |
+| UX.175 | 8.1 | Habitability system |
+| UX.184 | 8.1 | Habitability system |
