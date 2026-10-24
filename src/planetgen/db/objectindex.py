@@ -61,7 +61,7 @@ _SYSTEM_MASS = "(SELECT SUM(st.mass_kg) FROM stars st WHERE st.star_system_id = 
 def _select(kind, table, name, sector, system, parent, object_class, mass, radius, placed, joins="", where="",
             scope="own"):
     """A kind's source: the index columns as `SELECT` expressions over `table` (alias `t`) and its `joins`, an extra
-    `WHERE`, and how a refresh finds what changed (`scope`: `own`, the row's `modified_at`; `system`, its system's; `moon`, either or its free planet's)."""
+    `WHERE`, and how a refresh finds what changed (`scope`: `own`, the row's `modified_at`; `system`, its system's; `moon`, its system's or its free planet's: a moon has no clock of its own)."""
     return {"kind": kind, "table": table, "scope": scope, "where": where, "from": f"{table} t {joins}".strip(),
             "columns": (f"'{kind}' AS kind, t.uid AS uid, t.id AS source_id, {name} AS name, {sector} AS sector_id, "
                         f"{system} AS system_id, {parent} AS parent_uid, {object_class} AS object_class, "
@@ -96,7 +96,7 @@ def _sources():
         # A moon of a free planet (DB.73) has no system: its sector, parent and placement come from the rogue planet.
         "moon": _select("moon", "moons", "t.name", "COALESCE(ss.sector_id, rp.sector_id)", "ss.id",
                         "COALESCE(pl.uid, rp.uid)", "t.planet_class", "t.mass_kg", "t.radius_km",
-                        "COALESCE(ss.galaxy_x_pc IS NOT NULL, rp.center_x_pc IS NOT NULL)",
+                        "IF(t.rogue_planet_id IS NULL, ss.galaxy_x_pc IS NOT NULL, rp.center_x_pc IS NOT NULL)",
                         joins="LEFT JOIN star_systems ss ON ss.id = t.star_system_id"
                               " LEFT JOIN planets pl ON pl.id = t.planet_id"
                               " LEFT JOIN rogue_planets rp ON rp.id = t.rogue_planet_id", scope="moon"),
@@ -230,8 +230,8 @@ def refresh(conn, kinds=None, database=None):
         system_changed = "t.star_system_id IN (SELECT m.id FROM star_systems m WHERE m.modified_at > %s)"
         if source["scope"] == "own":
             scope_sql = "t.modified_at > %s"
-        elif source["scope"] == "moon":    # its own row, its system's, or the free planet it orbits
-            scope_sql = ("(t.modified_at > %s OR " + system_changed + " OR t.rogue_planet_id IN"
+        elif source["scope"] == "moon":    # its system's, or the free planet it orbits
+            scope_sql = ("(" + system_changed + " OR t.rogue_planet_id IN"
                          " (SELECT m.id FROM rogue_planets m WHERE m.modified_at > %s))")
         else:
             scope_sql = system_changed

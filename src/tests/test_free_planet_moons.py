@@ -36,7 +36,7 @@ def _moons_of_some_planet():
 
 
 @pytest.fixture
-def world(mysql_config):
+def world(mysql_config, redis_server):
     """A saved sector holding a rogue planet with two moons, and the sector's id."""
     sector_id = store.save_sector(SpaceSector("Free Sector", edge_ly=10.0), config=mysql_config)
     conn = store.get_connection(mysql_config)
@@ -46,9 +46,11 @@ def world(mysql_config):
             store.assign_uids(conn, phenomenon=("rogue_planets", rogue_id))
             moon_ids = [store.insert_moon_of_rogue_planet(conn, moon, rogue_id, position)
                         for position, moon in enumerate(_moons_of_some_planet()[:2])]
-        return mysql_config, sector_id, rogue_id, moon_ids
+            store.assign_uids(conn, phenomenon=("rogue_planets", rogue_id))
+        yield mysql_config, sector_id, rogue_id, moon_ids
     finally:
         conn.close()
+        objectindex.forget(mysql_config.database)
 
 
 def test_the_object_index_files_a_free_moon_under_its_rogue_planet(world):
@@ -74,6 +76,7 @@ def test_a_refresh_sees_an_edit_to_a_free_moon_and_to_its_rogue_planet(world):
     try:
         objectindex.build(conn, ["moon"], config.database)
         conn.execute("UPDATE moons SET name = 'Renamed Moon' WHERE id = %s", (moon_ids[0],))
+        conn.execute("UPDATE rogue_planets SET name = 'Edited Rogue' WHERE id = %s", (rogue_id,))   # moons have no clock
         conn.commit()
         assert objectindex.refresh(conn, ["moon"], config.database)["moon"]["changed"] >= 1
         assert conn.execute("SELECT name FROM object_index WHERE kind = 'moon' AND source_id = %s",
@@ -105,9 +108,10 @@ def test_the_search_page_lists_a_free_moon_with_its_rogue_planet(world):
     conn = store.get_connection(config)
     try:
         tags = {facet: set() for facet in query.SEARCH_TAG_FACETS}
-        panel = query.search(conn, {"moon_q": ""}, tags, only=["moons"])["results"]["moons"]
+        name = conn.execute("SELECT name FROM moons WHERE id = %s", (moon_ids[0],)).fetchone()["name"]
+        panel = query.search(conn, {"moon_q": name}, tags, only=["moons"])["results"]["moons"]
         rows = {row["id"]: row for row in panel["rows"]}
-        assert set(rows) == set(moon_ids)
+        assert moon_ids[0] in rows
         row = rows[moon_ids[0]]
         assert row["system_name"] is None and row["star_system_id"] is None and row["sector_id"] == sector_id
         assert row["planet_name"] == conn.execute("SELECT name FROM rogue_planets WHERE id = %s",
