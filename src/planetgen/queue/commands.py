@@ -151,7 +151,7 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_system", "system_unit"),
                 expand=("planetgen.generation.run_system", "expand_system")),
     CommandSpec("run-population", "Run the population pass"),
-    CommandSpec("settle-sector-paths", "Save the sector paths: one unit",
+    CommandSpec("settle-sector-paths", "Save the sector paths: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "save_sector_paths_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_save_sector_paths")),
     CommandSpec("warm-object-index", "Build or refresh the object index: one row per object of every kind the site lists",
