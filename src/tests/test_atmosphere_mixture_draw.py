@@ -60,7 +60,7 @@ def test_the_required_inputs_are_stored_quantities_and_what_the_chemistry_reads(
     assert "redox_diw" not in needed and "o2_pal" not in needed          # drawn by the tables; the life stage comes after the mixture
     assert all(name in INPUTS for name in needed)
     giants = md.required_inputs("J")
-    assert {"t_layer_k", "radius_km", "mass_jupiter", "grain_um"} <= set(giants)
+    assert {"t_layer_k", "radius_km", "mass_jupiter", "photosphere_bar"} <= set(giants)
 
 
 def test_a_subject_without_a_quantity_a_row_reads_is_refused_by_name():

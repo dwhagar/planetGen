@@ -1,7 +1,7 @@
 # planetgen/physics/mixture_draw.py
 
 """
-The atmosphere mixture of a body, drawn from its regimes (GEN.479; docs/design/mixture-draw.md)
+The atmosphere mixture of a body, drawn from its regimes (GEN.479; docs/design/composition/mixture-draw.md)
 ===============================================================================================
 
 `physics/atmosphere_recipes.py` (GEN.478) draws which regime a body's air is in: the mantle redox, the volatile delivery, the

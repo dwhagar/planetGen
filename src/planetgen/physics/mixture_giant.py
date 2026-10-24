@@ -1,7 +1,7 @@
 # planetgen/physics/mixture_giant.py
 
 """
-The air of a giant planet, an ice giant, a brown dwarf or a hot Jupiter (GEN.454; docs/design/mixture-draw.md)
+The air of a giant planet, an ice giant, a brown dwarf or a hot Jupiter (GEN.454; docs/design/composition/mixture-draw.md)
 ==============================================================================================================
 
 The giant family of `mixture_draw.draw_mixture`, after parts 05 sections 2, 7 and 8 of the atmosphere research. A giant's

@@ -1,7 +1,7 @@
 # planetgen/physics/mixture_base.py
 
 """
-What every family of the atmosphere mixture draw shares (GEN.479; docs/design/mixture-draw.md)
+What every family of the atmosphere mixture draw shares (GEN.479; docs/design/composition/mixture-draw.md)
 ==============================================================================================
 
 `MixtureDraw`, the error, the seeded design constant, the mapping of the solver's species to the gas table, and the

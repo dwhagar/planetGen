@@ -1,7 +1,7 @@
 # planetgen/physics/mixture_rocky.py
 
 """
-The gas a rocky body outgasses (GEN.451, GEN.479; docs/design/mixture-draw.md)
+The gas a rocky body outgasses (GEN.451, GEN.479; docs/design/composition/mixture-draw.md)
 ==============================================================================
 
 The rocky family of `mixture_draw.draw_mixture`. The outgassed mixture is the gas in equilibrium with a mantle of a given oxygen

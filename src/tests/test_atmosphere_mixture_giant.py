@@ -15,7 +15,7 @@ from planetgen.util import draw
 
 JUPITER = dict(mass_earth=318.0, mass_jupiter=1.0, radius_km=69911.0, teq_k=120.0, t_layer_k=120.0, tday_k=120.0, teff_k=120.0,
                zone="c", host_type="G", age_gy=4.5, is_moon=False, insolation=0.04, luminosity_solar=1.0, host_mass_solar=1.0,
-               core_radius_earth=3.0, snow_ratio=3.0, xuv_index=0.04, v_esc_kms=59.0, grain_um=1.0)
+               core_radius_earth=3.0, snow_ratio=3.0, xuv_index=0.04, v_esc_kms=59.0, grain_um=1.0, photosphere_bar=0.1)
 
 
 def giant(body_class="J", **changes):
