@@ -1106,6 +1106,14 @@ with `clamp()`.
   EDT 2026-10-23 as the lane reported.
   Prerequisites: none.
 
+- [ ] **UX.160 The search icon button opens a box over the page: it should go straight to the search page (bug)**
+  Boss's live observation, 10:35 PM EDT 2026-10-23. The search icon
+  button in the header pulls up a search box instead of going to the
+  search page. Do: the button is a plain link to the search page, with
+  no pop-up box, on every page and theme, and the page's search field
+  takes focus on arrival. Owner: Bug Hunt.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
