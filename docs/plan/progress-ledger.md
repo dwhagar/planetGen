@@ -1151,3 +1151,5 @@ Baseline: PR #1817.
 | PERF.156 | 8.1 | The headline closes |
 | UX.101 | 8.1 | Habitability system |
 | GEN.622 | 8.1 | Bulk composition |
+| GEN.629 | 8.1 | Surface and small bodies |
+| PERF.159 | 8.1 | The headline closes |

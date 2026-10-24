@@ -14600,31 +14600,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
 
-- [ ] **GEN.629 The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together**
-  Finding of Blocker 3 in GEN.495 (relayed 11:56 PM EDT 2026-10-22 as
-  the coordinator and the lane reported), filed by the TODO thread.
-  `physics/comet_population.py` and `data/comet_population.json` (merged
-  as #2596) draw the carbon-chain volatiles with
-  `draw_volatiles(period_class, interstellar=False)`, the draw GEN.442,
-  GEN.455 and GEN.457 read. The scatter of S=(CO+CO2)/H2O is 0.1 dex,
-  the +/-4 of the median in HP22 converted to dex, and that is narrow
-  against single comets: the Rosetta comet 67P at 7.8 percent is 3.6
-  sigma below the median, so the draw reaches 67P's CO and CO2 only
-  seldom together. Do: decide the scatter from the spread of individual
-  comets rather than from the uncertainty of the median (a source for
-  the individual values is the first step; if none is held, ask Boss for
-  the paper), widen the draw to it, keep the table's median, and state
-  the new value as sourced or as a labelled stand-in. Changes stored
-  values, so it rides the single 8.4 epoch bump (Boss, fork 1,
-  2026-10-18), no epoch of its own. Done: a test draws 10,000 comets of
-  the short-period class and checks that 67P's ratio falls inside the
-  central 99 percent of the draw, that the median is unchanged, and that
-  the same seed gives the same comet at 1 and 4 workers; TEST.214 reads
-  the same draw. Owner: none for now, in the pool (8.4 work is paused
-  until 8.1 is complete, Boss, 7:44 PM EDT 2026-10-22).
-  Prerequisites: none. Related: GEN.495, GEN.442, GEN.455, GEN.457,
-  TEST.214.
-
 - [ ] **GEN.631 GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted**
   Split of GEN.316 proposed by Core 3 (relayed 1:21 AM EDT 2026-10-23 as
   the lane reported), the original scope of GEN.316 on top of part (a):
@@ -15366,6 +15341,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count is shown, not drawn, so no generator epoch is expected. Owner:
   Habitability lane J (it found it).
   Prerequisites: none. Related: GEN.566, GEN.579.
+
+- [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
+  Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
+  lane reported, reports/lane-k-contracts-2026-10-23.md); filed by the
+  TODO thread. Reproducer: compare the complex_organics row of the
+  materials table with the Choukroun 2020 value the comet draw reads.
+  Kind: bug (two sources disagree). Do: reconcile the two under the
+  standing source rules (verified wins; two verified in doubt = newest;
+  two in question = widest range), by the data owner of GEN.427, with
+  the chosen value and its source recorded in the materials table and
+  DATA-LICENSE.md only if a licence applies. Done: one density for
+  complex organics in the table and the comet draw reading it. Owner:
+  Blocker 3 data owner of GEN.427 (finished lane; the TODO thread
+  proposes lane K, which found it, takes it).
+  Prerequisites: none. Related: GEN.427, GEN.442.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16242,20 +16232,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Performance thread). Its prerequisite PERF.146 has merged (#2559).
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
-- [ ] **PERF.159 scatter --mass and --luminosity expand 65,536 shells serially in the supervisor, so the machine runs at 1.3 to 1.7 of 4 cores**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. Measured: the supervisor expands the 65,536 shells one
-  at a time; CPU use stays at 1.3 to 1.7 of 4 cores. Do: expand the
-  shells in the workers, or in larger groups. Done: all four cores busy
-  through the step, with identical rows. Owner: Performance (proposed by
-  the TODO thread, because the lane found it and PERF.146 lives there;
-  the coordinator can move it).
-  Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.161 bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
