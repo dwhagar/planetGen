@@ -186,7 +186,6 @@ def test_coordinates_are_kept_in_the_unit_given_with_no_round_trip():
 def test_carrying_an_anchor_moves_the_body_with_it():
     p = _planet()
     system = p.get_coordinates("system", "cartesian")
-    p.get_coordinates("sector", "cartesian")
     p.carry_star_center((0.0, 0.0, 0.0))
     assert p.get_coordinates("system", "cartesian") == system
     assert _close(p.get_coordinates("galactic", "cartesian"), system, abs_=1.0)

@@ -2062,7 +2062,6 @@ def test_galaxy_map_pick_mode_clicks_down_through_every_stage(page, map_site):
     _open_galaxy(page, map_site, "?pick=to&from=system:701")
     seen = [_crumbs(page)]
     for _ in range(8):
-        (_query(page), _crumbs(page))
         text = _click_choice(page, GENERATED_CHOICE)
         if re.match(r"Sector .*, charted$", text):
             break

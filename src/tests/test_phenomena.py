@@ -136,7 +136,6 @@ def test_black_hole_schwarzschild_radius_matches_known_value():
     # A 10 Msun black hole's Schwarzschild radius is a commonly-cited
     # reference value (~29.5 km) -- verify the formula directly rather
     # than only checking it falls in a range.
-    make_config()
     bh = object.__new__(BlackHole)
     bh.mass = 10 * constants.SOLAR_MASS_TO_KG
     schwarzschild_radius_m = 2 * constants.G * bh.mass / constants.SPEED_OF_LIGHT_M_S ** 2

@@ -119,8 +119,6 @@ def test_tiny_host_planet_gets_no_room_for_moons_without_error(host_star):
 
 
 def test_moons_cannot_themselves_have_moons(host_star):
-    SystemConfig()
-    distance_for_zone(host_star, "c")
     host = make_host_planet(host_star, "J", "c", moon_count=3)
     for moon in host.moons:
         assert moon.moons == []
