@@ -2851,7 +2851,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: GEN.411, GEN.428, GEN.429.
+  Prerequisites: GEN.411.
 
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
   Bands, storms, a chemistry tint, thermal glow, and rings with
@@ -3377,7 +3377,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   consistent at the outer edge of the habitable zone. Evidence: the
   planet class gap report
   (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
-  Prerequisites: GEN.428, GEN.411.
+  Prerequisites: GEN.411.
   Plan (2026-10-07): Moved to phase 2 under GEN.90.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -4551,7 +4551,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
   are added to this item's Prerequisites line, so the build reads the
   wait that the 2026-10-16, 11:58 PM EDT sweep text names.
-  Prerequisites: GEN.355, GEN.428, GEN.411.
+  Prerequisites: GEN.355, GEN.411.
   Related: GEN.412, GEN.423, GEN.428.
   Design: [docs/design/habitability/atmospheres-retention-and-classes.md](design/habitability/atmospheres-retention-and-classes.md)
 
@@ -6418,7 +6418,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
   reference page and the class-contract and 1,000-system tests; no old
   row or test expects T.
-  Prerequisites: GEN.355, GEN.428, GEN.411. Related:
+  Prerequisites: GEN.355, GEN.411. Related:
   GEN.28, GEN.412, GEN.423, GEN.428.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -6441,7 +6441,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.428, GEN.411. Related: GEN.28, GEN.412,
+  Prerequisites: GEN.411. Related: GEN.28, GEN.412,
   GEN.423, GEN.428.
 
 - [ ] **GEN.352 Classes W and X, subsurface ocean bodies**
@@ -6460,7 +6460,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.428, GEN.411. Related: GEN.28, GEN.412,
+  Prerequisites: GEN.411. Related: GEN.28, GEN.412,
   GEN.423, GEN.428.
 
 - [ ] **GEN.353 Class Y, Titan-like world**
@@ -6477,7 +6477,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.355, GEN.428, GEN.411. Related: GEN.28,
+  Prerequisites: GEN.355, GEN.411. Related: GEN.28,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.354 Class Z, lifeless temperate world**
@@ -6496,7 +6496,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.428, GEN.411. Related: GEN.28,
+  Prerequisites: GEN.411. Related: GEN.28,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.355 Atmosphere retention module with its test table**
@@ -6537,7 +6537,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.355, GEN.428, GEN.411. Related: GEN.91,
+  Prerequisites: GEN.355, GEN.411. Related: GEN.91,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.357 Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud**
@@ -7437,7 +7437,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.452. Related: GEN.85, GEN.355,
+  Prerequisites: GEN.452. Related: GEN.85, GEN.355,
   GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
@@ -7814,300 +7814,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
-- [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. Replace the fixed `composition`
-  string of each class with drawn fractions that sum to one: the core
-  fraction from the host star's abundances, the water and ice fraction
-  from the formation distance, the envelope from mass and age, the rest
-  seeded inside the range of the design (GEN.426), for planets and moons
-  alike. The class sets a range, never a value. Changes stored values,
-  so it ships with a generator epoch bump. Done: every generated body
-  has fractions that sum to one and stay inside their physical ranges,
-  the same galaxy gives the same fractions at any worker count, a test
-  says so.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  The host star's iron, magnesium and silicon come from the derived star
-  composition (GEN.440). Boss (11:58 PM EDT): drawing the density and
-  then filling in a fitting composition is acceptable; the design
-  GEN.426 says which per kind of body.
-  Sources check (GEN.425): the core mass fraction follows from the
-  star's Fe/Si and Mg/Si (mass ratios; all iron in the core, Mg and Si
-  as oxides: CMF = (Fe/Si) / ((Fe/Si) + silicate mass per gram of Si);
-  the Lodders-2003 Sun gives 0.320 against Earth's 0.325; the stellar
-  range gives about 0.2 to 0.47), so the draw needs the host's Fe, Mg,
-  Si, O and C abundances, not only [Fe/H]; GEN.440 derives them from the
-  stored [Fe/H], age and population (the relations GEN.433 finds, for
-  example Bensby 2005 and Adibekyan 2012, with scatter). The water
-  fraction beyond the snow line is an ice to rock mass ratio of 1 +/-
-  0.5 (all ices; 0.35 +/- 0.25 with refractory organics), the snow line
-  sits at 2.7 AU times the square root of the luminosity (the 170 K
-  blackbody value, derived in the report) with a drawn scatter of about
-  0.2 dex (Mulders 2015), and water inside the line has no source (the
-  existing `water_mass_fraction` draw needs a rule). The bias of 'all
-  iron in the core' (FeO in the mantle, light elements in the core, ten
-  percent or more) is stated or a draw is researched.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). Decided (Boss,
-  2026-10-17, as the coordinator relayed his card taps): (1) 1:21 AM
-  EDT, "Composition first": new bodies get their composition drawn from
-  the formation distance and the star and the bulk figures derived
-  (route 2); route 1 stays as the inverse for editing and for an
-  imported density. (2) 1:21 AM EDT, "Keep the switch": the water share
-  of the solids beyond the snow line has both values selectable (the
-  Marboeuf-derived 0.14 to 0.39 as the research draft's default, about
-  0.5 as the convention) until a source settles it (GEN.468). (3) 1:22
-  AM EDT, "Replace both": the neutron-star radius floor and the 10 Gyr
-  lifetime are replaced by values derived from sourced relations
-  (GEN.463, GEN.467). (4) 1:24 AM EDT, "1 bar": the radius reference
-  level is 1 bar, with the scale-height correction for envelope tables.
-  (5) 1:24 AM EDT, "Asplund 2021": the reference solar abundance set is
-  Asplund 2021 proto-solar log eps, with the spread among Asplund 2021,
-  Lodders 2009 and Lodders 2019 recorded as the uncertainty on ratios
-  (the host abundances still come from the stored [Fe/H] and the
-  population draw, never a preset). The draw becomes five draws (master
-  section 3 layers 3 and 4): the star's refractory makeup (A: Fe, Mg,
-  Si, O, C; core mass fraction 1:1 with the star's Fe/Si and Mg/Si with
-  scatter and a low-probability super-Mercury branch of 0.05 to 0.23),
-  the water share from the snow line (GEN.458) and the formation
-  distance through the switch above, the envelope fraction from mass and
-  age, the ice species, and the moon and small-body shares (GEN.442,
-  GEN.466); the mass-to-molar conversion of part B section 3.3 step 1 is
-  one function. Finding F3: class D must come out near 1 to 2.5 g/cm3 (a
-  test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
-  from the star is 0.2 to 0.47 with the Thiabaud box used only as a
-  plausibility box.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.429,
-  DB.69,
-  GEN.430.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the bulk composition is drawn as a possibility: the
-  rows are the recipes (for example an iron-rich, a silicate-dominated,
-  a volatile-rich and a gas-envelope recipe, the set to be named by
-  GEN.426 from the research and never from the Solar System), each with
-  its supported classes and a weight that is a function of the host
-  star's abundances (GEN.440), the formation distance and the system's
-  snow line (GEN.458); the fractions the recipe's ranges give are then
-  drawn and normalised to one. Route 1 (the inverse, from an imported
-  density) bypasses the draw. Depends on the loader GEN.472; add it to
-  the prerequisites at the next design pass.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the mixture proportions follow
-  those two rules.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind. The
-  bulk recipes draw their materials from the shared table of GEN.427.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): BC11 rogue-planet volatile
-  loss ships as a labelled placeholder: the loss fraction is drawn
-  uniform 0 to 1 and the draw is the fill, so there is no "retain all
-  volatiles" default (the plan's rank 1 text is rewritten). BC4
-  originals (Palme and O'Neill 2014, Rudnick and Gao 2014) are on Boss's
-  own list; the labelled scaling stays until his files are read.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Boss fetches Palme and O'Neill 2014 and
-  Rudnick and Gao 2014 (the 2014 second editions, Treatise on
-  Geochemistry); Lodders 2003 (BC1) has a free IOP PDF a thread can
-  retry.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC4: Rudnick and Gao 2014 Table 11
-  (upper, middle, lower, total, weight percent): SiO2 66.6, 63.5, 53.4,
-  60.6; TiO2 0.64, 0.69, 0.82, 0.72; Al2O3 15.4, 15.0, 16.9, 15.9; FeOT
-  5.04, 6.02, 8.57, 6.71; MgO 2.48, 3.59, 7.24, 4.66; CaO 3.59, 5.25,
-  9.59, 6.41; Na2O 3.27, 3.39, 2.65, 3.07; K2O 2.80, 2.30, 0.61, 1.81;
-  Th ppm 10.5, 6.5, 1.2, 5.6; U ppm 2.7, 1.3, 0.2, 1.3 [V]; every crust
-  value in our files matches it exactly. K is not tabulated: K2O x
-  0.8301 gives 23,244, 19,093, 5,064 and 15,026 ppm; use K2O and U
-  directly (the printed K/U row is 7 to 10 percent off). The chapter is
-  the 2003 text under a 2014 cover. Palme and O'Neill's own crust column
-  (Th 3,500 ppb, U 910 ppb, K 9,100 ppm) disagrees with it and Rudnick
-  wins for the crust. Primitive mantle, Palme and O'Neill 2003 (first
-  edition, not the 2014 edition) Table 3: MgO 36.77 +-0.44, Al2O3 4.49
-  +-0.37, SiO2 45.40 +-0.30, CaO 3.65 +-0.31, FeOt 8.10 +-0.05, total
-  98.41 and not 100 (the other 1.59 is minor oxides 1.34 and trace), Mg#
-  0.890; Table 4: K 260 ppm, Th 83.4 ppb, U 21.8 ppb [V, re-read]. Our
-  files' 'Palme and O'Neill 2014' Th 0.0849 and U 0.0229 ppm are 1.8 and
-  5.0 percent higher and cannot be confirmed: under the standing rule
-  (the verified source wins) the item uses 83.4 and 21.8 ppb labelled
-  'Palme and O'Neill 2003, first edition' until the 2014 edition is
-  read; label correction for the lane that owns the parts file.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC4: the 2014 Palme and O'Neill values, if the 2014 edition is
-  read, make two verified editions disagree and the newest (2014) wins;
-  until then the 2003 edition values, labelled so, stand.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. BC11 (volatile
-  stripping at ejection, uniform 0 to 1 loss fraction) and BC18 (core
-  light elements, Dirichlet over S, Si, O, H).
-  Decided (Boss, 2:10 PM EDT, card "Staged", relayed in words; bulk-
-  composition.md approve item 7, Decision 28): a planet's mass without a
-  drawn radius is staged: the existing class mass ranges first as a
-  flagged stand-in, then the isolation mass
-  (formation.isolation_mass_kg) when GEN.509 can tune it.
-  Unified orbited-body design (GEN.550, design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md,
-  coordinator 2026-10-17, 11:29 PM EDT as relayed): the wanderer item
-  GEN.557 (rogue planets and brown dwarfs as bodies of the one chain) is
-  built before or together with this item, or the rogue composition draw
-  is built twice, because a `RoguePlanet` is not a `Planet`. The same
-  holds for GEN.429, GEN.442, GEN.458, GEN.466, GEN.495, DB.69 and
-  DB.70. GEN.557 is a prerequisite since 11:31 PM EDT (see the decided order below).
-  Decided order (coordinator, 2026-10-17, 11:31 PM EDT, after Boss's
-  eight cards on the unified chain, taps 11:28 to 11:31 PM EDT): this
-  item follows or joins GEN.557 (wanderers); GEN.557 is now one of its
-  prerequisites. It may be built in one go with GEN.557 by the same lane
-  (Core 4).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 6, "Newest edition
-  wins": for editions of one work the newest verified edition wins (BC4:
-  the 2014 edition over 2003); Boss's widest-range rule applies between
-  independent sources, not between editions of the same work.
-  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
-  and "Default 0.14 to 0.39", as the coordinator reported it): the water
-  share beyond the snow line defaults to 0.14 to 0.39 (with the keep
-  switch of GEN.468); ice-to-rock 1 +/- 0.5 becomes a convention
-  setting, not the default.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane I (the spine, to be started).
-  Order change (lane I, 5:52 PM EDT 2026-10-23, recorded by the TODO
-  thread): GEN.428, GEN.429 and GEN.411 take a plain subject and do not
-  depend on GEN.565 or GEN.557 (GEN.557 also waits on GEN.553 and
-  DB.73), so lane I builds them first: PR1 contracts and accessors (no
-  epoch), PR2 GEN.429 kernels, PR3 GEN.428 with DB.69, PR4 GEN.452 part
-  2 with GEN.411, DB.71 and GEN.424, then GEN.565 PlanetaryObject and
-  GEN.557. Contracts:
-  /mnt/project-files/reports/composition-spine-contracts-2026-10-23.md.
-  Research (2026-10-09, Update): Update 1:25 AM EDT 2026-10-24 (as lane
-  H reported): GEN.459 merged as #2868 (schema v141, migration 0141,
-  epoch 67): physics/radiogenic.py stores K, Th, U, Al-26 and the Urey
-  ratio per rocky body (c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio,
-  urey_ratio); interior heat and the ground gamma and radon dose read
-  them (a bulk silicate Earth gives 21.0 TW and 0.67 nGy/h);
-  radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
-  ground_dose_msv_yr. Stand-ins waiting on this item: silicate fraction
-  0.675 and Al 2.38 percent; pass rock_mass_fraction and
-  rock_al2o3_fraction/0.045 into radiogenic.generate_content. Owner:
-  lane I.
-  Update (2026-10-09): physics/materials.py is used by
-  surface_composition.py, but generation does not call that chain yet;
-  this item wires it. Finding TEST.306 (Bug Hunt, 12:40 AM EDT
-  2026-10-24 as the lane reported),
-  reports/test-306-test-only-modules-2026-10-24.md.
-- [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. Replace the uniform per-class density
-  draw (`PLANET_DENSITY`, the class density ranges) and the separate
-  giant path with one derivation: the mass (or radius) is drawn from the
-  physics of the body's kind, the fractions of GEN.428 and the equation
-  of state of GEN.427 give the radius and the density, and the surface
-  gravity follows from them. The atmosphere chain reads this gravity.
-  Done: for every class the density and gravity follow from the stored
-  fractions and mass; a body of Earth's fractions and mass comes out
-  near Earth's density and gravity (a test target, not a preset);
-  changing a fraction moves the density as the model says; a test says
-  so. Ships with the generator epoch bump of GEN.428.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Sources check (GEN.425, section 3.2): by mass, small bodies below
-  about 0.01 Earth masses take the volume-additive density 1 / sum(w_i /
-  rho0_i) (a derivation, no paper, porosity ignored); solid planets from
-  0.01 to about 100 Earth masses integrate the two- or three-layer
-  structure with the GEN.427 constants (it reproduces Zeng 2016's table
-  to 1 to 4 percent), or interpolate a grid built once with them; the
-  closed forms (Zeng 2016, Fortney 2007, Zeng 2019, Seager) are checks
-  and fallbacks; the envelope comes from the Lopez and Fortney 2014
-  tables (radius at 20 mbar, corrected by the scale-height term to the
-  chosen level); above 20 Earth masses with an envelope the Fortney 2007
-  giant tables apply and the existing giant relation (GEN.34) is not
-  touched. The honest uncertainty from the literature is 3 to 4 percent
-  in radius.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). Decided (Boss,
-  2026-10-17, 1:21 AM EDT, "Composition first"; 1:24 AM EDT, "1 bar"):
-  the bulk figures are derived from the drawn composition (route 2);
-  route 1 (fill a composition that fits a drawn mass and radius) stays
-  as the inverse, with the honest ambiguity of about 0.01 in the iron
-  share and about plus or minus 0.1 in the core mass fraction (part B
-  section 2.3). One solver (part B) with part C's ice layers and the
-  envelope fits, radius reference level 1 bar. The giant and brown-dwarf
-  radius and heavy-element content are GEN.460, the hydrosphere is
-  GEN.461, and the steam-atmosphere radius of irradiated water worlds
-  (Turbet 2020) joins this solver. Test target: a class D body's density
-  follows from its rock fraction (finding F3).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane I (the spine, to be started).
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8132,7 +7838,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218,
+  Prerequisites: none. Related: GEN.415, GEN.218,
   GEN.208.
   Section 14.6 of the Body composition research lane's note
   (docs/design/composition/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
@@ -8179,7 +7885,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.461. Related:
+  Prerequisites: GEN.461. Related:
   DB.70,
   GEN.444, GEN.418,
   GEN.412.
@@ -8297,7 +8003,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429.
+  Prerequisites: none.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -8938,7 +8644,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428. Related: GEN.427, GEN.428, GEN.429,
+  Prerequisites: none. Related: GEN.427, GEN.428, GEN.429,
   GEN.252, GEN.454, DB.69.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -9057,7 +8763,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429. Related: GEN.427, GEN.428,
+  Prerequisites: none. Related: GEN.427, GEN.428,
   GEN.429, GEN.441, GEN.466, DB.70, GEN.471.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -9215,7 +8921,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.442. Related:
+  Prerequisites: GEN.442. Related:
   GEN.442,
   GEN.457, GEN.461, DB.70.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -13568,7 +13274,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has layers whose masses sum to the body mass, a core flag with
   composition, a determinism test across worker counts, the sums test in
   TEST.210 extended to giants, and the description names the layers.
-  Prerequisites: GEN.460, GEN.428, GEN.429. Related: GEN.460,
+  Prerequisites: GEN.460. Related: GEN.460,
   GEN.430, GEN.454, TEST.210, DB.69.
   Slice 1 (2026-10-09): Kernel merged in #2800 (lane J, about 10:55 PM
   EDT 2026-10-23 as the lane reported); the draw and the description
@@ -13709,7 +13415,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker counts, and the galaxy statistics test shows the mix of
   conditions is unchanged within the stated bands or the change is
   explained.
-  Prerequisites: GEN.645, GEN.650, GEN.428, GEN.429, GEN.411, GEN.412,
+  Prerequisites: GEN.645, GEN.650, GEN.411, GEN.412,
   GEN.442, GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
   GEN.428, GEN.90.
   Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
@@ -14223,7 +13929,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   formation; the class shares become sweep outputs, not inputs. Done: no
   class draw is left in the planet stage and a sweep reports the kinds.
   Owner: Composition J (quantities and bulk composition).
-  Prerequisites: GEN.556, GEN.428, GEN.429.
+  Prerequisites: GEN.556.
 
 - [ ] **GEN.682 Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range**
   Step C7 of the condition-based classes build (design draft
@@ -14235,7 +13941,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.429 fractions; delete the three class ranges with no shim. Done:
   nothing reads the deleted names and the golden outputs are updated.
   Owner: Composition J.
-  Prerequisites: GEN.428, GEN.429, GEN.460, GEN.681.
+  Prerequisites: GEN.460, GEN.681.
 
 - [ ] **GEN.683 Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range**
   Step C8 of the condition-based classes build (design draft
@@ -14281,7 +13987,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.647 and GEN.646. Do: the age a body needs follows its formation
   and decay processes (GEN.428); delete age_ranges. Done: nothing reads
   age_ranges. Owner: Composition spine lane I.
-  Prerequisites: GEN.428.
+  Prerequisites: none.
 
 - [ ] **GEN.687 Rogue planets get their class from classify; delete choose_rogue_planet_class**
   Step C12 of the condition-based classes build (design draft
@@ -14292,7 +13998,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.647 and GEN.646. Do: rogue planets are classified like any body;
   delete choose_rogue_planet_class. Done: a rogue planet's class equals
   classify of its stored values. Owner: Composition J.
-  Prerequisites: GEN.558, GEN.428, GEN.682, GEN.683.
+  Prerequisites: GEN.558, GEN.682, GEN.683.
 
 - [ ] **GEN.688 Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable**
   Step C13 of the condition-based classes build (design draft
@@ -15599,97 +15305,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
   above are the order, not the ids.
-
-- [ ] **DB.69 Planets and moons store the composition fractions**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. The columns that hold the fractions
-  of GEN.428 on `planets` and `moons`, and a migration that fills old
-  rows by working the fractions back from the stored density, mass,
-  radius and class (the inverse of GEN.429, the closest fractions that
-  reproduce the stored density, drawn seeded inside the class range
-  where the inverse has many answers). Revisions are taken in the order the items merge: DB.69 comes first, then DB.67, DB.70 and DB.68 (Core 1's next revision is 0105).
-  Done: the migration runs on a database of the previous revision and
-  every row has fractions that sum to one and reproduce its density
-  within a stated tolerance.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Sources check (GEN.425): the stored fractions include the envelope
-  fraction and the water fraction, and the radius level of GEN.426 is
-  recorded in the data model; the inverse that fills old rows works from
-  the stored density, mass, radius and class and takes the same 3 to 4
-  percent radius spread as its tolerance.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). One migration set for
-  the new body fields of parts A to E (master section 10 cluster 1):
-  scalar fields as columns (the core mass fraction, mantle FeO, the
-  water mass fraction, the ice fractions, the envelope fraction and
-  heavy-element mass, the potassium, thorium and uranium concentrations,
-  the Urey ratio, the born-beyond-the-snow-line flag, the per-system
-  snow line) and species lists in a child table `body_composition`; the
-  revision follows the DB.65 and DB.67 ones in the queue (renumber at
-  merge).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.460. Related:
-  DB.67,
-  DB.68.
-  Part F of the Body composition research lane
-  (docs/design/composition/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F2: the mantle oxidation state
-  per rocky planet (delta-IW or the ferric fraction) is one of the
-  scalar columns of the set (the draw is GEN.451).
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/composition/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: every body composition is a mixture of rows
-  of the shared components table stored as component mass fractions,
-  with one storage for every body (belts, fields, asteroids, comets,
-  planets, moons and dwarf planets) that replaces
-  `asteroid_belt_composition` and the planet composition text; the lane
-  proposes it for the design to settle, so DB.69 and DB.70 are designed
-  as one mixture storage and not two.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): the stored mantle oxidation state is delta-IW on the one
-  reference scale of GEN.498 (Hirschmann 2021), with the stored
-  quantities part G3 F8 lists.
-  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
-  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
-  main's head was 0104 and alembic_runner requires contiguous ids
-  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
-  order they merge.
-  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
-  (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
-  the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
-  DB.68 take the next free ids in the order they merge, so the numbers
-  above are the order, not the ids.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  revision is part of the ONE 8.4 revision of DB.73 (Boss, 2026-10-17,
-  11:38 PM EDT); "follows the DB.65 and DB.67 ones in the queue" is
-  superseded.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -18298,7 +17913,7 @@ clears each one.
   with the fractions after the migration; the text names only stored
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
-  Prerequisites: GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442,
+  Prerequisites: GEN.430, GEN.441, GEN.442,
   DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
   Related: TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
