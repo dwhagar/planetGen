@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.157 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.660 |
+| GEN | GEN.661 |
 | PERF | PERF.176 |
 | DB | DB.96 |
 | API | API.33 |
@@ -1350,7 +1350,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.626 | The plan's crest line and planned-share figure are wrong: print them from the built density, not a table and a fixed system mass (bug) | none | done, PR #2598 |
 | GEN.627 | The outline takes satellites and clusters in by tidal reach, so the candidate sector count is 16 times too high and random starts land in empty cells (bug) | none | done, PR #2638 |
 | GEN.628 | The nuclear disc is a fixed 61 times the nuclear cluster, 21 percent of a small galaxy's stars against about 3 percent for the Milky Way: draw it from a law (bug, needs a generator epoch) | none | done, PR #2620 |
-| GEN.629 | The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together | none | open |
+| GEN.629 | The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together | none | done, PR #2744 |
 | GEN.630 | GEN.316 part (a): the N-star StarSystem host and the stars.role 'member' migration, still building only the pairs, with readers and loaders updated | none | done, PR #2689 |
 | GEN.631 | GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted | none | open |
 | GEN.632 | Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function | none | open |
@@ -1381,6 +1381,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | open |
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | open |
 | GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | open |
+| GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1936,7 +1937,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.156 | The warm-up counts the search check answering 202 (a queued job) as a failure, so planetgen warm stops after phase 4 on a large galaxy (bug) | none | done, PR #2731 |
 | PERF.157 | The warm-up reads 95.9 million rows for 1,044 deep tiles, about 92,000 rows a tile | none | done, PR #2731 |
 | PERF.158 | scatter --band writes 348,743 single-row UPDATE statements and 2.4 million rows in 5.2 minutes | none | done, PR #2731 |
-| PERF.159 | scatter --mass and --luminosity expand 65,536 shells serially in the supervisor, so the machine runs at 1.3 to 1.7 of 4 cores | none | open |
+| PERF.159 | scatter --mass and --luminosity expand 65,536 shells serially in the supervisor, so the machine runs at 1.3 to 1.7 of 4 cores | none | done, PR #2745 |
 | PERF.160 | fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client | none | closed, no change (the fill is already one statement per id block; Performance lane, 7:34 PM EDT 2026-10-23) |
 | PERF.161 | bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass | none | open |
 | PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word | none | open |
