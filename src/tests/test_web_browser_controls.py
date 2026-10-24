@@ -75,6 +75,16 @@ def _context(browser, base_url, admin_token, needs_admin, width):
     return context
 
 
+SETTLED = """() => { const view = document.getElementById("sysview3d"); return !view || view.hidden || view.dataset.ready === "true"; }"""
+"""str: True once a system page's 3D view, when it is the one showing, has loaded its scene and filled its body list
+(which it rebuilds at that moment: a button of that list clicked before is "not stable")."""
+
+
+def _settle(page):
+    """Waits until the page has stopped rebuilding its own controls after load."""
+    page.wait_for_function(SETTLED, timeout=30000)
+
+
 @pytest.mark.parametrize("endpoint", PAGE_ENDPOINTS)
 def test_every_plain_button_does_something(browser, base_url, page_targets, admin_token, endpoint):
     path, needs_admin = page_targets[endpoint]
@@ -85,10 +95,12 @@ def test_every_plain_button_does_something(browser, base_url, page_targets, admi
     dead = []
     try:
         page.goto(base_url + path, wait_until="load")
+        _settle(page)
         page.wait_for_timeout(500)
         count = page.locator(PLAIN_BUTTONS).count()
         for index in range(count):
             page.goto(base_url + path, wait_until="load")
+            _settle(page)
             page.wait_for_timeout(300)
             button = page.locator(PLAIN_BUTTONS).nth(index)
             if not button.is_visible():
