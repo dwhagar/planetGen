@@ -3,8 +3,8 @@
 """
 One reference form for every object (NAV.7): `<kind>:<id>`.
 
-Kinds: `sector`, `system`, `star`, `planet`, `moon`, `belt`, `comet`, and the
-standalone phenomenon types (`nebula`, `black_hole`, ...). `id` is the
+Kinds: `sector`, `system`, `star`, `planet`, `moon`, `belt`, `comet`, the
+standalone phenomenon types (`nebula`, `black_hole`, ...) and `facility`. `id` is the
 object's own row id inside the code (`parse`, `format`) and its printed object
 ID in everything a person or a client sees (`parse_public`, `format_public`, API.23):
 `system:FE81000A2B-0000005-000`, `sector:FE81000A2B`. A bare number means a system
@@ -37,11 +37,14 @@ PHENOMENON_KINDS = (
 BODY_KINDS = ("star", "planet", "moon", "belt", "comet")
 """tuple: The kinds that live inside a system."""
 
-KINDS = ("sector", "system") + BODY_KINDS + PHENOMENON_KINDS
+FACILITY_KINDS = ("facility",)
+"""tuple: The kinds built on or beside a body: a starbase, colony or outpost (UX.183)."""
+
+KINDS = ("sector", "system") + BODY_KINDS + PHENOMENON_KINDS + FACILITY_KINDS
 """tuple: Every kind a reference can name (the galaxy has no id)."""
 
 TABLES = {"sector": "sectors", **{kind: table for kind, table in kind_tables.kind_tables("uid").items()
-                                          if kind == "system" or kind in BODY_KINDS}}
+                                          if kind == "system" or kind in BODY_KINDS or kind in FACILITY_KINDS}}
 """dict: Each non-phenomenon kind's table (phenomena use
 `planetgen.db.query._PHENOMENON_TYPE_TO_TABLE`)."""
 

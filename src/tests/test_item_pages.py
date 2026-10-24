@@ -19,6 +19,8 @@ PLANET = "planet:FE81000A2B-0000005-001"
 MOON = "moon:FE81000A2B-0000005-002"
 FREE_PLANET = "rogue_planet:FE81000A2B-0000009"
 FREE_MOON = "moon:FE81000A2B-0000009-001"
+FACILITY = "facility:FE81000A2B-0000005-009"
+LONE_FACILITY = "facility:FE81000A2B-000000A"
 
 
 def _document():
@@ -74,6 +76,14 @@ def client(monkeypatch):
             {"ref": "system:9", "kind": "system", "name": "Kepler"},
             {"ref": PLANET, "kind": "planet", "name": "Kepler b"}]},
         STAR: {"ref": STAR, "name": "Kepler", "parents": []},
+        FACILITY: {"ref": FACILITY, "name": "New Hope", "parents": [
+            {"ref": "galaxy", "kind": "galaxy"},
+            {"ref": "sector:4", "kind": "sector", "name": "Sector 004"},
+            {"ref": "system:9", "kind": "system", "name": "Kepler"},
+            {"ref": PLANET, "kind": "planet", "name": "Kepler b"}]},
+        LONE_FACILITY: {"ref": LONE_FACILITY, "name": "Lone Light", "parents": [
+            {"ref": "galaxy", "kind": "galaxy"},
+            {"ref": "sector:4", "kind": "sector", "name": "Sector 004"}]},
         FREE_MOON: {"ref": FREE_MOON, "name": "Lone Moon", "phi4": 0.5, "tier_pressure": 1, "tier_temperature": 1,
                     "tier_air": 1, "tier_water": 1, "tier_radiation": 1, "tier_suitability": 1, "parents": [
             {"ref": "galaxy", "kind": "galaxy"},
@@ -85,7 +95,14 @@ def client(monkeypatch):
             raise apiclient.NotFoundError("no such object")
         return objects[ref]
 
+    def get_facility(db, facility_id):
+        return {"id": facility_id, "name": "New Hope", "kind": "colony", "type_id": None, "affiliation_name": "Velarix Concord",
+                "description": "A first colony.", "ratings": {"crime": "yellow", "housing": None, "resources": None,
+                                                              "maintenance": None, "health": None},
+                "rating_words": {"crime": "Elevated"}}
+
     monkeypatch.setattr(apiclient, "get_object", get_object)
+    monkeypatch.setattr(apiclient, "get_facility", get_facility)
     monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: _document())
     monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: _detail())
     monkeypatch.setattr(apiclient, "get_system_facilities", lambda db, system_id: [])
@@ -148,6 +165,23 @@ def test_a_body_with_no_system_is_not_found(client):
     assert client.get(f"/object/{STAR}").status_code == 404
 
 
+def test_a_facility_has_a_page_with_its_host_its_record_and_no_tree(client):
+    """UX.183: where it stands, what its record says and its sheet; it holds nothing, so there is no tree."""
+    page = client.get(f"/object/{FACILITY}").get_data(as_text=True)
+    assert "New Hope" in page and "Object ID FE81000A2B-0000005-009" in page
+    assert f'href="/object/{PLANET}"' in page and "Built on" in page          # the planet it stands on
+    assert "A first colony." in page and "affiliated with Velarix Concord" in page and "Crime" in page
+    assert 'id="item-properties"' in page and "Ocean depth" in page            # the sheet, from the fake
+    assert "item-members" not in page and "Navigate" not in page
+    assert 'href="/system/9"' in page
+
+
+def test_a_standalone_facility_has_a_page_with_no_system(client):
+    page = client.get(f"/object/{LONE_FACILITY}").get_data(as_text=True)
+    assert "Lone Light" in page and 'href="/sector/4"' in page
+    assert "Part of the" not in page and "free planet" not in page
+
+
 def test_an_unknown_body_is_not_found(client):
     assert client.get("/object/planet:FE81000A2B-0000005-099").status_code == 404
 
@@ -179,12 +213,14 @@ def test_a_moon_of_a_free_planet_has_a_page_that_links_to_its_planet(client):
 
 
 def test_a_planets_page_lists_the_facilities_it_hosts_and_its_chips(client, monkeypatch):
-    facility = {"host_type": "planet", "host_id": "FE81000A2B-0000005-001", "name": "Outpost <9>", "kind": "mining-colony",
+    facility = {"id": "FE81000A2B-0000005-009", "host_type": "planet", "host_id": "FE81000A2B-0000005-001",
+                "name": "Outpost <9>", "kind": "mining-colony",
                 "placement": "terrestrial", "orbit_distance_km": None}
     other = dict(facility, host_id="FE81000A2B-0000005-003", name="Elsewhere")
     monkeypatch.setattr(apiclient, "get_system_facilities", lambda db, system_id: [facility, other])
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert "Outpost &lt;9&gt;" in page and "Mining colony" in page and "Elsewhere" not in page
+    assert f'<a href="/object/{FACILITY}">Outpost &lt;9&gt;</a>' in page          # UX.183: each is a page of its own
     star = client.get(f"/object/{STAR}").get_data(as_text=True)
     assert "Outpost" not in star and 'class="item-chips"' not in star
 

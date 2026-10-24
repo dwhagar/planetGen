@@ -262,7 +262,7 @@
     <tbody>
       {%- for row in facilities %}
       <tr>
-        <td>{{ row.name }}</td>
+        <td><a href="{{ page_url('object_page', ref='facility:' ~ row.id) }}">{{ row.name }}</a></td>
         <td>{{ row.kind }}</td>
         <td>{% if row.type %}{{ row.type }}{% if row.fields %}<br><span class="hint">{{ row.fields }}</span>{% endif %}{% else %}&ndash;{% endif %}</td>
         <td>{% if row.affiliation %}{{ row.affiliation }}{% else %}&ndash;{% endif %}</td>

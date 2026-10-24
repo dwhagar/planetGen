@@ -275,7 +275,8 @@ connectivity to that specific schema rather than the default one.
   cell key).
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
-  `planet`, `moon`, `belt`, `comet` or a phenomenon type (`nebula`,
+  `planet`, `moon`, `belt`, `comet`, `facility` (UX.183: its parents run down to the body it is built on, or to its
+  sector, and its siblings are the facilities of that host) or a phenomenon type (`nebula`,
   `asteroid_field`, `black_hole`, `neutron_star`, `supernova_remnant`,
   `rogue_planet`, `interstellar_comet`, `quasar`); a bare number is a system.
   Returns `ref`, `kind`, `id`, `name`; `parents` (from `galaxy` down to the
@@ -296,7 +297,7 @@ connectivity to that specific schema rather than the default one.
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
 - `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
-  belt, comet or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
+  belt, comet, facility (UX.183, with a `ratings` group) or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
   `kind` and `groups` (`identity`, `orbit`, `physical`, `rotation`,
   `composition`, `atmosphere`, `climate`, `water`, `magnetism`, `radiation`,
   `habitability`, `life`, the star's `zones`, `stellar`, `galactic`, `disk`, and

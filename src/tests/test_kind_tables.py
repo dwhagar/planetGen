@@ -63,7 +63,7 @@ def test_the_lists_kept_for_their_order_name_the_same_kinds():
     assert set(objectref.PHENOMENON_KINDS) == set(kind_tables.kind_tables("phenomenon"))
     assert set(ids.PHENOMENON_KINDS) == set(objectref.PHENOMENON_KINDS)
     assert {row[0] for row in query._PHENOMENON_TABLES} == set(kind_tables.tables("phenomenon"))
-    assert set(objectref.TABLES) == {"sector", "system", *objectref.BODY_KINDS}
+    assert set(objectref.TABLES) == {"sector", "system", *objectref.BODY_KINDS, *objectref.FACILITY_KINDS}
     assert all(ROWS[table].kind == kind for kind, table in objectref.TABLES.items() if kind != "sector")
 
 

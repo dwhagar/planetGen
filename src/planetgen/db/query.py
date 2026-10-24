@@ -2580,7 +2580,7 @@ def keep_out_radius(conn, kind, object_id):
     if kind in ("nebula", "supernova_remnant", "asteroid_field"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
-    if kind in ("belt", "comet", "interstellar_comet"):
+    if kind in ("belt", "comet", "interstellar_comet", "facility"):
         row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.NO_KEEP_OUT
     raise ValueError(f"no keep-out radius for a {kind}")
@@ -2696,6 +2696,47 @@ def resolve_object(conn, kind, object_id):
         if row["center_x_pc"] is not None:
             positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
         siblings, truncated = [], False
+    elif kind == "facility":    # UX.183
+        row = one("facilities", object_id,
+                  "name, host_type, star_system_id, star_id, planet_id, moon_id, asteroid_belt_id, asteroid_field_id, "
+                  "sector_id, center_x_pc, center_y_pc, center_z_pc")
+        name = row["name"]
+        host_column = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
+                       "asteroid_field": "asteroid_field_id", "space": "sector_id"}[row["host_type"]]
+        if row["star_system_id"] is not None:
+            parents, positions = system_parents_and_positions(row["star_system_id"])
+            host_kind, host_table = {"star": ("star", "stars"), "planet": ("planet", "planets"), "moon": ("moon", "moons"),
+                                     "asteroid_belt": ("belt", "asteroid_belts")}.get(row["host_type"], (None, None))
+            host_id = row[host_column]
+            if host_kind == "moon":     # its planet is above it in the chain
+                planet = one("moons", host_id, "planet_id")["planet_id"]
+                if planet is not None:
+                    parents.append({"ref": object_ref.format("planet", planet), "kind": "planet",
+                                    "name": one("planets", planet, "name")["name"]})
+            if host_kind is not None:
+                host_name = (f"Asteroid belt {one(host_table, host_id, 'orbital_index')['orbital_index'] + 1}"
+                             if host_kind == "belt" else one(host_table, host_id, "name")["name"])
+                parents.append({"ref": object_ref.format(host_kind, host_id), "kind": host_kind, "name": host_name})
+        else:
+            parents = [galaxy]
+            field_sector = None
+            if row["asteroid_field_id"] is not None:
+                field = one("asteroid_fields", row["asteroid_field_id"], "name, sector_id")
+                field_sector = field["sector_id"]
+            sector_id = row["sector_id"] if row["sector_id"] is not None else field_sector
+            if sector_id is not None:
+                parents.append({"ref": object_ref.format("sector", sector_id), "kind": "sector",
+                                "name": one("sectors", sector_id, "name")["name"]})
+            if row["asteroid_field_id"] is not None:
+                parents.append({"ref": object_ref.format("asteroid_field", row["asteroid_field_id"]),
+                                "kind": "asteroid_field", "name": field["name"]})
+            if row["center_x_pc"] is not None:
+                positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
+        if row["star_system_id"] is not None:
+            siblings, truncated = _sibling_refs(conn, kind, "facilities", f"{host_column} = ?", (row[host_column],), object_id)
+        else:
+            siblings, truncated = _sibling_refs(conn, kind, "facilities", "star_system_id IS NULL AND sector_id <=> ?",
+                                                (row["sector_id"],), object_id)
     else:
         table = object_ref.TABLES[kind]
         columns = {
