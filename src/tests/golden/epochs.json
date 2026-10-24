@@ -408,8 +408,7 @@
     },
     {
       "epoch": 83,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2197",
       "reason": "A comet nucleus' organic material takes the density of the shared materials table (1.5 g/cm3, the middle of the measured 1.0 to 2.0) in place of a separate 2.0, so every comet's grain density, bulk density and stored mass change (GEN.712)"
     }
   ]
