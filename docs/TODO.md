@@ -2541,22 +2541,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner line).
   Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
 
-- [ ] **MAP.256 The map shows the information box twice when an object is selected: once in the window and once to its right (bug)**
-  Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
-  project chat): when an object is selected on the map the infobox
-  appears twice, once in the window and once to the right of it. Kind:
-  duplicate render, cause not found. The TODO thread did not run it.
-  Fails on main: yes, as Boss sees it. Reproducer: open the Galaxy Map,
-  select any object, look for a second copy of the information box
-  beside the window. Do: find why the box is drawn twice (a second mount
-  of the same panel, a leftover panel from the sector or system view, or
-  the select handler firing twice), keep the one in the window, and add
-  a browser test that selecting an object leaves exactly one information
-  box. Done: selecting a star, a system and a sector each shows exactly
-  one information box, and a browser test counts them. Owner: Core 2
-  (Boss, 5:27 PM EDT 2026-10-23).
-  Prerequisites: none. Related: MAP.140, MAP.141, MAP.249.
-
 - [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
   Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
   project chat): infinite zoom is still really clunky. Boss asks to get
@@ -2901,6 +2885,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is the same removal, else they stay separate. Done: the galaxy and
   sector views show no side panel, the popup carries everything the
   panel showed, and the map window is full width, with a browser test.
+  Owner: Core 2.
+  Research (2026-10-09, Update): Update 12:41 AM EDT 2026-10-24 (as Core
+  2 reported): the panel code for the galaxy view is done by MAP.256
+  (#2852: one info panel over the map, in the corner away from the last
+  click, with a Close button, map at full width, under 600 px wide the
+  panel sits under the map; system maps unchanged). Remaining for
+  MAP.288: delete the dead side-panel code and cover the sector view.
   Owner: Core 2.
   Prerequisites: none.
 ## NAV: Navigation and courses
@@ -19952,6 +19943,20 @@ clears each one.
   conditions. Done: both sweeps carry the new checks. Owner: Composition
   L.
   Prerequisites: GEN.689, TEST.209, TEST.210.
+
+- [ ] **TEST.317 test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug)**
+  Found by Core 2 at 12:40 AM EDT 2026-10-24 (as the lane reported), in
+  src/tests/test_web_browser_sector_reach.py: the test fails alone only
+  under heavy machine load (it passes alone in 112 s on Core 2's branch
+  and 319 s on older main; it needs 80 wheel ticks with 900 ms waits).
+  Fails on main: no (passes alone); frequency once in 2 gates under load
+  9. Do: make the test cheaper and load-proof (fewer or larger wheel
+  steps, wait on a camera-state condition and not on fixed sleeps),
+  without loosening what it checks. Done: the test passes under load 9
+  in repeated gates and its run time drops well below 112 s. Owner: Core
+  2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
+  is busy.
+  Prerequisites: none. Related: TEST.313.
 
 ## USR: User accounts
 

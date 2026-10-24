@@ -1226,3 +1226,4 @@ Baseline: PR #1817.
 | PERF.114 | 8.1 | Queue, caches and performance |
 | PERF.177 | 8.1 | The headline closes |
 | TEST.316 | 8.1 | Bugs and flaky tests |
+| MAP.256 | 8.1 | Fly-through map |
