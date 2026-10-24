@@ -8607,6 +8607,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed: lane E, once lane G confirms it has no branch for the
   greenhouse part or the wiring (the TODO thread asks G; no reply means
   lane E owns it).
+  Research (2026-10-09, Update): Update 12:15 AM EDT 2026-10-24 (as lane
+  E reported): lane E took the greenhouse closure after lane G confirmed
+  it unstarted. The greenhouse closure kernel (Robinson and Catling grey
+  atmosphere, check of the stored multiplier) merged as #2842 with no
+  epoch and no migration; nothing uses it yet so no world changes.
+  Remaining: the composition-side infrared opacity (needs the infrared
+  data download and lane D's stored multiplier), owner lane E; the
+  ultraviolet wiring is lane G's PR 4 (GEN.414 first).
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -14623,6 +14631,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (habitability model).
   Prerequisites: none.
 
+- [ ] **GEN.692 The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug)**
+  Boss's live observation on a class B page (0.346 AU, 310 K, 19.8 kPa)
+  at 12:12 AM EDT 2026-10-24, reported by lane L. The table in
+  describe/build.py _atmosphere_composition adds up only the ten stored
+  partial pressures and divides each by that sum, so unstored balance
+  gases (helium, sodium; class B, E, F, I, J, T, V all have a balance)
+  vanish and oxygen shows 100% when the real share is about 6%. Do
+  (interim, before GEN.411): divide by the real total pressure and show
+  the unstored balance gases as named rows or an Other row, so the table
+  sums to the real total and never shows 100% for a mixture. Permanent
+  fix is GEN.411 plus GEN.415. Done: the class B page shows helium,
+  sodium and oxygen shares that sum to 100% of the total, and a test
+  covers a class with an unstored balance. Details:
+  reports/pure-oxygen-atmosphere-2026-10-24.md.
+  Prerequisites: none. Related: GEN.411, GEN.415.
+
+- [ ] **GEN.693 Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas**
+  Found by lane L (finding 11, reports/lane-l-findings-2026-10-24.md):
+  draw_mixture does not remove gases a small warm body cannot hold; a
+  3.5 km/s world at 310 K drew hydrogen at 37% as its main gas (Jeans
+  parameter about 5). Do: after outgassing, apply a Jeans escape filter
+  per gas from escape speed, exobase temperature and age, so gases with
+  a short retention time are removed and the rest renormalised;
+  stand-ins labelled in the gap plan registry. Done: a body like that
+  draws no hydrogen as a main gas, Earth keeps nitrogen and oxygen,
+  Titan keeps methane, and tests cover each. Belongs with the retention
+  rows of GEN.422.
+  Prerequisites: GEN.479. Related: GEN.422, GEN.479.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -20038,6 +20075,17 @@ clears each one.
   conditions. Done: both sweeps carry the new checks. Owner: Composition
   L.
   Prerequisites: GEN.689, TEST.209, TEST.210.
+
+- [ ] **TEST.316 test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug)**
+  Found by lane E at 12:15 AM EDT 2026-10-24 (as the lane reported):
+  pytest
+  src/tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
+  fails on main alone, because /classes/habitability shows a bare CO2,
+  likely from the new legend text. Do: write the compound out in words
+  or in the page's formula style so the test passes; check no other page
+  is affected. Done: the test passes on main. Owner: Bug Hunt (with
+  UX.149).
+  Prerequisites: none. Related: UX.149.
 
 ## USR: User accounts
 
