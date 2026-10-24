@@ -1382,3 +1382,5 @@ Baseline: PR #1817.
 | TEST.350 | 8.1 | Bugs and flaky tests |
 | DB.89 | 8.1 | Bulk composition |
 | PERF.173 | 8.1 | The headline closes |
+| OPS.66 | 8.1 | Bugs and flaky tests |
+| OPS.67 | 8.1 | Bugs and flaky tests |
