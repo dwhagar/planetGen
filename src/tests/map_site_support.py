@@ -171,6 +171,10 @@ POINT_FIELD = [
 among the fixture stars."""
 
 
+GLOW_EXTRA_SOL = 2.0e6
+"""The light, in solar luminosities, a fixture node holds beyond the stars it lists (the glow's, MAP.266)."""
+
+
 WORLD_FIELD = [
     {"id": 9001, "name": "Fixture Eden", "worlds": 2,
      "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
@@ -403,7 +407,13 @@ class FixtureApi:
                 nearest = [min(max(cloud[axis], lo[i]), hi[i]) for i, axis in enumerate("xyz")]
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
+            # The light of the unlisted stars (MAP.266's glow): GLOW_EXTRA_SOL on top of the listed stars', centred on them.
             lights = {"stars": len(stars), "star_luminosity_sol": sum(star["luminosity_sol"] for star in stars)}
+            if stars:
+                lights["star_luminosity_sol"] += GLOW_EXTRA_SOL
+                weight = sum(star["luminosity_sol"] for star in stars)
+                lights["star_centre"] = [sum(star["luminosity_sol"] * star[axis] for star in stars) / weight for axis in "xyz"]
+                lights["star_temperature_k"] = 5200
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
         return {"nodes": nodes, "edge_pc": EDGE_PC, "has_shape": True}

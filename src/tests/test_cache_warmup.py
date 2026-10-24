@@ -895,3 +895,28 @@ def test_the_nodes_after_a_visit_are_its_children_then_its_parent_and_the_parent
     assert all(parse_node_key(key).m in (1, 3, 9) for key in tileprefetch.candidates([format_drill_key(sector)]))
 
 
+
+
+def _plan_and_place(galaxy, count):
+    """A planned galaxy and `count` more sectors with a grid address (the sector page shows their Profile)."""
+    import math
+    from planetgen import tuning
+    from planetgen.galaxy.density import build_galaxy_shape
+    shape = build_galaxy_shape(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+                               bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    store.save_galaxy_shape(shape, edge_pc=float(tuning.DEFAULT_SECTOR_EDGE_PC), outer_shell_index=1500,
+                            expected_system_count_at_density_1=600.0, config=galaxy.config, galaxy_seed=bytes(range(16)))
+    edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    for number in range(count):
+        center = (5.0 + 9.0 * number, 5.0, 5.0)
+        _place_sector(galaxy.config, f"Addressed {number}", center, address=spherical.sector_address_at(center, edge_pc))
+
+
+def test_the_warm_up_counts_the_profile_answers_of_addressed_sectors_as_cached_on_a_second_run(galaxy):
+    """MAP.289: the Profile each sector page asks for (`/galaxy/profile`) is one more cached answer, so a second run
+    over the same sectors builds none."""
+    _plan_and_place(galaxy, 3)
+    first = _warm(galaxy, "sectors")
+    second = _warm(galaxy, "sectors")
+    assert first["warmed"] == 5
+    assert second["built"] == 0, second["line"]
