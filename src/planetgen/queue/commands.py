@@ -186,6 +186,11 @@ REGISTRY = _commands(
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_tiles"),
                 finish=("planetgen.web.warmup", "finish_warm_galaxy_tiles"),
                 unit_seconds=64),
+    CommandSpec("warm-galaxy-nodes", "Warm the Galaxy Map's sector-block nodes: every populated block down to level 243",
+                unit=("planetgen.web.warmup", "warm_galaxy_nodes_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_galaxy_nodes"),
+                finish=("planetgen.web.warmup", "finish_warm_galaxy_nodes"),
+                unit_seconds=64),
     CommandSpec("warm-galaxy-deep-tiles", "Warm the Galaxy Map's deep tiles: the zoom run in to the centre",
                 unit=("planetgen.web.warmup", "warm_galaxy_deep_tiles_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_deep_tiles"),
@@ -256,7 +261,7 @@ KIND_OF_STAGE = {
 
 
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
-                       ("object-index", "galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "sectors", "systems",
+                       ("object-index", "galaxy-map", "lists", "galaxy-tiles", "galaxy-nodes", "galaxy-deep-tiles", "sectors", "systems",
                         "phenomena", "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 

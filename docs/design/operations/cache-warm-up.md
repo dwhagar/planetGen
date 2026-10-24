@@ -57,6 +57,7 @@ Superseded in part (Boss, 2026-10-18, 5:43 PM EDT, PERF.139): the flat family or
 | `object-index` | the object index (PERF.140): one `object_index` row per object of every kind the site lists, written only when the object changed since the kind's last run |
 | `galaxy-map` | the opening tiles and stage (existing `warm_opening_view`), the galaxy shape, sector list, phenomena, superbubbles, shell specs, bright-star status |
 | `galaxy-tiles` | the Galaxy Map's tiles (PERF.130): every tile of the first `tile_cache.warm_levels` levels (default 8, 4,713 tiles on the scaled probe galaxy), then the tiles of a zoom run from the opening view in to the centre, down to level `tile_cache.warm_zoom_levels` (default 14), 7,112 tiles in all; in units of 128 tiles on the queue, coarsest level first |
+| `galaxy-nodes` | the Galaxy Map's sector-block nodes (MAP.260): every block of level `warmup.NODE_WARM_FLOOR` (243) and above that holds a generated sector or pre-placed objects (`nodes.populated_node_keys`), biggest blocks first, in chunks of `NODE_CHUNK` (64) through `tilecache.fetch_nodes`; part of the `built-levels` phase, with the same cache-budget stop as the tiles |
 | `lists` | the first page of the sector, system, uncharted-system, phenomena, polity and species lists, the lists page and the first page of each kind's list (UX.141), and each list's counts |
 | `sectors` | every sector page (the sector detail), nearest the galaxy centre first, up to `page_cache.warm_max_objects` |
 | `systems` | every system page, same order and cap |

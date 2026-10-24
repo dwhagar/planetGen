@@ -58,6 +58,7 @@ class FakeData:
         self.shape = {"edge_pc": 3.526, "outer_shell_index": 400}
         self.dbs = set()
         self.tile_calls = []
+        self.node_calls = []
         self.fail_tiles = None
         self.stage_calls = []
         self.window_calls = []
@@ -98,6 +99,14 @@ class FakeData:
             "edge_pc": 3.526, "has_shape": True,
         }
 
+    def get_galaxy_nodes(self, db, node_keys):
+        self.dbs.add(db)
+        if self.fail_tiles:
+            raise self.fail_tiles
+        self.node_calls.append(list(node_keys))
+        return {"nodes": {key: {"aggregate": {"generated": 2}, "stars": [], "points": [], "clouds": []}
+                          for key in node_keys}, "edge_pc": 3.526, "has_shape": True}
+
     def get_galaxy_stage(self, db, at=None):
         self.dbs.add(db)
         self.stage_calls.append(at)
@@ -131,6 +140,7 @@ def fake(monkeypatch, tmp_path):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
+    monkeypatch.setattr(tilecache, "get_galaxy_nodes", data.get_galaxy_nodes)
     monkeypatch.setattr(tilecache, "get_galaxy_stage", data.get_galaxy_stage)
     monkeypatch.setattr(tilecache, "get_galaxy_window", data.get_galaxy_window)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
@@ -316,6 +326,38 @@ def test_galaxy_api_failure_is_a_502_page(client, fake, monkeypatch):
     resp = client.get("/galaxy")
     assert resp.status_code == 502
     assert resp.mimetype == "text/html"
+
+
+# --- /galaxy/nodes (MAP.260) ----------------------------------------------------------
+
+def test_nodes_endpoint_serves_and_caches(client, fake):
+    query = "/galaxy/nodes?keys=243.4.1.2,1.5.0.3"
+    first = client.get(query)
+    assert first.status_code == 200 and first.mimetype == "application/vnd.planetgen.tiles"
+    assert first.headers["Cache-Control"] == "no-store"
+    body = tile_payload(first)
+    assert set(body["tiles"]) == {"243.4.1.2", "1.5.0.3"} and body["cached"] == 0 and body["stamp"] == STAMP
+    assert body["tiles"]["243.4.1.2"]["aggregate"] == {"generated": 2}
+    second = tile_payload(client.get(query + f"&stamp={STAMP}"))
+    assert second["cached"] == 2 and second["tiles"] == body["tiles"] and "history" not in second
+    assert len(fake.node_calls) == 1 and fake.dbs == {DB}
+
+
+def test_nodes_endpoint_ignores_db_param_and_rejects_bad_keys(client, fake):
+    client.get("/galaxy/nodes?keys=243.1.1.1&db=someone_else")
+    assert fake.dbs == {DB}
+    for keys in ("99.0.0.0", "243.1.1", "x"):
+        resp = client.get(f"/galaxy/nodes?keys={keys}")
+        assert resp.status_code == 400 and "error" in resp.get_json()
+    many = ",".join(f"243.1.1.{i}" for i in range(tilecache.MAX_NODES_PER_REQUEST + 1))
+    assert client.get(f"/galaxy/nodes?keys={many}").status_code == 400
+
+
+def test_nodes_endpoint_api_failure_is_json(client, fake):
+    fake.fail_tiles = apiclient.ApiError("secret detail")
+    resp = client.get("/galaxy/nodes?keys=243.1.1.1")
+    assert resp.status_code == 502 and resp.mimetype == "application/json"
+    assert "secret detail" not in resp.get_data(as_text=True)
 
 
 # --- /galaxy/tiles -----------------------------------------------------------------------

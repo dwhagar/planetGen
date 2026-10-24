@@ -561,6 +561,28 @@ galaxy_block_stats = sa.Table(
 )
 
 
+galaxy_block_lights = sa.Table(
+    'galaxy_block_lights',
+    metadata,
+    sa.Column('m', mysql.INTEGER(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('star_count', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('star_luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpx', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpy', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpz', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lt', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_count', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('point_luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpx', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpy', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpz', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 galaxy_components = sa.Table(
     'galaxy_components',
     metadata,

@@ -96,7 +96,7 @@ limiter = Limiter(key_func=limit_key, default_limits_exempt_when=exempt_from_def
 #
 # - `search`: `/search` (default 30 per minute)
 # - `galaxy`: `/galaxy`, the Galaxy Map page (default 60 per minute)
-# - `galaxy_tiles`: the Galaxy Map's data and scene routes (`/galaxy/tiles`, `/galaxy/stage`, `/galaxy/window`,
+# - `galaxy_tiles`: the Galaxy Map's data and scene routes (`/galaxy/tiles`, `/galaxy/nodes`, `/galaxy/stage`, `/galaxy/window`,
 #   `/galaxy/territories`, the uncharted and nebula scenes) and `/sector/<id>/scene`, fetched as the map's
 #   camera moves (default 600 per minute)
 # - `health`: `/api/health` (default 60 per minute)

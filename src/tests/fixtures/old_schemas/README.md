@@ -29,3 +29,4 @@ Commit each file came from:
 - v143: 4b9d639 (GEN.666 evolutionary pace stored once, before DB.69)
 - v144: f36f7a0 (DB.69 and GEN.428/429 bulk composition columns, before GEN.443 star UV-C share; the fixture was missing)
 - v145: 3a09727 (GEN.443 star UV-C share) (before MAP.258 block ladder root)
+- v146: d68eabf (MAP.258 block ladder root) (before MAP.259 block lights)

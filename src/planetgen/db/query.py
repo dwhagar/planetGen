@@ -5568,6 +5568,12 @@ def galaxy_stage_keys(shell, band, wedge):
     return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)[:-1] if b.m <= STAGE_TOP]
 
 
+def galaxy_node_keys(shell, band, wedge):
+    """The node keys a change to sector `(shell, band, wedge)` makes stale (MAP.260): every block of the ladder over
+    it, from the root down, and the sector's own node (`drill_chain_of`)."""
+    return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
+
+
 TILE_FORMAT = 2
 """int: The version of what the Galaxy Map's stored tiles and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_tile`, `tilepack`, `galaxy_tiles`, `galaxy_stage`). A change that alters those bytes for the
@@ -5751,9 +5757,10 @@ def galaxy_changes(conn, since=None):
             `state` (the token to pass as `since` next time), `full`
             (everything cached by `stamp` may have changed), `tile_full`
             (every tile may have changed), `tiles` (sorted keys of the
-            changed tiles; empty when `tile_full`), and `stages` (sorted
+            changed tiles; empty when `tile_full`), `stages` (sorted
             keys of the drill-down stages whose counts changed,
-            `galaxy_stage_keys`; empty when `tile_full`), and, only when true, `busy`: `full` because so much
+            `galaxy_stage_keys`; empty when `tile_full`), `nodes` (sorted keys of the nodes that changed,
+            `galaxy_node_keys`: every block over a changed sector; empty when `tile_full`), and, only when true, `busy`: `full` because so much
             changed at once (a generation run, a backfill), not because
             something was deleted, so a cache may keep its tiles a while
             longer instead of refetching all of them under that load
@@ -5765,7 +5772,7 @@ def galaxy_changes(conn, since=None):
     state = galaxy_content_state(conn)
     result = {
         "stamp": galaxy_content_stamp(conn, state), "tile_stamp": galaxy_tile_stamp(state),
-        "state": _state_token(state), "full": False, "tile_full": False, "tiles": [], "stages": [],
+        "state": _state_token(state), "full": False, "tile_full": False, "tiles": [], "stages": [], "nodes": [],
     }
 
     def everything(busy=False):
@@ -5811,6 +5818,7 @@ def galaxy_changes(conn, since=None):
 
     keys = set()
     stages = set()
+    node_keys = set()
     # The page cache tags every sector, placed or not (PERF.104).
     result["sector_ids"] = sorted(row["id"] for row in conn.execute(
         """
@@ -5829,8 +5837,10 @@ def galaxy_changes(conn, since=None):
         keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
         if sector_address(r) is not None:
             stages.update(galaxy_stage_keys(*sector_address(r)))
+            node_keys.update(galaxy_node_keys(*sector_address(r)))
     result["tiles"] = sorted(keys)
     result["stages"] = sorted(stages)
+    result["nodes"] = sorted(node_keys)
     return result
 
 # ---------------------------------------------------------------------

@@ -24,14 +24,14 @@ import time
 from planetgen.admin import activity_log
 from planetgen.api.config import Config
 from planetgen.api.limiter import PAGE_LIMITS_OFF
-from planetgen.db import objectindex, store
+from planetgen.db import nodes, objectindex, store
 from planetgen.galaxy import viewport
 from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient, tilecache
-from planetgen.web.lib.tilecache import fetch_stage, fetch_tiles
+from planetgen.web.lib.tilecache import fetch_nodes, fetch_stage, fetch_tiles
 from planetgen.web.maps.galaxymap3d import (
     CAMERA_START_PHI_DEG, CAMERA_START_THETA_DEG, camera_position_pc, initial_tile_request, tile_bounds_pc,
     view_radius_bounds)
@@ -42,7 +42,7 @@ PAGE_SIZE = 100
 PHASES = (
     ("opening", "the object index, the opening views and the first page of each list",
      ("object-index", "galaxy-map", "lists")),
-    ("built-levels", "the Galaxy Map's tiles to the built levels", ("galaxy-tiles",)),
+    ("built-levels", "the Galaxy Map's tiles to the built levels and its sector-block nodes", ("galaxy-tiles", "galaxy-nodes")),
     ("deep-tiles", "the deep tiles along the zoom run in to the centre", ("galaxy-deep-tiles",)),
     ("objects", "the sector, system and phenomenon pages", ("sectors", "systems", "phenomena")),
     ("search", "the search page and its answers", ("search",)),
@@ -55,6 +55,8 @@ _FAMILY_TEXT = {
     "galaxy-map": "the Galaxy Map's opening view, its shape, sectors and phenomena",
     "lists": "the first page of every list, and its counts",
     "galaxy-tiles": "the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels in full",
+    "galaxy-nodes": "the Galaxy Map's sector-block nodes: every populated block from the whole galaxy down to level "
+                    "`NODE_WARM_FLOOR`",
     "galaxy-deep-tiles": "the Galaxy Map's deep tiles: the zoom run in to the centre, down to `warm_zoom_levels`",
     "sectors": "every sector page",
     "systems": "every system page",
@@ -184,6 +186,17 @@ what this allows are refused, saying how many the levels would build, rather tha
 ZOOM_STEP = viewport.DISTANCE_CUT_FADE_BAND
 """float: The zoom run's camera distance falls by this factor between two cuts; the cut of tiles changes by less than
 the fetch of one step, so every tile the map would ask for on the way is in a cut of the run (MAP.152, the fade band)."""
+
+NODE_CHUNK = 64
+"""int: Nodes one unit of `warm-galaxy-nodes` builds (about as many as a tile unit's work, `tilecache.MAX_NODES_PER_REQUEST`
+is the most a request holds)."""
+
+NODE_WARM_FLOOR = 243
+"""int: The finest block level `warm-galaxy-nodes` builds ahead (MAP.260): the populated blocks of that level and every
+bigger one, the nodes the map opens on its way in; finer blocks are built as a visit asks, then prefetched around it."""
+
+NODE_SECONDS = 0.3
+"""float: About how long one node takes to build, seconds (the weight of a unit in the stage's bar)."""
 
 TILE_SECONDS = ((6, 0.5), (7, 0.35), (8, 0.15))
 """tuple: `(level, seconds)`: the seconds one tile up to that level takes to build, measured on the scaled probe galaxy
@@ -417,6 +430,26 @@ def _warm_galaxy_tiles(visitor, cap, deep=False):
     return {"warmed": warmed, "noun": "tiles", "already": already, "left_out": 0}
 
 
+def _populated_nodes(database):
+    """The keys `warm-galaxy-nodes` builds, from the stored block rows (`nodes.populated_node_keys`)."""
+    conn = store.get_connection(store.MySQLConfig(database=database), ensure_schema=False)
+    try:
+        return nodes.populated_node_keys(conn, NODE_WARM_FLOOR)
+    finally:
+        conn.close()
+
+
+def _warm_galaxy_nodes(visitor, cap):
+    """Warms every node `warm-galaxy-nodes` builds, in this process (`warm_family`, the command's inline twin)."""
+    keys = _populated_nodes(visitor.db)
+    warmed = already = 0
+    for start in range(0, len(keys), NODE_CHUNK):
+        result = fetch_nodes(visitor.db, keys[start:start + NODE_CHUNK])
+        warmed += len(result["nodes"])
+        already += result["cached"]
+    return {"warmed": warmed, "noun": "nodes", "already": already, "left_out": 0}
+
+
 def _warm_lists(visitor, cap):
     from planetgen.web.object_lists import KIND_LABELS
     paths = ["/", "/sectors", "/systems", "/systems?uncharted=1", "/phenomena", "/classes", "/lists"]
@@ -464,7 +497,7 @@ def _warm_galaxy_deep_tiles(visitor, cap):
     return _warm_galaxy_tiles(visitor, cap, deep=True)
 
 
-_WARMERS = {"galaxy-map": _warm_galaxy_map, "galaxy-tiles": _warm_galaxy_tiles,
+_WARMERS = {"galaxy-map": _warm_galaxy_map, "galaxy-tiles": _warm_galaxy_tiles, "galaxy-nodes": _warm_galaxy_nodes,
             "galaxy-deep-tiles": _warm_galaxy_deep_tiles, "lists": _warm_lists, "sectors": _warm_sectors,
             "systems": _warm_systems, "phenomena": _warm_phenomena, "search": _warm_search}
 
@@ -624,6 +657,58 @@ def _warm_tile_chunk(args, report, family):
             "left_out": 0, "seconds": seconds,
             "line": f"{family}: {count} tiles warmed ({built} built, {result['cached']} already stored) in "
                     f"{seconds:.1f} s"}
+
+
+def warm_galaxy_nodes_unit(args, report):
+    """
+    The unit of the `warm-galaxy-nodes` command (MAP.260): builds one chunk of the nodes into the disk cache, the
+    same call the map's own request makes (`tilecache.fetch_nodes`), so what it stores is what a visitor is served. A
+    node that is already stored and current is not built again.
+
+    Args:
+        args (dict): `database` (the site's) and `keys` (the chunk, at most `NODE_CHUNK` node keys).
+        report (callable): Called with `(done, estimate)` when the chunk is built.
+    """
+    started = time.monotonic()
+    count = len(args["keys"])
+    if not count:
+        report(0, 0)
+        return {"family": "galaxy-nodes", "warmed": 0, "noun": "nodes", "cached": 0, "built": 0, "left_out": 0,
+                "seconds": 0.0, "line": "galaxy-nodes: no block is stored yet, so no node to warm"}
+    if tilecache.cache_is_full():
+        report(count, count)
+        return {"family": "galaxy-nodes", "warmed": 0, "noun": "nodes", "cached": 0, "built": 0, "left_out": count,
+                "seconds": 0.0,
+                "line": f"galaxy-nodes: {count} nodes left out, " + (
+                    "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
+                    f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)")}
+    app = build_app()
+    with app.test_request_context("/"):
+        result = fetch_nodes(args["database"], args["keys"], ahead=True)
+    report(count, count)
+    seconds = time.monotonic() - started
+    built = count - result["cached"]
+    return {"family": "galaxy-nodes", "warmed": count, "noun": "nodes", "cached": result["cached"], "built": built,
+            "left_out": 0, "seconds": seconds,
+            "line": f"galaxy-nodes: {count} nodes warmed ({built} built, {result['cached']} already stored) in "
+                    f"{seconds:.1f} s"}
+
+
+def expand_warm_galaxy_nodes(params):
+    """The units of the `warm-galaxy-nodes` stage: the populated blocks of `NODE_WARM_FLOOR` and above, in chunks of
+    `NODE_CHUNK`, coarsest first."""
+    database = params["database"]
+    keys = _populated_nodes(database)
+    units = [({"database": database, "keys": keys[start:start + NODE_CHUNK]},
+              NODE_SECONDS * len(keys[start:start + NODE_CHUNK])) for start in range(0, len(keys), NODE_CHUNK)]
+    if not units:       # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
+        units = [({"database": database, "keys": []}, NODE_SECONDS)]
+    return commands.Expansion(units, {"nodes": len(keys), "floor": NODE_WARM_FLOOR})
+
+
+def finish_warm_galaxy_nodes(params, plan, results, seconds):
+    """Leaves one line in the activity log for the whole `warm-galaxy-nodes` stage."""
+    return _finish_tiles(params, results, seconds, "galaxy-nodes")
 
 
 def warm_galaxy_deep_tiles_unit(args, report):

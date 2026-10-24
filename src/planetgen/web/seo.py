@@ -45,7 +45,7 @@ DETAIL = frozenset({
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data",
     "web.galaxy_locate", "web.galaxy_status", "web.galaxy_nebula_shape", "web.galaxy_nebula_surroundings", "web.galaxy_stage", "web.galaxy_territories",
-    "web.galaxy_tiles", "web.galaxy_uncharted_scene", "web.galaxy_window", "web.sector_on_galaxy_map",
+    "web.galaxy_tiles", "web.galaxy_nodes", "web.galaxy_uncharted_scene", "web.galaxy_window", "web.sector_on_galaxy_map",
     "web.sector_scene", "web.system_on_galaxy_map", "web.system_scene", "web.old_page",
 })
 PRIVATE_PREFIXES = ("web.admin", "web.generate", "web.download_galaxy_settings")

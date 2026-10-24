@@ -357,14 +357,14 @@ def _register_error_handlers(app):
         # raises a bare 429) the same way `404`/`405` above catch Flask's
         # own routing exceptions, without importing Flask-Limiter's
         # exception type here just to reference it once.
-        # /galaxy/tiles is fetched by the map's script, which wants JSON
+        # /galaxy/tiles and /galaxy/nodes are fetched by the map's script, which wants JSON
         # like the API; every other page gets the HTML error page.
         log.debug(f"Rate limit exceeded by {request.remote_addr} on {request.path}: {exc.description}")
         if request.path in _SIGN_IN_PATHS:
             # A password guesser past the per-address limit (SEC.20);
             # the form never got as far as reading a username.
             activity_log.event("AUTH", "login.ratelimited", path=request.path)
-        if not _is_api_request() and request.endpoint != "web.galaxy_tiles":
+        if not _is_api_request() and request.endpoint not in ("web.galaxy_tiles", "web.galaxy_nodes"):
             return render_error(429, "Too many requests. Please wait a minute and try again.")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429
 
