@@ -38,7 +38,7 @@ Supported platforms:
 | A rented server | as on Linux | as on Linux | [VPS and PaaS](docs/deployment/paas.md) |
 
 [`docs/deployment/README.md`](docs/deployment/README.md) compares the
-platforms in more detail. Windows: see [docs/WINDOWS.md](docs/WINDOWS.md).
+platforms in more detail. Windows: see [docs/deployment/WINDOWS.md](docs/deployment/WINDOWS.md).
 
 > Do not install planetGen with `pip install .`. The installers put its
 > libraries in a virtual environment (`/usr/local/planetgen/venv`) built
@@ -134,7 +134,7 @@ At minimum set:
   Apache with mod_wsgi does not need it.
 
 Every setting, and the `PLANETGEN_*` environment variable that overrides
-it, is in [`docs/config.md`](docs/config.md). `config.json` is gitignored,
+it, is in [`docs/reference/config.md`](docs/reference/config.md). `config.json` is gitignored,
 so updates never overwrite it, and the installers make it readable only
 by administrators and the web server's account.
 
@@ -235,7 +235,7 @@ Where the examples live:
 | [`examples/macos/`](examples/macos/) | nginx config and launchd plists (gunicorn, orbit update, `update.sh`) | [macos.md](docs/deployment/macos.md) |
 | [`examples/redis/`](examples/redis/) | Redis settings (append-only file, noeviction, memory guard, loopback) | [deployment](docs/deployment/README.md) |
 | [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`) | [below](#scheduled-maintenance) |
-| [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/system-file-format.md) |
+| [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/reference/system-file-format.md) |
 
 ## 6. HTTPS and the first admin login
 
@@ -246,7 +246,7 @@ Then open `https://<your site>/login` and sign in as `admin` with the
 password the installer printed. You are sent to `/account` to choose
 your own username and password; the other admin pages stay locked until
 you do. Lost the password? See
-[Resetting the admin login](docs/api.md#resetting-the-admin-login).
+[Resetting the admin login](docs/reference/api.md#resetting-the-admin-login).
 
 ## 7. Generate the galaxy
 
@@ -286,7 +286,7 @@ See [Usage](README.md#usage) for the other commands.
 
 ## 8. Check the server
 
-Run the [server checklist](docs/server-checklist.md): it confirms the
+Run the [server checklist](docs/deployment/server-checklist.md): it confirms the
 code, schema, indexes, web server config, cache and permissions are all
 right, with commands for each platform.
 
@@ -358,4 +358,4 @@ python3 src/html/wsgi.py      # the site at http://127.0.0.1:5000/
 
 Set `admin_cookie_insecure` in `config.json` to log in over plain HTTP
 locally. Database tests need a MySQL server, and the work-queue tests need Redis
-(`PLANETGEN_TEST_REDIS_URL`); both skip without one. See [`docs/testing.md`](docs/testing.md).
+(`PLANETGEN_TEST_REDIS_URL`); both skip without one. See [`docs/reference/testing.md`](docs/reference/testing.md).

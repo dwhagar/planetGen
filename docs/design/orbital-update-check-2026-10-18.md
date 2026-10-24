@@ -1,6 +1,6 @@
 # Orbital update check against Boss's four steps (2026-10-18)
 
-Read-only check, no code changes. Written after Boss's message of 5:24 PM EDT on 2026-10-18 (this lane's clock). Sources: docs on main at 440db88 (`docs/design/orbital-updates.md`, `orbital-solvers-and-integrators.md`, `Orbital Update Full Algorithm.md`, `galactic-potential.md`, `gravity-map.md`, `mass-object-class.md`, `docs/plan/version-8-3-moving-galaxy.md`, `docs/TODO.md`), the drafts in this folder (`unified-system-barycentre.md`, `unified-star-like-objects.md`, `mass-object-class-savings.md`) and the code in `src/planetgen/db/store.py`, `physics/position.py`, `physics/field_kernel.py`, `physics/sector_path.py`. Nothing was run; every code statement is from reading the source.
+Read-only check, no code changes. Written after Boss's message of 5:24 PM EDT on 2026-10-18 (this lane's clock). Sources: docs on main at 440db88 (`docs/design/orbital-updates.md`, `orbital-solvers-and-integrators.md`, `Orbital Update Full Algorithm.md`, `galactic-potential.md`, `gravity-map.md`, `mass-object-class.md`, `docs/plan/releases/version-8-3-moving-galaxy.md`, `docs/TODO.md`), the drafts in this folder (`unified-system-barycentre.md`, `unified-star-like-objects.md`, `mass-object-class-savings.md`) and the code in `src/planetgen/db/store.py`, `physics/position.py`, `physics/field_kernel.py`, `physics/sector_path.py`. Nothing was run; every code statement is from reading the source.
 
 Boss's message, quoted:
 
@@ -30,7 +30,7 @@ Each moving row has `epoch_unix` and an indexed `next_update_due` (GEN.106, sche
 Two notes that touch the new standing rule (Boss, 5:20 PM EDT, GEN.565 and GEN.584):
 
 - The check is not one function. It is repeated in `advance_galactic_positions`, `advance_orbital_phases` and `advance_comet_orbits`, and for about a dozen tables, each with its own epoch and due columns. GEN.584 (SY17) puts epoch and next-due in the core's kinematic record, so after GEN.565b and GEN.584 there is one check for every kind of motion. That agrees with Boss's rule. GEN.565a (#2274) only carries the galactic-motion fields, so the one-check outcome is not there until the later slices.
-- The 8.3 plan page still says the whole orbital update is "Proposed by the TODO thread; not yet approved by Boss" (`docs/plan/version-8-3-moving-galaxy.md`, Goal).
+- The 8.3 plan page still says the whole orbital update is "Proposed by the TODO thread; not yet approved by Boss" (`docs/plan/releases/version-8-3-moving-galaxy.md`, Goal).
 
 ## Step 2: records without a next-update field. Partly covers; the built code does something different.
 

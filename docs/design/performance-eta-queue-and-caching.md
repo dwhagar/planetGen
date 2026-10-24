@@ -216,7 +216,7 @@ wall time as 400 single-system generations, and the 8 s wait of `run_queued` spe
 planetgen-api processes=1 threads=5`, `examples/apache/planetgen.conf.example`), and
 each waiting edit holds one for the whole spawn, polling Redis about 19 times a second
 on a fresh connection. The server has been OOM-killed before
-([server-checklist.md](../server-checklist.md)); an uncapped 195 MB process per queued
+([server-checklist.md](../deployment/server-checklist.md)); an uncapped 195 MB process per queued
 job is the same failure waiting for a batch.
 
 Recommendations, by value:
@@ -464,4 +464,4 @@ a fill.
 - Harrison, Yeo and Hudson, CHI 2010: https://www.figlab.com/research/2010/faster-progress-bars
 - Vattani, Chierichetti and Lowenstein, PVLDB 8(8), 2015: https://iris.uniroma1.it/handle/11573/877847 and https://docs.rs/xfetch/
 - py-spy and pyinstrument overviews: https://pypi.org/project/py-spy and https://pypi.org/project/pyinstrument/0.13.2/ (the project's own overhead benchmark: sampling cheapest, `cProfile` heavier; percentages differ between versions)
-- Project files: the design documents linked above, `docs/server-checklist.md`, `/mnt/project-files/bright-star-timing/report.md`, `/mnt/project-files/galaxy-oom/apache-recovery.md`, `/mnt/project-files/site-load-fix/server-checklist.md` (the original of the repository checklist).
+- Project files: the design documents linked above, `docs/deployment/server-checklist.md`, `/mnt/project-files/bright-star-timing/report.md`, `/mnt/project-files/galaxy-oom/apache-recovery.md`, `/mnt/project-files/site-load-fix/server-checklist.md` (the original of the repository checklist).

@@ -236,9 +236,9 @@ ServerName/TLS/logging are your call):
   3. Log in at https://<ServerName>/login with the admin username and
      password printed once in step 2/8 above, and change both (the
      admin pages stay locked until you do). Lost it? See "Resetting the
-     admin login" in docs/api.md.
+     admin login" in docs/reference/api.md.
 
-See docs/deployment/apache.md and docs/html-interface.md for more detail.
+See docs/deployment/apache.md and docs/reference/html-interface.md for more detail.
 ------------------------------------------------------------------------
 EOF
 else

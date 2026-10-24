@@ -6,7 +6,7 @@ The lever table (GEN.601; docs/design/galaxy-size-levers.md): the one definition
 Every input the user can give the shape of a galaxy is one `Lever` row here: its name, command-line flag, label, unit,
 range, step, what Auto means, the law it moves and the source that sets its range. The `planetgen plan` flags
 (`add_arguments`), the Generate page's fields (`web/generate_page.py`, `templates/generate.html`), the out-of-range
-message (`Lever.problem`), the help text and the table in `docs/cli.md` (`docs_table`) are all built from `LEVERS`, and
+message (`Lever.problem`), the help text and the table in `docs/reference/cli.md` (`docs_table`) are all built from `LEVERS`, and
 `tests/test_galaxy_dials.py` fails when a flag, a field, a help line or a docs row is missing for a row, or exists
 without one.
 
@@ -490,7 +490,7 @@ def describe_pins(pins):
 
 
 def docs_table():
-    """The markdown table of every lever that `docs/cli.md` carries between its dials markers."""
+    """The markdown table of every lever that `docs/reference/cli.md` carries between its dials markers."""
     lines = ["| Dial | Flag | What it sets | Allowed | Default (Auto) | Source of the range |",
              "|---|---|---|---|---|---|"]
     labels = dict(DIALS)
@@ -516,7 +516,7 @@ def halo_note():
 
 
 def docs_block():
-    """The text between (and with) the markers in `docs/cli.md`."""
+    """The text between (and with) the markers in `docs/reference/cli.md`."""
     return f"{DOCS_BEGIN}\n{docs_table()}\n\n{halo_note()}\n{DOCS_END}"
 
 
@@ -545,13 +545,13 @@ def _rewrite(path, begin, end, block):
 def _main(argv=None):
     import pathlib
     parser = argparse.ArgumentParser(description="Print the lever table, or rewrite its blocks in the docs.")
-    parser.add_argument("--write", action="store_true", help="Rewrite the blocks in docs/cli.md and the gap-filling plan.")
+    parser.add_argument("--write", action="store_true", help="Rewrite the blocks in docs/reference/cli.md and the gap-filling plan.")
     args = parser.parse_args(argv)
     if not args.write:
         print(docs_block())
         return 0
     docs = pathlib.Path(__file__).resolve().parents[3] / "docs"
-    _rewrite(docs / "cli.md", DOCS_BEGIN, DOCS_END, docs_block())
+    _rewrite(docs / "reference" / "cli.md", DOCS_BEGIN, DOCS_END, docs_block())
     _rewrite(docs / "design" / "gap-filling-plan.md", REGISTRY_BEGIN, REGISTRY_END, registry_block())
     return 0
 

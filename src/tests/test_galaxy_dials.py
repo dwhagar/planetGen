@@ -2,7 +2,7 @@
 
 """
 The lever table (GEN.601; planetgen/galaxy/dials.py): the one definition of the galaxy shape inputs. The command-line
-flags, the Generate form's fields, the help lines and the table in docs/cli.md are all built from it, and these tests
+flags, the Generate form's fields, the help lines and the table in docs/reference/cli.md are all built from it, and these tests
 fail when one is missing for a row, or exists without a row.
 """
 
@@ -154,10 +154,10 @@ def test_the_form_has_a_row_per_lever():
 # --- the docs ---------------------------------------------------------------------------------------------------
 
 def test_the_docs_carry_the_table_as_built():
-    text = (ROOT / "docs" / "cli.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "reference" / "cli.md").read_text(encoding="utf-8")
     start = text.index(dials.DOCS_BEGIN.split(" (")[0])
     end = text.index(dials.DOCS_END) + len(dials.DOCS_END)
-    assert text[start:end] == dials.docs_block(), "docs/cli.md is stale: run python3 -m planetgen.galaxy.dials --write"
+    assert text[start:end] == dials.docs_block(), "docs/reference/cli.md is stale: run python3 -m planetgen.galaxy.dials --write"
     for row in dials.LEVERS:
         assert f"`{row.flag}`" in text[start:end]
 

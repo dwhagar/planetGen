@@ -134,7 +134,7 @@ setup(
                  # tests/test_fuzz_*.py (property-based brute-force tests;
                  # see tests/fuzz_support.py).
                  'hypothesis>=6.100.0',
-                 # `pytest -n auto` (docs/testing.md); the suite still
+                 # `pytest -n auto` (docs/reference/testing.md); the suite still
                  # runs serially without it.
                  'pytest-xdist>=3.5.0',
                  'pytest-timeout>=2.3.1',

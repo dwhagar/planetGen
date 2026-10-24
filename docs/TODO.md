@@ -5,8 +5,8 @@
 This file tracks **open work only**. Finished work is not listed here:
 `CHANGELOG.md` and git history are the record. For how things work today,
 read the code and the reference docs (`src/stellarObjects/schema.sql` and
-`docs/database-schema.md` for the schema, `docs/api.md` and
-`docs/html-interface.md` for the web interface,
+`docs/reference/database-schema.md` for the schema, `docs/reference/api.md` and
+`docs/reference/html-interface.md` for the web interface,
 `docs/design/galaxy-coordinate-system.md` for galaxy geometry).
 
 Each open item says what's wrong (the observed symptom), where to start
@@ -30,7 +30,7 @@ that default.
   its subitems keep their place.
 - A new ID is one more than the highest ever issued in its category,
   finished items included.
-  [design/todo-number-map.md](design/todo-number-map.md) lists every ID
+  [plan/todo-number-map.md](plan/todo-number-map.md) lists every ID
   issued so far and the next free number in each category. It also maps
   the old running numbers (1 to 111, used until 2026-10-01 in the
   changelog, commits, PR titles and older docs) and the dotted tree IDs
@@ -139,22 +139,22 @@ item has no row there.
 
 | Version | Plan | Headline |
 |---|---|---|
-| 8.1 | [version-8-1-zoom-and-scatters.md](plan/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
-| 8.2 | [version-8-2-accounts-and-invitations.md](plan/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
-| 8.3 | [version-8-3-moving-galaxy.md](plan/version-8-3-moving-galaxy.md) | The moving galaxy |
-| 8.4 | [version-8-4-new-worlds.md](plan/version-8-4-new-worlds.md) | New worlds |
-| 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
-| 8.6 | [version-8-6-edit-everything.md](plan/version-8-6-edit-everything.md) | Edit everything |
-| 8.7 | [version-8-7-console-and-help.md](plan/version-8-7-console-and-help.md) | The pilot's console and built-in help |
-| 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
-| 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
-| 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/version-9-0-composition-and-atmosphere-colour.md) | Composition and atmosphere colour |
-| 9.1 | [version-9-1-view-from-a-planet.md](plan/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
-| 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
-| 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
-| 9.4 | [version-9-4-galaxy-types.md](plan/version-9-4-galaxy-types.md) | Galaxy types |
-| 10.0 | [version-10-0-roles-and-permissions.md](plan/version-10-0-roles-and-permissions.md) | Roles and permissions |
-| later | [version-later-future-features.md](plan/version-later-future-features.md) | Future features (not scheduled) |
+| 8.1 | [version-8-1-zoom-and-scatters.md](plan/releases/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
+| 8.2 | [version-8-2-accounts-and-invitations.md](plan/releases/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
+| 8.3 | [version-8-3-moving-galaxy.md](plan/releases/version-8-3-moving-galaxy.md) | The moving galaxy |
+| 8.4 | [version-8-4-new-worlds.md](plan/releases/version-8-4-new-worlds.md) | New worlds |
+| 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/releases/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
+| 8.6 | [version-8-6-edit-everything.md](plan/releases/version-8-6-edit-everything.md) | Edit everything |
+| 8.7 | [version-8-7-console-and-help.md](plan/releases/version-8-7-console-and-help.md) | The pilot's console and built-in help |
+| 8.8 | [version-8-8-deep-sky.md](plan/releases/version-8-8-deep-sky.md) | The deep sky |
+| 8.9 | [version-8-9-generate-anywhere.md](plan/releases/version-8-9-generate-anywhere.md) | Generate anywhere |
+| 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/releases/version-9-0-composition-and-atmosphere-colour.md) | Composition and atmosphere colour |
+| 9.1 | [version-9-1-view-from-a-planet.md](plan/releases/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
+| 9.2 | [version-9-2-politics-and-territories.md](plan/releases/version-9-2-politics-and-territories.md) | Politics and territories |
+| 9.3 | [version-9-3-ships-and-stations.md](plan/releases/version-9-3-ships-and-stations.md) | Ships and stations |
+| 9.4 | [version-9-4-galaxy-types.md](plan/releases/version-9-4-galaxy-types.md) | Galaxy types |
+| 10.0 | [version-10-0-roles-and-permissions.md](plan/releases/version-10-0-roles-and-permissions.md) | Roles and permissions |
+| later | [version-later-future-features.md](plan/releases/version-later-future-features.md) | Future features (not scheduled) |
 
 Version 8.0 is the finished Phase 0 and has no file. Version "later" holds
 possible future features that belong to no version yet (multiple
@@ -5801,7 +5801,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   keeps the cap in one named setting so this item only wires it. The
   bounds are defaults for Boss to change. Done: the option, the read at
   run start, a test that a run with a lower cap stores fewer systems per
-  cell, and the entry in docs/config.md.
+  cell, and the entry in docs/reference/config.md.
   Stored in the user's `config.json` like every option (one
   configuration file, ADM.96).
   The cap it wires is the adaptive one of GEN.364 (Boss, 2026-10-16,
@@ -16188,7 +16188,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   60 minutes, a setting). No Alembic revision and no generator epoch;
   the same seed must still give the same sectors at 1 and 4 workers.
   Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/cli.md`. F5, size L. A
+  admin settings page entry (ADM.84) and `docs/reference/cli.md`. F5, size L. A
   run that cannot start joins one Redis waiting list (maximum 8, a
   setting) instead of failing with Busy; the list is ordered data, the
   job strip (ADM.119) reads it, and a waiting run or one-sector
@@ -16219,7 +16219,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   60 minutes, a setting). No Alembic revision and no generator epoch;
   the same seed must still give the same sectors at 1 and 4 workers.
   Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/cli.md`. F6, size M. No
+  admin settings page entry (ADM.84) and `docs/reference/cli.md`. F6, size M. No
   unit of a stage is expected to run longer than a ceiling (default 5
   minutes, a setting) unless the stage is a one-unit command; longer
   ones are split (PERF.113 to PERF.117 decide the splits). It bounds the
@@ -17607,7 +17607,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the
   version header is `X-PlanetGen-API-Version` (the code's
-  `API_VERSION_HEADER`, docs/api.md, API.31 of 2026-10-17, 11:33 AM
+  `API_VERSION_HEADER`, docs/reference/api.md, API.31 of 2026-10-17, 11:33 AM
   EDT), not `PlanetGen-API-Version`; and the server reports its version
   and accepted range at `GET /api/version` (2026-10-09 research), not
   only at `/api/health`, which may keep reporting `api_version`.
@@ -17656,7 +17656,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   user accounts exist (USR.1) the logged user can be any account.
   Research (2026-10-09, api-design-standards.md): log through the
   activity log first (a new `API` category in `CATEGORIES` and
-  `docs/config.md`), with `X-Request-Id`, an `after_request` hook,
+  `docs/reference/config.md`), with `X-Request-Id`, an `after_request` hook,
   `internal=1` for in-process page calls (about 6 per page view) and an
   `api_log.internal` setting, and the privacy and retention paragraph
   (open question for Boss, default 30 days full IP, then truncated, 13
@@ -17764,8 +17764,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   3, but the switch changed the sector address parameters of the API
   from ring, layer and slot to shell, band and wedge, which is a
   breaking change (`src/tests/test_api_version.py` says to bump it and
-  add its line to the change list in `docs/api.md`). Owner: Core
-  (2026-10-15). Done: `API_VERSION` is 4, `docs/api.md` lists the
+  add its line to the change list in `docs/reference/api.md`). Owner: Core
+  (2026-10-15). Done: `API_VERSION` is 4, `docs/reference/api.md` lists the
   change, and the version header tests pass. Open question for Boss
   (default: bump to 4; there is no backward compatibility and Boss is
   the only user, so no 3 route is kept). Not a bug.
@@ -21367,7 +21367,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   hosts have no Apache. State plainly in the docs that a reload aborts
   in-flight daemon requests after about 4 s while `touch
   src/html/wsgi.py` does not. Update `docs/deployment/apache.md` (lines
-  22, 29, 164), the `docs/server-checklist.md` "reload the app" row and
+  22, 29, 164), the `docs/deployment/server-checklist.md` "reload the app" row and
   the closing text of `update.sh` and `install.sh`; `update.sh` prints
   "restart" after `a2enmod` though a graceful reload loads new modules.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: print
@@ -21404,7 +21404,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   history row, the sector and the galaxy record), so this item only
   shows it: on the admin status page beside the DB schema number, and in
   the API status response (an added field is not a breaking change; say
-  so in docs/api.md). The release version (MAJOR.REVISION.BUILD) stays
+  so in docs/reference/api.md). The release version (MAJOR.REVISION.BUILD) stays
   as it is.
   Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
   `generator_epoch` are the same number, bumped only when output changes
@@ -21694,7 +21694,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   documentation pages for all features accessible through the web
   interface." Done: a short non-developer page on the API (/api): what
   it can do, getting a key, rate and upload limits, versioning (API.22),
-  and a link to the full reference in docs/api.md; kept in step with
+  and a link to the full reference in docs/reference/api.md; kept in step with
   that file. The page is a Markdown file in docs/help/ built into the
   Help section, linked from each page it describes, and updated by any
   later change to those features (a feature item is not done until its
@@ -21727,8 +21727,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Requested by the coordinator from Boss's instruction of 2026-10-14
   18:06Z to compare the docs with merged work. UX.102 sets one logging
   standard (timestamps, format, dividers, step markers) for everything
-  the user or an admin reads; once it is built, docs/cli.md,
-  docs/html-interface.md (Generate page and job log) and docs/testing.md
+  the user or an admin reads; once it is built, docs/reference/cli.md,
+  docs/reference/html-interface.md (Generate page and job log) and docs/reference/testing.md
   need a short section on it. Done: the standard is described once and
   the three docs link to it.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
@@ -21775,7 +21775,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 96-bit layout as built. Owner: Quality, after the code.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
   #1784): section 5.9 of docs/design/intergalactic-and-halo-contents.md
-  now has a "Built" paragraph and docs/cli.md is updated; this item
+  now has a "Built" paragraph and docs/reference/cli.md is updated; this item
   carries the rest.
   Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
@@ -22110,7 +22110,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   options in the code.
   GEN.600 is merged as #2464 (relayed 9:01 AM EDT 2026-10-22: `fetch`
   and `status` print each file's URL and update.sh and install.sh show
-  those lines, docs/cli.md updated); this item still owns the README row
+  those lines, docs/reference/cli.md updated); this item still owns the README row
   for it.
   Owner: the TODO thread (docs-only change with its catalogue test; this
   replaces any earlier owner line on this item).

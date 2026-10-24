@@ -15,7 +15,7 @@ Evidence tags: [S] seen in a search result or package page, [C] computed in the 
 - Accounts (Boss, 2026-10-01): an email loop for setting and resetting passwords; invite only, by unique link, with a use count and an expiry of 1, 4, 6, 12 or 24 hours, 3 or 7 days, 1 month, 1 year or never; infinite uses with never expiring asks for confirmation. One "Owner" account, made at install, cannot be overridden. Owner transfer needs specific approval, double password confirmation and an email loop, and the target accepts by email. SMTP settings live in the admin config (USR.1 to USR.6).
 - API keys (Boss, 2026-10-02 01:31Z): "all keys are attached to the account that created them"; admins create user-level keys that read but do not upload (API.6). All signed-in users may generate a one-off system (Boss, 2026-10-02 05:16Z, USR.8).
 - Library swaps leave no shims (Boss, 2026-10-07), so `util/appconfig.py` is deleted, not wrapped.
-- SEC.29, SEC.30 and SEC.31 are done (PRs #612, #643, #457 per [todo-number-map.md](todo-number-map.md)).
+- SEC.29, SEC.30 and SEC.31 are done (PRs #612, #643, #457 per [todo-number-map.md](../plan/todo-number-map.md)).
 
 ## Part A: settings model, configuration page, SEO and Open Graph
 
@@ -25,7 +25,7 @@ Verified against the code on this branch:
 
 - `util/appconfig.py` holds `DEFAULT_CONFIG` (a dict) and `load_config()`, which re-reads and deep-merges `config.json` on every call with no schema, no unknown-key check and no type checks. A typo such as `"ratelimt"` is accepted silently, and `debug` needs a hand-written string-to-bool shim. A Pydantic bool does that (`"false"` and `"0"` give `False`, `"maybe"` is an error) [C].
 - About 14 modules import `appconfig`: `api/config.py` freezes most options at import, the rest read per use.
-- `docs/config.md` has a hand-written field table of about 25 rows. Keep its prose, generate the table (A8). `base_url` is documented as "not yet read by any page"; ADM.44 makes it load-bearing, so it needs validation.
+- `docs/reference/config.md` has a hand-written field table of about 25 rows. Keep its prose, generate the table (A8). `base_url` is documented as "not yet read by any page"; ADM.44 makes it load-bearing, so it needs validation.
 - `base.html` hard-codes the two `theme-color` values and `favicon.svg`.
 - Pydantic is already a dependency (`pydantic>=2.7.0`; `api/schemas.py`, `web/generate_page.py`). `setup.py` said `python_requires='>=3.9'` when this was written, so each new dependency needed a 3.9-compatible release (history: the minimum is Python 3.12 since Boss, 2026-10-14, `python_requires='>=3.12'`).
 
@@ -123,7 +123,7 @@ Import and export: export downloads the effective settings of the options a web 
 
 ### A7. Generated docs and the drift tests
 
-`python -m planetgen.cli.config docs` rewrites the table between `<!-- BEGIN GENERATED -->` markers in `docs/config.md` (option, type, default, unit, live or restart, environment variable, description) and writes `config.json.example` from the defaults; the permissions, precedence and activity-log prose stays hand-written. Tests: (1) regenerating matches the committed files; (2) no module outside the settings module calls `load_config`, reads `DEFAULT_CONFIG` or indexes `config["..."]` (the ADM.42 requirement; typed access such as `settings.tile_cache.max_mb` makes a missing option an `AttributeError`, stronger than a grep); (3) every `x-env` name appears in the docs, no non-editable field is in the generated form, no secret field is in export.
+`python -m planetgen.cli.config docs` rewrites the table between `<!-- BEGIN GENERATED -->` markers in `docs/reference/config.md` (option, type, default, unit, live or restart, environment variable, description) and writes `config.json.example` from the defaults; the permissions, precedence and activity-log prose stays hand-written. Tests: (1) regenerating matches the committed files; (2) no module outside the settings module calls `load_config`, reads `DEFAULT_CONFIG` or indexes `config["..."]` (the ADM.42 requirement; typed access such as `settings.tile_cache.max_mb` makes a missing option an `AttributeError`, stronger than a grep); (3) every `x-env` name appears in the docs, no non-editable field is in the generated form, no secret field is in export.
 
 ### A8. ADM.44: web, Open Graph and SEO settings
 
@@ -311,7 +311,7 @@ Count in Redis, not the control database as USR.8's default says: the data is ep
 
 - [login-brute-force-protection.md](login-brute-force-protection.md) section 5 said "Planned: libraries" for work that is done (SEC.29, SEC.30); corrected in place.
 - The research draft said `loginguard.py` uses Flask-Limiter's storage and named control schema v9; the lockout counters are the project's own `RedisStore` on the same Redis server, and the control schema is at v10.
-- `docs/config.md` makes `config.json` read-only to the web process, so ADM.43's web-saved configuration is impossible as written (A2); its "`base_url` not yet read" changes with ADM.44.
+- `docs/reference/config.md` makes `config.json` read-only to the web process, so ADM.43's web-saved configuration is impossible as written (A2); its "`base_url` not yet read" changes with ADM.44.
 - NIST SP 800-63B-4 asks for 15 characters when the password is the only factor; the 12-character policy holds only while a second factor is expected (B2).
 
 ## Evidence notes
@@ -338,6 +338,6 @@ Search results (secondary unless noted):
 - Link previews: https://support.discord.com/hc/en-us/articles/42500550752919-About-Discord-Link-Previews-and-the-Discordbot (title only), https://htmlcsstoimage.com/features/og-images-for-discord, https://env.dev/guides/opengraph-image-not-showing, https://screenhance.com/blog/og-image-size-guide, https://quickseo.ai/tools/twitter-card-validator, https://superblog.ai/blog/ai-crawlers-guide, https://www.texta.ai/blog/ai-crawler-user-agents
 - itsdangerous: https://itsdangerous.palletsprojects.com/url_safe/
 
-Repository files read: `docs/TODO.md` (ADM.42-44, ADM.18, USR.1-8, API.6, API.15, UX.49, VIEW.3), `docs/config.md`, `config.json.example`, the code under `src/planetgen/` named above, `db/control_schema.sql`, `setup.py` and `requirements.lock`.
+Repository files read: `docs/TODO.md` (ADM.42-44, ADM.18, USR.1-8, API.6, API.15, UX.49, VIEW.3), `docs/reference/config.md`, `config.json.example`, the code under `src/planetgen/` named above, `db/control_schema.sql`, `setup.py` and `requirements.lock`.
 
 See also [api-design-standards.md](api-design-standards.md) for the API conventions (keys, errors, paging, logging) that API.6 and the account items rely on.

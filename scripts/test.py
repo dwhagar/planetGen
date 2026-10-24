@@ -37,7 +37,7 @@ time on this checkout; the last line is `PASS` or `FAIL` with the duration and t
 run was stopped (Ctrl-C, or a stop from outside) -- a run whose output ends with none of the three was killed
 without a chance to say so. The duration is stored in `.test-runs.json` (not tracked by git) for the next run.
 
-Needs the same setup as plain pytest (docs/testing.md): the `test` extra, a
+Needs the same setup as plain pytest (docs/reference/testing.md): the `test` extra, a
 MySQL or MariaDB server and Redis through the PLANETGEN_TEST_* variables.
 """
 

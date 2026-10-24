@@ -6,9 +6,9 @@ running admin jobs, shipping a release) through those files. Use it to
 find where something lives before you open the code.
 
 It does not repeat the reference docs. For details, follow the links:
-[api.md](../api.md) (the JSON API), [database-schema.md](../database-schema.md)
-(tables and columns), [html-interface.md](../html-interface.md) (the web
-pages), [config.md](../config.md) (`config.json`), [testing.md](../testing.md)
+[api.md](../reference/api.md) (the JSON API), [database-schema.md](../reference/database-schema.md)
+(tables and columns), [html-interface.md](../reference/html-interface.md) (the web
+pages), [config.md](../reference/config.md) (`config.json`), [testing.md](../reference/testing.md)
 (the test suite) and [deployment/](../deployment/README.md) (servers).
 The other files in this folder are topic designs; they explain why a part
 works the way it does.
@@ -86,7 +86,7 @@ flowchart LR
 | `setup.py`, `pyproject.toml` | The Python package (`planetgen`, from `src/`) and its dependency floors and extras (`api`, `test`, `browser`). |
 | `INSTALL.md`, `config.schema.json` | The installation guide, and the JSON schema `config.json` is checked against. |
 | `requirements.lock`, `requirements-server.lock` | Hash-pinned dependency locks, written by `scripts/lock-requirements.sh`. |
-| `config.json.example` | Template for the per-deployment `config.json` (gitignored). See [config.md](../config.md). |
+| `config.json.example` | Template for the per-deployment `config.json` (gitignored). See [config.md](../reference/config.md). |
 | `pytest.ini` | Puts `src` on the path for the tests, sets the 15-minute per-test timeout and declares the markers (`db`, `slow`, `browser`, `generation`, `heavy`, `area_*`, ...). |
 | `CHANGELOG.md`, `README.md` | Release history and the project front page. Both are stamped by the release flow, never edited for the version by hand. |
 | `changes/` | Pending release notes, one file per PR. See [Flow 5](#flow-5-install-update-and-releases). |
@@ -100,10 +100,10 @@ flowchart LR
 | [`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh) | Makes the libraries importable by the system Python: plain pip, or apt first on an externally managed (PEP 668) Python, or a venv on macOS. `--check` installs only what is missing or too old. |
 | `scripts/probe_requirements.py` | Reports each requirement as ok, missing, old or broken. Used by `install.sh` and `update.sh`. Standard library only. |
 | `scripts/lock_pins.py` | Reads `requirements.lock` for `install-python-deps.sh` (constraints, resolve). Standard library only. |
-| [`scripts/test.py`](../../scripts/test.py) | Picks and runs a slice of the test suite (`changed`, `quick`, `full --check`, `budget`, ...; TEST.139). See [testing.md](../testing.md). |
+| [`scripts/test.py`](../../scripts/test.py) | Picks and runs a slice of the test suite (`changed`, `quick`, `full --check`, `budget`, ...; TEST.139). See [testing.md](../reference/testing.md). |
 | `scripts/generate_db_models.py` | Writes `planetgen/db/models.py` (SQLAlchemy `Table` declarations) from `schema.sql` (DB.11). |
 | `scripts/check_redis_settings.py` | Warns about Redis server settings that do not suit planetGen (OPS.48); run by `install.sh` and `update.sh`. |
-| [`scripts/build_architecture_map.py`](../../scripts/build_architecture_map.py) | Writes `docs/design/architecture-map.html`, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); `--check` fails when a module of the package is missing from the page. Its page shell is `scripts/architecture_map/template.html`. |
+| [`scripts/build_architecture_map.py`](../../scripts/build_architecture_map.py) | Writes `docs/generated/architecture-map.html`, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); `--check` fails when a module of the package is missing from the page. Its page shell is `scripts/architecture_map/template.html`. |
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
 | `scripts/build_unit_registry.py` | Writes the browser's copy of the unit registry (`static/unitregistry.js`: every unit, its kind, factor and offset, and `convert`) from `planetgen/physics/unit_registry.py` (UX.140). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
@@ -127,7 +127,7 @@ Copy-and-edit configuration for each kind of server. The guides in
 | `examples/macos/` | launchd plists (gunicorn, orbit update, update) and the Homebrew nginx config. |
 | `examples/systemd/` | The gunicorn service and a drop-in that reloads the web server after an update. |
 | `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `planetgen.cli.orbits` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS). |
-| `examples/systems/` | Sample system files for `planetgen system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../example-systems.md) and [system-file-format.md](../system-file-format.md). Checked by `test_examples.py`. |
+| `examples/systems/` | Sample system files for `planetgen system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../reference/example-systems.md) and [system-file-format.md](../reference/system-file-format.md). Checked by `test_examples.py`. |
 
 ### src/planetgen/
 
@@ -440,7 +440,7 @@ Publishes a page to Wiki.js or MediaWiki behind one `WikiClient` object, used by
 
 #### src/planetgen/api/
 
-The JSON API under `/api` (see [api.md](../api.md)).
+The JSON API under `/api` (see [api.md](../reference/api.md)).
 
 | Path | What it holds |
 |---|---|
@@ -465,7 +465,7 @@ The JSON API under `/api` (see [api.md](../api.md)).
 
 #### src/planetgen/web/
 
-The HTML pages (see [html-interface.md](../html-interface.md)). `templates/` holds one Jinja2 template per page, all extending `base.html`, and `partials/` the shared fragments.
+The HTML pages (see [html-interface.md](../reference/html-interface.md)). `templates/` holds one Jinja2 template per page, all extending `base.html`, and `partials/` the shared fragments.
 
 | Path | What it holds |
 |---|---|
@@ -636,7 +636,7 @@ The map panels and their data.
 ### src/tests/
 
 Run with `pytest` from the repo root. Database tests need MySQL and skip
-without it. See [testing.md](../testing.md).
+without it. See [testing.md](../reference/testing.md).
 
 | Path or pattern | What it holds |
 |---|---|
@@ -837,7 +837,7 @@ Databases older than v61 (the baseline) are refused with `SchemaTooOldError`
 rather than migrated. `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A schema change therefore touches `schema.sql`, a new revision file, the
 regenerated `planetgen/db/models.py` (`scripts/generate_db_models.py`), and
-[database-schema.md](../database-schema.md); the steps are in
+[database-schema.md](../reference/database-schema.md); the steps are in
 `src/planetgen/db/migrations/README.md`.
 
 **Control schema.** After the content migration, `planetgen.cli.migrate` calls

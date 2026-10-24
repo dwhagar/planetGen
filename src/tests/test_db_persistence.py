@@ -6,7 +6,7 @@ specifically that a freshly generated system's planets and moons land in
 their respective schema-v2 tables (`planets` vs. `moons`, see
 `schema.sql`'s "v2" header note) rather than sharing one table the way
 schema v1 did. There's otherwise no test coverage of `store.py`'s save path
-at all (`docs/database-schema.md`'s own "no read path yet" status,
+at all (`docs/reference/database-schema.md`'s own "no read path yet" status,
 historical, since resolved), so this is deliberately a real
 generate-then-save-then-query round trip rather than a unit test against
 a hand-built object graph -- it's the same shape of bug (an `INSERT`'s

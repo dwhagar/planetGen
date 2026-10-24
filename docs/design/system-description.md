@@ -197,7 +197,7 @@ old columns, tables and the parsing helpers with it.
 
 - `GET /api/systems/<id>/description` returns the Document (JSON). `GET /api/systems/<id>/text?format=markdown|wikitext|text`
   renders it. `GET /api/systems/<id>/sections` and `render_system_sections` are removed (UX.120); `mdrender.py` and the
-  `markdown` dependency of the web app go with UX.109. `docs/api.md` documents both.
+  `markdown` dependency of the web app go with UX.109. `docs/reference/api.md` documents both.
 - CLI: `--markdown` on `system`, `sector`, `galaxy` and the phenomenon commands becomes `--format text|markdown|wikitext`
   (default `text`; Decided default). `--output FILE` writes whichever format was asked. `-` is stdout.
 - The wiki upload (`wiki/`) renders wikitext or Markdown from the Document when an admin uploads, as now.

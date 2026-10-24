@@ -35,7 +35,7 @@ collision detection, mergers, Roche limits and Hill-sphere warnings) and
 [galactic-potential.md](galactic-potential.md) (the galaxy's smooth potential,
 GEN.115).
 
-Where the code is today: `python3 -m planetgen.cli.orbits` (`src/planetgen/cli/orbits.py`, see [cli.md](../cli.md#orbits)) is
+Where the code is today: `python3 -m planetgen.cli.orbits` (`src/planetgen/cli/orbits.py`, see [cli.md](../reference/cli.md#orbits)) is
 the positional update, run "once a month or so"; the work is in `db/store.py`
 (`advance_galactic_positions`, `advance_orbital_phases`, `advance_comet_orbits`)
 with `physics/kepler.py` (Kepler and Barker solvers), `physics/state_vectors.py`,

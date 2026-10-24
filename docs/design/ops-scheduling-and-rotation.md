@@ -164,7 +164,7 @@ running check first. The explicit configtest gives one clear message on
 Debian and RHEL alike. A config that passes `-t` can still fail at run time
 (port in use), hence the check that Apache is up afterwards. A real run
 should also probe `curl -fsS --max-time 10 http://127.0.0.1/api/health`
-through the vhost (the route [server-checklist.md](../server-checklist.md)
+through the vhost (the route [server-checklist.md](../deployment/server-checklist.md)
 uses); this was not scripted because it needs the site config. The pull and
 migration have already happened when the reload runs, so a failure cannot
 roll back: print the manual command, set `RELOAD_FAILED=1` and end non-zero

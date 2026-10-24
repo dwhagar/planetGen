@@ -15,7 +15,7 @@ Status: stages 1 to 3 built and stage 4 mostly built (2026-10-15). Stage 1 (#128
 
 ## 1. The baseline
 
-Machine: 4 cores, 15 GB, MariaDB 10.11 with the container's defaults, Redis 7, Python 3.13, Chromium 141 through Playwright 1.56. The suite as `docs/testing.md` says to run it, with `--durations=0` and a JUnit file for the per-test times.
+Machine: 4 cores, 15 GB, MariaDB 10.11 with the container's defaults, Redis 7, Python 3.13, Chromium 141 through Playwright 1.56. The suite as `docs/reference/testing.md` says to run it, with `--durations=0` and a JUnit file for the per-test times.
 
 | Run | Result |
 |---|---|
@@ -61,7 +61,7 @@ Of the 12,920 s, calls are 9,654 s, setup 1,919 s and teardown 1,322 s. For the 
 
 ### The `db` marker misses most database tests [M]
 
-`conftest.py` adds `db` to a test that names `mysql_config`. 1,465 tests carry it. With the server unreachable, 3,677 tests skipped for lack of one, so **2,210 tests need MySQL but are not marked `db`**: they reach the server through `_mysql_server_available` (`fuzz_db`, `site_db` and a few more in test_fuzz_web_routes, test_web_a11y, test_parallel_generation, test_db_collation and rich_galaxy_support). So `-m "not db"` is not the database-free slice that `docs/testing.md` says it is.
+`conftest.py` adds `db` to a test that names `mysql_config`. 1,465 tests carry it. With the server unreachable, 3,677 tests skipped for lack of one, so **2,210 tests need MySQL but are not marked `db`**: they reach the server through `_mysql_server_available` (`fuzz_db`, `site_db` and a few more in test_fuzz_web_routes, test_web_a11y, test_parallel_generation, test_db_collation and rich_galaxy_support). So `-m "not db"` is not the database-free slice that `docs/reference/testing.md` says it is.
 
 ## 2. Principles
 
@@ -147,7 +147,7 @@ A rough result, adding the stages: the full suite from 55 to about 35 to 40 minu
 
 | Stage | Change | Touches | Risk |
 |---|---|---|---|
-| 1 | `db` marker fix, `heavy` and area markers (`areas.py`), `scripts/test.py` with `quick`, `area`, `browser`, `full` (two phases), docs/testing.md | conftest.py (marker hook only), new files | low |
+| 1 | `db` marker fix, `heavy` and area markers (`areas.py`), `scripts/test.py` with `quick`, `area`, `browser`, `full` (two phases), docs/reference/testing.md | conftest.py (marker hook only), new files | low |
 | 2 | `depmap.py` plugin: `--record-deps`, `--changed`, the fixed select-everything rules, the proof report | new file plus two lines in conftest.py | low (opt-in) |
 | 3 | Database per worker with reset, leak check | conftest.py fixture, new fixture module | medium |
 | 4 | Browser page-load sharing; heavy generation files, one PR per file with its owner | test files | medium, per file |
@@ -160,7 +160,7 @@ Each PR is merged on a green full run and reports the TODO items it resolves and
 - TEST.139 (this item) gets the stages in section 6 as sub-items.
 - New bug: `markdown` 3.11.1 (installed by `pip install -e ".[test,api]"` today, since `setup.py` only says `markdown>=3.6`) removes the inline pattern `not_strong` that `web/lib/mdrender.py:34` names, so 68 tests fail in the first baseline run (74 when the database is on and the seven files that render Markdown run together: test_fuzz_text_rendering, test_web_system_phen, test_bughunt_render_edges, test_mdrender, test_web_population, test_systems, test_page_shell) with `ValueError: No item named "not_strong" exists`, and the site's Markdown pages would fail; `requirements.lock` pins 3.11, which works. Fix: cap the requirement (`markdown>=3.6,<3.11.1`) or make `mdrender.py` tolerate the missing name. (Confirmed: the same seven files give 466 passed on 3.11 and 74 failed on 3.11.1.)
 - New: the `db` marker misses 2,210 tests (section 1); fixed in stage 1.
-- `playwright` is unpinned (`>=1.49.0`) and a new release needs a newer Chromium than the one the cloud image carries (1.64 wants build 1248, the image has 1194). Lanes need `playwright==1.56.0` there. Worth a line in docs/testing.md.
+- `playwright` is unpinned (`>=1.49.0`) and a new release needs a newer Chromium than the one the cloud image carries (1.64 wants build 1248, the image has 1194). Lanes need `playwright==1.56.0` there. Worth a line in docs/reference/testing.md.
 
 ## 8. Questions for Boss (with the default I will use)
 

@@ -16,7 +16,7 @@ Every route is rate limited by Flask-Limiter (`limiter.py`, with
 `loginguard.py` around each password check), validated with Pydantic
 (`schemas.py`), versioned (`version.py`), and answers object IDs as printed
 IDs (`ids.py`, `idpaths.py`, `naming.py`). `common.py` holds what the route
-modules share and `config.py` the API's configuration. `docs/api.md` lists every
+modules share and `config.py` the API's configuration. `docs/reference/api.md` lists every
 route, its scopes and its errors.
 
 `planetgen.db.store`'s `load_sector` and `load_star_system` are different:
@@ -28,5 +28,5 @@ routes together with the HTML pages (`planetgen/web/`); `src/html/wsgi.py` is
 the mod_wsgi and gunicorn entry point. The pages fetch their data from the
 routes in process (`planetgen/web/lib/apiclient.py`,
 `planetgen/web/transport.py`), not over HTTP and not from MySQL directly. See
-`docs/api.md` for how to run it and `docs/html-interface.md` for the pages.
+`docs/reference/api.md` for how to run it and `docs/reference/html-interface.md` for the pages.
 """

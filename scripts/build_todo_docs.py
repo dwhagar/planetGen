@@ -12,33 +12,33 @@ each), and a blocker sits in the same thread, an earlier phase or an earlier
 version. The pages are generated from the files the TODO tasks thread
 already keeps, so one command refreshes them:
 
-- `docs/plan/version-plan.html`: every open item in build order, version by
+- `docs/generated/version-plan.html`: every open item in build order, version by
   version, phase by phase and thread by thread (from
-  `docs/plan/version-*.md`), with a progress bar per version; each thread lists
+  `docs/plan/releases/version-*.md`), with a progress bar per version; each thread lists
   its finished items checked off and crossed out above its open ones, and the
   finished threads that left the plan are listed per version (Boss, 2026-10-21,
   9:15 PM EDT; the finished items come from `docs/plan/progress-ledger.md`).
-- `docs/plan/todo-reference.html`: every ID ever issued, open or closed,
+- `docs/generated/todo-reference.html`: every ID ever issued, open or closed,
   with its full text, status, version phase, prerequisites and what it
   unblocks, plus search and filters.
-- `docs/plan/todo-tree.html`: every open item as a tree, each item under the
+- `docs/generated/todo-tree.html`: every open item as a tree, each item under the
   prerequisite that finishes last, with version and bug marks, search and
   filters (Boss 2026-10-09 07:03Z: "a TODO as a tree structure").
-- `docs/plan/execution-plan.html` (DOC.68): where each build lane is (`docs/plan/lanes.md`), the headline
+- `docs/generated/execution-plan.html` (DOC.68): where each build lane is (`docs/plan/lanes.md`), the headline
   panel, the open items by version and 8.1 phase, the goal issues, and the conflicts and needs-Boss sections
   (`docs/plan/execution-notes.md`) with the older decisions (`scripts/todo_docs/execution-history.snippet.html`).
   Every part comes from a file in the repo, none from the clock, so a test can tell when it is stale.
-- `docs/plan/release-roadmap.html`: the releases from 8.1 to 9.3, each with
+- `docs/generated/release-roadmap.html`: the releases from 8.1 to 9.3, each with
   its headline, its phases, the open items it holds, what it needs, its share
   finished and the suggestions not yet filed (Boss, 2026-10-16).
 
 Sources
 =======
 - `docs/TODO.md`: open items, their full text, nesting and prerequisites.
-- `docs/plan/version-*.md`: each version's goal, phases (theme) and threads,
+- `docs/plan/releases/version-*.md`: each version's goal, phases (theme) and threads,
   with "Needs" and a note per open item.
 - `docs/plan/notes.md`: "Decisions for Boss".
-- `docs/design/todo-number-map.md`: the status of every ID ever issued
+- `docs/plan/todo-number-map.md`: the status of every ID ever issued
   (its "Reverse lookup" table).
 - `docs/plan/issue-groups.md`: the GitHub issues (goal groups of items and the
   issues Boss opened) and the items each one covers; every page links them.
@@ -68,13 +68,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES = ROOT / "scripts" / "todo_docs"
 OUTPUTS = {
-    "version-plan.template.html": ROOT / "docs" / "plan" / "version-plan.html",
-    "todo-reference.template.html": ROOT / "docs" / "plan" / "todo-reference.html",
-    "todo-tree.template.html": ROOT / "docs" / "plan" / "todo-tree.html",
-    "release-roadmap.template.html": ROOT / "docs" / "plan" / "release-roadmap.html",
+    "version-plan.template.html": ROOT / "docs" / "generated" / "version-plan.html",
+    "todo-reference.template.html": ROOT / "docs" / "generated" / "todo-reference.html",
+    "todo-tree.template.html": ROOT / "docs" / "generated" / "todo-tree.html",
+    "release-roadmap.template.html": ROOT / "docs" / "generated" / "release-roadmap.html",
 }
 EXECUTION_TEMPLATE = TEMPLATES / "execution-plan.template.html"
-EXECUTION_OUTPUT = ROOT / "docs" / "plan" / "execution-plan.html"
+EXECUTION_OUTPUT = ROOT / "docs" / "generated" / "execution-plan.html"
 ISSUES_URL = "https://github.com/dwhagar/planetGen/issues/"
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 HEADLINE_RE = re.compile(r"Headline:\s*(\d+\.\d+)\s*\(([^)]*)\)")
@@ -149,7 +149,7 @@ def parse_todo(text: str) -> dict:
 
 
 def version_key(path: Path) -> str:
-    """docs/plan/version-8-1-name.md -> "8.1"; version-later-name.md -> "later"."""
+    """docs/plan/releases/version-8-1-name.md -> "8.1"; version-later-name.md -> "later"."""
     m = re.match(r"version-(\d+)-(\d+)-|version-(later)-", path.name)
     return m.group(3) or f"{m.group(1)}.{m.group(2)}"
 
@@ -488,9 +488,9 @@ def build_roadmap(root: Path, items: dict, progress: dict, phases: list[dict], v
 
 def build_data(root: Path) -> dict:
     todo = parse_todo((root / "docs" / "TODO.md").read_text(encoding="utf-8"))
-    phases, rows, versions = parse_phases(root / "docs" / "plan")
+    phases, rows, versions = parse_phases(root / "docs" / "plan" / "releases")
     decisions = parse_decisions((root / "docs" / "plan" / "notes.md").read_text(encoding="utf-8"))
-    numbers = parse_number_map((root / "docs" / "design" / "todo-number-map.md").read_text(encoding="utf-8"))
+    numbers = parse_number_map((root / "docs" / "plan" / "todo-number-map.md").read_text(encoding="utf-8"))
     groups_file = root / "docs" / "plan" / "issue-groups.md"
     item_issues, issues = parse_issue_groups(groups_file.read_text(encoding="utf-8") if groups_file.exists() else "")
 
@@ -634,7 +634,7 @@ def render_notes(text: str) -> str:
 
 
 def build_execution_plan(root: Path, data: dict) -> str:
-    """`docs/plan/execution-plan.html` (DOC.68): the lanes board from `docs/plan/lanes.md`, the headline panel, the open
+    """`docs/generated/execution-plan.html` (DOC.68): the lanes board from `docs/plan/lanes.md`, the headline panel, the open
     items by version and by 8.1 phase and the goal issues from the TODO data, the conflicts and needs-Boss sections from
     `docs/plan/execution-notes.md`, and the older decisions from `scripts/todo_docs/execution-history.snippet.html`.
     Nothing is read from the clock, so the page is the same on every run until a source changes."""

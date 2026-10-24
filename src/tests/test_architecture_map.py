@@ -1,5 +1,5 @@
 """
-The architecture map (DOC.67, `scripts/build_architecture_map.py`, `docs/design/architecture-map.html`): the page
+The architecture map (DOC.67, `scripts/build_architecture_map.py`, `docs/generated/architecture-map.html`): the page
 lists every module of the package, resolves calls the way its notes say, traces its flows from named entry functions,
 and opens offline and drills down from the project map to a function's source.
 """

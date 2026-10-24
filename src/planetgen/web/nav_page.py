@@ -54,7 +54,7 @@ from .helpers import crumb, current_admin, db_name, page_url, render_page, trust
 
 SECTOR_PICKER_LIMIT = 500
 """int: How many sectors the pickers offer: `GET /api/sectors`'s own
-maximum page size (`docs/api.md`, "Pagination")."""
+maximum page size (`docs/reference/api.md`, "Pagination")."""
 
 FRAME_LABELS = {
     "galactic": "Galactic Standard Frame: 000 mark 000 points at the galactic core",

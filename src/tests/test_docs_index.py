@@ -37,7 +37,7 @@ def test_every_html_page_under_docs_is_listed():
     text = _text()
     for path, _title, _description in index.html_pages():
         assert f'href="{path}"' in text, f"{path} is not in the docs index: run python scripts/build_global_docs.py"
-    assert "design/architecture-map.html" in text and "plan/version-plan.html" in text
+    assert "generated/architecture-map.html" in text and "generated/version-plan.html" in text
 
 
 def test_every_page_links_back_to_the_index():

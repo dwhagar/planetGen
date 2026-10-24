@@ -18,10 +18,10 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [architecture.md](architecture.md) | Every file and the main flows | reference (the code map is being rewritten, DOC.28) |
-| [architecture-map.html](architecture-map.html) | The generated code map: areas, modules, functions and calls, with the main flows traced from the code (DOC.67) | generated page (open it in a browser; `scripts/build_architecture_map.py`) |
+| [architecture-map.html](../generated/architecture-map.html) | The generated code map: areas, modules, functions and calls, with the main flows traced from the code (DOC.67) | generated page (open it in a browser; `scripts/build_architecture_map.py`) |
 | [design-decisions.md](design-decisions.md) | The choices that shape the project, each with its status | reference |
 | [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) | Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
-| [todo-number-map.md](todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |
+| [todo-number-map.md](../plan/todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |
 | [cache-warm-up.md](cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
 | [slow-page-answers.md](slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089) |
 | [library-migration.md](library-migration.md) | Moving to third-party libraries and into packages | built (queue being redone, PERF.86) |
@@ -31,7 +31,7 @@ A note's own status line, at its top, is the authority; this page only points at
 
 | Note | What it covers | Status |
 |---|---|---|
-| [galaxy-coordinate-system.md](galaxy-coordinate-system.md) | The spherical shell, band and wedge sector grid | built (schema v91); the cylinder it replaced is in [archive/](archive/galaxy-coordinate-system-cylinder.md) |
+| [galaxy-coordinate-system.md](galaxy-coordinate-system.md) | The spherical shell, band and wedge sector grid | built (schema v91); the cylinder it replaced is in [archive/](../archive/galaxy-coordinate-system-cylinder.md) |
 | [galaxy-types.md](galaxy-types.md) | The 9.4 headline: one family per known galaxy type (spiral, lenticular, elliptical, irregular, dwarf), drawn from the seed through scaling relations, and the chain that leads to it | plan |
 | [superbubble-density.md](superbubble-density.md) | Superbubbles shape the stars: the seeded bubble field becomes a density modulation on the young and intermediate populations, with bounds, sector counts and positions, and the chain that builds it | plan |
 | [composition-model.md](composition-model.md) | The master note of the 9.0 composition headline: what every body, star and atmosphere is made of, the chain from element to derived value, the research lanes and where each item sits | checked design, for Boss's approval (GEN.437); the loader, element table, stellar relations and star composition are built (GEN.472, GEN.438 to GEN.440) |
@@ -190,4 +190,4 @@ Boss's own research documents, kept as received. Each starts with a banner linki
 
 ## Archive
 
-[archive/](archive/) holds notes about designs that were replaced ([galaxy-coordinate-system-shells.md](archive/galaxy-coordinate-system-shells.md), [galaxy-disk-density-rev2.md](archive/galaxy-disk-density-rev2.md)). They are history.
+[archive/](../archive/) holds notes about designs that were replaced ([galaxy-coordinate-system-shells.md](../archive/galaxy-coordinate-system-shells.md), [galaxy-disk-density-rev2.md](../archive/galaxy-disk-density-rev2.md)). They are history.

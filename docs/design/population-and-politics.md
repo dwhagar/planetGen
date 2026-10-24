@@ -735,7 +735,7 @@ editable by the admin. A MySQL CHECK cannot use a column that is in an
 `population/facility_types.py` holds the rules (create, change and delete
 types and fields; `parse_value` checks one value against a field) and
 `api/facility_types.py` the `/api/facility-types` routes, documented in
-`docs/api.md`. Rules beyond the sketch: a type that facilities use keeps its
+`docs/reference/api.md`. Rules beyond the sketch: a type that facilities use keeps its
 kind and cannot be deleted (retire it with `active`); a field with stored
 values cannot be deleted, change datatype, drop an option in use or narrow
 its range past a stored value; a required field added to a type in use
@@ -828,7 +828,7 @@ to its ownership rows. Since GEN.80 `life_stage` is always
   `GET /api/systems/<id>/owner` (404 for an unknown system), and
   `GET /api/territories` (at most 20,000 owned systems, nearest their
   capitals first, with each polity's capital and reach). Documented in
-  `docs/api.md`.
+  `docs/reference/api.md`.
 - **Galaxy Map:** a Territories button draws each polity's reach as a soft
   ball of its color around its capital and its systems as dots, with a
   legend naming each polity, its government and its system count (page
@@ -954,7 +954,7 @@ papers or pages themselves. Items to verify when paper access is allowed:
   ratios are exact WCAG computations [C].
 - [R] That a MySQL CHECK cannot use a column in an `ON DELETE SET NULL` or
   `CASCADE` FK is from memory of the manual (it matches the note in
-  `docs/database-schema.md`); verify against the MySQL 8.4 and MariaDB 11.4
+  `docs/reference/database-schema.md`); verify against the MySQL 8.4 and MariaDB 11.4
   manuals, as well as the JSON and generated-column syntax differences.
 - [R] The Newman and Sagan diffusion models were not checked against the
   5 ly reach at 2,000 years rising with the square root of age (about
@@ -984,5 +984,5 @@ papers or pages themselves. Items to verify when paper access is allowed:
 - Colour: w3.org/WAI/WCAG22/Understanding/use-of-color.html, developer.mozilla.org Use_of_color, sci-draw.com Okabe-Ito reference, rebelsguidetopm.com RAG
 - Forms and JSON: github.com/json-schema-form-element/jsfe, npmjs.com/package/@jsfe/shoelace, pypi.org/project/jsonschema
 - Read directly: pypi.org/pypi/jsonschema/json, pypi.org/pypi/pydantic/json, pypi.org/pypi/simpleeval/json, registry.npmjs.org/bootstrap-icons (1.13.1), registry.npmjs.org/@shoelace-style/shoelace (2.20.1), raw.githubusercontent.com/twbs/icons/main/LICENSE
-- Repo: `Technological Assessment.md`, this document, [habitability-index.md](habitability-index.md), `docs/database-schema.md`, `docs/html-interface.md`, `src/planetgen/population/model.py` and `facilities.py`, `src/planetgen/tuning.py`, `src/planetgen/util/draw.py`.
+- Repo: `Technological Assessment.md`, this document, [habitability-index.md](habitability-index.md), `docs/reference/database-schema.md`, `docs/reference/html-interface.md`, `src/planetgen/population/model.py` and `facilities.py`, `src/planetgen/tuning.py`, `src/planetgen/util/draw.py`.
 - Simulation scripts (`fit.py`, `techsim.py`, `analysis2.py`, `priors.py`, `rag.py`, `wsens.py`) were run in the research session's scratchpad and are not in the repo; the results are the tables above.

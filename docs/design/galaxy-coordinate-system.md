@@ -12,9 +12,9 @@ and windows sit on the same grid (`galaxy/drill.py`, `galaxy/window.py`,
 `spherical-block-ladder.md`; MAP.205, MAP.206).
 
 The cylindrical ring, layer and slot grid this replaced is kept in
-[`archive/galaxy-coordinate-system-cylinder.md`](archive/galaxy-coordinate-system-cylinder.md),
+[`archive/galaxy-coordinate-system-cylinder.md`](../archive/galaxy-coordinate-system-cylinder.md),
 and the older spherical-shell design before it in
-[`archive/galaxy-coordinate-system-shells.md`](archive/galaxy-coordinate-system-shells.md).
+[`archive/galaxy-coordinate-system-shells.md`](../archive/galaxy-coordinate-system-shells.md).
 Words matter here: **shell**, **band** and **wedge** are the only names for
 the three coordinates. "Ring", "layer", "slot" and "slab" name nothing in the
 current grid and are not reused.
@@ -239,7 +239,7 @@ nearest systems filled in like a generated one.
   birth address, the key is where the object is now and changes when it
   moves into another cube (schema v93, DB.34, DB.35; see
   [spherical-region-queries.md](spherical-region-queries.md) and the
-  [schema](../database-schema.md)).
+  [schema](../reference/database-schema.md)).
 
 ## 6. Migrations that cleared or converted sectors
 
@@ -258,7 +258,7 @@ old sector holding its center); object IDs are renumbered for the new birth
 sector; the bright stars and the phenomenon scatter get the address of the
 cell holding their position; `sector_stats` is counted again; and
 `galaxy_shell` is built again from the stored shape. The details are in
-[`../database-schema.md`](../database-schema.md) under v91.
+[`../database-schema.md`](../reference/database-schema.md) under v91.
 
 ## 7. Why it works this way
 

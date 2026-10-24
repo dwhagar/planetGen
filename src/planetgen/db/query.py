@@ -1216,7 +1216,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     via adjacent systems (`planetgen.galaxy.nav_graph`), or raises if NAV
     doesn't apply to this pair.
 
-    NAV availability rules (see docs/api.md's NAV section for the
+    NAV availability rules (see docs/reference/api.md's NAV section for the
     user-facing statement of these):
         - Both endpoints are systems in the SAME sector -> available,
           scoped to that sector's own systems (sector-local positions) --
