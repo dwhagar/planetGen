@@ -303,3 +303,5 @@ Update 3:16 PM EDT 2026-10-24: TEST.347 and TEST.348 (#3050) retired. Bug Hunt i
 Update 3:21 PM EDT 2026-10-24: DOC.75 retired and GEN.445 noted (#3052, no epoch, no migration; toxicity reads still wait on GEN.411). Filed TEST.350 (facility, population and web.system button tests red on main, Bug Hunt). 955 of 1322 8.1 items finished (72.2 percent), 367 open.
 
 Update 3:39 PM EDT 2026-10-24: GEN.272 (#3055, epoch 91) and MAP.290 (#3054) retired. Core 4 took epoch 91 at merge, so the class lane's GEN.686 moves to epoch 92 and the next free epoch is 93 (migration 0153 is taken by GEN.699; next free migration 0154 for Lane I step 4b). Filed GEN.724 (register the GEN.272 stand-ins; decision recorded: keep 0.2 percent for neutron star companions of recycled pulsars) and UX.186 (show the accreting-binary fields). 957 of 1324 8.1 items finished (72.3 percent), 367 open.
+
+Update 3:42 PM EDT 2026-10-24: Boss's stand-in rule recorded (nine source tiers and a tweak level for every stand-in) and filed as GEN.725 (registry columns plus docs/design/stand-in-values.md); notes added on GEN.707, GEN.711 and GEN.724. 957 of 1325 8.1 items finished (72.2 percent), 368 open.
