@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2238] - 2026-10-24
+
+**Headline:** The atmosphere recipe draw no longer gives a far comet a rocky planet's gas, and an ocean world with plate tectonics no longer draws a carbon dioxide and sulfur air.
+
+### Fixed
+- **Atmosphere recipe gaps (GEN.674).** A comet beyond the coma's perihelion now has no gas (it fell through to the rocky rows). In the groups whose fallback is "none applies" (evolved terrestrial `j`, coma `k`) the weights are probabilities of occurrence, so a frost row far outside its window is no longer normalised to certain, and the Venus-like and abiotic-oxygen shares mean what their brackets say. A body with an ocean and a long-lived geology keeps only 1e-5 to 1e-2 of its outgassed carbon and sulfur in the air. The recipe draw is not called by the generator yet, so no generated value changes.
+
 ## [8.0.2237] - 2026-10-24
 
 **Headline:** The habitable-systems table is on the lists the schema tests keep, so three tests that failed since MAP.220 pass.
