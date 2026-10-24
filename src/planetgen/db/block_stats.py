@@ -19,7 +19,7 @@ come from `sectors` and `sector_stats` and only change when a sector is saved or
   its children's stored rows);
 * `refresh_sectors` does the same for the sectors a run saved, once at its end, so the workers never queue on
   the shared top-level rows;
-* `rebuild` computes every row in one pass over the generated sectors (`planetgen plan --fill-block-stats`,
+* `rebuild` computes every row in one pass over the generated sectors (`planetgen fill-block-totals`,
   the migration, and a run on an empty table).
 """
 

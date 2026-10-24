@@ -145,6 +145,7 @@ def clear_stages(args):
 SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill the map luminosity"),
                          "rescore-habitability": Stage("habitability", "Re-score the habitability"),
                          "fill-nebula-blocks": Stage("nebula-blocks", "Make the nebula block totals"),
+                         "fill-block-totals": Stage("block-totals", "Make the block totals"),
                          "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field"),
                          "link": Stage("link", "Link the neighbours"),
                          "backfill": Stage("backfill", "Scatter the massive stars from the neighborhood"),

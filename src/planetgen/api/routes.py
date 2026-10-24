@@ -94,7 +94,7 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
-from planetgen.db import cloudcontents, containers as containersDb, objectlist
+from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
@@ -1123,6 +1123,24 @@ def galaxy_tiles_route():
         raise ApiError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
     try:
         return jsonify(galaxy_tiles(get_db(), tile_keys))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/nodes")
+def galaxy_nodes_route():
+    """
+    The 3D Galaxy Map's sector-block nodes (MAP.260) -- `keys` is a comma-separated list of `m.shell.band.wedge`
+    keys (a sector's is `1.shell.band.wedge`; at most `nodes.MAX_NODES_PER_REQUEST`). See `db.nodes.galaxy_nodes`: each
+    node is the brightest objects inside a block and what is stored about the block as a whole. Called by
+    `/galaxy/nodes` (`planetgen/web/galaxy_views.py`), which caches every node on disk and only forwards the ones it
+    does not already have.
+    """
+    node_keys = [key for key in (request.args.get("keys") or "").split(",") if key]
+    if len(node_keys) > nodes.MAX_NODES_PER_REQUEST:
+        raise ApiError(f"at most {nodes.MAX_NODES_PER_REQUEST} nodes per request")
+    try:
+        return jsonify(nodes.galaxy_nodes(get_db(), node_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
 

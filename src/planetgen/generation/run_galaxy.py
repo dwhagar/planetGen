@@ -25,7 +25,7 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import nebula_blocks, query, region, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, redisqueue, wrapper
@@ -806,6 +806,32 @@ def nebula_blocks_after_run(args):
     if added:
         log.normal(f"Added {added:,} nebulae to the block totals.")
     return added or 0
+
+
+def block_totals_after_run(args, started_at):
+    """
+    Brings the Galaxy Map's block totals up to the sectors a `galaxy` run saved, once at the end of the run so its
+    workers never queue on the same top-level rows: the generated totals (`db.block_stats.refresh_sectors`, which a
+    sector save does not do) and the light of the pre-placed objects, which a saved sector builds into its own
+    sums (`db.block_lights.refresh_sectors`). A failure only warns: `planetgen fill-block-totals` makes them again.
+
+    Returns:
+        int: The sectors brought in.
+    """
+    try:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+        try:
+            addresses = sector_paths.sector_addresses_since(conn, started_at)
+            if addresses:
+                block_stats.refresh_sectors(conn, addresses)
+                block_lights.refresh_sectors(conn, addresses)
+                conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
+        log.normal(f"Warning: adding the new sectors to the block totals failed: {exc}")
+        return 0
+    return len(addresses)
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -2581,6 +2607,7 @@ def run_galaxy(args):
     run_population.run_population_stage(args)
     settle_after_run(args, started_at)
     nebula_blocks_after_run(args)
+    block_totals_after_run(args, started_at)
     stages.finish()
     run_common._finish_stats(args)    # the steps after the sectors recorded their speeds too
 

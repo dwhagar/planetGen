@@ -157,7 +157,7 @@ class RatePages(_Section):
                       summary="How often one visitor may open the Galaxy Map page; empty turns the "
                               "limit off.",
                       control="rate")
-    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/stage, /galaxy/window and /galaxy/territories, "
+    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, "
                             "fetched as the map's camera moves. Empty turns it off.", restart=True,
                             group="protection",
                             label="Map tile limit",

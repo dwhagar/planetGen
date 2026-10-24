@@ -6716,9 +6716,10 @@ def forget_sector_fill(conn, address):
         " filled_at = NULL WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0",
         tuple(address),
     )
-    from planetgen.db import block_stats    # DB.25: the blocks above it no longer count it
+    from planetgen.db import block_lights, block_stats    # DB.25: the blocks above it no longer count it
 
     block_stats.refresh_chain(conn, address)
+    block_lights.refresh_chain(conn, address)    # MAP.259: its stars that were built are pre-placed again
 
 
 SECTOR_DELETIONS_COUNTER = "sdel"

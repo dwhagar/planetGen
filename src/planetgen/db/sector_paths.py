@@ -300,6 +300,13 @@ def sector_ids_since(conn, since):
         "SELECT id FROM sectors WHERE created_at >= ? AND shell_index IS NOT NULL ORDER BY id", (since,)).fetchall()]
 
 
+def sector_addresses_since(conn, since):
+    """The `(shell, band, wedge)` of every galaxy sector created at or after `since` (`database_now`), in id order."""
+    return [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
+        "SELECT shell_index, band_index, wedge_index FROM sectors WHERE created_at >= ? AND shell_index IS NOT NULL"
+        " AND band_index IS NOT NULL AND wedge_index IS NOT NULL ORDER BY id", (since,)).fetchall()]
+
+
 def load_sector_paths(conn, sector_id):
     """
     The saved paths of sector `sector_id`.

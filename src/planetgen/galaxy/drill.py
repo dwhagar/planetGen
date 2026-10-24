@@ -392,6 +392,27 @@ def parse_drill_key(key):
     return DrillBlock(m, shell, band, wedge)
 
 
+def parse_node_key(key):
+    """
+    A node key `m.shell.band.wedge` of any level of the ladder, a sector (`1.shell.band.wedge`) included: what the
+    node read and cache take (MAP.260), checked like `parse_drill_key`.
+
+    Raises:
+        ValueError: On anything else.
+    """
+    parts = str(key or "").split(".")
+    if len(parts) == 4 and parts[0] == "1":
+        try:
+            _m, shell, band, wedge = (int(p) for p in parts)
+        except ValueError:
+            raise ValueError(f"not a node key: {key!r}") from None
+        if shell < 0 or not spherical.band_range(shell)[0] <= band <= spherical.band_range(shell)[1] \
+                or not 0 <= wedge < spherical.wedge_count(shell, band):
+            raise ValueError(f"no such node: {key!r}")
+        return DrillBlock(1, shell, band, wedge)
+    return parse_drill_key(key)
+
+
 def parse_stage_key(key):
     """`parse_drill_key`, and the block must be of a stage level (`STAGE_LEVELS`): the `at` of a drill-down stage.
 

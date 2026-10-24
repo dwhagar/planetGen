@@ -22,7 +22,7 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import block_stats, containers as containersDb, nebula_blocks, query, store
+from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -320,6 +320,8 @@ def plan_skeleton_unit(params, report):
             store.clear_bright_stars(conn)
             store.clear_phenomenon_scatter(conn)
             store.clear_nebula_field(conn)
+            block_lights.clear(conn)
+            conn.commit()
         # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
@@ -574,6 +576,7 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
         conn.commit()
     finally:
         conn.close()
+    refresh_block_lights(mysql_config)
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     log.normal(
@@ -2118,6 +2121,7 @@ def fill_map_luminosity(args):
         args, "map-luminosity", "Map luminosity", {}, "Filling the map luminosity",
         lambda detail: f"Map luminosity: {detail['remaining']:,} scattered rows have a mass and no value yet.", "filled")
     log.normal(f"Filled the map luminosity of {filled:,} scattered rows.")
+    refresh_block_lights(store.mysql_config_from_args(args))
     return filled
 
 
@@ -2185,6 +2189,50 @@ def fill_habitability(args):
     finally:
         conn.close()
     return updated
+
+
+def refresh_block_lights(mysql_config):
+    """
+    MAP.259: makes the light totals of the Galaxy Map's blocks again (`db.block_lights.rebuild`) once a scatter, a
+    clear or the map-luminosity fill has changed the pre-placed objects, so the nodes' glow follows them. A failure
+    only warns: `planetgen fill-block-totals` makes the totals again.
+
+    Returns:
+        int: The block rows written (0 when it failed).
+    """
+    try:
+        conn = store.get_connection(mysql_config)
+        try:
+            written = block_lights.rebuild(conn)
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
+        log.normal(f"Warning: making the block light totals failed: {exc}")
+        return 0
+    log.normal(f"Made {written:,} block light totals.")
+    return written
+
+
+def fill_block_totals(args):
+    """
+    Makes the totals of the Galaxy Map's blocks again, in the two tables the map's nodes read: what the generated
+    sectors hold (MAP.258, `db.block_stats.rebuild`, which nothing but a sector's deletion kept up to date before) and
+    the light of the pre-placed stars and scattered phenomena (MAP.259, `db.block_lights.rebuild`, a unit of shells at a
+    time).
+
+    Returns:
+        int: The block rows written, both tables together.
+    """
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        log.normal("Making the block totals...")
+        stats = block_stats.rebuild(conn)
+        conn.commit()
+        lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
+    finally:
+        conn.close()
+    log.normal(f"Made {stats:,} generated block totals and {lights:,} block light totals.")
+    return stats + lights
 
 
 def fill_nebula_blocks(args):
@@ -2476,6 +2524,7 @@ def scatter_phenomena(args):
         conn.commit()
     finally:
         conn.close()
+    refresh_block_lights(mysql_config)
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     stages.note(shells=len(extents), shells_modified=landed[0], objects=total)
@@ -2672,6 +2721,8 @@ def clear_scatter_unit(params, report):
             store.clear_nebula_field(conn)
     finally:
         conn.close()
+    if part != "nebula-field":
+        refresh_block_lights(_mysql_config_of(params))
     return {"part": part, "lines": [f"Cleared the {name} scatter."]}
 
 
@@ -2733,6 +2784,15 @@ def run_fill_nebula_blocks(args):
     stages.enter("nebula-blocks")
     with workQueue.job_node("nebula-blocks", "Nebula block totals"):
         fill_nebula_blocks(args)
+    stages.finish()
+
+
+def run_fill_block_totals(args):
+    """`planetgen fill-block-totals` (MAP.259): `fill_block_totals`, the one stage of its run."""
+    stages.begin(stages.for_command("fill-block-totals", args), args, "fill-block-totals")
+    stages.enter("block-totals")
+    with workQueue.job_node("block-totals", "Block totals"):
+        fill_block_totals(args)
     stages.finish()
 
 

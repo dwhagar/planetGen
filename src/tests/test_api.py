@@ -841,6 +841,30 @@ def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, address=None):
     return _db.save_sector(sector, config=mysql_config, galaxy_position=position)
 
 
+def test_galaxy_nodes_answer_by_block_key_and_refuse_malformed_requests(client, mysql_config):
+    """`GET /api/galaxy/nodes` (MAP.260): a node for each key asked, a sector's own node lists the sector it is, and a
+    malformed key or too long a list is a 400."""
+    from planetgen.galaxy.drill import drill_chain_of, format_drill_key
+    from planetgen.galaxy import spherical
+    from planetgen.physics.units import ly_to_pc
+    from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
+    address = spherical.sector_address_at((5.0, 5.0, 5.0), ly_to_pc(DEFAULT_SECTOR_EDGE_LY))
+    _place_sector(mysql_config, "Near Core", (5.0, 5.0, 5.0), address=address)
+    chain = [format_drill_key(block) for block in drill_chain_of(*address)]
+    response = client.get("/api/galaxy/nodes?keys=" + ",".join(chain))
+    assert response.status_code == 200
+    body = response.get_json()
+    assert set(body["nodes"]) == set(chain) and "edge_pc" in body and "has_shape" in body
+    for node in body["nodes"].values():
+        assert {"aggregate", "stars", "generated", "points", "clouds"} <= set(node)
+    assert body["nodes"][chain[-1]]["placed"][0]["name"] == "Near Core"
+    assert body["nodes"][chain[0]].get("placed") is None, "the big blocks do not list sectors"
+    for keys in ("nonsense", "5.1.2.3", "243.1.2"):
+        assert client.get(f"/api/galaxy/nodes?keys={keys}").status_code == 400
+    many = ",".join(f"243.4.1.{i}" for i in range(129))
+    assert client.get(f"/api/galaxy/nodes?keys={many}").status_code == 400
+
+
 def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     """`GET /api/galaxy/tiles` puts each placed sector in exactly the tile
     whose half-open box holds its center, and lists planned slots only
@@ -1699,7 +1723,7 @@ def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config
 
     unchanged = _galaxy_changes(client, before["state"])
     assert unchanged == {"stamp": before["stamp"], "tile_stamp": unchanged["tile_stamp"], "state": before["state"],
-                         "full": False, "tile_full": False, "tiles": [], "stages": []}
+                         "full": False, "tile_full": False, "tiles": [], "stages": [], "nodes": []}
 
     time.sleep(0.01)
     conn = _db.get_connection(mysql_config)
