@@ -1,0 +1,34 @@
+{
+ "title": "The design-flag registry of the atmosphere recipes",
+ "version": 1,
+ "note": "Rows whose quantity no ensemble can define: no exoplanet measures it, or it is whether life makes a gas. Each keeps a labelled design bracket, is off unless one of its enabling flags is set, and is never tuned (decision D4 of docs/design/tunable-gaps.md).",
+ "flags": [
+  {
+   "row": "m3",
+   "table": "atmosphere-m",
+   "stands_for": "nitrous oxide (N2O) as a biosignature, or from weakly reducing air driven by stellar energetic particles",
+   "constant": "c_m3",
+   "enabled_by": ["life_chemical", "sep_reducing"],
+   "why_not_tuned": "no exoplanet has a measured N2O; tuning to the Earth's 400 ppbv would fix the Solar System into the generator",
+   "label": "DESIGN"
+  },
+  {
+   "row": "m4",
+   "table": "atmosphere-m",
+   "stands_for": "phosphine (PH3) as a biosignature",
+   "constant": "c_m4",
+   "enabled_by": ["life_chemical"],
+   "why_not_tuned": "no exoplanet has a measured PH3 and the Venus claim is contested by two read papers; tuning to 20 ppb would fix the Solar System into the generator",
+   "label": "DESIGN"
+  },
+  {
+   "row": "m11",
+   "table": "atmosphere-m",
+   "stands_for": "nitrogen dioxide (NO2) from lightning or from a biosphere",
+   "constant": "c_m11",
+   "enabled_by": ["life_chemical", "lightning"],
+   "why_not_tuned": "no exoplanet has a measured NO2; the only lightning rate is the modern Earth's",
+   "label": "DESIGN"
+  }
+ ]
+}

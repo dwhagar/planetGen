@@ -293,9 +293,10 @@ MACHINE = {
                dist={"kind": "loguniform", "lo": 192, "hi": 279}),
     "m2": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=AIR, when=[c("o2_pal", maximum=1e-3)], constants={"c_m2": [0.1, 0.6, "log"]},
                weight="c_m2 if (co2_rich and h2_poor and host_type in ('M', 'K')) else 0"),
-    "m3": dict(state="stand-in", replacement="GEN.525", kind="binary", classes=AIR, constants={"c_m3": [0.05, 0.5, "log"]},
+    "m3": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures N2O, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, constants={"c_m3": [0.05, 0.5, "log"]},
                weight="c_m3 if (life_chemical or sep_reducing) else 0"),
-    "m4": dict(state="stand-in", replacement="GEN.525", kind="binary", classes=AIR, constants={"c_m4": [0.0, 0.05, "uniform"]}, weight="c_m4"),
+    "m4": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures PH3, and the Venus claim is contested, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, constants={"c_m4": [0.0, 0.05, "uniform"]},
+               weight="c_m4 if life_chemical else 0"),
     "m5": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
                constants={"c_m5": [0.1, 0.5, "log"]}, weight="c_m5"),
     "m6": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
@@ -305,7 +306,7 @@ MACHINE = {
     "m9": dict(kind="derived", classes=AIR + GIANT + BD, when=[c("gas_has_co_h2s", equals=True)],
                values={"log10_k_eq": "-1.477 + 4/t_layer_k", "k_eq": "10**(-1.477 + 4/t_layer_k)"}),
     "m10": dict(kind="binary", classes=AIR, when=[c("has_solid_ground", equals=True)], weight=1),
-    "m11": dict(state="stand-in", replacement="GEN.525", kind="binary", classes=AIR, constants={"c_m11": [0.0, 0.3, "uniform"]},
+    "m11": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures NO2, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, constants={"c_m11": [0.0, 0.3, "uniform"]},
                 weight="c_m11 if (life_chemical or lightning) else 0"),
 
     # ---- n. clouds, hazes and dust ----

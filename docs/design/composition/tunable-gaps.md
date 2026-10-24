@@ -196,6 +196,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Partly built (GEN.519, lane M, 2026-10-23):** row h4 is a step in the equilibrium temperature with a threshold drawn uniform from 2350 to 2641 K, the bracket of the five planets with a TiO test (`docs/design/aerosol-tuning.md`); the Kzz draw is gone (decision D5). Rows n6 and n7 wait for the chemistry module (GEN.518) and a haze amplitude model.
 
+**Built (GEN.525, lane M, 2026-10-23):** the design-flag registry (`planetgen/physics/design_flags.py`, `docs/design/design-flags.md`): rows m3, m4 and m11 are labelled design brackets, zero unless a life-stage or process flag allows them, never tuned; `check()` holds the recipes to that. Row m4 is now gated on the chemical life stage.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

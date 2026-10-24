@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 38, "partly verified": 37, "open": 0, "stand-in": 29}
+    assert RECIPES.state_counts() == {"verified": 38, "partly verified": 40, "open": 0, "stand-in": 26}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -118,7 +118,8 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
 def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
     assert stand_ins["a2"] == "GEN.513" and stand_ins["k7"] == "GEN.520"
-    assert {"a1", "b5", "k1", "m3", "m4", "n7", "o3"} <= set(stand_ins)
+    assert {"a1", "b5", "k1", "n7", "o3"} <= set(stand_ins)
+    assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 
 

@@ -3299,15 +3299,13 @@
     "R11"
    ],
    "notes": "longer lifetime around M dwarfs",
-   "replacement": "GEN.525",
    "labels": [
     "READ"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.525"
-   ],
+   "state": "partly verified",
+   "limit": "design flag (decision D4): no exoplanet measures N2O, so the bracket is a labelled design range, never tuned (GEN.525)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -3347,15 +3345,13 @@
     "R11"
    ],
    "notes": "",
-   "replacement": "GEN.525",
    "labels": [
     "READ"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.525"
-   ],
+   "state": "partly verified",
+   "limit": "design flag (decision D4): no exoplanet measures PH3, and the Venus claim is contested, so the bracket is a labelled design range, never tuned (GEN.525)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -3380,7 +3376,7 @@
      "uniform"
     ]
    },
-   "weight": "c_m4"
+   "weight": "c_m4 if life_chemical else 0"
   },
   {
    "id": "m5",
@@ -3669,15 +3665,13 @@
     "R11"
    ],
    "notes": "",
-   "replacement": "GEN.525",
    "labels": [
     "NOT REACHED"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.525"
-   ],
+   "state": "partly verified",
+   "limit": "design flag (decision D4): no exoplanet measures NO2, so the bracket is a labelled design range, never tuned (GEN.525)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "A",
     "B",
