@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2169] - 2026-10-24
+
+**Headline:** The Galaxy Map can mark the star systems that hold a habitable world: turn on "Habitable worlds" in the Menu and each gets a glyph you can hover (how many) and click (its card and page).
+
+### Changed
+- **Habitable world markers (MAP.220).** A second kind of marker on the MAP.219 marker layer, off until the Menu's Markers group turns it on (`show=marker-habitable` in the address): a glyph, the PHI-6 overall shape, over each star system with a planet or moon that is Blue or Green overall, most worlds first within the layer's budget. Hovering says how many (`Eden, 2 habitable worlds`); a click shows the system's card with a link to its page. Markers of chosen planet classes follow with the condition-based classes (GEN.645 to GEN.648).
+- **A table of the systems with a habitable world (migration 0148, schema v148).** `habitable_systems` has one row per such system with its count and position and a key on the position; it is filled from the scores already stored, kept right when a sector is filled or a score is worked out again, and the galaxy tiles carry its rows as a new `worlds` section from the finest levels. `star_systems` is not changed (its FULLTEXT key would make adding a column copy the whole table). No generator epoch: no generated value changes.
+
 ## [8.0.2168] - 2026-10-24
 
 **Headline:** The Galaxy Map no longer draws translucent blocks; cells show only when you ask, and a click selects the sector under it.
