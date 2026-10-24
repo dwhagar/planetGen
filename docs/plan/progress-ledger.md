@@ -1263,3 +1263,4 @@ Baseline: PR #1817.
 | TEST.218 | 8.1 | Bugs and flaky tests |
 | GEN.666 | 8.1 | Habitability system |
 | GEN.692 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.264 | 8.1 | Fly-through map |
