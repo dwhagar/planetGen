@@ -14099,6 +14099,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored schema version is current. Done: the same schema, with the
   check run once per process or per version change. Owner: Performance
   (proposed by the TODO thread, because the lane found it).
+  Research (2026-10-09, Lane OOM measurement): Update 2:38 PM EDT
+  2026-10-24 (Lane OOM, found in PERF.181, as the lane reported): one
+  4-minute scatter ran about 32,000 CREATE TABLE IF NOT EXISTS
+  statements and about 400 CREATE OR REPLACE VIEW statements, because
+  every new worker reruns the whole schema DDL on its first connection
+  (serialised by GET_LOCK). This slows worker start-up and adds server
+  load, so it is the same cause as this item, now with a second
+  measurement. Owner: Performance (unchanged); Lane OOM does not take
+  it.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.175 benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug)**
@@ -14209,6 +14218,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed by the TODO thread because no lane owns estimates since
   PERF.178 went to a finished lane).
   Prerequisites: none. Related: PERF.178, PERF.174.
+
+- [ ] **PERF.185 A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion**
+  Found by Lane OOM in PERF.181 (relayed 2:33 PM EDT 2026-10-24 as the
+  lane reported; filed by the TODO thread). Kind: cost, safety. PERF.181
+  stops one caller from starting a stampede of queue workers (a
+  per-queue Redis lock and a 90 s starting window), but nothing limits
+  the total number of planetgen worker processes on the host when
+  several commands, lanes or queues each start their own. Do: a hard cap
+  on total worker processes on one host, checked when a worker is
+  started, sized from free memory and core count with a setting to
+  override it, and a plain log line when a start is refused because of
+  the cap. Done: a test that many callers together never exceed the cap,
+  and the cap shows on the admin Queue page. Owner: Lane OOM (after
+  PERF.183).
+  Prerequisites: none. Related: PERF.181, PERF.183, PERF.174.
 
 ## DB: Database and schema
 
