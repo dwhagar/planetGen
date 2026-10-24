@@ -2807,6 +2807,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
+- [ ] **MAP.290 The System Map draws only the close pair of a triple or larger system, not a scene for each extra star**
+  Found by Core 3 (10:21 AM EDT 2026-10-24 as the lane reported, GEN.332
+  slice 1, #2981). The extra stars of a triple or larger system now have
+  planets of their own in the stable zone round them (named after the
+  star, for example Voranthis C I), and the table, text and 3D scene
+  show them, but the 2D System Map still draws the pair only. Add a
+  scene per extra star to the 2D System Map (orbits, planets, labels
+  through the MAP.268 label engine). Done: a triple system opened on the
+  2D System Map shows each extra star with its planets, and a browser
+  test covers it. Owner: not assigned (map lane; Core 2 is the nearest
+  owner after its queue).
+  Prerequisites: none. Related: GEN.332, MAP.231.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -5993,6 +6006,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   circumbinary and S-type planets to any tree, including the pair that
   BinaryStarProxy and WideBinaryPair host today; GEN.640 deletes those
   classes afterwards.
+  Research (2026-10-09, 10-24 Core 3): Progress (Core 3, slice 1 merged
+  as #2981, epoch 81, no migration, as the lane reported 10:21 AM EDT
+  2026-10-24): the extra stars of a triple or larger system now have
+  planets of their own in the stable zone round them, and a close pair
+  among other stars keeps its planets inside its zone; saved, named
+  after the star (Voranthis C I), shown in the table, text and 3D scene.
+  The 2D map still draws the pair only: filed as MAP.290. Still open
+  here: circumbinary planets at inner nodes, the pair's planets taken
+  from the tree (GEN.640 needs it), disks, planet pairs, comets of extra
+  stars. Findings that also fail on main:
+  reports/gen631-findings-2026-10-24.md.
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -13544,6 +13568,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-24, as the lane reported): it takes GEN.709 right after
   GEN.332 slice 1 merges and takes the next free generator epoch at
   merge.
+  Research (2026-10-09, 10-24 Core 3): Started by Core 3 at 10:22 AM EDT
+  2026-10-24 (as the lane reported).
   Prerequisites: none. Related: TEST.130, GEN.630, GEN.631.
 
 - [ ] **GEN.710 A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug)**
