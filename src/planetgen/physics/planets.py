@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, constants, metallicity
-from planetgen.physics import aerosols, atmosphere, habitability_world, hydrosphere, magnetism, radiation, radiogenic, relations, rogue_surface, spin
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -662,14 +662,12 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
-    surface_temperature_no_atmosphere = max(
-        constants.COSMIC_BACKGROUND_TEMPERATURE_K,
-        ((1 - albedo) * solar_output_at_orbit / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4),
-    )
+    surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit)
 
     if planet.atmosphere == "None":
         planet.surface_temperature = surface_temperature_no_atmosphere
         planet.atmospheric_pressure = 0.0
+        climate_draws.record(planet, albedo, 0.0)  # GEN.412
     else:
         scale_height_m = (constants.R * surface_temperature_no_atmosphere) / (
                     planet.atm_molar_density * planet.gravity * constants.EARTH_GRAVITY)
@@ -714,9 +712,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         greenhouse_multiplier_range = class_data.get("greenhouse_multiplier_range", (1.0, 1.0))
         greenhouse_multiplier = draw.uniform(*greenhouse_multiplier_range)
         greenhouse_factor = min(tuning.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
-        surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
-        planet.surface_temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, surface_temperature_atmosphere)
+        planet.surface_temperature = climate_draws.surface_temperature_k(albedo, greenhouse_factor, solar_output_at_orbit)
         planet.atmospheric_pressure = atmospheric_pressure
+        climate_draws.record(planet, albedo, greenhouse_factor)  # GEN.412: the two draws the temperature is made of
 
         # Class M/P's forced pressure/temperature clamps are disabled.
         # Several underlying model bugs they may have been compensating for
