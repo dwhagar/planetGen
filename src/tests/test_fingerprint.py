@@ -53,7 +53,7 @@ def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", config.database)
     for counter in run_common.RUN_COUNTS:
         run_common.RUN_COUNTS[counter] = 0
-    _cli(["galaxy", "--shell", "1", "--num-systems", "4", "--workers", "1"], config)
+    _cli(["sectors", "--shell", "1", "--num-systems", "4", "--workers", "1"], config)
 
 
 def _cli(argv, config):

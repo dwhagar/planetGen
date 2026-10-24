@@ -29,7 +29,7 @@ def test_core_ball_batch_fill_makes_planets(mysql_config):
     target = mysql_argv(mysql_config)
     run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + REFERENCE_SHAPE_ARGV + target)
     with forced_system_config(PLANETS=True):
-        run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "3", "--yes", "--quiet"] + target)
+        run_cli("sectors", ["--shell", "0", "--band", "0", "--num-systems", "3", "--yes", "--quiet"] + target)
     from planetgen.db import store
     conn = store.get_connection(mysql_config)
     try:
