@@ -2356,6 +2356,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fly-to), MAP.209 and MAP.210 (verify after S1), MAP.249, MAP.195,
   MAP.237, MAP.212; each is decided when its slice merges. This umbrella
   closes with its subitems.
+  Research (2026-10-09, Update 7:34 PM EDT): Update 7:34 PM EDT
+  2026-10-24 (Boss live observation, 7:31 PM EDT): clicks still land on
+  a sector block, filled space is hard to zoom into and names are not
+  clickable; chain filed: TEST.368, MAP.295 to MAP.303 (see MAP.297 for
+  the removal of the sector boxes, which only drops the clickable block,
+  not the optional grid tool).
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2522,6 +2528,214 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   uniforms and attributes the same way the Galaxy Map does, and keep the
   a11y test. Owner: Aux 10 (it wrote MAP.267), with MAP.293.
   Prerequisites: none. Related: MAP.267, MAP.291, MAP.293.
+
+- [ ] **MAP.295 The system infobox on the map does not scale to the size of the map window (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: the infobox does not scale
+  to the size of the map window. Do: size the infobox popup from the map
+  window (the width and height MAP.291 now fits to the page and the
+  browser window, never under 320 px), so a larger window gets a larger
+  box with its content readable, and a small window or a phone keeps it
+  inside the window with its own scroll. Done: a browser test at three
+  window sizes (desktop, tablet, phone) shows the box inside the window
+  and growing with it. Part of one chain filed from that message:
+  TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core 2),
+  MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
+  Core 2 (maps and interface; it wrote MAP.288 and MAP.291).
+  Research (2026-10-09, Added 7:33 PM EDT): Added (Boss, 7:33 PM EDT
+  2026-10-24, message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiKvKv7nchhgm2mEPPktTDrW, relayed by the
+  coordinator): "Make sure the infobox is never cut off, we can make the
+  fonts a little smaller." So the box never extends past the map window
+  on any side at any window size or content length (it scrolls inside
+  itself), and the infobox font size may be reduced a step. Done adds:
+  the browser test checks the box's rectangle lies inside the map window
+  for the longest system card on the fixture. Owner Core 2.
+  Prerequisites: none. Related: MAP.288, MAP.291, MAP.296.
+
+- [ ] **MAP.296 The system infobox on the map lists the nearest systems under the location, each name a link (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: to help fix the infobox,
+  show the nearest systems under the location line of the system infobox
+  on the map, each nearest system's name a link that flies to it (the
+  data is the nearest systems the system page already shows,
+  web/system_pages.py). Done: a browser test opens a system infobox on
+  the fixture galaxy, sees the nearest systems listed below the
+  location, and following a name flies to that system. Part of one chain
+  filed from that message: TEST.368 (fixture galaxy), MAP.295 and
+  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
+  icons; Aux 10). Owner: Core 2.
+  Prerequisites: none. Related: MAP.295, MAP.288, MAP.298.
+
+- [ ] **MAP.297 Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: clicking goes to a sector
+  block, which we need to get rid of; the map should be about locations.
+  Do: remove the drawn and clickable sector box, meaning the hover and
+  selected sector outline (MAP.265), the pick of a sector block on the
+  Galaxy Map, and any block outline a click can land on, so a click on
+  the map picks an item (a star, system, comet, rogue planet, cluster or
+  nebula), the nearest item under the pointer, or nothing. What stays:
+  the sector-block nodes as internal data (the node cut, the unresolved
+  glow, MAP.258 to MAP.262, MAP.266) and the optional grid tool, which
+  stays a tool and not the default display (Boss, 5:51 PM EDT
+  2026-10-23, zoom card 2). Done: a browser test clicks in empty space
+  and on a dense region of the fixture and gets an item or nothing,
+  never a sector box, and no sector outline is drawn on hover or select.
+  Part of one chain filed from that message: TEST.368 (fixture galaxy),
+  MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking,
+  labels, zoom, icons; Aux 10). Owner: Aux 10 (it owns the node layer);
+  the pick code is in galaxymap3d.js, which Core 2 also edits, so the
+  two lanes message each other before touching it.
+  Prerequisites: TEST.368. Related: MAP.257, MAP.265, MAP.122, MAP.210,
+  MAP.140.
+
+- [ ] **MAP.298 Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: we're putting names of items
+  so the names should be clickable to fly to that location; all visible
+  items we can fit names for get names. Do: on the Galaxy Map and the
+  sector zooms the label engine (MAP.229 to MAP.231, MAP.268) names
+  every visible item it can place, stars, systems, comets, rogue
+  planets, clusters, nebulae and the rest, and a click on a name flies
+  the camera to that item (the flight of MAP.226) and selects it. Done:
+  a browser test on the fixture sees names on items of every kind,
+  clicks one and ends at that item. Part of one chain filed from that
+  message: TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core
+  2), MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
+  Aux 10.
+  Prerequisites: TEST.368. Related: MAP.229, MAP.231, MAP.268, MAP.226,
+  MAP.299, MAP.297.
+
+- [ ] **MAP.299 In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: if it is too dense each name
+  must not overlap with an adjacent one and must have a buffer to the
+  nearby names, so when names need to be cut, it's on mass / brightness
+  of the object. Do: extend the label engine's placement so every placed
+  name keeps a clear margin (a few pixels, a setting) to every neighbour
+  and, when there is no room, the names of the lowest mass or brightness
+  are dropped first (a star by luminosity, a body by mass, a phenomenon
+  by its map luminosity), and a dropped name returns as you zoom in.
+  Done: a browser test on the fixture's densest region finds no two
+  names overlapping or closer than the buffer, and the brightest item in
+  any crowd keeps its name. Part of one chain filed from that message:
+  TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core 2),
+  MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner: Aux
+  10.
+  Prerequisites: TEST.368. Related: MAP.229, MAP.298, MAP.241.
+
+- [ ] **MAP.300 Zoom reaches far enough in to single out one item in even a dense cluster (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: need to be able to zoom in
+  far enough to be able to single out even a dense cluster. Do: find
+  what stops the zoom short in filled space (the camera's minimum
+  distance or the zoom step floor, the node cut resolution, or the
+  precision of the camera-relative coordinates, MAP.267) and let the
+  camera approach any single item in the densest region until that item
+  fills the view. Done: a browser test zooms into the fixture's densest
+  cluster and singles out one star and then one of its neighbours at
+  under a tenth of a parsec apart. Part of one chain filed from that
+  message: TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core
+  2), MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
+  Aux 10.
+  Prerequisites: TEST.368. Related: MAP.257, MAP.292, MAP.267, MAP.301.
+
+- [ ] **MAP.301 Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: zoom should assume you're
+  headed for the most populated layer currently in front of the zoom
+  direction to avoid going past. Do: when the wheel zooms, pick the zoom
+  target along the ray under the pointer as the densest layer of visible
+  items in front of the camera (a bounded search along the ray over the
+  node counts, MAP.259 to MAP.262) and slow and stop the approach there
+  instead of passing through it; zooming again continues past it. Done:
+  a browser test scrolls toward the fixture's filled region and stops in
+  it, and still reaches a lone star in empty space. Part of one chain
+  filed from that message: TEST.368 (fixture galaxy), MAP.295 and
+  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
+  icons; Aux 10). Owner: Aux 10 (with MAP.292, which fixed the stuck
+  wheel zoom).
+  Prerequisites: TEST.368. Related: MAP.292, MAP.257, MAP.300, MAP.302.
+
+- [ ] **MAP.302 At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: as one gets to a
+  sector-level zoom all items should appear from comets, rogue planets,
+  etc etc. Do: list what the sector-level view draws today and fill the
+  gaps so that at that zoom every object kind in the sector is drawn and
+  pickable (stars, systems, bodies where size allows, comets, rogue
+  planets, asteroid fields, brown dwarfs, black holes and neutron stars,
+  nebulae, clusters, facilities), each from the node cut down to its own
+  record, with names by MAP.298. Done: a browser test on the fixture
+  sector at sector zoom finds one of every kind it holds. Part of one
+  chain filed from that message: TEST.368 (fixture galaxy), MAP.295 and
+  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
+  icons; Aux 10). Owner: Aux 10.
+  Prerequisites: TEST.368. Related: MAP.298, MAP.207, MAP.301.
+
+- [ ] **MAP.303 Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: stars that have habitable
+  worlds (Yellow and above) should also be labeled with icons on the
+  map. Today MAP.220 has an opt-in habitable-worlds marker for Blue or
+  Green worlds only (side table habitable_systems, the Menu toggle,
+  #2943). Do: show an icon beside the name of every star whose system
+  holds a world rated Yellow or better on the overall habitability
+  score, the icon told apart by colour for Blue, Green and Yellow, on by
+  default with its toggle kept; this does not change the habitable rule
+  (GEN.643 stays Blue or Green; the icon uses the overall score
+  threshold Yellow). If the stored count in habitable_systems covers
+  only Blue and Green, add the Yellow count there with a migration (a
+  column in db/column_units.py in the same PR, the next migration number
+  from TODO). Done: a browser test on the fixture finds an icon on a
+  Yellow world's star, a different one on a Green one, none on a Red
+  one. Part of one chain filed from that message: TEST.368 (fixture
+  galaxy), MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303
+  (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (MAP.220's
+  marker code is its to extend); MAP.293 (colour-by Habitable) is the
+  same area, so it goes first.
+  Prerequisites: TEST.368. Related: MAP.220, MAP.293, GEN.643, MAP.298.
+
+- [ ] **MAP.304 Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug)**
+  Boss, 7:33 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiKvKv7nchhgm2mEPPktTDrW, relayed by the
+  coordinator), live observation, so a bug: "also I should be able to
+  click on any object or icon in my map view, double-click to fly to the
+  item / object, selecting brings up the infobox in the map window. Make
+  sure the infobox is never cut off, we can make the fonts a little
+  smaller." Do: every drawn object and every icon on the Galaxy and
+  sector
+  maps (stars, systems, comets, rogue planets, clusters, nebulae, the
+  habitable icons of MAP.303, the facility and vessel icons) takes a
+  single
+  click that selects it and opens its infobox inside the map window, and
+  a
+  double-click that flies the camera to it (MAP.140 and the flight of
+  MAP.226); a click on empty space selects nothing and closes the
+  infobox.
+  The pick is by object ID across scales (MAP.268) and never lands on a
+  sector box (MAP.297). The infobox sizing is MAP.295. Done: a browser
+  test
+  on the fixture galaxy (TEST.368) single-clicks one object of every
+  kind
+  and sees its infobox inside the map window, and double-clicks one and
+  ends the flight at it. Part of the Boss map UX chain: TEST.368,
+  MAP.295
+  to MAP.304. Owner: Aux 10 (click and double-click picking); the
+  infobox
+  is Core 2's MAP.295.
+  Prerequisites: TEST.368. Related: MAP.140, MAP.226, MAP.268, MAP.295,
+  MAP.297, MAP.298, MAP.303.
 
 ## NAV: Navigation and courses
 
@@ -10810,82 +11024,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   caption limits.
   Prerequisites: GEN.557. Related: GEN.550, GEN.520.
 
-- [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
-  Filed proposed, not assigned, from Core 1's read-only code audit of
-  main at 5c49fc42 (11:50 PM EDT as the lane reported; a helper read it,
-  Core 1 did not re-verify each line, no code was run), answering the
-  back-scatter question whether a refill is enough for the fill-level
-  8.4 changes (unified chain GEN.553 to GEN.559, the composition chain,
-  DB.73 and DB.67 to DB.71). Result: yes for stars, systems, planets,
-  moons, belts and comets; not yet for scattered phenomena. What exists:
-  `POST /api/sectors/<id>/regenerate` (`api/edits.py`, job
-  `regenerate_sector`, `queue/api_jobs.py` about 270 to 300) calls
-  `delete_sector_with_contents` (`db/edits.py` 346 to 375) then
-  `run_galaxy.ensure_sector_generated`; it deletes a sector's star
-  systems (planets, moons, stars, belts and comets by cascade) and its
-  stand-alone phenomenon rows (black holes, neutron stars, nebulae,
-  supernova remnants, rogue planets, interstellar comets, asteroid
-  fields, quasars), facilities and nearest systems, and keeps
-  `phenomenon_scatter`, `scatter_members`, `scatter_nodes`,
-  `nebula_field` and `bright_stars` (foreign key ON DELETE SET NULL, so
-  they become unbuilt and rebuild). Gaps a bulk job must close: (A) the
-  delete does not reset `phenomenon_scatter.built_at` or
-  `phenomenon_scatter_classes.built` (only `mark_phenomena_built` writes
-  `built_at`, `store.py` 6212 to 6223, and the fill reads `built_at IS
-  NULL`, 6204 to 6209), so scattered black holes, neutron stars,
-  remnants, planetary nebulae, hypervelocity stars and the nucleus would
-  vanish and not come back: the job resets them for the cell (a write to
-  a scatter table, no redraw); (B) systems built from one bright star
-  with no sector (`generate_uncharted_system_job`, `api/routes.py` 1245
-  to 1272) are missed by a sector-keyed clear: select them through
-  `bright_stars.star_system_id`; (C) `species.homeworld_planet_id` and
-  facilities cascade, so the population and sector paths rerun; (D)
-  object UIDs are issued in insertion order (`store.py` 7737 and after)
-  and are public in URLs, so if 8.4 changes how many planets or moons a
-  system gets, body UIDs shift: a decision for Boss and the identity
-  chain (it bears on 'a planet that leaves its star keeps its ID'); (E)
-  the generator epoch is never compared at runtime
-  (`util/generator_epoch.py` feeds the estimate cache key and the
-  bump_version check only, no database column stores it; each sector
-  records `version_key` and `planetgen_version`), so a job needs a way
-  to tell which sectors are old. Findings on dependence: the fill copies
-  scatter values in and links back, so a changed fill draw breaks no
-  link; nothing in `generation/` or `db/store.py` reads
-  `scatter_members`, `scatter_nodes` or `member_count` today, and the
-  planned 'fill builds from stored members' (GEN.264, GEN.315, 8.1)
-  would make a clear lose the stored trees, so a refill after GEN.315
-  must keep or rebuild them. Do: a bulk job (CLI and queue command)
-  that, for every sector or a chosen range, clears the fill-level rows,
-  resets the phenomena built flags, handles the sector-less uncharted
-  systems, reruns population, and rebuilds; it refuses when a sector's
-  version marks it current. Done: after an epoch bump that changes only
-  fill output, the job brings a test galaxy to the same rows as a fresh
-  fill of the same seed, without touching a scatter row, and says what
-  it did per sector. Owner: Core 1 (proposed; it owns the identity and
-  repair chain and the regenerate path), 8.4 phase 1.
-  Boss tapped 'IDs stay stable' (11:49 PM EDT, 2026-10-17, as the
-  coordinator relayed): gap (D) is closed by DB.75, a prerequisite of
-  this item: a refill must not renumber the bodies of a system whose
-  planet or moon count changes, and a body that changes parent keeps its
-  ID.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Research (2026-10-09, Update 7:08 PM EDT): Update 7:08 PM EDT
-  2026-10-24: Boss asked for the general form (bring a galaxy to the
-  current epoch with a stage-level epoch record); filed as the item that
-  builds on this refill, see GEN.764. This item stays the fill-level
-  mechanism.
-  Prerequisites: DB.75. Related: GEN.550, GEN.315, DB.73.
-
 - [ ] **GEN.565 The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
@@ -14059,8 +14197,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and
   repair path), after GEN.55 and TEST.77, unless the coordinator names a
   pool lane; nobody has started it.
-  Prerequisites: GEN.564. Related: GEN.564, GEN.229, DB.102, PERF.182,
+  Prerequisites: DB.75. Related: GEN.564 (folded in), GEN.229, DB.102, PERF.182,
   ADM.61, ADM.129, DB.17, OPS.56.
+  Research (2026-10-09, Decided 7:32 PM EDT): Decided (Boss, 7:32 PM EDT
+  2026-10-24, cards 1.1, 2.1, 3.1, 4.1 as the coordinator relayed them):
+  (1) a sector with admin edits is skipped and listed in the run's
+  report, not redone (this replaces step 5 above, the edit replay); (2)
+  the run is a command and also a button on the Generate page; (3) an
+  epoch whose change cannot be redone in part (a plan-level epoch) makes
+  the run refuse and say the full regeneration is needed; (4) owner Core
+  1, after TEST.77 and GEN.55, design draft first.
+  Research (2026-10-09, Folded GEN.564 7:34 PM EDT): GEN.564 (the
+  fill-level refill job) is folded into this item (Core 1, 7:32 PM EDT
+  2026-10-24): its Do and Done, the gaps (A) to (E) it found (the
+  phenomena built flags, sector-less uncharted systems, species and
+  facilities that cascade, body IDs when counts change, which closed
+  with DB.75 as a prerequisite, and the epoch never compared at runtime)
+  and the fork-2 decision (fill-level changes take the epoch bump and
+  the refill, not a rescatter) are carried in Core 1's design draft,
+  /mnt/project-files/design-drafts/bring-a-galaxy-to-the-current-epoch-2026-10-24.md.
+  Owner Core 1 as decided above.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19268,6 +19424,42 @@ clears each one.
   and
   record which. Owner: Bug 1.
   Prerequisites: none. Related: TEST.365, API.15.
+
+- [ ] **TEST.368 A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug)**
+  Boss, 7:31 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
+  coordinator), live observation, so a bug: "UX issues. infobox does not
+  scale to the size of the map window. Still difficult to zoom into a
+  region of filled space, I can see it on the map (I skipped the scatter
+  to make it easy) and I can zoom in to a point, but clicking does got
+  to a sector block, which we need to get rid of, this should be about
+  locations, we're putting names of items so the names should be
+  clickable to fly to that location. So get rid of the sector boxes
+  entirely, all visible items we can fit names for get names, if it is
+  too dense each name must not overlap with an adjacent one and must
+  have a buffer to the nearby names, so when names need to be cut, it's
+  on mass / brightness of the object. Need to be able to zoom in far
+  enough to be able to single out even a dense cluster. Also zoom should
+  assume you're headed for the most populated layer currently in front
+  of the zoom direction to avoid going past, as one gets to a
+  sector-level zoom all items should appear from comets, rogue planets,
+  etc etc. Stars that have habitable worlds (Yellow and above) should
+  also be labeled with icons on the map. To help fix the infobox, have
+  the nearest under the location on the system infobox on the map, and
+  each system name of nearest systems should be a link." Boss skipped
+  the scatter to make the filled space easy to see, and the map tests
+  have no dense region to fly into. Build a small fixture galaxy
+  (seeded, a few thousand stars packed in one region with comets, rogue
+  planets, a cluster, systems with and without habitable worlds, no
+  scatter) that the browser tests load, and use it for the tests of
+  MAP.295 to MAP.303. Done: one fixture, one helper that loads it, and a
+  browser test that zooms into its densest region and finds an item
+  there. Part of one chain filed from that message: TEST.368 (fixture
+  galaxy), MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303
+  (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (Map nodes),
+  first in the chain; Core 2 uses it for MAP.295 and MAP.296.
+  Prerequisites: none. Related: TEST.344, MAP.295, MAP.297, MAP.298,
+  MAP.299, MAP.300, MAP.301.
 
 ## USR: User accounts
 

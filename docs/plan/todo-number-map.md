@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.195 |
-| MAP | MAP.295 |
+| MAP | MAP.305 |
 | NAV | NAV.63 |
 | GEN | GEN.765 |
 | PERF | PERF.194 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.130 |
 | SEC | SEC.37 |
-| TEST | TEST.368 |
+| TEST | TEST.369 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -1295,7 +1295,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | done, PR #2240 |
 | GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | done, PR #2220 |
 | GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | done, PR #2256 |
-| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | open |
+| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | folded into GEN.764 (Core 1, 7:32 PM EDT 2026-10-24) |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes | none | open |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | done, PR #2800 |
 | GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | none | done, PR #2190 |
@@ -1790,6 +1790,16 @@ Parents marked "new parent" had no old number of their own.
 | MAP.292 | Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug) | none | done, PR #3104 |
 | MAP.293 | Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug) | none | open |
 | MAP.294 | The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug) | none | open |
+| MAP.295 | The system infobox on the map does not scale to the size of the map window (bug) | none | open |
+| MAP.296 | The system infobox on the map lists the nearest systems under the location, each name a link (bug) | none | open |
+| MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | none | open |
+| MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | none | open |
+| MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | none | open |
+| MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | open |
+| MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
+| MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
+| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | open |
+| MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2866,6 +2876,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | done, PR #3142 |
 | TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Bug 1, 7:20 PM EDT 2026-10-24 as the lane reported) |
 | TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | open |
+| TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

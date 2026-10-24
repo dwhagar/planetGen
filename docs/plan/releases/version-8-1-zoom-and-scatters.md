@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 7:20 PM EDT 2026-10-24: 1015 of 1401 items finished (72.4 percent), 386 open, 34 dropped (TEST.366 dropped as no longer reproducing after #3125, Bug 1 7:20 PM EDT as the lane reported; TEST.335 dropped as not reproduced on main, Bug 1 7:14 PM EDT as the lane reported; TEST.360 and TEST.361 dropped as not reproduced on main, Bug 1 6:35 PM EDT as the lane reported; TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 93, phase 2 31, phase 3 26, phase 4 13, phase 5 61, phase 6 23, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 66, phase 12 21 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 7:34 PM EDT 2026-10-24: 1015 of 1411 items finished (71.9 percent), 396 open, 35 dropped (GEN.564 folded into GEN.764, Core 1 7:32 PM EDT; TEST.366 dropped as no longer reproducing after #3125, Bug 1 7:20 PM EDT as the lane reported; TEST.335 dropped as not reproduced on main, Bug 1 7:14 PM EDT as the lane reported; TEST.360 and TEST.361 dropped as not reproduced on main, Bug 1 6:35 PM EDT as the lane reported; TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 93, phase 2 42, phase 3 26, phase 4 13, phase 5 61, phase 6 22, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 66, phase 12 21 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -199,6 +199,17 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) |  | Boss 7:24 PM EDT. |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:15 PM EDT; the superbubble layer is its sibling item. |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
+| MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | TEST.368 |  |
+| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | TEST.368 |  |
+| MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | TEST.368 |  |
+| MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | TEST.368 |  |
+| MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | TEST.368 |  |
+| MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | TEST.368 |  |
+| MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | TEST.368 |  |
+| MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | TEST.368 |  |
+| MAP.296 | The system infobox on the map lists the nearest systems under the location, each name a link (bug) |  |  |
+| MAP.295 | The system infobox on the map does not scale to the size of the map window (bug) |  |  |
+| TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) |  |  |
 | MAP.294 | The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug) |  |  |
 | MAP.293 | Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug) |  |  |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | MAP.240 | Boss 7:24 PM EDT; look only. |
@@ -457,7 +468,6 @@ Moved into 8.1 from 8.4 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | GEN.565, GEN.315 |  |
 | GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set |  |  |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set |  |  |
-| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | DB.75 |  |
 | GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332, GEN.581 |  |
 | GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | GEN.553 |  |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system |  |  |
@@ -679,7 +689,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.751 | Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list |  |  |
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.422, GEN.462 |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
-| GEN.764 | Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed | GEN.564 |  |
+| GEN.764 | Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed | DB.75 |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) |  |  |
