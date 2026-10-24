@@ -18848,6 +18848,11 @@ clears each one.
   grant (never skip silently), and say in the environment settings
   (OPS.62 area) what grant the test user needs. Owner: none (pool); Bug
   Hunt proposed.
+  Research (2026-10-09, Update): Debug mode thread (6:17 AM EDT
+  2026-10-24, as the lane reported): still red on lane machines; the
+  cause is that the test database user pgtest lacks GRANT. Either the
+  setup script (OPS.62) grants it, or the test skips with a stated
+  reason when the grant is missing.
   Prerequisites: none. Related: TEST.302, OPS.62.
 
 - [ ] **TEST.304 Nine Playwright test files are not marked browser, so they run in the all-core phase**
@@ -19112,6 +19117,26 @@ clears each one.
   passes, close this. Done: 50 clean trials on main. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.313, GEN.631.
+
+- [ ] **TEST.334 Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug)**
+  Reported by the Debug mode thread at 6:17 AM EDT 2026-10-24 (as the
+  lane reported) when merging PR #2723: these fail on origin/main on
+  lane machines and so are not from that PR: test_gen_resume.py (7
+  tests), test_gen_bright_scatter_edges.py (5), test_work_units.py (7 in
+  sequence),
+  test_worker_warm.py::test_a_warmed_scatter_unit_builds_no_sampling_table_of_its_own
+  and
+  test_work_queue.py::test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one.
+  They pass alone and hang or show 'DID NOT RAISE' in a full run. Likely
+  related to TEST.302 (benchmark_suite.stop_workers() kills other tests'
+  queue workers) or to a queue or test-setup change in the last 24 hours
+  of merges (PERF.155 #2923 added the unit ceiling and the declared
+  longest units; #2723 itself changed the worker log relay). Do: run the
+  files together in the full-run order, bisect the last day of merges
+  that touched queue/ or the test fixtures, and fix the shared cause.
+  Done: the files pass in a full run on a lane machine. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: TEST.302, PERF.155, OPS.65.
 
 ## USR: User accounts
 
@@ -19887,24 +19912,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.65 Debug mode wrote almost nothing to stdout: planetgen system --debug printed 3 lines because the generation runs in queue workers whose stdout is /dev/null (bug)**
-  Finding of the Debug mode thread (2026-10-23, audit
-  /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
-  at 5:20 PM EDT and 5:35 PM EDT), filed by the TODO thread at the
-  thread's word (7:22 PM EDT). Boss: debug mode is supposed to log every
-  decision, however small, to stdout with timestamps and to the debug
-  log, every function takes the debug option. On main (0b1e5c2) the
-  narration went only to the debug log file and only when config.json
-  had debug true. Fixed by PR #2723 (open at 7:22 PM EDT: workers relay
-  their log lines through a Redis stream to the command that started the
-  run, one ISO-timestamp format, tracing in draw.Stream, every command
-  takes --debug and --debug-areas, the Generate page tasks get a Debug
-  box, and the opt-in branch area Boss approved at 5:55 PM EDT is built
-  in the same PR so it is not an open item). Retire this item when #2723
-  merges. Boss declined an API debug field (5:56 PM EDT): not filed.
-  Owner: the Debug mode thread.
-  Prerequisites: none. Related: OPS.64.
-
 - [ ] **OPS.66 Remove the unused older executor in src/planetgen/queue/work.py: RQExecutor, _rq_task and the --debug FILE worker plumbing**
   Finding of the Debug mode thread (2026-10-23, audit
   /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
@@ -19913,7 +19920,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   No shim. Done: the code and its tests are gone, the worker still takes
   --debug through the new path of PR #2723, and the suite passes. Owner:
   none (pool); after #2723 merges; the Debug mode thread proposed.
-  Prerequisites: OPS.65. Related: OPS.65.
+  Research (2026-10-09, Update): Debug mode thread (6:17 AM EDT
+  2026-10-24, as the lane reported): PR #2723 merged, so this item can
+  start; the thread proposed itself, and nothing else in the queue uses
+  RQExecutor or _rq_task.
+  Prerequisites: none. Related: OPS.65.
 
 - [ ] **OPS.67 Detached helpers (the background planetgen warm a run starts, an auto-started worker's own lifecycle) write the debug log file only: decide whether they relay to stdout**
   Finding of the Debug mode thread (2026-10-23, audit
@@ -19931,7 +19942,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   writing the debug log file only; they do not relay to stdout. Nothing
   to build for the relay; the item can close once the debug mode docs
   say so. Owner: none (pool), closes with OPS.65.
-  Prerequisites: OPS.65. Related: OPS.65.
+  Research (2026-10-09, Update): The Debug mode thread asked again (6:17
+  AM EDT 2026-10-24) whether detached helpers relay to stdout: it is
+  already decided (option 1, above): they keep writing the debug log
+  file only. Remaining work: one line in the debug mode docs saying so;
+  then close.
+  Prerequisites: none. Related: OPS.65.
 
 ## DOC: Documentation
 
