@@ -468,6 +468,50 @@ def test_the_default_cut_scatters_only_the_intermediate_mass_black_holes():
     assert len(rows) < len(everything) / 20
 
 
+def _class_counts_and_expectations(min_mass_solar):
+    rows = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3, min_mass_solar=min_mass_solar)]
+    counts = {}
+    for row in rows:
+        counts[(row[3], row[4])] = counts.get((row[3], row[4]), 0) + 1
+    expected = {}
+    for shell_index, high in EXTENTS:
+        for key, value in scatter.shell_expected_by_class(SHAPE, shell_index, high, EDGE_PC, E_VALUE,
+                                                          min_mass_solar).items():
+            expected[key] = expected.get(key, 0.0) + value
+    return rows, counts, expected
+
+
+def test_gen677_the_default_cut_scatters_stellar_black_holes_and_no_ordinary_neutron_star():
+    """GEN.677: a run at the 14 solar mass cut placed about 86,000 black holes per shell pair and no neutron star that is
+    not a magnetar. The cut is the reason, not the rates: every ordinary neutron star is under 2.2 solar masses and is
+    drawn by the sector that holds it, while the 40% of the stellar black holes (5 to 20) above 14 are scattered; each
+    class is placed at the count its model rate gives."""
+    rows, counts, expected = _class_counts_and_expectations(tuning.PHENOMENON_MIN_MASS_SOLAR)
+    assert ("neutron-star", None) not in counts
+    assert counts[("black-hole", "stellar")] == pytest.approx(expected[("black-hole", "stellar")], rel=0.05)
+    assert all(row[12] >= tuning.PHENOMENON_MIN_MASS_SOLAR for row in rows if (row[3], row[4]) == ("black-hole", "stellar"))
+    # the share above the cut is the model's, and the rate behind it is the remnant model's per star
+    assert scatter.share_above("black-hole", "stellar", 14.0) == pytest.approx(0.4)
+    assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(remnant_density.base_rate_per_star())
+
+
+def test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_model_counts():
+    _rows, counts, expected = _class_counts_and_expectations(1.0)
+    for key in (("black-hole", "stellar"), ("neutron-star", None)):
+        assert counts[key] == pytest.approx(expected[key], rel=0.05), key
+    # Neutron stars are what the black holes leave (GEN.554): per star the model has them in the ratio of the leavings
+    assert counts[("neutron-star", None)] > 2 * counts[("black-hole", "stellar")]
+
+
+def test_gen677_the_stage_line_says_what_the_cut_leaves_to_the_sectors():
+    default = scatter.cut_summary(14.0)
+    assert default.startswith("stellar black holes from 14 solar masses; the sectors draw the neutron stars (all under 2.2")
+    assert "magnetars are scattered at every cut" in default
+    assert scatter.cut_summary(1.0) == "all stellar black holes and all neutron stars"
+    assert scatter.cut_summary(2.0) == "all stellar black holes and neutron stars from 2 solar masses"
+    assert scatter.cut_summary(25.0).startswith("the sectors draw the stellar black holes (all under 20")
+
+
 def test_the_sector_draws_what_the_scatter_left_below_the_cut():
     address, center = (2, 0, 3), sector_position_pc(2, 0, 3, EDGE_PC)
     first, _ = scatter.below_cut_draws(address, center, SHAPE, 5000.0, 20.0, 7)
