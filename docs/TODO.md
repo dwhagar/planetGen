@@ -4891,6 +4891,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1 reported): Core 1 has not started it and releases it to the pool;
   Core 5 may take it, but the repair or re-roll needs Boss's word before
   anything is changed.
+  Research (2026-10-09, Decided): Decided (Boss, 8:37 AM EDT 2026-10-24,
+  message cmsg_01RuNTFUNB92A8cm5CbojQAiUosXZByEG3UuFyLRYt2W5N, relayed
+  by the coordinator), option 3: re-roll only the affected systems from
+  their seeds (not a repair in place, not leaving them). While the
+  migration (or the re-roll step) runs, it prints to the console which
+  systems it redid, with details: the system id, the two stars or orbits
+  that broke the stability rule, and what the re-roll produced. Do: run
+  the wide-binary count first and report it, then build the re-roll with
+  that console report. Owner: none (pool); Core 5 may take it if nobody
+  started it.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
@@ -8167,6 +8177,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and habitability read it; the old proxy functions are deleted and a
   test fails if one returns. Still open: the second GCR curve removed,
   toxicity reads, habitability_explain.
+  Research (2026-10-09, Update): Lane E merged slice 2 (#2954, generator
+  epoch 78, no migration; 7:36 AM EDT as the lane reported): the
+  Radiation rating counts ground ultraviolet as well as the dose (Blue
+  under 3x Earth's UV, Green to 30x, Yellow to 300x, Red beyond), the
+  Help levels page has the new row, the planet text names the UV when it
+  is the limit, and the duplicate hand-fitted cosmic-ray curve in
+  habitability.py is deleted (one curve, from the radiation model). Item
+  stays open: toxicity reads (wait GEN.411 child table),
+  habitability_explain, GEN.444 slice 2 with H, GEN.703, DOC.77,
+  TEST.300.
 - [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -19099,6 +19119,9 @@ clears each one.
   row in every system and the test passes. Related to TEST.337 (same
   GEN.631 draw change); check whether one cause covers both. Owner: Bug
   Hunt (proposed).
+  Research (2026-10-09, Update): Habitability lane E (7:36 AM EDT
+  2026-10-24, as the lane reported) sees the same shape in three more
+  tests: filed together as the next TEST item (see Related).
   Prerequisites: none. Related: GEN.631, TEST.337.
 
 - [ ] **TEST.339 test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug)**
@@ -19112,6 +19135,20 @@ clears each one.
   consecutive runs pass, and a system that cannot hold a belt says so.
   Related: TEST.333 (forced belt). Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.333.
+
+- [ ] **TEST.340 Three more tests fail on clean main, likely the same cause as TEST.338: test_gen_stored_trees fill_builds_each_row, test_hosted_nebula_rows pre_placed_star, test_emission_members pre_placed_hot_star (bug)**
+  Reported by Habitability lane E (7:36 AM EDT 2026-10-24, as the lane
+  reported) when merging GEN.445 slice 2 (#2954): test_gen_stored_trees
+  (fill_builds_each_row), test_hosted_nebula_rows (pre_placed_star) and
+  test_emission_members (pre_placed_hot_star) fail on clean main, not
+  caused by GEN.445. Suspects: the GEN.631 tree draw, GEN.651 (#2952,
+  birth [Fe/H] first) or the epoch 75 backfill; they share the shape of
+  TEST.338 (a pre-placed or stored star is not the star that gets
+  built). Recheck on current main first (the TODO thread could not run
+  them). Do: find whether one cause covers TEST.338 and these three, fix
+  the product, and keep each test's intent. Done: all four pass on main.
+  Owner: Bug Hunt (proposed), with TEST.338.
+  Prerequisites: none. Related: TEST.338, TEST.337, GEN.651, GEN.631.
 
 ## USR: User accounts
 
@@ -19891,6 +19928,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-24, as the lane reported): PR #2723 merged, so this item can
   start; the thread proposed itself, and nothing else in the queue uses
   RQExecutor or _rq_task.
+  Research (2026-10-09, Decided): Decided (Boss, 8:37 AM EDT 2026-10-24,
+  same message, relayed by the coordinator): yes, remove the old queue
+  executor; nothing is kept for compatibility. Start it now: the Debug
+  mode thread takes it (PR #2723 is merged).
   Prerequisites: none. Related: OPS.65.
 
 - [ ] **OPS.67 Detached helpers (the background planetgen warm a run starts, an auto-started worker's own lifecycle) write the debug log file only: decide whether they relay to stdout**
