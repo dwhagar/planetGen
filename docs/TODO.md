@@ -15357,6 +15357,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposes lane K, which found it, takes it).
   Prerequisites: none. Related: GEN.427, GEN.442.
 
+- [ ] **GEN.661 Bright-star counts still use the reference-composition fraction (stand-in, bug)**
+  Found by Habitability lane A (relayed 2026-10-23, 8:34 PM EDT): the
+  bright-star count draw still uses the reference-composition fraction
+  instead of the star's own birth [Fe/H], so metal-poor and metal-rich
+  regions hold the same bright fraction. Done: the count draw reads the
+  composition-first [Fe/H] of GEN.651; until then the fraction is
+  labelled a stand-in in the gap plan registry
+  (docs/design/research/gap-filling-plan.md). Owner: Habitability lane
+  A, after GEN.553, GEN.651 and GEN.652.
+  Prerequisites: GEN.651. Related: GEN.553, GEN.652.
+
+- [ ] **GEN.662 Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug)**
+  Found by Habitability lane A (relayed 2026-10-23, 8:34 PM EDT): stars
+  in clusters and satellite galaxies draw a halo [Fe/H] when their
+  lifetimes are computed, until their component's own value is wired.
+  Done: each cluster and satellite component supplies its own [Fe/H]
+  distribution to the composition-first star draw, and the halo value is
+  gone from those paths. Label the halo draw a stand-in in the gap plan
+  registry until then. Owner: Habitability lane A, after GEN.651.
+  Prerequisites: GEN.651. Related: GEN.553, GEN.652.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19041,6 +19062,11 @@ clears each one.
   Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
   is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
+  Update (2026-10-09): The regression test review (2026-10-23) found
+  that tests/test_neighborhood_edge.py has a module-level skip and
+  imports a function that no longer exists, so this item may be moot; it
+  closes if Boss agrees to delete the file (Boss reviews
+  reports/regression-test-review-2026-10-23.md before any delete).
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -20736,6 +20762,46 @@ clears each one.
   (OPS.62 area) what grant the test user needs. Owner: none (pool); Bug
   Hunt proposed.
   Prerequisites: none. Related: TEST.302, OPS.62.
+
+- [ ] **TEST.304 Nine Playwright test files are not marked browser, so they run in the all-core phase**
+  Found by the regression test review thread (2026-10-23; report
+  reports/regression-test-review-2026-10-23.md section 8): conftest
+  marks only test_web_a11y.py and test_web_browser*, so
+  test_web_admin_menu_fits, test_web_adminshell_browser,
+  test_web_edit_menu, test_web_generate_alignment,
+  test_web_generate_flow_browser, test_web_header_menus,
+  test_web_job_terminal, test_web_settings_browser and
+  test_web_system_nav_row run with the all-core tests (about 1,780 s
+  summed on the reviewer's box), which is the TEST.126 situation. Done:
+  all nine carry the browser marker (or conftest marks every Playwright
+  file), the all-core phase no longer starts Chromium, and a check fails
+  when a file imports playwright without the marker.
+  Prerequisites: none. Related: TEST.126.
+
+- [ ] **TEST.305 The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug)**
+  Found by the regression test review thread (2026-10-23): on a fresh
+  4-core box (MySQL 8.0.46, Chromium 153 via playwright 1.63) 41 tests
+  in test_web_browser_fixture_maps.py failed waiting 120 s for
+  ".starmap-sr-list button" (test_sector_map_*, bookmarks, pick mode,
+  breadcrumb, help dialog); test_sector_map_click_picks_a_star also
+  fails alone there. Not diagnosed and it may be that box. Done: a
+  normal lane runs the file and reports; if it passes there, close with
+  the box difference named; if it fails, the cause is found and fixed
+  without loosening a test. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.126.
+
+- [ ] **TEST.306 Five physics modules are imported only by tests and no item names them**
+  Found by the regression test review thread (2026-10-23, dead-code
+  pass): src/planetgen/physics/closest_approach.py,
+  collision_outcome.py, oxygen_fugacity.py and materials.py, and
+  src/planetgen/db/precision.py, are imported only by tests. Done: each
+  module is either named by an open item that will wire it
+  (closest_approach and collision_outcome by the collisions design,
+  oxygen_fugacity by the composition suite, materials by GEN.427 and
+  GEN.428, precision by GEN.372) with the item's Related line updated,
+  or deleted with Boss's OK together with its tests. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: GEN.372, GEN.427, GEN.428.
 
 ## USR: User accounts
 

@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.157 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.661 |
+| GEN | GEN.663 |
 | PERF | PERF.176 |
 | DB | DB.96 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.304 |
+| TEST | TEST.307 |
 | USR | USR.32 |
 | OPS | OPS.68 |
 | DOC | DOC.79 |
@@ -1382,6 +1382,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | open |
 | GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | open |
 | GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug) | none | open |
+| GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) | none | open |
+| GEN.662 | Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2599,6 +2601,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | none | open |
 | TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) | none | open |
 | TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) | none | open |
+| TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | open |
+| TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | open |
+| TEST.306 | Five physics modules are imported only by tests and no item names them | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
