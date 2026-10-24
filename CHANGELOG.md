@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2245] - 2026-10-24
+
+**Headline:** Moons now have an origin, and a moon caught from elsewhere can orbit backwards or steeply tilted.
+
+### Changed
+- **A moon draws how it came to orbit its planet, and its orbit follows from that (GEN.714).** A giant planet's moon is a disk moon or a captured body, a terrestrial planet's an impact moon or a captured body, and a dwarf planet's a partner or a captured body, each with an equal chance because no source gives the shares. A regular moon lies within 25 degrees of its planet's equator as before. A captured moon takes any orbit outside the band between 55 and 130 degrees where such orbits are unstable, so it is either prograde or retrograde, about 43 and 57 percent. The origin is held while the system is generated and is stored once the composition columns (DB.70) exist.
+
+generation-output: changed
+
 ## [8.0.2244] - 2026-10-24
 
 **Headline:** The mail server, the site's address and the From address now open only for the Owner, after typing the password again.
