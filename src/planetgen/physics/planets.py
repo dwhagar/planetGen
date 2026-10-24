@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, constants, metallicity
-from planetgen.physics import aerosols, atmosphere, habitability_world, hydrosphere, magnetism, radiation, relations, rogue_surface, spin
+from planetgen.physics import aerosols, atmosphere, habitability_world, hydrosphere, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -527,6 +527,9 @@ def generate_planet_properties(planet, zone_override=None):
 
     planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, tuning.PLANET_CLASSES, constants.PLANET_DENSITY,
                                               planet.density)
+    # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
+    # body, so the later recalculation of its air and water, which moves nothing in its rock, does not redraw it).
+    radiogenic.generate_content(planet)
 
     update_hill_sphere(planet)
 
@@ -750,11 +753,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
 
 
 def internal_heat_flux_w_m2(planet):
-    """A rocky body's own heat flow, W/m^2: radioactive decay at its star's
-    age plus leftover formation heat in Earth's proportion (the rogue
-    planets' rule, `rogue_surface.radiogenic_flux_w_m2`)."""
+    """A rocky body's own heat flow, W/m^2: the radiogenic heat of its stored concentrations at its star's age over its Urey ratio
+    (`radiogenic.heat_flow_w_m2`, GEN.459). 0 for a body with no stored content (a giant)."""
+    content = radiogenic.content_of(planet)
+    if content is None:
+        return 0.0
     age_gy = getattr(planet.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
-    return rogue_surface.radiogenic_flux_w_m2(planet.mass, planet.radius, age_gy) / tuning.ROGUE_UREY_RATIO
+    return radiogenic.heat_flow_w_m2(content, planet.mass, planet.radius, age_gy)
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):

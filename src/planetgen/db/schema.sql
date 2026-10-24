@@ -1441,6 +1441,9 @@
 --   columns. `parent_type` is VARCHAR(16). `moons.planet_id` and `moons.star_system_id` are nullable: a moon of a free planet has
 --   `parent_type` 'rogue_planet', the rogue planet's row in `parent_id` and in `rogue_planet_id` (a foreign key that cascades), and both NULL. A planet that leaves its star keeps its
 --   row and ID and becomes `free`. There is no foreign key for a polymorphic `parent_id`. The `sector_objects` view lists the bodies of systems only, so a moon of a free planet is not in it.
+-- v141 (GEN.459): `planets` and `moons` keep the radiogenic content of the body (`c_k0_ppm`, `c_th0_ppm`, `c_u0_ppm`: potassium, thorium and uranium in the bulk silicate at
+--   formation, ppm by mass; `al26_ratio`: 26Al/27Al at formation; `urey_ratio`: the radiogenic share of the heat flowing out), the one set its interior heat and its ground dose read.
+--   Rows from before v141 have NULL there and keep the heat and the dose they were generated with.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2297,6 +2300,11 @@ CREATE TABLE IF NOT EXISTS planets (
     tau_cloud                   DOUBLE NULL,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
     cloud_cover                 DOUBLE NULL,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
     aerosol_draw                DOUBLE NULL,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
+    c_k0_ppm                    DOUBLE,  -- v141 (GEN.459): potassium in the bulk silicate at formation, ppm by mass
+    c_th0_ppm                   DOUBLE,  -- v141: thorium, the same
+    c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
+    al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
+    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2509,6 +2517,11 @@ CREATE TABLE IF NOT EXISTS moons (
     cloud_cover                 DOUBLE NULL,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
     aerosol_draw                DOUBLE NULL,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
     rogue_planet_id             BIGINT UNSIGNED NULL,  -- v140 (DB.73): the rogue planet a moon of a free planet orbits
+    c_k0_ppm                    DOUBLE,  -- v141 (GEN.459): potassium in the bulk silicate at formation, ppm by mass
+    c_th0_ppm                   DOUBLE,  -- v141: thorium, the same
+    c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
+    al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
+    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

@@ -13,7 +13,7 @@ import re
 import pytest
 
 from planetgen.db import store
-from planetgen.physics import constants, hydrosphere
+from planetgen.physics import constants, hydrosphere, radiogenic
 from planetgen import tuning
 from planetgen.physics import rogue_surface as rs
 from planetgen.generation.config import SystemConfig
@@ -29,7 +29,10 @@ JUPITER = constants.JUPITER_MASS_TO_KG
 
 
 def test_earth_like_rogue_matches_boss_numbers():
-    flux = rs.radiogenic_flux_w_m2(EARTH, 6371, 4.5) / tuning.ROGUE_UREY_RATIO
+    k, th, u = radiogenic.BULK_SILICATE_EARTH
+    earth = radiogenic.Content(k * radiogenic.formation_mix("K")[1], th * radiogenic.formation_mix("Th")[1],
+                               u * radiogenic.formation_mix("U")[1], radiogenic.SOLAR_AL26_RATIO, 0.47)
+    flux = radiogenic.heat_flow_w_m2(earth, EARTH, 6371, 4.568)
     assert 0.08 <= flux <= 0.1
     t_eff = rs.effective_temperature_k(flux)
     assert t_eff == pytest.approx(35.5, abs=1.0)

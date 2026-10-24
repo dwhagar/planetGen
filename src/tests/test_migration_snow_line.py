@@ -64,6 +64,9 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        for table in ("planets", "moons"):  # v141 (GEN.459)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm, DROP COLUMN al26_ratio,"
+                         " DROP COLUMN urey_ratio, ALGORITHM=COPY")
         undo_parent_link(conn)  # v140 (DB.73)
         conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
         conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
