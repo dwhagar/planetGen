@@ -5682,6 +5682,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   paragraph. Remainder: trees of three or more members, compact and
   brown dwarf members, the stage B phenomenon rows, and planet_zones as
   a caller (GEN.332).
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 1, 30
+  items wait on it; goes to Blocker 4 once its current item merges.
   Prerequisites: none. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -5818,6 +5821,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 8, 14
+  wait; Blocker 4.
   Prerequisites: none. Related: GEN.275.
 
 - [ ] **GEN.332 Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill**
@@ -5859,6 +5865,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the tree (GEN.640 needs it), disks, planet pairs, comets of extra
   stars. Findings that also fail on main:
   reports/gen631-findings-2026-10-24.md.
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 6, 17
+  wait; Blocker 4 after GEN.315 (slice 1 merged earlier by Core 3).
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -7183,6 +7192,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane I (the spine, to be started).
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 4, 26
+  wait; Blocker I (in progress, PR 4).
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
@@ -7666,6 +7678,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
   ground_dose_msv_yr. Stand-in waiting on this item: the surface rock
   (basalt or felsic) used by the ground dose. Free for Blocker 4.
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 5, 17
+  wait; Blocker 4 (in progress).
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8027,6 +8042,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now merges with the spine under lane I and takes a generator epoch at
   merge. The 8.4 rescatter it was to join is not waited for (testing
   mode). Owner: Habitability lane I (the spine, to be started).
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 2, 27
+  wait; Blocker I (in progress, PR 4).
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -8318,6 +8336,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane reported): the wiring waits on the class cut-over GEN.646,
   because a class-first moon draw contradicts an origin composition. The
   moon inclination range blocks captured moons: filed as GEN.714.
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 7, 14
+  wait; Blocker I after PR 4 (Lane K keeps GEN.714 and then DB.70).
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -9366,40 +9387,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Kirkpatrick 2021 Table 13). The title's "T/Y boundary near 500 to 700
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
-
-- [ ] **GEN.509 Tuned draw builder B1: the radius valley and the envelope**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B1 of section 4 (one worker). Rows: e1,
-  e2, e-link. Shared data and fit: CKS DR1/DR2/Gaia tables, Kepler DR25
-  injections, Petigura detection model, Rogers and Owen and Ho 2024
-  targets. Needs: injection-recovery selection module;
-  decision D2; Lopez and Fortney 2014 radius law. Decision D2 (default,
-  Decided unless Boss says otherwise): XUV energy-limited loss with
-  variable efficiency (Owen and Wu, the repo's choice), a core-mass
-  distribution as a third knob, and Lopez and Fortney 2014 as the
-  retained-envelope radius law (not yet fetched). Do: replace the seeded
-  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
-  whose knobs are tuned through the harness to the published statistics
-  of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): "shared with B2" is
-  dropped from the Needs line: GEN.504 serves B1 and its period, radius
-  and mass cuts, and GEN.510 (B2) does not list it.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.504. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.510 Tuned draw builder B2: delivery and water worlds**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
@@ -11319,6 +11306,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-24 (Boss asked for every blocker to have an owner): Lane I,
   after PR 4 (remnant states and the DB.74 table revision; the Blocker 5
   lane retired after slice f, #2778).
+  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
+  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 3, 26
+  wait; Blocker I after PR 4.
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -13413,6 +13403,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before building). Owner: none (pool); lane H is the nearest owner
   after GEN.699.
   Prerequisites: GEN.699. Related: GEN.699, GEN.461.
+
+- [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
+  Split from GEN.509 by Lane Draws (merged #3025 at about 2:14 PM EDT
+  2026-10-24 as the lane reported): GEN.509 tuned rows e1 and e2 to
+  Petigura 2022 (slope -0.11, 1.84 Earth radii at 10 days, along one
+  degenerate ridge) and wrote the rest in
+  docs/design/composition/radius-valley-tuning.md. Left open there:
+  which mechanism makes the valley (photoevaporation or core-powered
+  mass loss), the stellar-mass slope of the valley (the e-link), and the
+  valley width stand-ins. Do: choose the mechanism from the sources in
+  the design note under the standing source rules, tune the stellar-mass
+  slope and the widths, and register any stand-in in the gap plan
+  registry. Done: the three open points in the design note are closed or
+  registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
+  GEN.512).
+  Prerequisites: none. Related: GEN.509, GEN.510.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
