@@ -586,6 +586,23 @@ def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_confi
     assert len(_all_sectors(mysql_config)) == 1, _all_sectors(mysql_config)
 
 
+def test_a_sector_generated_on_a_visit_is_in_the_block_totals(mysql_config):
+    """DB.83: the blocks above a sector made on the spot hold it at once, the same totals `planetgen
+    fill-block-totals` (`block_stats.rebuild`) would compute."""
+    from planetgen.db import block_stats
+    columns = "m, shell_index, band_index, wedge_index, sector_count, systems, expected_systems, stars, habitable_worlds"
+    _seed_skeleton(mysql_config, shells=_shells(2, 1))
+    assert run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)["created"] is True
+    conn = _db.get_connection(mysql_config)
+    try:
+        kept = [tuple(r.values()) for r in conn.execute(f"SELECT {columns} FROM galaxy_block_stats ORDER BY 1, 2, 3, 4").fetchall()]
+        block_stats.rebuild(conn)
+        rebuilt = [tuple(r.values()) for r in conn.execute(f"SELECT {columns} FROM galaxy_block_stats ORDER BY 1, 2, 3, 4").fetchall()]
+    finally:
+        conn.close()
+    assert kept and kept == rebuilt, (kept, rebuilt)
+
+
 def test_ensure_sector_generated_refuses_only_beyond_the_reach(mysql_config):
     # GEN.235: the reach is the only refusal. A shell past it has no address, and neither has a band past what
     # its shell holds; the skeleton's reach is exact, so this is a certain "no", no density check needed.

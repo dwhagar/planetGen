@@ -1290,6 +1290,24 @@ def _cell_to_generate(address, config, link=True):
     return None, args, position_pc, qualifies, skeleton.edge_pc
 
 
+def _refresh_block_totals(config, address):
+    """
+    Brings the Galaxy Map's block totals up to the sector just saved at `address` (DB.83): the generated totals
+    (`db.block_stats.refresh_chain`, which a sector save does not do) and the light of the pre-placed objects
+    (`db.block_lights.refresh_chain`). A failure only warns: `planetgen fill-block-totals` makes them again.
+    """
+    try:
+        conn = store.get_connection(config)
+        try:
+            block_stats.refresh_chain(conn, address)
+            block_lights.refresh_chain(conn, address)
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the sector is saved; the totals can be made again
+        log.normal(f"Warning: adding the sector at {_format_address(address)} to the block totals failed: {exc}")
+
+
 def regenerate_sector_cell(address, config):
     """
     Generates the sector of grid cell `address` again as the runs of an API job (PERF.119; the new sector of
@@ -1311,6 +1329,7 @@ def regenerate_sector_cell(address, config):
     [saved] = _submit_batch(args, [(address, position_pc, args, "")], f"Sector ({_format_address(address)})", edge_pc,
                             None, None, count=1, collect=True)
     _backfill_on_queue(args, started_at, center_pc=position_pc)
+    _refresh_block_totals(config, address)
     return {"sector_id": saved["sector_id"], "sector_name": saved["name"]}
 
 
@@ -1377,6 +1396,7 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
 
     if backfill:
         backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
+    _refresh_block_totals(config, address)
     if settle:
         queue_settle(config, [sector_id])
     return {"created": True, "qualifies": qualifies, "in_reach": True, "sector_id": sector_id, "sector_name": sector_name,
