@@ -1244,3 +1244,6 @@ Baseline: PR #1817.
 | PERF.176 | 8.1 | The headline closes |
 | UX.162 | 8.1 | The headline closes |
 | GEN.270 | 8.1 | Multi-star and compact systems |
+| TEST.322 | 8.1 | Bugs and flaky tests |
+| TEST.325 | 8.1 | Bugs and flaky tests |
+| DB.94 | 8.1 | Radiation chain for habitability (GEN.445) |

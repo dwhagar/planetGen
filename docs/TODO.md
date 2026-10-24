@@ -16203,27 +16203,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   lists the columns.
   Prerequisites: GEN.654. Related: GEN.654, DB.91.
 
-- [ ] **DB.94 The object index, resolve_object and the search panels read the moons of free planets**
-  Follow-up of DB.73, filed by the TODO thread from lane B's report of
-  8:08 PM EDT 2026-10-23 (as the lane reported): DB.73 is built
-  (migration 0135 or the next free number at merge, parent_type and
-  parent_id on stars, belts, comets, black holes, neutron stars, rogue
-  planets and interstellar comets; moons.rogue_planet_id so a moon can
-  hang under a rogue planet; set_parent keeps the row and the ID). Do:
-  the object index, resolve_object and the search panels find the moons
-  of free planets. Done: a moon under a rogue planet resolves by its
-  object ID and appears in search. Owner: Habitability lane B (planet
-  and moon lists).
-  Prerequisites: none. Related: DB.73.
-
-- [ ] **DB.95 The sector_objects view includes the moons of free planets**
-  Follow-up of DB.73, filed by the TODO thread from lane B's report of
-  8:08 PM EDT 2026-10-23 (as the lane reported). Do: the sector_objects
-  view lists the moons that hang under a free planet. Done: a sector
-  page counts and lists those moons. Owner: Habitability lane B (planet
-  and moon lists).
-  Prerequisites: none. Related: DB.73.
-
 - [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
   The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
   migration, one generator epoch, and the column_units.py entries;
@@ -19776,17 +19755,6 @@ clears each one.
   Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.317.
 
-- [ ] **TEST.322 test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug)**
-  Found by the TODO thread at 12:57 AM EDT 2026-10-24 while gating a
-  docs change after #2863 (DB.73) merged:
-  src/tests/test_no_todo_codes_shown.py::test_strings_the_code_shows_have_no_todo_code
-  fails with planetgen/db/point_columns.py:189: DB.73 (the rogue_planets
-  note reads 'its own galactic point (DB.73)'). Fails on main: yes. Do:
-  remove the item code from the shown string (say what the rule is in
-  words). Done: the test passes on main. Owner: Habitability B lane
-  (DB.73's author).
-  Prerequisites: none. Related: DB.73.
-
 - [ ] **TEST.323 test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug)**
   Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported): on
   its lane machine every run of
@@ -19811,17 +19779,6 @@ clears each one.
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
 
-- [ ] **TEST.325 test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug)**
-  Found by lane D at 1:59 AM EDT 2026-10-24 (as the lane reported) while
-  merging GEN.412; it fails on plain main.
-  tests/test_migration_habitable_worlds.py::test_a_v135_galaxy_gets_its_counts...
-  downgrades to v138, but DB.73's v140 marker is still read as 140, so
-  the fixture is inconsistent. Owner: lane B (lists, the DB.73 author).
-  Do: make the test downgrade past the v140 marker or reset the marker.
-  Done: the test passes on main. DB.98 (the Alembic re-baseline) may
-  delete this test; if it does, close this with DB.98.
-  Prerequisites: none.
-
 - [ ] **TEST.326 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug)**
   Found by Core 4 at 2:44 AM EDT 2026-10-24 (as the lane reported). It
   fails about 1 run in 12 on main too (reproduced on a GEN.450 tree: 1
@@ -19835,6 +19792,33 @@ clears each one.
   test pass. Owner: Bug Hunt, unless Core 4 prefers it, since the flag
   handling is generation code.
   Prerequisites: none.
+
+- [ ] **TEST.327 test_web_browser_tables::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts fails on main: it counts 0 a.help-link elements and expects 7 since UX.180 to UX.182 (bug)**
+  Found by lane B at 2:52 AM EDT 2026-10-24 (as the lane reported) on
+  clean main:
+  src/tests/test_web_browser_tables.py::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts
+  counts 0 a.help-link and expects 7, since #2867 (UX.180 to UX.182)
+  changed the symbols on the Search page into links to the help
+  sections. Either the Search rows lost the links or the test still
+  expects the old markup. Do: find which, and fix the page or the test
+  (the page, if the links were meant to be there on Search rows). Done:
+  the test passes on main. Owner: symbols lane A proposed (it owns the
+  symbols and UX.157, UX.166); the lane that merged #2867 if different.
+  Prerequisites: none.
+
+- [ ] **TEST.328 Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists**
+  Finding of lane B at 2:52 AM EDT 2026-10-24 (as the lane reported):
+  test_migration_habitable_worlds, test_migration_snow_line and
+  test_db_schema_version_detect downgrade the schema by hand, so each
+  lane that adds a migration must add an undo step to all three or they
+  fail on main (this was TEST.325). Do: one shared helper that
+  downgrades to a revision through Alembic's own downgrade (or drops the
+  columns a migration added from its own list), used by the three tests.
+  DB.97 and DB.98 (regression-test cleanup lane) delete or replace some
+  of these tests; do this after DB.98 and only for what is left. Done:
+  adding a migration needs no edit to those tests. Owner: none (pool);
+  the regression-test cleanup lane proposed, after DB.98.
+  Prerequisites: DB.98.
 
 ## USR: User accounts
 
