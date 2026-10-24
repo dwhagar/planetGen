@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2117] - 2026-10-24
+
+**Headline:** The planet lists and the system page now show each piece of survival equipment as its own chip, solid when required and outlined when only recommended.
+
+### Changed
+- **Equipment chips (UX.154).** On a system page each planet and moon row shows one chip per item of its needs list instead of one chip with the items joined by plus signs. A required item is a solid chip, a recommended one an outlined chip (with "recommended" read aloud for screen readers), each in the colour of the PHI-6 domain the item comes from. The Equipment column of the Search page's planet and moon panels draws the same chips; a search row's API entry gains `equipment_items` (`item`, `severity`, `domain`). A world that needs nothing still shows no equipment chip.
+
 ## [8.0.2116] - 2026-10-24
 
 **Headline:** A planet's page now says how much colder its poles and how much hotter its equator run than its mean temperature, and how far day and night differ.
