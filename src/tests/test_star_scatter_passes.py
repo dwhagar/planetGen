@@ -24,6 +24,10 @@ from tests.test_bright_star_scatter import (
     EDGE_PC, E_VALUE, SHAPE, THRESHOLD, _scatter_args, _profile, _row_dict, _seed_galaxy,
 )
 
+pytestmark = pytest.mark.timeout(3600)
+"""The three scatter runs each build the bright-star tables for several thresholds (pure Python, 60 to 130 s alone), which
+on a loaded lane machine runs past the 900 s default (TEST.344)."""
+
 MASS_LIMIT = 3.0
 LIGHT_FLOOR = 500.0
 """The luminosity the tests that need stars lighter than the limit use: at the real floor (2,500 and up, GEN.184) a
