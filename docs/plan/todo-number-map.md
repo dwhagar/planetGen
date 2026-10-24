@@ -1399,7 +1399,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
 | GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
 | GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
-| GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | open |
+| GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | done, PR #3061 |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | open |
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) | none | open |
 | GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | done, PR #3037 |
@@ -2351,7 +2351,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.180 | A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away | none | done, PR #2867 |
 | UX.181 | Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page | none | done, PR #2867 |
 | UX.182 | The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section | none | done, PR #2867 |
-| UX.183 | Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works | none | open |
+| UX.183 | Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works | none | done, PR #3060 |
 | UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages | none | open |
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
@@ -2811,7 +2811,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.348 | test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug) | none | done, PR #3050 |
 | TEST.349 | The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug) | none | open |
 | TEST.350 | Tests red on clean main: test_web_facilities (18 tests), test_web_population (test_system_page_names_species_and_territory, test_real_population) and test_web_browser_controls test_every_plain_button_does_something[web.system] (bug) | none | open |
-| TEST.351 | test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not fails on main for planet and moon: GEN.699's columns internal_heat_flux_w_m2, mantle_activation_kj_mol and mantle_eta0_pa_s are neither on the sheet nor in NOT_SHOWN (bug) | none | open |
+| TEST.351 | test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not fails on main for planet and moon: GEN.699's columns internal_heat_flux_w_m2, mantle_activation_kj_mol and mantle_eta0_pa_s are neither on the sheet nor in NOT_SHOWN (bug) | none | done, PR #3059 |
 | TEST.352 | test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

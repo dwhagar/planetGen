@@ -937,18 +937,6 @@ with `clamp()`.
   a shared link shows the image.
   Prerequisites: none.
 
-- [ ] **UX.183 Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works**
-  Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
-  the lane reported, #3013). A facility has a uid but is not in
-  objectref.KINDS, so its object page cannot resolve. Do: add the
-  facility kind to the object index and the resolver, then build its
-  page with the same anatomy as the other object pages (location,
-  property sheet, paragraph if any, belonging to it). Done:
-  /object/facility:<ID> renders for a stored facility, the sheet route
-  serves it, and a test fails if a facility column is not on the sheet.
-  Owner: none (pool).
-  Prerequisites: none. Related: UX.175.
-
 - [ ] **UX.184 Star cluster and region pages: stored cluster and region objects and their object pages**
   Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
   the lane reported, #3013). No stored cluster or region objects exist,
@@ -6948,7 +6936,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.85, GEN.355,
+  Prerequisites: GEN.726. Related: GEN.85, GEN.355,
   GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
@@ -7005,6 +6993,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
   as three separate PRs, each when its own gate is green: (1) GEN.452,
   (2) GEN.411, (3) GEN.424 with DB.71.
+  Research (2026-10-09, Held for GEN.726): Update 3:51 PM EDT
+  2026-10-24: held until GEN.726 (the surface pressure supply law)
+  merges (Boss, 3:50 PM EDT). Now lists GEN.726 as a prerequisite.
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
@@ -7080,7 +7071,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411. Related: GEN.411, GEN.412,
+  Prerequisites: GEN.411, GEN.726. Related: GEN.411, GEN.412,
   GEN.423, TEST.209, GEN.452.
   Merged research (2026-10-17): the freeze-out ordering reads the
   checked saturation curves of part 01 section 7 and part 06 (GEN.452
@@ -7203,6 +7194,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the explicit disregard option (GEN.599) the run uses this
   dataset's best possible fallback and prints it in the run header;
   never a silent fallback. See GEN.594.
+  Research (2026-10-09, Held for GEN.726): Update 3:51 PM EDT
+  2026-10-24: held with GEN.411 until GEN.726 (the surface pressure
+  supply law) merges (Boss, 3:50 PM EDT). Now lists GEN.726 as a
+  prerequisite.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -7937,6 +7932,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets get until this merges; Z/Z0 differs by 1.7 to 3 times in
   metal-poor high-alpha stars. It wires to the [Fe/H] item GEN.651.
   Owner: none (pool); the class cut-over needs it.
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; Core 4 was proposed but has not started it; Core 4 must
+  release it first).
 
 - [ ] **GEN.466 Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -12570,23 +12571,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5, 10), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
 
-- [ ] **GEN.672 Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver**
-  Found by lane L (atmosphere mixture), report
-  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
-  (as the lane reported). Main has physics/equilibrium.py with
-  data/thermo_nasa7.json (GEN.518) and physics/gas_equilibrium.py with
-  species_thermo.py and data/nasa_glenn_species.json (GEN.451, GEN.454,
-  GEN.499; 89 species, 70 gases and 19 condensed phases, held fO2,
-  lava). Both hold the same NASA data. Do: choose one owner, keep one
-  thermo table and one solver (the lane suggests keeping
-  gas_equilibrium.py, which holds more species, with the regime edges of
-  GEN.518 such as ch4_co_temperature calling it), move the other's
-  callers over, delete the duplicate with no shim, and keep the checked
-  values (tests of both modules) passing. Done: one module and one data
-  file, both modules' tests pass against it. Owner: none for now (needs
-  one owner; pool). Rule: a lane takes it only if nobody else has.
-  Prerequisites: none.
-
 - [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
   Found by lane L (atmosphere mixture), report
   reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
@@ -12916,6 +12900,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse opacity reads sourced tables, the stand-ins are gone or
   labelled, and the epoch is taken. Owner: none (pool). Needs Boss's
   word on the data source and licence.
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24:
+  cleared for the Math lane once Boss gives the word on the data source
+  and licence (the item already waits on it). Owner: Math lane (proposed
+  by the TODO thread).
   Prerequisites: none. Related: GEN.703, GEN.423.
 
 - [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
@@ -12953,6 +12941,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/infrared-opacity.md says so. Not wired into
   generation yet, so no epoch until GEN.411 calls it. Owner: none
   (pool); lane E proposed.
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; nobody has started it).
   Prerequisites: none. Related: GEN.703, GEN.715, GEN.423, GEN.411.
 
 - [ ] **GEN.718 Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity**
@@ -12966,6 +12959,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Venus and Mars checks still pass. Stand-in band strengths are part of
   the cause; real tables are GEN.715. Owner: none (pool); lane E
   proposed.
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; nobody has started it; Lane E reported the finding but is
+  not building it).
   Prerequisites: none. Related: GEN.703, GEN.715, GEN.423.
 
 - [ ] **GEN.719 A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug)**
@@ -13006,6 +13005,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value equal to a fresh computation at the final age; the epoch is
   bumped if a drawn value changes (next free at merge). Owner: none
   (pool); lane H is the nearest owner after GEN.699.
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; nobody has started it).
   Prerequisites: none. Related: GEN.699, GEN.461.
 
 - [ ] **GEN.721 A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model**
@@ -13021,6 +13025,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names the sources. Needs a research pass first (settle the sources
   before building). Owner: none (pool); lane H is the nearest owner
   after GEN.699.
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; nobody has started it; check with Lane H first).
   Prerequisites: none. Related: GEN.699, GEN.461.
 
 - [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
@@ -13047,8 +13056,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   solver and update the table and its tests; this changes drawn values,
   so it needs an epoch. Done: the rows agree with the solver to the
   table's rounding. Owner: pool (Lane L is retiring; first free
-  atmosphere lane takes it). Prerequisites: GEN.672.
-  Prerequisites: GEN.672. Related: GEN.672, GEN.674.
+  atmosphere lane takes it). Prerequisites: none.
+  Prerequisites: none. Related: GEN.672, GEN.674.
 
 - [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
   Found by Core 4 in GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
@@ -13130,6 +13139,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (first free lane; 8.1 core lanes do not take it before 8.1 closes).
   Prerequisites: none. Related: GEN.411, GEN.422, GEN.481, GEN.482,
   GEN.511.
+  Research (2026-10-09, Boss hold on 4c): Update 3:51 PM EDT 2026-10-24
+  (Boss, in Blocker I's thread, 3:50 PM EDT, relayed by the coordinator
+  and Lane I): 'Hold 4c until the supply law is done.' No stand-in
+  pressure. Order: step 4b (DB.71 + GEN.424) merges, then the surface
+  pressure supply law (GEN.726), then 4c as one merge (GEN.411 +
+  GEN.422), then GEN.557. GEN.411 and GEN.422 now list GEN.726 as a
+  prerequisite. Lanes waiting on 4c (Lane L, Lane E, the class lane, the
+  habitable-rule lane) stay blocked until GEN.726 merges; Lane I
+  estimates 4c about 12 to 16 hours later than the split plan. Owner:
+  Lane I (it builds the supply law right after 4b: outgassed inventory,
+  ocean and carbonate sinks, verified sources). Answer to Lane I's
+  question whether a number exists: no. GEN.511 only pins the retention
+  cap; the supply term P_supply has no design and no value in the repo
+  or the gap plan; its inputs are delivered volatiles (GEN.481) and the
+  degassed share (GEN.482, redox), both research items with no builder,
+  so the first step is a design note that defines P_supply and names the
+  verified source for each term.
 
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -13294,6 +13320,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   source tier and tweak level in the gap plan registry (GEN.725). Owner:
   pool (first free lane; 8.1 core lanes do not take it before 8.1
   closes).
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; nobody has started it; check with Lane H first, which is
+  the nearest owner).
   Prerequisites: none. Related: GEN.699, GEN.721.
 
 - [ ] **GEN.736 Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model**
@@ -13419,6 +13451,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   touches records its source tier and tweak level in the gap plan
   registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
   not take it before 8.1 closes).
+  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
+  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
+  the new Math lane (physics route 'derivable now',
+  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
+  TODO thread; nobody has started it; check with Lane A first, because
+  GEN.553 may absorb the cooling law).
   Prerequisites: none. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
@@ -18712,15 +18750,6 @@ clears each one.
   weakening them. Done: all pass on main, alone and in the suite. Owner:
   Bug Hunt (main-green rule). Related: TEST.347, TEST.346.
   Prerequisites: none. Related: TEST.346, TEST.347, TEST.348.
-
-- [ ] **TEST.351 test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not fails on main for planet and moon: GEN.699's columns internal_heat_flux_w_m2, mantle_activation_kj_mol and mantle_eta0_pa_s are neither on the sheet nor in NOT_SHOWN (bug)**
-  Found by Lane I (relayed 3:50 PM EDT 2026-10-24 as the lane reported,
-  on main after #3046; filed by the TODO thread). Kind: failing test on
-  main caused by GEN.699 (Lane H). Do: put the three columns on the
-  property sheet or list them in NOT_SHOWN with the reason. Done: the
-  test passes on main. Owner: Lane H (its change), otherwise Bug Hunt.
-  Related: GEN.699.
-  Prerequisites: none. Related: GEN.699, TEST.350.
 
 - [ ] **TEST.352 test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug)**
   Found by Lane I (relayed 3:50 PM EDT 2026-10-24 as the lane reported;
