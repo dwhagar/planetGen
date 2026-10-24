@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2116] - 2026-10-24
+
+**Headline:** A planet's page now says how much colder its poles and how much hotter its equator run than its mean temperature, and how far day and night differ.
+
+### Added
+- **Regional temperatures and the day and night swing (GEN.656).** Every rocky planet and moon stores the annual mean of its polar, northern, equatorial and southern bands and the day and night swing at the equator (kelvin); a tidally locked world stores its day side, terminator and night side instead (`physics/regional_temperature.py`, schema v137, migration 0137). The bands come from the annual insolation of the axial tilt, flattened by the air's heat transport (Earth's poles come out about 35 K under its mean, Venus is nearly even). The Temperature row of the habitability rating gains a sentence such as "The equator averages 28.7 C and the poles -17.9 C", the swing when it is 5 K or more, and, where a place needs heavier gear than the mean, that gear as recommended. The API's `equipment` object gains `regions`. A galaxy made earlier gets the columns from `planetgen rescore-habitability`; there is no generator epoch.
+
 ## [8.0.2115] - 2026-10-24
 
 **Headline:** The greenhouse closure that checks a planet's stored warming against a physical opacity is in place (GEN.443, greenhouse kernel).
