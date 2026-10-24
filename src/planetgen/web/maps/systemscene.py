@@ -67,11 +67,12 @@ def _orbit(row, around):
 
 
 def _star_around(planet_or_belt, stars, system):
-    """What a planet or belt goes round: its own star in a wide binary or a
-    single-star system, else the barycenter."""
-    if system["binary_configuration"] == "close":
-        return "barycenter"
+    """What a planet or belt goes round: its own star in a wide binary, a
+    single-star system or a further star of the tree (GEN.332), else the barycenter."""
     star_id = planet_or_belt.get("star_id")
+    if system["binary_configuration"] == "close" and not any(
+            s["id"] == star_id and s["role"] == "member" for s in stars):    # a member star's own planets (GEN.332)
+        return "barycenter"
     if star_id is not None and any(s["id"] == star_id for s in stars):
         return f"star:{star_id}"
     return f"star:{stars[0]['id']}" if stars else "barycenter"

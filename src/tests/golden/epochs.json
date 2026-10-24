@@ -395,6 +395,12 @@
       "epoch": 80,
       "first_release": "8.0.2180",
       "reason": "A giant planet's radius comes from the Fortney, Marley and Barnes 2007 tables for its mass, heavy-element core, starlight and age (plus hot-giant inflation) and its heavy elements and layered interior are drawn together (Chachan et al. 2025 for class J), replacing the anchored mass-radius relation and the stand-in envelope shares, so every giant's radius and composition and the stream after it move (GEN.460, GEN.642)"
+    },
+    {
+      "epoch": 81,
+      "first_release": null,
+      "pending": true,
+      "reason": "The stars beyond the pair of a system of three or more stars draw planets of their own in their S-type windows, and a close pair among other stars keeps its planets inside its P-type window, so those systems change (GEN.332)"
     }
   ]
 }

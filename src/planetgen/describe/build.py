@@ -498,7 +498,7 @@ def _habitable_count(system):
     """How many rocky planets and moons are habitable: an overall PHI-6 rating that `habitability.is_habitable` accepts
     (GEN.643)."""
     count = 0
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.all_planets:
         if planet.body_type == "a":
             continue
         for body in (planet, *planet.moons):
@@ -561,6 +561,11 @@ def _overview_sentences(system):
     return sentences
 
 
+def _member_sections(system):
+    """The stars beyond the pair, each with its own planets and belts as children (GEN.332)."""
+    return [_star_section(star, [_body_section(body) for body in bodies]) for star, bodies in system.member_hosts()]
+
+
 def describe(system):
     """
     The Document of `system` (a `StarSystem`): one `system` section holding the overview, whose children are
@@ -573,14 +578,14 @@ def describe(system):
 
     if system.binary_type == "close":
         children = [_close_pair_section(system.star)]
-        children += [_star_section(star) for star in system.stars]
+        children += [_star_section(star) for star in system.stars[:2]] + _member_sections(system)
     elif system.binary_type == "wide":
         children = [_wide_pair_section(system.wide_binary)]
         for star, planets, comets in ((system.primary_star, system.planets, system.comets),
                                       (system.secondary_star, system.secondary_planets, system.secondary_comets)):
             children.append(_star_section(star, [_body_section(body) for body in planets]
                                           + [_comet_section(comet) for comet in comets]))
-        children += [_star_section(star) for star in system.member_stars]    # GEN.631: the stars beyond the pair
+        children += _member_sections(system)    # GEN.631: the stars beyond the pair
     else:
         children = [_star_section(system.star)]
     if system.binary_type != "wide":

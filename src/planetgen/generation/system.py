@@ -38,7 +38,8 @@ from planetgen.util import log
 from planetgen.generation import pulsar_planets, remnant_orbits
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics.system_tree import OrbitNode
+from planetgen.physics import planet_zones
+from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.formation import (
     disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2,
 )
@@ -92,7 +93,10 @@ it leaves the heliosphere below this share of its open-space size."""
 # Bumped 5 -> 6 to add `member_stars` and `star_slots` (GEN.630): the stars beyond the pair of a system of more than two stars
 # and where each star hangs in the tree (`None`/`[]` for a single star and a pair). A pre-v6 save has neither key and reads
 # as no members.
-SERIALIZATION_SCHEMA_VERSION = 6
+#
+# Bumped 6 -> 7 to add `member_planets` (GEN.332): the planets and belts of each of `member_stars`, a list of lists in the
+# members' order. A pre-v7 save has no key and reads as no planets of the members.
+SERIALIZATION_SCHEMA_VERSION = 7
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -165,7 +169,12 @@ class StarSystem:
     member_stars = ()
     """tuple of Star: The stars beyond the pair (`stars[2:]`) of a system of more than two stars (GEN.630); empty for a
     single star and a pair. Each is stored as a `member` row of
-    `stars` and has no planets of its own yet (an S-type window around it is GEN.332's)."""
+    `stars`; its planets are `member_planets` (GEN.332)."""
+
+    member_planets = ()
+    """tuple of list: The planets and belts of each of `member_stars`, in that order (GEN.332): bodies in the S-type window
+    round the member (`physics.planet_zones`), drawn like a wide pair's secondary's and never under a `SLOTS` list or a
+    forced habitable world. Empty for a system with no members. Members have no comets yet."""
 
     star_slots = None
     """tuple or None: Where each star of `stars` hangs in `orbit_nodes`, as `(node_no, slot)` in `stars` order (slot 0 or
@@ -354,6 +363,7 @@ class StarSystem:
         # TEST.313: the age settled below only rises, and the survival limit falls with age (GEN.325), so the final
         # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
         # once, placing under the settled age, before the request is given up as unmet.
+        self.set_stability_limits()
         for _round in range(2):
             for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
                 with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
@@ -394,6 +404,8 @@ class StarSystem:
                         # method's own docstring.
                         self._validate_cross_star_clearance()
 
+                    self.member_planets = [self._generate_member_planets(member) for member in self.member_stars]
+
                     habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
                     belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
                 if habitable_satisfied and belt_satisfied:
@@ -411,7 +423,10 @@ class StarSystem:
             # A pair's two stars share one age (GEN.53): a close pair's proxy
             # settles it for both, a wide pair's from both stars' own planets.
             if self.binary_type == "wide":
-                adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
+                adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets,
+                                            self.member_hosts())
+            elif self.binary_type == "close":
+                self.star.adjust_age_for_planets(self.planets, self.member_hosts())
             else:
                 self.star.adjust_age_for_planets(self.planets)
 
@@ -421,6 +436,8 @@ class StarSystem:
             self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
             if self.binary_type == "wide":
                 self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
+            for member, bodies in self.member_hosts():
+                self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             if (habitable_satisfied and belt_satisfied) or _round:
@@ -475,6 +492,9 @@ class StarSystem:
             if self.binary_type == "wide":
                 self.secondary_star.reflex_offset_x, self.secondary_star.reflex_offset_y, self.secondary_star.reflex_offset_z = \
                     calculate_reflex_offset(self.secondary_star.mass, self._reflex_children(self.secondary_planets))
+        for member, bodies in self.member_hosts():
+            member.reflex_offset_x, member.reflex_offset_y, member.reflex_offset_z = \
+                calculate_reflex_offset(member.mass, self._reflex_children(bodies))
 
         # Decided once, here, at generation time -- __str__ (which may be called
         # more than once) reads this rather than re-rolling and double-counting
@@ -497,7 +517,7 @@ class StarSystem:
         # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         with log.timed_phase("snow line pass"):
-            for obj in self.planets + self.secondary_planets:
+            for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
                     continue
                 obj.born_beyond_snow_line = obj.distance >= obj.star.snow_line_au
@@ -506,7 +526,7 @@ class StarSystem:
 
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
-            for obj in self.planets + self.secondary_planets:
+            for obj in self.all_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 planetLife.apply_life_data(obj)
@@ -549,6 +569,50 @@ class StarSystem:
         self._name = value
         if self.binary_type != "wide":
             self.star.name = value
+
+    @property
+    def all_planets(self):
+        """list: Every planet and belt of the system: the primary's (or a close pair's), the wide secondary's, then each
+        member star's."""
+        return [*self.planets, *self.secondary_planets, *(body for bodies in self.member_planets for body in bodies)]
+
+    def member_hosts(self):
+        """`[(star, planets)]` for each of `member_stars`."""
+        return list(zip(self.member_stars, self.member_planets or [[] for _ in self.member_stars]))
+
+    def _planet_zones(self):
+        """`planet_zones.planet_zones` of the system's tree: the S-type window of every star in `stars` order (the member
+        number is the index in `stars`) and the P-type window of every node, each a `Zone`."""
+        slots = self.star_slots or ((0, 0), (0, 1))
+        members = [TreeMember(number, node_no, slot, star.mass / constants.SOLAR_MASS_TO_KG)
+                   for number, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
+        return planet_zones.planet_zones(self.orbit_nodes, members,
+                                         {number: self._engulfment_radius_au(star) for number, star in enumerate(self.stars)})
+
+    def sibling_stars(self, number):
+        """`(node, star numbers)`: the node star `number` of `stars` hangs from and the stars of the subtree beside it."""
+        slots = self.star_slots or ((0, 0), (0, 1))
+        members = [TreeMember(index, node_no, slot, star.mass / constants.SOLAR_MASS_TO_KG)
+                   for index, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
+        node, beside = planet_zones.sibling_of(self.orbit_nodes, members, number)
+        return node, sorted(beside)
+
+    def set_stability_limits(self):
+        """
+        Gives each member star and a close pair's proxy the outer limit of its window in the tree (GEN.332): a member's
+        S-type window against its sibling, and a close pair's P-type window up to the S-type limit of the pair against
+        the stars beside it. Both are `a_crit_au`, which `validation.orbit_ceiling_au` reads like a wide pair's. A
+        system of one or two stars has nothing to set (a wide pair's stars were given theirs by `WideBinaryPair`).
+        """
+        if not self.member_stars:
+            return
+        zones = self._planet_zones()
+        by_host = {(zone.kind, zone.host_no): zone for zone in zones}
+        for number, star in enumerate(self.member_stars, start=2):
+            star.a_crit_au = by_host[(planet_zones.S_TYPE, number)].outer_au
+        if self.binary_type == "close":
+            pair_no = self.star_slots[0][0]
+            self.star.a_crit_au = by_host[(planet_zones.P_TYPE, pair_no)].outer_au
 
     @staticmethod
     def _draw_star_words(first_word):
@@ -596,6 +660,7 @@ class StarSystem:
                 hosts = [(first_word, self.planets), (secondary_word, self.secondary_planets)]
         for index, member in enumerate(self.member_stars):    # C, D, ... after the pair's A and B (GEN.631)
             member.name = f"{system_name} {chr(ord(CLOSE_PAIR_LETTERS[1]) + 1 + index)}"
+            hosts.append((member.name, self.member_planets[index] if self.member_planets else []))    # GEN.332
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
@@ -1208,6 +1273,21 @@ class StarSystem:
 
         return planets
 
+    def _generate_member_planets(self, star):
+        """
+        The planets and belts of a member star (GEN.332): the same draw as a wide pair's secondary's, inside the S-type
+        window of the tree (`set_stability_limits`), never under a `SLOTS` list or a forced habitable world.
+        """
+        ceiling_au = self._orbit_ceiling_au(star)
+        bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=False)
+        self.validate_system(bodies)
+        self._trim_to_orbit_ceiling(bodies, ceiling_au)
+        self._apply_star_history(bodies, star)
+        if remnant_orbits.widen_for_mass_loss(bodies, star, self._explicit_request()):
+            self.validate_system(bodies)
+            self._trim_to_orbit_ceiling(bodies, ceiling_au)
+        return bodies
+
     def _orbit_ceiling_au(self, star):
         """
         The AU distance beyond which `_generate_planets` stops placing
@@ -1466,6 +1546,7 @@ class StarSystem:
             "runaway_direction": list(self.runaway_direction) if self.runaway_direction is not None else None,
             "orbit_nodes": [dataclasses.asdict(node) for node in self.orbit_nodes],
             "member_stars": [star.to_dict() for star in self.member_stars],
+            "member_planets": [[obj.to_dict() for obj in bodies] for bodies in self.member_planets],
             "star_slots": [list(place) for place in self.star_slots] if self.star_slots is not None else None,
         }
 
@@ -1581,6 +1662,9 @@ class StarSystem:
         system.stars = system.stars + list(system.member_stars)
         slots = data.get("star_slots")
         system.star_slots = tuple(tuple(place) for place in slots) if slots is not None else None
+        system.member_planets = [_load_objects(bodies, member) for member, bodies in zip(
+            system.member_stars, data.get("member_planets") or [[] for _ in system.member_stars])]
+        system.set_stability_limits()
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
@@ -1857,7 +1941,7 @@ class StarSystem:
                    and moons in the system, in that order.
         """
         if planets is None:
-            planets = self.planets + self.secondary_planets
+            planets = self.all_planets
         planet_counter, moon_counter, belt_counter = 0, 0, 0
         for planet in planets:
             if planet.body_type == 'a':
@@ -1882,7 +1966,7 @@ class StarSystem:
                    the total number of Class M worlds, in that order.
         """
         if planets is None:
-            planets = self.planets + self.secondary_planets
+            planets = self.all_planets
         hab_count, m_count = 0, 0
         for planet in planets:
             if planet.body_type != 'a':
@@ -1904,7 +1988,7 @@ class StarSystem:
         if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
             return None
         if planets is None:
-            planets = self.planets + self.secondary_planets
+            planets = self.all_planets
         best = "unmet"
         for planet in planets:
             if planet.body_type == 'a':
@@ -1931,7 +2015,7 @@ class StarSystem:
             int: The number of planets and moons of a life class.
         """
         if planets is None:
-            planets = self.planets + self.secondary_planets
+            planets = self.all_planets
         return sum(1 for planet in planets if planet.body_type != 'a'
                    for body in (planet, *planet.moons) if body.planet_class in tuning.HABITABLE_PLANET_CLASSES)
 

@@ -185,6 +185,21 @@ def planet_zones(nodes, members, floors_au=None, disk_cap_au=None):
     return zones
 
 
+def sibling_of(nodes, members, member_no):
+    """
+    The node a member hangs from and the numbers of the members in the subtree beside it, which its planets see as the
+    companion (GEN.332): `(node, frozenset of member numbers)`.
+
+    Raises:
+        ValueError: For a member that hangs from no node.
+    """
+    tree = _Tree(list(nodes), list(members))
+    parent = tree.parent_of(("member", member_no))
+    if parent is None:
+        raise ValueError(f"member {member_no} hangs from no node")
+    return parent, tree.below(tree.sibling(("member", member_no), parent))
+
+
 def flux_at(zone, distance_au, luminosities_sol, nodes, members):
     """
     The light on a planet that goes round `zone`'s host at `distance_au`, in units of one solar luminosity at 1 AU.

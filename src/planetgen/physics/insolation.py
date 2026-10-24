@@ -16,6 +16,8 @@ star. Luminosities may be in any one unit and distances in AU.
 
 import math
 
+from planetgen.physics import constants
+
 
 def mean_inverse_square(semi_major_axis_au, eccentricity):
     """`<1/d^2>` over an eccentric orbit, 1/AU^2."""
@@ -72,6 +74,14 @@ def refresh_system(system):
         _set(planet, _variation(system, binary, planet, system.star, getattr(system, "secondary_star", None)))
     for planet in getattr(system, "secondary_planets", ()):
         _set(planet, _variation(system, binary, planet, system.secondary_star, system.primary_star))
+    for number, (member, bodies) in enumerate(system.member_hosts() if hasattr(system, "member_hosts") else (), start=2):
+        node, beside = system.sibling_stars(number)
+        other = sum(system.stars[index].luminosity for index in beside)
+        for planet in bodies:
+            _set(planet, None if getattr(planet, "body_type", None) == "a" else companion_swing(
+                member.luminosity, planet.distance, other,
+                node.separation_km / constants.AU_TO_KM * (1.0 - node.eccentricity),
+                node.separation_km / constants.AU_TO_KM * (1.0 + node.eccentricity)))
 
 
 def _set(planet, value):

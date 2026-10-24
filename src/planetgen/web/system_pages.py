@@ -306,9 +306,12 @@ def system(system_id):
     inside = detail.get("inside")
     map_html = ""
     if detail["stars"]:
-        # The map draws one star or a pair; a system's further stars (`member`) are in its table and its scene.
+        # The map draws one star or a pair; a system's further stars (`member`) and their planets (GEN.332) are in its
+        # table and its scene.
+        members = {star["id"] for star in detail["stars"] if star["role"] == "member"}
         map_html = render_system_map_panel(detail, [star for star in detail["stars"] if star["role"] != "member"],
-                                           detail["planets"], detail["belts"],
+                                           [p for p in detail["planets"] if p.get("star_id") not in members],
+                                           [b for b in detail["belts"] if b.get("star_id") not in members],
                                            facilities=facilities,
                                            scene_url=page_url("system_scene", system_id=system_id),
                                            nav=body_nav(request.args, course=detail["sector_id"] is not None))
