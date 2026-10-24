@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2186] - 2026-10-24
+
+**Headline:** The page cache no longer grows past its entry limit for pages kept without a database.
+
+### Fixed
+- **`ResponseCache.put` without a database never trimmed the cache (PERF.111).** Entries of the no-database kind were stored and never evicted, so the cache could hold more than `max_entries`. It now trims like the keyed branch; a test fills 20 entries into a limit of 5.
+
 ## [8.0.2185] - 2026-10-24
 
 **Headline:** A world's drawn dust haze now decides whether a visitor should wear a dust filter.
