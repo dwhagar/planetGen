@@ -1699,12 +1699,12 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 
     if planets or belts or stars:
         info_panel = (
-            '<aside class="starmap-info" id="sysmap-info" data-infobox="sysmap-infobox sysview3d-infobox">'
+            '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
             '<p class="hint">Click a star, planet, moon, asteroid belt or facility for details.</p></aside>'
         )
     else:
         info_panel = (
-            '<aside class="starmap-info" id="sysmap-info" data-infobox="sysmap-infobox sysview3d-infobox">'
+            '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
             '<p class="hint">Nothing to show yet.</p></aside>'
         )
 
@@ -1772,11 +1772,10 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         )
         view3d_html = (
             f'<div class="sysview3d" id="sysview3d" data-scene-url="{esc(scene_url)}" hidden>'
-            '<div class="starmap-viewport sysview-viewport">'
+            '<div class="starmap-viewport sysview-viewport" id="sysview3d-viewport">'
             '<canvas id="sysview3d-canvas" class="sysview-canvas" aria-label="3D system view" role="img"></canvas>'
             '<div class="sysview-labels" id="sysview3d-labels" aria-hidden="true"></div>'
             '<div class="map-tooltip" id="sysview3d-tip" hidden></div>'
-            '<div class="map-infobox" id="sysview3d-infobox" role="region" aria-label="Selection" hidden></div>'
             '</div>'
             '<div class="starmap-controls sysview-controls" id="sysview3d-controls">'
             '<button type="button" class="starmap-btn" id="sysview3d-play" aria-pressed="true">Pause</button>'
@@ -1834,10 +1833,10 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 <div class="sysmap-map-col">
 {view_switch}
 <div class="sysmap-diagram" id="sysmap-diagram">
-<div class="starmap-viewport sysmap-viewport{wash_class}">
+<div class="starmap-viewport sysmap-viewport{wash_class}" id="sysmap-viewport">
 {spheres_html}
 {''.join(scenes)}
-<div class="map-infobox" id="sysmap-infobox" role="region" aria-label="Selection" hidden></div>
+{info_panel}
 </div>
 {controls_html}
 </div>
@@ -1845,7 +1844,6 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 </div>
 <div class="starmap-side">
 <div class="sysmap-crumb" id="sysmap-crumb"></div>
-{info_panel}
 </div>
 </div>
 <sl-dialog id="sysmap-help" class="map-help-dialog" label="System Map help">

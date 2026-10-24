@@ -993,6 +993,7 @@ function showMeasurementPrompt(panel, el) {
   hint.className = "hint";
   hint.textContent = "Click a second star, planet, or moon in this same view to measure the distance.";
   panel.appendChild(hint);
+  infoPanelOf(panel).reveal();
 }
 
 function showMeasurementResult(panel, elA, elB, measurement) {
@@ -1017,6 +1018,7 @@ function showMeasurementResult(panel, elA, elB, measurement) {
   hint.className = "hint";
   hint.textContent = "Click a body to start a new measurement, or turn off Measure distance.";
   panel.appendChild(hint);
+  infoPanelOf(panel).reveal();
 }
 
 function initSystemMap(root) {
@@ -1135,6 +1137,7 @@ function initSystemMap(root) {
       hint.className = "hint";
       hint.textContent = "Click two stars, planets, or moons in the same view to measure the distance between them.";
       info.appendChild(hint);
+      infoPanelOf(info).reveal();
     } else {
       resetInfo(info);
     }
