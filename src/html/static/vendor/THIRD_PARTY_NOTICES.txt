@@ -46,6 +46,22 @@ Rebuild from a fresh release (bumping the version above) with:
 To use another component, add it to COMPONENTS in scripts/vendor_shoelace.py
 and to components.js, and run the script again (it needs node for the icons).
 
+Other libraries bundled in the vendored Shoelace chunks (verified in the files, 2026-10-24; the licence text of each
+is in its chunk's own banner or is the standard text of its licence):
+  - Lit: lit, lit-html, lit-element and @lit/reactive-element, BSD-3-Clause, Copyright Google LLC.
+  - Floating UI: @floating-ui/dom and @floating-ui/core, MIT (chunks/chunk.NDC2Y3JV.js).
+  - @shoelace-style/localize, MIT (the localize controller).
+  Not in the vendored set: tinycolor (the colour picker is not vendored), qr-creator, composed-offset-position.
+
+Bundler: every file here that is a bundle (three.module.min.js, tanstack/table-core.min.js and
+tanstack/virtual-core.min.js) is made with esbuild 0.28.2 (`npx esbuild@0.28.2 ...`; it reproduces the files byte for
+byte, checked 2026-10-24). Shoelace and xterm are copied from their npm packages, not rebuilt.
+
+The lock: vendor/VENDORED.json lists, per package, the version, the npm dist.integrity of the release, the
+bundler, the licence and the SHA-256 of every shipped file. tests/test_vendored_lock.py checks the files against it;
+`python scripts/vendor_lock.py` rewrites it after a vendor bump (set the new version in that script first), and
+`python scripts/vendor_lock.py --check` says what differs.
+
 
 Xterm.js 6.0.0 (@xterm/xterm on npm, https://xtermjs.org) and its fit addon
 0.11.0 (@xterm/addon-fit). MIT License -- full text in xterm/LICENSE.txt
