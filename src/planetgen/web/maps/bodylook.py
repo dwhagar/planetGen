@@ -15,7 +15,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     body        "star", "solid" or "gas"
     seed        32 bits from the body's id and kind (`seed_for`); display noise only, never generation
     cls         planet class letter
-    color       the base colour as `#rrggbb`: a star's colour, a solid world's land colour, a giant's cloud top
+    color       the base colour as `#rrggbb`: a star's blackbody colour, a solid world's land colour, a giant's cloud top
     quality     "estimate" while `color` comes from temperature and body family alone (MAP.274 replaces it with
                 the composition colour), absent for a star
     glow        atmosphere limb colour (`#rrggbb`), present only with an atmosphere
@@ -32,6 +32,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     iceKm       ice shell thickness, km
     lumSolar    a star's luminosity in solar units
     spec        a star's `star_type`
+    yerkes      a star's Yerkes luminosity class (V dwarf, III giant, VII white dwarf, ...)
 
 The colour tables are stand-ins for hue only (the gap plan registry lists them): the colours are picked to read as
 the thing they are, and they are deliberately not photographs of any one world.
@@ -41,6 +42,7 @@ import hashlib
 import json
 import math
 
+from planetgen.physics import photometry
 from planetgen.web.maps.starmap import star_color
 
 LOOK_VERSION = 1
@@ -153,10 +155,23 @@ def planet_look(planet, kind="planet"):
     return look
 
 
+def star_surface_color(star):
+    """The colour of a star's disc: the blackbody-based `photometry.star_colour` of its effective temperature (the
+    same function the sky colour assumes for the star, so the two agree), else the spectral-letter colour."""
+    temperature_k = star.get("temperature_k")
+    if temperature_k and temperature_k > 0:
+        try:
+            return photometry.star_colour(float(temperature_k)).hex
+        except ValueError:
+            pass
+    return star_color(star["star_type"], temperature_k, star["luminosity_w"])[0]
+
+
 def star_look(star):
     """The look record of a star row."""
-    fill, _stroke = star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
-    look = {"v": LOOK_VERSION, "kind": "star", "body": "star", "seed": seed_for("star", star["id"]), "color": fill}
+    look = {"v": LOOK_VERSION, "kind": "star", "body": "star", "seed": seed_for("star", star["id"]),
+            "color": star_surface_color(star)}
+    _put(look, "yerkes", star.get("yerkes_class"))
     _put(look, "tempK", _rounded(star.get("temperature_k"), 1))
     luminosity_w = star.get("luminosity_w")
     _put(look, "lumSolar", None if luminosity_w is None else float(f"{luminosity_w / _SOLAR_LUMINOSITY_W:.4g}"))

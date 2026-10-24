@@ -66,3 +66,18 @@ def test_look_json_is_compact_and_round_trips():
 
 def test_look_is_the_same_for_the_same_row():
     assert bl.look_json(bl.planet_look(_planet())) == bl.look_json(bl.planet_look(_planet()))
+
+
+def test_star_colour_is_the_blackbody_colour_of_its_temperature():
+    from planetgen.physics import photometry
+    star = {"id": 3, "star_type": "M3V", "yerkes_class": "V", "temperature_k": 3400.0, "luminosity_w": 1e24}
+    look = bl.star_look(star)
+    assert look["color"] == photometry.star_colour(3400.0).hex
+    assert look["yerkes"] == "V"
+    hot = bl.star_look({**star, "temperature_k": 20000.0})
+    assert hot["color"] != look["color"]
+
+
+def test_star_without_a_temperature_falls_back_to_the_spectral_colour():
+    star = {"id": 4, "star_type": "K2V", "temperature_k": None, "luminosity_w": 1e26}
+    assert bl.star_look(star)["color"].startswith("#")

@@ -3270,7 +3270,7 @@ def system_detail(conn, system_id):
         raise ValueError(f"no star_systems row with id {system_id}")
 
     stars = conn.execute(
-        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
+        "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),
