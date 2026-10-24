@@ -19184,16 +19184,6 @@ clears each one.
   GEN.642 and DB.89).
   Prerequisites: none. Related: DB.89, GEN.642, UX.187.
 
-- [ ] **TEST.359 test_object_page_walk fixtures error on main: the system detail has no "stars" (bug)**
-  Found by Aux 11 (6:05 PM EDT 2026-10-24 as the lane reported): the
-  test_object_page_walk fixtures error on main because the system detail
-  has no 'stars' key (the fixture built from the sample galaxy reads
-  detail['stars']). Find which change removed or renamed the key (the
-  object page detail or the system detail API) and make the fixture read
-  the new shape, or restore the key if it was removed by mistake. Never
-  skip the walk. Owner: Bug 1 (it changed the walk in #3103/#3107).
-  Prerequisites: none. Related: TEST.349, TEST.354.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
