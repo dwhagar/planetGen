@@ -2935,6 +2935,71 @@ code {
   margin: 0;
 }
 
+/* MAP.256: the Galaxy Map's selection panel sits inside the map's window (static/mappick.js, `data-overlay`). Where the
+   window is 600px wide or more it is drawn over the map, in the corner farthest from where the reader pressed, and not
+   at all until something is picked; under that it is a block under the map, as before. The map under it stays pickable:
+   only its buttons and links take the pointer. */
+.galaxymap3d-panel .galaxy-map-main {
+  display: block;
+}
+
+.galaxymap3d-panel .galaxy-map-main > .starmap-viewport {
+  width: 100%;
+}
+
+.galaxymap3d-panel .galaxy-map-main > .starmap-info {
+  margin-top: 0.75rem;
+  min-width: 0;
+}
+
+.starmap-info .map-info-close {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .galaxy-map-main > .starmap-info[data-overlay] {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 3;
+    margin-top: 0;
+    width: min(18rem, calc(100% - 1.5rem));
+    max-height: calc(100% - 1.5rem);
+    overflow: auto;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .galaxy-map-main > .starmap-info[data-overlay] a,
+  .galaxy-map-main > .starmap-info[data-overlay] button,
+  .galaxy-map-main > .starmap-info[data-overlay] summary,
+  .galaxy-map-main > .starmap-info[data-overlay] input,
+  .galaxy-map-main > .starmap-info[data-overlay] select {
+    pointer-events: auto;
+  }
+  .galaxy-map-main > .starmap-info[data-corner="top-left"] {
+    right: auto;
+    left: 0.75rem;
+  }
+  .galaxy-map-main > .starmap-info[data-corner="bottom-left"] {
+    top: auto;
+    right: auto;
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+  .galaxy-map-main > .starmap-info[data-corner="bottom-right"] {
+    top: auto;
+    bottom: 0.75rem;
+  }
+  .galaxy-map-main > .starmap-info[data-state="rest"],
+  .galaxy-map-main > .starmap-info[data-state="closed"] {
+    display: none;
+  }
+  .galaxy-map-main > .starmap-info .map-info-close {
+    display: inline-flex;
+  }
+}
+
 .map-tooltip {
   position: absolute;
   z-index: 3;
