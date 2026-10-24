@@ -52,7 +52,7 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, equipment, habitability, magnetism, radiation, regional_temperature
+from planetgen.physics import aerosols, atmosphere, constants, equipment, habitability, magnetism, radiation, regional_temperature
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
 TIER_NAMES = tuple(TIER_INDEX)
@@ -150,6 +150,8 @@ def values_from_body(body):
         "dose_sep_msv_yr": getattr(body, "dose_sep_msv_yr", None),
         "dose_helio_mult": getattr(body, "dose_helio_mult", None),
         "uv_surface_index": getattr(body, "uv_surface_index", None),
+        "tau_dust": getattr(body, "tau_dust", None),
+        "scale_height_km": getattr(body, "scale_height", None),
         "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
         "rotation_period_hours": getattr(body, "rotation_period_hours", None),
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
@@ -308,6 +310,7 @@ def world_from(values, lethal_host=None):
         life_on_surface=values.get("hydrosphere") != "ice-covered ocean",
         dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2],
         cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
+        dust_mg_m3=aerosols.dust_loading_mg_m3(values.get("tau_dust"), values.get("scale_height_km")),
     )
 
 

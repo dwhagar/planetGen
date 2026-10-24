@@ -210,10 +210,22 @@ def _gas_hazard(world):
     return worst, over
 
 
+def _dust(world):
+    """The dust part, 0 none, 1 recommended, 2 required: a body under `dust_pressure_kpa` has regolith dust that wrecks open
+    seals (required); a body with air has the airborne dust of its stored optical depth (`World.dust_mg_m3`, GEN.658): recommended
+    from the long-term limit, required from the short-term ceiling."""
+    if world.pressure_kpa < limit("dust_pressure_kpa"):
+        return 2
+    loading = world.dust_mg_m3
+    if not loading:
+        return 0
+    return 2 if loading >= limit("dust_required_mg_m3") else 1 if loading >= limit("dust_recommended_mg_m3") else 0
+
+
 def _filters(world):
-    """`(dust, gas filter grade, CO2 scrubber, over IDLH or past a filter)`; the dust and scrubber parts are 0 or 2
-    (required)."""
-    dust = 2 if world.pressure_kpa < limit("dust_pressure_kpa") else 0
+    """`(dust, gas filter grade, CO2 scrubber, over IDLH or past a filter)`; the scrubber part is 0 or 2 (required), the
+    dust part 0, 1 (recommended) or 2 (required)."""
+    dust = _dust(world)
     chronic, acute = habitability.GAS_LIMITS_KPA["CO2"]
     carbon_dioxide = world.partial_kpa("CO2")
     scrub = 2 if chronic < carbon_dioxide <= acute else 0
@@ -487,13 +499,16 @@ def _list(levels, severity):
         out.append(_item("body", RAD_SUIT_NAMES[suit], severity, "Radiation"))
     if required:
         sealed = _get(levels, "eq_supply") >= 2 or _get(levels, "eq_body") >= 4
-        if _get(levels, "eq_dust"):
+        if _get(levels, "eq_dust") == 2:
             out.append(_item("filter", "dust-tight seals" if sealed else "dust filter", severity, "Air"))
         grade = _get(levels, "eq_gas_filter")
         if grade:
             out.append(_item("filter", GAS_FILTER_NAMES[grade], severity, "Air"))
         if _get(levels, "eq_co2_scrub"):
             out.append(_item("filter", "CO2 scrubber", severity, "Air"))
+    elif _get(levels, "eq_dust") == 1:
+        sealed = _get(levels, "eq_supply") >= 2 or _get(levels, "eq_body") >= 4
+        out.append(_item("filter", "dust-tight seals" if sealed else "dust filter", severity, "Air"))
     carried = _get(levels, "eq_body")
     if supply and not (carried >= 4 and supply <= 2) and not (carried >= 5 and supply == 4):
         out.append(_item("supply", SUPPLY_NAMES[supply], severity,
@@ -548,9 +563,11 @@ def _tokens(levels, suffix):
     if body:
         out.append(f"B{body}{KIND_LETTER[BODY_KINDS[_get(levels, f'eq_body{suffix}_kind')]]}")
     if suffix == "":
-        parts = (_get(levels, "eq_dust") > 0, _get(levels, "eq_gas_filter"), _get(levels, "eq_co2_scrub") > 0)
+        parts = (_get(levels, "eq_dust") == 2, _get(levels, "eq_gas_filter"), _get(levels, "eq_co2_scrub") > 0)
         if any(parts):
             out.append(f"F{int(parts[0])}{parts[1]}{int(parts[2])}")
+    elif _get(levels, "eq_dust") == 1:
+        out.append("F100")
     supply = _get(levels, f"eq_supply{suffix}")
     if supply:
         out.append(f"S{supply}")

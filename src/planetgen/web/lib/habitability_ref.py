@@ -25,7 +25,8 @@ EQUIPMENT_ITEMS = (
     ("Armoured suit", "A rigid suit that holds one atmosphere inside: crushing pressure or heat past 400 C."),
     ("Vehicle only", "No suit exists for it: heat past 500 C, pressure past 100 MPa or gravity past 3 g."),
     ("Powered frame", "The gravity is past 1.5 g (recommended from 1.25 g)."),
-    ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air)."),
+    ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air), or the dust in the "
+                            "air passes 0.1 mg/m3 (recommended) or 10 mg/m3 (required)."),
     ("Gas filter, full-face or powered", "A gas such as carbon monoxide, hydrogen sulfide or sulfur dioxide is above "
                                          "its long-term limit and has to be filtered out."),
     ("CO2 scrubber", "Carbon dioxide is above its long-term limit but short of what is acutely dangerous."),
@@ -229,8 +230,40 @@ WHERE_ROWS = (
     ("A planet or moon page", "The seven symbols sit under the title of its page."),
     ("A system page", "Each planet and moon row carries the seven symbols in place of the old notes."),
     ("Search", "The planet and moon panels of Search show the same symbols beside each result."),
+    ("The equipment chips", "A system page row and the Equipment column of Search show one chip per item of the "
+                            "equipment line: solid for a required item, outlined for a recommended one, in the colour "
+                            "of the domain it comes from."),
 )
 """tuple: `(place, what it shows)` for the places the symbols appear (UX.100, UX.155, UX.156)."""
+
+
+MAP_INTRO = (
+    "The Galaxy Map shows where habitable worlds are, in two ways that you choose. A habitable world here means a "
+    "planet or moon whose overall PHI-6 colour is Blue or Green; Yellow and Red worlds are not counted."
+)
+
+MAP_ROWS = (
+    ("Color by: Habitable worlds", "In the map's Menu, Color by paints each sector block by how many habitable worlds "
+                                   "its systems hold, from none to the most, with a legend; the choice stays in the "
+                                   "address as color=habitable."),
+    ("Marker: Habitable worlds", "In the Menu's marker list (off until you turn it on, and kept in the address as "
+                                 "show=marker-habitable) every star system with at least one habitable world gets a "
+                                 "marker. Hovering names the system and how many habitable worlds it has; a click "
+                                 "opens its summary."),
+)
+"""tuple: `(control, what it does)` for the habitable-world views of the Galaxy Map (MAP.143, MAP.220)."""
+
+TEMPERATURE_TEXT = (
+    "The surface temperature of a world is its mean, and the ratings use the mean. The Temperature row of a planet's "
+    "page also says how the mean is spread: a world that turns on its own has an annual mean for each of four bands "
+    "(Polar from 60 degrees to the pole, 13 percent of the surface; Northern and Southern, 20 to 60 degrees, 26 percent "
+    "each; Equatorial, 20 south to 20 north, 34 percent), found from the sunlight each band gets over a year at the "
+    "world's axial tilt, with a thick atmosphere carrying heat toward the poles. It also gives the day and night swing "
+    "at the equator, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
+    "to a few degrees. A world that is tidally locked has no day and night; its page gives the day side, the "
+    "terminator ring and the night side. Where a band or the night needs heavier gear than the mean does, the row names "
+    "the place and the gear as recommended."
+)
 
 
 def zone_text():
@@ -264,6 +297,9 @@ def page():
         "life_scores": (0, 3, 9),
         "where_intro": WHERE_INTRO,
         "where_rows": WHERE_ROWS,
+        "map_intro": MAP_INTRO,
+        "map_rows": MAP_ROWS,
+        "temperature_text": TEMPERATURE_TEXT,
         "zone_text": zone_text(),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
         "equipment": EQUIPMENT_ITEMS,

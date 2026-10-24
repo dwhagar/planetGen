@@ -42,6 +42,21 @@
   </dl>
 </section>
 
+<section class="panel" aria-labelledby="map-heading">
+  <div class="panel-header"><h2 id="map-heading">On the Galaxy Map</h2></div>
+  <p>{{ map_intro }}</p>
+  <dl>
+    {%- for control, what in map_rows %}
+    <dt>{{ control }}</dt><dd>{{ what }}</dd>
+    {%- endfor %}
+  </dl>
+</section>
+
+<section class="panel" aria-labelledby="temperature-heading">
+  <div class="panel-header"><h2 id="temperature-heading">Temperatures across a world</h2></div>
+  <p>{{ temperature_text }}</p>
+</section>
+
 <section class="panel" aria-labelledby="life-heading">
   <div class="panel-header"><h2 id="life-heading">The life scores</h2></div>
   <p>{{ life_intro }}</p>

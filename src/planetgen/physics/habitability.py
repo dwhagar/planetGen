@@ -278,7 +278,7 @@ class World:
     is (the surface dose for surface water, about the ground's for an ocean
     under ice); `water_source` is what a base can draw water from. The three dose parts (the cosmic rays
     with the heliosphere's multiplier, the stellar particles and the ground, Sv/yr; `None` when unknown, then the whole
-    dose counts as cosmic rays), the dipole's `cutoff_gv` and the DNA-weighted `uv_index` are what the survival
+    dose counts as cosmic rays), the dipole's `cutoff_gv`, the DNA-weighted `uv_index` and the airborne `dust_mg_m3` (`None` when unknown) are what the survival
     equipment (`physics/equipment.py`) reads beyond the score's own inputs."""
     pressure_kpa: float
     temperature_c: float
@@ -303,6 +303,7 @@ class World:
     dose_ground_sv_yr: float = None
     cutoff_gv: float = 0.0
     uv_index: float = 0.0
+    dust_mg_m3: float = None
 
     def partial_kpa(self, gas):
         return self.gases.get(gas, 0.0) * self.pressure_kpa

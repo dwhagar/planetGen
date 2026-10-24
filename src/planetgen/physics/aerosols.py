@@ -98,6 +98,10 @@ DUST_RATIO_RANGE = (0.3, 3.0)
 DUST_TAU_RANGE = (0.5, 1.5)
 DUST_RADIUS_UM = (1.2, 1.8)
 DUST_G = (0.673, 0.081)
+DUST_DENSITY_KG_M3 = 2500.0
+"""float: The density of a dust grain, kg/m3 (DESIGN: basaltic dust, Mars's is measured at about 2,500 to 3,000)."""
+DUST_Q_EXT = 2.5
+"""float: The extinction efficiency of a micrometre grain at 550 nm (DESIGN; 2 to 3 for the sizes of `DUST_RADIUS_UM`)."""
 """tuple: The dust asymmetry factor and its spread (Wolff 2009)."""
 DUST_OMEGA_NM = (300.0, 380.0, 440.0, 460.0, 500.0, 600.0, 700.0, 800.0, 2480.0)
 DUST_OMEGA_R12 = (0.705, 0.705, 0.765, 0.780, 0.825, 0.941, 0.968, 0.965, 0.965)
@@ -299,6 +303,21 @@ def draw_haze(column, temperature_k, rng):
     top = min(column.pressure_pa * 1e-8, 1e-4)
     fall = haze_fall_integral_s_m(column, temperature_k, radius, HAZE_DENSITY_KG_M3, max(top, 1e-12), kzz)
     return 3.0 * HAZE_Q_EXT * mdot * fall / (4.0 * HAZE_DENSITY_KG_M3 * radius)
+
+
+def dust_loading_mg_m3(tau_dust, scale_height_km):
+    """
+    The airborne dust at the ground, mg/m3, from the optical depth `tau_dust` and the air's scale height (GEN.658): the
+    grains' column mass `4 rho r tau / (3 Q)` (`r` the middle of `DUST_RADIUS_UM`) spread through one scale height. 0 for no
+    dust, `None` when the scale height is unknown. Mars at `tau` 0.5 to 1 comes out near the 0.1 mg/m3 of its dust limit.
+    """
+    if not tau_dust or tau_dust <= 0.0:
+        return 0.0
+    if not scale_height_km or scale_height_km <= 0.0:
+        return None
+    radius_m = 0.5 * sum(DUST_RADIUS_UM) * 1e-6
+    column_kg_m2 = 4.0 * DUST_DENSITY_KG_M3 * radius_m * tau_dust / (3.0 * DUST_Q_EXT)
+    return column_kg_m2 / (scale_height_km * 1000.0) * 1e6
 
 
 def draw_dust(dry_surface, rng):

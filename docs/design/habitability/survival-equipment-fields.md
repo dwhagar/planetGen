@@ -2,7 +2,7 @@
 
 Research thread "Survival equipment fields". Written for Boss's message of 6:56 PM EDT 2026-10-23: "change the equipment system to be a +/- system where we just combine the different things a person could need and then derive a name from that. Categories of equipment are: Body Protection (like a suit, the lowest kind of suit that fits the environment) / Air Filter or Scrubber / Air Supply. Research first and give me a suggestion for the equipment fields for a world's habitability index to provide an accurate idea of survival equipment for the planet based on the possible needs."
 
-**Status.** Built in 8.1 (GEN.655 the equipment module and its inputs, DB.93 the columns, API object and migration 0136; GEN.656 the regional temperatures, migration 0137, section 5.5). This page was the design draft of 2026-10-23, revised with Boss's answers (section 2); where the build differs from the draft, the difference is in section 14. Still to come, each its own item: the chips (UX.154), the toxic-species rows (GEN.657, after the gases of GEN.424) and the dust input (GEN.658, after GEN.414). The numbers in sections 8 and 9 come from a scratch prototype run against the repo's own physics on 17 named worlds and on 2,261 planets and moons from 160 generated systems; the module's own tests (`tests/test_equipment.py`) hold the named worlds. Values marked DESIGN are planetGen defaults meant to be tuned by a sweep; values marked RECALLED are from memory and must be checked against the source before they are leaned on; section 12 says which is which.
+**Status.** Built in 8.1 (GEN.655 the equipment module and its inputs, DB.93 the columns, API object and migration 0136; GEN.656 the regional temperatures, migration 0137, section 5.5). This page was the design draft of 2026-10-23, revised with Boss's answers (section 2); where the build differs from the draft, the difference is in section 14. Still to come, each its own item: the chips (UX.154), the toxic-species rows (GEN.657, after the gases of GEN.424) and the dust input's toxicity half (GEN.658 built the loading half; toxicity waits for the surface composition to be stored, GEN.441). The numbers in sections 8 and 9 come from a scratch prototype run against the repo's own physics on 17 named worlds and on 2,261 planets and moons from 160 generated systems; the module's own tests (`tests/test_equipment.py`) hold the named worlds. Values marked DESIGN are planetGen defaults meant to be tuned by a sweep; values marked RECALLED are from memory and must be checked against the source before they are leaned on; section 12 says which is which.
 
 ## 1. The short version
 
@@ -123,7 +123,7 @@ ICRP: 20 mSv per year averaged over five years (occupational), 50 mSv in any one
 | Dose, Sv/yr, and its parts | `surface_dose_msv_yr`, `dose_gcr`, `dose_sep`, `dose_ground`, `dose_helio_mult` | yes |
 | UV | `uv_surface_index`, `ozone_loss_flag` | yes |
 | Gravity | `gravity_g` | yes |
-| Dust loading and toxicity | `tau_dust` (GEN.414) and the surface composition (lane K); interim rule: any rocky body under 10 kPa has regolith dust | no |
+| Dust loading and toxicity | `tau_dust` (GEN.414) and `scale_height_km`, as the airborne loading `4 rho r tau / (3 Q H)` (`aerosols.dust_loading_mg_m3`, GEN.658: 2,500 kg/m3 grains, 1.5 micrometres, Q 2.5, DESIGN); the toxicity of the dust waits for the stored surface composition; a rocky body under 10 kPa still has regolith dust | loading yes |
 | Corrosive surface liquid | `ocean_ph` (acid below 2, alkaline above 12) | yes |
 
 ### 5.1 Slot 1: Body Protection (`eq_body`, 0 to 6, and `eq_body_kind`)
@@ -160,7 +160,7 @@ New limits-table rows: `armoured_heat_c` 400, `vehicle_heat_c` 500, `frame_gravi
 
 | Part | Field | Values | Triggers |
 |---|---|---|---|
-| Dust | `eq_dust` | 0 or 1 | Airborne dust over 0.1 mg/m3 (`tau_dust`, once it lands); interim: rocky body under 10 kPa. Renders as "dust filter" with an open mask and as "dust-tight seals" when the supply is sealed (a sealed suit needs a seal and suitport, not a filter) |
+| Dust | `eq_dust` | 0 or 1 | Airborne dust over 0.1 mg/m3 recommended and over 10 mg/m3 required (the loading from `tau_dust`, GEN.658); a rocky body under 10 kPa has regolith dust and the filter is required. Renders as "dust filter" with an open mask and as "dust-tight seals" when the supply is sealed (a sealed suit needs a seal and suitport, not a filter) |
 | Gas | `eq_gas_filter` | 0 to 3 | The worst filterable gas, as a ratio to its long-term limit (HR = partial pressure over chronic): 0 none; 1 gas filter (HR up to 10, half mask); 2 full-face gas filter (HR up to 50); 3 powered gas filter (HR up to 1,000). Never over IDLH: that is Supply 2 |
 | CO2 | `eq_co2_scrub` | 0 or 1 | Ambient CO2 above 0.93 kPa and up to 5 kPa (a bulk absorbent on the intake). Above 5 kPa the person breathes own gas |
 
