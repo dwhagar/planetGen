@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2183] - 2026-10-24
+
+**Headline:** The habitability system is now checked end to end in a browser, on a real database, so the symbols, the sector colours, the habitable-world markers and the help links cannot drift from the scores the generator stores.
+
+### Changed
+- **TEST.300: end-to-end browser tests for the habitability system.** A shared fixture (`tests/habitability_site.py`) builds a throwaway database with a sector whose system has Blue or Green worlds beside one whose system has none, records the Galaxy Map's block totals and habitable-system rows, and serves it. Four checks run on it (`tests/test_habitability_end_to_end_browser.py`): the Planets and Moons lists draw each body's stored rating as the right symbol, in the colours of both themes; a sector turns green under Color by Habitable worlds, the stage and the legend carry the stored count; the habitable-world marker finds the right system, names its count and goes with its toggle; a symbol opens the Help page at its own section and the page's levels table is the one the score reads. Tests only; nothing a visitor sees changes.
+
 ## [8.0.2182] - 2026-10-24
 
 **Headline:** The phenomena scatter's first log line now says which compact objects the mass cut scatters and which it leaves to the sectors, so a run at the default cut no longer reads as black holes without neutron stars.
