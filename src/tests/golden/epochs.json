@@ -413,8 +413,7 @@
     },
     {
       "epoch": 84,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2200",
       "reason": "The depth of every ocean and ice lid and the high-pressure ice under it come from integrating the compressed water layer (the density of water rises with pressure and the gravity at depth follows the mass below it) instead of a fixed 1000 kg/m3, so the ocean class and the pH and water-activity draws that follow change for watery planets and moons; a base pressure is stored (GEN.461)"
     }
   ]
