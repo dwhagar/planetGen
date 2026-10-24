@@ -20,7 +20,7 @@ def _context():
         yield
 
 
-def _symbols(body):
+def _symbols(body, page=None):
     return f"[{body['name']}]"
 
 

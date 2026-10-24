@@ -387,7 +387,7 @@ def _cells(panel, row):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
                  equipment_cell(row),
-                 habitability_cell(row)]
+                 habitability_cell(row, row["url"])]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})
         return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]

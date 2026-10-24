@@ -7,7 +7,7 @@ habitability page (UX.181), which the table's `data-help-url` completes into a l
 """
 
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
-from planetgen.web.lib.habitability_symbols import (LABELS, LIFE_ANCHORS, LIFE_NAMES, OVERALL, SYMBOL_ANCHORS, equipment_anchor,
+from planetgen.web.lib.habitability_symbols import (BODY_ANCHOR, BODY_LIFE_ANCHOR, LABELS, LIFE_ANCHORS, LIFE_NAMES, OVERALL, SYMBOL_ANCHORS, equipment_anchor,
                                                        life_text, overall_tier)
 
 COLUMN = "Habitability"
@@ -17,12 +17,13 @@ EQUIPMENT_COLUMN = "Equipment"
 """str: The heading of the equipment column (UX.154)."""
 
 
-def habitability_cell(row):
+def habitability_cell(row, page=None):
     """
     The cell for one planet or moon `row` (`phi4` and `tier_<domain>` by name): the overall symbol and the six domain
     symbols, each with its rating and the `anchor` that explains it, or a muted dash for a body that was not scored.
     `text` is the same in words. The four life scores (UX.152) ride in `life` as `[{name, score, label, anchor}]` when the
-    body has them.
+    body has them. With `page` (the URL of the body's own page) every symbol's `anchor` is that page's Habitability or Life
+    group and the cell carries `page`, which the table links to instead of the habitability page.
     """
     overall = overall_tier(row)
     if overall is None:
@@ -30,11 +31,13 @@ def habitability_cell(row):
     symbols = [{"name": OVERALL, "tier": overall}] + [{"name": name, "tier": row[f"tier_{name}"]} for name in DOMAINS]
     for symbol in symbols:
         symbol["label"] = f"{LABELS[symbol['name']]}: {TIER_NAMES[symbol['tier']]}"
-        symbol["anchor"] = SYMBOL_ANCHORS[symbol["name"]]
+        symbol["anchor"] = BODY_ANCHOR if page else SYMBOL_ANCHORS[symbol["name"]]
     cell = {"text": ", ".join(symbol["label"] for symbol in symbols), "symbols": symbols}
+    if page:
+        cell["page"] = page
     scores = [row.get(f"life_{name}") for name in LIFE_NAMES]
     if all(score is not None for score in scores):
-        cell["life"] = [{"name": name, "score": score, "label": life_text(name, score), "anchor": LIFE_ANCHORS[name]}
+        cell["life"] = [{"name": name, "score": score, "label": life_text(name, score), "anchor": BODY_LIFE_ANCHOR if page else LIFE_ANCHORS[name]}
                         for name, score in zip(LIFE_NAMES, scores)]
         cell["text"] += "; " + ", ".join(entry["label"] for entry in cell["life"])
     return cell

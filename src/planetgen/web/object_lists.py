@@ -62,7 +62,7 @@ def _row(item, kind):
              {"text": measured_html("kg", item["mass_kg"])},
              {"text": distance_km_html(item["radius_km"])}]
     if kind in HABITABILITY_KINDS:
-        cells.append(habitability_cell(item))
+        cells.append(habitability_cell(item, name["href"]))
     return cells + [sector]
 
 

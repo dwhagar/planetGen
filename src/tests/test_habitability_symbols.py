@@ -301,3 +301,15 @@ def test_a_life_symbol_is_solid_and_borderless_like_the_phi6_ones():
     rule = rule[:rule.index("}")]
     for declaration in ("fill: currentColor;", "stroke: none;", "opacity: 0.8;"):
         assert declaration in rule, declaration
+
+
+def test_a_bodys_symbols_link_to_the_habitability_and_life_groups_of_its_own_page():
+    """UX.197: with `page` every symbol goes to that page's Habitability group and every life score to its Life group."""
+    body = {"phi4": 0.8, "life_microbial": 1, "life_flora": 2, "life_fauna": 3, "life_sentient": 0,
+            **{f"tier_{domain}": 1 for domain in symbols.DOMAINS}}
+    html = symbols.symbol_row(body, "/icons.svg", help_url="/habitability", page="/object/planet:FE81000A2B-0000005-001")
+    assert html.count('href="/object/planet:FE81000A2B-0000005-001#habitability"') == 7
+    assert html.count('href="/object/planet:FE81000A2B-0000005-001#life"') == 4
+    assert "/habitability#" not in html
+    elsewhere = symbols.symbol_row(body, "/icons.svg", help_url="/habitability")
+    assert 'href="/habitability#' in elsewhere and "#habitability\"" not in elsewhere

@@ -101,10 +101,10 @@ def _star_stats(summary, context):
             _stat(f"{measured_html('W', summary['luminosity_w'])}" if summary.get("luminosity_w") is not None else "")]
 
 
-def _body_stats(summary, context):
+def _body_stats(summary, context, page=None):
     code = summary.get("planet_class")
     class_html = _link(context.class_url("planet", code) if context.class_url and code else None, esc(code)) if code else ""
-    symbols = symbol_row(summary, context.sprite_url, help_url=context.help_url) \
+    symbols = symbol_row(summary, context.sprite_url, help_url=context.help_url, page=page) \
         if context.sprite_url and summary.get("phi4") is not None else ""
     return [_stat(f"Class {class_html}" if class_html else ""),
             _stat(distance_km_html(summary["distance_km"]) if summary.get("distance_km") is not None else ""),
@@ -143,7 +143,10 @@ _STATS = {"star": _star_stats, "planet": _body_stats, "moon": _body_stats, "belt
 def stats_html(item, context):
     """The row's summary line: its own facts as `.stat` chips, then what lies below it."""
     kind = item["kind"]
-    stats = _STATS[kind](item.get("summary") or {}, context) if kind in _STATS else [_stat(esc(KIND_LABELS.get(kind, kind)))]
+    if kind in ("planet", "moon"):    # a body's symbols link to the Habitability group of its own page
+        stats = _body_stats(item.get("summary") or {}, context, context.item_url(item["ref"]))
+    else:
+        stats = _STATS[kind](item.get("summary") or {}, context) if kind in _STATS else [_stat(esc(KIND_LABELS.get(kind, kind)))]
     below = counts_text(item.get("counts") or {})
     return "".join(stats) + _stat(esc(below))
 
