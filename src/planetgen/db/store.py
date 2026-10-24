@@ -117,6 +117,14 @@ from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_t
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_au_to_km = units.converter("au", "km")
+_km_to_au = units.converter("km", "au")
+_yr_to_s = units.converter("yr", "s")
+_s_to_yr = units.converter("s", "yr")
+_au_yr_to_kms = units.converter("au_yr", "km_s")
+_SECONDS_PER_YEAR = _yr_to_s(1.0)
 
 _SYSTEM_POINT = point_columns.LAYOUTS["star_systems"]
 """point_columns.PointLayout: The point of a star system (GEN.335), whose SQL below takes its column lists from it."""
@@ -2746,7 +2754,7 @@ def _rank_chain(conn, table, base, count, address, taken):
     return given
 
 
-_AU_KM = physical_constants.AU_TO_KM
+_AU_KM = _au_to_km(1.0)
 
 
 _SPIN_FIELD = object_rows.computed(spin.SPIN_FIELDS, lambda obj, context: spin.spin_values(obj),
@@ -3936,10 +3944,10 @@ def _proxy_only_binary_fields(proxy: BinaryStarProxy):
         proxy.luminosity,
         proxy.age,
         _lifespan_gy(proxy.lifespan),
-        proxy.habitable_zone[0] * physical_constants.AU_TO_KM,
-        proxy.habitable_zone[1] * physical_constants.AU_TO_KM,
-        proxy.system_perimeter * physical_constants.AU_TO_KM,
-        proxy.heliosphere_radius * physical_constants.AU_TO_KM,
+        _au_to_km(proxy.habitable_zone[0]),
+        _au_to_km(proxy.habitable_zone[1]),
+        _au_to_km(proxy.system_perimeter),
+        _au_to_km(proxy.heliosphere_radius),
         proxy.galactic_orbital_period_gy,
         proxy.galactic_orbital_phase_deg,
         proxy.galactic_min_update_interval_years,
@@ -3966,15 +3974,15 @@ def _mutual_orbit_fields_from_proxy(proxy: BinaryStarProxy):
         proxy.binary_mutual_orbital_ascending_node_deg,
         proxy.binary_mutual_orbital_phase_deg,
         proxy.binary_mutual_min_update_interval_years,
-        proxy.binary_mutual_position_x * physical_constants.AU_TO_KM,
-        proxy.binary_mutual_position_y * physical_constants.AU_TO_KM,
-        proxy.binary_mutual_position_z * physical_constants.AU_TO_KM,
-        proxy.binary_primary_position_x * physical_constants.AU_TO_KM,
-        proxy.binary_primary_position_y * physical_constants.AU_TO_KM,
-        proxy.binary_primary_position_z * physical_constants.AU_TO_KM,
-        proxy.binary_secondary_position_x * physical_constants.AU_TO_KM,
-        proxy.binary_secondary_position_y * physical_constants.AU_TO_KM,
-        proxy.binary_secondary_position_z * physical_constants.AU_TO_KM,
+        _au_to_km(proxy.binary_mutual_position_x),
+        _au_to_km(proxy.binary_mutual_position_y),
+        _au_to_km(proxy.binary_mutual_position_z),
+        _au_to_km(proxy.binary_primary_position_x),
+        _au_to_km(proxy.binary_primary_position_y),
+        _au_to_km(proxy.binary_primary_position_z),
+        _au_to_km(proxy.binary_secondary_position_x),
+        _au_to_km(proxy.binary_secondary_position_y),
+        _au_to_km(proxy.binary_secondary_position_z),
         proxy.binary_secondary_mass_fraction,
     )
 
@@ -4002,15 +4010,15 @@ def _mutual_orbit_fields_from_wide_binary(pair):
         pair.ascending_node_deg,
         pair.phase_deg,
         pair.min_update_interval_years,
-        pair.position_x_au * physical_constants.AU_TO_KM,
-        pair.position_y_au * physical_constants.AU_TO_KM,
-        pair.position_z_au * physical_constants.AU_TO_KM,
-        pair.primary_position_x_au * physical_constants.AU_TO_KM,
-        pair.primary_position_y_au * physical_constants.AU_TO_KM,
-        pair.primary_position_z_au * physical_constants.AU_TO_KM,
-        pair.secondary_position_x_au * physical_constants.AU_TO_KM,
-        pair.secondary_position_y_au * physical_constants.AU_TO_KM,
-        pair.secondary_position_z_au * physical_constants.AU_TO_KM,
+        _au_to_km(pair.position_x_au),
+        _au_to_km(pair.position_y_au),
+        _au_to_km(pair.position_z_au),
+        _au_to_km(pair.primary_position_x_au),
+        _au_to_km(pair.primary_position_y_au),
+        _au_to_km(pair.primary_position_z_au),
+        _au_to_km(pair.secondary_position_x_au),
+        _au_to_km(pair.secondary_position_y_au),
+        _au_to_km(pair.secondary_position_z_au),
         pair.secondary_mass_fraction,
     )
 
@@ -4182,7 +4190,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     if proxy_like:
         proxy_only_fields = _proxy_only_binary_fields(star_system.star)
         mutual_orbit_fields = _mutual_orbit_fields_from_proxy(star_system.star)
-        separation_km = star_system.star.binary_separation_au * physical_constants.AU_TO_KM
+        separation_km = _au_to_km(star_system.star.binary_separation_au)
         # A close pair's mutual orbit is treated as circular (tidal
         # circularization is a legitimate simplification at its 0.05-0.25
         # AU separations) -- periapsis == apoapsis == separation, eccentricity 0.
@@ -4191,10 +4199,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     elif binary_configuration == "wide":
         proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
         mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(star_system.wide_binary)
-        separation_km = star_system.wide_binary.separation_au * physical_constants.AU_TO_KM
+        separation_km = _au_to_km(star_system.wide_binary.separation_au)
         eccentricity = star_system.wide_binary.eccentricity
-        periapsis_km = star_system.wide_binary.periapsis_au * physical_constants.AU_TO_KM
-        apoapsis_km = star_system.wide_binary.apoapsis_au * physical_constants.AU_TO_KM
+        periapsis_km = _au_to_km(star_system.wide_binary.periapsis_au)
+        apoapsis_km = _au_to_km(star_system.wide_binary.apoapsis_au)
     else:
         proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
         mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
@@ -4206,9 +4214,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # convention `black_holes`' galactic columns already use.
     if binary_configuration == "close":
         planetary_wobble_fields = (
-            star_system.binary_planetary_wobble_x * physical_constants.AU_TO_KM,
-            star_system.binary_planetary_wobble_y * physical_constants.AU_TO_KM,
-            star_system.binary_planetary_wobble_z * physical_constants.AU_TO_KM,
+            _au_to_km(star_system.binary_planetary_wobble_x),
+            _au_to_km(star_system.binary_planetary_wobble_y),
+            _au_to_km(star_system.binary_planetary_wobble_z),
         )
     else:
         planetary_wobble_fields = (None, None, None)
@@ -4654,7 +4662,7 @@ def _refresh_cloud_doses(conn, system_changes):
                 " WHERE star_system_id = s.id)) AS radius_km FROM star_systems s WHERE s.id = ?",
                 (system_id,)).fetchone()["radius_km"]
             if open_km:
-                open_au = open_km / physical_constants.AU_TO_KM
+                open_au = _km_to_au(open_km)
                 squeezed = compressed_heliosphere_radius(open_au, cloud["density_cm3"], cloud["temperature_k"])
                 compression = radiation.heliosphere_compression(open_au, squeezed)
         compact = conn.execute(
@@ -5504,7 +5512,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     moved = refiled = 0
     touched = set()
     counts = {}
-    seconds_per_year = physical_constants.SECONDS_PER_YEAR
+    seconds_per_year = _yr_to_s(1.0)
     # The star systems, each phenomenon table (the quasars, which don't orbit, report nothing), the facilities, the
     # unbuilt scatter points.
     steps = len(PLACED_PHENOMENON_TABLES) + 1 + len(SCATTER_MOTION_TABLES)
@@ -5756,7 +5764,7 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
     edge_pc = shape.edge_pc if shape is not None else 0.0
     moved = refiled = 0
     counts = {}
-    seconds_per_year = physical_constants.SECONDS_PER_YEAR
+    seconds_per_year = _yr_to_s(1.0)
     done, total = steps
     for table in SCATTER_MOTION_TABLES:
         scheduled, updates = [], []
@@ -7300,7 +7308,7 @@ def sector_for_placement(conn, sector_id):
                         else system["star_perimeter_km"]) or 0.0
         stand_in = SimpleNamespace(
             name=system["name"], system_config=None,
-            star=SimpleNamespace(system_perimeter=perimeter_km / physical_constants.AU_TO_KM))
+            star=SimpleNamespace(system_perimeter=_km_to_au(perimeter_km)))
         position = tuple(milliparsecs_to_ly(system[f"position_{axis}_mpc"]) for axis in "xyz")
         sector.entries.append(SectorSystemEntry(stand_in, position, sector_center_ly=sector.center_galactic_ly))
     return sector
@@ -8759,11 +8767,11 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "age": row["binary_age_gy"],
         "lifespan": row["binary_lifespan_gy"],
         "habitable_zone": [
-            row["binary_habitable_zone_inner_km"] / physical_constants.AU_TO_KM,
-            row["binary_habitable_zone_outer_km"] / physical_constants.AU_TO_KM,
+            _km_to_au(row["binary_habitable_zone_inner_km"]),
+            _km_to_au(row["binary_habitable_zone_outer_km"]),
         ],
-        "system_perimeter": row["binary_system_perimeter_km"] / physical_constants.AU_TO_KM,
-        "heliosphere_radius": row["binary_heliosphere_radius_km"] / physical_constants.AU_TO_KM,
+        "system_perimeter": _km_to_au(row["binary_system_perimeter_km"]),
+        "heliosphere_radius": _km_to_au(row["binary_heliosphere_radius_km"]),
         "galactic_orbital_speed_kms": _speed_kms(row),
         "galactic_orbital_period_gy": row["binary_galactic_orbital_period_gy"],
         "galactic_orbital_phase_deg": row["binary_galactic_orbital_phase_deg"],
@@ -8774,17 +8782,17 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "binary_mutual_orbital_ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
         "binary_mutual_orbital_phase_deg": row["binary_mutual_orbital_phase_deg"],
         "binary_mutual_min_update_interval_years": row["binary_mutual_min_update_interval_years"],
-        "binary_mutual_position_x": row["binary_mutual_position_x_km"] / physical_constants.AU_TO_KM,
-        "binary_mutual_position_y": row["binary_mutual_position_y_km"] / physical_constants.AU_TO_KM,
-        "binary_mutual_position_z": row["binary_mutual_position_z_km"] / physical_constants.AU_TO_KM,
-        "binary_primary_position_x": row["binary_primary_position_x_km"] / physical_constants.AU_TO_KM,
-        "binary_primary_position_y": row["binary_primary_position_y_km"] / physical_constants.AU_TO_KM,
-        "binary_primary_position_z": row["binary_primary_position_z_km"] / physical_constants.AU_TO_KM,
-        "binary_secondary_position_x": row["binary_secondary_position_x_km"] / physical_constants.AU_TO_KM,
-        "binary_secondary_position_y": row["binary_secondary_position_y_km"] / physical_constants.AU_TO_KM,
-        "binary_secondary_position_z": row["binary_secondary_position_z_km"] / physical_constants.AU_TO_KM,
+        "binary_mutual_position_x": _km_to_au(row["binary_mutual_position_x_km"]),
+        "binary_mutual_position_y": _km_to_au(row["binary_mutual_position_y_km"]),
+        "binary_mutual_position_z": _km_to_au(row["binary_mutual_position_z_km"]),
+        "binary_primary_position_x": _km_to_au(row["binary_primary_position_x_km"]),
+        "binary_primary_position_y": _km_to_au(row["binary_primary_position_y_km"]),
+        "binary_primary_position_z": _km_to_au(row["binary_primary_position_z_km"]),
+        "binary_secondary_position_x": _km_to_au(row["binary_secondary_position_x_km"]),
+        "binary_secondary_position_y": _km_to_au(row["binary_secondary_position_y_km"]),
+        "binary_secondary_position_z": _km_to_au(row["binary_secondary_position_z_km"]),
         "binary_secondary_mass_fraction": row["binary_secondary_mass_fraction"],
-        "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
+        "_binary_separation_au": _km_to_au(row["binary_separation_km"]),
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
         "primary": primary_dict,
@@ -8804,25 +8812,25 @@ def _wide_binary_row_to_dict(star_system_row):
     """
     row = star_system_row
     return {
-        "separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
+        "separation_au": _km_to_au(row["binary_separation_km"]),
         "eccentricity": row["binary_eccentricity"],
         "period_years": row["binary_mutual_orbital_period_years"],
         "speed_kms": row["binary_mutual_orbital_speed_kms"],
-        "periapsis_au": row["binary_periapsis_km"] / physical_constants.AU_TO_KM,
-        "apoapsis_au": row["binary_apoapsis_km"] / physical_constants.AU_TO_KM,
+        "periapsis_au": _km_to_au(row["binary_periapsis_km"]),
+        "apoapsis_au": _km_to_au(row["binary_apoapsis_km"]),
         "inclination_deg": row["binary_mutual_orbital_inclination_deg"],
         "ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
         "phase_deg": row["binary_mutual_orbital_phase_deg"],
         "min_update_interval_years": row["binary_mutual_min_update_interval_years"],
-        "position_x_au": row["binary_mutual_position_x_km"] / physical_constants.AU_TO_KM,
-        "position_y_au": row["binary_mutual_position_y_km"] / physical_constants.AU_TO_KM,
-        "position_z_au": row["binary_mutual_position_z_km"] / physical_constants.AU_TO_KM,
-        "primary_position_x_au": row["binary_primary_position_x_km"] / physical_constants.AU_TO_KM,
-        "primary_position_y_au": row["binary_primary_position_y_km"] / physical_constants.AU_TO_KM,
-        "primary_position_z_au": row["binary_primary_position_z_km"] / physical_constants.AU_TO_KM,
-        "secondary_position_x_au": row["binary_secondary_position_x_km"] / physical_constants.AU_TO_KM,
-        "secondary_position_y_au": row["binary_secondary_position_y_km"] / physical_constants.AU_TO_KM,
-        "secondary_position_z_au": row["binary_secondary_position_z_km"] / physical_constants.AU_TO_KM,
+        "position_x_au": _km_to_au(row["binary_mutual_position_x_km"]),
+        "position_y_au": _km_to_au(row["binary_mutual_position_y_km"]),
+        "position_z_au": _km_to_au(row["binary_mutual_position_z_km"]),
+        "primary_position_x_au": _km_to_au(row["binary_primary_position_x_km"]),
+        "primary_position_y_au": _km_to_au(row["binary_primary_position_y_km"]),
+        "primary_position_z_au": _km_to_au(row["binary_primary_position_z_km"]),
+        "secondary_position_x_au": _km_to_au(row["binary_secondary_position_x_km"]),
+        "secondary_position_y_au": _km_to_au(row["binary_secondary_position_y_km"]),
+        "secondary_position_z_au": _km_to_au(row["binary_secondary_position_z_km"]),
         "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
     }
 
@@ -8980,15 +8988,15 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     # v20: only meaningful (non-NULL) for a 'close' pair -- see
     # schema.sql's "v20" header note and StarSystem.__init__'s own comment.
     system.binary_planetary_wobble_x = (
-        row["binary_planetary_wobble_x_km"] / physical_constants.AU_TO_KM
+        _km_to_au(row["binary_planetary_wobble_x_km"])
         if row["binary_planetary_wobble_x_km"] is not None else 0.0
     )
     system.binary_planetary_wobble_y = (
-        row["binary_planetary_wobble_y_km"] / physical_constants.AU_TO_KM
+        _km_to_au(row["binary_planetary_wobble_y_km"])
         if row["binary_planetary_wobble_y_km"] is not None else 0.0
     )
     system.binary_planetary_wobble_z = (
-        row["binary_planetary_wobble_z_km"] / physical_constants.AU_TO_KM
+        _km_to_au(row["binary_planetary_wobble_z_km"])
         if row["binary_planetary_wobble_z_km"] is not None else 0.0
     )
 
@@ -9194,7 +9202,7 @@ ROGUE_SURFACE_COLUMNS = (
 `ROGUE_SURFACE_FIELDS` order."""
 
 
-CIRCULAR_VELOCITY_SQL = f"(distance_km * 2 * PI() / (period_years * {physical_constants.SECONDS_PER_YEAR!r}))"
+CIRCULAR_VELOCITY_SQL = f"(distance_km * 2 * PI() / (period_years * {_SECONDS_PER_YEAR!r}))"
 """str: SQL for the speed, km/s, of a planet or moon on its circular orbit
 (`2 pi r / T`); the velocity columns are this times the position's
 derivative with the phase (`orbits.circular_orbital_velocity_au_per_year`)."""
@@ -9353,7 +9361,7 @@ def get_orbit_update_elapsed_years(conn):
     ).fetchone()
     if row is None:
         return None
-    return row["elapsed_seconds"] / physical_constants.SECONDS_PER_YEAR
+    return _s_to_yr(row["elapsed_seconds"])
 
 
 def get_orbit_epoch_unix(conn):
@@ -9402,7 +9410,7 @@ def orbit_clock(conn, elapsed_years=None):
     last = get_orbit_epoch_unix(conn)
     start = now if last is None else float(last)
     if elapsed_years is not None:
-        return OrbitClock(start, start + elapsed_years * physical_constants.SECONDS_PER_YEAR)
+        return OrbitClock(start, start + _yr_to_s(elapsed_years))
     return OrbitClock(min(start, now), now)
 
 
@@ -9553,7 +9561,7 @@ def _update_interval_sql(speed_kms, scale):
 
 
 _FACILITY_SPEED_SQL = (f"(orbit_distance_km * 2 * PI() / (orbit_period_years"
-                       f" * {physical_constants.SECONDS_PER_YEAR!r}))")
+                       f" * {_SECONDS_PER_YEAR!r}))")
 """str: SQL for an orbiting facility's speed, km/s, on its circular orbit."""
 
 _FACILITY_INTERVAL_SQL = (
@@ -9579,7 +9587,7 @@ def _schedule_updates(conn, clock, table, interval_sql, where, prefix="", keep_m
 
 def _elapsed_years_sql(prefix=""):
     """SQL for the years from a row's epoch to the update's end (the `?`)."""
-    return f"((? - {prefix}epoch_unix) / {physical_constants.SECONDS_PER_YEAR!r})"
+    return f"((? - {prefix}epoch_unix) / {_SECONDS_PER_YEAR!r})"
 
 
 def _phase_turn_sql(period_column, prefix=""):
@@ -9643,7 +9651,7 @@ def _advance_body_states(conn, clock, table, scale, budget=None):
 
     limit = budget.limit(table) if budget is not None else None
     threshold_km = THRESHOLDS_M[scale] / 1000.0
-    seconds_per_year = physical_constants.SECONDS_PER_YEAR
+    seconds_per_year = _yr_to_s(1.0)
     columns = ", ".join(_STATE_COLUMNS)
     moved = seen = 0
     while limit is None or seen < limit:
@@ -9820,7 +9828,7 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     # same SET list).
     binary_interval = _update_interval_sql(
         f"(binary_separation_km * 2 * PI() / (binary_mutual_orbital_period_years"
-        f" * {physical_constants.SECONDS_PER_YEAR!r}))", "system")
+        f" * {_SECONDS_PER_YEAR!r}))", "system")
     _schedule_updates(conn, clock, "star_systems", binary_interval,
                       "is_binary = 1 AND binary_mutual_orbital_period_years > 0", prefix="binary_", keep_modified=True)
     limited, tail = _ordered_limit(budget, "binary_mutual_orbits")
@@ -9944,13 +9952,13 @@ def advance_comet_orbits(conn, clock, budget=None):
         if due > clock.end_unix or (budget is not None and not budget.take("comets")):
             scheduled.append((epoch, due, row["id"]))
         else:
-            elapsed_by_id[row["id"]] = (clock.end_unix - epoch) / physical_constants.SECONDS_PER_YEAR
+            elapsed_by_id[row["id"]] = _s_to_yr(clock.end_unix - epoch)
     if scheduled:
         conn.executemany("UPDATE comets SET epoch_unix = ?, next_update_due = ? WHERE id = ?", scheduled)
     rows = [row for row in rows if row["id"] in elapsed_by_id]
 
     update_params = []
-    to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
+    to_kms = _au_yr_to_kms(1.0)
     # Kepler's equation for every elliptical comet that moves, in one vectorised solve.
     moving = [row for row in rows if row["orbit_type"] == "elliptical"]
     new_mean_anomalies_deg = {
@@ -9964,7 +9972,7 @@ def advance_comet_orbits(conn, clock, budget=None):
             [math.radians(new_mean_anomalies_deg[row["id"]]) for row in moving],
             [row["eccentricity"] for row in moving])))
     for row in rows:
-        perihelion_distance_au = row["perihelion_distance_km"] / physical_constants.AU_TO_KM
+        perihelion_distance_au = _km_to_au(row["perihelion_distance_km"])
 
         eccentric_anomaly_rad = None
         if row["orbit_type"] == "elliptical":
@@ -9993,10 +10001,10 @@ def advance_comet_orbits(conn, clock, budget=None):
 
         update_params.append((
             new_mean_anomaly_deg, new_parabolic_mean_anomaly,
-            state["distance_au"] * physical_constants.AU_TO_KM,
-            state["position_x_au"] * physical_constants.AU_TO_KM,
-            state["position_y_au"] * physical_constants.AU_TO_KM,
-            state["position_z_au"] * physical_constants.AU_TO_KM,
+            _au_to_km(state["distance_au"]),
+            _au_to_km(state["position_x_au"]),
+            _au_to_km(state["position_y_au"]),
+            _au_to_km(state["position_z_au"]),
             state["orbital_speed_kms"],
             state["velocity_x_au_per_year"] * to_kms,
             state["velocity_y_au_per_year"] * to_kms,

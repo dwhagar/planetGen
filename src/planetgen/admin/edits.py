@@ -25,6 +25,11 @@ from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
 from planetgen.generation.planet import Planet
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_au_to_km = units.converter("au", "km")
+_m_to_km = units.converter("m", "km")
+_km_to_m = units.converter("km", "m")
 
 EditResult = namedtuple("EditResult", ["summary", "moved", "reclassified", "removed", "warnings"])
 """What an edit did: a one-line `summary`, the names of the bodies the
@@ -274,7 +279,7 @@ def _roll_fits(body, owner):
     # fit and stay inside its Hill sphere.
     _low_km, high_km = planetPhysics.moon_orbit_bounds_km(body)
     return (max(m.radius for m in body.moons) <= validation.max_moon_radius_km(body)
-            and max(m.distance for m in body.moons) * constants.AU_TO_KM <= high_km)
+            and _au_to_km(max(m.distance for m in body.moons)) <= high_km)
 
 
 RECOMMENDED_ROLLS = 40
@@ -291,7 +296,7 @@ class _StandIn:
         self.distance = distance
         self.mass = mass
         self.star = star
-        self.hill_radius = hill_radius_au * constants.AU_TO_KM
+        self.hill_radius = _au_to_km(hill_radius_au)
         self.min_orbit_distance = 5 * hill_radius_au
 
 
@@ -346,8 +351,8 @@ def _keep_mass(body, mass_kg):
     else:
         low, high = tuning.PLANET_CLASSES[body.planet_class]["radius_range"]
         radius_m = (3 * mass_kg / (4 * math.pi * body.density * 1000)) ** (1 / 3)
-        body.radius = min(max(radius_m / constants.KM_TO_M_FACTOR, low), high)
-        radius_m = body.radius * constants.KM_TO_M_FACTOR
+        body.radius = min(max(_m_to_km(radius_m), low), high)
+        radius_m = _km_to_m(body.radius)
         body.density = mass_kg / ((4 / 3) * math.pi * radius_m ** 3) / 1000
     body.volume = (4 / 3) * math.pi * body.radius ** 3
 

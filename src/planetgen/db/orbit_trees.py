@@ -20,8 +20,11 @@ from collections import namedtuple
 from planetgen.generation import multistar
 from planetgen.physics import constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
+from planetgen.physics import unit_registry as units
 
-AU_KM = constants.AU_TO_KM
+_au_to_km = units.converter("au", "km")
+
+AU_KM = _au_to_km(1.0)
 SOLAR_MASS_KG = constants.SOLAR_MASS_TO_KG
 
 ROOT_NODE_NO = 0

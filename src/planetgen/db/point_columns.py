@@ -23,8 +23,10 @@ import dataclasses
 import re
 
 from planetgen.db import column_units
-from planetgen.physics import constants
 from planetgen.physics.position import SpatialPosition3D
+from planetgen.physics import unit_registry as units
+
+_m_to_pc = units.converter("m", "pc")
 
 FRAMES = ("galaxy", "sector", "system")
 """tuple: What a stored position is measured from: the galactic centre, the sector's centre, or the object's star."""
@@ -292,7 +294,7 @@ def values_from_spatial(layout, point):
             raise ValueError(f"a {layout.table} point needs a star reference to be stored")
     out = dict(zip(layout.position, (c / unit for c in here)))
     if layout.galaxy_position:
-        out.update(zip(layout.galaxy_position, (c / constants.PARSEC_M for c in point.get_coordinates("galactic", "cartesian"))))
+        out.update(zip(layout.galaxy_position, (_m_to_pc(c) for c in point.get_coordinates("galactic", "cartesian"))))
     out.update(zip(layout.velocity, (v / 1000.0 for v in velocity)))
     if layout.mass is not None:
         mass = point.mass_kg
