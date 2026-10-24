@@ -6107,6 +6107,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
+  PM EDT via the coordinator: add the 14 code-contradicts-physics items
+  to the Math lane; assessment
+  reports/physics-grounding-assessment-2026-10-24.md contradiction 6):
+  Owner: Math lane. This replaces any earlier owner line on this item.
+  Taken from Core 1, which has not started it; the Math lane confirms
+  with TODO before starting.
   Prerequisites: none. Related: GEN.149.
 
 - [ ] **GEN.366 Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible**
@@ -6741,6 +6748,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
+  PM EDT via the coordinator: add the 14 code-contradicts-physics items
+  to the Math lane; assessment
+  reports/physics-grounding-assessment-2026-10-24.md contradiction 7):
+  Owner: Math lane. This replaces any earlier owner line on this item.
+  Taken from Core 3, which has not started it; the Math lane confirms
+  with TODO before starting.
   Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
 
 - [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
@@ -12724,6 +12738,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   may still need a mask). The wording must not contradict the rows, but
   the combination Green with a mask is valid. Owner: Habitability text
   lane / lane D.
+  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
+  PM EDT via the coordinator: add the 14 code-contradicts-physics items
+  to the Math lane; assessment
+  reports/physics-grounding-assessment-2026-10-24.md contradiction 13):
+  Owner: Math lane. This replaces any earlier owner line on this item.
+  Taken from lane D, which has not started it; the Math lane confirms
+  with TODO before starting.
   Prerequisites: none.
 
 - [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
@@ -12944,6 +12965,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_prevalence::test_no_binaries_at_minus_100 also fails on clean
   main e7ff546 (0.002 binaries instead of 0), which is this item. Owner
   unchanged.
+  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
+  PM EDT via the coordinator: add the 14 code-contradicts-physics items
+  to the Math lane; assessment
+  reports/physics-grounding-assessment-2026-10-24.md contradiction 14):
+  Owner: Math lane. This replaces any earlier owner line on this item.
+  Free; the Math lane confirms with TODO before starting.
   Prerequisites: none. Related: GEN.631, GEN.332.
 
 - [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
@@ -13176,6 +13203,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   touches records its source tier and tweak level in the gap plan
   registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
   not take it before 8.1 closes).
+  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24: Owner: Math
+  lane, as the pair of GEN.737 (Boss, 5:16 PM EDT, via the coordinator:
+  the 14 physics items go to the Math lane; tidal heating needs this
+  eccentricity). This replaces any earlier owner line on this item.
+  Free; the Math lane confirms with TODO before starting.
   Prerequisites: none. Related: GEN.582, GEN.656, GEN.699.
 
 - [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
@@ -13388,6 +13420,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in it touches records its source tier and tweak level in the gap
   plan registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes
   do not take it before 8.1 closes).
+  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
+  PM EDT via the coordinator: add the 14 code-contradicts-physics items
+  to the Math lane; assessment
+  reports/physics-grounding-assessment-2026-10-24.md contradiction 9):
+  Owner: Math lane. This replaces any earlier owner line on this item.
+  Free (8.4). It needs the eccentricity of GEN.727, so take GEN.727 with
+  it; the Math lane confirms with TODO before starting.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
 
 - [ ] **GEN.738 Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss**
@@ -19560,47 +19599,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.66 Remove the unused older executor in src/planetgen/queue/work.py: RQExecutor, _rq_task and the --debug FILE worker plumbing**
-  Finding of the Debug mode thread (2026-10-23, audit
-  /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
-  at 5:20 PM EDT and 5:35 PM EDT), filed by the TODO thread at the
-  thread's word (7:22 PM EDT). Nothing in a run uses them (the audit).
-  No shim. Done: the code and its tests are gone, the worker still takes
-  --debug through the new path of PR #2723, and the suite passes. Owner:
-  none (pool); after #2723 merges; the Debug mode thread proposed.
-  Research (2026-10-09, Update): Debug mode thread (6:17 AM EDT
-  2026-10-24, as the lane reported): PR #2723 merged, so this item can
-  start; the thread proposed itself, and nothing else in the queue uses
-  RQExecutor or _rq_task.
-  Research (2026-10-09, Decided): Decided (Boss, 8:37 AM EDT 2026-10-24,
-  same message, relayed by the coordinator): yes, remove the old queue
-  executor; nothing is kept for compatibility. Start it now: the Debug
-  mode thread takes it (PR #2723 is merged).
-  Prerequisites: none. Related: OPS.65.
-
-- [ ] **OPS.67 Detached helpers (the background planetgen warm a run starts, an auto-started worker's own lifecycle) write the debug log file only: decide whether they relay to stdout**
-  Finding of the Debug mode thread (2026-10-23, audit
-  /mnt/project-files/reports/debug-mode-audit-2026-10-23.md; Boss asked
-  at 5:20 PM EDT and 5:35 PM EDT), filed by the TODO thread at the
-  thread's word (7:22 PM EDT). Default until Boss answers: they keep
-  writing the debug log file only, because they outlive the command that
-  started them and have no stdout to relay to. If Boss wants them
-  relayed, the helper streams through the same Redis relay while the
-  starting command waits, with a cap. Boss decision (a card, option 1
-  the default). Owner: none (pool).
-  Research (2026-10-09, Decided): Decided (Boss, 12:43 AM EDT 2026-10-24
-  (message cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq, relayed
-  by the coordinator)), item 11, option 1: the detached helpers keep
-  writing the debug log file only; they do not relay to stdout. Nothing
-  to build for the relay; the item can close once the debug mode docs
-  say so. Owner: none (pool), closes with OPS.65.
-  Research (2026-10-09, Update): The Debug mode thread asked again (6:17
-  AM EDT 2026-10-24) whether detached helpers relay to stdout: it is
-  already decided (option 1, above): they keep writing the debug log
-  file only. Remaining work: one line in the debug mode docs saying so;
-  then close.
-  Prerequisites: none. Related: OPS.65.
 
 - [ ] **OPS.70 Gate resumes after a restart, and a lane-start health check runs before every gate**
   Efficiency scan suggestion 5, applied by Boss ("ALL", 2:21 PM EDT
