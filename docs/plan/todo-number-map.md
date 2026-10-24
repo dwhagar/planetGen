@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.702 |
+| GEN | GEN.703 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
@@ -1427,6 +1427,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.699 | Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9 | none | open |
 | GEN.700 | Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow | none | open |
 | GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | none | open |
+| GEN.702 | Some equipment items sit in the wrong habitability row: self-contained air under a Blue Air row on cold worlds, and a hardened pressure suit under Radiation while the Pressure row names no gear (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2270,7 +2271,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
 | UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
 | UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | done, PR #2890 |
-| UX.167 | Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording | none | open |
+| UX.167 | Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording | none | done, PR #2902 |
 | UX.168 | Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py | none | open |
 | UX.169 | Children API GET /api/objects/<ref>/children and the sector-level tree feed | none | open |
 | UX.170 | Rebuild item.html: header, Location chain with the Inside remainder, siblings, property sheet, description and children | none | open |

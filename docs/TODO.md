@@ -964,24 +964,6 @@ with `clamp()`.
   analysis lane (proposed by the lane).
   Prerequisites: none.
 
-- [ ] **UX.167 Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording**
-  Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
-  coordinator)), option 2 of the category sentence question: rewrite the
-  category row sentences (Body Protection, Air Filter or Scrubber, Air
-  Supply) from the stored needs list of GEN.655. Background: UX.153 left
-  the category row sentences alone because test_protection pins Boss's
-  10-15 wording. Do: build each category sentence from the needs list so
-  it only names items that are needed, update the wording test in
-  test_protection to the new rule (a sentence names exactly the needed
-  items of that category and never an item that is not needed), and keep
-  the same wording on every page. Done: no category sentence mentions an
-  item the body does not need, the test agrees with the generated
-  sentences, and the pages, descriptions and API read the same. Owner:
-  Survival equipment lane (follow-up) or the Habitable rule and life
-  scores lane, whichever has UX.153's rest; ask the TODO thread first.
-  Prerequisites: none. Related: UX.153, UX.163, GEN.655.
-
 - [ ] **UX.168 Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
@@ -14428,6 +14410,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   new migration and the next free epoch at merge. Owner: lane D; check
   nobody started it first.
   Prerequisites: GEN.649. Related: GEN.557, GEN.687.
+
+- [ ] **GEN.702 Some equipment items sit in the wrong habitability row: self-contained air under a Blue Air row on cold worlds, and a hardened pressure suit under Radiation while the Pressure row names no gear (bug)**
+  Found by the habitability text lane while merging UX.167 (#2902), as
+  the coordinator relayed at 4:32 AM EDT 2026-10-24. UX.167 now lists in
+  each PHI-6 row the items whose category (`equipment.items`,
+  `item.domain`) is that row, so every item appears in exactly one row.
+  That showed items filed under the wrong category: on a cold world
+  self-contained air lands under a Blue Air row, and the hardened
+  pressure suit lands under Radiation while Pressure names no gear. Do:
+  audit each equipment item's `domain` against the need it answers (air
+  supply and filtering under Air, suits that hold pressure under
+  Pressure, cosmic-ray hardening under Radiation, heating and cooling
+  under Temperature) and fix the assignment; where one item answers two
+  needs, decide whether it appears in both rows and say so in
+  design-drafts/survival-equipment-fields-2026-10-23.md. Done: a test
+  that for the cold, hot, thin-air, high-pressure and high-radiation
+  example worlds each item sits in the row of the need that makes it
+  required, and no row with a required need names no gear. No schema
+  change; a generator epoch only if a stored value moves. Owner: none
+  (pool; the survival equipment lane has retired, the habitability text
+  lane too).
+  Prerequisites: none. Related: UX.167, UX.163, GEN.671.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
