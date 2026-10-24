@@ -11,8 +11,7 @@ from planetgen.util import draw
 
 
 def _names(kind, **kwargs):
-    subject = pt.Subject(kind, {"inclination_deg": kwargs.get("inclination_deg", 1.0), "has_ring": int(kwargs.get("has_ring", False)),
-                                "roche_ratio": kwargs.get("roche_ratio", math.inf)})
+    subject = pt.Subject(kind, {"has_ring": int(kwargs.get("has_ring", False)), "roche_ratio": kwargs.get("roche_ratio", math.inf)})
     return sorted(name for name, _p in [(row.name, p) for row, p in mc.ORIGIN_TABLE.probabilities(subject)])
 
 
@@ -23,26 +22,24 @@ def test_the_origin_table_is_registered_and_every_weight_is_open():
 
 
 def test_every_parent_kind_and_orbit_has_an_origin_and_each_origin_is_reachable():
-    assert _names(mc.GIANT) == ["disk"]
-    assert _names(mc.GIANT, has_ring=True, roche_ratio=2.0) == ["disk", "ring"]
-    assert _names(mc.GIANT, has_ring=True, roche_ratio=20.0) == ["disk"]
-    assert _names(mc.TERRESTRIAL) == ["impact"]
-    assert _names(mc.DWARF_PLANET) == ["binary"]
-    for kind in mc.PARENT_KINDS:
-        assert _names(kind, inclination_deg=120.0) == ["captured"]
+    assert _names(mc.GIANT) == ["captured", "disk"]
+    assert _names(mc.GIANT, has_ring=True, roche_ratio=2.0) == ["captured", "disk", "ring"]
+    assert _names(mc.GIANT, has_ring=True, roche_ratio=20.0) == ["captured", "disk"]
+    assert _names(mc.TERRESTRIAL) == ["captured", "impact"]
+    assert _names(mc.DWARF_PLANET) == ["binary", "captured"]
 
 
 def test_open_rows_share_the_probability_equally():
-    subject = pt.Subject(mc.GIANT, {"inclination_deg": 1.0, "has_ring": 1, "roche_ratio": 2.0})
-    assert [p for _row, p in mc.ORIGIN_TABLE.probabilities(subject)] == pytest.approx([0.5, 0.5])
+    subject = pt.Subject(mc.GIANT, {"has_ring": 1, "roche_ratio": 2.0})
+    assert [p for _row, p in mc.ORIGIN_TABLE.probabilities(subject)] == pytest.approx([1 / 3] * 3)
     with draw.bound(1):
-        seen = {mc.draw_origin(mc.GIANT, 1.0, has_ring=True, roche_ratio=2.0).row.name for _ in range(60)}
-    assert seen == {"disk", "ring"}
+        seen = {mc.draw_origin(mc.GIANT, has_ring=True, roche_ratio=2.0).row.name for _ in range(120)}
+    assert seen == {"disk", "ring", "captured"}
 
 
 def test_a_bad_parent_kind_is_refused():
     with pytest.raises(ValueError):
-        mc.draw_origin("moon", 1.0)
+        mc.draw_origin("moon")
 
 
 def test_the_parent_kind_from_envelope_and_mass():
@@ -153,3 +150,55 @@ def test_the_same_seed_gives_the_same_moon():
     with draw.bound(10):
         b = mc.draw_disk_moon(system.ice_line_km, system).to_dict()
     assert a == b
+
+
+def test_a_regular_moon_lies_near_the_equator_and_a_captured_one_can_be_retrograde_outside_the_kozai_band():
+    """GEN.714: the orbit follows from the origin."""
+    from planetgen.physics import constants
+    low, high = mc.KOZAI_FORBIDDEN_DEG
+    with draw.bound(3):
+        regular = [mc.draw_inclination_deg(origin) for origin in ("disk", "impact", "ring", "binary") for _ in range(100)]
+        captured = [mc.draw_inclination_deg("captured") for _ in range(2000)]
+    assert all(0.0 <= i <= constants.MOON_ORBITAL_INCLINATION_MAX_DEG for i in regular)
+    assert all(0.0 <= i <= 180.0 for i in captured)
+    assert not any(low < i < high for i in captured)
+    assert any(i > 150.0 for i in captured) and any(i < 20.0 for i in captured)
+    # prograde and retrograde in the ratio of the cosines each side of the band: 0.426 against 0.357
+    retrograde = sum(i > 90.0 for i in captured) / len(captured)
+    assert retrograde == pytest.approx(0.357 / (0.426 + 0.357), abs=0.04)
+    with pytest.raises(ValueError):
+        mc.draw_inclination_deg("moon")
+
+
+def test_the_inclination_draw_is_one_number_and_repeats_with_the_seed():
+    with draw.bound(5):
+        first = [mc.draw_inclination_deg("captured") for _ in range(5)]
+    with draw.bound(5):
+        assert [mc.draw_inclination_deg("captured") for _ in range(5)] == first
+
+
+def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it():
+    """GEN.714: through `generate_moons`, every moon holds an origin, regular moons lie near the equator and captured ones, which exist, can be retrograde."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics import constants
+    low, high = mc.KOZAI_FORBIDDEN_DEG
+    origins = {}
+    with draw.bound(21):
+        for _ in range(60):
+            config = SystemConfig()
+            config.MOONS = True
+            system = StarSystem(system_config=config)
+            for planet in system.planets + system.secondary_planets:
+                if planet.body_type == "a":
+                    continue
+                for moon in planet.moons:
+                    assert moon.moon_origin in mc.ORIGINS
+                    origins.setdefault(moon.moon_origin, []).append(moon.orbital_inclination_deg)
+    assert "captured" in origins and ("disk" in origins or "impact" in origins)
+    for origin, values in origins.items():
+        if origin == "captured":
+            assert not any(low < i < high for i in values)
+        else:
+            assert all(i <= constants.MOON_ORBITAL_INCLINATION_MAX_DEG for i in values)
+    assert any(i > 130.0 for i in origins["captured"])

@@ -122,11 +122,13 @@ Possibility: the rock mass fraction of a class D body, Kuiper belt object or dwa
 |---|---|---|---|---|
 | disk | parent is a giant (an envelope on it) | open | regular moons from the circumplanetary disk, section 5.5 | Canup and Ward 2009, Sasaki 2010, Cilibrasi 2018; weight open |
 | impact | parent is terrestrial (no envelope) | open | no metal phase in the condensate (iron enters as FeO), metal U(0.01, 0.05), moderately volatile elements depleted, water 1 to 1000 ppm, ice 0; the parent's mantle oxides are the source composition | Lock 2018 (verified for the rule); the metal range is a parametrisation; weight open |
-| captured | the moon is retrograde or its inclination is high (the cut is open) | open | the icy-body rule of 5.3, then ice lost by a factor U(0, 0.5) | Barr and Schwamb 2016 (qualitative); the factor is a parametrisation; weight open |
+| captured | any parent (GEN.714: the origin is drawn first and the orbit follows from it, so there is no inclination cut) | open | the icy-body rule of 5.3, then ice lost by a factor U(0, 0.5) | Barr and Schwamb 2016 (qualitative); the factor is a parametrisation; weight open |
 | ring | the parent has a massive ring and the moon forms near the Roche radius | open | ice-rich, near the ring's composition; masses rise with distance | Crida and Charnoz 2012 (abstract only, RECALLED for the composition); rules not sourced |
 | binary | the primary is a dwarf planet | open | the icy-body rule of 5.3; mass ratio q in 5e-4 to 0.11 | Barr and Schwamb Table 2; weight open |
 
-Every weight is `open`: the open rows of one gate share the probability equally and each is in the loader's report until a source or a derivation (GEN.466's classifier from the stored parent mass, age and orbit) replaces it. A gate that no row passes is an error that names the parent and the table.
+Every weight is `open`: the open rows of one gate share the probability equally (a giant's moon is a disk moon or a captured one with equal chance, a terrestrial planet's an impact moon or a captured one) and each is in the loader's report until a source or a derivation replaces it.
+
+**The orbit follows the origin (GEN.714, `moon_composition.draw_inclination_deg`).** A regular moon (disk, impact, ring, binary) lies near the parent's equator: uniform on 0 to 25 degrees, the generator's long-standing bound, wider than the regular satellites show (the Galilean moons lie within 0.5 degrees) and so a flagged stand-in. A captured moon takes an isotropic orbit (cosine of the inclination uniform) outside the Kozai-unstable band of 55 to 130 degrees (Nesvorny et al. 2003; the bounds as used in arXiv:0805.3733, Shen and Tremaine give 60 to 130, partly verified), so it is prograde below the band or retrograde above it: 43 percent prograde and 57 percent retrograde by the width of the cosines. The distance range of a moon is unchanged (retrograde orbits are stable out to about 0.7 Hill radii, prograde to 0.4; the generator keeps 0.49 for both). The origin is held by the moon while it is generated and is not stored until DB.70. A gate that no row passes is an error that names the parent and the table.
 
 ### 5.5 Disk moons: the system, the ice line and the ramp
 
@@ -185,7 +187,7 @@ Targets from part D section 4 (each met for some draw, never for one): ordinary 
 
 ## 10. Open weights and gaps
 
-- Open weights (the loader lists them): the five weights of the moon origin table; the Dirichlet concentration; the albedo scatter; the captured cut in inclination; the comet N2, O2, Ar, Kr and Xe; the field family frequencies (stand-in).
+- Open weights (the loader lists them): the five weights of the moon origin table; the Dirichlet concentration; the albedo scatter; the share of captured moons (an equal share with the other rows); the Kozai band's edges; the comet N2, O2, Ar, Kr and Xe; the field family frequencies (stand-in).
 - No validated solver from 1e21 kg to 0.1 Earth masses (bulk note section 12 item 1): Ganymede-class moons and dwarf planets sit in the gap and run flagged extrapolated until the Galilean test passes.
 - Not read (part D section 5): Canup 2012 and Cuk and Stewart 2012 (the impact moon's iron), Mosqueira and Estrada 2003, the full text of Bierson and Nimmo (Eq. 3), Mumma and Charnley 2011, Crida and Charnoz 2012 (the ring rules), and a metal weight percent per chondrite group.
 - The 1e19 to 1e21 kg taper endpoints are two numbers read off Carry 2012's statements, not a fit.

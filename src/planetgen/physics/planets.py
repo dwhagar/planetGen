@@ -19,7 +19,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, bulk_draw, constants, giant_draw, metallicity
+from planetgen.physics import body_state, bulk_draw, constants, giant_draw, metallicity, moon_composition
 from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -861,11 +861,15 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
                                  the same name, which this is threaded
                                  straight through from).
     """
-    inclination_max = (
-        constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
-        else constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
-    )
-    planet.orbital_inclination_deg = draw.uniform(0, inclination_max)
+    if planet.is_moon and getattr(planet, "moon_origin", None) is not None:
+        # GEN.714: the orbit follows from how the moon came to be there (a captured one can be retrograde)
+        planet.orbital_inclination_deg = moon_composition.draw_inclination_deg(planet.moon_origin)
+    else:
+        inclination_max = (
+            constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
+            else constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
+        )
+        planet.orbital_inclination_deg = draw.uniform(0, inclination_max)
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
     phase_deg = draw.uniform(0, 360)
 
@@ -1196,6 +1200,7 @@ def generate_moons(planet, moon_count=None):
 
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
+    parent_kind = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
 
     # Deferred import: planet imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
@@ -1226,9 +1231,12 @@ def generate_moons(planet, moon_count=None):
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
         moon_distance = _km_to_au(moon_distance_km)
+        # GEN.714: the origin comes first and the orbit follows from it
+        origin = moon_composition.draw_origin(parent_kind).row.name
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
-                          distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
+                          distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
+                          moon_origin=origin)
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
 

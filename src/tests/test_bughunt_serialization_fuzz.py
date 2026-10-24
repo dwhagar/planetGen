@@ -122,11 +122,12 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # the `SpatialPosition3D` a body holds (GEN.74), which the stored position
 # columns rebuild on load. A star's name is serialized through its `name`
 # property, which draws it on first read from `_name_seed` (PERF.43). A planet's `phi_bio` and `phi_cpx` are the
-# likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649).
+# likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649). A moon's
+# `moon_origin` is how it came to orbit its parent, drawn when its orbit is (GEN.714); its columns are DB.70.
 _RUNTIME_ONLY = {
     Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
-             "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx"},
+             "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx", "moon_origin"},
     AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 
