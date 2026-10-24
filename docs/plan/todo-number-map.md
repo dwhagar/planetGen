@@ -14,10 +14,10 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.186 |
-| MAP | MAP.291 |
+| MAP | MAP.292 |
 | NAV | NAV.63 |
 | GEN | GEN.722 |
-| PERF | PERF.181 |
+| PERF | PERF.182 |
 | DB | DB.101 |
 | API | API.33 |
 | ADM | ADM.129 |
@@ -1436,7 +1436,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) | none | open |
 | GEN.707 | Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | open |
 | GEN.708 | White dwarf merger products draw their 0.8 to 1.1 solar mass bump: the star model gives the white dwarf its mass before the member tree, so the tree only flags 10 percent as merger products | none | open |
-| GEN.709 | Stored close-pair star positions disagree with the orbit_nodes tree after the multi-star work: a circular pair keeps a random arg_periapsis, and deeper trees are far off (bug) | none | open |
+| GEN.709 | Stored close-pair star positions disagree with the orbit_nodes tree after the multi-star work: a circular pair keeps a random arg_periapsis, and deeper trees are far off (bug) | none | done, PR #3017 |
 | GEN.710 | A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug) | none | open |
 | GEN.711 | Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | open |
 | GEN.712 | The materials row complex_organics has a density of 1.5 g/cm3 but Choukroun 2020 gives about 2 g/cm3 (bug) | none | done, PR #2995 |
@@ -1739,6 +1739,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.288 | Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width | none | done, PR #2875 |
 | MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) | none | open |
 | MAP.290 | The System Map draws only the close pair of a triple or larger system, not a scene for each extra star | none | open |
+| MAP.291 | Galaxy view map window does not use the full page width or the page height (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2050,6 +2051,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) | none | open |
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) | none | open |
 | PERF.180 | Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy) | none | open |
+| PERF.181 | CRITICAL (bug): MySQL is killed out of memory during New galaxy Stage 7 (scatter --mass), 65,536 shells and 19,795 components (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2549,7 +2551,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.127 | test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug) | none | open |
 | TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) | none | open |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | done, PR #1313 |
-| TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
+| TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | done, PR #3017 |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | merged into GEN.198 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | done, PR #1578 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
