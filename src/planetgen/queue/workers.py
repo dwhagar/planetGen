@@ -36,9 +36,18 @@ WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
 
 STARTING_PREFIX = "planetgen:workers:starting:"
-STARTING_SECONDS = 15
+STARTING_SECONDS = 90
 """The Redis counter, per queue, of workers started but not yet registered with RQ, which expires this long after
-the last start: counted with the live ones so a burst of jobs doesn't start more than wanted."""
+the last start: counted with the live ones so a burst of jobs doesn't start more than wanted. A worker on a host that
+is short of memory or busy can take far longer than a few seconds to import and register, and a window shorter than
+that starts a second worker for the same need, and a third (PERF.181)."""
+
+DECIDING_PREFIX = "planetgen:workers:deciding:"
+DECIDING_SECONDS = 20
+"""The Redis lock, per queue, held by the caller that counts the workers and starts the missing ones. Callers come from
+every thread of the web app (each map request that queues a tile), so several counted "none starting" at the same
+moment and each started the whole cap: about 130 workers of 125 MB took a 16 GB host on 2026-10-24 and the kernel
+killed MySQL (PERF.181). A caller that does not get the lock leaves the starting to the one that has it."""
 
 LENT_PREFIX = "planetgen:workers:lent:"
 LENT_SECONDS = 3600
@@ -158,6 +167,21 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
     waiting = queue.count
     if not waiting:
         return 0
+    lock_key = DECIDING_PREFIX + queue_name
+    if not connection.set(lock_key, str(os.getpid()), nx=True, ex=DECIDING_SECONDS):
+        return 0            # another caller is counting and starting for this queue (PERF.181)
+    try:
+        need = _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting)
+    finally:
+        connection.delete(lock_key)
+    if queue_name == redisqueue.MAINTENANCE_QUEUE:
+        shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
+    return max(0, need)
+
+
+def _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting):
+    """The counting and starting of `ensure_workers`, run by the one caller that holds the queue's lock. Returns how many
+    workers it started."""
     starting_key = STARTING_PREFIX + queue_name
     starting = int(connection.get(starting_key) or 0)
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
@@ -176,8 +200,6 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
         proc = redisqueue.start_detached(
             redisqueue.worker_argv([queue_name], url, python=sys.executable, burst=False), REPO_DIR)
         log.trace(f"workers for {queue_name}: started worker process {getattr(proc, 'pid', '?')}", area="queue")
-    if queue_name == redisqueue.MAINTENANCE_QUEUE:
-        shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
     return max(0, need)
 
 
