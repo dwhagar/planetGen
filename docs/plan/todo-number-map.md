@@ -2710,7 +2710,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.310 | Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report | none | done, PR #2837 |
 | TEST.311 | test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug) | none | open |
 | TEST.312 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails on main for the new ozone_uv dataset (bug) | none | done, PR #2810 |
-| TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) | none | open |
+| TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) | none | done, PR #2918 |
 | TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited | none | open |
 | TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | none | open |
 | TEST.316 | test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug) | none | done, PR #2850 |
