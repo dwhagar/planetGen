@@ -227,7 +227,7 @@ What is left is MySQL's work per row: the stored `cell_key` expression and the p
 secondary index off, which the three workers and the server share four cores for. The same trick would help the bright-star
 scatter (its due-time and cell indexes), not measured.
 
-## The warm-up and the member counts (PERF.156, PERF.157, PERF.158)
+## The warm-up, the member counts and the shell weights (PERF.156 to PERF.159)
 
 Measured with `planetgen benchmark --suite --size medium` (4e9 solar masses, release 8.0.2039, 3 workers, one run) and on a
 kept galaxy of the same build (`plan`, the three scatters and the band run one by one into a database of their own).
@@ -262,6 +262,12 @@ kept galaxy of the same build (`plan`, the three scatters and the band run one b
 - **The map-luminosity fill (PERF.160) was already set-based.** Its 40 statements each update an id block (`MAP_LUMINOSITY_BATCH_IDS`);
   the 3.6 million rows the step "updates" are the suite emptying the column before the step (`Pipeline.prepare`), as a fill after the
   column's migration would find it. A scatter writes the value with the row. Nothing to batch.
+- **The scatters weighed their shells in one process (PERF.159).** `--mass` and `--luminosity` cut their work by weighing every shell
+  of the outline (`brightStars.shell_weight` samples the density at a few dozen places, about 10 ms a shell, 2,607 shells at `medium`)
+  before the first unit started, 21 to 40 s a pass in the supervisor with the workers idle. The shells go to up to 8 forked processes
+  in runs now (`run_plan._shell_weights`; fewer than 64 shells, one CPU or no `fork` stay in the process). Each shell is the same call
+  on the same numbers wherever it runs, so the weights and the units are those of the loop (a test compares them; the medium galaxy
+  gives identical units). The expansion takes 11 s on 4 cores.
 - **Seen, not fixed here:** every unit's connection runs the schema check (`GET_LOCK`, the `CREATE TABLE IF NOT EXISTS` list and
   `CREATE OR REPLACE VIEW`), 861 times over the band step, about 130 s of server time. The suite's `--keep` is accepted but the
   scratch databases are dropped on success (so a kept galaxy has to be built command by command, as here).

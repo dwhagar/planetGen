@@ -827,3 +827,25 @@ def test_a_unit_runs_with_the_switch_its_run_was_started_with(monkeypatch, told)
     finally:
         fetch.set_disregard_missing_data(False)
     assert [result["disregarding"] for result in results.values()] == [told] * 3
+
+
+def test_the_shells_of_a_scatter_are_weighed_in_processes_to_the_same_weights_as_a_loop(monkeypatch):
+    from types import SimpleNamespace
+
+    from planetgen.generation import bright_stars, run_plan
+
+    def weigh(shape, shell_index, high_band, edge_pc, e_value, fractions, beyond=None):
+        return shell_index * 1.5 + high_band + (0.0 if beyond is None else beyond), shell_index * 3.0
+
+    monkeypatch.setattr(bright_stars, "shell_weight", weigh)
+    skeleton = SimpleNamespace(shape="shape", edge_pc=100.0)
+    shells = [(shell, shell % 7 - 1) for shell in range(run_plan.SHELL_WEIGHT_PARALLEL_MIN * 3 + 5)]
+    for estimates in (None, {shell: shell / 4 for shell, _band in shells}):
+        loop = [weigh(None, shell, band, None, None, None, beyond=None if estimates is None else estimates[shell])
+                for shell, band in shells]
+        monkeypatch.setattr(run_plan, "SHELL_WEIGHT_PARALLEL_MIN", 10 ** 9)
+        assert run_plan._shell_weights(skeleton, shells, 1.0, {}, estimates) == loop
+        monkeypatch.setattr(run_plan, "SHELL_WEIGHT_PARALLEL_MIN", 2)
+        monkeypatch.setattr(run_plan.os, "cpu_count", lambda: 4)
+        assert run_plan._shell_weights(skeleton, shells, 1.0, {}, estimates) == loop
+    assert run_plan._weighing is None
