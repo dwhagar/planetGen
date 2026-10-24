@@ -213,6 +213,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [cache-warm-up.md](operations/cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
+| [logging-standard.md](operations/logging-standard.md) | One log record (time, RFC 5424 severity, component, message, fields), its file, JSON and display writings, the one wording of a stage's start, finish and failure, and every place the program logs today | partly built (the layer is built, UX.121; the places move in UX.122, UX.123, TEST.183) |
 | [slow-page-answers.md](operations/slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089) |
 | [backups-and-repair.md](operations/backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 8.9) | plan |
 | [redis-and-the-work-queue.md](operations/redis-and-the-work-queue.md) | How Redis is used and what to change (PERF.86) | research (decided; being built) |
