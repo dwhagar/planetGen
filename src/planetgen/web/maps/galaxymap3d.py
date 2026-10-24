@@ -754,6 +754,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
+    <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
+            title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
             title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
 {territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"

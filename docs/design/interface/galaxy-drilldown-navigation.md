@@ -383,6 +383,9 @@ of a level-3 block.
   same arc (or the next layer up or down), Enter takes the highlighted
   one, Esc or Backspace goes one step back out, and Home returns to the
   galaxy.
+- **MAP.265 (cells are a tool, not a stage):** the block meshes are picking geometry only and are drawn when the
+  Menu's **Cell grid**, a **Color by** fill or **Charted only** is on; a click on a block also selects the
+  sector under it (closed form), outlined and described once the window arrives.
 - A **"Charted only"** toggle (MAP.111) dims blocks with nothing
   generated (they stay pickable, MAP.112), dims the stars outside charted sectors
   to a fifth of their opacity, and outlines each charted block, so
