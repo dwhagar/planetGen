@@ -34,6 +34,18 @@ KOPPARAPU_RUNAWAY_GREENHOUSE = (1.107, 1.332e-4, 1.58e-8, -8.308e-12, -1.931e-15
 al. 2014, ApJL 787, L29, Table 1; the 0.1 and 5 Earth-mass sets are in the paper). The effective flux, in units of
 the Sun's at the Earth, at which a planet loses its water: `S_eff = S0 + a T* + b T*^2 + c T*^3 + d T*^4`."""
 
+KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS = (
+    (0.1, (0.99, 1.209e-4, 1.404e-8, -7.418e-12, -1.713e-15)),
+    (1.0, KOPPARAPU_RUNAWAY_GREENHOUSE),
+    (5.0, (1.188, 1.433e-4, 1.707e-8, -8.968e-12, -2.084e-15)),
+)
+"""tuple: `(planet mass in Earth masses, (S0, a, b, c, d))` of the three runaway greenhouse sets of Kopparapu et al. 2014
+(Table 1): a lighter planet loses its water at a lower flux (its weaker gravity lets the steam rise higher), a heavier one at
+a higher. The maximum greenhouse edge does not depend on the planet's mass."""
+
+KOPPARAPU_MASS_RANGE_EARTH = (0.1, 5.0)
+"""tuple: The planet masses (Earth masses) the three sets span; a lighter or heavier planet takes the nearest set."""
+
 KOPPARAPU_MAXIMUM_GREENHOUSE = (0.356, 6.171e-5, 1.698e-9, -3.198e-12, -5.575e-16)
 """tuple: `(S0, a, b, c, d)` of the outer edge, the maximum greenhouse limit (Kopparapu et al. 2014, Table 1; the same
 for every planet mass): the flux below which a CO2 atmosphere can no longer keep the surface warm."""
@@ -45,6 +57,40 @@ def kopparapu_flux(coefficients, teff):
     s0, a, b, c, d = coefficients
     t = teff - KOPPARAPU_REFERENCE_TEFF_K
     return s0 + a * t + b * t * t + c * t * t * t + d * t * t * t * t
+
+
+def runaway_greenhouse_flux(temperature, planet_mass_earth=1.0):
+    """
+    The effective flux (the Sun's at the Earth = 1) above which a planet of `planet_mass_earth` Earth masses around a star
+    of effective temperature `temperature` (K) loses its oceans to a runaway greenhouse (GEN.639; Kopparapu et al. 2014).
+
+    The three sets of `KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS` are worked out at the star's temperature (clamped to
+    `KOPPARAPU_TEFF_RANGE_K`) and the flux is linear in the logarithm of the mass between them; a planet outside
+    `KOPPARAPU_MASS_RANGE_EARTH` takes the nearest set.
+    """
+    low, high = KOPPARAPU_TEFF_RANGE_K
+    teff = min(max(temperature, low), high)
+    mass_low, mass_high = KOPPARAPU_MASS_RANGE_EARTH
+    log_mass = math.log10(min(max(planet_mass_earth, mass_low), mass_high))
+    sets = KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS
+    for (m0, c0), (m1, c1) in zip(sets, sets[1:]):
+        if log_mass <= math.log10(m1):
+            f0, f1 = kopparapu_flux(c0, teff), kopparapu_flux(c1, teff)
+            return f0 + (f1 - f0) * (log_mass - math.log10(m0)) / (math.log10(m1) - math.log10(m0))
+    return kopparapu_flux(sets[-1][1], teff)
+
+
+def hz_limits(luminosity, temperature, planet_mass_earth=1.0):
+    """
+    The habitable zone for a planet of `planet_mass_earth` Earth masses, `(inner, outer)` in AU: the inner edge is
+    `runaway_greenhouse_flux` for that mass, the outer edge the maximum greenhouse limit (the same for every mass).
+    `calculate_habitable_zone` is this at 1 Earth mass.
+    """
+    solar_lum = luminosity / physical_constants.SOLAR_LUMINOSITY
+    low, high = KOPPARAPU_TEFF_RANGE_K
+    teff = min(max(temperature, low), high)
+    return (math.sqrt(solar_lum / runaway_greenhouse_flux(teff, planet_mass_earth)),
+            math.sqrt(solar_lum / kopparapu_flux(KOPPARAPU_MAXIMUM_GREENHOUSE, teff)))
 
 
 @finite_domain(clamped=("temperature",))

@@ -19,6 +19,7 @@ Hayashi temperature and its mass slope, the birthline radius and its slope, and 
 table's 1.4 solar masses they are extended by the same power laws.
 """
 
+import functools
 import math
 
 from planetgen import tuning
@@ -56,6 +57,7 @@ def _binding(mass_sol):
     return tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR * constants.G * (mass_sol * constants.SOLAR_MASS_TO_KG) ** 2
 
 
+@functools.lru_cache(maxsize=512)
 def _track(mass_sol):
     """
     The constants of the contraction: `r0` (birthline radius), `r_h` (where the Hayashi phase ends), `r_ms`, the

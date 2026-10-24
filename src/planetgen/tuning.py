@@ -843,6 +843,29 @@ PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.0
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
 DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
+RUNAWAY_HISTORY_START_YR = 30.0e6
+"""float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
+done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; Kleine et al. 2009, Jacobson et al. 2014) and a surface
+with its water is bare to the star. A planet that was still growing earlier had no oceans to lose; the choice keeps the
+Sun's own habitable zone dry-proof (the young Sun was past the runaway limit at 1 AU only until about 15 Myr). DESIGN."""
+
+RUNAWAY_HISTORY_STEPS = 64
+"""int: Log-spaced steps of the water-loss history integral from `RUNAWAY_HISTORY_START_YR` to the star's age."""
+
+ENERGY_LIMITED_EFFICIENCY = 0.01
+"""float: The share of the absorbed XUV that drives hydrogen away in the energy-limited escape,
+Mdot = eps pi R^3 F_xuv / (G M) (Watson et al. 1981; Luger and Barnes 2015 take 0.1, other estimates run from about 0.01 to
+0.3). 0.01, a tenth of the usual value, so that only the worst red dwarf zones lose their oceans (Boss, 7:09 PM EDT
+2026-10-23; DESIGN stand-in, GEN.639)."""
+
+MANTLE_OUTGAS_SHARE = 0.3
+"""float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
+surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
+
+WATER_PER_HYDROGEN_MASS = 8.94
+"""float: Kilograms of water gone for each kilogram of hydrogen that escapes (H2O 18.015 g/mol over its two hydrogens
+2.016 g/mol; the oxygen is dragged along or left behind to oxidise the crust, and neither returns the water)."""
+
 DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
 DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
 DISK_DUST_SUBLIMATION_K = 1500.0

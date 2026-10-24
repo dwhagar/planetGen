@@ -350,7 +350,9 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
     for seed in range(12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
-            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+            config = SystemConfig()
+            config.STAR_TYPE = "G2V"  # a cool star's zone has lost its water before any life (GEN.639)
+            system = StarSystem(config, galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
             if body.body_type == "g":
                 continue

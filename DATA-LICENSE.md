@@ -143,6 +143,8 @@ Computed here by `scripts/build_compaction_table.py` from the porosity laws and 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
 maximum greenhouse rows). Published paper; values only. The paper's raw text is not in the repository.
 
+Ten more coefficients of the same table (GEN.639): the runaway greenhouse sets for 0.1 and 5 Earth masses (`KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS`). Published paper; values only.
+
 ## The water layer of the structure solver (`src/planetgen/physics/bulk_structure.py`, GEN.429)
 
 | Source | What was kept | Terms known |
