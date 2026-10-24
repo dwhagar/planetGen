@@ -373,8 +373,7 @@
     },
     {
       "epoch": 76,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2166",
       "reason": "A rogue planet's frozen nitrogen air follows the one saturation curve and a world's water boils where the one water curve says, instead of each holding its own Clausius-Clapeyron constants (GEN.632)"
     }
   ]
