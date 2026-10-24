@@ -21,7 +21,7 @@ from planetgen.generation import evolution
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
-from planetgen.physics import atmosphere as atmosphere_physics, atmosphere_colour, habitability, pre_main_sequence, protection, unit_registry
+from planetgen.physics import atmosphere as atmosphere_physics, atmosphere_colour, equipment, habitability, pre_main_sequence, protection, unit_registry
 from planetgen.physics.quantity import Quantity
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
@@ -399,6 +399,27 @@ def _ratings_block(planet):
                          rows, [result["gear"]])
 
 
+def _equipment_block(planet):
+    """UX.163: the survival equipment of a scored rocky body as a facts table, one row per item with how badly it is
+    needed, the PHI-6 category it comes from and the tech level to make it, then the shelter's shielding and the hours
+    outside a year when there are any. None for a gas giant or a body not scored."""
+    scored = planet.habitability_world()
+    if scored is None:
+        return None
+    levels = equipment.compute(scored[0])
+    rows = []
+    for index, item in enumerate(equipment.items(levels)):
+        tech = equipment.item_tech(item.name, tuning.SPECIES_EQUIPMENT_TECH)
+        made = "no tech level makes it" if tech >= 99 else f"made at tech level {tech:g}"
+        rows.append(fact(f"equipment-{index}", item.name[:1].upper() + item.name[1:],
+                         f"{item.severity.capitalize()}; {item.domain.lower()}; {made}"))
+    if levels.get("shelter_column_g_cm2"):
+        rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
+    if levels.get("outside_hours") is not None:
+        rows.append(fact("outside-hours", "Hours outside a year", f"{round(levels['outside_hours']):,} hours"))
+    return facts("Survival equipment", rows) if rows else None
+
+
 def _planet_section(planet):
     blocks = [_planet_facts(planet)]
     summary = [f"It is {planet.description.lower()}."]
@@ -409,6 +430,7 @@ def _planet_section(planet):
         blocks.append(_atmosphere_composition(planet))
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
     blocks.append(_ratings_block(planet))
+    blocks.append(_equipment_block(planet))
     blocks.append(prose("life", *_life_sentences(planet)))
     if planet.evolutionary_data and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
         blocks.append(prose("timeline", *_timeline_sentences(planet)))

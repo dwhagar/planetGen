@@ -165,17 +165,9 @@ def _short(gear):
 
 
 def gear_clause(levels):
-    """The survival equipment as the clause that ends a rating's headline, from its stored levels
-    (`equipment.compute`): "and a visitor needs a + b, and should add c", "and a visitor should bring c", or the empty
-    string for a world that needs nothing (a world that needs nothing is never described by what it does not need)."""
-    required, recommended = equipment.required_names(levels), equipment.recommended_names(levels)
-    if required and recommended:
-        return f"and a visitor needs {' + '.join(required)}, and should add {' + '.join(recommended)}"
-    if required:
-        return f"and a visitor needs {' + '.join(required)}"
-    if recommended:
-        return f"and a visitor should bring {' + '.join(recommended)}"
-    return ""
+    """The survival equipment as the two lines that follow a rating's headline, from its stored levels
+    (`equipment.compute`): "Required: a + b. Recommended: c.", each line given for every body ("nothing" when empty)."""
+    return " ".join(equipment.lines(levels))
 
 
 def rating(world, compact_host=None):

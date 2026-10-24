@@ -16,7 +16,8 @@ Four slots, each a ladder of levels, and every item is **required** (past the ph
   air column and run through the dose curves of `radiation`, against the stored parts of the dose.
 
 The gear follows the physics wherever it is stricter than the score's bands (Boss, decision B): the PHI-6 scores are
-unchanged. Only what is needed is ever listed (decision E): a world that needs nothing has no equipment line.
+unchanged. Only what is needed is ever listed (decision E); a body's text and API give a Required line and a Recommended line for
+every scored body ("nothing" where a list is empty, Boss 2026-10-23), the search column and `line` leave an empty list out.
 
 Everything here is a pure function of a `habitability.World` (`compute`, from which the stored levels come) or of
 the stored levels alone (`items`, `required_names`, `recommended_names`, `code`, `summary`).
@@ -325,6 +326,10 @@ def _radiation(world, limits):
     shield = _Shield(world)
     required_suit, required_shelter = _radiation_plan(shield, yellow) if dose > yellow else (0, 0)
     recommended_suit, recommended_shelter = _radiation_plan(shield, green)
+    if recommended_shelter and not required_shelter:
+        # No ordinary garment brings the year under the Green edge (cosmic rays): in the game a hardened suit is rated
+        # against them, so it is required and the habitat is the recommended step above it (Boss, 2026-10-23).
+        required_suit = 3
     column = None
     if required_shelter or recommended_shelter:
         column = shield.column_for(yellow if required_shelter else green)
@@ -500,6 +505,14 @@ def line(levels):
     return " ".join(parts)
 
 
+def lines(levels):
+    """`(required line, recommended line)`, each always given (Boss, 2026-10-23): "Required: a + b." and "Recommended: c.",
+    or "Required: nothing." and "Recommended: nothing." where the list is empty."""
+    required, recommended = required_names(levels), recommended_names(levels)
+    return ("Required: " + (" + ".join(required) if required else "nothing") + ".",
+            "Recommended: " + (" + ".join(recommended) if recommended else "nothing") + ".")
+
+
 def _tokens(levels, suffix):
     body = _get(levels, f"eq_body{suffix}")
     out = []
@@ -544,7 +557,8 @@ def summary(levels):
         "required": required_names(levels), "recommended": recommended_names(levels), "code": code(levels),
         "items": [{"slot": item.slot, "item": item.name, "severity": item.severity, "domain": item.domain}
                   for item in items(levels)],
-        "line": line(levels), "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
+        "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
+        "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
         "outside_hours": levels.get("outside_hours"),
     }
 
@@ -553,10 +567,13 @@ def tech_needed(levels, table):
     """The tech level a species needs to make the required gear: the highest of `table`
     (`tuning.SPECIES_EQUIPMENT_TECH`, item name to tech level) over the required items; a "hardened" suit needs the
     larger of the hardened suit's level and its own. 0 for a world that needs nothing."""
-    needed = [0.0]
-    for name in required_names(levels):
-        level = table.get(name)
-        if level is None and name.startswith("hardened "):
-            level = max(table["hardened suit"], table.get(name[len("hardened "):], 0.0))
-        needed.append(level or 0.0)
-    return max(needed)
+    return max([0.0] + [item_tech(name, table) for name in required_names(levels)])
+
+
+def item_tech(name, table):
+    """The tech level `table` (`tuning.SPECIES_EQUIPMENT_TECH`) gives the item `name`: a "hardened" suit needs the larger
+    of the hardened suit's level and its own; 0 for a name the table does not know."""
+    level = table.get(name)
+    if level is None and name.startswith("hardened "):
+        level = max(table["hardened suit"], table.get(name[len("hardened "):], 0.0))
+    return level or 0.0
