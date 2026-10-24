@@ -345,6 +345,12 @@
       "epoch": 70,
       "first_release": "8.0.2150",
       "reason": "A planet's or moon's mass, density and gravity follow from a drawn bulk composition (the iron, rock, water, ice and envelope shares, set by its star's own Fe, Mg, Si, Al, Ca, Ni and C/O ratios) instead of a density drawn from the class's range, a water share is drawn with it, and the planet draws change in every system (GEN.428, GEN.429, DB.69)"
+    },
+    {
+      "epoch": 71,
+      "first_release": null,
+      "pending": true,
+      "reason": "Each ordinary star draws a UV-C share of its blackbody (log-uniform 0.1 to 1) on its own stream and stores it (schema 145), so every stored star gains a value (GEN.443)"
     }
   ]
 }

@@ -1379,6 +1379,7 @@ anything.
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. |
 | `log_lx_lbol`, `l_xuv_w`, `xuv_saturated`, `flare_n33_per_yr`, `flare_alpha`, `xuv_fluence_j` | DOUBLE (`xuv_saturated` BOOLEAN) | nullable | Added in v72 (GEN.86). Stellar activity: log10 of the coronal X-ray share of the luminosity (saturated at 7.4e-4 for G, K and M stars, decaying after a mass-dependent saturation age; NULL for a white dwarf or compact remnant), the X-ray plus EUV luminosity in W (a hot photosphere's output above 13.6 eV included; a neutron star's thermal or spin-down X-rays; a black hole's disk), whether the corona is still saturated, flares above 1e33 erg a year and their energy slope, and the XUV given off over the star's age, J. See `planetgen/physics/activity.py` and docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 2. NULL on a row generated before v72. |
 | `lethal_event_rate_per_gyr` | DOUBLE | nullable | Added in v75 (GEN.87). Supernovae within 8 pc per Gyr here: 1.5 at the Sun's 8 kpc, rising as exp((8 kpc - R) / 1.45 kpc) to at most 250 times that at the centre. NULL for a star with no galaxy placement and on a row generated before v75. |
+| `uv_c_share` | DOUBLE | nullable | Added in v145 (GEN.443). The share of the star's blackbody UV-C (100 to 280 nm) it gives off, log-uniform 0.1 to 1 (the Sun's measured 0.256 is one value of it), drawn once from the star's own stream (`physics/activity.py`); the radiation model's UV-B and UV-A shares follow from it (`physics/stellar_spectrum.py`). NULL for a remnant and for a row saved before v145, which the model reads as the blackbody (1). |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
 
 ### `planets`
@@ -2170,6 +2171,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v145 (GEN.443): `stars.uv_c_share`
+
+Migration 0145 adds `uv_c_share` (DOUBLE, nullable) after `snow_line_km` on `stars`: the share of the star's blackbody UV-C that it gives off, drawn once per ordinary star on its own labelled stream (`uv_c_share:` plus its mass, age and temperature) so no draw of the run moves. A row saved before the revision keeps NULL, which the radiation model (`physics/body_radiation.py`) reads as the blackbody; the regenerated galaxy (the generator epoch of this change) draws it. A column already there is skipped, so a stopped run can be started again.
 
 ### v144 (DB.69, GEN.428): the bulk composition of every planet and moon
 
