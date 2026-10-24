@@ -41,6 +41,7 @@ _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
                            "html", "static")
 
 from planetgen.admin import maintenance  # noqa: E402
+from planetgen.queue import stopall  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import habitability_symbols  # noqa: E402
@@ -215,6 +216,7 @@ def _template_globals():
         "admin_shell": lambda section: adminregistry.shell(section, page_url, current_admin()),
         "admin_job": lambda: generate_page.strip_view(),
         "maintenance_state": maintenance.read,
+        "stop_state": stopall.state,
         "galaxy_status": galaxy_status_now,
         "pending_restart_options": settings_view.pending_restart,
         "csrf_field": csrf.csrf_field,

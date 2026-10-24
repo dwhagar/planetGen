@@ -361,3 +361,44 @@ def test_the_queue_page_sets_the_worker_count(web_app, admin_client, redis_serve
         assert workers.wanted(connection) == workers.ludicrous_count()
     finally:
         connection.delete(workers.WANTED_KEY)
+
+
+def test_stop_everything_is_confirmed_holds_everything_and_resume_lifts_it(web_app, admin_client, conn, monkeypatch):
+    """PERF.186: the Queue page's Stop everything runs the shared routine; the banner shows on every admin page; Resume lifts it."""
+    from planetgen.queue import pause, stopall
+
+    monkeypatch.setattr(stopall, "kill_processes", lambda *a, **k: {"killed": 5, "survivors": []})
+    run_id = _run(conn)
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "Stop everything" in html and "Everything is stopped" not in html
+    confirm = admin_client.get("/admin/queue/confirm/queue-stop-all").get_data(as_text=True)
+    assert "Stop everything?" in confirm and "ends every planetgen worker" in confirm
+    try:
+        response = _post(web_app, admin_client, action="queue-stop-all")
+        assert response.status_code == 303
+        assert runrecord.read_run(conn, run_id)["state"] == "cancelled"
+        assert stopall.state()["stopped"] and stopall.state()["by"] == "boss" and pause.is_paused(conn)
+        page = admin_client.get("/admin/queue").get_data(as_text=True)
+        assert "Everything is stopped" in page and "5 process(es) ended" in page
+        assert 'href="/admin/queue/confirm/queue-resume-all"' in page
+        assert "Everything is stopped" in admin_client.get("/admin").get_data(as_text=True)     # the banner, on any admin page
+        assert admin_client.get("/api/admin/work").get_json()["stopped"]["stopped"] is True
+        assert _post(web_app, admin_client, action="queue-resume-all").status_code == 303
+        assert not stopall.state()["stopped"] and not pause.is_paused(conn)
+        assert "Everything is stopped" not in admin_client.get("/admin/queue").get_data(as_text=True)
+    finally:
+        stopall.resume_all(conn)
+
+
+def test_stop_everything_works_when_redis_is_not_answering(web_app, admin_client, monkeypatch):
+    from planetgen.api import workqueue
+    from planetgen.queue import stopall
+
+    monkeypatch.setattr(workqueue, "_connection", lambda: None)
+    monkeypatch.setattr(stopall, "kill_processes", lambda *a, **k: {"killed": 0, "survivors": []})
+    try:
+        assert _post(web_app, admin_client, action="queue-stop-all").status_code == 303
+        page = admin_client.get("/admin/queue").get_data(as_text=True)
+        assert "Everything is stopped" in page and "Redis isn't answering" in page
+    finally:
+        stopall.resume_all()

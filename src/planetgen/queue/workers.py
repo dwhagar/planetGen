@@ -30,7 +30,7 @@ import rq
 from rq import command, worker_registration
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, runrecord, work
+from planetgen.queue import redisqueue, runrecord, stopall, work
 from planetgen.util import log
 
 WANTED_KEY = "planetgen:workers:wanted"
@@ -178,6 +178,8 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
     """
     if updateguard.is_updating() and not updateguard.inside_update():
         return 0        # OPS.53: no worker starts during an update
+    if stopall.is_stopped():
+        return 0        # PERF.186: no worker starts while everything is stopped
     url = url or redisqueue.redis_url()
     connection = connection or redisqueue.connect(url)
     queue = redisqueue.queue(queue_name, connection)
@@ -271,7 +273,7 @@ def host_worker_processes():
     """How many planetgen worker processes run on this host now, started by anyone and registered or not (read from
     the process list, so a worker still importing its libraries counts too). 0 when the list cannot be read."""
     try:
-        listing = subprocess.run(["ps", "-axo", "pid=,ppid=,args="], capture_output=True, text=True, timeout=10,
+        listing = subprocess.run(["ps", "-axww", "-o", "pid=,ppid=,args="], capture_output=True, text=True, timeout=10,
                                  check=False).stdout
     except (OSError, subprocess.SubprocessError):
         return 0

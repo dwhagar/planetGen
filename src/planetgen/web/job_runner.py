@@ -48,7 +48,7 @@ import sys
 import tempfile
 import time
 
-from planetgen.util import stagemark
+from planetgen.util import memwatch, stagemark
 
 LOCK_NAME = "active"
 """str: The jobs directory's lock file, holding the running job's id."""
@@ -63,6 +63,15 @@ PID_NAME = "runner.pid"
 CANCELLED_EXIT_CODE = 130
 """int: A step's exit status when an admin cancelled it from the queue
 page (must match `work.CANCELLED_EXIT_CODE`)."""
+
+MEMORY_NAME = "memory.json"
+"""str: The file in a job's directory with the memory peak of each step that ran (PERF.183): a list of
+`{"step", "label", "first_stage", "stages", "seconds", "peaks"}` (`memwatch.PeakTracker.peaks`)."""
+
+CANCEL_KILL_SECONDS = 20
+"""float: How long a step that was asked to stop (SIGTERM to its process group) may keep running before the whole group is
+killed (SIGKILL, PERF.186). A step that catches SIGTERM and waits for its units, or hangs in a database call, used to
+run on for ever after Cancel."""
 
 POLL_SECONDS = 0.25
 """float: How often a running step is checked for a cancel request."""
@@ -95,6 +104,16 @@ def _stop_tree(proc):
         pass
 
 
+def _kill_tree(proc):
+    """Kills a step and every process in its group, for a step that ignored the request to stop."""
+    if proc is None or proc.poll() is not None:
+        return
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except OSError:
+        pass
+
+
 def _reap(proc):
     """Waits a few seconds for a step `_stop_tree` stopped to be gone, so it is not left a zombie of this process."""
     if proc is None:
@@ -103,6 +122,23 @@ def _reap(proc):
         proc.wait(timeout=STOP_WAIT_SECONDS)
     except subprocess.TimeoutExpired:
         proc.kill()
+
+
+def _record_memory(job_dir, log, watch, index, label, first, count):
+    """Writes the memory line after a step into the log and the step's entry into `MEMORY_NAME` (PERF.183). Never fails the job."""
+    try:
+        log.write((watch.line() + "\n").encode("utf-8"))
+        path = os.path.join(job_dir, MEMORY_NAME)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                entries = json.load(f)
+        except (OSError, ValueError):
+            entries = []
+        entries.append({"step": index, "label": label, "first_stage": first, "stages": count,
+                        "seconds": round(watch.peaks["seconds"], 1), "peaks": watch.peaks})
+        _write_json(path, entries)
+    except Exception:  # noqa: BLE001 -- a job is never lost to its memory note
+        pass
 
 
 def _worker_pid(job_dir):
@@ -422,19 +458,29 @@ def run(job_dir):
                 if step_node is not None:
                     env[tree.queue.PARENT_ENV_VAR] = step_node.id
                 started = time.time()
-                current["proc"] = subprocess.Popen(
-                    step["argv"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                    cwd=job.get("cwd") or None, env=env, **_step_process_options(),
-                )
-                while True:
-                    if _cancel_requested():
-                        _stop_tree(current["proc"])
-                    try:
-                        code = current["proc"].wait(timeout=POLL_SECONDS)
-                        break
-                    except subprocess.TimeoutExpired:
-                        pass
+                with memwatch.PeakTracker() as watch:
+                    current["proc"] = subprocess.Popen(
+                        step["argv"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                        cwd=job.get("cwd") or None, env=env, **_step_process_options(),
+                    )
+                    watch.set_group(current["proc"].pid)
+                    state["step_pid"] = current["proc"].pid     # so Cancel can end the step if this runner dies (PERF.186)
+                    _write_json(state_path, state)
+                    asked = None
+                    while True:
+                        if _cancel_requested():
+                            _stop_tree(current["proc"])
+                            asked = asked or time.monotonic()
+                            if time.monotonic() - asked > CANCEL_KILL_SECONDS:
+                                _kill_tree(current["proc"])
+                        try:
+                            code = current["proc"].wait(timeout=POLL_SECONDS)
+                            break
+                        except subprocess.TimeoutExpired:
+                            pass
                 current["proc"] = None
+                state.pop("step_pid", None)
+                _record_memory(job_dir, log, watch, index, step["label"], first, count)
                 tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
                            else ("done" if code == 0 else "failed"))
                 step_node = None

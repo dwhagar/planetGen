@@ -217,6 +217,9 @@ subhead (badges or actions under the <h1>). -#}
   {%- if maintenance_state().enabled and current_admin() %}
   <p class="error maintenance-banner" role="status">Maintenance mode is on: visitors see a "being updated" page and only admins can use the site. <a href="{{ url_for('web.admin') }}#maintenance">Switch</a></p>
   {%- endif %}
+  {%- if current_admin() and stop_state().stopped %}
+  <p class="error stopall-banner" role="alert">Everything is stopped: no run, job, worker or background work starts until you resume. <a href="{{ page_url('admin_queue') }}">Resume on the Queue page</a></p>
+  {%- endif %}
   {%- set waiting = pending_restart_options() if current_admin() else [] %}
   {%- if waiting %}
   <p class="error restart-banner inline-links" role="status">Saved settings are waiting for a restart of the web server: {{ waiting | map(attribute=1) | join(', ') }}. <a href="{{ page_url('admin_settings') }}">Settings</a></p>

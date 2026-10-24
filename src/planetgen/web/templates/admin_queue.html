@@ -27,6 +27,13 @@
     <button type="submit" name="action" value="workers-ludicrous" class="btn btn-danger">Ludicrous Speed ({{ workers.ludicrous }} of {{ workers.cpus }} cores)</button>
   </form>
   {%- endif %}
+  {%- if stopped.stopped %}
+  <p class="error"><strong>Everything is stopped</strong>{% if stopped.by %} by {{ stopped.by }}{% endif %}{% if stopped.at %} since {{ utc_time(stopped.at) }}{% endif %}: nothing starts, not a run, a job, a worker or the map's background work, until you resume.</p>
+  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume-all') }}">Resume</a></p>
+  {%- else %}
+  <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='queue-stop-all') }}">Stop everything</a>
+    <span class="hint">Cancels every run, empties the queues, ends every worker process on this server and holds until you resume.</span></p>
+  {%- endif %}
   {%- if not available %}
   <p class="error">Redis isn't answering, so the runs can't be read. Start Redis (see the install guide), then reload this page.</p>
   {%- else %}

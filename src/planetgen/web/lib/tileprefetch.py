@@ -26,7 +26,7 @@ import redis
 
 from planetgen.admin import updateguard
 from planetgen.galaxy.drill import drill_children, drill_parent, format_drill_key, parse_node_key
-from planetgen.queue import redisclient, redisqueue, workers
+from planetgen.queue import redisclient, redisqueue, stopall, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import tilecache
@@ -126,7 +126,10 @@ def chunk_timeout(count):
 
 
 def _enqueue_chunks(queue, db, keys, what):
-    """Queues `keys` as jobs of `CHUNK` nodes each on `queue`, `what` ("prefetch" or "rebuild") in their description."""
+    """Queues `keys` as jobs of `CHUNK` nodes each on `queue`, `what` ("prefetch" or "rebuild") in their description.
+    Nothing is queued while everything is stopped (PERF.186)."""
+    if stopall.is_stopped():
+        return
     for start in range(0, len(keys), CHUNK):
         chunk = keys[start:start + CHUNK]
         queue.enqueue(JOB, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,

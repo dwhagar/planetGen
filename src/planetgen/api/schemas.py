@@ -644,8 +644,8 @@ class QueueAction(Lenient):
 
     @model_validator(mode="after")
     def _known(self):
-        if self.action not in ("pause", "resume"):
-            raise ValueError("'action' must be pause or resume")
+        if self.action not in ("pause", "resume", "stop-all", "resume-all"):
+            raise ValueError("'action' must be pause, resume, stop-all or resume-all")
         return self
 
 

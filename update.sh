@@ -92,8 +92,14 @@
 # asks nothing and cancels what is running, so it is the word to use when you
 # know nothing needs to finish.
 #
+# --kill-all (PERF.186) is the full stop: before the guard it runs `planetgen queue stop-all --no-hold`, the same
+# routine as the Stop everything button on the Queue page. It cancels every run and the Generate page's job, empties
+# every queue, and ends every planetgen worker and command process on the host with the processes they started,
+# including the ones nothing lists any more, and implies --cancel-running. It is only run when you give it. It does
+# not leave the stop-all hold on (the update's own lock keeps new work out, and the site works after it).
+#
 # Usage:
-#   sudo ./update.sh [--cancel-running] [--reset-jobs]
+#   sudo ./update.sh [--cancel-running] [--reset-jobs] [--kill-all]
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (make the venv from another Python)
 #
 # Forces the checkout to match origin's branch tip even if there are
@@ -112,11 +118,13 @@ set -euo pipefail
 
 CANCEL_RUNNING=()
 RESET_JOBS=0
+KILL_ALL=0
 for arg in "$@"; do
     case "$arg" in
         --cancel-running) CANCEL_RUNNING=(--cancel-running) ;;
         --reset-jobs) RESET_JOBS=1 ;;
-        *) echo "error: unknown argument '$arg' (the options are --cancel-running and --reset-jobs)." >&2; exit 2 ;;
+        --kill-all) KILL_ALL=1; CANCEL_RUNNING=(--cancel-running) ;;
+        *) echo "error: unknown argument '$arg' (the options are --cancel-running, --reset-jobs and --kill-all)." >&2; exit 2 ;;
     esac
 done
 
