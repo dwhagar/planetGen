@@ -584,8 +584,10 @@ def test_api_species_tech_filters(mysql_config, galaxy, client):
     try:
         population.run_pass(conn)
         with conn:
+            # Every species low first, then one at 6.0, so no species the pass made outranks it (TEST.299: the pass
+            # can make one at 6.55, which led the tech-descending list).
+            conn.execute("UPDATE species SET tech_level = 1.0, defense_index = 1")
             conn.execute("UPDATE species SET tech_level = 6.0, defense_index = 6 ORDER BY id LIMIT 1")
-            conn.execute("UPDATE species SET tech_level = 1.0, defense_index = 1 ORDER BY id DESC LIMIT 1")
     finally:
         conn.close()
     listing = client.get("/api/species?sort=tech&order=desc").get_json()
