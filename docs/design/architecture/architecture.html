@@ -203,7 +203,7 @@ sector is addressed by <code>(shell, band, wedge)</code> in the spherical grid
     Dim --&gt; Save
     Ph --&gt; Save
     Save --&gt; DB[(&quot;sectors, star_systems, stars,&lt;br/&gt;planets, moons, phenomena&quot;)]
-    DB --&gt; After[&quot;after the run: link_after_run,&lt;br/&gt;scatter (--then-scatter), backfill_after_run,&lt;br/&gt;population, settle_after_run&quot;]</pre></div>
+    DB --&gt; After[&quot;after the run: link_after_run,&lt;br/&gt;the scatters, backfill_after_run,&lt;br/&gt;population, settle_after_run&quot;]</pre></div>
 <p><strong>Plan.</strong> <code>run_plan</code> in <code>planetgen/generation/run_plan.py</code> builds a
 <code>GalaxyShape</code> (<code>galaxy/density.py</code>) and finds each shell's reach with
 <code>skeleton.build_shell_extents</code>: the highest band the shell has to cover
@@ -251,8 +251,8 @@ with their galaxy-frame placement, and refreshes the sector's stats.</p>
 and then does the shared steps once for the whole run: <code>link_after_run</code>
 (<code>store.link_sector_neighbors</code>: containment, nearest systems and quadrants
 for the new sectors and the lists of those around them),
-<code>--then-scatter</code>, <code>backfill_after_run</code> (the bright stars the new sectors
-need from the space around them), the population pass when asked for, and
+the star and phenomena scatters, <code>backfill_after_run</code> (the bright stars the new sectors
+need from the space around them), the population pass, and
 <code>settle_after_run</code> (<code>db/sector_paths.py</code>: the path of every body in the
 new sectors and their neighbours, so each path sees the final set of
 neighbours).</p>

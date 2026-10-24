@@ -570,7 +570,7 @@ for every stored rogue, seeded by its name, and resets
 `has_internal_heat` to the computed answer.
 
 **Population and politics (v44).** Filled by `planetgen population`
-(or `--population` on a `sector`/`galaxy` run, or the optional question
+(or `--population` on a `sector` run, or a `galaxy` run, or the optional question
 the install and update scripts ask) from what is already stored; see
 docs/design/habitability/population-and-politics.md. `species` holds one dominant
 species per life world (a planet whose evolutionary milestone is
@@ -1885,7 +1885,7 @@ interstellar comet: the path it takes from where it is now to where it
 leaves its sector (`physics/sector_path.py`), recomputed by
 `sector_paths.compute_sector_paths` for every sector holding one of them
 at each orbit update, and for the sectors a `galaxy` run created and the
-sectors around them as the last step of the run (`--no-settle` skips it).
+sectors around them as the last step of the run (`planetgen settle`).
 Never sector by sector during the run: a path depends on the neighbours
 that exist, which varies with the order workers fill sectors.
 

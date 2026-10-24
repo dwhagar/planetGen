@@ -10,9 +10,8 @@ from planetgen.cli import generate as generate_cli
 from planetgen.generation import stages
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 
-GALAXY_RUNS = (
-    ["galaxy"], ["galaxy", "--then-scatter"], ["galaxy", "--then-scatter", "--population", "--backfill-from", "none"],
-    ["galaxy", "--no-settle"], ["galaxy", "--then-scatter", "--population"])
+GALAXY_RUNS = (["galaxy"], ["galaxy", "--shell", "2"], ["sectors"], ["sectors", "--shell", "2"], ["link"], ["backfill"],
+               ["settle"])
 PLAN_RUNS = (
     ["plan"], ["scatter", "--mass"], ["scatter", "--luminosity"], ["scatter", "--phenomena"],
     ["scatter", "--nebula-field"], ["scatter", "--band", "--down-to", "10"], ["fill-map-luminosity"],
@@ -47,10 +46,11 @@ def test_the_same_arguments_give_the_same_list(argv):
 
 def test_a_step_the_request_does_not_select_is_not_in_the_list():
     kinds = lambda argv: [step.kind for step in wrapper.steps_for(*(lambda a: (a.command, a))(_args(argv)))]  # noqa: E731
-    assert "scatter-mass" not in kinds(["galaxy"]) and "scatter-mass" in kinds(["galaxy", "--then-scatter"])
+    assert "scatter-mass" in kinds(["galaxy"]) and "scatter-mass" not in kinds(["sectors"])
+    assert kinds(["galaxy", "--shell", "2"])[0] == "generate-sectors" and kinds(["link"]) == ["link-neighbours"]
     assert kinds(["plan"]) == ["plan-skeleton"]
     assert kinds(["scatter", "--mass"]) == ["scatter-mass"]
-    assert "scatter-backfill" not in kinds(["galaxy", "--backfill-from", "none"])
+    assert "scatter-backfill" in kinds(["galaxy"]) and kinds(["backfill"]) == ["scatter-backfill"]
     assert kinds(["scatter", "--phenomena"]) == ["scatter-phenomena"]
     assert kinds(["fill-map-luminosity"]) == ["fill-map-luminosity"]
     assert kinds(["rescore-habitability"]) == ["rescore-habitability"]
@@ -59,7 +59,7 @@ def test_a_step_the_request_does_not_select_is_not_in_the_list():
 
 
 def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_of_their_passes():
-    args = _args(["galaxy", "--then-scatter"])
+    args = _args(["galaxy"])
     assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))
             if step.kind in ("scatter-mass", "scatter-luminosity")] == ["scatter-mass", "scatter-luminosity"]
     for argv, kind in ((["scatter", "--mass"], "scatter-mass"), (["scatter", "--luminosity"], "scatter-luminosity"),

@@ -505,7 +505,7 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
     filled are always left out (GEN.30): the scatter never adds stars to a
     generated sector.
 
-    `passes` names the passes to draw. Both (the default, `galaxy --then-scatter`) replace the whole scatter. One alone
+    `passes` names the passes to draw. Both (the default, what `galaxy` draws) replace the whole scatter. One alone
     is what `planetgen scatter --mass` or `--luminosity` draws (PERF.121) after `run_scatter` has found none of it
     stored (Boss's F7: `planetgen clear-scatter` empties a kind first, so no draw replaces another): the luminosity
     pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).

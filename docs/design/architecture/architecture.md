@@ -699,7 +699,7 @@ flowchart TD
     Dim --> Save
     Ph --> Save
     Save --> DB[("sectors, star_systems, stars,<br/>planets, moons, phenomena")]
-    DB --> After["after the run: link_after_run,<br/>scatter (--then-scatter), backfill_after_run,<br/>population, settle_after_run"]
+    DB --> After["after the run: link_after_run,<br/>the scatters, backfill_after_run,<br/>population, settle_after_run"]
 ```
 
 **Plan.** `run_plan` in `planetgen/generation/run_plan.py` builds a
@@ -754,8 +754,8 @@ with their galaxy-frame placement, and refreshes the sector's stats.
 and then does the shared steps once for the whole run: `link_after_run`
 (`store.link_sector_neighbors`: containment, nearest systems and quadrants
 for the new sectors and the lists of those around them),
-`--then-scatter`, `backfill_after_run` (the bright stars the new sectors
-need from the space around them), the population pass when asked for, and
+the scatters, `backfill_after_run` (the bright stars the new sectors
+need from the space around them), the population pass, and
 `settle_after_run` (`db/sector_paths.py`: the path of every body in the
 new sectors and their neighbours, so each path sees the final set of
 neighbours).
@@ -768,13 +768,13 @@ without a galaxy (a cube sector, no address). `planetgen system
 territories are a separate pass over what is already stored, so system
 generation does not change and an old galaxy can be populated without a
 regenerate. It is off by default: it runs from `planetgen population`,
-after `planetgen sector` or `galaxy` only with `--population`, or when
+after `planetgen sector` only with `--population` (a `galaxy` run always runs it), or when
 someone answers y to the installer's prompt (Flow 5).
 
 ```mermaid
 flowchart TD
     PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_pass"]
-    After["planetgen sector / galaxy<br/>--population<br/>run_population_after"] --> Pass
+    After["planetgen sector --population / galaxy<br/>run_population_after,<br/>run_population_stage"] --> Pass
     Inst["install.sh / update.sh<br/>offer_population_pass"] -.-> PopCLI
     Pass --> Scan["scan_life_worlds<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
     Scan --> Civ["refresh_civilizations<br/>era_for_age, found or dissolve polities,<br/>reach_ly"]

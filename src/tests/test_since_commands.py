@@ -36,9 +36,8 @@ def test_each_command_is_one_stage_and_one_registered_command(command, kind):
 
 
 @pytest.mark.parametrize("command", ["link", "backfill", "settle"])
-def test_the_time_is_required_and_must_be_a_time(command, capsys):
-    with pytest.raises(SystemExit):
-        _args(command)
+def test_the_time_is_optional_and_must_be_a_time(command, capsys):
+    assert _args(command).since is None        # the newest sectors or galaxy run's start (PERF.123)
     with pytest.raises(SystemExit):
         _args(command, "--since", "yesterday")
     assert "not a time" in capsys.readouterr().err
