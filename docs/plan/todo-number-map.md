@@ -14,11 +14,11 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.160 |
-| MAP | MAP.279 |
+| MAP | MAP.286 |
 | NAV | NAV.63 |
 | GEN | GEN.671 |
 | PERF | PERF.176 |
-| DB | DB.99 |
+| DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
@@ -647,6 +647,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | none | open |
 | DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message | none | open |
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | open |
+| DB.99 | Store the ground colour and the ice fraction on planets and moons | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1667,12 +1668,19 @@ Parents marked "new parent" had no old number of their own.
 | MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) | none | open |
 | MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns | none | open |
 | MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers | none | open |
-| MAP.273 | Solid world painter: ocean, land, ice and cloud from the stored fractions and the atmosphere colour | none | open |
+| MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | none | open |
 | MAP.274 | Land colour from the bulk composition: oxidation and rock type | none | open |
-| MAP.275 | Gas and ice giant painter: bands, storms, chemistry tint, thermal glow and rings with gaps | none | open |
+| MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | none | open |
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | open |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | open |
-| MAP.278 | Phenomena painters: rogue planet, comet, nebula, remnant, asteroid field and black hole disc | none | open |
+| MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | none | open |
+| MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape | none | open |
+| MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface | none | open |
+| MAP.281 | Giant chemistry bands once the band strengths exist | none | open |
+| MAP.282 | Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry | none | open |
+| MAP.283 | Comet colour from the coma species | none | open |
+| MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | none | open |
+| MAP.285 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2629,7 +2637,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | open |
 | TEST.306 | Five physics modules are imported only by tests and no item names them | none | open |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) | none | open |
-| TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | none | open |
+| TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | none | dropped (Boss, 10:26 PM EDT 2026-10-23: tests ride with each body-rendering item) |
 | TEST.309 | Delete the dead, duplicate and tombstone regression tests, the unused test imports and variables, and the unused galaxy_shape_visualizer_cli.py tool | none | done, PR #2771 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
