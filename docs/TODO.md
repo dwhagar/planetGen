@@ -8095,93 +8095,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   close the 1e20 kg porosity jump by moving the hand-over (density stays
   1.32 to 1.35 times low up to 3e23 kg).
 
-- [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition/composition-model.md. From the stored mixture (GEN.411),
-  the ozone and the aerosol depths (GEN.413, GEN.414) and the gas
-  table's band data, compute the atmosphere's absorption and scattering
-  by band (ultraviolet, visible, near and thermal infrared), the
-  fraction of the star's light that reaches the ground in each, and the
-  greenhouse effect from the infrared opacity of the gases; the stored
-  greenhouse multiplier of GEN.412 is checked against it and the simple
-  per-gas strengths of GEN.423 are replaced where the design (GEN.436)
-  says so. Pure functions of stored values, no new column. Done: Earth's
-  air gives the measured greenhouse warming and surface ultraviolet
-  within a stated tolerance, a thin dry world gives almost none, a thick
-  CO2 world a runaway-like value; doubling a gas moves its bands as the
-  physics says; no NaN for any class.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.444,
-  GEN.445, GEN.423, GEN.412, GEN.418.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation
-  code as the atmosphere items Boss gave it; to be confirmed).
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the Rayleigh formulas,
-  the double-grey profile and the correlated-k and Rosseland mean
-  opacity route for composition-derived infrared optical depth.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): the note's Band form for
-  solar particles is discontinuous; use the integral rigidity Band form
-  with the Atwell 2015 parameters; the atmospheric cutoff comes from
-  inverting the PSTAR range for column P/g (Mars 165 MeV vertical);
-  neutrons are 2 to 7 percent of the dose; W(air) is 33.97 eV.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/composition/radiation-model.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane G (bands).
-  Update (2026-10-09): Lane G (2026-10-23, PR 2757 merged about 9:03 PM
-  EDT, no epoch, no migration): the kernel is on main
-  (physics/atmospheric_radiation.py, two_stream.py, stellar_spectrum.py,
-  uv_cross_sections.py; direct UVI at 0, 100, 200, 300, 500 DU is 133.1,
-  22.6, 11.1, 7.0, 4.0 against research 133.6, 23.4, 11.5, 7.3, 4.1; new
-  setup download AD9 ozone_uv, Zenodo 6951). The wiring into
-  radiation.generate_dose and the greenhouse part are not done, so the
-  item stays open.
-  Lane E (2026-10-09): 11:56 PM EDT 2026-10-23: lane E (radiation dose
-  kernels) asks to take the remaining part, the greenhouse closure and
-  the band-flux and dose wiring on top of lane G's merged kernel
-  (#2757). Lane G's board row says it goes to GEN.414 next. Owner
-  proposed: lane E, once lane G confirms it has no branch for the
-  greenhouse part or the wiring (the TODO thread asks G; no reply means
-  lane E owns it).
-  Research (2026-10-09, Update): Update 12:15 AM EDT 2026-10-24 (as lane
-  E reported): lane E took the greenhouse closure after lane G confirmed
-  it unstarted. The greenhouse closure kernel (Robinson and Catling grey
-  atmosphere, check of the stored multiplier) merged as #2842 with no
-  epoch and no migration; nothing uses it yet so no world changes.
-  Remaining: the composition-side infrared opacity (needs the infrared
-  data download and lane D's stored multiplier), owner lane E; the
-  ultraviolet wiring is lane G's PR 4 (GEN.414 first).
-  Research (2026-10-09, Update): Update 12:43 AM EDT 2026-10-24 (as lane
-  G reported): GEN.414 and DB.68 merged as #2856 (migration 0138, schema
-  v138, epoch 66), so the aerosol depths are stored; lane G's PR 4
-  (body_radiation, stars.uv_c_share) renumbers to migration 0139 and
-  epoch 67.
-  Research (2026-10-09, Update): Update 12:48 AM EDT 2026-10-24: the
-  ozone_uv dataset arrival broke test_datasets_real when the file is not
-  downloaded; filed as a bug in the next test item; owner for the fix is
-  Bug Hunt or lane E.
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8212,7 +8125,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.443, GEN.441.
+  Prerequisites: GEN.441.
   Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
@@ -14143,6 +14056,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it. Owner: survival equipment lane.
   Prerequisites: none. Related: UX.167, UX.163, GEN.671.
 
+- [ ] **GEN.703 The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths**
+  Split off GEN.443 when its last part merged (#2910, as lane G reported
+  at 4:41 AM EDT 2026-10-24). GEN.443 delivered the band transmission
+  and the ground light of a stored body (physics/body_radiation.py:
+  surface_spectrum, uv_index, dna_dose_w_m2) and stars.uv_c_share. Not
+  done there: the greenhouse warming still uses the stored multiplier of
+  GEN.412 and the per-gas strengths of GEN.423. Do: derive the infrared
+  optical depth tau0 of the atmosphere from the stored mixture and the
+  gas table's infrared band data (the two-stream kernel of GEN.443
+  already in physics/two_stream.py), check the stored multiplier against
+  it, and replace the per-gas strengths where the design (GEN.436) says
+  so, agreeing the split with GEN.423 and lane H. Done: Earth's air
+  gives the measured greenhouse warming within a stated tolerance, a
+  thin dry world gives almost none, a thick CO2 world a runaway-like
+  value, doubling a gas moves the warming as the physics says, no NaN
+  for any class. Owner: lane E (as lane G handed it over, to be
+  confirmed).
+  Prerequisites: none. Related: GEN.443, GEN.423, GEN.412, GEN.436.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18000,7 +17932,7 @@ clears each one.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446. Related:
+  Prerequisites: GEN.444, GEN.445, GEN.446, GEN.703. Related:
   TEST.209,
   TEST.210, TEST.211.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
