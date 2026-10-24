@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2070] - 2026-10-24
+
+**Headline:** The comet composition rows of the atmosphere recipes follow the comet database and the printed coma class counts.
+
+### Changed
+- Atmosphere recipe rows k1 to k3 take the coma class counts 13, 9 and 3 of 25 comets, k4 and k5 take the geometric mean and spread of the CO2/H2O and CO/H2O of 21 and 16 comets (the CO range cut is dropped), and k7 takes the population values for CH4, C2H6, H2CO and H2S. Twenty-three targets check them, and the tuning harness gained a category for the share of an option. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2069] - 2026-10-24
 
 **Headline:** The light that reaches a planet's ground can now be worked out band by band from its stored gases, ozone and star, including a UV index that matches the research table.
