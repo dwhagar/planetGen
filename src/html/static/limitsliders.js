@@ -11,6 +11,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 
 // A value to six significant figures, so a stop's float noise (0.30000000000000004) does not reach a box.
 const significant = (value) => {
@@ -153,8 +154,8 @@ for (const note of document.querySelectorAll("[data-ceiling-cost]")) {
     const systems = Number(box.value);
     if (!(systems > 0)) { note.textContent = ""; return; }
     const seconds = systems * perSystem;
-    const time = seconds < 90 ? `${Math.round(seconds)} seconds` : seconds < 5400 ? `${Math.round(seconds / 60)} minutes`
-      : `${(seconds / 3600).toFixed(1)} hours`;
+    const time = seconds < 90 ? `${Math.round(seconds)} seconds` : seconds < 5400 ? `${Math.round(convert(seconds, "s", "min"))} minutes`
+      : `${convert(seconds, "s", "h").toFixed(1)} hours`;
     const size = systems * bytes;
     const space = size < 1e9 ? `${Math.round(size / 1e6)} MB` : `${(size / 1e9).toFixed(1)} GB`;
     note.textContent = `A full cell makes about ${formatNumber(systems)} systems: roughly ${time} and ${space} each.`;

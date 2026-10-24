@@ -12,12 +12,13 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 
 export const SECONDS_PER_YEAR = convert(1, "yr", "s");
+const DAY_YEARS = convert(1, "d", "yr");
 
 // Years of scene time per real second at each speed step; the first is real time.
 export const RATES = [
   { label: "1×", yearsPerSecond: 1 / SECONDS_PER_YEAR },
-  { label: "1 day/s", yearsPerSecond: 86400 / SECONDS_PER_YEAR },
-  { label: "1 month/s", yearsPerSecond: 30.44 * 86400 / SECONDS_PER_YEAR },
+  { label: "1 day/s", yearsPerSecond: DAY_YEARS },
+  { label: "1 month/s", yearsPerSecond: 30.44 * DAY_YEARS },
   { label: "1 year/s", yearsPerSecond: 1 },
   { label: "10 years/s", yearsPerSecond: 10 },
   { label: "100 years/s", yearsPerSecond: 100 },

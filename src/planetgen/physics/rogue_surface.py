@@ -25,7 +25,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, hydrosphere
+from planetgen.physics import brown_dwarf, constants, hydrosphere, relations
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -130,7 +130,7 @@ def effective_temperature_k(flux_w_m2):
 
 
 def surface_gravity_m_s2(mass_kg, radius_km):
-    return constants.G * mass_kg / (radius_km * 1000.0) ** 2
+    return relations.surface_gravity(mass_kg, radius_km * 1000.0)
 
 
 def escape_parameter(mass_kg, radius_km, molecule_kg, temperature_k):

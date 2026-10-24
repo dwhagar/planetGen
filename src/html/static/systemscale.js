@@ -13,11 +13,15 @@
 // drawn (`radiusOf`), and the note saying which mode is shown (`note`).
 // Plain data in, plain data out: no three.js here.
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+
 export const MODE_TRUE = "true";
 export const MODE_COMPRESSED = "compressed";
 export const UNIT_KM = 1e6; // true scale: one world unit is a million km.
 
-const SUN_RADIUS_KM = 695700;
+const SUN_RADIUS_KM = convert(1, "Rsun", "km");
 const STAR_RADIUS_UNITS = 5; // a sun-sized star, compressed
 const COMPRESSED_INNER_UNITS = 14; // the innermost orbit around the middle
 const COMPRESSED_SPAN_UNITS = 150; // inner to outer orbit
