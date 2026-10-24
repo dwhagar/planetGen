@@ -940,73 +940,6 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
-- [ ] **UX.188 Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet)**
-  Boss (5:50 PM EDT 2026-10-24, design note): 'Redesign the object pages
-  so that we frontload with the critical information, planet basics
-  (temp, pressure, gravity, habitability, etc etc etc) and details come
-  in sections after that. The habitability icons should be on their own
-  line in the basic information table that's just under the render.' Do:
-  for the planet and moon pages (then star, belt, comet and the other
-  kinds with their own critical facts) put the basic information table
-  directly under the render with the critical facts first: surface
-  temperature, surface pressure, surface gravity, habitability (the
-  PHI-6 colour and the four life scores) and the other facts a visitor
-  needs at a glance; the habitability icons sit on their own line of
-  that table; everything else (orbit, interior and heat, atmosphere
-  mixture, surface, radiation, life, history, and the physics outputs of
-  UX.187) follows as titled sections, collapsed or ordered by
-  importance, with anchors from the table. Keep the field macro and the
-  existing links up the chain (UX.144). Done: a page test checks the
-  order of the basics and the icon line on a planet, a moon and a star
-  page. Owner: Aux 11 (Lane 3, pages and markers).
-  Prerequisites: none. Related: UX.143, UX.144, UX.150, UX.187, GEN.430,
-  GEN.445.
-  Research (2026-10-09, Boss widening): Widened by Boss (5:51 PM EDT
-  2026-10-24): 'Same for ALL object info pages, most basic critical info
-  comes first, then details come after. We're doing this from the
-  perspective of this was a nav system so what would a hypothetical
-  starship captain want to know about a given object, sector, etc
-  first.' The item covers every object info page: sector, region,
-  system, star, planet, moon, belt, comet, each phenomenon, nebula and
-  cluster. For each kind the page opens with a short block of what a
-  captain needs first (what it is, where it is and how to reach it,
-  danger, whether it can be landed on, resources, habitability for
-  planets and moons), then titled detail sections. The owner writes the
-  order of the basics for each kind in the PR. Related: UX.143, UX.144,
-  UX.187.
-  Research (2026-10-09, Boss rule on absent values): Chain (Aux 11 plan,
-  design draft
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md
-  section 3): C0 is this item; C1 planets and moons UX.189, C2 star and
-  system UX.190, C3 sector UX.191, C4 phenomena UX.192, C5 belt, comet,
-  facility, cluster, superbubble UX.193, C6 galaxy UX.194. Boss rule
-  (5:52 PM EDT 2026-10-24): 'if something is not present (i.e. its value
-  is none or 0) we only list it if it's important (i.e. you'd want to
-  know a planet has no atmosphere, but you're not so keen on knowing
-  about hydrogen sulfide unless it has it)'. The GLANCE registry
-  therefore marks each row whether its absence matters (show 'no
-  atmosphere', hide absent hydrogen sulfide); the design draft's 'not
-  stored shows never hidden' default is replaced by this rule for absent
-  values, while a value that is not stored stays visible as 'not
-  stored'.
-
-- [ ] **UX.189 Captain-first object pages, step C1: planet and moon pages**
-  Step C1 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
-  2026-10-24: every object info page puts the most basic critical
-  information first, then details, from the view of a starship captain
-  using a nav system; absent values are listed only when the absence
-  matters). Do: planet and moon pages: At a glance with the habitability
-  icons on their own line of the basic information table under the
-  render, the equipment line and hours outside; the detail sections
-  reordered below it. Uses the GLANCE registry and panel of UX.188. Each
-  step is a small PR (template, sheet registry, test,
-  docs/reference/html-interface.md line, release note). Design draft:
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
-  Data that needs a new computation uses existing queries first; where
-  none exists the row is left out and filed as its own item. Owner: Aux
-  11 (Lane 3, pages and markers).
-  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
-
 - [ ] **UX.190 Captain-first object pages, step C2: star and star system pages**
   Step C2 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
   2026-10-24: every object info page puts the most basic critical
@@ -1021,7 +954,7 @@ with `clamp()`.
   Data that needs a new computation uses existing queries first; where
   none exists the row is left out and filed as its own item. Owner: Aux
   11 (Lane 3, pages and markers).
-  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
 
 - [ ] **UX.191 Captain-first object pages, step C3: sector pages**
   Step C3 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
@@ -1036,7 +969,7 @@ with `clamp()`.
   Data that needs a new computation uses existing queries first; where
   none exists the row is left out and filed as its own item. Owner: Aux
   11 (Lane 3, pages and markers).
-  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
 
 - [ ] **UX.192 Captain-first object pages, step C4: phenomenon pages**
   Step C4 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
@@ -1051,7 +984,7 @@ with `clamp()`.
   Data that needs a new computation uses existing queries first; where
   none exists the row is left out and filed as its own item. Owner: Aux
   11 (Lane 3, pages and markers).
-  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
 
 - [ ] **UX.193 Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages**
   Step C5 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
@@ -1066,7 +999,7 @@ with `clamp()`.
   Data that needs a new computation uses existing queries first; where
   none exists the row is left out and filed as its own item. Owner: Aux
   11 (Lane 3, pages and markers).
-  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
 
 - [ ] **UX.194 Captain-first object pages, step C6: galaxy page**
   Step C6 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
@@ -1081,7 +1014,7 @@ with `clamp()`.
   Data that needs a new computation uses existing queries first; where
   none exists the row is left out and filed as its own item. Owner: Aux
   11 (Lane 3, pages and markers).
-  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -19237,6 +19170,29 @@ clears each one.
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
+
+- [ ] **TEST.358 test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug)**
+  Found by Aux 11 while merging UX.188 and UX.189 (#3116, 6:05 PM EDT
+  2026-10-24 as the lane reported): the planet and moon property-sheet
+  tests that require every stored column to be shown or excused fail on
+  main for interior_kind, core_mass_earth, dilute_core_mass_earth,
+  has_helium_shell, helium_depletion and metallization_pressure_gpa, the
+  giant interior columns that DB.89 (#3089, schema 154) stored. Fix: add
+  them to describe/sheet.py as shown rows (with units from
+  db/column_units.py) or excuse them with a reason; the page shows them
+  with the interior description of GEN.642. Owner: Aux 6 (Lane J, owns
+  GEN.642 and DB.89).
+  Prerequisites: none. Related: DB.89, GEN.642, UX.187.
+
+- [ ] **TEST.359 test_object_page_walk fixtures error on main: the system detail has no "stars" (bug)**
+  Found by Aux 11 (6:05 PM EDT 2026-10-24 as the lane reported): the
+  test_object_page_walk fixtures error on main because the system detail
+  has no 'stars' key (the fixture built from the sample galaxy reads
+  detail['stars']). Find which change removed or renamed the key (the
+  object page detail or the system detail API) and make the fixture read
+  the new shape, or restore the key if it was removed by mistake. Never
+  skip the walk. Owner: Bug 1 (it changed the walk in #3103/#3107).
+  Prerequisites: none. Related: TEST.349, TEST.354.
 
 ## USR: User accounts
 

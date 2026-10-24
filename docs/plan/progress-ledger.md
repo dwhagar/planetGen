@@ -1397,3 +1397,5 @@ Baseline: PR #1817.
 | DB.71 | 8.1 | Mixture and stored values |
 | GEN.726 | 8.1 | Radiation chain for habitability (GEN.445) |
 | MAP.267 | 8.1 | Fly-through map |
+| UX.188 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.189 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
