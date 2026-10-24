@@ -441,13 +441,13 @@ def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_i
     assert RECIPES.draw_binary("b6", full("E", zone="e")) == (False, None)
 
 
-def test_the_choice_of_the_rotation_track_follows_its_weights():
+def test_the_rotation_percentile_is_uniform_and_only_drawn_for_a_host_in_the_saturated_or_young_branch():
     s = full("E", **{"drawn.p": "p4"})
     with draw.bound(6):
-        picks = [RECIPES.draw_choice("p6", s) for _ in range(4000)]
-    assert {p: picks.count(p) / 4000 for p in ("slow", "median", "fast")} == pytest.approx(
-        {"slow": 0.25, "median": 0.5, "fast": 0.25}, abs=0.03)
-    assert RECIPES.draw_choice("p6", full("E", **{"drawn.p": "p1"})) is None
+        picks = [RECIPES.draw_value("p6", s) for _ in range(4000)]
+    assert min(picks) >= 0.02 and max(picks) <= 0.98
+    assert sum(picks) / 4000 == pytest.approx(0.5, abs=0.01)
+    assert RECIPES.draw_value("p6", full("E", **{"drawn.p": "p1"})) is None
 
 
 def test_draw_all_draws_the_tables_in_order_and_the_joint_probability_is_parent_times_conditional():

@@ -369,10 +369,12 @@ MACHINE = {
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(state="partly verified", limit="percentile tracks of Tu 2015 (READ); the 0.25/0.5/0.25 weights are replaced by a uniform percentile (GEN.523)", kind="choice", classes=ANY, when=[drawn("p", "p4", "p5")],
-               options={"slow": {"weight": 0.25, "percentile": 10, "t_sat_myr": 5.7},
-                        "median": {"weight": 0.5, "percentile": 50, "t_sat_myr": 23},
-                        "fast": {"weight": 0.25, "percentile": 90, "t_sat_myr": 226}}),
+    "p6": dict(state="partly verified", limit="the three percentile tracks of Tu 2015 (10, 50 and 90; saturation ends at 5.7, 23 and 226 Myr, solar mass only) interpolated in the logarithm of the saturation time between them; no paper weights the tracks, so the percentile is drawn uniform from 0.02 to 0.98 as Johnstone 2021 offers; the dependence on mass needs the Mors tracks (GEN.523)", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
+               dist={"kind": "uniform", "lo": 0.02, "hi": 0.98}, sets="rotation_percentile",
+               values={"t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"},
+               source="Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation "
+                      "distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every "
+                      "integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one"),
 }
 
 # The group a row belongs to carries its fallback; these rows sit in no group (independent draws).

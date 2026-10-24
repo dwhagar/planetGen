@@ -200,6 +200,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.520, lane M, 2026-10-24):** comet rows k1 to k5 and k7 (`docs/design/composition/comet-composition-tuning.md`): the coma classes take the printed counts 13, 9 and 3 of 25, CO2/H2O and CO/H2O take the geometric means and spreads of the comet database (the CO truncation is dropped), and four single-comet species take their population values. The harness gained the `category` field for the share of an option. The system offset and the distance-dependent coma class stay open.
 
+**Partly built (GEN.523, lane M, 2026-10-24):** row p6 draws the rotation percentile uniform from 0.02 to 0.98 and derives the saturation time from it through the three tracks of Tu 2015 (`docs/design/composition/host-activity-tuning.md`); row p4 is pinned to its three measured masses. The Mors tracks (mass dependence) and the population consistency tests remain.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

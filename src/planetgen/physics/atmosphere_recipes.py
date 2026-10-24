@@ -91,6 +91,7 @@ INPUTS = {
     "core_radius_earth": "radius of the rocky core (Earth radii)",
     "radius_km": "radius of the body (km)",
     "v_esc_kms": "escape speed (km/s)",
+    "rotation_percentile": "initial rotation percentile of the host star (0.02 to 0.98), drawn by row p6",
     "teq_k": "equilibrium temperature (K)",
     "ts_k": "surface temperature (K)",
     "tday_k": "dayside temperature (K)",
