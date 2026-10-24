@@ -218,8 +218,8 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
 
 
 def expected_stars(components, fractions, tiered=None):
-    """About how many stars `scatter_stars` places, the progress bar's weight: each component's systems times the
-    largest share of its population any tier keeps (an upper bound, the tiers differing by place)."""
+    """The candidates `scatter_stars` draws and the most it places: each component's systems times the largest share of
+    its population any tier keeps (an upper bound, the tiers differing by place; `kept_stars` is the stars placed)."""
     return sum(each for _component, each in star_weights(components, fractions, tiered))
 
 
@@ -228,6 +228,50 @@ def star_weights(components, fractions, tiered=None):
     by_tier = fractions if tiered is not None else [fractions]
     return [(component, sum(systems_of(component) * share * max(item[population] for item in by_tier)
                             for population, share in component_field.population_shares(component).items()))
+            for component in components if component.kind in COMPONENT_KINDS]
+
+
+KEPT_SAMPLE_POINTS = 256
+"""int: The positions of a component's profile a component's kept stars are averaged over (`kept_stars`); a cluster lies
+in one or a few cells and a satellite in a few hundred, so a few hundred evenly spread points give the tier shares to a
+few percent."""
+
+
+def _spread(count):
+    """`(3, count)` uniforms spread evenly over the unit cube (the R2 sequence on the last two), the same at every call."""
+    index = np.arange(count) + 0.5
+    return np.stack([index / count, (index * 0.7548776662466927) % 1.0, (index * 0.5698402909980532) % 1.0])
+
+
+def kept_stars(component, fractions, tiered, edge_pc):
+    """
+    About how many stars `scatter_stars` places for one component (GEN.678): its systems times, for each population, the
+    share of its stars a pass keeps at the places the component's stars lie, `sum over populations of share * mean of
+    the tier's share at KEPT_SAMPLE_POINTS positions of the profile`. `star_weights` is the number of candidates instead,
+    every one at the share of the largest tier: the Poisson mean the candidates are drawn from, and the most a slice can
+    hold. A component far from the galaxy lies in the faintest tier, which keeps a few percent of what the nearest does, so
+    the candidates were 10 to 20 times the stars placed.
+
+    Args:
+        fractions (list or dict): `bright_stars.pass_of`'s, a list per tier for a tiered pass (`tiered`), else one dict.
+        tiered: The pass's `TieredPass`, or `None`.
+    """
+    shares = component_field.population_shares(component)
+    systems = systems_of(component)
+    if tiered is None:
+        return sum(systems * share * fractions[population] for population, share in shares.items() if share > 0.0)
+    points = positions_mpc(component, _spread(KEPT_SAMPLE_POINTS))
+    addresses = [_address(tuple(int(value) for value in points[:, index]), edge_pc)
+                 for index in range(points.shape[1])]
+    tier_of = _tiers_by_place(tiered.limits.tiers_of_places, addresses)
+    tiers_here = [tier_of[address[:2]] for address in addresses]
+    return sum(systems * share * sum(fractions[tier][population] for tier in tiers_here) / len(tiers_here)
+               for population, share in shares.items() if share > 0.0)
+
+
+def kept_weights(components, fractions, tiered, edge_pc):
+    """`(component, expected stars kept)` for each component of the pass's kinds, as `kept_stars` counts them."""
+    return [(component, kept_stars(component, fractions, tiered, edge_pc))
             for component in components if component.kind in COMPONENT_KINDS]
 
 
