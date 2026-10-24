@@ -396,6 +396,14 @@ class Queue(_Section):
         label="Long job limit",
         summary="Jobs expected to take longer than this go to the long lane.",
         control="duration")
+    unit_ceiling_seconds: float = opt(
+        300, "The longest a unit of a generation stage is expected to run (PERF.155). A stage is cut into units no "
+        "longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming "
+        "the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a "
+        "worker waits to hand its place to a lane that needs it.", unit="seconds", group="speed", gt=0,
+        label="Unit length ceiling",
+        summary="The longest one unit of a generation stage is meant to run; a longer one is logged.",
+        control="duration")
     wait_minutes: float = opt(
         60, "How long a generation run, or an API job that generates sectors, waits in line when another generation "
         "run holds the machine, before it fails naming that run (0 does not wait).", unit="minutes", group="speed",

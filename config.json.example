@@ -71,6 +71,7 @@
     "maintenance_workers": 1,
     "long_workers": 1,
     "long_job_seconds": 60.0,
+    "unit_ceiling_seconds": 300.0,
     "wait_minutes": 60.0
   },
   "ratelimit": {
