@@ -77,6 +77,9 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_km_to_m = units.converter("km", "m")
 
 ZONE_CHARS = "hec"
 
@@ -151,7 +154,7 @@ def theoretical_gravity_bounds_g(cls):
     """
     data = prog_c.PLANET_CLASSES[cls]
     min_r_km, max_r_km = data["radius_range"]
-    radii_m = (min_r_km * pc.KM_TO_M_FACTOR, max_r_km * pc.KM_TO_M_FACTOR)
+    radii_m = (_km_to_m(min_r_km), _km_to_m(max_r_km))
     ptype = data["type"]
 
     def gravity_g(radius_m, density_kg_m3):
@@ -198,7 +201,7 @@ def theoretical_gravity_bounds_g(cls):
                 continue
             for factor in factors:
                 radius_km = min(max_r_km, max(min_r_km, planetPhysics.giant_radius_km(mass_kg) * factor))
-                radius_m = radius_km * pc.KM_TO_M_FACTOR
+                radius_m = _km_to_m(radius_km)
                 values.append(relations.surface_gravity(mass_kg, radius_m) / pc.EARTH_GRAVITY)
 
     return min(values), max(values)

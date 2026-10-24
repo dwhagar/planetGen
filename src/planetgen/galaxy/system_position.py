@@ -19,6 +19,9 @@ from planetgen.physics import system_tree
 from planetgen.physics.position import SpatialPosition3D
 from planetgen.util import draw
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_ly_to_au = units.converter("ly", "au")
 
 _AXES = "xyz"
 
@@ -156,7 +159,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     """
     if not hasattr(system, "primary_star"):
         return None
-    to_au = physical_constants.LY_TO_AU
+    to_au = _ly_to_au(1.0)
     sector_au = tuple(c * to_au for c in sector_center_ly)
     center_au = tuple((c + p) * to_au for c, p in zip(sector_center_ly, position_ly))
 

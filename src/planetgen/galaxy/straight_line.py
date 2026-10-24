@@ -19,9 +19,10 @@ that row's `epoch_unix`, the orbit epoch the scatter was drawn at. A row with
 no epoch holds at the database's own orbit epoch.
 """
 
-from planetgen.physics import constants as physical_constants
+from planetgen.physics import unit_registry as units
 
-KM_PER_PC = physical_constants.PARSEC_M / 1000.0
+_km_to_pc = units.converter("km", "pc")
+
 """float: Kilometers in a parsec."""
 
 
@@ -38,7 +39,7 @@ def straight_line_position_pc(position_pc, velocity_kms, elapsed_seconds):
     Returns:
         tuple: The `(x, y, z)` position, parsecs.
     """
-    factor = elapsed_seconds / KM_PER_PC
+    factor = _km_to_pc(elapsed_seconds)  # the parsecs a body at 1 km/s covers in that time
     return tuple(p + v * factor for p, v in zip(position_pc, velocity_kms))
 
 

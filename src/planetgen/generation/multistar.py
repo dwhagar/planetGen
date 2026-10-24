@@ -57,6 +57,14 @@ from planetgen.physics import (
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_m_to_au = units.converter("m", "au")
+_km_to_m = units.converter("km", "m")
+_m_to_km = units.converter("m", "km")
+_au_to_m = units.converter("au", "m")
+_yr_to_d = units.converter("yr", "d")
+_d_to_yr = units.converter("d", "yr")
 
 SPECTRAL_CLASS_LOWER_MASS_SOL = (("O", 16.0), ("B", 2.1), ("A", 1.4), ("F", 1.04), ("G", 0.8), ("K", 0.45), ("M", 0.0))
 """tuple: The initial mass at which each spectral class begins, heaviest first."""
@@ -486,9 +494,9 @@ def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng):
 
 def _radius_au(state):
     if state["radius_km"] is not None:
-        return state["radius_km"] * constants.KM_TO_M_FACTOR / constants.AU_M
+        return _m_to_au(_km_to_m(state["radius_km"]))
     radius_sol = math.sqrt(state["luminosity_sol"]) * (tuning.SUN_EFFECTIVE_TEMPERATURE_K / state["temperature_k"]) ** 2
-    return radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M
+    return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
 
 
 def _star_leaf(initial_mass, age_yr, rng, lighten=True):
@@ -497,7 +505,7 @@ def _star_leaf(initial_mass, age_yr, rng, lighten=True):
         # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
         dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
         return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
-                     dwarf["radius_sol"] * constants.SOLAR_RADIUS_M / constants.AU_M)
+                     _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M))
     young = pre_main_sequence.state(initial_mass, age_yr)
     if young is not None:
         # GEN.242: still contracting; the radius follows from the track's luminosity and temperature.
@@ -523,11 +531,11 @@ def _schwarzschild_au(mass_solar):
 
 def _remnant_leaf(kind, progenitor, mass, direct=False):
     if kind == "white-dwarf":
-        radius = evolution.white_dwarf_radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M
+        radius = _m_to_au(_km_to_m(evolution.white_dwarf_radius_km(mass)))
         return _Leaf(kind, "VII", mass, progenitor, radius)
     if kind == "neutron-star":
         return _Leaf(kind, None, mass, progenitor,
-                     neutron_star.radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M)
+                     _m_to_au(_km_to_m(neutron_star.radius_km(mass))))
     return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
 
 
@@ -706,12 +714,12 @@ class _Builder:
         return math.inf
 
     def period_days(self, law, mass, a_lo, a_hi, massive):
-        lo = 365.25 * math.sqrt(a_lo ** 3 / mass)
-        hi = 365.25 * math.sqrt(a_hi ** 3 / mass) if math.isfinite(a_hi) else math.inf
+        lo = _yr_to_d(math.sqrt(a_lo ** 3 / mass))
+        hi = _yr_to_d(math.sqrt(a_hi ** 3 / mass)) if math.isfinite(a_hi) else math.inf
         u = self.rng.random()
         if law == "compact-pair":
-            lo = max(lo, 365.25 * math.sqrt(COMPACT_PAIR_AXIS_AU[0] ** 3 / mass))
-            hi = min(hi, 365.25 * math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass))
+            lo = max(lo, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[0] ** 3 / mass)))
+            hi = min(hi, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass)))
         elif law == "interacted":
             lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
         elif law == "stripped":
@@ -773,7 +781,7 @@ class _Builder:
                 period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
                 if period_d is None:
                     continue
-                axis = stability.axis_au(period_d / 365.25, total)
+                axis = stability.axis_au(_d_to_yr(period_d), total)
                 e = self.eccentricity(law, period_d, axis, parent is None)
             else:
                 period_d, axis, e = fixed
@@ -809,7 +817,7 @@ class _Builder:
         record = {"node_no": node_no, "parent_node_no": parent_no, "slot": slot, "mass_solar": total,
                   "separation_au": axis, "eccentricity": e, "inclination_deg": math.degrees(inclination),
                   "ascending_node_deg": math.degrees(node), "arg_periapsis_deg": math.degrees(arg),
-                  "mean_anomaly_deg": math.degrees(anomaly), "period_years": period_d / 365.25, "kind": kind,
+                  "mean_anomaly_deg": math.degrees(anomaly), "period_years": _d_to_yr(period_d), "kind": kind,
                   "flags": flags, "left": left, "right": right, "sub": sub,
                   "interaction": interaction}
         self.nodes.append(record)
@@ -934,7 +942,7 @@ def _stripped_helium_leaf(be_birth_mass_sol, rng):
     mass = rng.uniform(*tuning.BE_STRIPPED_COMPANION_MASS_RANGE_SOL)
     progenitor = be_birth_mass_sol * rng.uniform(*tuning.BE_STRIPPED_PROGENITOR_RATIO_RANGE)
     radius_sol = tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47 * (mass / 0.47) ** (-1.0 / 3.0)
-    return _Leaf("stripped-helium", None, mass, progenitor, radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M)
+    return _Leaf("stripped-helium", None, mass, progenitor, _m_to_au(radius_sol * constants.SOLAR_RADIUS_M))
 
 
 def _swap_units(shape, a, b):
@@ -1129,7 +1137,7 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
                 where[child] = (record["node_no"], child_slot)
         nodes.append(Node(node_no=record["node_no"], parent_node_no=record["parent_node_no"], slot=record["slot"],
                           mass_solar=record["mass_solar"], separation_au=record["separation_au"],
-                          separation_km=record["separation_au"] * constants.AU_M / constants.KM_TO_M_FACTOR,
+                          separation_km=_m_to_km(_au_to_m(record["separation_au"])),
                           eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
                           ascending_node_deg=record["ascending_node_deg"],
                           arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
@@ -1166,7 +1174,7 @@ def _contact_pair_alone(leaves, builder, n_stars, rng):
         return None
     pair = [leaves[0], leaves[contact["right"] if contact["left"] == 0 else contact["left"]]]
     shape = (0, 1)
-    fixed = {id(shape): (contact["period_years"] * 365.25, contact["separation_au"], contact["eccentricity"])}
+    fixed = {id(shape): (_yr_to_d(contact["period_years"]), contact["separation_au"], contact["eccentricity"])}
     for _ in range(TREE_RESTARTS):
         alone = _Builder(pair, builder.age_yr, rng, fixed)
         try:

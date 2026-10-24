@@ -27,6 +27,9 @@ import dataclasses
 from planetgen.physics import constants
 from planetgen.physics.kepler import wrapped_turn_deg
 from planetgen.physics.system_tree import OrbitNode
+from planetgen.physics import unit_registry as units
+
+_yr_to_s = units.converter("yr", "s")
 
 PAIR_STAR_KINDS = ("main-sequence", "pre-main-sequence", "protostar", "giant", "white-dwarf")
 """tuple: The member kinds `Star` builds from a birth mass and an age, which the pair classes can hold."""
@@ -99,7 +102,7 @@ def node_at(node, epoch_unix):
     """`node` with its mean anomaly carried on from its own epoch to `epoch_unix`; the same orbit at that instant."""
     if epoch_unix is None or epoch_unix == node.epoch_unix:
         return node
-    turn = wrapped_turn_deg(epoch_unix - node.epoch_unix, node.period_years * constants.SECONDS_PER_YEAR) \
+    turn = wrapped_turn_deg(epoch_unix - node.epoch_unix, _yr_to_s(node.period_years)) \
         if node.period_years > 0 else 0.0
     return dataclasses.replace(node, mean_anomaly_deg=(node.mean_anomaly_deg + turn) % 360.0,
                                epoch_unix=float(epoch_unix))

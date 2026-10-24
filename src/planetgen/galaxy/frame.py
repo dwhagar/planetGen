@@ -13,8 +13,10 @@ Pure geometry: no database, no I/O.
 
 import math
 
-from planetgen.physics import constants as physical_constants
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_km_to_pc = units.converter("km", "pc")
 
 
 def cylindrical_radius_pc(position):
@@ -70,7 +72,6 @@ BINARY_PAIR_DIRECTION = (math.sqrt(0.5), -math.sqrt(0.5), 0.0)
 from its primary, in every map (MAP.186) -- the orbit's own orientation
 is not stored per pair, so all pairs share one direction."""
 
-_KM_PER_PC = physical_constants.PARSEC_M / 1000.0
 
 
 def binary_companion_offset_pc(separation_km):
@@ -80,7 +81,7 @@ def binary_companion_offset_pc(separation_km):
     (MAP.186), the one rule the Galaxy Map's tiles and the Sector Map's
     scene share. `(0, 0, 0)` when the separation is unknown.
     """
-    scale = (separation_km or 0.0) / _KM_PER_PC
+    scale = _km_to_pc(separation_km or 0.0)
     return tuple(scale * component for component in BINARY_PAIR_DIRECTION)
 
 

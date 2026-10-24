@@ -47,6 +47,9 @@ from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.generation.small_body import SmallBody
 from planetgen.physics.orbits import minimum_update_interval_years
+from planetgen.physics import unit_registry as units
+
+_au_yr_to_kms = units.converter("au_yr", "km_s")
 
 PERIOD_CLASS_LABELS = {
     "jupiter_family": "Jupiter-family",
@@ -324,7 +327,7 @@ class Comet(SmallBody):
         self.distance_au = state["distance_au"]
         self.set_position_au(state["position_x_au"], state["position_y_au"], state["position_z_au"])
         self.orbital_speed_kms = state["orbital_speed_kms"]
-        to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
+        to_kms = _au_yr_to_kms(1.0)
         self.set_velocity_kms(state["velocity_x_au_per_year"] * to_kms, state["velocity_y_au_per_year"] * to_kms,
                               state["velocity_z_au_per_year"] * to_kms)
 
