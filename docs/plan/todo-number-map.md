@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.342 |
+| TEST | TEST.343 |
 | USR | USR.32 |
 | OPS | OPS.70 |
 | DOC | DOC.79 |
@@ -2750,6 +2750,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.339 | test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug) | none | open |
 | TEST.340 | Three more tests fail on clean main, likely the same cause as TEST.338: test_gen_stored_trees fill_builds_each_row, test_hosted_nebula_rows pre_placed_star, test_emission_members pre_placed_hot_star (bug) | none | open |
 | TEST.341 | A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug) | none | open |
+| TEST.342 | test_api::test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields fails on unmodified main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

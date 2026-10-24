@@ -15307,6 +15307,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   equal to the sums over the sectors. Fails on main: yes by reading the
   code, not yet reproduced. Owner: not assigned (a DB item; the DB items
   chain lane or the bug queue).
+  Research (2026-10-09, Update): Lane 4 (9:16 AM EDT 2026-10-24, as the
+  lane reported): merged #2960: a sector the Galaxy Map generates when
+  visited (or regenerates) now counts in the block totals at once;
+  before, the totals above it stayed empty until fill-block-totals ran.
+  Not covered: the edit paths and the end of a scatter. The item stays
+  open for those two paths.
   Prerequisites: none. Related: DB.25.
 
 - [ ] **DB.84 Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it**
@@ -15446,6 +15452,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   epoch and migration are taken. Owner: the lane "Store life and
   evolution results in database" (started 2026-10-24). Related: GEN.649,
   DB.91, DB.73, UX.152, DOC.77.
+  Research (2026-10-09, Handoff): Audit of main 0a0a15e (the retired
+  lane, 9:16 AM EDT 2026-10-24, as the lane reported): chemistry, pace
+  (GEN.666), stage, milestone and system ages, flavor_key and the
+  reflection spectrum rows are already stored; describe/life_facts.py
+  reads only those plus tuning key lookups (pace_label, stage_name,
+  stage_text). Wait for lane D's #2930 (GEN.649, GEN.653, DB.91: the
+  four scores and a path for every life body; migration 0149, epoch 74).
+  Scope: (a) five stored milestone-age columns on planets and moons
+  (abiogenesis, photosynthesis, complex cells, multicellularity,
+  technological civilization, in Gyr) with db/column_units.py rows,
+  filled at apply_life_data from the pace, migration 0151 (after the
+  wiki strip's 0150), epoch 81 only if a drawn value changes; (b) the
+  timeline and life text read the stored schedule and keys only, with a
+  test that render uses no tuning pace table and no draw; (c)
+  admin/edits.py via generation/validation.py reapply_life (called at
+  admin/edits.py lines about 98, 140, 387 and 556) keeps a still-viable
+  stored chemistry and pace instead of re-rolling. New-column checklist:
+  schema.sql, models.py, fingerprint, round-trip test, old-schema
+  fixture, docs, changes note.
   Prerequisites: none. Related: GEN.649, DB.91, DB.73, UX.152, DOC.77.
 
 ## API: The JSON API
@@ -19123,6 +19148,19 @@ clears each one.
   the test is repeatable or the product cause is fixed. Related:
   TEST.334, TEST.339. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.334, TEST.339.
+
+- [ ] **TEST.342 test_api::test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields fails on unmodified main (bug)**
+  Reported by Lane 4 (9:16 AM EDT 2026-10-24, as the lane reported) when
+  merging DB.83 (#2960): fails on unmodified main. The TODO thread could
+  not run it, so recheck on current main first. Do: reproduce; find
+  whether the galaxy tile now carries a comet, rogue planet or asteroid
+  field row (a change from the small-body composition work GEN.442 or
+  GEN.477, or a tile builder change) or whether the test's data changed;
+  fix the product or the test with the reason recorded. Done: the test
+  passes on main. Related: TEST.337, TEST.338, TEST.340 (the other
+  failures Lane 4 listed are already filed there). Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: TEST.337, TEST.338, TEST.340.
 
 ## USR: User accounts
 
