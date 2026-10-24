@@ -2747,22 +2747,21 @@
     "R9"
    ],
    "notes": "",
-   "replacement": "GEN.520",
    "labels": [
     "SNIPPET"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.520"
-   ],
+   "state": "partly verified",
+   "limit": "13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
    "group": "k",
-   "weight": "0.5 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+   "tunable": true,
+   "weight": "13/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
   },
   {
    "id": "k2",
@@ -2777,22 +2776,21 @@
     "R9"
    ],
    "notes": "Hale-Bopp CO 23 %, Hyakutake 18.2 % of H2O (READ)",
-   "replacement": "GEN.520",
    "labels": [
     "SNIPPET"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.520"
-   ],
+   "state": "partly verified",
+   "limit": "9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
    "group": "k",
-   "weight": "1/3 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+   "tunable": true,
+   "weight": "9/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
   },
   {
    "id": "k3",
@@ -2807,22 +2805,21 @@
     "R9"
    ],
    "notes": "the three weights sum to 0.93; normalised",
-   "replacement": "GEN.520",
    "labels": [
     "SNIPPET"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.520"
-   ],
+   "state": "partly verified",
+   "limit": "3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
    "group": "k",
-   "weight": "0.1 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+   "tunable": true,
+   "weight": "3/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
   },
   {
    "id": "k4",
@@ -2837,16 +2834,14 @@
     "R9"
    ],
    "notes": "",
-   "replacement": "GEN.520",
    "labels": [
     "READ",
     "SNIPPET"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.520"
-   ],
+   "state": "partly verified",
+   "limit": "geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
@@ -2857,11 +2852,12 @@
     0.1,
     0.3
    ],
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": "log10(0.12)",
-    "sigma": 0.5
+    "mu": "log10(0.109)",
+    "sigma": 0.51
    }
   },
   {
@@ -2877,30 +2873,25 @@
     "R9"
    ],
    "notes": "",
-   "replacement": "GEN.520",
    "labels": [
     "READ",
     "SNIPPET"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.520"
-   ],
+   "state": "partly verified",
+   "limit": "geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": "log10(0.03)",
-    "sigma": 0.6,
-    "range": [
-     "log10(0.005)",
-     "log10(0.23)"
-    ]
+    "mu": "log10(0.025)",
+    "sigma": 0.65
    }
   },
   {
@@ -2956,45 +2947,44 @@
    "research": [
     "R9"
    ],
-   "notes": "O2 presence probability unsourced Built from one measured comet (67P, Rubin 2019): a flagged stand-in until GEN.488. Ne is only an upper limit (below 5e-8) and is not drawn.",
-   "replacement": "GEN.520",
+   "notes": "O2 presence probability unsourced N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
    "labels": [
     "READ"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.520"
-   ],
+   "state": "partly verified",
+   "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
+   "tunable": true,
    "dists": {
     "CH4": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0034)",
-     "sigma": 0.6
+     "mu": "log10(0.0068)",
+     "sigma": 0.33
     },
     "C2H6": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0029)",
-     "sigma": 0.6
+     "mu": "log10(0.0041)",
+     "sigma": 0.33
     },
     "H2CO": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0032)",
-     "sigma": 0.6
+     "mu": "log10(0.0025)",
+     "sigma": 0.35
     },
     "H2S": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.011)",
-     "sigma": 0.6
+     "mu": "log10(0.0071)",
+     "sigma": 0.39
     },
     "N2": {
      "kind": "normal",

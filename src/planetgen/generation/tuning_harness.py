@@ -113,6 +113,8 @@ class Target:
         threshold (float or None): For a `proportion`, the draw has the property when it is above this (below it when `below`);
             None when the sampler returns truthy values.
         below (bool): The property is being under `threshold`.
+        category (str): For a `proportion` of a row that picks one of several named alternatives (a group of options): the draw
+            has the property when the sampler returns this name.
         subject (dict or None): `{"body_class": str, "quantities": {name: number}}`: the body the row is drawn for when the
             target is checked (`check_target`).
         role (str): `target` (tuned to) or `test-point` (reported, never tuned to).
@@ -136,6 +138,7 @@ class Target:
     scale: str = "linear"
     threshold: float | None = None
     below: bool = False
+    category: str = ""
     subject: dict | None = None
     role: str = "target"
     solar_system: str = ""
@@ -232,7 +235,7 @@ class TargetTable:
         if not ident or not isinstance(ident, str):
             raise TargetError("a target has no id")
         known = {"id", "row", "statistic", "kind", "value", "sigma", "counts", "n", "source", "label", "validity",
-                 "selection_model", "field", "scale", "threshold", "below", "subject", "role", "solar_system", "fill_id",
+                 "selection_model", "field", "scale", "threshold", "below", "category", "subject", "role", "solar_system", "fill_id",
                  "falsifier"}
         extra = sorted(set(raw) - known)
         if extra:
@@ -293,6 +296,9 @@ class TargetTable:
         below = raw.get("below", False)
         if not isinstance(below, bool) or (below and threshold is None):
             raise TargetError(f"target {ident}: below is true or false and needs a threshold")
+        category = raw.get("category", "")
+        if not isinstance(category, str) or (category and (raw["kind"] != "proportion" or threshold is not None)):
+            raise TargetError(f"target {ident}: a category is a name, belongs to a proportion and excludes a threshold")
         subject = raw.get("subject")
         if subject is not None:
             quantities = subject.get("quantities", {}) if isinstance(subject, dict) else None
@@ -315,7 +321,7 @@ class TargetTable:
                                   f"solar_system flag; flag it as a test-point or reword the statistic")
         return Target(id=ident, row=raw["row"], statistic=raw["statistic"], kind=raw["kind"], value=value, sigma=sigma,
                       source=raw["source"], label=raw["label"], counts=counts, n=n, validity=tuple(validity),
-                      selection_model=model, field=str(raw.get("field", "")), scale=scale, threshold=threshold, below=below, subject=subject, role=role, solar_system=flag, fill_id=raw.get("fill_id", ""),
+                      selection_model=model, field=str(raw.get("field", "")), scale=scale, threshold=threshold, below=below, category=category, subject=subject, role=role, solar_system=flag, fill_id=raw.get("fill_id", ""),
                       falsifier=raw.get("falsifier", ""))
 
     def __len__(self):
@@ -465,7 +471,7 @@ def values_of(target, items):
             if not target.field:
                 raise TargetError(f"target {target.id}: the sampler returns mappings and the target names no field")
             item = item[target.field]
-        if target.scale == "log10":
+        if target.scale == "log10" and not target.category:
             if not item > 0:
                 raise TargetError(f"target {target.id}: the draw {item!r} has no logarithm")
             item = math.log10(item)
@@ -491,7 +497,9 @@ def compare(target, values, *, quantities=None, count=None):
     values = values_of(target, values)
     if target.kind == "proportion":
         if count is None:
-            if target.threshold is None:
+            if target.category:
+                flags = [v == target.category for v in values]
+            elif target.threshold is None:
                 flags = [bool(v) for v in values]
             else:
                 flags = [(v < target.threshold) if target.below else (v > target.threshold) for v in values]
@@ -556,9 +564,16 @@ def simulate_and_compare(target, sampler, n=2000, quantities=None):
 
 
 def recipe_sampler(row_id, subject, recipes=None):
-    """A sampler for `simulate`: the continuous quantity of the `param` row `row_id` of the atmosphere recipes at `subject`."""
+    """A sampler for `simulate`: the continuous quantity of the `param` row `row_id` of the atmosphere recipes at `subject`, or
+    for a row of a group of options the id of the option the group draws."""
     if recipes is None:
         from planetgen.physics.atmosphere_recipes import RECIPES as recipes
+    entry = recipes.entry(row_id)
+    if entry.kind == "option":
+        def pick(_i):
+            row = recipes.draw_group(entry.group, subject).row
+            return row.id if row is not None else "none"
+        return pick
     return lambda _i: recipes.draw_value(row_id, subject)
 
 

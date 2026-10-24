@@ -198,6 +198,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.525, lane M, 2026-10-23):** the design-flag registry (`planetgen/physics/design_flags.py`, `docs/design/composition/design-flags.md`): rows m3, m4 and m11 are labelled design brackets, zero unless a life-stage or process flag allows them, never tuned; `check()` holds the recipes to that. Row m4 is now gated on the chemical life stage.
 
+**Built (GEN.520, lane M, 2026-10-24):** comet rows k1 to k5 and k7 (`docs/design/composition/comet-composition-tuning.md`): the coma classes take the printed counts 13, 9 and 3 of 25, CO2/H2O and CO/H2O take the geometric means and spreads of the comet database (the CO truncation is dropped), and four single-comet species take their population values. The harness gained the `category` field for the share of an option. The system offset and the distance-dependent coma class stay open.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.
