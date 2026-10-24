@@ -146,7 +146,7 @@ look; update the check only with a source for the new value.
 - `heavy`: the files that took over 100 s each in the 2026-10-14 baseline
   (`HEAVY_FILES` in `src/tests/areas.py`);
 - `area_web`, `area_api`, `area_db`, `area_generation`, `area_physics`,
-  `area_names`, `area_wiki`, `area_ops`: the part of planetGen a test file
+  `area_names`, `area_ops`: the part of planetGen a test file
   covers, by its file name (the rules are in `src/tests/areas.py`; no file is
   moved, and a name no rule matches is `area_other`).
 
@@ -361,7 +361,7 @@ Python 3.13).
   - `test_fuzz_sector_placement.py`: sector filling, spacing, explicit
     positions and save/load round trips.
   - `test_fuzz_names.py`: name generation, validation and uniqueness.
-  - `test_fuzz_text_rendering.py`: the Document renderers (text, Markdown, wikitext, HTML).
+  - `test_fuzz_text_rendering.py`: the Document renderers (text, Markdown, HTML).
   - `test_fuzz_utils_and_config.py`: physics helpers, formatting, config
     loading, logging and progress files.
   - `test_fuzz_cli.py`: every `planetgen` command and option.
@@ -429,11 +429,6 @@ marker has to come off: the fix can't land without its regression test.
 
 These skip unless you turn them on:
 
-- `test_wikiclient_wikijs_integration.py` and
-  `test_wikiclient_mediawiki_integration.py` talk to a real wiki: set
-  `PLANETGEN_TEST_WIKIJS_BASE_URL` and `PLANETGEN_TEST_WIKIJS_TOKEN`, or
-  `PLANETGEN_TEST_MEDIAWIKI_BASE_URL`, `PLANETGEN_TEST_MEDIAWIKI_USERNAME`
-  and `PLANETGEN_TEST_MEDIAWIKI_PASSWORD`.
 - `src/tests/test_budget_queries.py` is the big-galaxy query budget (TEST.133): `scripts/test.py budget`. It
   builds (once; kept between runs) a database of 2,000,000 systems on 150,000 sectors by cloning one real saved
   system, about eight minutes and 3 GB, named for its size and the schema version so a new schema builds it again.

@@ -12,7 +12,7 @@ switch, and "Deploying" below for how both are served by one app.
 Every read endpoint is fully implemented and unauthenticated (read-only,
 no account needed), except the admin stats endpoints. Every write endpoint
 (create/modify/delete a sector, system or facility, rename a body,
-publish to a wiki, generate a sector's neighborhood) requires an authenticated admin whose credentials aren't still the
+generate a sector's neighborhood) requires an authenticated admin whose credentials aren't still the
 seeded first login — see "Authentication" and "Write endpoints" below.
 
 ## Why Flask
@@ -126,8 +126,7 @@ connectivity to that specific schema rather than the default one.
   part of this sector, `false` for a neighbor's cloud) — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
   notes),
-  `wiki_url` (`null` until this sector has a wiki page — see "Wiki
-  publishing" below), and `stats` (PERF.11, GEN.44: the sector's
+  and `stats` (PERF.11, GEN.44: the sector's
   `sector_stats` row — `bright_level_sol`, `relative_density`,
   `expected_systems`, `actual_systems`, `actual_stars`,
   `mean_temperature_k`, `mean_luminosity_sol`, `mean_age_gy` and
@@ -206,9 +205,7 @@ connectivity to that specific schema rather than the default one.
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
   `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
-  `runaway_speed_kms`, `wikijs_url`/`mediawiki_url`
-  (each `null` until this system has been uploaded to that wiki — see
-  "Wiki publishing" below), `stars`, `planets` (each with
+  `runaway_speed_kms`, `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
   `habitable_class` (its class can carry life), `life_stage` — the furthest evolutionary milestone its timeline reached,
   or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
@@ -243,10 +240,10 @@ connectivity to that specific schema rather than the default one.
   fact whose value is a swatch (the clear-sky colour of its air under its
   star, [atmosphere-colour.md](atmosphere-colour.md); absent for an airless
   body and for a giant). Built from the database rows on each request.
-- `GET /api/systems/<id>/text?format=wikitext|markdown|text` — the same
+- `GET /api/systems/<id>/text?format=markdown|text` — the same
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
-  `format` defaults to `wikitext`; any other value is a `400`.
+  `format` defaults to `markdown`; any other value is a `400`.
 - `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
   `system`, `epoch`/`epoch_unix` (when the stored phases were last
   advanced, `null` if never), `stars`, `planets` (each with `moons`),
@@ -621,12 +618,6 @@ connectivity to that specific schema rather than the default one.
   those panels, the others answering `null`; `none` still answers `facets` and `autocomplete`. The Search page asks for each
   panel on its own, so a panel that hits the statement limit (a `504`) times out alone. A name search of one word
   shorter than the database's full-text minimum (usually 3 letters) matches the start of a name.
-- `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
-  each wiki backend has a `base_url` plus credentials configured
-  deployment-wide (`config.json`'s `wiki` section, or the matching
-  `PLANETGEN_WIKIJS_*`/`PLANETGEN_MEDIAWIKI_*` env vars — see
-  `docs/reference/config.md`) and so is offered as an upload target at all. Never
-  exposes any of those credentials, only the two booleans.
 - `GET /api/facilities/<id>` — one facility (see "Facilities" below).
 - `GET /api/systems/<id>/facilities` — `{"items": [...]}`, every facility
   on a star, planet, moon or asteroid belt in that system.
@@ -731,11 +722,8 @@ connectivity to that specific schema rather than the default one.
 ### Write (admin auth required — see "Authentication" and "Write endpoints")
 
 - `POST /api/sectors` — create a sector.
-- `PATCH /api/sectors/<id>` — modify a sector (including manually
-  setting/clearing its `wiki_url`).
+- `PATCH /api/sectors/<id>` — modify a sector.
 - `DELETE /api/sectors/<id>` — remove a sector.
-- `POST /api/sectors/<id>/wiki` — publish a sector-summary page to a
-  wiki (see "Wiki publishing" below).
 - `POST /api/sectors/<id>/generate-neighborhood` — generate every
   not-yet-generated sector within `radius_ly` (optional JSON body field,
   default 12 pc, at most the generator's own radius cap) of this
@@ -771,8 +759,6 @@ connectivity to that specific schema rather than the default one.
 - `PATCH /api/planets/<id>` — rename a planet.
 - `PATCH /api/moons/<id>` — rename a moon.
 - `DELETE /api/systems/<id>` — remove a system.
-- `POST /api/systems/<id>/wiki` — publish a system's already-generated
-  page to a wiki (see "Wiki publishing" below).
 - `POST /api/facilities` — add a starbase, colony or outpost (see
   "Facilities" below).
 - `DELETE /api/facilities/<id>` — remove a facility.
@@ -1327,14 +1313,12 @@ when) after the write actually succeeds.
 }
 ```
 
-`PATCH /api/sectors/<id>` (any non-empty subset) additionally accepts
-`wiki_url`:
+`PATCH /api/sectors/<id>` takes any non-empty subset of the same two fields:
 
 ```json
 {
   "name": "Voranthis Kelmoor",
-  "edge_ly": 11.5,
-  "wiki_url": "https://wiki.example.com/Voranthis_Kelmoor"
+  "edge_ly": 11.5
 }
 ```
 
@@ -1342,15 +1326,6 @@ when) after the write actually succeeds.
 - `edge_ly`: number, greater than 0 — the sector's cube edge, in
   light-years (matches `sectors.edge_mpc` after unit conversion; see
   `database-schema.md`).
-- `wiki_url` (`PATCH` only): an absolute `http://` or `https://` URL with
-  a host (at most 2048 characters; anything else, e.g. `javascript:` or
-  `data:`, is a `400`), or `null` to clear it back
-  to "no page yet" — the manual "set the wiki link directly" admin
-  affordance (the `/admin` page); the same column `POST
-  /api/sectors/<id>/wiki` (below) writes automatically on a successful
-  upload. Rejected as an unrecognized field on `POST` — a brand-new
-  sector has never been uploaded anywhere.
-
 An unrecognized field, a missing required field (`POST` only), a wrong
 type, or a value failing the constraints above is a `400`.
 
@@ -1414,7 +1389,7 @@ impossible `num_orbits`/class combination) is reported as a `400`, not a
 fields above except `name`; `{}` rolls a fresh system with defaults)
 replaces the system's stars, planets, moons, asteroid belts and comets
 with a newly generated set. The system keeps its id, name, sector,
-position, location and wiki links, and the new bodies are named from the
+position and location, and the new bodies are named from the
 system's name. A system in a galaxy sector keeps that sector's stellar
 population. It is a `409` when the system was built around a pre-placed
 bright star (its star is fixed by the galaxy scatter), or when facilities
@@ -1647,38 +1622,6 @@ ids first) and returns `{"facilities", "ratings"}`.
 `POST /api/facility-types/examples` (no body) adds the example type, "Research
 outpost", unless it is there already, and returns `{"added": [names]}`.
 
-### Wiki publishing — request body
-
-`POST /api/systems/<id>/wiki` and `POST /api/sectors/<id>/wiki` share the
-same request shape:
-
-```json
-{
-  "backend": "wikijs",
-  "path": "systems/voranthis-vesta"
-}
-```
-
-- `backend`: `"wikijs"` or `"mediawiki"` — required. `501` if that
-  backend has no `base_url`/credentials configured deployment-wide (see
-  `GET /api/wiki-config` and `docs/reference/config.md`'s `wiki.*` fields).
-- `path`: the target page's path/slug. **Required for `"wikijs"`**,
-  which addresses a page separately from its title (`src/planetgen/wiki/wikijs.py`);
-  accepted but ignored for `"mediawiki"`, whose title — the system's or
-  sector's own name — is its address instead (`src/planetgen/wiki/mediawiki.py`).
-
-A system publishes its page rendered from the database at upload time
-(Markdown to `wikijs`, wikitext to `mediawiki` — the same text `GET
-/api/systems/<id>/text` returns). A sector's page is likewise built fresh at upload time from its own current detail (name,
-edge, and a table of its systems — `routes.py`'s `_sector_wiki_content`).
-
-On success (`201`), both return the new page's
-`{"id", "path", "title", "url"}` and record `url` on the matching column
-(`star_systems.wikijs_url`/`mediawiki_url`, or `sectors.wiki_url`) — see
-`database-schema.md`'s "Rendered wiki text and URLs". `409` if a page
-already exists at that path/title (every `planetgen.wiki` backend is
-create-only); `502` if the wiki instance rejected the credentials or
-couldn't be reached.
 Editing individual generated bodies (stars/planets/moons/belts) isn't
 supported via this API beyond renaming them; regenerate the whole system
 in place instead (see "Regenerating a system" above).
@@ -1697,10 +1640,7 @@ for the job first, so they normally still answer in the same response
 `POST /api/systems`, `PATCH /api/systems/<id>` with `regenerate`,
 `POST /api/{planets,moons,belts}/<id>/regenerate`, `POST
 /api/phenomena/<type>/<id>/regenerate`, `POST /api/{planets,moons}/<id>/class`,
-`POST /api/systems/<id>/star`, `POST /api/systems/<id>/wiki` and `POST
-/api/sectors/<id>/wiki` (the worker reads the wiki's login details from the
-environment and `config.json` itself, so they never pass through Redis;
-`201` when it finishes in time). Deletes and plain renames stay in the
+and `POST /api/systems/<id>/star` (`201` when it finishes in time). Deletes and plain renames stay in the
 request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
 

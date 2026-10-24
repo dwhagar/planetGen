@@ -820,7 +820,7 @@ tbody tr:last-child td {
   display: none;
 }
 
-/* The Wikitext/Markdown code box above the list. */
+/* The Markdown code box above the list. */
 .code-view {
   margin-bottom: 1.25rem;
 }
@@ -1995,7 +1995,7 @@ a.btn:visited {
 }
 
 /* Flask pages: GET links styled as buttons (system/phenomenon pages'
-   "Navigate from here" and Wikitext/Markdown toggles). */
+   "Navigate from here" and the Markdown toggle). */
 a.btn,
 a.btn:visited {
   display: inline-block;
@@ -2242,15 +2242,6 @@ a.help-link:focus-visible {
   .page-actions.nav-row .nav-menu-galaxy {
     display: block;
   }
-}
-
-.wiki-backends {
-  border: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
 }
 
 .api-key-value {

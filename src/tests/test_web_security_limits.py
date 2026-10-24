@@ -10,8 +10,7 @@ Security hardening of the Flask app that needs no database:
 - behind a reverse proxy (`proxy_fix`), the client address and scheme
   come from `X-Forwarded-For`/`X-Forwarded-Proto`, and never when it's off;
 - a database that can't be opened is reported as a bare "database
-  unavailable" (the MySQL user/host/port only go to the log);
-- a sector's `wiki_url` must be an http(s) URL with a host.
+  unavailable" (the MySQL user/host/port only go to the log).
 
 The app is pointed at a closed port, so every page that needs data
 answers with an error page and `/api/health` with a 503 -- enough to
@@ -23,22 +22,10 @@ import logging
 import pytest
 
 from planetgen.web.app import create_app
-from planetgen.api.common import is_http_url
 from planetgen.api.config import Config
 from planetgen.util import settings as settings_model
 from planetgen.api.limiter import DEFAULT_PAGE_LIMITS
-from planetgen.api.common import ApiError
 from planetgen.api.routes import DATABASE_UNAVAILABLE
-from planetgen.api.schemas import SectorUpdate, parse_body
-
-
-def _wiki_url_accepted(url):
-    """Whether `PATCH /api/sectors/<id>` takes `url` as a `wiki_url`."""
-    try:
-        parse_body(SectorUpdate, {"wiki_url": url})
-    except ApiError:
-        return False
-    return True
 from planetgen.db.store import MySQLConfig
 
 _UNREACHABLE = MySQLConfig(host="127.0.0.1", port=1, user="secretuser", password="x", database="planetgen_x")
@@ -237,32 +224,6 @@ def test_read_routes_report_a_generic_503(path):
     assert response.status_code == 503
     assert response.get_json() == {"error": DATABASE_UNAVAILABLE}
     _assert_no_detail(response.get_data(as_text=True))
-
-
-# --- wiki_url ----------------------------------------------------------------
-
-_GOOD_URLS = ["https://wiki.example.com/Sector_1", "http://wiki.local/x?y=1#z", "HTTPS://Wiki.Example.com",
-              "https://[2001:db8::1]:8443/page"]
-_BAD_URLS = ["javascript:alert(1)", "JavaScript:alert(1)", "data:text/html,<script>alert(1)</script>",
-             "vbscript:x", "ftp://wiki.example.com/x", "//wiki.example.com/x", "/relative/path", "https://",
-             "https:///path", "http://:80/", "wiki.example.com", " https://wiki.example.com",
-             "https://wiki.example.com/a b", "java\tscript:alert(1)", "https://x.com:99999/", ""]
-
-
-@pytest.mark.parametrize("url", _GOOD_URLS)
-def test_http_urls_with_a_host_are_accepted(url):
-    assert is_http_url(url)
-    assert _wiki_url_accepted(url)
-
-
-@pytest.mark.parametrize("url", _BAD_URLS)
-def test_other_wiki_urls_are_refused(url):
-    assert not is_http_url(url)
-    assert not _wiki_url_accepted(url)
-
-
-def test_clearing_the_wiki_url_is_still_allowed():
-    assert _wiki_url_accepted(None)
 
 
 def test_an_unreachable_server_with_db_param_is_a_generic_503():

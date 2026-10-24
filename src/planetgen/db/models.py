@@ -543,24 +543,6 @@ facility_types = sa.Table(
 )
 
 
-galaxy_block_stats = sa.Table(
-    'galaxy_block_stats',
-    metadata,
-    sa.Column('m', mysql.INTEGER(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
-    sa.Column('systems', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('expected_systems', mysql.DOUBLE(), nullable=False),
-    sa.Column('stars', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
-    sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
-    sa.Column('habitable_worlds', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
-    mysql_engine="InnoDB",
-)
-
-
 galaxy_block_lights = sa.Table(
     'galaxy_block_lights',
     metadata,
@@ -579,6 +561,24 @@ galaxy_block_lights = sa.Table(
     sa.Column('point_lpx', mysql.DOUBLE(), nullable=False),
     sa.Column('point_lpy', mysql.DOUBLE(), nullable=False),
     sa.Column('point_lpz', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_block_stats = sa.Table(
+    'galaxy_block_stats',
+    metadata,
+    sa.Column('m', mysql.INTEGER(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('systems', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('expected_systems', mysql.DOUBLE(), nullable=False),
+    sa.Column('stars', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
+    sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('habitable_worlds', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -785,8 +785,8 @@ habitable_systems = sa.Table(
     sa.Column('galaxy_x_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('galaxy_y_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('galaxy_z_pc', mysql.DOUBLE(), nullable=False),
-    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_habitable_systems_system', ondelete='CASCADE'),
     sa.Index('idx_habitable_systems_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_habitable_systems_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 
@@ -2187,7 +2187,6 @@ sectors = sa.Table(
     sa.Column('shell_index', mysql.INTEGER(), nullable=True),
     sa.Column('band_index', mysql.INTEGER(), nullable=True),
     sa.Column('wedge_index', mysql.INTEGER(), nullable=True),
-    sa.Column('wiki_url', sa.String(2048), nullable=True),
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('modified_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)'), nullable=False),
     sa.Column('uid', mysql.BIGINT(unsigned=True), nullable=True),
@@ -2335,8 +2334,6 @@ star_systems = sa.Table(
     sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
     sa.Column('next_update_due', mysql.DOUBLE(), nullable=True),
     sa.Column('schema_version', mysql.INTEGER(), server_default=sa.text("'1'"), nullable=False),
-    sa.Column('mediawiki_url', sa.String(2048), nullable=True),
-    sa.Column('wikijs_url', sa.String(2048), nullable=True),
     sa.Column('inside_nebula_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('inside_remnant_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),

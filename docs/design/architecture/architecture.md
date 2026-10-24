@@ -317,7 +317,6 @@ One description of a star system for every output that shows one (see [system-de
 | [`quantity.py`](../../../src/planetgen/describe/quantity.py) | Writes a Document's inline text and quantities as a string (docs/design/architecture/system-description.md, section 4). |
 | [`render.py`](../../../src/planetgen/describe/render.py) | The walk the plain-string renderers share (docs/design/architecture/system-description.md, section 4): a Document's sections in order, each as a heading, its blocks and its child sections. |
 | [`text.py`](../../../src/planetgen/describe/text.py) | A Document as plain text for a terminal, with no markup (docs/design/architecture/system-description.md, section 4). |
-| [`wikitext.py`](../../../src/planetgen/describe/wikitext.py) | A Document as MediaWiki text, on request (docs/design/architecture/system-description.md, section 4). |
 
 #### src/planetgen/util/
 
@@ -330,7 +329,7 @@ Helpers every package can use.
 | [`generator_epoch.py`](../../../src/planetgen/util/generator_epoch.py) | The generator epoch (OPS.56): the integer a PR bumps when it changes what a seed generates, read from `src/tests/golden/epochs.json`. |
 | [`detmath.py`](../../../src/planetgen/util/detmath.py) | Maths that gives the same bits on every Python and machine (GEN.135): `hypot`, `dist`, `fsum` and a BLAS-free `matmul`, in place of `math.hypot`, `math.dist` and `@`. |
 | [`draw.py`](../../../src/planetgen/util/draw.py) | Every random draw generation makes goes through here (GEN.56; see docs/design/generation/reproducible-galaxies.md, section 5). |
-| [`format.py`](../../../src/planetgen/util/format.py) | The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's wikitext and Markdown and for the web pages. |
+| [`format.py`](../../../src/planetgen/util/format.py) | The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's Markdown and for the web pages. |
 | [`ladders.py`](../../../src/planetgen/util/ladders.py) | The data behind every measurement the site shows (UX.23): for each quantity a ladder of units, smallest first, and the rule for which one a value is shown in. |
 | [`log.py`](../../../src/planetgen/util/log.py) | A single, shared logging channel for `planetgen` and every planetGen module -- everything routes through here instead of bare `print()` calls, so `--debug`/`--quiet`/`--silent` behave consistently everywhere. |
 | [`logpaths.py`](../../../src/planetgen/util/logpaths.py) | The debug switch and the two log locations, read straight from `config.json` (or the environment) with the standard library alone. |
@@ -426,19 +425,6 @@ The command-line tools, each run as `python3 -m planetgen.cli.<name>` (the gener
 | [`warm.py`](../../../src/planetgen/cli/warm.py) | `planetgen warm` (PERF.127): builds the list of the cache-warming commands (one per family) for the wrapper to run, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for the Galaxy Map, the lists, the pages and the search. |
 | [`worker.py`](../../../src/planetgen/cli/worker.py) | One RQ worker for planetGen's queues, at the lowered priority generation workers always run at. |
 
-#### src/planetgen/wiki/
-
-Publishes a page to Wiki.js or MediaWiki behind one `WikiClient` object, used by the API's "Upload to Wiki" routes.
-
-| Path | What it holds |
-|---|---|
-| [`__init__.py`](../../../src/planetgen/wiki/__init__.py) | A single library for publishing pages to either a Wiki.js or a MediaWiki instance, behind one `WikiClient` object -- see `client.py`'s module docstring for the full design, and `wikijs.py`/`mediawiki.py` for each backend's own notes. |
-| [`base.py`](../../../src/planetgen/wiki/base.py) | Shared result type and backend interface every `planetgen.wiki` backend implements -- `client.WikiClient` is a thin dispatcher over whichever one of these it was constructed with. |
-| [`client.py`](../../../src/planetgen/wiki/client.py) | `WikiClient`: constructed once per wiki target, a thin dispatcher over the backend named at construction (`wikijs` or `mediawiki`); callers use `create_page`. |
-| [`exceptions.py`](../../../src/planetgen/wiki/exceptions.py) | Exception hierarchy shared by every `planetgen.wiki` backend. |
-| [`mediawiki.py`](../../../src/planetgen/wiki/mediawiki.py) | `MediaWikiBackend`: publishes pages to a MediaWiki instance's Action API (a bot password); standard library only. |
-| [`wikijs.py`](../../../src/planetgen/wiki/wikijs.py) | `WikiJsBackend`: a small GraphQL client for publishing pages to a [Wiki.js](https://js.wiki/) instance -- one of two `planetgen.wiki` backends (see `mediawiki.py` for the other), dispatched to by `client.WikiClient`. |
-
 #### src/planetgen/api/
 
 The JSON API under `/api` (see [api.md](../../reference/api.md)).
@@ -459,7 +445,7 @@ The JSON API under `/api` (see [api.md](../../reference/api.md)).
 | [`loginguard.py`](../../../src/planetgen/api/loginguard.py) | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in Redis next to Flask-Limiter's counts, in memory only for a `memory://` storage or while Redis is down), and the log line and audit row for each refused sign-in. |
 | [`naming.py`](../../../src/planetgen/api/naming.py) | Names from IDs in the API's answers (GEN.71). |
 | [`population.py`](../../../src/planetgen/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
-| [`routes.py`](../../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, wiki upload, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
+| [`routes.py`](../../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
 | [`schemas.py`](../../../src/planetgen/api/schemas.py) | Request bodies as Pydantic models (ADM.21). |
 | [`version.py`](../../../src/planetgen/api/version.py) | The API version (API.22): one sequential integer, like the database schema number. |
 | [`workqueue.py`](../../../src/planetgen/api/workqueue.py) | Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`): the queue's state (workers active, the server's load, the lease, the whole-queue pause), the job trees (ADM.12, `planetgen/queue/work.py`) and the controls on them. |
@@ -471,7 +457,7 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | Path | What it holds |
 |---|---|
 | [`__init__.py`](../../../src/planetgen/web/__init__.py) | The pages blueprint and `init_app`: installs the in-process transport, the CSRF check and Jinja settings, builds the class reference catalog and registers every page module. |
-| [`admin_pages.py`](../../../src/planetgen/web/admin_pages.py) | `/login`, `/logout`, `/account`, `/admin` (API keys, wiki links), `/admin/stats`. |
+| [`admin_pages.py`](../../../src/planetgen/web/admin_pages.py) | `/login`, `/logout`, `/account`, `/admin` (API keys), `/admin/stats`. |
 | [`app.py`](../../../src/planetgen/web/app.py) | `create_app`: the Flask application factory. Registers the API blueprints and the page blueprint, the rate limiter, proxy fix, security headers and error handlers (including the 503 BUSY and 504 QUERY_TIMEOUT answers). |
 | [`class_pages.py`](../../../src/planetgen/web/class_pages.py) | `/classes`, `/classes/<type>` and `/classes/<type>/<code>`, from `planetgen/web/lib/classref.py`; `class_url` for the pages that link a class. |
 | [`csrf.py`](../../../src/planetgen/web/csrf.py) | Signed double-submit CSRF protection for every page POST. |
@@ -491,7 +477,7 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | [`population_pages.py`](../../../src/planetgen/web/population_pages.py) | The population pages (POP.1 to POP.4), read from the population API (`api/population.py`, schema v44): |
 | [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10): `/admin/queue` lists the job trees newest first, `/admin/queue/<id>` shows one. |
 | [`searchpage.py`](../../../src/planetgen/web/searchpage.py) | Search page request parsing and URL building. |
-| [`sector_page.py`](../../../src/planetgen/web/sector_page.py) | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (wiki upload, generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
+| [`sector_page.py`](../../../src/planetgen/web/sector_page.py) | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
 | [`system_facilities.py`](../../../src/planetgen/web/system_facilities.py) | The system page's Facilities panel and the admin facility form: `preview` (placement rules and orbit, nothing saved), `save` (`POST /api/facilities`) and `remove` (`DELETE /api/facilities/<id>`). |
 | [`system_page.py`](../../../src/planetgen/web/system_page.py) | `/admin/generate/system`: a one-off system shown on the page, never saved (runs `planetgen system --output`). |
 | [`system_pages.py`](../../../src/planetgen/web/system_pages.py) | `/system/<id>`, `/phenomena`, `/phenomenon/<type>/<id>`. Links class labels to `/classes`; hands a facility POST to `system_facilities.py`. |

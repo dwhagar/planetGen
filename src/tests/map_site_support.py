@@ -242,7 +242,7 @@ def sector_detail(sector_id=SECTOR_ID):
     return {
         "id": sector_id, "name": name, "edge_mpc": EDGE_PC * 1000.0, "edge_ly": pc_to_ly(EDGE_PC),
         "shell_index": shell, "band_index": band, "wedge_index": wedge, "placed": True,
-        "center_x_pc": cx, "center_y_pc": cy, "center_z_pc": cz, "wiki_url": None,
+        "center_x_pc": cx, "center_y_pc": cy, "center_z_pc": cz,
         "systems": systems,
         "phenomena": [dict(p) for p in PHENOMENA] if sector_id == SECTOR_ID else [],
         "neighbors": [],

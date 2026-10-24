@@ -62,7 +62,6 @@ from hypothesis import strategies as st
 
 from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
-from planetgen.api.common import is_http_url
 from planetgen.api.config import Config
 from planetgen.db import store
 from tests.publicids import pid, pids
@@ -122,7 +121,7 @@ SIZE_PARAMS = {f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bou
 # route ignores can't crash another.
 PARAM_NAMES = sorted({
     *PAGE_PARAMS, *OFFSET_PARAMS, *SIZE_PARAMS,
-    "limit", "db", "next", "format", "code", "wiki", "quadrant", "tiles", "density", "stamp", "since",
+    "limit", "db", "next", "format", "code", "quadrant", "tiles", "density", "stamp", "since",
     "from", "to", "from_kind", "to_kind", "from_type", "to_type", "from_id", "to_id", "from_sector",
     "to_sector", "radius", "star_type", "sector_id", "shell", "band", "wedge", "x", "y", "z", "q",
     "sector_q", "system_q", "star_q", "planet_q", "moon_q", "type", "spectral", "luminosity", "class",
@@ -381,11 +380,7 @@ def check_response(response, path, sent=()):
     """
     body = response.get_data(as_text=True)
     where = f"{response.status_code} from {path!r}: {body[:400]!r}"
-    # The one deliberate 5xx: `POST .../wiki` answers 501 while no wiki
-    # backend is configured (as in this test run).
-    unconfigured_wiki = (response.status_code == 501 and path.endswith("/wiki")
-                         and "not configured" in body)
-    assert response.status_code < 500 or unconfigured_wiki, where
+    assert response.status_code < 500, where
     assert not _TRACEBACK.search(body), where
     if _is_json(response):
         try:
@@ -730,7 +725,7 @@ def test_api_databases_never_lists_system_schemas(app):
 
 
 @pytest.mark.parametrize("params,status", [
-    ({"format": "pdf"}, 400), ({"format": ""}, 400), ({"format": "markdown"}, 200), ({"format": "wikitext"}, 200),
+    ({"format": "pdf"}, 400), ({"format": ""}, 400), ({"format": "markdown"}, 200), ({"format": "wikitext"}, 400),
     ({}, 200), ({"format": "MARKDOWN"}, 400), ({"format": XSS_MARKER}, 400),
 ])
 def test_api_system_text_format(app, fuzz_db, params, status):
@@ -829,7 +824,7 @@ def test_page_numbers_clamp(app, admin_client, fuzz_db, monkeypatch, path, param
 
 form_body = st.dictionaries(
     st.one_of(st.sampled_from(["action", "username", "password", "next", "label", "key_id", "sector_id",
-                               "wiki_url", "keys_page", "backend", "path", "job", "format", "text", "title",
+                               "keys_page", "backend", "path", "job", "format", "text", "title",
                                "current_password", "new_username", "new_password", "star_type", "seed"]),
               hostile_text),
     param_value,
@@ -965,9 +960,7 @@ def test_regression_csrf_non_ascii_token_is_refused_not_500(app, token):
 @given(body=form_body)
 @example(body={"action": "create_key", "label": "x"})
 @example(body={"action": "revoke_key", "key_id": "1"})
-@example(body={"action": "set_sector_wiki_url", "sector_id": "1", "wiki_url": "http://x"})
 @example(body={"action": "cancel", "job": "../../etc"})
-@example(body={"action": "upload_wiki", "backend": "wikijs"})
 @example(body={"action": "galaxy", "format": "markdown", "text": XSS_MARKER})
 def test_anonymous_page_posts_with_garbage_bodies(app, fuzz_db, rule, body):
     """Past CSRF, an anonymous POST to an admin form bounces to /login
@@ -1008,9 +1001,6 @@ _ADMIN_FUZZ_POSTS = ["/admin", "/account", "/sector/{sector}", "/system/{system}
 @example(body={"action": "revoke_key", "key_id": "9" * 40})
 @example(body={"action": "revoke_key", "key_id": "-1"})
 @example(body={"action": "revoke_key", "key_id": "١"})
-@example(body={"action": "set_sector_wiki_url", "sector_id": str(2 ** 63), "wiki_url": "x"})
-@example(body={"action": "set_sector_wiki_url", "sector_id": "9" * 40})
-@example(body={"action": "set_sector_wiki_url", "sector_id": "-1", "wiki_url": XSS_MARKER})
 @example(body={"action": "create_key", "label": XSS_MARKER})
 @example(body={"action": "create_key", "label": "l" * 129})  # B9
 @example(body={"keys_page": "9" * 40, "action": "nope"})
@@ -1070,10 +1060,8 @@ _MISSING_ID = 2 ** 40
 _ADMIN_WRITES = [
     ("PATCH", "/api/sectors/{missing}"), ("DELETE", "/api/sectors/{missing}"), ("PATCH", "/api/systems/{missing}"),
     ("DELETE", "/api/systems/{missing}"), ("POST", "/api/sectors/{missing}/generate-neighborhood"),
-    ("POST", "/api/sectors/{missing}/wiki"), ("POST", "/api/systems/{missing}/wiki"),
     ("DELETE", "/api/auth/api-keys/{missing}"), ("PATCH", "/api/sectors/{sector}"), ("PATCH", "/api/systems/{system}"),
-    ("POST", "/api/sectors"), ("POST", "/api/auth/api-keys"), ("POST", "/api/sectors/{sector}/wiki"),
-    ("POST", "/api/systems/{system}/wiki"),
+    ("POST", "/api/sectors"), ("POST", "/api/auth/api-keys"),
 ]
 
 _json_scalar = st.one_of(
@@ -1085,7 +1073,7 @@ _json_scalar = st.one_of(
     st.none(), st.booleans(), st.lists(st.integers(), max_size=3),
 )
 admin_json_body = st.one_of(
-    st.dictionaries(st.one_of(st.sampled_from(["name", "edge_ly", "wiki_url", "label", "backend", "path",
+    st.dictionaries(st.one_of(st.sampled_from(["name", "edge_ly", "label", "backend", "path",
                                                "radius_ly", "star_type", "num_orbits", "markdown"]),
                               hostile_text),
                     _json_scalar, max_size=4),
@@ -1102,8 +1090,6 @@ admin_json_body = st.one_of(
 @example(body={"name": "ok", "edge_ly": -1})
 @example(body={"name": "ok", "edge_ly": True})
 @example(body={"name": "ok", "edge_ly": "5"})
-@example(body={"wiki_url": ""})
-@example(body={"backend": "wikijs", "path": "../../x"})
 @example(body={"label": ""})
 @example(body={"radius_ly": 0})
 @example(body={"radius_ly": True})
@@ -1114,12 +1100,8 @@ admin_json_body = st.one_of(
 @example(body={"name": "n", "edge_ly": 1e308})  # B10
 @example(body={"name": "n", "edge_ly": 10 ** 400})  # B10
 @example(body={"name": "x" * 256, "edge_ly": 5})  # B9
-@example(body={"wiki_url": "https://x/" + "y" * 2048})  # B9
 @example(body={"label": "l" * 129})  # B9
 @example(body={"label": 1.0})  # A1
-@example(body={"wiki_url": "javascript:alert(document.cookie)"})  # security #46
-@example(body={"wiki_url": "data:text/html,<script>alert(1)</script>"})  # security #46
-@example(body={"wiki_url": "//evil.example/x"})  # security #46
 def test_admin_api_writes_with_garbage_bodies(admin_client, fuzz_db, method, path, body):
     """The admin's API writes against missing ids, or with bodies that
     can't be valid: a JSON 4xx, never a 5xx. (Garbage that happens to be
@@ -1130,16 +1112,11 @@ def test_admin_api_writes_with_garbage_bodies(admin_client, fuzz_db, method, pat
     check_response(response, path)
     assert _is_json(response)
     if str(_MISSING_ID) in path:
-        # (501: the unconfigured-wiki answer comes before the id lookup.)
-        assert response.status_code in (400, 404, 501), f"{method} {path} {body!r} -> {response.status_code}"
+        assert response.status_code in (400, 404), f"{method} {path} {body!r} -> {response.status_code}"
     if method == "POST" and path == "/api/sectors" and response.status_code == 201:
         assert admin_client.delete(f"/api/sectors/{response.get_json()['id']}").status_code == 200
     if method == "POST" and path == "/api/sectors":
         assert response.status_code in (201, 400)
-    if (isinstance(body, dict) and body.get("wiki_url") is not None
-            and not (isinstance(body["wiki_url"], str) and is_http_url(body["wiki_url"]))):
-        # Only an http(s) URL with a host is ever stored (security #46).
-        assert response.status_code >= 400, f"{method} {path} {body!r} -> {response.status_code}"
 
 
 def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
@@ -1496,7 +1473,6 @@ def test_regression_sector_edge_ly_non_finite_is_a_400(admin_client, fuzz_db, me
 @pytest.mark.parametrize("method,path,body", [
     ("POST", "/api/sectors", {"name": "x" * 256, "edge_ly": 5}),
     ("PATCH", "/api/sectors/{sector}", {"name": "x" * 256}),
-    ("PATCH", "/api/sectors/{sector}", {"wiki_url": "https://x/" + "y" * 2048}),
     ("PATCH", "/api/systems/{system}", {"name": "x" * 256}),
     ("POST", "/api/auth/api-keys", {"label": "l" * 129}),
     ("POST", "/admin", None),

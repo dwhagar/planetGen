@@ -117,9 +117,6 @@ class FakeAuth:
     def auth_revoke_api_key(self, cookie_header, key_id):
         self.calls.append(("auth_revoke_api_key", cookie_header, key_id))
 
-    def admin_set_sector_wiki_url(self, cookie_header, db, sector_id, wiki_url):
-        self.calls.append(("admin_set_sector_wiki_url", db, sector_id, wiki_url))
-
     def admin_stats(self, cookie_header, db):
         self.calls.append(("admin_stats", db))
         stats = _stats()
@@ -172,7 +169,7 @@ class FakeAuth:
 
 
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
-          "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
+          "auth_create_api_key", "auth_revoke_api_key", "admin_stats",
           "admin_duplicate_names", "admin_login_failures", "admin_lockouts", "admin_generation_stats",
           "admin_reset_generation_stats", "admin_lift_lockout", "auth_totp_status", "admin_naming_key", "admin_set_naming_key")
 

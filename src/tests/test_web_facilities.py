@@ -69,7 +69,7 @@ def _system():
         "id": 5, "name": "Sol", "sector_id": None, "quadrant": None, "location": None,
         "is_binary": 0, "binary_type": None, "binary_configuration": None,
         "binary_mutual_position_x_km": None, "binary_mutual_position_y_km": None,
-        "binary_mutual_position_z_km": None, "wikijs_url": None, "mediawiki_url": None,
+        "binary_mutual_position_z_km": None,
         "stars": [{"id": 1, "role": "single", "name": "Sol", "star_type": "G2V", "mass_kg": 1.989e30,
                    "radius_km": 696_000.0, "temperature_k": 5778.0, "luminosity_w": 3.828e26,
                    "heliosphere_radius_km": 120 * AU_KM}],
@@ -149,9 +149,6 @@ class FakeData:
         self.calls.append(("get_system_facilities", db, system_id))
         return self.facilities
 
-    def get_wiki_config(self):
-        return {"wikijs": False, "mediawiki": False}
-
     def auth_me(self, cookie_header):
         return self.admin
 
@@ -171,7 +168,7 @@ class FakeData:
         self.calls.append(("delete", db, facility_id))
 
 
-_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_wiki_config", "auth_me",
+_FAKED = ("get_system", "get_system_description", "get_system_facilities", "auth_me",
           "get_facility_orbit", "create_facility", "delete_facility", "get_facility_types", "get_system_owner",
           "update_facility", "suggest_facility_ratings")
 

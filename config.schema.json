@@ -210,69 +210,6 @@
       "title": "Jobs",
       "type": "object"
     },
-    "MediaWiki": {
-      "properties": {
-        "base_url": {
-          "default": "",
-          "description": "The MediaWiki API entry point's directory (everything up to, not including, api.php). Empty means it isn't offered as an upload target.",
-          "title": "Base Url",
-          "type": "string",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-env": "PLANETGEN_MEDIAWIKI_BASE_URL",
-          "x-group": "wiki",
-          "x-label": "MediaWiki address",
-          "x-min_role": "owner",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-slider": null,
-          "x-summary": "The MediaWiki API folder, up to but not including api.php; empty means it is not offered."
-        },
-        "password": {
-          "default": "",
-          "description": "That Bot Password.",
-          "title": "Password",
-          "type": "string",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-env": "PLANETGEN_MEDIAWIKI_PASSWORD",
-          "x-group": "wiki",
-          "x-label": "MediaWiki bot password",
-          "x-min_role": "owner",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": true,
-          "x-slider": null,
-          "x-summary": "That bot password; it is never shown."
-        },
-        "username": {
-          "default": "",
-          "description": "A Bot Password user name, in User@BotName form.",
-          "title": "Username",
-          "type": "string",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-env": "PLANETGEN_MEDIAWIKI_USERNAME",
-          "x-group": "wiki",
-          "x-label": "MediaWiki bot user",
-          "x-min_role": "owner",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-slider": null,
-          "x-summary": "A bot password user name, in User@BotName form."
-        }
-      },
-      "title": "MediaWiki",
-      "type": "object"
-    },
     "MySQL": {
       "properties": {
         "database": {
@@ -902,7 +839,7 @@
       "properties": {
         "interactive_workers": {
           "default": 1,
-          "description": "How many workers are kept for short jobs: edits, estimates, wiki uploads and slow page answers. They are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run at a higher priority than the bulk workers.",
+          "description": "How many workers are kept for short jobs: edits, estimates and slow page answers. They are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run at a higher priority than the bulk workers.",
           "maximum": 64,
           "minimum": 1,
           "title": "Interactive Workers",
@@ -1767,71 +1704,6 @@
       },
       "title": "Web",
       "type": "object"
-    },
-    "Wiki": {
-      "properties": {
-        "mediawiki": {
-          "$ref": "#/$defs/MediaWiki",
-          "default": {
-            "base_url": "",
-            "password": "",
-            "username": ""
-          }
-        },
-        "wikijs": {
-          "$ref": "#/$defs/WikiJs",
-          "default": {
-            "api_token": "",
-            "base_url": ""
-          }
-        }
-      },
-      "title": "Wiki",
-      "type": "object"
-    },
-    "WikiJs": {
-      "properties": {
-        "api_token": {
-          "default": "",
-          "description": "A Wiki.js Personal API Token (Admin, API Access).",
-          "title": "Api Token",
-          "type": "string",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-env": "PLANETGEN_WIKIJS_API_TOKEN",
-          "x-group": "wiki",
-          "x-label": "Wiki.js API token",
-          "x-min_role": "owner",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": true,
-          "x-slider": null,
-          "x-summary": "A Wiki.js personal API token; it is never shown."
-        },
-        "base_url": {
-          "default": "",
-          "description": "The Wiki.js instance's root URL. Empty means it isn't offered as an upload target.",
-          "title": "Base Url",
-          "type": "string",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-env": "PLANETGEN_WIKIJS_BASE_URL",
-          "x-group": "wiki",
-          "x-label": "Wiki.js address",
-          "x-min_role": "owner",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-slider": null,
-          "x-summary": "The Wiki.js site's root address; empty means it is not offered as an upload target."
-        }
-      },
-      "title": "WikiJs",
-      "type": "object"
     }
   },
   "description": "Every `config.json` option.",
@@ -2254,20 +2126,6 @@
         "theme_color_dark": "#14151e",
         "theme_color_light": "#f6f7fb",
         "title_template": "{title} - {site_name}"
-      }
-    },
-    "wiki": {
-      "$ref": "#/$defs/Wiki",
-      "default": {
-        "mediawiki": {
-          "base_url": "",
-          "password": "",
-          "username": ""
-        },
-        "wikijs": {
-          "api_token": "",
-          "base_url": ""
-        }
       }
     }
   },

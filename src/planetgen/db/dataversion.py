@@ -223,7 +223,7 @@ def tags_for_change(kind, sector_id=None, system_id=None, phenomenon=None):
 
 
 CHANGES = {
-    "sector-edited": "a sector's own fields (a rename, a wiki link)",
+    "sector-edited": "a sector's own fields (a rename)",
     "sector-contents": "a sector's systems and phenomena were deleted or regenerated (its own and its systems' pages)",
     "sector-set": "a sector was added or deleted",
     "system-edited": "a system's own fields, or a star, planet, moon or facility in it",

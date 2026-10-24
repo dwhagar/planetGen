@@ -467,7 +467,7 @@ def get_system(db, system_id):
 
 def get_system_text(db, system_id, fmt):
     """Returns `GET /api/systems/<id>/text`'s `{id, format, content}` --
-    the full wiki page as `fmt` (`"wikitext"` or `"markdown"`)."""
+    the system's description as `fmt` (`"markdown"` or `"text"`)."""
     _require_db(db)
     return _request(f"/systems/{system_id}/text", {"db": db, "format": fmt})
 
@@ -1287,78 +1287,6 @@ def admin_duplicate_names(cookie_header, db, limit=None, offset=None):
     query = _build_query({"db": db, "limit": limit, "offset": offset})
     body, _set_cookie_headers = _auth_request("GET", f"/admin/duplicate-names?{query}", cookie_header=cookie_header)
     return body
-
-
-# ---------------------------------------------------------------------
-# Wiki publishing (schema.sql's "v22" header note) -- POST .../wiki, and
-# GET /api/wiki-config so a page knows which backend(s), if any, to offer
-# before even showing an "Upload to Wiki" form.
-# ---------------------------------------------------------------------
-
-def get_wiki_config():
-    """Returns `GET /api/wiki-config`'s `{"wikijs": bool, "mediawiki":
-    bool}` -- which backend(s) are configured deployment-wide, so a page
-    knows whether to offer an "Upload to Wiki" choice at all (and which
-    backend(s)) before rendering one."""
-    return _request("/wiki-config")
-
-
-def upload_system_to_wiki(cookie_header, db, system_id, backend, path=None):
-    """
-    `POST /api/systems/<id>/wiki` -- publishes the system's already-
-    generated page to `backend`, and records the resulting URL on
-    `star_systems.wikijs_url`/`mediawiki_url`.
-
-    Args:
-        backend (str): `"wikijs"` or `"mediawiki"`.
-        path (str, optional): The target page's path/slug -- required for
-            `"wikijs"` (which addresses a page separately from its title);
-            ignored for `"mediawiki"` (its title -- the system's own name
-            -- is its address).
-
-    Returns:
-        dict: The new page's `{"id", "path", "title", "url"}`, or, when the
-            upload was queued and is still running (PERF.24),
-            `{"status": "accepted", "job_id", "status_url"}`.
-
-    Raises:
-        ApiError: `status_code == 409` if a page already exists at the
-            target path/title (`system.py` should show this as an inline
-            "already uploaded" message, not a generic error);
-            `status_code == 501` if `backend` isn't configured
-            deployment-wide (see `get_wiki_config`).
-    """
-    _require_db(db)
-    url_path = f"/systems/{system_id}/wiki?{_build_query({'db': db})}"
-    body = {"backend": backend}
-    if path:
-        body["path"] = path
-    result, _set_cookie_headers = _auth_request("POST", url_path, json_body=body, cookie_header=cookie_header)
-    return result
-
-
-def upload_sector_to_wiki(cookie_header, db, sector_id, backend, path=None):
-    """`POST /api/sectors/<id>/wiki` -- same shape/errors as
-    `upload_system_to_wiki`, but for a freshly generated sector-summary
-    page (sectors have no persisted rendered page of their own), recording
-    the result on `sectors.wiki_url`."""
-    _require_db(db)
-    url_path = f"/sectors/{sector_id}/wiki?{_build_query({'db': db})}"
-    body = {"backend": backend}
-    if path:
-        body["path"] = path
-    result, _set_cookie_headers = _auth_request("POST", url_path, json_body=body, cookie_header=cookie_header)
-    return result
-
-
-def admin_set_sector_wiki_url(cookie_header, db, sector_id, wiki_url):
-    """`PATCH /api/sectors/<id>` `{"wiki_url": ...}` -- the admin "manually
-    set the wiki link" affordance (`html/admin.py`), no upload involved.
-    `wiki_url` may be `None`/empty to clear it back to "no page yet"."""
-    _require_db(db)
-    url_path = f"/sectors/{sector_id}?{_build_query({'db': db})}"
-    body = {"wiki_url": wiki_url or None}
-    _auth_request("PATCH", url_path, json_body=body, cookie_header=cookie_header)
 
 
 # ---------------------------------------------------------------------

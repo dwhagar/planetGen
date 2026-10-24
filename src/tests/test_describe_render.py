@@ -1,9 +1,9 @@
 # tests/test_describe_render.py
 
 """
-`planetgen.describe` renderers (API.25): the Document written as text, Markdown and wikitext.
+`planetgen.describe` renderers (API.25): the Document written as text and Markdown.
 
-All three carry the same facts and sentences as the Document, a power of ten is marked the page
+Both carry the same facts and sentences as the Document, a power of ten is marked the page
 format's way, and the plain text has no markup at all.
 """
 
@@ -42,8 +42,8 @@ def _facts(document):
                 yield section, block
 
 
-def test_the_formats_are_the_three_renderers():
-    assert set(describe.RENDERERS) == {"text", "markdown", "wikitext"}
+def test_the_formats_are_the_two_renderers():
+    assert set(describe.RENDERERS) == {"text", "markdown"}
     assert system_render.FORMATS == tuple(describe.RENDERERS)
 
 
@@ -52,7 +52,7 @@ def test_an_unknown_format_is_refused():
         describe.render({"kind": "system", "ref": None, "title": "x", "sections": []}, "html")
 
 
-@pytest.mark.parametrize("fmt", ["text", "markdown", "wikitext"])
+@pytest.mark.parametrize("fmt", ["text", "markdown"])
 def test_every_format_carries_every_title_and_every_fact_label_or_key(fmt):
     for document in _documents():
         out = describe.render(document, fmt)
@@ -60,11 +60,7 @@ def test_every_format_carries_every_title_and_every_fact_label_or_key(fmt):
             assert section["title"] in out
         for section, block in _facts(document):
             for row in block["rows"]:
-                if fmt == "wikitext" and (section["kind"] in ("star", "planet", "moon") or block["caption"].endswith("binary system")
-                                          or block["caption"] == "Binary system"):
-                    assert f"|{row['key']}=" in out
-                else:
-                    assert row["label"] in out
+                assert row["label"] in out
 
 
 def test_prose_is_the_same_sentences_in_every_format():
@@ -90,16 +86,14 @@ def test_a_power_of_ten_is_marked_the_page_formats_way():
     radius = {"qty": {"kind": "radius", "value": 1.71e8, "unit": "m"}}
     assert quantity.inline_text([radius], "text") == "1.71 × 10⁵ km"
     assert quantity.inline_text([radius], "markdown") == "1.71 × 10<sup>5</sup> km"
-    assert quantity.inline_text([radius], "wikitext") == "{{Exp|1.71|5}} km"
     tiny = {"qty": {"kind": "radius", "value": 2e-3, "unit": "m"}}
-    assert quantity.inline_text([tiny], "wikitext") == "{{Exp|2.00|-6}} km"
+    assert quantity.inline_text([tiny], "markdown") == "2.00 × 10<sup>-6</sup> km"
 
 
 def test_emphasis_is_written_per_format():
     item = [model.strong("Blue")]
     assert quantity.inline_text(item, "text") == "Blue"
     assert quantity.inline_text(item, "markdown") == "**Blue**"
-    assert quantity.inline_text(item, "wikitext") == "'''Blue'''"
 
 
 def test_quantities_read_like_the_unit_ladders():
@@ -114,23 +108,9 @@ def test_quantities_read_like_the_unit_ladders():
 def test_headings_follow_the_tree_in_each_format():
     document = next(iter(_documents()))
     markdown = describe.render(document, "markdown")
-    wikitext = describe.render(document, "wikitext")
     assert markdown.startswith(f"# {document['title']}\n")
-    assert wikitext.startswith(f"= {document['title']} =\n")
-    assert wikitext.rstrip().endswith("[[Category:Star Systems]]")
     moons = [s for s in model.sections(document) if s["kind"] == "moon"]
     assert moons and f"\n### {moons[0]['title']}\n" in markdown
-    assert f"\n=== {moons[0]['title']} ===\n" in wikitext
-
-
-def test_the_wiki_templates_are_the_old_ones():
-    document = next(iter(_documents()))
-    wikitext = describe.render(document, "wikitext")
-    for name in ("Star Data", "Planet Data", "Class Data"):
-        assert "{{" + name + "\n" in wikitext
-    binary = describe.render(list(_documents())[1], "wikitext")
-    assert "{{Binary System Data\n" in binary
-    assert "{{Wide Binary System Data\n" in describe.render(list(_documents())[2], "wikitext")
 
 
 def test_a_stored_system_renders_like_the_generated_one(mysql_config):

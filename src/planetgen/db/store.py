@@ -4130,7 +4130,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     Inserts a full `StarSystem` -- the `star_systems` row, its `stars` row(s),
     and every planet/moon/asteroid belt/comet it contains -- into the database.
 
-    No page text is stored (v29): wikitext/Markdown are rendered on demand
+    No page text is stored (v29): Markdown and plain text are rendered on demand
     from these rows by `planetgen/db/render.py` -- see
     `schema.sql`'s "v29" header note.
 
@@ -7435,7 +7435,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     Swaps a stored system's generated content -- its stars, planets,
     moons, asteroid belts, comets and the system-level star/binary fields
     -- for a newly generated system's, keeping the system's id, name,
-    sector, position, location, containment and wiki links. The new
+    sector, position, location, and containment. The new
     bodies are renamed from the system's name. Facilities hosted on the
     old system or its bodies are deleted with them (check
     `system_content_blockers` first).

@@ -57,8 +57,6 @@ def test_every_phenomenon_renders_in_every_format(cls):
     for fmt in describe.RENDERERS:
         out = describe.render(document, fmt)
         assert document["title"] in out
-    assert "[[Category:Phenomena]]" in describe.render(document, "wikitext")
-    assert "[[Category:Star Systems]]" not in describe.render(document, "wikitext")
     assert document["title"] in html.render(document)
 
 

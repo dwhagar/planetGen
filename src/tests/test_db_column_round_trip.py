@@ -105,8 +105,6 @@ NULL_IN_THIS_GALAXY = {
     ("interstellar_comets", "cell_key"): CHANCE,
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
-    ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",
-    ("star_systems", "mediawiki_url"): "never published",
     ("system_configs", "age"): "only with --age",
     # GEN.178: only a moon has an induced field.
     ("planets", "induced_moment_a_m2"): "moons only",

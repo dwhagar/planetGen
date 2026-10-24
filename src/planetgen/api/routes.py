@@ -115,8 +115,6 @@ from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_text
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
-from planetgen.util.format import format_distance_ly
-from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 from planetgen.util import detmath
 
 from . import ids
@@ -125,7 +123,7 @@ from .common import ApiError, request_json, require_json_body
 from .version import API_VERSION
 from .schemas import (
     BodyRename, FacilityCreate, FacilityUpdate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
-    SystemRename, WikiUpload, given, parse_body,
+    SystemRename, given, parse_body,
 )
 from .limiter import limiter, page_limit
 
@@ -632,12 +630,12 @@ def system_description(system_id):
 @bp.route("/systems/<uid:system_id>/text")
 def system_text(system_id):
     """
-    `GET /api/systems/<id>/text?format=wikitext|markdown|text` -- the
-    system's description written as MediaWiki text, Markdown or plain text,
+    `GET /api/systems/<id>/text?format=markdown|text` -- the
+    system's description written as Markdown or plain text,
     on request only (`planetgen/db/render.py`; no page text is stored since
-    schema v29). `format` defaults to `wikitext`.
+    schema v29). `format` defaults to `markdown`.
     """
-    fmt = request.args.get("format", "wikitext")
+    fmt = request.args.get("format", "markdown")
     if fmt not in SYSTEM_TEXT_FORMATS:
         raise ApiError(f"'format' must be one of: {', '.join(SYSTEM_TEXT_FORMATS)}")
     try:
@@ -1658,19 +1656,6 @@ def search():
     return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only))
 
 
-@bp.route("/wiki-config")
-def wiki_config():
-    """`GET /api/wiki-config` -- `{"wikijs": bool, "mediawiki": bool}`,
-    whether each backend has a usable `base_url` plus credentials
-    configured (see `config.py`'s `_wiki_config`) and so is offered as an
-    "Upload to Wiki" target at all. Read by the CGI browser
-    (`html/system.py`/`html/sector.py`) to decide which backend choice(s)
-    to show its upload form -- never leaks any of `WIKI_CONFIG`'s actual
-    credential values, only these two booleans."""
-    wiki = current_app.config["WIKI_CONFIG"]
-    return jsonify({"wikijs": wiki["wikijs"]["configured"], "mediawiki": wiki["mediawiki"]["configured"]})
-
-
 # ---------------------------------------------------------------------
 # Write endpoints. Every one requires an authenticated admin
 # (`authz.require_admin`) whose credentials aren't still the seeded
@@ -1736,11 +1721,7 @@ def create_sector():
 @require_admin(fresh=True)
 def update_sector(sector_id):
     """`PATCH /api/sectors/<id>` -- any non-empty subset of `{"name": str,
-    "edge_ly": number > 0, "wiki_url": str or null}`. `wiki_url` is the
-    admin "manually set the wiki link" affordance (`html/admin.py`) --
-    `null` clears it back to "no page yet" (see `schema.sql`'s "v22"
-    header note); the same column is also written automatically by
-    `POST /api/sectors/<id>/wiki` on a successful upload."""
+    "edge_ly": number > 0}`."""
     body = given(parse_body(SectorUpdate, require_json_body()))
 
     set_clauses, params = [], []
@@ -1750,9 +1731,6 @@ def update_sector(sector_id):
     if "edge_ly" in body:
         set_clauses.append("edge_mpc = ?")
         params.append(ly_to_milliparsecs(body["edge_ly"]))
-    if "wiki_url" in body:
-        set_clauses.append("wiki_url = ?")
-        params.append(body["wiki_url"])
     params.append(sector_id)
 
     conn = _write_conn()
@@ -2532,267 +2510,3 @@ def delete_facility(facility_id):
         raise ApiError(f"no such facility: {facility_id}", status_code=404)
     audit("facility.delete", target=f"facility:{facility_id}")
     return jsonify({"status": "ok"})
-
-
-# ---------------------------------------------------------------------
-# Wiki publishing (schema.sql's "v22" header note) -- both routes below
-# share the same request shape and backend-resolution/error-mapping
-# helpers, differing only in where their page content comes from
-# (`systemRender.render_system_text` for a system, `_sector_wiki_content`
-# for a sector's summary -- both built on the fly) and which column the
-# resulting URL is written back to.
-# ---------------------------------------------------------------------
-
-def _require_wiki_configured(backend):
-    """Raises a 501 when `backend` has no `base_url`/credentials
-    configured at all -- rather than queuing an upload that can only
-    fail on an empty URL."""
-    if not current_app.config["WIKI_CONFIG"][backend]["configured"]:
-        raise ApiError(f"wiki publishing is not configured for {backend!r}", status_code=501)
-
-
-def wiki_settings(backend):
-    """`backend`'s wiki settings as the worker resolves them itself
-    (`config.py`'s `_wiki_config`: environment, then `config.json`), so
-    the wiki's token or password never travels through Redis."""
-    from planetgen.api.config import _wiki_config
-    settings = _wiki_config(get_settings().wiki)[backend]
-    if not settings["configured"]:
-        raise ApiError(f"wiki publishing is not configured for {backend!r}", status_code=501)
-    return settings
-
-
-def _wiki_client(backend):
-    """
-    Builds a `planetgen.wiki.WikiClient` for `backend` from `wiki_settings`.
-
-    Args:
-        backend (str): `"wikijs"` or `"mediawiki"`.
-
-    Returns:
-        planetgen.wiki.WikiClient
-
-    Raises:
-        ApiError: 501 if `backend` isn't configured.
-    """
-    settings = wiki_settings(backend)
-    if backend == "wikijs":
-        return WikiClient(backend="wikijs", base_url=settings["base_url"], api_token=settings["api_token"])
-    return WikiClient(
-        backend="mediawiki", base_url=settings["base_url"],
-        username=settings["username"], password=settings["password"],
-    )
-
-
-def _open_read_for_job(config):
-    """A read-only connection for a queued job, as `get_db` opens one."""
-    try:
-        return open_readonly(config, statement_timeout_s=None)
-    except SystemExit as exc:
-        raise ApiError(f"{DATABASE_UNAVAILABLE} ({exc})", status_code=503)
-
-
-def _wiki_upload_request(body):
-    """A `POST .../wiki` body checked as `schemas.WikiUpload`: `{"backend":
-    "wikijs" | "mediawiki", "path": str}`. `path` is the target page's
-    path/slug for `"wikijs"` (which addresses a page separately from its
-    title -- see `planetgen/wiki/wikijs.py`) and required for it;
-    `"mediawiki"` has no such separate concept (its title *is* its address,
-    see `planetgen/wiki/mediawiki.py`), so `path` is accepted but ignored.
-
-    Returns:
-        tuple[str, str or None]: `(backend, path)` -- `path` stripped, or
-            `None` if not given/blank.
-    """
-    upload = parse_body(WikiUpload, body)
-    return upload.backend, upload.path
-
-
-def _create_wiki_page(client, path, title, content):
-    """Wraps `client.create_page`, mapping `planetgen.wiki`'s own exception
-    hierarchy onto this API's status codes -- shared by both routes below
-    so neither duplicates the mapping.
-
-    Raises:
-        ApiError: 409 (a page already exists there) or 502 (auth
-            rejected, or the wiki couldn't be reached/errored).
-    """
-    try:
-        return client.create_page(path=path, title=title, content=content)
-    except WikiClientPageExistsError as exc:
-        raise ApiError(str(exc), status_code=409)
-    except (WikiClientAuthError, WikiClientRequestError) as exc:
-        raise ApiError(str(exc), status_code=502)
-
-
-@bp.route("/systems/<uid:system_id>/wiki", methods=["POST"])
-@limiter.limit(WRITE_RATE_LIMIT)
-@require_admin(fresh=True)
-def upload_system_wiki(system_id):
-    """
-    `POST /api/systems/<id>/wiki` `{"backend": "wikijs"|"mediawiki",
-    "path": str}` -- publishes this system's page -- rendered now
-    from its database rows, Markdown for `wikijs` and wikitext for
-    `mediawiki` (`planetgen/db/render.py`) -- to the chosen wiki,
-    then records the
-    new page's URL on `star_systems.wikijs_url`/`mediawiki_url` (see
-    `schema.sql`'s "v22" header note) so `html/system.py` can swap its
-    description section for a link to it afterward.
-
-    A real database read (the system's own name/content, via `get_db()`'s
-    request-scoped read-only connection) but not a database *write* until
-    after the wiki call succeeds -- unlike every other write route above,
-    which mutate the local database directly, this one's real effect is
-    external, so `_write_conn()` is only opened once there is a URL worth
-    persisting.
-    """
-    body = require_json_body()
-    backend, path = _wiki_upload_request(body)
-    _require_wiki_configured(backend)
-    job_id, page = run_queued(upload_system_wiki_job, _resolve_requested_db_config(),
-                              _resolve_requested_write_db_config(), system_id, backend, path)
-    if page is None:
-        audit("system.wiki_upload", target=f"system:{system_id}", detail=f"backend={backend!r} queued job={job_id}")
-        return accepted(job_id)
-    audit("system.wiki_upload", target=f"system:{system_id}", detail=f"backend={backend!r} path={page['path']!r}")
-    return jsonify(page), 201
-
-
-def upload_system_wiki_job(read_config, write_config, system_id, backend, path):
-    """The queued body of `POST /api/systems/<id>/wiki`: renders the
-    page, creates it on the wiki, records its URL. Returns the page."""
-    client = _wiki_client(backend)
-    db = _open_read_for_job(read_config)
-    try:
-        try:
-            system = query_system_detail(db, system_id)
-            content = render_system_text(db, system_id, "markdown" if backend == "wikijs" else "wikitext")
-        except ValueError:
-            raise ApiError(f"no such system: {system_id}", status_code=404)
-    finally:
-        db.close()
-
-    page_path = path if backend == "wikijs" else system["name"]
-    page = _create_wiki_page(client, page_path, system["name"], content)
-
-    url_column = "wikijs_url" if backend == "wikijs" else "mediawiki_url"
-    conn = store.open_write(write_config)
-    try:
-        with conn:
-            conn.execute(f"UPDATE star_systems SET {url_column} = ? WHERE id = ?", (page.url, system_id))
-    finally:
-        conn.close()
-    return {"id": page.id, "path": page.path, "title": page.title, "url": page.url}
-
-
-def _sector_wiki_content(sector):
-    """
-    Builds a sector-summary page's content, fresh, in both Markdown (for
-    `wikijs`) and wikitext (for `mediawiki`) -- like a system's own page
-    (`systemRender.render_system_text`), nothing is stored
-    (see `schema.sql`'s "v22" header note), so this is rendered on the
-    fly from `sector`'s already-queried detail (`db.query.sector_detail`'s
-    shape) at upload time: the sector's name/size, and one table row per
-    system placed in it, with the same star-type fallback
-    `html/sector.py`'s own systems table already uses (a `'close'` pair's
-    merged `binary_type` if it has one, else each of its own stars'
-    `star_type` joined by `" / "`).
-
-    Args:
-        sector (dict): `db.query.sector_detail`'s return shape.
-
-    Returns:
-        tuple[str, str]: `(markdown_content, wikitext_content)`.
-    """
-    def star_type_for(system):
-        if system["is_binary"] and system.get("binary_type"):
-            return system["binary_type"]
-        return " / ".join(star["star_type"] for star in system["stars"]) if system["stars"] else ""
-
-    systems = sector["systems"]
-
-    md_rows = "\n".join(
-        f'| {s["name"]} | {s["quadrant"] or ""} | {"Yes" if s["is_binary"] else "No"} | '
-        f'{star_type_for(s)} | {s["location"] or ""} |'
-        for s in systems
-    ) or "| *(none)* | | | | |"
-    markdown_content = (
-        f'# {sector["name"]}\n\n'
-        f'**Edge:** {format_distance_ly(sector["edge_ly"])}  \n'
-        f'**Systems:** {sector["system_count"]}\n\n'
-        "## Systems\n\n"
-        "| Name | Octant | Binary | Star type | Location |\n"
-        "|---|---|---|---|---|\n"
-        f"{md_rows}\n"
-    )
-
-    wiki_rows = "\n|-\n".join(
-        f'| {s["name"]} || {s["quadrant"] or ""} || {"Yes" if s["is_binary"] else "No"} || '
-        f'{star_type_for(s)} || {s["location"] or ""}'
-        for s in systems
-    ) or "| ''(none)'' ||  ||  ||  || "
-    wikitext_content = (
-        f'= {sector["name"]} =\n\n'
-        f"'''Edge:''' {format_distance_ly(sector['edge_ly'])}\n\n"
-        f"'''Systems:''' {sector['system_count']}\n\n"
-        "== Systems ==\n\n"
-        '{| class="wikitable"\n'
-        "! Name !! Octant !! Binary !! Star type !! Location\n"
-        "|-\n"
-        f"{wiki_rows}\n"
-        "|}\n"
-    )
-    return markdown_content, wikitext_content
-
-
-@bp.route("/sectors/<uid:sector_id>/wiki", methods=["POST"])
-@limiter.limit(WRITE_RATE_LIMIT)
-@require_admin(fresh=True)
-def upload_sector_wiki(sector_id):
-    """
-    `POST /api/sectors/<id>/wiki` `{"backend": "wikijs"|"mediawiki",
-    "path": str}` -- publishes a freshly generated sector-summary page
-    (see `_sector_wiki_content`) to the chosen wiki, then records the new
-    page's URL on `sectors.wiki_url` (a single column, not one per
-    backend the way `star_systems` has -- see `schema.sql`'s "v22" header
-    note) so `html/sector.py` can link to it afterward. The same column
-    can also be set directly, without uploading anything, via
-    `PATCH /api/sectors/<id>`'s own `wiki_url` field (`html/admin.py`'s
-    manual-link admin section).
-    """
-    body = require_json_body()
-    backend, path = _wiki_upload_request(body)
-    _require_wiki_configured(backend)
-    job_id, page = run_queued(upload_sector_wiki_job, _resolve_requested_db_config(),
-                              _resolve_requested_write_db_config(), sector_id, backend, path)
-    if page is None:
-        audit("sector.wiki_upload", target=f"sector:{sector_id}", detail=f"backend={backend!r} queued job={job_id}")
-        return accepted(job_id)
-    audit("sector.wiki_upload", target=f"sector:{sector_id}", detail=f"backend={backend!r} path={page['path']!r}")
-    return jsonify(page), 201
-
-
-def upload_sector_wiki_job(read_config, write_config, sector_id, backend, path):
-    """The queued body of `POST /api/sectors/<id>/wiki`. Returns the page."""
-    client = _wiki_client(backend)
-    db = _open_read_for_job(read_config)
-    try:
-        try:
-            sector = query_sector_detail(db, sector_id)
-        except ValueError:
-            raise ApiError(f"no such sector: {sector_id}", status_code=404)
-    finally:
-        db.close()
-
-    markdown_content, wikitext_content = _sector_wiki_content(sector)
-    content = markdown_content if backend == "wikijs" else wikitext_content
-    page_path = path if backend == "wikijs" else sector["name"]
-    page = _create_wiki_page(client, page_path, sector["name"], content)
-
-    conn = store.open_write(write_config)
-    try:
-        with conn:
-            conn.execute("UPDATE sectors SET wiki_url = ? WHERE id = ?", (page.url, sector_id))
-    finally:
-        conn.close()
-    return {"id": page.id, "path": page.path, "title": page.title, "url": page.url}

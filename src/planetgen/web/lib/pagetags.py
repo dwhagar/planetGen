@@ -83,7 +83,6 @@ def read_tags(path, body):
 _SECTOR_WRITES = (
     (re.compile(rf"/sectors/{_ID}/(contents|regenerate)"), "sector-contents"),
     (re.compile(rf"/sectors/{_ID}/generate-neighborhood"), "generated"),
-    (re.compile(rf"/sectors/{_ID}/wiki"), "sector-edited"),
 )
 
 
@@ -112,7 +111,7 @@ def change_for_write(method, path):
 
     if path == "/systems" and method == "POST":
         return "system-set", {}
-    match = re.fullmatch(rf"/systems/{_ID}(?:/(wiki|star))?", path)
+    match = re.fullmatch(rf"/systems/{_ID}(?:/star)?", path)
     if match:
         return ("system-set" if method == "DELETE" else "system-edited"), {"system_id": match.group(1)}
     if re.fullmatch(r"/(stars|planets|moons|facilities)(?:/[^/]+(?:/class|/regenerate|/suggest-ratings)?)?", path):

@@ -1860,10 +1860,7 @@ def sector_detail(conn, sector_id):
             `temperature_k`/`radius_km`/`luminosity_w`), `phenomena`
             (see `phenomena_near_sector`), `neighbors` (see
             `sector_neighbors`, `[]` for a sector with no galaxy
-            placement), and `wiki_url` (`sectors.wiki_url` -- `None` if
-            this sector has never been uploaded to, or manually linked
-            to, a wiki page; see `schema.sql`'s "v22" header note), and
-            `stats` (`sector_stats`, PERF.11: `None` off the grid).
+            placement), and `stats` (`sector_stats`, PERF.11: `None` off the grid).
 
     Raises:
         ValueError: If no such sector exists.
@@ -1929,7 +1926,6 @@ def sector_detail(conn, sector_id):
         "systems": systems,
         "phenomena": phenomena_near_sector(conn, sector_id),
         "neighbors": sector_neighbors(conn, sector),
-        "wiki_url": sector["wiki_url"],
         "stats": sector_stats(conn, sector["shell_index"], sector["band_index"], sector["wedge_index"]),
     }
 
@@ -3252,10 +3248,7 @@ def system_detail(conn, system_id):
             close pair's, for orbits around it),
             `binary_mutual_position_x/y/z_km` (the secondary's position
             relative to the primary -- NULL for a single star; see
-            `schema.sql`'s "v14"/"v15" notes), `wikijs_url`/`mediawiki_url`
-            (`star_systems.wikijs_url`/`mediawiki_url` -- `None` for
-            whichever wiki (or both) this system hasn't been uploaded to
-            yet; see `schema.sql`'s "v22" header note), `stars` (id/role/name/
+            `schema.sql`'s "v14"/"v15" notes), `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w/
             heliosphere_radius_km --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
@@ -3363,7 +3356,6 @@ def system_detail(conn, system_id):
         "binary_mutual_position_x_km": system["binary_mutual_position_x_km"],
         "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
-        "wikijs_url": system["wikijs_url"], "mediawiki_url": system["mediawiki_url"],
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
         "planets": planets,

@@ -1,7 +1,7 @@
 # tests/test_system_render.py
 
 """
-Schema v29: a system's wikitext/Markdown page is no longer stored but
+Schema v29: a system's Markdown page is no longer stored but
 rendered from its database rows (`planetgen/db/render.py`) -- see
 `schema.sql`'s "v29" header note. These tests pin the property that made
 dropping the stored copies safe: rendering a system from the database
@@ -51,7 +51,7 @@ def test_rendering_from_the_database_matches_the_generated_system(mysql_config, 
             system = StarSystem(system_config=cfg)
             with conn:
                 system_id = store.insert_star_system(conn, system, cfg)
-            for fmt in ("wikitext", "markdown"):
+            for fmt in ("text", "markdown"):
                 assert render_system_text(conn, system_id, fmt) == render_star_system(system, fmt), fmt
     finally:
         conn.close()
@@ -66,7 +66,7 @@ def test_rendering_a_compact_remnant_anchored_system(mysql_config, remnant_class
     )
     conn = store.get_connection(mysql_config)
     try:
-        for fmt in ("wikitext", "markdown"):
+        for fmt in ("text", "markdown"):
             assert render_system_text(conn, system_id, fmt) == render_star_system(system, fmt)
     finally:
         conn.close()
@@ -95,7 +95,7 @@ def test_binary_orientation_survives_the_round_trip(mysql_config, wide):
     try:
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
-        for fmt in ("wikitext", "markdown"):
+        for fmt in ("text", "markdown"):
             assert render_system_text(conn, system_id, fmt) == render_star_system(system, fmt)
     finally:
         conn.close()
@@ -124,7 +124,7 @@ def test_rendering_follows_a_rename(mysql_config):
     try:
         with conn:
             conn.execute("UPDATE star_systems SET name = 'Somewhere Else' WHERE id = ?", (system_id,))
-        assert render_system_text(conn, system_id, "wikitext").startswith("= Somewhere Else =")
+        assert render_system_text(conn, system_id, "markdown").startswith("# Somewhere Else")
         with pytest.raises(ValueError):
             render_system_text(conn, system_id, "html")
     finally:
@@ -162,7 +162,7 @@ def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mys
     system_id = store.save_phenomenon(system, cfg, "black-hole", config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        for fmt in ("wikitext", "markdown"):
+        for fmt in ("text", "markdown"):
             text = render_system_text(conn, system_id, fmt)
             assert "9,065 K" in text
             assert text == render_star_system(system, fmt)
