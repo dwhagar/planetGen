@@ -60,7 +60,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.738 | Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss |  |  |
 | GEN.739 | Impact erosion and late delivery of atmospheres, with history |  |  |
 | GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) |  |  |
-| GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions, or a ruling that the presets stay (Boss to rule) |  |  |
+| GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics) |  |  |
 | GEN.749 | Trapped radiation belts and the magnetosphere's shielding beyond a dipole size |  |  |
 | GEN.748 | Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's |  |  |
 | GEN.747 | Solar energetic particle events: the full event set and the Weibull parameters |  |  |

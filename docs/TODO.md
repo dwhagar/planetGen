@@ -12898,12 +12898,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build the tables, and replace the stand-in band strengths, labelling
   anything still unsourced in the gap plan registry. Done: the
   greenhouse opacity reads sourced tables, the stand-ins are gone or
-  labelled, and the epoch is taken. Owner: none (pool). Needs Boss's
-  word on the data source and licence.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24:
-  cleared for the Math lane once Boss gives the word on the data source
-  and licence (the item already waits on it). Owner: Math lane (proposed
-  by the TODO thread).
+  labelled, and the epoch is taken. Owner: none (pool).
+  Decided (Boss, 4:01 PM EDT 2026-10-24, decision card, option 1):
+  download the public line lists (HITRAN, ExoMol) at setup and reduce
+  them to small k-tables; raw data never in the repository; licence
+  information only in DATA-LICENSE.md, which Boss manages. Free for the
+  Math lane to take now. Owner: Math lane (proposed by the TODO thread).
   Prerequisites: none. Related: GEN.703, GEN.423.
 
 - [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
@@ -13072,8 +13072,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   millisecond-pulsar-companion from neutron star 5 percent to 0.2
   percent of recycled pulsars (the gravitational-wave rate allows about
   0.04 percent of neutron stars; 5 percent would be about ten times too
-  many). Default decision recorded by the TODO thread: keep 0.2 percent,
-  as TODO.md open-question defaults are decided. Done: every stand-in
+  many). Decided (Boss, 4:01 PM EDT 2026-10-24, decision card, option 1): keep
+  0.2 percent. Done: every stand-in
   listed, a test that no tuning constant of the item is missing from the
   registry. Owner: pool (first free lane with gap-registry experience,
   Lane L did GEN.675).
@@ -13101,9 +13101,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand in values, where they came from, and a kind of tweak level (how
   much are they tweaked for outcome vs left as they were envisioned)'.
   Do: (a) add two columns to the gap plan registry, source tier (one of
-  the nine above) and tweak level (a short scale such as 0 as
-  envisioned, 1 nudged within its source range, 2 moved outside its
-  range to hit an outcome, 3 set from the outcome alone); (b) give every
+  the nine above) and tweak level (five steps, decided by Boss, 4:01 PM
+  EDT 2026-10-24: L0 as envisioned, L1 nudged inside source
+  uncertainty, L2 tuned to a published statistic, L3 hand-tuned against
+  a sweep, L4 fitted to outcome with no independent source); (b) give every
   existing registry row both values, from its evidence label and the
   item that tuned it; (c) write the document
   docs/design/stand-in-values.md listing every stand-in value (name,
@@ -13571,7 +13572,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before 8.1 closes).
   Prerequisites: none. Related: GEN.736, GEN.444.
 
-- [ ] **GEN.750 Evolutionary timeline: a model of the time to each life stage from conditions, or a ruling that the presets stay (Boss to rule)**
+- [ ] **GEN.750 Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   L1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
   TODO thread). Kind: realism. Source tier of today's value: T9 (fast,
@@ -13592,7 +13593,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design draw that does not copy Earth. Each stand-in it touches records
   its source tier and tweak level in the gap plan registry (GEN.725).
   Owner: pool (first free lane; 8.1 core lanes do not take it before 8.1
-  closes). Needs a ruling from Boss before any code.
+  closes).
+  Decided (Boss, 4:01 PM EDT 2026-10-24, decision card, option 1): model
+  the timeline from physics (energy, water, temperature, stability),
+  with the Earth only as a test point; no Earth-history preset. The
+  ruling is recorded, so the item is ready for code. Stays in 8.4 with
+  GEN.727 to GEN.749 (Boss, same time, option 1: leave them in 8.4).
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 ## PERF: Speed, caching, bulk generation and parallel work
