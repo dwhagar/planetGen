@@ -20,7 +20,7 @@ import pymysql
 import pytest
 
 from planetgen.db import store
-from tests.db_schema_support import load_old_schema, scratch_database
+from tests.db_schema_support import load_old_schema
 
 PROSE_TEXT_COLUMNS = {
     # Galaxy schema: generated prose and the summaries shown on pages.

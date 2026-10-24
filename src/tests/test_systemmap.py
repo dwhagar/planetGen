@@ -14,6 +14,7 @@ needed, since `render_system_map_panel` takes plain dicts, the same shape
 Run with: pytest src/tests/test_systemmap.py
 """
 import html as html_lib
+import json
 import math
 import random
 import re
@@ -595,24 +596,27 @@ def test_many_clustered_planets_do_not_crash_and_still_place_every_body():
 
 # --- body preview data (sysmap-spheres-canvas / static/systemmap.js's own input) --
 
-def test_planet_attrs_carries_a_resolved_class_color():
-    planet = _planet(1, 10, AU_KM, 0.0, planet_class="J")
+def test_planet_attrs_carries_one_look_record_not_loose_colour_attrs():
+    planet = _planet(1, 10, AU_KM, 0.0, planet_class="J", body_type="g", surface_temperature_k=165.0)
     attrs = sm._planet_attrs(planet)
-    assert attrs["color"] == sm.class_color("J")
-    assert attrs["color"].startswith("#")
+    look = json.loads(attrs["look"])
+    assert look["body"] == "gas" and look["cls"] == "J" and look["tempK"] == 165.0
+    assert look["color"].startswith("#")
+    assert "color" not in attrs and "hasatmosphere" not in attrs
+    assert attrs["looknote"].startswith("Estimate")
 
 
 def test_planet_attrs_flags_a_real_atmosphere_but_not_a_missing_one():
     with_atmosphere = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, atmosphere="Nitrogen-Oxygen"))
-    assert with_atmosphere["hasatmosphere"] == "true"
+    assert json.loads(with_atmosphere["look"])["atm"] is True
     assert with_atmosphere["atmosphere"] == "Nitrogen-Oxygen"
 
     literal_none = sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, atmosphere="None"))
-    assert literal_none["hasatmosphere"] is None
+    assert "atm" not in json.loads(literal_none["look"])
     assert literal_none["atmosphere"] == "None (airless)"
 
     unset = sm._planet_attrs(_planet(3, 10, AU_KM, 0.0, atmosphere=None))
-    assert unset["hasatmosphere"] is None
+    assert "atm" not in json.loads(unset["look"])
     assert unset["atmosphere"] == "None (airless)"
 
 
@@ -678,8 +682,8 @@ def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():
                       surface_temperature_k=165.0, composition="hydrogen and helium")
     system = {"name": "Preview Data Test", "binary_configuration": None}
     html = sm.render_system_map_panel(system, [_star(10)], [planet], [])
-    assert f'data-color="{sm.class_color("J")}"' in html
-    assert 'data-hasatmosphere="true"' in html
+    assert 'data-look="' in html and "&quot;body&quot;:&quot;gas&quot;" in html
+    assert "data-hasatmosphere" not in html and "data-color=" not in html
     assert 'data-atmosphere="Hydrogen-Helium"' in html
     assert 'data-surfacetemp="165 K (-108 °C, -163 °F)"' in html
     assert 'data-composition="hydrogen and helium"' in html

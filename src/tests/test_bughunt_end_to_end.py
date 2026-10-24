@@ -16,7 +16,7 @@ literally.
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.webpage_support import live_api  # noqa: F401
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_config, live_api):

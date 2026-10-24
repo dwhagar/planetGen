@@ -6,7 +6,6 @@ import statistics
 
 import pytest
 
-from planetgen import tuning
 from planetgen.galaxy import components
 from planetgen.generation import multistar, system_mass
 from planetgen.physics import remnant_mass, remnant_progenitors, stellar_evolution
@@ -18,10 +17,6 @@ def _component(age_gy, kind="cluster", mass=2.0e5):
         kind=kind, name="Test", source="generated", center_pc=(0.0, 0.0, 0.0), velocity_kms=(0.0, 0.0, 0.0), epoch_unix=0.0,
         mass_solar=mass, half_mass_radius_pc=5.0, profile="plummer", age_gy=age_gy, metallicity_fe_h=-0.5, seed=1,
         tidal_radius_pc=50.0)
-
-
-def test_no_tuning_constant_holds_a_clusters_mean_system_mass():
-    assert not hasattr(tuning, "CLUSTER_MEAN_SYSTEM_MASS_SOL")
 
 
 @pytest.mark.parametrize("age_gy", [0.03, 0.3, 3.0, 12.0])

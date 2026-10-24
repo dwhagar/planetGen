@@ -152,6 +152,9 @@ def test_resolve_bodies_down_to_a_moon(client, mysql_config):
     assert planet["kind"] == "planet" and planet["positions"]["system_km"] is not None
     assert body["ref"] not in body["siblings"]
     assert len(body["positions"]["system_km"]) == 3
+    # UX.100: a planet or moon carries its stored PHI-6 score and the six domain ratings for the item page's symbols.
+    keys = {"phi4", "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_radiation", "tier_suitability"}
+    assert keys <= set(body) and keys <= set(planet)
 
     for star_id in _ids(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,)):
         star = client.get(f"/api/objects/star:{pid('star', star_id)}").get_json()

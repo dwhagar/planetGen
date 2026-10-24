@@ -12,6 +12,7 @@ from flask import abort, request
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, read_from_start
 from planetgen.web.lib.fmt import distance_km_html, measured_html
+from planetgen.web.lib.habitability_cells import COLUMN as HABITABILITY_COLUMN, habitability_cell
 
 from . import bp, tables
 from .helpers import crumb, db_name, page_url, render_page
@@ -36,6 +37,9 @@ KIND_LABELS = {
 COLUMNS = [Column("name", "Name"), Column("class", "Class"), Column("mass", "Mass"), Column("radius", "Radius"),
            Column("sector", "Sector", sortable=False)]
 
+HABITABILITY_KINDS = ("planet", "moon")
+"""tuple: The kinds whose list has a Habitability column of the PHI-6 symbols (UX.100), before the Sector column."""
+
 _SORT_KEYS = {"name": "name", "class": "class", "mass": "mass", "radius": "radius"}
 
 
@@ -43,15 +47,23 @@ def _title(value):
     return (value or "").replace("_", " ").replace("-", " ").capitalize()
 
 
-def _row(item):
+def _columns(kind):
+    if kind not in HABITABILITY_KINDS:
+        return COLUMNS
+    return [*COLUMNS[:-1], Column("habitability", HABITABILITY_COLUMN, sortable=False), COLUMNS[-1]]
+
+
+def _row(item, kind):
     name = {"text": item["name"], "href": page_url("object_page", ref=f"{item['kind']}:{item['id']}")}
     sector = ({"text": f"Sector {item['sector_id']}", "href": page_url("sector", sector_id=item["sector_id"])}
               if item["sector_id"] is not None else {"text": "None", "muted": True})
-    return [name,
-            {"text": _title(item["object_class"])} if item["object_class"] else {"text": "None", "muted": True},
-            {"text": measured_html("kg", item["mass_kg"])},
-            {"text": distance_km_html(item["radius_km"])},
-            sector]
+    cells = [name,
+             {"text": _title(item["object_class"])} if item["object_class"] else {"text": "None", "muted": True},
+             {"text": measured_html("kg", item["mass_kg"])},
+             {"text": distance_km_html(item["radius_km"])}]
+    if kind in HABITABILITY_KINDS:
+        cells.append(habitability_cell(item))
+    return cells + [sector]
 
 
 def _loader(kind):
@@ -62,14 +74,14 @@ def _loader(kind):
                 after=after, start=start or None),
             state.start)
         items = envelope["items"]
-        return Result([_row(item) for item in items], envelope["total"], None, envelope.get("total_capped", False),
+        return Result([_row(item, kind) for item in items], envelope["total"], None, envelope.get("total_capped", False),
                       envelope["next"], note)
     return load
 
 
 LIST_TABLES = {
     kind: tables.register(Table(
-        f"list-{kind}", labels[2], COLUMNS, _loader(kind), prefix=f"{kind}_", noun=labels[:2], keyset=True,
+        f"list-{kind}", labels[2], _columns(kind), _loader(kind), prefix=f"{kind}_", noun=labels[:2], keyset=True,
         default_sort="name", jump={"name": "A letter or the start of a name"}))
     for kind, labels in KIND_LABELS.items()
 }

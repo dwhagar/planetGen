@@ -12,7 +12,7 @@ import types
 import pytest
 
 from planetgen.db import query, store
-from planetgen.galaxy import dials, enclosed_mass, mass_chain, shape_draw
+from planetgen.galaxy import dials, enclosed_mass, shape_draw
 from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database

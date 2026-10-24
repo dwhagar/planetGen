@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2084] - 2026-10-24
+
+**Headline:** Planets, moons and rogue planets now share one `PlanetaryObject` family class, the third family under the mass object core.
+
+### Changed
+- **`generation/planetary_object.py`** (GEN.565f): `PlanetaryObject(MassObject)` holds what a planet, a moon and a rogue planet share: the class letter and composition defaults, `is_giant`, and `parent_kind` (`"star"` for a planet, `"planet"` for a moon, `None` for a rogue planet). `Planet` and `RoguePlanet` subclass it; `RoguePlanet.kind_label` reads `is_giant`. No field, stored value or draw changes. GEN.565 stays open for folding the remnant classes into states and the table revision.
+
+## [8.0.2083] - 2026-10-24
+
+**Headline:** The ground of a planet or moon now has a composition: the minerals, ices and ocean that cover it, drawn from the body's own bulk fractions, temperature and air.
+
+### Added
+- **Surface and crust composition kernel (GEN.441, first slice).** `planetgen.physics.surface_composition.draw_surface` gives a planet or moon its ground: what covers the surface (liquid ocean with its salts, or the ices that the temperature and the air let stand), the dominant ground of the land (metal-rich for a stripped mantle, carbon for carbon rock, otherwise basaltic where the heat flow still resurfaces it, else the primary crust, ultramafic or anorthositic by an FeO-weighted overturn chance), and the modifiers the inputs allow (granitoid with plate tectonics, clay where liquid water stood, iron-oxidised ground under free oxygen, evaporite beside an ocean, sulfur under tidal heating). Every ground type is a recipe of rows of the shared materials table (Hu, Ehlmann and Seager 2012, Table 2); the mass shares and the areal shares each add up to one. `band_albedo` and `crust_reservoir` read the ground's lab reflectance and its K, Th and U back from it. The kernel changes no stored value yet (wiring into the generator, the columns and the epoch follow GEN.428, GEN.459 and GEN.461).
+
+## [8.0.2082] - 2026-10-24
+
+**Headline:** The planets and moons lists and every planet and moon page now show the habitability symbols.
+
+### Changed
+- **Habitability symbols on the lists and the item pages (UX.155, UX.156).** The Planets and Moons lists (`/lists/planet`, `/lists/moon`) have a Habitability column of the overall rating symbol and the six domain symbols, and the page of a scored planet or moon (`/object/planet:...`, `/object/moon:...`) shows the same seven symbols under its title. The object list items (`GET /api/object-lists/planet` and `moon`) and `GET /api/objects/<ref>` for a planet or moon carry `phi4` and the six `tier_<domain>` ratings they are drawn from.
+
+## [8.0.2081] - 2026-10-24
+
+**Headline:** A planet or moon's class can now be worked out from its finished conditions (air, temperature, water, size and gravity), and the class pages show the rule.
+
+### Added
+- **The classifier (GEN.645, GEN.647 first slice).** `planetgen.physics.planet_classes.classify(body)` returns a class letter from a planet or moon's stored mass, gravity, mean surface temperature, surface pressure and gas mixture, water cover and share, and starlight variation. The rules are the ordered rows of `physics/data/planet_classes.json` (a one-sentence reading and a `basis` each); the last row of each kind takes the rest, so every body gets one letter. All 20 letters stay, H, P, O, J, M, I, C, D and N are marked core, and R, U, W, X, Y and Z are kept free for new classes. Design: `docs/design/condition-based-planet-classes.md`.
+- **The shadow sweep.** `python src/tests/class_shadow_cli.py` compares the derived letter with the drawn one (98.3 percent of 32,487 bodies from 2,000 systems keep their letter) and prints the confusion table. Generation still draws a class; nothing it stores changes.
+
+### Changed
+- **The planet class pages give the rule.** `/classes/planet/<letter>` shows the class's name, sentence, the rule in plain words, which classes are checked before it and whether it is a core class, in place of the table of radius ranges, zones and pigments the zone draw used.
+
+## [8.0.2080] - 2026-10-24
+
+**Headline:** Delete regression tests that guard nothing and the unused galaxy shape visualizer.
+
+### Removed
+- A skipped test module for a function that no longer exists, and the 18 tests that only check what the first two already show.
+- About 20 tombstone tests that assert a retired constant, option or page is gone, and trimmed four that also checked a live behaviour.
+- A duplicate test, five unused test helpers, and the unused imports and variables across the test suite.
+- The `galaxy_shape_visualizer_cli.py` test tool and the matplotlib test extra it needed.
+
+## [8.0.2079] - 2026-10-24
+
+**Headline:** The disc's recent star formation now falls faster in its thin outer gas, as the observations of molecular and atomic gas say, instead of at one fixed index.
+
+### Changed
+
+- The share of a thin-disc star that is recent (`galaxy.star_formation.recent_factor`) now has the star-formation law's index rise where the disc's own gas thins (GEN.450): the rate goes as `gas^1.4 (gas / (gas + 9))^(2.1 - 1.4)`, the gas being the rings' gas of the disc's star-formation history. Molecular gas forms stars at a constant efficiency, atomic gas (under about 9 solar masses per pc2) at a falling one (Bigiel et al. 2008, Leroy et al. 2008, Schaye 2004). For a Milky Way-like disc the fall beyond the rate peak is -0.27 dex per kpc (was -0.23; the Herschel study observes -0.28, which is a test target and not an input); 91% of the star formation is inside the solar circle (was 86%, observed 84%) and 0.4% beyond 13.5 kpc (was 1.3%, observed 1%). The young and intermediate populations are lighter in the outer disc of every galaxy, so a placed star there is older on average.
+- `tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT` (2.1, the middle of the 1.5 to 2.7 that resolved total-gas fits give) and `tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2` (9) are new and open: no source gives them for one galaxy.
+- `tests/fixtures/density_identity.json` is recorded again for the new factor.
+
+generation-output: changed
+
+## [8.0.2078] - 2026-10-24
+
+**Headline:** A gas or ice giant's atmosphere colour can now be worked out at its reference level, with a cloud deck or the dark deep gas below.
+
+### Changed
+- A new giant colour function cuts the giant's mixture at the reference pressure (the lower of 1 bar and the cloud top, computed from the cloud's depth and sedimentation) and gives the colour, brightness and word of the air above, with the cloud deck's reflectance as the lower boundary. Methane, ammonia and water bands use the gas table's coarse bins, so a giant carrying them is marked as partial colour quality. Nothing reads it yet, so no generated value or page changes.
+
 ## [8.0.2077] - 2026-10-24
 
 **Headline:** The atmosphere chain has one table of gas and condensate free energies and one equilibrium solver, which reproduce the research's outgassing speciation.

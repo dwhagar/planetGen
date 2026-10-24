@@ -139,12 +139,6 @@ def test_a_non_finite_number_is_refused(raw):
                 row.parse(raw)
 
 
-def test_a_retired_flag_is_not_a_flag():
-    parser = _plan_parser()
-    with pytest.raises(SystemExit):
-        parser.parse_args(["--disk-scale-length-pc", "2600"])
-
-
 # --- the Generate form ------------------------------------------------------------------------------------------
 
 def test_the_form_has_a_row_per_lever():

@@ -10,7 +10,7 @@ from planetgen.db import corridor, query, store
 from planetgen.db.query import nav_between
 from planetgen.galaxy.nav_graph import build_knn_adjacency, shortest_path
 from planetgen.physics.units import pc_to_ly
-from tests.test_route_edge_cases import EDGE_PC, _cluster, _save_grid_sector
+from tests.test_route_edge_cases import _cluster, _save_grid_sector
 
 
 def test_segment_distance_is_to_the_nearest_point_of_the_segment():

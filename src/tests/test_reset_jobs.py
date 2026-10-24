@@ -10,11 +10,9 @@ import math
 import os
 import subprocess
 import sys
-import time
 import uuid
 
 import pytest
-import redis
 import rq
 
 from planetgen.admin import updateguard

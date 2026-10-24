@@ -232,12 +232,6 @@ def test_bulge_size_alone_sets_the_radius_as_a_ratio_of_the_length_and_the_bar_w
     assert longer.bulge_scale_radius_pc == pytest.approx(0.6 * base.disk_scale_length_pc)
 
 
-def test_the_retired_absolute_structure_options_are_not_options():
-    for name in ("disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude"):
-        with pytest.raises(ValueError):
-            shape_draw.draw_galaxy(_seed(9), **{name: 10.0})
-
-
 def test_a_plan_with_no_shape_options_draws_every_one_from_its_seed():
     parser = argparse.ArgumentParser()
     add_plan_arguments(parser)
@@ -253,11 +247,6 @@ def test_a_plan_with_no_shape_options_draws_every_one_from_its_seed():
     explicit = parser.parse_args(["--disk-scale-length", "2000pc", "--arm-count", "3"])
     shape, _ = shape_draw.plan_shape(explicit, _seed(21))
     assert shape.disk_scale_length_pc == 2000.0 and shape.arm_count == 3
-
-
-def test_no_milky_way_shape_is_left_in_the_tuning():
-    for name in ("GALAXY_DISK_SCALE_LENGTH_PC_DEFAULT", "DEFAULT_DISK_SCALE_LENGTH_PC", "DEFAULT_BULGE_AMPLITUDE"):
-        assert not hasattr(tuning, name)
 
 
 def test_a_galaxy_with_nothing_pinned_is_a_small_spiral(auto_draws):

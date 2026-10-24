@@ -1089,6 +1089,31 @@ with `clamp()`.
   terminal font).
   Prerequisites: none. Related: UX.101, UX.151.
 
+- [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
+  A short line in the info panel naming the inputs. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  10), filed by the body-rendering design thread, 10:18 PM EDT
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271.
+
+- [ ] **UX.159 Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests**
+  About 190 tests go with them. In progress in the regression-test
+  cleanup lane (PR to follow). docs/generated/architecture-map.html and
+  docs/design/architecture/architecture.html still list web/old_urls.py
+  and are regenerated after the PR merges. Source:
+  reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
+  C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
+  EDT 2026-10-23 as the lane reported.
+  Prerequisites: none.
+
+- [ ] **UX.160 The search icon button opens a box over the page: it should go straight to the search page (bug)**
+  Boss's live observation, 10:35 PM EDT 2026-10-23. The search icon
+  button in the header pulls up a search box instead of going to the
+  search page. Do: the button is a plain link to the search page, with
+  no pop-up box, on every page and theme, and the page's search field
+  takes focus on arrival. Owner: Bug Hunt.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2840,6 +2865,130 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
+
+- [ ] **MAP.270 Far stars on the maps: use the blackbody colour and a luminosity halo (bug)**
+  A star seen from afar should take its colour from its blackbody
+  temperature and show a halo that scales with luminosity. It extends
+  MAP.269. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  1, 6), filed by the body-rendering design thread, 10:18 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: none.
+
+- [ ] **MAP.271 The bodylook record: the server builds one data-look record per body from stored columns**
+  Replaces data-color, data-bodytype, data-hasatmosphere and
+  data-surfacetemp; the class colour table (_CLASS_COLORS) is retired.
+  Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  3), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Decision (2026-10-09): Boss answered the body-rendering choices (10:26
+  PM EDT 2026-10-23) and approved the design (10:28 PM EDT): 1 split the
+  plan across versions with the first groundwork in 8.1; 2 canvas
+  textures cached per body; 3 the server computes and stores the colour;
+  4 wait for the composition spine for the finished feature, but at
+  least one task starts before it (R4a); 5 the vegetation tint, with the
+  change that a world whose life is not green mixes in the colour of its
+  own evolutionary life chemistry; 6 lumpy meshes under the size
+  threshold; 7 thermal glow on hot worlds only, no city lights until
+  9.2. The R items were placed by version from section 11 of the draft;
+  TEST.308 (R11) was dropped because tests ride with each item.
+
+- [ ] **MAP.272 Shared body painter module: seeded noise, texture cache, paint queue and size tiers**
+  One module for the seeded noise, the LRU texture cache, the paint
+  queue and the size tiers the painters share. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  3, 9), filed by the body-rendering design thread, 10:18 PM EDT
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+
+- [ ] **MAP.273 Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel**
+  Paints from stored water fractions, the ocean class and the atmosphere
+  colour; exact fractions need the ground items. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272.
+
+- [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
+  Land colour follows the bulk fractions instead of the temperature and
+  class estimate. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: GEN.411, GEN.428, GEN.429, MAP.273.
+
+- [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
+  Bands, storms, a chemistry tint, thermal glow, and rings with
+  resonance gaps. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272, GEN.670, GEN.419.
+
+- [ ] **MAP.276 Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow**
+  Class texture, spots by activity, luminosity glow, white dwarf and
+  brown dwarf variants. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  6), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272.
+
+- [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
+  Thin air, none and thick air each draw their own glow. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, DB.96.
+
+- [ ] **MAP.278 Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data**
+  Drawn from stored data and classes; comet species need GEN.488. Design
+  draft design-drafts/body-rendering-from-composition-2026-10-24.md
+  (section 7), filed by the body-rendering design thread, 10:18 PM EDT
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272.
+
+- [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
+  Spheres above the threshold. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.272.
+
+- [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: DB.96, GEN.414.
+
+- [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: GEN.422, MAP.275.
+
+- [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
+  Stand-in until sourced by GEN.670. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: GEN.670, MAP.280, GEN.649.
+
+- [ ] **MAP.283 Comet colour from the coma species**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.278, GEN.488.
+
+- [ ] **MAP.284 Night-side thermal glow on hot worlds, with no city lights until 9.2**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.280.
+
+- [ ] **MAP.285 Close-up tier: fragment-shader detail over about 500 px, shared with the sky view**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.272, VIEW.14.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -5731,7 +5880,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.450, SEC.33, TEST.261, UX.100, MAP.143, MAP.220,
+  Prerequisites: SEC.33, TEST.261, UX.100, MAP.143, MAP.220,
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -7674,84 +7823,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
 
-- [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "sky color and atmosphere color
-  are the same I believe, so let's word it as atmosphere color" and the
-  colour is the absolute one, not adapted to the star (Boss's card,
-  10:24 PM EDT as the coordinator reported). Compute the clear-sky
-  colour at noon from the star's light (GEN.416), the Rayleigh depth
-  (GEN.417), the Chappuis absorption of the stored ozone, the stored
-  cloud, dust and haze (Mie extinction plus the absorption slope), the
-  ground's bounce from the stored albedo, and a thick-air limit for tau
-  above about 0.5 where single scattering over-saturates (white sky,
-  reddened sun, no sun disc at very large tau). Returns the hex colour
-  and a short word. Done: Earth gives a pale blue under the Sun, a thin
-  clear CO2 world and a dusty one differ, a 1 MPa nitrogen world is
-  white-cyan with an orange sun, a 9 MPa CO2 world is white;
-  deterministic and free of NaN for every class; the label says when
-  aerosols dominate the answer.
-  Prerequisites: GEN.414, DB.67, DB.68,
-  GEN.441, GEN.462.
-  The ground's bounce reads the surface composition of GEN.441 (the
-  ground's colour and reflectance) where it is stored.
-  Update (2026-10-09): Habitability lane F (2026-10-23, GEN.413 merged
-  as #2761): the Chappuis ozone cross-section table (the visible band
-  that colours the sky) is left for this item; the UV cross sections are
-  in AD9 (GEN.443).
-  Related: GEN.419, GEN.420.
-
-- [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): gas giants are in the first
-  version (Boss's card, 10:24 PM EDT as the coordinator reported). A
-  giant has no surface, so the colour is that of the light seen from a
-  chosen reference pressure level (the cloud top or a fixed bar, the
-  design GEN.409 settles), through the Rayleigh depth of the hydrogen
-  and helium above it, the methane absorption that tints ice giants
-  blue-green, and the stored cloud and haze depths. Sources check
-  (GEN.408, section 5): the class comes from T_eff by the Sudarsky table
-  (I below about 150 K, II about 250 K, III above about 350 K, IV 900 to
-  1500 K, V above about 1500 K), the B, V, R, I colour from the nearest
-  model of Cahoy, Marley and Fortney 2010 (Table 6) interpolated in
-  distance and metallicity, with no colour fixed per class letter; the
-  methane band strengths of Karkoschka 1994 and of Karkoschka and Tomasko
-  are missing and are Boss's to research. Done: a hydrogen and
-  helium giant, a methane-rich ice giant and a cloud-covered giant each
-  give a colour that follows the stored composition and the reference
-  level, with no per-class colour and no NaN.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): visible methane, ammonia and water
-  absorption for the giants from Karkoschka 1994 and Karkoschka and
-  Tomasko 2009, 2010 and 2011 (0.3 to 1.0 micron, low-temperature band
-  analysis; weak-band windows at 727 and 890 nm), Coles 2018 ammonia
-  coefficients with low-temperature CH4 correlated-k grids, and the weak
-  visible tails of NH3, SO2 and NO2 (master section 6 item 3 of
-  docs/design/composition/atmosphere-composition.md). Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Giant colour reads the giant rows of part 09 and
-  the Parmentier and Guillot formulas (GEN.423); the 'Coles 2018'
-  ammonia source of Boss's note is Coles, Yurchenko and Tennyson 2019,
-  and its claim to resolve anomalies near 500 mbar is unsupported
-  (chi-squared per point 1.93 to 1.60 and 2.06 to 1.76; the NH3 cloud
-  sits at 0.55 to 0.57 bar).
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the visible line lists of
-  CH4 and NH3 (Karkoschka 1994, Karkoschka and Tomasko 2009 and 2010,
-  Sithajan 2025).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  methane band strengths are no longer Boss's to research (Boss,
-  2026-10-18, 3:07 PM EDT: "I have already provided all the AD1 data I
-  can!"): remaining AD1 gaps are labelled stand-ins and methane comes
-  from the Oxford k-tables (GEN.422).
-  Prerequisites: GEN.418. Related: GEN.409, GEN.420.
-
 - [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): A new "Atmosphere colour" row in
@@ -7763,7 +7834,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with air and absent for an airless one; every output shows the word,
   the web page shows the chip; the existing description parity tests
   pass.
-  Prerequisites: GEN.418, GEN.419. Related: GEN.208, GEN.218, MAP.244,
+  Related: GEN.208, GEN.218, MAP.244,
   DOC.64.
 
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
@@ -8466,7 +8537,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane H (surface dose).
+  Owner: Blocker 4 lane (build lane for the top blockers, 2026-10-24), moved from lane H at 10:08 PM EDT 2026-10-23: lane H had not started it and gave it up (it keeps GEN.461, which it starts right after GEN.459 merges, gate ending about 11:10 PM EDT). It replaces the basalt and felsic stand-in in physics/radiogenic.py (SURFACE_RESERVOIRS, surface_content); it needs GEN.428, GEN.429, GEN.459 and GEN.461 merged, so Blocker 4 builds ahead and merges last. Lane H messages Blocker 4 when GEN.459 lands.
+  Slice 1 (2026-10-09): Slice 1 merged as #2783 (about 10:30 PM EDT
+  2026-10-23 as the lane reported, no stored value, epoch or migration):
+  physics/surface_composition.py (draw_surface, ice_stable, band_albedo,
+  crust_reservoir; K, Th and U reservoirs for ultramafic, basaltic and
+  felsic crust that lane H can use in place of its stand-ins), the
+  tables surface-ground-types and surface-dominant-ground, and
+  docs/design/composition/surface-composition.md. GEN.441 stays open:
+  slice 2 (the generator call, columns, migration and API) waits on
+  #2751, GEN.459 and GEN.461.
 - [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8866,66 +8946,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the radiation and
   composition statements it would write come from the checked values
   only.
-
-- [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
-  Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
-  12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
-  AM EDT: fix all of the re-check's findings). The Milky Way's own
-  Schmidt index of 1.12 to 1.2 gives a star-formation gradient of about
-  -0.19 dex per kpc beyond the peak, while the observed -0.28 dex per
-  kpc needs an index of about 1.65 (Kennicutt 1998 gives 1.4 +-0.15).
-  GEN.134 derives the profile from the galaxy's own gas profile and a
-  Schmidt law, so the gradient it produces depends on this choice, and
-  the observed figure stays a test target, never an input (NO FIXED
-  CONTENT). Done: the sources for each way of closing the gap are
-  checked first (a Schmidt index that rises at low gas density, a gas
-  disc more extended or steeper than the stars, the Herschel scale
-  length of 1.55 kpc against the stellar 2.6 kpc, the outer-disc
-  threshold of Kennicutt), the one the science supports is built in the
-  profile with the others named in the note, and the generated gradient
-  is compared with the observed one in the star-type share test. If the
-  sources do not settle it, Boss decides on a card. Owner: Core 4 (it
-  owns GEN.134 and density.py).
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The profile code (density.py, tuning.py) is Core 4's GEN.134 work
-  and not Core 3's sampler (GEN.322, GEN.323); ask Core 3 before
-  touching its files.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Nearest law: the same Kennicutt-Schmidt law (index 1.4 +- 0.15,
-  verified); the gap to the observed -0.28 dex per kpc closes by an
-  index rising at low gas density, a gas disc more extended than the
-  stars, or an outer-disc threshold: the choice must be named. Rule V.
-  Progress (Core 4, relayed 6:43 AM EDT 2026-10-23 as the lane
-  reported): the sources are read on arXiv (Bigiel 2008, Leroy 2008,
-  Schaye 2004; the Herschel paper and Kennicutt were already in this
-  note). They support a physical closure (H2 forms stars at constant
-  efficiency, the efficiency in HI-dominated gas falls with radius, HI
-  saturates near 9 solar masses per square parsec) but not a single
-  number, so the item's card clause applies: Core 4 posted Boss a
-  3-option card (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC, in the Core 4
-  thread). Core 4 waits on his tap before building.
-  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
-  coordinator), card
-  cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC): option 1, a
-  Schmidt index that rises at low gas density. Core 4 builds it; the
-  observed gradient stays a test target, never an input.
-  Progress (Core 4, relayed 1:03 PM EDT 2026-10-23 as the lane
-  reported): built to Boss's option 1 and waiting for the gate machine;
-  the fall beyond the peak is -0.27 dex per kpc (was -0.23), 91 percent
-  of the star formation lies inside the solar circle (was 86, observed
-  84) and 0.4 percent beyond 13.5 kpc (was 1.3, observed 1); it takes a
-  generator epoch (60 as a placeholder) and re-records
-  tests/fixtures/density_identity.json. Open stand-ins, labelled in the
-  note and the design doc: the steeper index 2.1 (middle of 1.5 to 2.7)
-  and the saturation at 9 solar masses per square parsec, because no
-  source gives them for one galaxy.
-  Prerequisites: none. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 - [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
   Finding of the Atmosphere research lane, part 5 (mixing ratios by
@@ -13029,7 +13049,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-   Owner: Habitability lane E (radiation link, help, tests), moved from lane I at 9:10 PM EDT 2026-10-23 on Boss's word that this blocker starts now: it has no open prerequisites and lane J's object-model chain waits behind it from about Saturday evening; lane I keeps GEN.557 (lane I was asked to reply only if it already has a branch).
+  Owner: Blocker 5 lane (build lane for the top blockers, 2026-10-24), moved from lane E at 10:05 PM EDT 2026-10-23: lane E had only read it, had not started it, and handed it over; it has no open prerequisites and 22 items wait behind it. Warning from lane E: lane I's #2751 edits generation/planet.py SERIALIZABLE_FIELDS and planets.py, so the Planet slice rebases on it.
+  Slice f (2026-10-09): Slice f merged as #2778 (about 10:40 PM EDT
+  2026-10-23 as the lane reported, a34e275, no epoch, no stored change):
+  generation/planetary_object.py, the PlanetaryObject family class;
+  Planet (planet or moon) and RoguePlanet subclass it, with shared
+  is_giant and parent_kind. GEN.565 stays open for the remnant classes
+  folding into states and the DB.74 table revision (stored names
+  body_type and planet_type, mass and mass_kg). Report:
+  reports/blocker-5-status-2026-10-24.md.
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
@@ -15009,6 +15037,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   index that reads it) by the retained fraction, with a test of a planet
   that loses half its air. Owner: none yet (pool).
   Prerequisites: none. Related: GEN.413, GEN.189.
+
+- [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
+  Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
+  open on purpose. (1) GEN.450 (merged as #2776, epoch 64): the radial
+  fall is -0.27 dex/kpc against -0.28 observed (a test target), but 91%
+  of star formation sits inside the solar circle against 84% observed,
+  and 0.4% lies beyond 13.5 kpc against 1%; the stand-ins are Schmidt
+  index 2.1 and saturation 9 Msun/pc2. Retune the index and the
+  saturation, or the gas-thinning law, until the shares fall inside the
+  observed range, with the choice named. (2) GEN.270 (close-binary
+  types, in its gate): tight_tail_weight is 6.0 and the Algol share
+  comes out at 0.09% of a constant-star-formation disc against the 0.1%
+  to 0.2% window (a lower limit; a higher weight would put over 1% of
+  systems under one day). Decide the weight or add the missing physics,
+  and record the residual in the generation-output line.
+  Prerequisites: GEN.270.
+
+- [ ] **GEN.670 Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition**
+  Stand-ins are registered in the gap plan until sourced. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  5, 10), filed by the body-rendering design thread, 10:18 PM EDT
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17008,6 +17058,37 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   page counts and lists those moons. Owner: Habitability lane B (planet
   and moon lists).
   Prerequisites: DB.73. Related: DB.73.
+
+- [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
+  The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
+  migration, one generator epoch, and the column_units.py entries;
+  MAP.244 then reads it. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: GEN.414, GEN.418, GEN.419.
+
+- [ ] **DB.97 Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message**
+  Follows the DB.4 marker detection. Next in the regression-test cleanup
+  lane. Source: reports/regression-test-review-2026-10-23.md (Boss
+  approved A1, B1, C1, D1, E1), relayed by the regression-test cleanup
+  lane at 10:24 PM EDT 2026-10-23 as the lane reported.
+  Prerequisites: none.
+
+- [ ] **DB.98 Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test**
+  Last in the regression-test cleanup lane, after the item that removes
+  detect_schema_version. Source:
+  reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
+  C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
+  EDT 2026-10-23 as the lane reported.
+  Prerequisites: DB.97.
+
+- [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
+  One migration, one generator epoch and the column_units.py entries.
+  Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.274.
 
 ## API: The JSON API
 
@@ -20421,6 +20502,15 @@ clears each one.
   (proposed).
   Prerequisites: none. Related: GEN.413.
 
+- [ ] **TEST.310 Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report**
+  The Blocker 5 lane had no MySQL or Redis (connection refused), so its
+  scripts/test.py changed run showed 17,619 passed and 16 failed or
+  errored, never confirmed as environmental
+  (reports/blocker-5-status-2026-10-24.md, PR #2778). Do: run the
+  affected tests on current main with a working environment and report
+  which, if any, are real failures. Owner: Bug Hunt.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -22186,7 +22276,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-  Prerequisites: VIEW.12, VIEW.13, VIEW.6, GEN.418. Related:
+  Prerequisites: VIEW.12, VIEW.13, VIEW.6. Related:
   VIEW.2.
 
 - [ ] **VIEW.15 Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API**

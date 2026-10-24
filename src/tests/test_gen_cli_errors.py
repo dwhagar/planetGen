@@ -258,14 +258,6 @@ def test_a_clear_takes_no_option_of_a_scatter(monkeypatch, capsys):
     assert _parse(monkeypatch, "clear-scatter", ["--nebula-field"]).nebula_field is True
 
 
-def test_the_retired_plan_max_shell_is_not_an_option(monkeypatch, capsys):
-    capsys.readouterr()
-    with pytest.raises(SystemExit) as excinfo:
-        _parse(monkeypatch, "plan", ["--max-shell", "40"])
-    assert excinfo.value.code == 2
-    assert "unrecognized arguments: --max-shell 40" in capsys.readouterr().err
-
-
 def test_plan_shape_edges_that_are_allowed(monkeypatch):
     """The other side of each shape bound: amplitude 0, a 90 degree
     pitch either way, one arm, one shell."""

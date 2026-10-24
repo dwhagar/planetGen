@@ -119,6 +119,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [small-bodies-composition.md](composition/small-bodies-composition.md) | The composition of belts, fields, comets, icy bodies and moons (GEN.457): which kinds draw composition first, the mixing rule and the compaction law with its hand-over finding, the taxon, comet, icy-body and moon-origin tables, what is stored, the parametrisations, a worked example and the test targets | plan, awaiting Boss's approval |
 | [stellar-composition.md](composition/stellar-composition.md) | The composition of every star and remnant (GEN.435): X, Y, Z and the elements from the stored [Fe/H], age and population, and what the star's iron, magnesium and silicon give the planets | checked design, for Boss's approval (GEN.435) |
 | [radiation-model.md](composition/radiation-model.md) | The radiation model (GEN.436): the bands, transmission and greenhouse from the infrared opacity, shielding by column, the ground's dose and radon, the surface ultraviolet | checked design, for Boss's approval (GEN.436) |
+| [surface-composition.md](composition/surface-composition.md) | The ground of a planet or moon (GEN.441): the surface and crust draw, where ice is stable, the ground colour by band, and the potassium, thorium and uranium reservoirs of ultramafic, basaltic and felsic crust. |
 | [sky-colour-analysis.md](composition/sky-colour-analysis.md) | The read-only study behind the atmosphere colour: what exists, the method, the effort and how well each source was checked | study |
 | [atmosphere-sources-check.md](composition/atmosphere-sources-check.md) | The check of the real-world sources behind the atmosphere colour chain: what was read, what is second-hand, what Boss must research | study |
 | [bulk-composition-sources-check.md](composition/bulk-composition-sources-check.md) | The check of the mass-radius and equation-of-state sources behind the bulk composition chain: constants, method order, the core fraction from the star and what Boss must research | study |
@@ -152,6 +153,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [habitability-index.md](habitability/habitability-index.md) | The planetary habitability index (PHI-4) and the protection gear | partly built (scores built, GEN.84) |
+| [condition-based-planet-classes.md](habitability/condition-based-planet-classes.md) | A planet or moon's class worked out from its finished conditions (air, temperature, water, size, gravity) instead of drawn first: the rule file, the core classes, the shadow sweep and the cut-over (GEN.645 to GEN.648) | partly built (class lane, 2026-10-23; the classifier, sweep and class pages are built, the cut-over waits on the composition lanes) |
 | [atmospheres-retention-and-classes.md](habitability/atmospheres-retention-and-classes.md) | Atmosphere retention and class timing | research |
 | [activity-magnetism-radiation-hydrosphere.md](habitability/activity-magnetism-radiation-hydrosphere.md) | Stellar activity, magnetism, radiation dose and hydrosphere | partly built |
 | [population-and-politics.md](habitability/population-and-politics.md) | Species, civilizations, territories, tech levels and facilities | built |
@@ -181,6 +183,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [admin-control-suite.md](interface/admin-control-suite.md) | The admin control suite: research on packing many options into a quiet interface, the Settings and Generate redesign, the shell, job strip and palette, Boss's 13 answers and the items ADM.101 to ADM.123 | designed (in 8.1 phase 1, goal #2350) |
 | [galaxy-drilldown-navigation.md](interface/galaxy-drilldown-navigation.md) | The Galaxy Map's drill-down | built (partly replaced by the fly-through) |
 | [drilldown-region-sizes.md](interface/drilldown-region-sizes.md) | Step sizes and region shapes for the drill-down | built (MAP.151) |
+| [body-rendering.md](interface/body-rendering.md) | Rendering bodies from composition: the look record, the shared painter, solid worlds, giants, stars and phenomena, items by version | approved (R1, R3, R4a built in 8.1) |
 | [edit-everything.md](interface/edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
 | [roles-and-requests.md](interface/roles-and-requests.md) | The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves | plan |
 | [fly-through-view-distance.md](interface/fly-through-view-distance.md) | The fly-through map: view distance, near field, free camera | partly built |

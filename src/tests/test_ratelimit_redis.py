@@ -8,7 +8,6 @@ and an install with no `ratelimit.storage_uri` set gets the Redis server
 of `redis.url`.
 """
 
-import pytest
 
 from planetgen.admin import throttle
 from planetgen.api import config as api_config, loginguard

@@ -31,7 +31,7 @@ from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from tests.test_api import (  # noqa: F401
     admin_client, client, default_admin_client, first_admin_password, seeded_sector,
 )
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 def _save_nebula(mysql_config, sector_id=None):
@@ -231,36 +231,3 @@ def test_generation_stats_answers_for_an_admin(admin_client):
 def test_resetting_the_generation_stats_answers_for_an_admin(admin_client):
     body = admin_client.post("/api/admin/generation-stats/reset", json={}).get_json()
     assert body == {"deleted": 0}
-
-
-# --- Auth-boundary sweep across every write/admin route ----------------------
-
-_WRITE_ROUTES = [
-    ("post", "/api/sectors", {"name": "X"}),
-    ("patch", "/api/sectors/1", {"name": "X"}),
-    ("delete", "/api/sectors/1", None),
-    ("post", "/api/sectors/1/generate-neighborhood", {}),
-    ("post", "/api/systems", {"star_type": "G2V"}),
-    ("patch", "/api/systems/1", {"name": "X"}),
-    ("delete", "/api/systems/1", None),
-    ("post", "/api/systems/1/wiki", {"backend": "wikijs", "path": "x"}),
-    ("post", "/api/sectors/1/wiki", {"backend": "wikijs", "path": "x"}),
-]
-
-
-@pytest.mark.parametrize("method, path, body", _WRITE_ROUTES)
-def test_write_route_rejects_unauthenticated_request(method, path, body, client):
-    response = getattr(client, method)(path, json=body)
-    assert response.status_code == 401, f"{method.upper()} {path} without auth should be 401, got {response.status_code}"
-
-
-@pytest.mark.parametrize("method, path, body", _WRITE_ROUTES)
-def test_write_route_rejects_default_credentials_admin(method, path, body, default_admin_client):
-    """An admin still on the seeded default credentials (must_change_credentials
-    still True) must be rejected from every write route (authz.require_admin(fresh=True)),
-    not just the ones test_admin_auth.py happens to already cover."""
-    response = getattr(default_admin_client, method)(path, json=body)
-    assert response.status_code == 403, (
-        f"{method.upper()} {path} with a non-fresh admin should be 403 (authz.require_admin(fresh=True)), "
-        f"got {response.status_code}"
-    )

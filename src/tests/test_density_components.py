@@ -100,7 +100,7 @@ def _quadrature_masses(shape):
         + _gauss(shells, math.log(halo["halo_break_pc"]), high, 2000))
 
     # the nuclear cluster, softened: shells out to 1e9 pc
-    scale, soft = terms["nuclear_cluster_scale_pc"], terms["nuclear_cluster_softening_pc"]
+    soft = terms["nuclear_cluster_softening_pc"]
     if terms["nuclear_cluster_mass"]:
         cluster = lambda r: 4.0 * math.pi * r ** 2 * density._nuclear_cluster_array(r, terms)
         out["nuclear_cluster"] = (_gauss(cluster, 0.0, soft, 100)

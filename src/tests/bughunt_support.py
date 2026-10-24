@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import contextlib
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Sequence
 
 import pytest
@@ -178,31 +178,6 @@ def mysql_argv(mysql_config) -> list[str]:
         "--mysql-password", mysql_config.password,
         "--mysql-database", mysql_config.database,
     ]
-
-
-@dataclass
-class Tier2Report:
-    """
-    Accumulates soft findings for a Tier 2 test so they're reported
-    together at the end (via `pytest.fail` if `strict` is requested, or
-    just printed to stdout under `-s` otherwise) instead of stopping at
-    the first one -- mirrors `plausibility.format_report`'s "collect
-    everything, report once" shape.
-    """
-
-    findings: list[str] = field(default_factory=list)
-
-    def add(self, message: str) -> None:
-        self.findings.append(message)
-
-    def flush(self, label: str) -> None:
-        """Prints every accumulated finding, prefixed with a Tier 2 banner
-        so it's easy to grep out of a full-suite run's output."""
-        if not self.findings:
-            return
-        print(f"\n[tier2:{label}] {len(self.findings)} soft finding(s):")
-        for msg in self.findings:
-            print(f"  - {msg}")
 
 
 def tier2(fn):

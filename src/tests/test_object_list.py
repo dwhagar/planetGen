@@ -6,7 +6,7 @@ names, nothing uses `OFFSET`, and a bad kind, sort or cursor is refused."""
 
 import pytest
 
-from planetgen.db import objectindex, objectlist, query, store
+from planetgen.db import objectindex, objectlist, store
 from tests.publicids import pid  # noqa: F401
 from tests.test_api import client  # noqa: F401
 from tests.test_object_index import galaxy  # noqa: F401  (fixture)
@@ -94,6 +94,24 @@ def test_an_item_carries_the_printed_id_its_system_and_its_parent(indexed):
     item = items[0]
     assert item["kind"] == "planet" and len(item["id"].split("-")) == 3 and item["system_id"] is not None
     assert item["parent_id"] is not None and item["source_id"] > 0
+
+
+def test_a_planet_or_moon_item_carries_its_stored_habitability(indexed):
+    """UX.100: `phi4` and the six `tier_<domain>` ratings come from the kind's own table; other kinds carry none."""
+    config, _sector = indexed
+    columns = objectlist.HABITABILITY_COLUMNS
+    for kind, table in (("planet", "planets"), ("moon", "moons")):
+        items, _pages, _total = _walk(config, kind, 50)
+        conn = store.get_connection(config)
+        try:
+            stored = {row["id"]: row for row in conn.execute(f"SELECT id, {', '.join(columns)} FROM {table}").fetchall()}
+        finally:
+            conn.close()
+        for item in items:
+            assert {column: item[column] for column in columns} == {column: stored[item["source_id"]][column]
+                                                                   for column in columns}
+    stars, _pages, _total = _walk(config, "star", 50)
+    assert stars and all("phi4" not in star for star in stars)
 
 
 def test_a_cursor_for_a_gone_object_starts_from_the_top_and_a_bad_one_is_refused(indexed):

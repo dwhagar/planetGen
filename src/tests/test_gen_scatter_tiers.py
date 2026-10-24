@@ -16,7 +16,6 @@ import pytest
 from planetgen import tuning
 from planetgen.db import store
 from planetgen.galaxy import scatter_limits, structure_draw
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.scatter_limits import BASELINE, CORE, HALO, ScatterLimits
 from planetgen.galaxy.spherical import band_range
 from planetgen.generation import bright_stars as brightStars
@@ -40,7 +39,7 @@ def _shape(nuclear_amplitude=1.0):
 # A seed whose drawn structure keeps the toy galaxy's three shells in the tiers they are named for (core, mixed, disc).
 SEED = bytes([39]) * 16
 SHAPE = _shape()._replace(structure=structure_draw.draw_structure(SEED))   # a stored shape's seed draws its structure
-CORE_SHELL, MIXED_SHELL, DISC_SHELL = 1, 800, 40
+CORE_SHELL, MIXED_SHELL, DISC_SHELL = 1, 650, 40
 """A shell in the nuclear cluster, one the halo reaches near its poles and the disc crosses, and one in the disc."""
 
 

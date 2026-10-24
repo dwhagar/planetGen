@@ -29,7 +29,7 @@ from tests.test_api import (  # noqa: F401
     _place_sector, _save_wide_binary_with_moons, admin_client, client, default_admin_client,
     first_admin_password, seeded_sector,
 )
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 HUGE_ID = 10 ** 25
 """int: Past `BIGINT UNSIGNED`'s range; the URL's `<int:...>` converter
@@ -140,8 +140,6 @@ def test_rename_with_the_wrong_kind_of_id(admin_client, mysql_config):
     system_id = _save_wide_binary_with_moons(mysql_config)
     moon = _one(mysql_config, "SELECT id, name FROM moons WHERE star_system_id = ? ORDER BY id DESC LIMIT 1",
                 (system_id,))
-    top_planet = _one(mysql_config, "SELECT MAX(id) AS top FROM planets")["top"]
-    top_star = _one(mysql_config, "SELECT MAX(id) AS top FROM stars")["top"]
 
     nowhere = "FFFFFFFFFFFFFF-FFFFFFF-FFF"
     _assert_json_error(admin_client.patch(f"/api/planets/{nowhere}", json={"name": "Misfiled"}), 404)

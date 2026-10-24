@@ -310,6 +310,11 @@
       "epoch": 63,
       "first_release": "8.0.2071",
       "reason": "Every rocky world with oxygen draws an ozone column (a Kozakis fit by oxygen and star temperature times a structure factor), which sets its UV index and ozone-loss flag in place of the square-root proxy, and adds one draw to the dose stream (GEN.413)"
+    },
+    {
+      "epoch": 64,
+      "first_release": "8.0.2079",
+      "reason": "The disc's recent star formation falls faster in its thin outer gas, so the density of young stars at large radius and every young star's place in the outer disc move, and with them the systems generated there (GEN.450)"
     }
   ]
 }

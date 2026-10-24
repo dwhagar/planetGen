@@ -134,6 +134,18 @@ and bulge scale radius. The Milky Way's figures are test targets in `tests/test_
    assumption: the observed gas disk is more extended, which would make the outer disk younger). The Milky Way's own Kennicutt-Schmidt index
    is lower than the classic one: 1.2 +-0.2 (Luna et al. 2006, molecular gas) and 1.12 +-0.05 (Sofue and Nakanishi 2017), as the
    Herschel paper below reports them [P: as that paper quotes them]; with them the outer fall would be -0.19 dex per kpc, and the observed -0.28 needs an index of 1.65.
+   *The index rises where the gas thins (GEN.450, Boss's answer to the card of 12:27 PM EDT 2026-10-23).* Instead of one index of 1.65, which is
+   chosen to hit the observed figure (a test target, never an input), the index steepens where the disk's own gas is thin: [Bigiel et al. 2008](https://arxiv.org/pdf/0810.2541)
+   find that molecular gas forms stars at a constant efficiency (index 1.0) while atomic gas, which dominates the outskirts, saturates near 9
+   solar masses per pc2 and shows a weak total-gas relation; [Leroy et al. 2008](https://arxiv.org/pdf/0810.2556) find the efficiency in the atomic-dominated
+   disk falls exponentially with radius; [Schaye 2004](https://arxiv.org/pdf/astro-ph/0205125) gives a cold-phase threshold. The rate is
+   `A gas^n (gas / (gas + gas_s))^(m - n)`: `n` stays 1.4, `gas_s` is 9 solar masses per pc2 (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`) and `m`
+   is 2.1 (`tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT`), the middle of the 1.5 to 2.7 that resolved total-gas fits give. The gas is the rings' gas now
+   (`disk_history.history_of`), about 4 solar masses per pc2 at 8 kpc for a Milky Way-like galaxy (the observed total is higher, about 13, so the
+   threshold bites a little earlier in the model than in the Galaxy), and the extra factor is normalised away like the rest, so the disk still makes
+   as many stars. The result for the Milky Way-like shape is a fall of -0.27 dex per kpc beyond the peak. What is open: `m` and `gas_s` are not read from
+   one galaxy (no source gives the index of a single galaxy's outer disk), the smooth form `gas / (gas + gas_s)` is a choice, and the ring gas is
+   lower than the observed total.
 2. *The bar gap.* A bar drives the gas inside its corotation inward, and what is left is sheared and made turbulent by the bar's
    shocks, so the star-forming gas in the region the bar sweeps is depleted. What the papers say [P: each read in the paper, 2026-10-17]:
    in six zoom-in simulations the star formation "desert" either side of the bar lacks stars younger than 10 Myr because, after
@@ -160,10 +172,10 @@ and bulge scale radius. The Milky Way's figures are test targets in `tests/test_
 
 | Quantity | Derived | Milky Way target |
 |---|---|---|
-| Peak of the rate per area | 3.5 kpc (the gap's edge) | 4 to 5 kpc (molecular ring) |
-| Share of the star formation inside the solar circle | 86% | 84% |
-| Share beyond 13.5 kpc | 1.3% | 1% |
-| Fall beyond the peak | -0.23 dex per kpc (= 1.4 x 0.434 / 2.6) | -0.28 |
+| Peak of the rate per area | 3.3 kpc (the gap's edge) | 4 to 5 kpc (molecular ring) |
+| Share of the star formation inside the solar circle | 91% (86% before GEN.450) | 84% |
+| Share beyond 13.5 kpc | 0.4% (1.3% before GEN.450) | 1% |
+| Fall beyond the peak | -0.27 dex per kpc (the plain law gives -0.23 = 1.4 x 0.434 / 2.6; the index rising where the gas thins, GEN.450, adds -0.04) | -0.28 |
 | Share inside 3 kpc | 13% | a dip (not quantified here) |
 | Stars under 5 Gyr in the bar's core (250 to 1000 pc) | 9% to 11% | 3% (HST) to 16 to 23% (microlensing, disputed) |
 

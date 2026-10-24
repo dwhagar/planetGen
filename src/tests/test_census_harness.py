@@ -9,7 +9,6 @@ import random
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.generation import fill_stages
 from planetgen.physics.units import ly_to_pc
 from tests.toy_shape import toy_shape

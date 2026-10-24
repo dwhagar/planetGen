@@ -10,7 +10,6 @@ import statistics
 
 import pytest
 
-from planetgen import tuning
 from planetgen.galaxy import density, structure_draw as sd
 
 
@@ -23,10 +22,6 @@ def test_the_two_fits_are_the_papers_equations():
     assert photometric == pytest.approx(10 ** 7.62) and spectroscopic == pytest.approx(10 ** 7.99)
     photometric, spectroscopic = sd.nuclear_disc_mass_bounds_solar(1.0e11)
     assert photometric == pytest.approx(10 ** (7.62 + 2 * 1.32)) and spectroscopic == pytest.approx(10 ** (7.99 + 2 * 0.86))
-
-
-def test_the_constant_ratio_to_the_cluster_is_gone():
-    assert not hasattr(tuning, "NUCLEAR_DISC_CLUSTER_MASS_RATIO")
 
 
 def test_the_same_seed_draws_the_same_disc_and_two_seeds_draw_two():

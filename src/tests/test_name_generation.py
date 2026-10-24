@@ -24,7 +24,6 @@ Run with: pytest tests/test_name_generation.py
 
 import pytest
 
-from planetgen.util import draw
 from planetgen.names.wordlists import (
     PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
     SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
@@ -80,7 +79,6 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
             return "os"
         return seq[0]
 
-    random_calls = {"n": 0}
 
     def fake_random_random():
         # First call gates the UNIVERSAL_PHONEME_CHANCE splice -- must be

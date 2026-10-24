@@ -11,7 +11,6 @@ exercised them indirectly, through the now-removed panel renderer).
 
 Run with: pytest src/tests/test_galaxymap.py
 """
-import math
 
 import pytest  # noqa: E402
 

@@ -5,7 +5,6 @@ candidates come in, and the steps that are not between neighbours counted and re
 """
 
 import itertools
-import math
 import random
 
 import pytest

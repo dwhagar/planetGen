@@ -17,7 +17,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.galaxy import cellkey
-from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
+from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc
@@ -110,7 +110,6 @@ def _place_at(points, name):
 
 
 def _seed_scatter_grid(mysql_config):
-    from planetgen.galaxy.density import build_galaxy_shape
     shape = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                                bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     store.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
@@ -183,7 +182,7 @@ def test_a_system_that_steps_over_a_cube_face_gets_the_next_cubes_key(mysql_conf
                                 " ORDER BY id").fetchall()
             return [((r["galaxy_x_pc"], r["galaxy_y_pc"], r["galaxy_z_pc"]), r["cell_key"]) for r in rows]
 
-        (cross_before, stay_before) = before = read()
+        (cross_before, stay_before) = read()
         assert math.dist(cross_before[0], cross_start) < 1e-6 and math.dist(stay_before[0], stay_start) < 1e-6
         with conn:
             conn.execute("UPDATE stars SET galactic_orbital_period_gy = 1.0")

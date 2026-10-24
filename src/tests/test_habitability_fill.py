@@ -17,7 +17,6 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability_world
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
-from tests.test_phenomenon_scatter import _scatter_args
 
 COLUMNS = habitability_world.SCORE_FIELDS + ("flux_variation",)
 """tuple: The columns the fill writes."""

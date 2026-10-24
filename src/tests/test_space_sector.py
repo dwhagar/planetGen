@@ -24,7 +24,6 @@ from planetgen.galaxy import enclosed_mass, scales
 from planetgen.galaxy import sector as spaceSector_module
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import (
-    SectorSystemEntry,
     SpaceSector,
     _nudge_away,
     _sample_poisson_count,

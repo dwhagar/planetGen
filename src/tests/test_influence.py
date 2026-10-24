@@ -4,7 +4,6 @@
 sectors that can hold part of that sphere, checked against brute force and a `cKDTree`, with a negative control for the
 cells' reach margin, the cap of exact members and the order the result is given in."""
 
-import math
 import random
 
 import numpy as np

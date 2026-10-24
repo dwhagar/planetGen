@@ -15,7 +15,6 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import scatter_systems, store
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.scatter_limits import ScatterLimits
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import multistar, phenomenon_scatter, scatter_companions

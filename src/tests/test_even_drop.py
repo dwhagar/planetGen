@@ -1,5 +1,4 @@
 """MAP.251: a list that cannot hold everything drops evenly across space, the highest-ranked going last."""
-import math
 
 from planetgen.db import query
 

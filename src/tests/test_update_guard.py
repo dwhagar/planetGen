@@ -6,18 +6,15 @@ The update guard (OPS.41, OPS.53): `admin/updateguard.py`, its command `cli/upda
 says it is a real process or a real Generate job directory.
 """
 
-import json
 import os
 import re
-import signal
 import subprocess
 import sys
-import time
 
 import pytest
 
 from planetgen.admin import maintenance, updateguard
-from planetgen.cli import migrate, update_guard as update_guard_cli
+from planetgen.cli import migrate
 
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))

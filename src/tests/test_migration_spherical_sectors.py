@@ -15,7 +15,6 @@ import pytest
 from planetgen import tuning
 from planetgen.db import store
 from planetgen.galaxy import object_uid, spherical, uid as galaxy_uid
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from tests.toy_shape import toy_shape
 from tests.db_schema_support import load_old_schema

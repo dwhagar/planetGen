@@ -187,7 +187,7 @@ connectivity to that specific schema rather than the default one.
   `sort=name` list at the first name from it on; `past_end` is true when none lies at or past it and the last page is
   answered). Answers `items`
   (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
-  `mass_kg`, `radius_km`, `placed`), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
+  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
   what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`).
@@ -277,7 +277,7 @@ connectivity to that specific schema rather than the default one.
   (kilometers from the system's origin), each `[x, y, z]` or `null` where
   the object has none (a body inside a system takes the system's galaxy and
   sector positions; a belt is a ring with no `system_km`). A bad reference
-  or a missing row is a `404`. `keep_out` (NAV.24) is the object's keep-out
+  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100). `keep_out` (NAV.24) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron

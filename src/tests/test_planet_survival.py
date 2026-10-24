@@ -6,10 +6,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen import tuning
 from planetgen.generation import place_terms
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
 from planetgen.generation.validation import reach_au
 from planetgen.physics import metallicity, planet_survival

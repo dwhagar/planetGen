@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 10:00 PM EDT 2026-10-23: 774 of 1182 items finished (65.5 percent), 408 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 114, phase 2 41, phase 3 25, phase 4 14, phase 5 83, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 4, phase 11 39, phase 12 8 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 10:42 PM EDT 2026-10-23: 778 of 1196 items finished (65.1 percent), 418 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 118, phase 2 47, phase 3 26, phase 4 13, phase 5 84, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 2, phase 11 40, phase 12 8 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -59,6 +59,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) |  |  |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer |  | Split from DB.9. Core 1 owns migrations. |
+| DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | DB.97 | Regression-test cleanup lane, last. |
+| DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message |  | Regression-test cleanup lane, next. |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it |  |  |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) |  |  |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | DB.45 | Split from DB.9. Core 1 owns migrations. |
@@ -116,6 +118,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) |  | Flake, fix the cause |
+| TEST.310 | Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report |  | Coordinator relay 10:37 PM EDT; Bug Hunt. |
 | TEST.306 | Five physics modules are imported only by tests and no item names them |  | Owner or delete |
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) |  | Run on a normal lane first |
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase |  | Marker fix |
@@ -186,6 +189,7 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
 | UX.126 | The admin pages and the edit dialogs on the field macro |  | The admin page conversion rides ADM.56 and ADM.93. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
+| UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests |  | Regression-test cleanup lane, in progress. |
 
 ## Phase 2: Infinite zoom
 
@@ -209,6 +213,12 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | MAP.263 |  |
 | MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | MAP.259, MAP.261, MAP.265 |  |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) |  | Boss bug 8:51 PM EDT |
+| MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) |  | Body rendering R0; proposed 8.1. |
+| MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns |  | Body rendering R1; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers |  | Body rendering R3; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | MAP.271, MAP.272 | Body rendering R4a; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | MAP.271, MAP.272 | Body rendering R7; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | MAP.271, MAP.272 | Body rendering R9a; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | MAP.261, MAP.263 |  |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | MAP.263, MAP.264, MAP.265 |  |
 | MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.263, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268 |  |
@@ -275,6 +285,7 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315, GEN.631, GEN.332, GEN.640 | Split from GEN.264. |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.315, GEN.316 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
+| GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | GEN.270 | Core 4, 10:20 PM EDT 2026-10-23; no epoch until a law changes. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected |  | Split from GEN.273. |
@@ -316,7 +327,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named |  | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.535 | Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I) |  | Open inferences of GEN.528: gas fraction, low LMC remnant count, Leo I gas. |
 | GEN.534 | A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young` |  | Residual of GEN.528: the system-type tables do not name satellite_young. Core 3 proposed. |
@@ -372,6 +382,7 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) |  | Boss bug 9:07 PM EDT |
+| UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) |  | Boss bug 10:35 PM EDT; Bug Hunt. |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind |  | Split from MAP.132. |
@@ -646,10 +657,8 @@ Moved into 8.1 from 9.0 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | GEN.414, DB.67, DB.68, GEN.441, GEN.462 | Boss 11:24 PM EDT; absolute colour, not eye-adapted. |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column |  | Follow-up of GEN.413 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | GEN.411 | Follow-up of GEN.413 |
-| GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | GEN.418 | Boss 11:24 PM EDT; reference level chosen in the design. |
 
 ## Phase 11: Composition and colour in the product
 
@@ -661,9 +670,10 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | GEN.418, GEN.419 | Boss 11:24 PM EDT; one place serves every output. |
+| GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output |  | Boss 11:24 PM EDT; one place serves every output. |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | GEN.420 | Boss 11:24 PM EDT; replaces the temperature gesture. |
 | GEN.446 | The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface | GEN.441, GEN.442, GEN.444, GEN.445 | Boss 11:58 PM EDT; stars, surfaces, small bodies and radiation in the text. |
+| GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition |  | Body rendering R10; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | DOC.64 | Docs: the atmosphere colour, its method and its sources | GEN.420, MAP.244 | Boss 11:24 PM EDT; docs only. |
 
 ### Stand-in replacements
@@ -732,5 +742,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.155 | A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6) |  |  |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.450, SEC.33, TEST.261, UX.100, MAP.143, MAP.220, GEN.639, GEN.445, DOC.75, TEST.300 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, UX.100, MAP.143, MAP.220, GEN.639, GEN.445, DOC.75, TEST.300 |  |
 | GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) |  |  |

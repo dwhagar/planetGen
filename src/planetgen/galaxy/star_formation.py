@@ -13,6 +13,13 @@ galaxy's own shape, with no value taken from the Milky Way's star-formation prof
    thin disk's stars are the sum of its past rates, so their surface density is `exp(-R / L)` (`L` the disk scale
    length). With a gas disk of scale length `g * L` the present rate falls as `exp(-n R / (g L))`, and the share
    of the stars that are recent as `exp(-(n / g - 1) R / L)`: the outer disk has fewer young stars per star.
+   Where the gas thins the index rises (GEN.450): molecular gas forms stars at a constant efficiency and atomic gas,
+   which dominates where the gas is under about 9 solar masses per pc2, at a falling one (Bigiel et al. 2008, Leroy et
+   al. 2008, Schaye 2004), so the rate is `A gas^n (gas / (gas + gas_s))^(m - n)` with `gas_s` the saturation density
+   (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`) and `m` the steeper index
+   (`tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT`), and the gas at each radius is the disk's own, from the rings of its
+   star-formation history (`galaxy.disk_history`). The extra factor is 1 where the gas is dense and
+   `(gas / gas_s)^(m - n)` where it is thin.
 2. The bar gap: a bar drives the gas inside its corotation inward and shocks and shears what is left, so the
    star-forming gas inside the bar's length is depleted (the star-formation desert of a barred galaxy; see the
    design note for the sources). The rate there is scaled by `S(R)`, a floor `f` at the centre rising to 1 outside
@@ -70,6 +77,31 @@ def _gap_suppression(radius_pc, gap_pc, floor):
     return floor + (1.0 - floor) * up / (1.0 + up)
 
 
+def _log_gas(x, shape):
+    """`(ln gas, d ln gas / dx)` at `x` disk scale lengths (arrays): the log of the disk's gas per area now (solar masses
+    per pc2, the rings of `disk_history.history_of`) joined by straight lines, and past the outermost ring continued with
+    the slope of the last segment (the gas of an exponential disk)."""
+    found = disk_history.history_of(shape)
+    rings, log_gas = found.radius_scale_lengths, np.log(found.gas_now)
+    x = np.asarray(x, dtype=float)
+    slopes = np.diff(log_gas) / np.diff(rings)
+    segment = np.clip(np.searchsorted(rings, x) - 1, 0, len(slopes) - 1)
+    slope = slopes[segment]
+    return log_gas[segment] + slope * (x - rings[segment]), slope
+
+
+def _thin_gas_factor(x, shape):
+    """
+    The factor the rising index puts on the recent share at `x` disk scale lengths, with its log slope per scale length:
+    `(gas / (gas + gas_s))^(m - n)`. 1 where the gas is dense, falling as the gas thins.
+    """
+    log_gas, slope = _log_gas(x, shape)
+    gas = np.exp(log_gas)
+    saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
+    power = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - tuning.STAR_FORMATION_LAW_EXPONENT
+    return (gas / (gas + saturation)) ** power, power * saturation / (gas + saturation) * slope
+
+
 def _decline_per_scale_length():
     """`n / g - 1`: how many e-folds per disk scale length the recent share falls (the rate's steepening over the
     stars'), 0.4 for `n = 1.4` and a gas disk as long as the stellar one."""
@@ -77,13 +109,14 @@ def _decline_per_scale_length():
 
 
 @functools.lru_cache(maxsize=64)
-def _normalisation(decline, gap_over_length, floor):
-    """The factor `A` that makes the disk-wide mean of `exp(-decline x) * S` 1, `x` in disk scale lengths, taking
-    each radius as many stars as the disk has there (`x exp(-x)`)."""
+def _normalisation(decline, gap_over_length, floor, shape):
+    """The factor `A` that makes the disk-wide mean of `exp(-decline x) * S * G` 1, `x` in disk scale lengths, taking
+    each radius as many stars as the disk has there (`x exp(-x)`); `G` is the thin-gas factor of `shape` (whose
+    `k_norm` the caller has set to 1, as the history does not read it)."""
     top = 80.0 / (1.0 + decline) if decline > -1.0 else 80.0
     x = np.linspace(0.0, max(top, 40.0), _GRID_POINTS)
     weight = x * np.exp(-x)
-    shape_term = np.exp(-decline * x) * _gap_suppression(x, gap_over_length, floor)
+    shape_term = np.exp(-decline * x) * _gap_suppression(x, gap_over_length, floor) * _thin_gas_factor(x, shape)[0]
     return float(np.trapezoid(weight, x) / np.trapezoid(weight * shape_term, x))
 
 
@@ -104,9 +137,11 @@ def recent_factor(radius_pc, shape):
     gap = gap_radius_pc(shape)
     floor = _gap_floor(shape)
     decline = _decline_per_scale_length()
-    norm = _normalisation(round(decline, 9), round(gap / length, 9), floor)
+    flat = shape._replace(k_norm=1.0)
+    norm = _normalisation(round(decline, 9), round(gap / length, 9), floor, flat)
     radius = np.asarray(radius_pc, dtype=float)
-    value = norm * np.exp(-decline * radius / length) * _gap_suppression(radius, gap, floor)
+    value = (norm * np.exp(-decline * radius / length) * _gap_suppression(radius, gap, floor)
+             * _thin_gas_factor(radius / length, flat)[0])
     return float(value) if value.ndim == 0 else value
 
 
@@ -127,7 +162,8 @@ def _log_slope(radius_pc, shape):
     radius = np.asarray(radius_pc, dtype=float)
     up = np.power(radius / gap, power)
     rising = (1.0 - floor) * power * up / (1.0 + up) ** 2 / radius
-    return rising / _gap_suppression(radius, gap, floor) - _decline_per_scale_length() / length
+    thin_slope = _thin_gas_factor(radius / length, shape._replace(k_norm=1.0))[1]
+    return rising / _gap_suppression(radius, gap, floor) - _decline_per_scale_length() / length + thin_slope / length
 
 
 @functools.lru_cache(maxsize=64)

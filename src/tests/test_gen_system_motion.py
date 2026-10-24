@@ -135,7 +135,8 @@ def test_the_nightly_update_moves_the_barycentre_and_writes_no_member_or_node_ro
         with conn:
             ids = {table: _insert_scatter_point(conn, table, point, None if table == "bright_stars" else "black-hole")
                    for table in scatter_systems.SOURCES}
-            trees = {table: _store_tree(conn, table, row_id) for table, row_id in ids.items()}
+            for table, row_id in ids.items():
+                _store_tree(conn, table, row_id)
             before_sums = _checksums(conn)
             before = {table: conn.execute(f"SELECT position_x_mpc, position_y_mpc, epoch_unix FROM {table} WHERE id = ?",
                                           (row_id,)).fetchone() for table, row_id in ids.items()}

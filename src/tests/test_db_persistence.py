@@ -1504,7 +1504,6 @@ def test_sectors_linked_later_get_the_links_they_would_have_had_at_save(mysql_co
     """PERF.45: sectors saved with `link_neighbors=False` and linked at the end
     have the nearest systems a brute-force search gives, the neighbour that was
     already linked included."""
-    import math
     from planetgen.physics.units import milliparsecs_to_ly, pc_to_ly
 
     edge_ly = pc_to_ly(4.0)
@@ -1512,8 +1511,8 @@ def test_sectors_linked_later_get_the_links_they_would_have_had_at_save(mysql_co
     def place(center_x):
         return {"center_x_pc": center_x, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": center_x}
 
-    first = store.save_sector(_sector_with_systems("Linked", [(edge_ly / 2 - 0.5, 0.0, 0.0), (-5.0, 0.0, 0.0)]),
-                              config=mysql_config, galaxy_position=place(100.0))
+    store.save_sector(_sector_with_systems("Linked", [(edge_ly / 2 - 0.5, 0.0, 0.0), (-5.0, 0.0, 0.0)]),
+                      config=mysql_config, galaxy_position=place(100.0))
     saved = [
         store.save_sector(_sector_with_systems("LaterB", [(-edge_ly / 2 + 0.5, 0.0, 0.0), (0.0, 3.0, 0.0)]),
                           config=mysql_config, galaxy_position=place(104.0), link_neighbors=False),

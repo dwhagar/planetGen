@@ -8,7 +8,6 @@ multi-star tree).
 The 20 pc census's densities (Kirkpatrick et al. 2021, Table 15) are test targets that show the cooling laws give a
 plausible spread of temperatures. None of them is an input of the generator."""
 
-import math
 
 import pytest
 

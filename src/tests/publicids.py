@@ -64,6 +64,3 @@ def psys(row_id, config=None):
     return pid("system", row_id, config)
 
 
-def psec(row_id, config=None):
-    """`pid("sector", row_id)`, for the same spots."""
-    return pid("sector", row_id, config)
