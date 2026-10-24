@@ -1395,3 +1395,4 @@ Baseline: PR #1817.
 | TEST.353 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.424 | 8.1 | Mixture and stored values |
 | DB.71 | 8.1 | Mixture and stored values |
+| GEN.726 | 8.1 | Radiation chain for habitability (GEN.445) |

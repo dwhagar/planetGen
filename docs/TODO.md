@@ -940,7 +940,7 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
-- [ ] **UX.188 Every object info page puts the critical facts first, as a nav system would for a starship captain; planet basics under the render, details in sections after**
+- [ ] **UX.188 Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet)**
   Boss (5:50 PM EDT 2026-10-24, design note): 'Redesign the object pages
   so that we frontload with the critical information, planet basics
   (temp, pressure, gravity, habitability, etc etc etc) and details come
@@ -974,6 +974,114 @@ with `clamp()`.
   planets and moons), then titled detail sections. The owner writes the
   order of the basics for each kind in the PR. Related: UX.143, UX.144,
   UX.187.
+  Research (2026-10-09, Boss rule on absent values): Chain (Aux 11 plan,
+  design draft
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md
+  section 3): C0 is this item; C1 planets and moons UX.189, C2 star and
+  system UX.190, C3 sector UX.191, C4 phenomena UX.192, C5 belt, comet,
+  facility, cluster, superbubble UX.193, C6 galaxy UX.194. Boss rule
+  (5:52 PM EDT 2026-10-24): 'if something is not present (i.e. its value
+  is none or 0) we only list it if it's important (i.e. you'd want to
+  know a planet has no atmosphere, but you're not so keen on knowing
+  about hydrogen sulfide unless it has it)'. The GLANCE registry
+  therefore marks each row whether its absence matters (show 'no
+  atmosphere', hide absent hydrogen sulfide); the design draft's 'not
+  stored shows never hidden' default is replaced by this rule for absent
+  values, while a value that is not stored stays visible as 'not
+  stored'.
+
+- [ ] **UX.189 Captain-first object pages, step C1: planet and moon pages**
+  Step C1 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
+  2026-10-24: every object info page puts the most basic critical
+  information first, then details, from the view of a starship captain
+  using a nav system; absent values are listed only when the absence
+  matters). Do: planet and moon pages: At a glance with the habitability
+  icons on their own line of the basic information table under the
+  render, the equipment line and hours outside; the detail sections
+  reordered below it. Uses the GLANCE registry and panel of UX.188. Each
+  step is a small PR (template, sheet registry, test,
+  docs/reference/html-interface.md line, release note). Design draft:
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
+  Data that needs a new computation uses existing queries first; where
+  none exists the row is left out and filed as its own item. Owner: Aux
+  11 (Lane 3, pages and markers).
+  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+
+- [ ] **UX.190 Captain-first object pages, step C2: star and star system pages**
+  Step C2 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
+  2026-10-24: every object info page puts the most basic critical
+  information first, then details, from the view of a starship captain
+  using a nav system; absent values are listed only when the absence
+  matters). Do: star and star system pages: At a glance with a
+  best-destination row and a hazard row. Uses the GLANCE registry and
+  panel of UX.188. Each step is a small PR (template, sheet registry,
+  test, docs/reference/html-interface.md line, release note). Design
+  draft:
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
+  Data that needs a new computation uses existing queries first; where
+  none exists the row is left out and filed as its own item. Owner: Aux
+  11 (Lane 3, pages and markers).
+  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+
+- [ ] **UX.191 Captain-first object pages, step C3: sector pages**
+  Step C3 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
+  2026-10-24: every object info page puts the most basic critical
+  information first, then details, from the view of a starship captain
+  using a nav system; absent values are listed only when the absence
+  matters). Do: sector pages: At a glance (counts, hazards, habitable
+  worlds) above Contents. Uses the GLANCE registry and panel of UX.188.
+  Each step is a small PR (template, sheet registry, test,
+  docs/reference/html-interface.md line, release note). Design draft:
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
+  Data that needs a new computation uses existing queries first; where
+  none exists the row is left out and filed as its own item. Owner: Aux
+  11 (Lane 3, pages and markers).
+  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+
+- [ ] **UX.192 Captain-first object pages, step C4: phenomenon pages**
+  Step C4 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
+  2026-10-24: every object info page puts the most basic critical
+  information first, then details, from the view of a starship captain
+  using a nav system; absent values are listed only when the absence
+  matters). Do: phenomenon pages: At a glance with the keep-out distance
+  and the hazard first. Uses the GLANCE registry and panel of UX.188.
+  Each step is a small PR (template, sheet registry, test,
+  docs/reference/html-interface.md line, release note). Design draft:
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
+  Data that needs a new computation uses existing queries first; where
+  none exists the row is left out and filed as its own item. Owner: Aux
+  11 (Lane 3, pages and markers).
+  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+
+- [ ] **UX.193 Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages**
+  Step C5 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
+  2026-10-24: every object info page puts the most basic critical
+  information first, then details, from the view of a starship captain
+  using a nav system; absent values are listed only when the absence
+  matters). Do: belt, comet, facility, cluster and superbubble pages: At
+  a glance. Uses the GLANCE registry and panel of UX.188. Each step is a
+  small PR (template, sheet registry, test,
+  docs/reference/html-interface.md line, release note). Design draft:
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
+  Data that needs a new computation uses existing queries first; where
+  none exists the row is left out and filed as its own item. Owner: Aux
+  11 (Lane 3, pages and markers).
+  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
+
+- [ ] **UX.194 Captain-first object pages, step C6: galaxy page**
+  Step C6 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
+  2026-10-24: every object info page puts the most basic critical
+  information first, then details, from the view of a starship captain
+  using a nav system; absent values are listed only when the absence
+  matters). Do: galaxy page: a summary At a glance. Uses the GLANCE
+  registry and panel of UX.188. Each step is a small PR (template, sheet
+  registry, test, docs/reference/html-interface.md line, release note).
+  Design draft:
+  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
+  Data that needs a new computation uses existing queries first; where
+  none exists the row is left out and filed as its own item. Owner: Aux
+  11 (Lane 3, pages and markers).
+  Prerequisites: UX.188. Related: UX.187, UX.188, UX.143, UX.144.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -7072,7 +7180,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.726. Related: GEN.411, GEN.412,
+  Prerequisites: GEN.411. Related: GEN.411, GEN.412,
   GEN.423, TEST.209, GEN.452.
   Merged research (2026-10-17): the freeze-out ordering reads the
   checked saturation curves of part 01 section 7 and part 06 (GEN.452
@@ -13173,59 +13281,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cooper 2001, Patterson 2012, Nordheim 2018 and Gronoff 2009 are still
   unread.
   Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
-
-- [ ] **GEN.726 Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  A1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T7. Today:
-  On main the surface pressure is a class density range times gravity
-  (retention factor gravity^1, 'a starting point, not derived from a
-  retention model') times the scale height; the new mixture draw takes
-  pressure_bar as an input and the design formula P = min(P_supply,
-  P_retention, P_vapour) has no definition of P_supply. Real physics:
-  pressure = atmosphere mass times g over 4 pi R squared, where the mass
-  is the delivered volatiles (GEN.481) times the degassed share (redox,
-  GEN.482) minus escape, impact erosion and sinks. Do: define P_supply
-  in a physics module, feed it to the mixture draw and the fixed point
-  of GEN.422, and register its stand-ins. Done: pressure is derived from
-  an inventory for every body, with a test across the Solar System
-  bodies and a sweep showing the pressure distribution, and no class
-  pressure range is read. Each stand-in it touches records its source
-  tier and tweak level in the gap plan registry (GEN.725). Owner: pool
-  (first free lane; 8.1 core lanes do not take it before 8.1 closes).
-  Prerequisites: none. Related: GEN.411, GEN.422, GEN.481, GEN.482,
-  GEN.511.
-  Research (2026-10-09, Boss hold on 4c): Update 3:51 PM EDT 2026-10-24
-  (Boss, in Blocker I's thread, 3:50 PM EDT, relayed by the coordinator
-  and Lane I): 'Hold 4c until the supply law is done.' No stand-in
-  pressure. Order: step 4b (DB.71 + GEN.424) merges, then the surface
-  pressure supply law (GEN.726), then 4c as one merge (GEN.411 +
-  GEN.422), then GEN.557. GEN.411 and GEN.422 now list GEN.726 as a
-  prerequisite. Lanes waiting on 4c (Lane L, Lane E, the class lane, the
-  habitable-rule lane) stay blocked until GEN.726 merges; Lane I
-  estimates 4c about 12 to 16 hours later than the split plan. Owner:
-  Lane I (it builds the supply law right after 4b: outgassed inventory,
-  ocean and carbonate sinks, verified sources). Answer to Lane I's
-  question whether a number exists: no. GEN.511 only pins the retention
-  cap; the supply term P_supply has no design and no value in the repo
-  or the gap plan; its inputs are delivered volatiles (GEN.481) and the
-  degassed share (GEN.482, redox), both research items with no builder,
-  so the first step is a design note that defines P_supply and names the
-  verified source for each term.
-  Priority (2026-10-09): Update 5:13 PM EDT 2026-10-24: the physics
-  grounding assessment (contradictions 4 and 5) names the missing
-  surface-pressure supply law as the largest single weakness: pressure
-  is a class density range times gravity, and everything downstream
-  (temperature, shielding, habitability, atmosphere colour) inherits it.
-  Boss already ordered it first (3:50 PM EDT): it is built on Lane I's
-  branch gen726 and merges right after step 4b, before 4c. Owner: Lane
-  I.
-  Research (2026-10-09, Physics fix plan): Degassing reads the heat flow
-  and tectonic mode (physics fix plan thread, 2026-10-24 about 5:30 PM
-  EDT, as the lane reported its clock): outgassing rate must read the
-  interior heat output of GEN.699 and the tectonic mode of GEN.721 (Lane
-  H, started 4:14 PM EDT), not a fixed rate. Lane I: if GEN.726 does not
-  read them yet, say so and TODO files the wiring.
 
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
