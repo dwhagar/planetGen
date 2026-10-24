@@ -13066,7 +13066,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker counts, and the galaxy statistics test shows the mix of
   conditions is unchanged within the stated bands or the change is
   explained.
-  Prerequisites: GEN.645, GEN.650, GEN.411, GEN.412,
+  Prerequisites: GEN.645, GEN.411, GEN.412,
   GEN.442, GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
   GEN.428, GEN.90.
   Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
@@ -13113,6 +13113,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hydrogen or helium) means the class lane must drop helium from the
   class B phrase, the table and the stripped-core line at the cut-over;
   nothing to change before then.
+  Research (2026-10-09, Update): Class lane (7:26 AM EDT 2026-10-24, as
+  the lane reported): GEN.650 merged as #2947 (physics/planet_mass.py,
+  not wired in: no epoch, no migration, no world changes); this item
+  calls it. This item still waits on lanes J, K and L (GEN.442, GEN.466,
+  GEN.411, GEN.454 remainder, DB.67, DB.70). Boss's 1:22 AM EDT class B
+  answer (option 3) is in the design note: class B never has hydrogen or
+  helium, a stripped core of at least 5 Earth masses.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -13261,33 +13268,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss, 6:54 PM EDT 2026-10-23: the Flora and Fauna scores also give the
   food of the Suitability domain (GEN.653): Flora is always good food,
   both are better, Fauna includes all animal life.
-
-- [ ] **GEN.650 Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646)**
-  Gap found by the pipeline report
-  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
-  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
-  2026-10-23). Section 3.2 and conflict C of the report: nothing says
-  how a planet's mass is drawn without the class; bulk-composition.md
-  decision 28 (Boss, 2:10 PM EDT 2026-10-17) keeps the class mass ranges
-  as a flagged stand-in, then formation.isolation_mass_kg when GEN.509
-  can tune it. Write the law (mass against the snow line, the host mass
-  and metallicity, the disc, the gas giant and ice giant cases, moons
-  separately in GEN.466) as a design note in docs/design with its
-  sources labelled, its stand-ins registered in the gap plan, and the
-  draw order. Boss's question on the mass law is with him via the
-  coordinator; defaults stand until he answers. Owner: the
-  Condition-based planet classes lane with Habitability lane I (the bulk
-  contract), not started. Done: the note, the rule with test cases, and
-  GEN.646 lists it as a prerequisite.
-  Prerequisites: GEN.645. Related: GEN.646, GEN.509, GEN.510, GEN.428.
-  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 1, option 1,
-  relayed by the coordinator): the mass is the isolation mass at the
-  formation distance and the disc's solids, with a scatter and the giant
-  core-accretion rule, tuned against the observed occurrence by the
-  GEN.503 harness (builders GEN.509 and GEN.510); the isolation law is
-  checked above a few Earth masses. The class mass ranges of decision 28
-  are not kept as a hidden stand-in beyond the spine's class-first
-  epoch.
 
 - [ ] **GEN.651 Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag**
   Gap found by the pipeline report
@@ -13927,7 +13907,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sector equals the row_nebula prediction, with a test that forces a
   companion heavier than the primary. Owner: Core 3 (it owns the member
   tree; proposed).
+  Research (2026-10-09, Update): Core 3 accepted this (7:23 AM EDT
+  2026-10-24, as the lane reported): order is GEN.332 slice 1, then
+  GEN.709, GEN.710, then the rest of GEN.332 and GEN.640; it takes the
+  next free epoch at each merge.
   Prerequisites: none. Related: GEN.530, GEN.631, GEN.709, TEST.311.
+
+- [ ] **GEN.711 Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
+  Found by the class lane while merging GEN.650 (#2947), as the lane
+  reported at 7:26 AM EDT 2026-10-24; design note
+  docs/design/composition/planet-mass-law.md and sweep report
+  reports/planet-mass-law-sweep-2026-10-24.md. The stand-ins in
+  physics/planet_mass.py are PLANET_DISC_SOLIDS_ENHANCEMENT (5),
+  PLANET_ASSEMBLY_SCATTER_DEX (0.8) and GIANT_GAS_SURVIVAL_SHARE (0.5).
+  The sweep shows giants at 8.4 percent of planets against 13.7 percent
+  today, and none close in until the migrant draw. Do: add each to the
+  stand-in registry of docs/design/research/gap-filling-plan.md with
+  fill id, kind (D, B, T, P), evidence label, assumptions, knobs,
+  validity range and falsifier test, and tune them with GEN.509 and
+  GEN.510 when GEN.646 wires the rule in. Done: every constant above has
+  a registry row. Owner: the class lane (it knows the values).
+  Prerequisites: none. Related: GEN.650, GEN.646, GEN.509, GEN.510,
+  GEN.675.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
