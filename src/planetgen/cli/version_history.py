@@ -8,7 +8,8 @@ Records the version key every galaxy database was updated under (OPS.13).
 galaxy database that has a seed it adds a history row when the version key,
 the generator epoch, the generator battery's digest, the lock file or the
 environment differs from the newest row, and otherwise only sets that row's
-last-seen time (`planetgen.galaxy.version_history`); `planetgen versions`
+last-seen time (`planetgen.galaxy.version_history`), and says whether the generated output changed (the battery's digest
+against the newest row's, naming the first case that differs, OPS.15); `planetgen versions`
 lists what was recorded. The battery (OPS.57) is worked out once, about five
 seconds, however many galaxies there are.
 
@@ -43,7 +44,8 @@ def _galaxy_databases(config):
 
 
 def record_all(config):
-    """Adds a history row for every planned galaxy; returns `[(database, key)]`."""
+    """Adds a history row for every planned galaxy; returns `[(database, Recorded)]` (OPS.15: the key and whether the
+    generated output changed)."""
     control = store.get_control_connection(store.control_mysql_config(config), ensure_schema=False)
     try:
         return [(name, version_history.record(control, name, seed))
@@ -91,8 +93,8 @@ def main():
     except Exception as exc:  # noqa: BLE001
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
-    for name, key in recorded:
-        print(f"Recorded version key {key} for {name}.")
+    for name, done in recorded:
+        print(f"Recorded version key {done.key} for {name}. {done.output}")
     if not recorded:
         print("No planned galaxy database to record a version key for.")
 
