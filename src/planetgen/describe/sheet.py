@@ -4,8 +4,8 @@
 The property sheet (UX.168): one registry of the stored properties each kind of body shows on its own page and
 through `GET /api/objects/<ref>/sheet`, so the website, the API and the tests read one list.
 
-A `PropertySpec` is a stored column, its label, the group it sits in and how it is shown. A star, planet, moon, belt
-or comet has an ordered tuple of them in `SPECS`. Every value goes through the site's one unit formatter: a
+A `PropertySpec` is a stored column, its label, the group it sits in and how it is shown. A star, planet, moon, belt,
+comet or standalone phenomenon (UX.175) has an ordered tuple of them in `SPECS`. Every value goes through the site's one unit formatter: a
 quantity with a ladder (a length, a mass, a time, a temperature, a pressure, a speed, a power, a gravity, a flux) is a
 Document quantity (`describe.model.qty`), so the page shows it in the reader's unit system exactly as the description
 does; any other number is written with its stored unit's symbol, never as a bare float. A column with no stored value
@@ -20,21 +20,24 @@ Reads only: no generation code and no description text is touched.
 
 import dataclasses
 
-from planetgen.db import column_units
+from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.physics import constants, habitability_world, unit_registry
 from planetgen.util.format import format_number
 
-TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets"}
-"""dict: The table each kind of the sheet is stored in."""
+TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets",
+          "nebula": "nebulae", "asteroid_field": "asteroid_fields", "black_hole": "black_holes",
+          "neutron_star": "neutron_stars", "supernova_remnant": "supernova_remnants", "rogue_planet": "rogue_planets",
+          "interstellar_comet": "interstellar_comets", "quasar": "quasars"}
+"""dict: The table each kind of the sheet is stored in: a body of a system, or a phenomenon (UX.175)."""
 
 GROUPS = {
     "identity": "Identity", "orbit": "Orbit", "physical": "Physical", "rotation": "Rotation",
     "composition": "Composition", "atmosphere": "Atmosphere", "climate": "Climate", "water": "Water",
     "magnetism": "Magnetic field", "radiation": "Radiation", "habitability": "Habitability", "life": "Life",
     "zones": "Zones and limits", "stellar": "Stellar activity", "galactic": "Galactic orbit", "disk": "Debris disk",
-    "radiogenic": "Radiogenic heat",
+    "radiogenic": "Radiogenic heat", "gas": "Gas and light", "compact": "Compact object", "activity": "Activity",
 }
 """dict: Every group key of a sheet and its heading, in the order the page shows them."""
 
@@ -201,7 +204,95 @@ _COMET = (
     *_rows("composition", ("composition_summary", "Composition", TEXT)),
 )
 
-SPECS = {"star": _STAR, "planet": _PLANET, "moon": _MOON, "belt": _BELT, "comet": _COMET}
+_GALACTIC_ORBIT = _rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
+                        ("galactic_orbital_phase_deg", "Galactic orbital phase"))
+_DISTANCE = _rows("galactic", ("galactic_radius_pc", "Distance from the galactic centre"))
+
+_NEBULA = (
+    *_rows("identity", ("nebula_class", "Class", TEXT), ("nebula_type", "Type", TEXT),
+           ("formation_cause", "Formation", TEXT)),
+    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass")),
+    *_rows("composition", ("composition", "Composition", TEXT), ("dominant_species", "Dominant gas", TEXT),
+           ("hosts", "Stars it hosts", TEXT), ("age_myr", "Age of the stars"), ("q_total", "Ionizing photons")),
+    *_rows("gas", ("density_cm3", "Density"), ("temperature_k", "Gas temperature"), ("extinction_av", "Extinction")),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_ASTEROID_FIELD = (
+    *_rows("identity", ("field_class", "Class", TEXT), ("density", "Density", TEXT)),
+    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass")),
+    *_rows("composition", ("composition_family", "Composition family", TEXT),
+           ("composition_summary", "Composition", TEXT)),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_BLACK_HOLE = (
+    *_rows("identity", ("mass_class", "Class", TEXT)),
+    *_rows("compact", ("mass_solar", "Mass"), ("event_horizon_radius_km", "Event horizon radius"), ("spin", "Spin"),
+           ("has_accretion_disk", "Accretion disk", FLAG), ("temperature_k", "Temperature"),
+           ("luminosity_w", "Luminosity"), ("age_gy", "Age")),
+    *_rows("rotation", ("axial_tilt_deg", "Axial tilt")),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_NEUTRON_STAR = (
+    *_rows("identity", ("pulsar_type", "Pulsar type", TEXT)),
+    *_rows("compact", ("mass_solar", "Mass"), ("radius_km", "Radius"), ("magnetic_field_gauss", "Magnetic field"),
+           ("surface_temperature_k", "Surface temperature"), ("luminosity_w", "Luminosity"), ("age_gy", "Age")),
+    *_rows("rotation", ("spin_period_ms", "Spin period"), ("axial_tilt_deg", "Axial tilt")),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_SUPERNOVA_REMNANT = (
+    *_rows("identity", ("remnant_class", "Class", TEXT), ("morphology", "Morphology", TEXT),
+           ("progenitor_type", "Progenitor", TEXT), ("compact_remnant_kind", "Compact remnant left behind", TEXT)),
+    *_rows("physical", ("age_years", "Age"), ("radius_ly", "Radius"), ("mass_kg", "Mass")),
+    *_rows("gas", ("dominant_species", "Dominant gas", TEXT), ("density_cm3", "Density"),
+           ("temperature_k", "Gas temperature"), ("extinction_av", "Extinction")),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_ROGUE_PLANET = (
+    *_rows("identity", ("planet_type", "Type", TEXT), ("planet_class", "Class", TEXT),
+           ("mass_bin", "Mass class", TEXT)),
+    *_rows("physical", ("mass_kg", "Mass"), ("radius_km", "Radius", "radius"), ("age_gy", "Age"),
+           ("has_moons", "Has moons", FLAG)),
+    *_rows("composition", ("composition", "Composition", TEXT)),
+    *_rows("climate", ("has_internal_heat", "Geologically active", FLAG),
+           ("internal_heat_flux_w_m2", "Internal heat flow"), ("effective_temperature_k", "Effective temperature"),
+           ("surface_regime", "Surface", TEXT), ("surface_temperature_k", "Surface temperature"),
+           ("surface_pressure_pa", "Surface pressure")),
+    *_rows("water", ("has_liquid_water", "Liquid water", FLAG), ("ice_shell_thickness_km", "Ice shell thickness"),
+           ("ocean_depth_km", "Ocean depth"), ("hp_ice_km", "High-pressure ice thickness")),
+    *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_INTERSTELLAR_COMET = (
+    *_rows("identity", ("is_active", "Active", FLAG)),
+    *_rows("physical", ("nucleus_diameter_km", "Nucleus diameter"), ("mass_kg", "Mass"),
+           ("velocity_kms", "Speed")),
+    *_rows("composition", ("composition_summary", "Composition", TEXT)),
+    *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
+    *_GALACTIC_ORBIT, *_DISTANCE,
+)
+
+_QUASAR = (
+    *_rows("compact", ("black_hole_mass_solar", "Black hole mass"),
+           ("event_horizon_radius_km", "Event horizon radius")),
+    *_rows("activity", ("luminosity_w", "Luminosity"), ("eddington_ratio", "Share of the Eddington limit"),
+           ("accretion_rate_solar_per_year", "Gas swallowed"),
+           ("broad_line_region_light_days", "Broad-line region radius"),
+           ("is_radio_loud", "Radio-loud", FLAG), ("jet_length_ly", "Jet length"),
+           ("active_age_years", "Active for")),
+    *_DISTANCE,
+)
+
+SPECS = {"star": _STAR, "planet": _PLANET, "moon": _MOON, "belt": _BELT, "comet": _COMET, "nebula": _NEBULA,
+         "asteroid_field": _ASTEROID_FIELD, "black_hole": _BLACK_HOLE, "neutron_star": _NEUTRON_STAR,
+         "supernova_remnant": _SUPERNOVA_REMNANT, "rogue_planet": _ROGUE_PLANET,
+         "interstellar_comet": _INTERSTELLAR_COMET, "quasar": _QUASAR}
+
 """dict: Each kind's ordered specs."""
 
 _BOOKKEEPING = {
@@ -225,6 +316,36 @@ _EQUIPMENT = "a survival equipment level; the Required and Recommended lines of 
 def _excuse(names, reason=None):
     """`{column: reason}` for each name, the reason given or the one `_BOOKKEEPING` holds."""
     return {name: reason or _BOOKKEEPING[name] for name in names}
+
+
+_PHENOMENON_BOOKKEEPING = {
+    "id": "the row key; the Object ID in the header is its public form",
+    "uid": "the Object ID, shown in the header",
+    "name": "the page title",
+    "sector_id": "the sector, a link in the Location chain",
+    "star_id": "the star of the system it belongs to, a link in the Location chain",
+    "parent_type": "the parent kind; the Location chain is built from it",
+    "parent_id": "the parent, a link in the Location chain",
+    "inside_nebula_id": "the nebula it lies inside, a link in the Location chain",
+    "inside_remnant_id": "the supernova remnant it lies inside, a link in the Location chain",
+    "quadrant": "the octant, a badge in the page header",
+    "cell_key": "the index cell it is filed under; bookkeeping",
+    "created_at": "when the row was written; bookkeeping",
+    "modified_at": "when the row last changed; bookkeeping",
+    "epoch_unix": "the instant the galactic orbit was last updated; not a property of the object",
+    "next_update_due": "when the galactic orbit is next worked out; bookkeeping",
+    "galactic_min_update_interval_years": "how often the galactic orbit is worked out; bookkeeping",
+    **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block and the maps show it" for axis in "xyz"},
+    **{f"velocity_{axis}_kms": "a component of its galactic motion; the galactic orbit rows summarise it" for axis in "xyz"},
+    **{f"spin_axis_{axis}": _VECTORS for axis in "xyz"},
+}
+_SHAPE = "a parameter of the cloud's drawn 3D shape; bookkeeping for the 3D view"
+
+
+def _phenomenon_not_shown(kind, **extra):
+    """The bookkeeping columns of a phenomenon's table, each with why it is not a row, and the kind's own `extra`."""
+    columns = models.metadata.tables[TABLES[kind]].columns
+    return {**{name: reason for name, reason in _PHENOMENON_BOOKKEEPING.items() if name in columns}, **extra}
 
 
 _BODY_NOT_SHOWN = {
@@ -273,6 +394,22 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
+    "nebula": _phenomenon_not_shown(
+        "nebula", **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
+                                               "shape_angle_y", "shape_angle_z", "shape_warp_amplitude",
+                                               "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
+                                               "shape_iso", "shape_scale")}),
+    "asteroid_field": _phenomenon_not_shown(
+        "asteroid_field", formed_at="when the field formed, as a timestamp; bookkeeping",
+        origin_event_id="the event that made it; bookkeeping"),
+    "black_hole": _phenomenon_not_shown("black_hole"),
+    "neutron_star": _phenomenon_not_shown("neutron_star"),
+    "supernova_remnant": _phenomenon_not_shown(
+        "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
+        compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
+    "rogue_planet": _phenomenon_not_shown("rogue_planet"),
+    "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
+    "quasar": _phenomenon_not_shown("quasar"),
 }
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
 
@@ -340,7 +477,7 @@ def sheet(conn, kind, object_id):
 
     Args:
         conn: An open, read-only connection.
-        kind (str): `star`, `planet`, `moon`, `belt` or `comet`.
+        kind (str): A key of `SPECS`: `star`, `planet`, `moon`, `belt`, `comet` or a phenomenon kind.
         object_id (int): The row id.
 
     Returns:

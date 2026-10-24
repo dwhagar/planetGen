@@ -876,6 +876,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         view_kind=kind,
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
+        sheet=item_pages.sheet_view(apiclient.get_object_sheet(db_name(), f"{phenomenon_type}:{phenomenon_id}")),
         # A system's own black hole or neutron star is edited with its system.
         can_edit=edit_actions.can_edit(current_admin()) and detail.get("star_id") is None,
         edit_target=f"{phenomenon_type}:{detail['id']}",

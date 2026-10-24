@@ -1575,7 +1575,8 @@ def _body_of(ref):
 @bp.route("/objects/<ref>/sheet")
 def object_sheet_route(ref):
     """
-    `GET /api/objects/<ref>/sheet` (UX.168) -- every stored property of a star, planet, moon, belt or comet, grouped
+    `GET /api/objects/<ref>/sheet` (UX.168, UX.175) -- every stored property of a star, planet, moon, belt, comet or
+    phenomenon, grouped
     for its page (`describe/sheet.py`): `kind` and `groups`, each `{key, label, rows}` with a row
     `{key, label, value (the Document's inline list: quantities with their units), text, stored}`. A property the row
     holds no value for is `stored: false` and says "not stored". 404 for a reference that names nothing or a kind with

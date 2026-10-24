@@ -290,10 +290,11 @@ connectivity to that specific schema rather than the default one.
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
 - `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
-  belt or comet (UX.168, `describe/sheet.py`): `kind` and `groups`
-  (`identity`, `orbit`, `physical`, `rotation`, `composition`, `atmosphere`,
-  `climate`, `water`, `magnetism`, `radiation`, `habitability`, `life`, and the
-  star's `zones`, `stellar`, `galactic`, `disk`), each `{key, label, rows}`. A
+  belt, comet or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
+  `kind` and `groups` (`identity`, `orbit`, `physical`, `rotation`,
+  `composition`, `atmosphere`, `climate`, `water`, `magnetism`, `radiation`,
+  `habitability`, `life`, the star's `zones`, `stellar`, `galactic`, `disk`, and
+  a phenomenon's `gas`, `compact`, `activity`), each `{key, label, rows}`. A
   row is `{key, label, value, text, stored}`: `value` is the Document's inline
   list (a quantity is `{"qty": {"kind", "si"}}`, shown in the reader's units),
   `text` the same as plain text, and `stored` false, with the text "not
