@@ -19160,6 +19160,10 @@ clears each one.
   passes on main. Related: TEST.337, TEST.338, TEST.340 (the other
   failures Lane 4 listed are already filed there). Owner: Bug Hunt
   (proposed).
+  Research (2026-10-09, Update): The wiki strip lane (9:37 AM EDT
+  2026-10-24, as the lane reported) sees the same failure on main and
+  reports the cause: the tile answer has an extra 'worlds' key. Not from
+  #2963.
   Prerequisites: none. Related: TEST.337, TEST.338, TEST.340.
 
 ## USR: User accounts
@@ -19968,31 +19972,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   file only. Remaining work: one line in the debug mode docs saying so;
   then close.
   Prerequisites: none. Related: OPS.65.
-
-- [ ] **OPS.69 Remove all wiki functionality: the upload and download code, the wikitext renderer, the wiki routes, UI, settings and columns; the export to Markdown stays**
-  Boss, 9:07 AM EDT 2026-10-24 (relayed by the coordinator): "strip out
-  all of the wiki functionality. We're going in a different direction."
-  Boss, 9:08 AM EDT, to be clear: this removes all the code that uploads
-  to or downloads from a wiki and all the wiki text code, but he still
-  wants an export to Markdown function. Do: delete src/planetgen/wiki
-  (the MediaWiki and Wiki.js clients), the wikitext renderer and the
-  wikitext output format (API, CLI and the page buttons), POST
-  /api/systems|sectors/<id>/wiki, GET /api/wiki-config, the Upload to
-  Wiki UI and the Admin hub sector wiki link form (UX.73), the wiki
-  settings section and its environment variables, the wiki_url,
-  wikijs_url and mediawiki_url columns (a new Alembic migration, the
-  schema document and db/column_units.py in step), and the wiki mentions
-  in the docs and help pages. KEEP and test the Markdown output
-  everywhere it exists today (API Markdown, CLI --markdown, the Markdown
-  button of UX.67), and make sure a Markdown export of a sector, system,
-  planet and moon works on its own without any wiki setting. No shim, no
-  compatibility flag. Done: nothing in the code, settings, API or docs
-  names a wiki except the history; Markdown export tests pass; the
-  migration test and docs gate pass. Owner: the lane "Strip out all wiki
-  functionality" (started 9:07 AM EDT 2026-10-24, merge authorization
-  applies). Related: API.25, UX.67, UX.73, UX.106, API.31, GEN.446.
-  Prerequisites: none. Related: API.25, UX.67, UX.73, UX.106, API.31,
-  GEN.446.
 
 ## DOC: Documentation
 
