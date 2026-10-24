@@ -23,10 +23,10 @@ from tests.fuzz_support import deterministic_entropy
 EARTH_AGE_GY = 4.568
 
 
-def _content(k, th, u, al26=0.0, urey=0.5):
+def _content(k, th, u, al26=0.0):
     """A body whose silicate has these K, Th, U today (ppm), as the formation `Content` they come from."""
     return radiogenic.Content(k * radiogenic.formation_mix("K")[1], th * radiogenic.formation_mix("Th")[1],
-                              u * radiogenic.formation_mix("U")[1], al26, urey)
+                              u * radiogenic.formation_mix("U")[1], al26)
 
 
 def test_the_heat_is_the_isotope_wise_sum_of_the_four_parents():
@@ -50,10 +50,6 @@ def test_a_bulk_silicate_earth_gives_the_calibration_heat():
     assert heat_tw == pytest.approx(21.0, rel=0.03)
     flux = radiogenic.radiogenic_flux_w_m2(_content(*radiogenic.BULK_SILICATE_EARTH), constants.EARTH_MASS_TO_KG, 6371.0, EARTH_AGE_GY)
     assert flux == pytest.approx(0.0426 * 0.97, rel=0.1)  # part E 2.8e worked example, 0.0426 W/m2 for 4.03e24 kg
-    # the Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020) puts the total heat flow at their 42 to 47 TW
-    total_tw = radiogenic.heat_flow_w_m2(_content(*radiogenic.BULK_SILICATE_EARTH, urey=0.5), constants.EARTH_MASS_TO_KG, 6371.0,
-                                         EARTH_AGE_GY) * 4 * math.pi * (6371e3) ** 2 / 1e12
-    assert 38.0 < total_tw < 46.0
 
 
 def test_a_chondrite_gives_the_calibration_heat():
@@ -97,7 +93,7 @@ def test_the_surface_gamma_dose_reaches_the_calibration_values():
     # ordering: the older the rock, the less K-40 and U-235 it has; the same rock has less gamma than a young one
     assert radiogenic.gamma_ngy_per_hour(soil, 1.0) > radiogenic.gamma_ngy_per_hour(soil, EARTH_AGE_GY)
     # scaling: twice the concentrations, twice the dose
-    twice = radiogenic.Content(2 * soil.k0_ppm, 2 * soil.th0_ppm, 2 * soil.u0_ppm, 0.0, 0.5)
+    twice = radiogenic.Content(2 * soil.k0_ppm, 2 * soil.th0_ppm, 2 * soil.u0_ppm, 0.0)
     assert radiogenic.gamma_ngy_per_hour(twice, 3.0) == pytest.approx(2 * radiogenic.gamma_ngy_per_hour(soil, 3.0), rel=1e-12)
     # ultramafic below basaltic below felsic
     doses = [radiogenic.gamma_ngy_per_hour(radiogenic.surface_content(primitive, f), EARTH_AGE_GY) for f in (0.0, 0.5, 1.0)]
@@ -159,7 +155,6 @@ def test_the_draws_stay_in_their_ranges_and_always_use_the_same_number_of_draws(
     ratios = [c.k0_ppm / (radiogenic.formation_mix("K")[1]) / (c.u0_ppm / radiogenic.formation_mix("U")[1]) / radiogenic.CI_CHONDRITE_K_OVER_U
               for c in contents]
     assert all(tuning.RADIOGENIC_K_DEPLETION_RANGE[0] * 0.999 <= r <= tuning.RADIOGENIC_K_DEPLETION_RANGE[1] * 1.001 for r in ratios)
-    assert all(tuning.RADIOGENIC_UREY_RANGE[0] <= c.urey_ratio <= tuning.RADIOGENIC_UREY_RANGE[1] for c in contents)
     low, high = (radiogenic.SOLAR_AL26_RATIO * f for f in tuning.RADIOGENIC_AL26_FACTOR_RANGE)
     assert all(low * 0.999 <= c.al26_ratio <= high * 1.001 for c in contents)
     assert min(r for r in ratios) < 0.1 and max(r for r in ratios) > 0.5  # the depletion spans the range
@@ -170,7 +165,7 @@ def test_an_enriched_silicate_has_more_thorium_and_uranium():
     rich = radiogenic.draw_content(0.0, rng=draw.Stream("e"), refractory_enrichment=2.0)
     assert rich.th0_ppm == pytest.approx(2 * plain.th0_ppm)
     assert rich.u0_ppm == pytest.approx(2 * plain.u0_ppm)
-    assert rich.al26_ratio == plain.al26_ratio and rich.urey_ratio == plain.urey_ratio
+    assert rich.al26_ratio == plain.al26_ratio
 
 
 def _bodies(system):
@@ -194,12 +189,17 @@ def test_every_generated_body_stores_one_set_of_concentrations_that_its_heat_and
             seen += 1
             content = radiogenic.content_of(body)
             assert content is not None
-            assert 0.1 <= content.urey_ratio <= 0.9
             assert content.th0_ppm > 0 and content.u0_ppm > 0 and content.k0_ppm > 0
+            from planetgen.physics import interior_heat
             from planetgen.physics import planets as planet_physics
-            age = body.star.age
-            assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(
-                radiogenic.heat_flow_w_m2(content, body.mass, body.radius, age, *radiogenic.rock_inputs(body)))
+            rock = radiogenic.rock_of(body)
+            found = interior_heat.heat_flow(content, interior_heat.interior_of(body), body.mass, body.radius, body.star.age, rock)
+            assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(found.flux_w_m2)
+            assert body.internal_heat_flux_w_m2 == pytest.approx(found.flux_w_m2) and body.urey_ratio == pytest.approx(found.urey_ratio)
+            # the heat of the interior is the radiogenic heat of the stored concentrations and the cooling of the rest
+            silicate_kg = body.mass * rock.silicate
+            assert found.radiogenic_w == pytest.approx(radiogenic.heat_w(content, silicate_kg, body.star.age, rock.aluminium))
+            assert found.total_w == pytest.approx(found.radiogenic_w + found.primordial_w)
             assert body.dose_ground_msv_yr > 0
     assert seen > 8
 
@@ -237,14 +237,13 @@ def test_a_stored_body_reads_back_its_content(mysql_config):
         "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0})
     conn = store.get_connection(mysql_config)
     try:
-        rows = conn.execute("SELECT c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio, urey_ratio, body_type FROM planets "
+        rows = conn.execute("SELECT c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio, body_type FROM planets "
                             "WHERE body_type = 't' ORDER BY id").fetchall()
         stored = sorted(rows, key=lambda r: r["c_th0_ppm"])
         made = sorted((b for b in _bodies(system) if b.body_type == "t" and not b.is_moon), key=lambda b: b.c_th0_ppm)
         assert len(stored) == len(made) > 0
         for row, body in zip(stored, made):
             assert row["c_th0_ppm"] == pytest.approx(body.c_th0_ppm)
-            assert row["urey_ratio"] == pytest.approx(body.urey_ratio)
     finally:
         conn.close()
 
@@ -256,8 +255,10 @@ def test_a_rocky_body_heats_with_its_own_rock_share_and_aluminium():
                            envelope_mass_fraction=0.0, rock_feo_fraction=0.08, rock_al2o3_fraction=0.09, rock_mg_si_ratio=1.2,
                            envelope_helium_fraction=None, envelope_z_fraction=None, porosity=None, carbon_rock=False,
                            composition_origin="drawn")
-    silicate, aluminium = radiogenic.rock_inputs(body)
-    assert silicate == pytest.approx(0.7)
-    assert aluminium == pytest.approx(2 * radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    rock = radiogenic.rock_of(body)
+    assert rock.silicate == pytest.approx(0.7) and rock.metal == pytest.approx(0.3) and rock.wet == 0.0
+    assert rock.aluminium == pytest.approx(2 * radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
     body.metal_mass_fraction = None  # saved before GEN.428: no composition, the Earth's stand-ins
-    assert radiogenic.rock_inputs(body) == (None, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    stand_in = radiogenic.rock_of(body)
+    assert stand_in == radiogenic.Rock(tuning.RADIOGENIC_SILICATE_MASS_FRACTION, 1.0 - tuning.RADIOGENIC_SILICATE_MASS_FRACTION, 0.0,
+                                       radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)

@@ -1432,6 +1432,8 @@
 -- v150 (GEN.649): `planets` and `moons` keep four life scores, `life_microbial`, `life_flora`, `life_fauna` and `life_sentient` (0 none to 9 abundant, NULL when the body has no score),
 --   in place of `phi_bio`, `phi_cpx` and `phi_tech`. A row saved before gets them from its two likelihoods and its evolutionary path.
 -- v152 (GEN.700): `planets` and `moons` keep the tide heat flow (NULL for a planet, which has none) (`tidal_flux_w_m2`) of an icy moon under a frozen surface, which the chemical energy of its ocean's life counts. A row saved before has NULL.
+-- v153 (GEN.699): `planets` and `moons` also keep the two draws of the mantle's rheology (`mantle_eta0_pa_s`, `mantle_activation_kj_mol`) and the heat that comes out, `internal_heat_flux_w_m2`
+--   (radiogenic plus primordial, `physics/interior_heat.py`). `urey_ratio` is now an output of that thermal history, not a draw. NULL for a gas giant and a row made before v153.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -2341,7 +2343,7 @@ CREATE TABLE IF NOT EXISTS planets (
     c_th0_ppm                   DOUBLE,  -- v141: thorium, the same
     c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
     al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
-    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
+    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today (an output of the thermal history since v146)
     bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
     greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
     albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
@@ -2359,6 +2361,9 @@ CREATE TABLE IF NOT EXISTS planets (
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
+    mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
+    mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
+    internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2575,7 +2580,7 @@ CREATE TABLE IF NOT EXISTS moons (
     c_th0_ppm                   DOUBLE,  -- v141: thorium, the same
     c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
     al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
-    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
+    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today (an output of the thermal history since v146)
     bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
     greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
     albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
@@ -2593,6 +2598,9 @@ CREATE TABLE IF NOT EXISTS moons (
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
+    mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
+    mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
+    internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, metallicity
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, magnetism, radiation, radiogenic, relations, rogue_surface, spin
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -536,7 +536,9 @@ def generate_planet_properties(planet, zone_override=None):
     # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
     # body, so the later recalculation of its air and water, which moves nothing in its rock, does not redraw it).
     # GEN.428: Th and U go with the rock's Al2O3 (part E 2.8b), the body's over the bulk silicate Earth's.
-    radiogenic.generate_content(planet, refractory_enrichment=radiogenic.rock_inputs(planet)[1] / radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    radiogenic.generate_content(planet, refractory_enrichment=radiogenic.rock_of(planet).aluminium / radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    # GEN.699: the rheology of the mantle that the heat it was born with leaves through (the heat itself: `internal_heat_flux_w_m2`).
+    interior_heat.generate_interior(planet)
 
     update_hill_sphere(planet)
 
@@ -758,14 +760,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
 
 
 def internal_heat_flux_w_m2(planet):
-    """A rocky body's own heat flow, W/m^2: the radiogenic heat of its stored concentrations at its star's age over its Urey ratio
-    (`radiogenic.heat_flow_w_m2`, GEN.459). 0 for a body with no stored content (a giant)."""
-    content = radiogenic.content_of(planet)
-    if content is None:
-        return 0.0
-    age_gy = getattr(planet.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
-    silicate_fraction, aluminium = radiogenic.rock_inputs(planet)
-    return radiogenic.heat_flow_w_m2(content, planet.mass, planet.radius, age_gy, silicate_fraction, aluminium)
+    """A rocky body's own heat flow, W/m^2, at its star's age now: radiogenic plus primordial heat (`interior_heat.update_heat`, GEN.699),
+    stored with the body (its Urey ratio is an output). 0 for a body with no stored content (a giant, or a row from before GEN.699)."""
+    found = interior_heat.update_heat(planet)
+    return found.flux_w_m2 if found is not None else 0.0
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
