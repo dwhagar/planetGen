@@ -1097,6 +1097,16 @@ with `clamp()`.
   until Boss answers the choices in section 11 of the draft.
   Prerequisites: MAP.271.
 
+- [ ] **UX.159 Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests**
+  About 190 tests go with them. In progress in the regression-test
+  cleanup lane (PR to follow). docs/generated/architecture-map.html and
+  docs/design/architecture/architecture.html still list web/old_urls.py
+  and are regenerated after the PR merges. Source:
+  reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
+  C1, D1, E1), relayed by the regression-test cleanup lane at 10:30 PM
+  EDT 2026-10-23 as the lane reported.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -16993,6 +17003,21 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   as the thread reported. Version placement is a proposal until Boss
   answers the choices in section 11 of the draft.
   Prerequisites: GEN.414.
+
+- [ ] **DB.97 Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message**
+  Follows the DB.4 marker detection. Next in the regression-test cleanup
+  lane. Source: reports/regression-test-review-2026-10-23.md (Boss
+  approved A1, B1, C1, D1, E1), relayed by the regression-test cleanup
+  lane at 10:30 PM EDT 2026-10-23 as the lane reported.
+  Prerequisites: none.
+
+- [ ] **DB.98 Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test**
+  Last in the regression-test cleanup lane, after the item that removes
+  detect_schema_version. Source:
+  reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
+  C1, D1, E1), relayed by the regression-test cleanup lane at 10:30 PM
+  EDT 2026-10-23 as the lane reported.
+  Prerequisites: DB.97.
 
 ## API: The JSON API
 
