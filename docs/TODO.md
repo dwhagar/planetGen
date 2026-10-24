@@ -2166,50 +2166,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after its first sector is filled.
   Prerequisites: GEN.359. Related: GEN.209.
 
-- [ ] **MAP.229 Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom**
-  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
-  our TODO lineup?" Checked the open and finished items, the design
-  notes and the code: no. Only three small label pieces exist: the
-  compass and neighbour sprite labels of `sectorscene.js`, the course
-  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
-  over the system view (`systemview3d.js`); the design notes carry no
-  label placement, collision or zoom rule. Done: `static/maplabels.js`,
-  one module on the map engine: a label is text, a 3D anchor, a kind, a
-  priority and a distance or pixel-size range; on every camera move the
-  anchors are projected, those outside the view or below the size range
-  are dropped, and the rest are placed by priority on a screen grid with
-  a padding so none overlap, up to a budget (default 60), with a short
-  fade (none under reduced motion) and hysteresis so a label does not
-  flicker at a range edge. Text is drawn with a halo so it reads on both
-  themes at 3:1 contrast. The Menu gets a "Labels" entry with one toggle
-  per kind, kept in the URL. Tests: unit tests of the placement (no
-  overlap, priority wins, stable between frames) and a browser test that
-  labels appear and disappear with zoom; the timing with 20,000 stars in
-  view is reported.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Prerequisites: none. Related: MAP.146, MAP.116, MAP.123, MAP.217.
-
-- [ ] **MAP.230 Names of stars, systems and sectors on the Galaxy Map**
-  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
-  our TODO lineup?" Checked the open and finished items, the design
-  notes and the code: no. Only three small label pieces exist: the
-  compass and neighbour sprite labels of `sectorscene.js`, the course
-  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
-  over the system view (`systemview3d.js`); the design notes carry no
-  label placement, collision or zoom rule. Done: the brightest stars and
-  systems in view show their names and the sector in view shows its name
-  or address, ranked by apparent brightness and nearness to the camera,
-  through the label engine; a star without a name shows its designation
-  only when zoomed in far enough; a kind toggle for each. A browser test
-  checks a named star is labelled at the zoom where it is among the
-  brightest in view and that the label goes when it is not.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Prerequisites: MAP.229. Related: MAP.146, MAP.203.
-
 - [ ] **MAP.231 The Sector Map and the System Map use the label engine**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
   our TODO lineup?" Checked the open and finished items, the design
@@ -2225,7 +2181,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
   top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
   then the label items).
-  Prerequisites: MAP.229. Related: MAP.146, MAP.229.
+  Related: MAP.146.
 
 - [ ] **MAP.232 Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
@@ -2242,22 +2198,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy model and the component table (a small data table where the
   model has none), each a kind with its own toggle. A browser test
   checks one of each kind.
-  Prerequisites: MAP.229, MAP.207. Related: GEN.237, GEN.209, MAP.145.
-
-- [ ] **MAP.233 Names for nebulae on the Galaxy Map**
-  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
-  our TODO lineup?" Checked the open and finished items, the design
-  notes and the code: no. Only three small label pieces exist: the
-  compass and neighbour sprite labels of `sectorscene.js`, the course
-  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
-  over the system view (`systemview3d.js`); the design notes carry no
-  label placement, collision or zoom rule. Done: nebula regions and
-  singles show their names (or class and designation) through the label
-  engine at the zooms where the region is large enough to read, with a
-  toggle; the label does not hide the nebula's own pick and hover. A
-  browser test checks a seeded nebula is labelled and unlabelled with
-  zoom.
-  Prerequisites: MAP.229, MAP.176. Related: MAP.176, MAP.180.
+  Prerequisites: MAP.207. Related: GEN.237, GEN.209, MAP.145.
 
 - [ ] **MAP.234 Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws**
   Boss (2026-10-16, 7:16 PM EDT, timeline): "ON the galaxy map, I just
@@ -2671,7 +2612,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.261, MAP.262, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.261, MAP.262, MAP.266, MAP.267. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2755,20 +2696,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT as the lane reported), with Core 2 as owner of galaxymap3d.js and
   galaxystageview.js (rebase on its merges and tell it before each PR).
   Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
-
-- [ ] **MAP.268 S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Build the
-  map labels (MAP.229 to MAP.233) against the cut's projected-size
-  query, not against stages, and select by object ID at any scale. Size
-  M. Done: labels and selection work from the galaxy to a planet with no
-  stage, and a browser test covers both. Owner: Core 2 (maps).
-  Prerequisites: none. Related: MAP.257, MAP.146,
-  MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
   Boss live observation (8:51 PM EDT 2026-10-23, relayed by the

@@ -1301,3 +1301,7 @@ Baseline: PR #1817.
 | GEN.677 | 8.1 | Mixture and stored values |
 | GEN.658 | 8.1 | Mixture and stored values |
 | PERF.111 | 8.1 | Bugs and flaky tests |
+| MAP.268 | 8.1 | Fly-through map |
+| MAP.229 | 8.1 | Fly-through map |
+| MAP.230 | 8.1 | Fly-through map |
+| MAP.233 | 8.8 | Nebula drawing |
