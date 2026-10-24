@@ -2920,6 +2920,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-23 as the lane reported); design doc
   docs/design/interface/body-rendering.md.
   Prerequisites: none.
+
+- [ ] **MAP.288 Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width**
+  Boss, 12:00 AM EDT 2026-10-24 (a change, not strictly a bug): 'do away
+  with the info panel on the side of the galaxy / sector view and
+  instead just have the popup in an expanded map viewing window'. Core 2
+  reports that most of this is already inside MAP.256 (in its gate): the
+  Galaxy Map's side panel becomes the popup over the map and the map
+  window takes the full width. Do: finish it for the galaxy and sector
+  views (Galaxy Map and Sector Map, on every page and theme), and remove
+  the dead side-panel code and styles with no shim. The system maps (the
+  old box code) are not part of Boss's words; Core 2 may do them if it
+  is the same removal, else they stay separate. Done: the galaxy and
+  sector views show no side panel, the popup carries everything the
+  panel showed, and the map window is full width, with a browser test.
+  Owner: Core 2.
+  Prerequisites: none.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
