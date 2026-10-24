@@ -104,6 +104,12 @@ class FakeData:
         self.calls.append(("get_system_facilities", db, system_id))
         return []
 
+    def get_object_children(self, db, ref, limit=None, after=None):
+        self.calls.append(("get_object_children", db, ref))
+        items = [{"ref": "star:FE81000A2B-0000005-000", "kind": "star", "name": "Sol", "child_count": 0, "counts": {},
+                  "summary": {"star_type": "G2V", "role": "single"}}] if ref.startswith("system:") else []
+        return {"ref": ref, "kind": ref.partition(":")[0], "total": len(items), "items": items, "next": None}
+
     def get_system_owner(self, db, system_id):
         return None
 
@@ -147,7 +153,7 @@ class FakeData:
         return self.admin
 
 
-_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_system_owner", "get_facility_types", "get_system_habitable_species",
+_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_object_children", "get_system_owner", "get_facility_types", "get_system_habitable_species",
           "get_system_text",
           "get_phenomena", "get_phenomenon", "get_phenomenon_contents", "auth_me")
 
@@ -230,11 +236,12 @@ def test_system_page_renders(app, client, fake):
     assert f'href="{links["to"]}">Navigate to here</a>' in html
     assert '<a href="/system/8">Alpha</a> (4.2 ly)' in html
     assert '<a href="/system/9">Be&lt;ta&gt;</a> (5.1 ly)' in html
-    # The map, the body list, the stars table, and the page's scripts.
+    # The map, the overview, the summary tree of the system's stars and bodies, and the page's scripts.
     assert 'id="sysmap-' in html
-    assert 'class="system-list system-list-root"' in html
-    assert '<p class="doc-prose doc-overview">An &lt;overview&gt;.</p>' in html and "A yellow star." in html
-    assert "<h2>Stars</h2>" in html
+    assert 'class="object-tree" data-tree-root' in html and 'href="/object/star:FE81000A2B-0000005-000"' in html
+    assert '<p class="doc-prose doc-overview">An &lt;overview&gt;.</p>' in html
+    assert "A yellow star." not in html  # a star's description is on its own page (UX.173)
+    assert "<h2>Stars</h2>" not in html and "system-list" not in html
     assert re.search(r'<script type="module" src="/static/systemmap.js\?v=[^"]+"></script>', html)
     assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)
     # No POST forms, no db in any moved-page URL, no code box by default.
@@ -555,12 +562,11 @@ def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):
     resp = client.get(f"/system/{pid('system', system_id)}")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
-    assert 'class="system-list system-list-root"' in html
-    # One ordered list (UX.12): no Planets & Moons table any more, and
-    # the stars table comes first, right under the map.
+    # One tree of the system's stars and bodies (UX.173), after the map and the system panel.
+    assert 'class="object-tree" data-tree-root' in html and "system-list" not in html
     assert "Planets &amp; Moons" not in html and "<h2>Asteroid Belts" not in html
     assert '<span class="stat">Class ' in html
-    assert html.index("<h2>Stars</h2>") < html.index('id="system-panel"')
+    assert html.index('id="system-panel"') < html.index('id="system-members"')
     assert 'id="system-code"' not in html
     for fmt, marker in (("markdown", "| Property | Value |"),):
         page = client.get(f"/system/{pid('system', system_id)}?code={fmt}").get_data(as_text=True)

@@ -243,6 +243,7 @@ def _contents(sector, facilities=(), fold=True):
             "name": row["name"],
             "url": system_url(row["id"]),
             "group": SYSTEM_GROUP,
+            "expand_ref": f"system:{row['id']}",
             "type": "Binary Star System" if row["is_binary"] else "Star System",
             "details": ", ".join(
                 bit for bit in (_system_star_type(row), runaway_text(row), inside_text(row)) if bit
@@ -314,6 +315,10 @@ def _contents_cells(row, sector_id):
         name["href"] = href
     if row.get("map_target"):
         name["map_target"] = row["map_target"]
+    if row.get("expand_ref"):
+        # UX.174: a system's row opens onto the summary tree of its stars and bodies (static/datatable.js).
+        name["expand"] = {"ref": row["expand_ref"], "url": page_url("object_tree", ref=row["expand_ref"]),
+                          "label": f"Stars and bodies of {row['name']}"}
     location = {"text": _NO_VALUE}
     if row["location"] is not None:
         location = {"text": plain(row["location"]), "parts": parts_of(row["location"])}

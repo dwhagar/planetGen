@@ -25,12 +25,14 @@ from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
 from planetgen.web.lib import bodyview
+from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
+from planetgen.web.lib.systempage import facilities_by_host, facilities_html
 from planetgen.web.lib.objecttree import CHILD_NOUNS, TreeContext, nodes_html, tree_html
 
 from . import edit_actions, static_url
 from .class_pages import class_url
-from .helpers import bookmark, crumb, current_admin, db_name, page_url, render_page, trusted_html
+from .helpers import bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html
 from .nav_page import endpoint, nav_url
 from .nearby_page import nearby_url
 
@@ -169,13 +171,27 @@ def tree_response(ref):
     return response
 
 
-def tree_panel(ref, name, page):
-    """The "Belonging to it" tree of one object from its first children page, or `None` when it holds nothing."""
+def tree_panel(ref, name, page, loaded=None):
+    """The "Belonging to it" tree of one object from its first children page, or `None` when it holds nothing. `loaded`
+    is `objecttree.node_html`'s: the levels below already read, drawn open."""
     if not page["items"]:
         return None
     noun = CHILD_NOUNS.get(page["kind"], "children")
     return trusted_html(tree_html(page["items"], tree_context(), f"{noun.capitalize()} of {name}",
-                                  token=page["next"], ref=ref))
+                                  token=page["next"], ref=ref, loaded=loaded))
+
+
+def system_tree(db, system_id, name):
+    """The system page's tree: the system's stars (and whatever orbits the whole system, for a close pair), with each
+    star's own bodies already open below it. `None` for a system with no stars or bodies."""
+    ref = f"system:{system_id}"
+    page = apiclient.get_object_children(db, ref, limit=TREE_PAGE)
+    loaded = {}
+    for item in page["items"]:
+        if item["kind"] == "star" and item["child_count"]:
+            below = apiclient.get_object_children(db, item["ref"], limit=TREE_PAGE)
+            loaded[item["ref"]] = (below["items"], below["next"])
+    return tree_panel(ref, name, page, loaded)
 
 
 def sheet_view(sheet):
@@ -252,6 +268,23 @@ def neighbours(detail, kind, row):
                                           "url": item_url(_ref(kind, peer))}
 
     return (entry(peers[index - 1]) if index > 0 else None), (entry(peers[index + 1]) if index + 1 < len(peers) else None)
+
+
+def hosted_facilities(db, system_id, kind, row):
+    """The facilities stored on this body (`GET /api/systems/<id>/facilities`), as the list its page shows."""
+    found = facilities_by_host(apiclient.get_system_facilities(db, system_id)).get((kind, row["id"]))
+    return trusted_html(facilities_html(found))
+
+
+def dominant_species(db, kind, row):
+    """`{"name", "url"}` of a life world's dominant species, or `None` (also before population has made any)."""
+    if kind != "planet" or not row.get("life_chemical") or not population_status()["species"]:
+        return None
+    try:
+        species = apiclient.get_planet_species(db, row["id"])
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        return None
+    return {"name": species["name"], "url": page_url("species_page", species_id=species["id"])} if species else None
 
 
 def _admin_context(kind, printed_id, system_id):
@@ -349,6 +382,9 @@ def render_item(kind, printed_id):
         kind=kind,
         kind_label=label,
         habitability=found if kind in ("planet", "moon") else None,
+        chips=trusted_html(chips_html(row, page_url("habitability_levels"))) if kind in ("planet", "moon") and row else "",
+        facilities=hosted_facilities(db, system_id, kind, row) if row is not None else "",
+        species=dominant_species(db, kind, row) if row is not None else None,
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,

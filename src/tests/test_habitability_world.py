@@ -274,15 +274,15 @@ def test_the_search_finds_bodies_by_the_kit_they_need(db_client, mysql_config): 
 
 
 def test_the_page_chips_are_solid_for_required_and_outlined_for_recommended_in_their_domains_colour():
-    from planetgen.web.lib import systempage
+    from planetgen.web.lib import habitability_chips
     scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
     body = {**scored, "equipment": equipment.summary(scored)}
-    chip = systempage._habitability_chip(body)
+    chip = habitability_chips.equipment_chips(body)
     assert "flag-eq-required" in chip and "CO2 scrubber" in chip and "title=" not in chip
     assert "flag-tier-2" in chip  # the CO2 scrubber comes from the Air domain, which is Yellow here
     assert chip.count("flag-eq-recommended") == len(equipment.recommended_names(scored))
-    assert systempage._habitability_chip({"equipment": None}) == ""
-    assert systempage._habitability_chip({}) == ""
+    assert habitability_chips.equipment_chips({"equipment": None}) == ""
+    assert habitability_chips.equipment_chips({}) == ""
 
 
 def test_a_molten_or_deep_frozen_world_scores_without_overflowing():

@@ -49,6 +49,9 @@
   {%- if habitability %}{% set symbols = habitability_symbol_row(habitability) %}{% if symbols %}
   <p class="item-habitability">{{ symbols }}</p>
   {%- endif %}{% endif %}
+  {%- if chips %}
+  <p class="item-chips">{{ chips }}</p>
+  {%- endif %}
   {{ action_bar(bookmark, nav_links, none, none, admin_button, nearby_url) }}
 </div>
 {% endblock %}
@@ -87,7 +90,9 @@
 </section>
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
-  {% if facts %}<div class="prose">{{ facts }}</div>{% else %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
+  {%- if species %}<p>Dominant species: <a href="{{ species.url }}">{{ species.name }}</a></p>{% endif %}
+  {%- if facilities %}<h3>Facilities</h3>{{ facilities }}{% endif %}
+  {% if facts %}<div class="prose">{{ facts }}</div>{% elif not (species or facilities) %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
   {%- if system_url %}
   <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
   {%- else %}

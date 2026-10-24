@@ -577,75 +577,9 @@ tbody tr:last-child td {
   resize: vertical;
 }
 
-/* System page: the natively rendered system list (html/system.py's
-   `_system_list_html`) -- one native <details> row per star/planet/moon/
-   belt/comet, with compact stats on the summary line and the body's own
-   generated description underneath. */
+/* System page: the system's own overview text above its summary tree (UX.173). */
 .system-overview {
   margin-bottom: 1rem;
-}
-
-.system-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 0 1.25rem;
-}
-
-.system-list-root {
-  padding-left: 0;
-}
-
-.body-row > summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.75rem;
-  padding: 0.45rem 0.5rem;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-}
-
-.body-row > summary {
-  list-style: none;
-}
-
-.body-row > summary::-webkit-details-marker {
-  display: none;
-}
-
-.body-row > summary::before {
-  content: "\25B8"; /* ▸, closed */
-  color: var(--text-muted);
-  width: 0.8rem;
-}
-
-.body-row[open] > summary::before {
-  content: "\25BE"; /* ▾, open */
-}
-
-.body-row > summary:hover {
-  background: var(--bg-subtle);
-}
-
-.body-row[open] > summary {
-  background: var(--bg-subtle);
-}
-
-.body-name {
-  font-weight: 600;
-  min-width: 12rem;
-}
-
-.body-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
-.body-stats .stat:empty {
-  display: none;
 }
 
 .flag {
@@ -729,15 +663,6 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
-.body-detail {
-  padding: 0.75rem 0.5rem 0.25rem 1.5rem;
-}
-
-/* A body's class links (/classes pages), above its description. */
-.body-detail .class-links {
-  font-size: 0.9rem;
-}
-
 /* A body's facilities (starbases, colonies, outposts), at the top of its
    detail. */
 .facility-list {
@@ -759,22 +684,6 @@ tbody tr:last-child td {
 
 .page-actions .admin-bar {
   margin: 0;
-}
-
-/* UX.68: a planet's, moon's or belt's own Admin menu, at the right end of
-   its row in the System list. */
-.system-list li.has-admin {
-  position: relative;
-}
-
-.system-list li.has-admin > .row-admin {
-  position: absolute;
-  top: 0.3rem;
-  right: 0.5rem;
-}
-
-.system-list li.has-admin > details > summary {
-  padding-right: 6rem;
 }
 
 .edit-dialog .hint {
@@ -815,23 +724,6 @@ tbody tr:last-child td {
   border-left: 3px solid var(--accent);
   padding: 0.25rem 0.75rem;
   margin: 0.5rem 0 1rem;
-}
-
-/* A planet's moons: their own collapsed group right under its row. */
-.moon-group > summary {
-  padding: 0.3rem 0.5rem 0.3rem 1.75rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-}
-
-.moon-group > summary:hover {
-  background: var(--bg-subtle);
-}
-
-.body-detail:empty {
-  display: none;
 }
 
 /* The Markdown code box above the list. */
@@ -4682,14 +4574,6 @@ p.hint a {
   text-decoration: underline;
 }
 
-/* NAV.8: the body a link points at on the system page (static/bodyanchor.js). */
-.system-list li.body-targeted > .body-row > summary,
-.system-list li.body-targeted > .body-row {
-  outline: 2px solid var(--accent, #4a90d9);
-  outline-offset: -2px;
-  background: var(--bg-subtle);
-}
-
 /* GEN.196: one box per scatter in "Redo scatters". */
 .redo-scatter {
   margin: 0 0 0.75rem;
@@ -5361,4 +5245,14 @@ p.hint a {
   color: var(--text-muted);
   font-size: 0.875rem;
   text-align: center;
+}
+
+/* UX.174: a system's row in the sector page's Contents opens onto its summary tree under the name. */
+.datatable td .tree-toggle {
+  vertical-align: baseline;
+}
+
+.tree-embed {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 0.95rem;
 }
