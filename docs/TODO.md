@@ -2388,7 +2388,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet with air is drawn in its atmosphere colour on the System Map
   and the planet page, in both themes, and the old three-colour gesture
   is gone (no shim).
-  Prerequisites: GEN.420. Related: GEN.420.
+  Prerequisites: none. Related: GEN.420.
 
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -7789,20 +7789,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
 
-- [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): A new "Atmosphere colour" row in
-  `describe/build.py` (`_planet_facts`) with a hex swatch and the colour
-  word, for every body with air and for giants, through a new inline
-  item in the Document model and its text, markdown, wikitext and web
-  renderers, the JSON of `GET /api/systems/<id>/description` and the
-  checks of `describe/model.py`. Done: the row is present for a body
-  with air and absent for an airless one; every output shows the word,
-  the web page shows the chip; the existing description parity tests
-  pass.
-  Related: GEN.208, GEN.218, MAP.244,
-  DOC.64.
-
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
   for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
@@ -7821,7 +7807,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star and atmosphere is made of, from real science, and the colour of
   the air and the radiation that follow). A major version needs Boss's
   word.
-  Prerequisites: GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210,
+  Prerequisites: MAP.244, DOC.64, GEN.446, TEST.209, TEST.210,
   TEST.211, TEST.212, DOC.66. Related: GEN.416,
   GEN.417, GEN.418, GEN.419, DOC.63.
 
@@ -21711,7 +21697,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limit, the reference level of a giant), what the colour does not
   include (sunsets, twilight and the day strip, which belong to the view
   from a planet) and the sources. Done: each page says so.
-  Prerequisites: GEN.420, MAP.244. Related: DOC.63.
+  Prerequisites: MAP.244. Related: DOC.63.
 
 - [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system

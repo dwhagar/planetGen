@@ -24,7 +24,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.443, GEN.444, GEN.445, GEN.446 | Boss 11:58 PM EDT; the radiation proof. |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | TEST.212, TEST.211, DOC.63, DOC.65 | Boss 11:58 PM EDT; docs only. |
-| GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210, TEST.211, TEST.212, DOC.66 | Headline of 9.0 (Boss, 11:25 PM EDT). |
+| GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | MAP.244, DOC.64, GEN.446, TEST.209, TEST.210, TEST.211, TEST.212, DOC.66 | Headline of 9.0 (Boss, 11:25 PM EDT). |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | DB.96 | Body rendering R8; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | GEN.414, GEN.418, GEN.419 | Body rendering R2; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality |  | Body rendering R12; Boss's plan of 10:26 PM EDT 2026-10-23. |
