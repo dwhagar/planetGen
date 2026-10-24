@@ -2689,22 +2689,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worlds (Yellow and above) should also be labeled with icons on the
   map. Today MAP.220 has an opt-in habitable-worlds marker for Blue or
   Green worlds only (side table habitable_systems, the Menu toggle,
-  #2943). Do: show an icon beside the name of every star whose system
-  holds a world rated Yellow or better on the overall habitability
-  score, the icon told apart by colour for Blue, Green and Yellow, on by
-  default with its toggle kept; this does not change the habitable rule
+  #2943). Do: make a world rated Yellow or better on the overall
+  habitability score one interest reason of the generic point-of-interest
+  mark (MAP.305; Boss, 7:35 PM EDT: no separate icon per kind, one mark
+  that a click explains), so such a system gets the mark and its infobox
+  names the world, on by default with its toggle kept; this does not change the habitable rule
   (GEN.643 stays Blue or Green; the icon uses the overall score
   threshold Yellow). If the stored count in habitable_systems covers
   only Blue and Green, add the Yellow count there with a migration (a
   column in db/column_units.py in the same PR, the next migration number
-  from TODO). Done: a browser test on the fixture finds an icon on a
-  Yellow world's star, a different one on a Green one, none on a Red
-  one. Part of one chain filed from that message: TEST.368 (fixture
+  from TODO). Done: a browser test on the fixture finds the mark on a
+  Yellow world's star and on a Green one, with the reason listed, and
+  none on a Red one. Part of one chain filed from that message: TEST.368 (fixture
   galaxy), MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303
   (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (MAP.220's
   marker code is its to extend); MAP.293 (colour-by Habitable) is the
   same area, so it goes first.
-  Prerequisites: TEST.368. Related: MAP.220, MAP.293, GEN.643, MAP.298.
+  Prerequisites: TEST.368, MAP.305. Related: MAP.220, MAP.293, GEN.643, MAP.298.
 
 - [ ] **MAP.304 Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug)**
   Boss, 7:33 PM EDT 2026-10-24 (message
@@ -2736,6 +2737,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is Core 2's MAP.295.
   Prerequisites: TEST.368. Related: MAP.140, MAP.226, MAP.268, MAP.295,
   MAP.297, MAP.298, MAP.303.
+
+- [ ] **MAP.305 Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug)**
+  Boss, 7:35 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi471mBtXCdusNjfPp52U3NK, relayed by the
+  coordinator), live observation, so a bug: "Also, star systems with gas
+  giants should get icons as well, but we don't have different icons for
+  each, they are POI kind of marks, so they highlight systems that might
+  be
+  of interest and then clicking on it will list what those interest
+  points
+  are. If things are too dense, then a single map icon can bring up an
+  infobox with everything that icon leads to." Do: one generic
+  point-of-interest (POI) mark, not an icon per kind. A registry of
+  interest reasons feeds it, each reason a small function over a
+  system's
+  stored data with a label and a link: a world rated Yellow or better on
+  the overall habitability score (MAP.303), a gas giant, and more later
+  (an entry added without touching the mark). A system with at least one
+  reason gets the mark; a click selects it and the infobox in the map
+  window lists the system and its reasons, each reason naming the body
+  and
+  linking to it (MAP.304). Where marks would crowd, they merge by screen
+  distance into one mark, which shows the count, and its infobox lists
+  every system and reason it leads to, each a link; zooming in splits it
+  again (the same crowding rule as the names, MAP.299). The mark and its
+  reasons are switchable in the layers menu, reasons individually. The
+  server side keeps a side table or a column like habitable_systems of
+  (system, reason) rows, so the tiles carry the mark without reading
+  every
+  planet; a new table or column goes through a migration (next number
+  from
+  TODO) with its units in db/column_units.py in the same PR. Done: a
+  browser
+  test on the fixture galaxy (TEST.368) finds the mark on a system with
+  a
+  gas giant and on one with a Yellow world, none on a system with
+  neither,
+  opens the infobox listing the reasons, and in a crowd finds one merged
+  mark whose infobox lists all of its systems. Part of the Boss map UX
+  chain: TEST.368, MAP.295 to MAP.305. Owner: Aux 10 (it owns the marker
+  code of MAP.220 and the node cut).
+  Prerequisites: TEST.368. Related: MAP.303, MAP.304, MAP.220, MAP.299,
+  MAP.298.
 
 ## NAV: Navigation and courses
 
