@@ -1,31 +1,38 @@
 # planetgen/web/item_pages.py
 
 """
-The dedicated page of an item (UX.143): `/object/<ref>` for any object reference (`planet:FE81000A2B-0000005-001`, a
-bare system ID). Every kind a reference can name has a page, from one registry:
+The dedicated page of an item (UX.143, UX.170): `/object/<ref>` for any object reference
+(`planet:FE81000A2B-0000005-001`, a bare system ID). Every kind a reference can name has a page, from one registry:
 
 - a sector, a system and each phenomenon type already have a page of their own (`/sector`, `/system`, `/phenomenon`),
   so their reference goes there;
-- a star, planet, moon, belt or comet gets the page here: its name, kind and Object ID, the chain of places it is in
-  (galaxy, sector, system, the planet a moon circles), everything the system's description says about it (the facts,
-  ratings, composition and prose, with units from the unit ladder), the bodies that belong to it, and a link back to its
-  row in the system's list.
+- a star, planet, moon, belt or comet gets the page here, top to bottom: its name, kind, Object ID, class and PHI-6
+  symbols with the bookmark, Navigate, Nearby and (for an admin) the Admin menu; where it is (the Location chain, every
+  name a link: galaxy, sector, system, star, planet, and the previous and next body at its own level); the property
+  sheet (`describe/sheet.py`, every stored property with its unit); what the system's description says about it (the
+  prose, facts and ratings, `describe/`); and the summary tree of everything that belongs to it
+  (`web/lib/objecttree.py`, `GET /api/objects/<ref>/children`).
 
-The facts are the description's section for the body (`GET /api/systems/<id>/description`, `describe/`), so the page
-and the system's row never say different things. A reference that names nothing is a plain not-found page.
+The prose is the description's section for the body (`GET /api/systems/<id>/description`), so the page and the system's
+description never say different things. A reference that names nothing is a plain not-found page. A POST with an
+`edit_action` is the admin Regenerate, Change class or Delete of this body (`web/edit_actions.py`).
 """
 
-from flask import abort, redirect
+from flask import abort, jsonify, redirect, request
 
-from planetgen.describe.html import blocks_html
+from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
+from planetgen.web.lib import bodyview
 from planetgen.web.lib.fmt import esc
+from planetgen.web.lib.objecttree import CHILD_NOUNS, TreeContext, nodes_html, tree_html
 
-from planetgen.web.lib.systempage import body_anchor
-
-from .helpers import crumb, db_name, page_url, render_page, trusted_html
+from . import edit_actions, static_url
+from .class_pages import class_url
+from .helpers import bookmark, crumb, current_admin, db_name, page_url, render_page, trusted_html
+from .nav_page import endpoint, nav_url
+from .nearby_page import nearby_url
 
 OWN_PAGE_KINDS = ("sector", "system") + objectref.PHENOMENON_KINDS
 """tuple: The kinds whose reference opens a page the site already has."""
@@ -126,57 +133,238 @@ def _ref_link(ref):
     return item_url(ref) if ref else None
 
 
+BODY_REF_KINDS = ITEM_PAGE_KINDS
+"""tuple: The kinds whose page this module draws (a reference to one is `<kind>:<printed ID>`)."""
+
+TREE_PAGE = 50
+"""int: Rows of a tree level the page and each "Show more" read at once."""
+
+
+def tree_context():
+    """The `TreeContext` of a page in this request: where a row links, where a row's children come from, and the class
+    pages and habitability page its summary line links into."""
+    return TreeContext(
+        item_url=item_url, tree_url=lambda ref: page_url("object_tree", ref=ref), class_url=class_url,
+        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"))
+
+
+def tree_response(ref):
+    """`GET /object/<ref>/tree[?after=]`: one page of an object's children as the HTML rows of a tree level
+    (`{"html", "next"}`), for `static/objecttree.js`. A reference that names nothing is a 404, a bad `after` a 400."""
+    try:
+        kind, printed_id = objectref.parse_public(ref)
+    except ValueError:
+        abort(404)
+    try:
+        page = apiclient.get_object_children(db_name(), f"{kind}:{printed_id}", limit=TREE_PAGE,
+                                             after=request.args.get("after") or None)
+    except apiclient.NotFoundError:
+        abort(404)
+    except apiclient.ApiError as exc:
+        if exc.status_code == 400:
+            abort(400)
+        raise
+    response = jsonify({"html": nodes_html(page["items"], tree_context()), "next": page["next"]})
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+def tree_panel(ref, name, page):
+    """The "Belonging to it" tree of one object from its first children page, or `None` when it holds nothing."""
+    if not page["items"]:
+        return None
+    noun = CHILD_NOUNS.get(page["kind"], "children")
+    return trusted_html(tree_html(page["items"], tree_context(), f"{noun.capitalize()} of {name}",
+                                  token=page["next"], ref=ref))
+
+
+def sheet_view(sheet):
+    """A property sheet (`GET /api/objects/<ref>/sheet`) as the page draws it: `[{"key", "label", "rows"}]` with each
+    row's value as HTML (`describe.html.inline_html`, so a quantity reads in the reader's unit system)."""
+    return [{"key": group["key"], "label": group["label"],
+             "rows": [{"label": row["label"], "html": trusted_html(inline_html(row["value"])), "stored": row["stored"]}
+                      for row in group["rows"]]}
+            for group in sheet["groups"]]
+
+
+def _bodies(detail):
+    """`[(kind, row)]` for every star, planet, moon, belt and comet of a system's detail, each row with the `kind` it is
+    and (a moon's) its planet."""
+    found = [("star", star) for star in detail["stars"]]
+    for planet in detail["planets"]:
+        found.append(("planet", planet))
+        found.extend(("moon", dict(moon, planet=planet)) for moon in planet.get("moons") or [])
+    found += [("belt", belt) for belt in detail["belts"]] + [("comet", comet) for comet in detail["comets"]]
+    return found
+
+
+def belt_name(belt):
+    """A belt's name: it has none stored, so it is numbered by its place out from the star."""
+    return f"Asteroid belt {belt['orbital_index'] + 1}"
+
+
+def _name_of(kind, row):
+    return belt_name(row) if kind == "belt" else row["name"]
+
+
+def _find(detail, kind, printed_id):
+    """The detail's row for a body, or `None`."""
+    wanted = printed_id.upper()
+    return next((row for found_kind, row in _bodies(detail) if found_kind == kind and str(row["id"]).upper() == wanted), None)
+
+
+def _ref(kind, row):
+    return f"{kind}:{row['id']}"
+
+
+def chain_places(detail, kind, row):
+    """The places between a body's system and the body itself, as `[{"ref", "kind", "name"}]`: the star it orbits (none
+    for a close pair's circumbinary body) and, for a moon, its planet."""
+    host_id = (row["planet"] if kind == "moon" else row).get("star_id")
+    places = []
+    star = next((s for s in detail["stars"] if s["id"] == host_id), None) if kind != "star" else None
+    if star is not None:
+        places.append({"ref": _ref("star", star), "kind": "star", "name": star["name"]})
+    if kind == "moon":
+        places.append({"ref": _ref("planet", row["planet"]), "kind": "planet", "name": row["planet"]["name"]})
+    return places
+
+
+def neighbours(detail, kind, row):
+    """`(previous, next)` of the body at its own level, each `{"ref", "kind", "name"}` or `None`: the planets that share
+    its star in their order out, a planet's moons, the system's stars, the belts or the comets of its star."""
+    if kind == "star":
+        peers = detail["stars"]
+    elif kind == "planet":
+        peers = [p for p in detail["planets"] if p.get("star_id") == row.get("star_id")]
+    elif kind == "moon":
+        peers = row["planet"].get("moons") or []
+    elif kind == "belt":
+        peers = [b for b in detail["belts"] if b.get("star_id") == row.get("star_id")]
+    else:
+        peers = [c for c in detail["comets"] if c.get("star_id") == row.get("star_id")]
+    index = next((i for i, peer in enumerate(peers) if peer["id"] == row["id"]), None)
+    if index is None:
+        return None, None
+
+    def entry(peer):
+        return None if peer is None else {"ref": _ref(kind, peer), "kind": kind, "name": _name_of(kind, peer),
+                                          "url": item_url(_ref(kind, peer))}
+
+    return (entry(peers[index - 1]) if index > 0 else None), (entry(peers[index + 1]) if index + 1 < len(peers) else None)
+
+
+def _admin_context(kind, printed_id, system_id):
+    """What the Admin menu of a body's page needs: `{"label", "class_options"}` for an admin allowed to edit, else
+    `None`. `class_options` is `{"recommended": [...], "forced": [...]}` for a planet or moon (Change class)."""
+    if not edit_actions.can_edit(current_admin()):
+        return None
+    context = {"target": f"{kind}:{printed_id}", "class_options": None}
+    if kind in ("planet", "moon"):
+        options = edit_actions.class_options(system_id)
+        if options:
+            recommended = options.get("recommended", {}).get(context["target"], [])
+            context["class_options"] = {"recommended": recommended,
+                                        "forced": [c for c in options.get("all") or [] if c not in recommended]}
+    return context
+
+
+def _edit_post(kind, printed_id, system_id):
+    """An admin Regenerate, Change class or Delete POST for this body (`web/edit_actions.py`); after a delete it goes up to
+    the body's system."""
+    here = item_url(f"{kind}:{printed_id}")
+    return edit_actions.handle_post({(kind, printed_id)}, here,
+                                    after_delete={kind: page_url("system", system_id=system_id)})
+
+
+def _free_moon_page(db, kind, printed_id, found, free_planet):
+    """The page of a moon of a free planet (DB.94): its sheet and places, with no system to read a description,
+    neighbours or admin actions from, and a link to the free planet instead of a system."""
+    ref = f"{kind}:{printed_id}"
+    name = found["name"]
+    nav_ref = endpoint(kind, printed_id)
+    return render_page(
+        "item.html",
+        title=name,
+        section="systems",
+        breadcrumbs=_crumbs(found, name),
+        description=f"The {KIND_LABELS[kind].lower()} {name}: where it is and what it is like.",
+        kind=kind,
+        kind_label=KIND_LABELS[kind],
+        habitability=found if kind in ("planet", "moon") else None,
+        object_id=printed_id,
+        facts=trusted_html(""),
+        sheet=sheet_view(apiclient.get_object_sheet(db, ref)),
+        tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
+        location=location(found["parents"], None),
+        owner_url=item_url(free_planet["ref"]),
+        owner_name=esc(free_planet["name"]),
+        bookmark=bookmark(kind, nav_ref, name, item_url(ref)),
+        nav_links={"from": nav_url(origin=nav_ref), "to": nav_url(destination=nav_ref)},
+        nearby_url=nearby_url(nav_ref),
+        admin=current_admin(),
+        object_ref=ref,
+    )
+
+
 def render_item(kind, printed_id):
     """The page of one star, planet, moon, belt or comet; a missing one is a 404."""
     ref = f"{kind}:{printed_id}"
+    post = request.method == "POST"
     db = db_name()
     try:
         found = apiclient.get_object(db, ref)
     except apiclient.NotFoundError:
         abort(404)
     system = next((p for p in found["parents"] if p["kind"] == "system"), None)
-    free_planet = next((p for p in found["parents"] if p["kind"] == "rogue_planet"), None)
-    if system is None and free_planet is None:
-        abort(404)
+    if system is None:
+        free_planet = next((p for p in found["parents"] if p["kind"] == "rogue_planet"), None)
+        if free_planet is None:
+            abort(404)
+        return _free_moon_page(db, kind, printed_id, found, free_planet)    # DB.94: no system, so no description
+    system_id = system["ref"].partition(":")[2]
+    if post and "edit_action" in request.form:
+        return _edit_post(kind, printed_id, system_id)
+    detail = apiclient.get_system(db, system_id)
+    row = _find(detail, kind, printed_id)
+    document = apiclient.get_system_description(db, system_id)
+    piece = _section(document, ref)
     name = found["name"]
     label = KIND_LABELS[kind]
-    if system is None:    # DB.94: a moon of a free planet has no system, so no description to read its facts from
-        return render_page(
-            "item.html",
-            title=name,
-            section="systems",
-            breadcrumbs=_crumbs(found, name),
-            description=f"The {label.lower()} {name}: where it is and what it is like.",
-            kind_label=label,
-            habitability=found if kind in ("planet", "moon") else None,
-            object_id=printed_id,
-            facts=trusted_html(""),
-            children=[],
-            location=location(found["parents"], None),
-            owner_url=item_url(free_planet["ref"]),
-            owner_name=esc(free_planet["name"]),
-        )
-    system_id = system["ref"].partition(":")[2]
-    document = apiclient.get_system_description(db, system_id)
-    inside = apiclient.get_system(db, system_id).get("inside")
-    piece = _section(document, ref)
-    children = [{"title": child["title"], "kind": KIND_LABELS.get(child["kind"], child["kind"].title()),
-                 "url": _ref_link(child["ref"])} for child in (piece["children"] if piece else []) if child["ref"]]
+    parents = found["parents"]
+    chain_parents = parents
+    if row is not None:
+        chain_parents = [p for p in parents if p["kind"] != "planet"] + chain_places(detail, kind, row)
+    previous, following = neighbours(detail, kind, row) if row is not None else (None, None)
+    sheet = apiclient.get_object_sheet(db, ref)
+    tree = tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE))
+    admin = _admin_context(kind, printed_id, system_id)
+    nav_ref = endpoint(kind, printed_id)
     return render_page(
         "item.html",
         title=name,
         section="systems",
-        breadcrumbs=_crumbs(found, name),
-        description=f"The {label.lower()} {name}: where it is and what it is like.",
+        breadcrumbs=_crumbs({"parents": chain_parents}, name),
+        description=f"The {label.lower()} {name}: where it is, what it is like and everything stored about it.",
+        kind=kind,
         kind_label=label,
         habitability=found if kind in ("planet", "moon") else None,
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
-        children=children,
-        location=location(found["parents"], inside),
+        example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
+        sheet=sheet_view(sheet),
+        tree=tree,
+        location=location(chain_parents, detail.get("inside")),
+        previous=previous,
+        following=following,
         system_url=page_url("system", system_id=system_id),
-        row_url=page_url("system", _anchor=body_anchor(kind, printed_id), system_id=system_id),
         system_name=esc(system["name"]),
+        bookmark=bookmark(kind, nav_ref, name, item_url(ref)),
+        nav_links={"from": nav_url(origin=nav_ref), "to": nav_url(destination=nav_ref)},
+        nearby_url=nearby_url(nav_ref),
+        admin=current_admin(),
+        edit=admin,
+        object_ref=ref,
     )
 
 

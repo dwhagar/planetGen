@@ -289,6 +289,37 @@ connectivity to that specific schema rather than the default one.
   fields pass through with a `note`; belts, comets and sectors have none).
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
+- `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
+  belt or comet (UX.168, `describe/sheet.py`): `kind` and `groups`
+  (`identity`, `orbit`, `physical`, `rotation`, `composition`, `atmosphere`,
+  `climate`, `water`, `magnetism`, `radiation`, `habitability`, `life`, and the
+  star's `zones`, `stellar`, `galactic`, `disk`), each `{key, label, rows}`. A
+  row is `{key, label, value, text, stored}`: `value` is the Document's inline
+  list (a quantity is `{"qty": {"kind", "si"}}`, shown in the reader's units),
+  `text` the same as plain text, and `stored` false, with the text "not
+  stored", for a property the row holds no value for. Every stored column of
+  the kind's table is either a row or on the registry's `NOT_SHOWN` list with
+  its reason. A reference that names nothing, or a kind with no sheet (a
+  sector, a system, a phenomenon), is a `404`.
+- `GET /api/objects/<ref>/children[?limit=&after=]` — what belongs to an
+  object, one keyset page at a time (UX.169, `db/children.py`). A sector holds
+  its systems, then the phenomena placed in it; a system its stars, then the
+  planets, belts and comets that orbit the whole system (a close pair's
+  circumbinary bodies); a star its planets and belts in their order out from
+  it, then its comets; a planet, or a free (rogue) planet, its moons. A moon,
+  belt, comet or any other phenomenon holds nothing. The answer is `ref`,
+  `kind`, `total` (every child it holds), `items` and `next`. An item is
+  `{ref, kind, id, name, summary, counts, child_count}`: `summary` is what its
+  own row says (a star's `star_type`, `mass_kg`, `luminosity_w`; a planet's or
+  moon's `planet_class`, `distance_km`, `period_years` and the PHI-6 `phi4` and
+  `tier_<domain>` ratings; a system's `is_binary`, `quadrant` and `star_types`;
+  a belt's `density` and limits; a comet's orbit), `counts` how many of each
+  kind lie anywhere below it (a system's `star`, `planet`, `moon`, `belt`,
+  `comet`; a star's or planet's; none for a sector) and `child_count` how many
+  it holds directly, so a row can show its expand arrow without another
+  request. `limit` is 1 to 200 (default 50); `after` is the previous page's
+  `next`, an opaque token (`null` at the end), and a page never uses `OFFSET`.
+  A reference that names nothing is a `404`; a bad `limit` or `after` is a `400`.
 - `GET /api/nav?from=<ref>&to=<ref>` — course, distance, and an optimal route
   between two objects (systems, bodies, phenomena) (`queryDb.nav_between`) — see "NAV" below.
 - `GET /api/galaxy/sectors` — every galaxy-placed sector (non-`null`

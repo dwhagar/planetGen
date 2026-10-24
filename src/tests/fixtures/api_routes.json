@@ -100,6 +100,8 @@
   "/api/nebulae/<uid:nebula_id>/surroundings GET",
   "/api/object-lists/<kind> GET",
   "/api/objects/<ref> GET",
+  "/api/objects/<ref>/children GET",
+  "/api/objects/<ref>/sheet GET",
   "/api/page-jobs/<job_id> GET",
   "/api/page-jobs/<job_id>/cancel POST",
   "/api/phenomena GET",
