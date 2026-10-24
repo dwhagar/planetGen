@@ -408,10 +408,11 @@ def test_the_description_splits_into_every_body(client, mysql_config):
     assert set(sections["belts"]) == {str(b["id"]) for b in detail["belts"]}
     assert set(sections["comets"]) == {str(c["id"]) for c in detail["comets"]}
     for planet in detail["planets"]:
-        # A planet's own blocks stop before its moons' sections begin: one facts table, its own (and, for a scored
-        # rocky body, its Survival equipment table).
+        # A planet's own blocks stop before its moons' sections begin: one Planet facts table, its own (and, with it,
+        # its Radiation table and, for a scored rocky body, its Survival equipment table).
         blocks = sections["planets"][str(planet["id"])]
-        assert [b["type"] for b in blocks if b.get("caption") != "Survival equipment"].count("facts") == 1
+        facts = [b["caption"] for b in blocks if b["type"] == "facts"]
+        assert facts.count("Planet") == 1 and set(facts) <= {"Planet", "Radiation", "Survival equipment"}, facts
         assert {"habitable", "habitable_class", "inhabited", "life_stage"} <= set(planet)
 
     assert client.get("/api/systems/999999999/description").status_code == 404

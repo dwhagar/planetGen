@@ -346,7 +346,7 @@ def test_system_page_links_classes(client, fake):
 
 
 @pytest.mark.parametrize("kind, detail, label, url", [
-    ("nebula", {"nebula_class": "D"}, "D: " + tuning.NEBULA_CLASSES["D"]["name"], "/classes/nebula/D"),
+    ("nebula", {"nebula_class": "D", "nebula_type": tuning.NEBULA_CLASSES["D"]["family"]}, "D: " + tuning.NEBULA_CLASSES["D"]["name"], "/classes/nebula/D"),
     ("supernova_remnant", {"remnant_class": "T"}, "T: " + tuning.NEBULA_CLASSES["T"]["name"],
      "/classes/supernova-remnant/T"),
     ("asteroid_field", {"field_class": "C3"}, "C3", "/classes/asteroid-field/C"),
