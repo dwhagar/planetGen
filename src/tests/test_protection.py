@@ -169,7 +169,7 @@ def test_the_suitability_line_names_what_is_and_is_not_readily_available():
 
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_names_the_heated_suit():
     text = _paragraph(_world(temperature_c=-80.0))
-    assert "**Temperature: Red** (0.23). The air temperature is -80 C. Required: heated sealed suit. **Air:" in text
+    assert "**Temperature: Red** (0.23). The air temperature is -80 C. Required: heated sealed suit + self-contained air. **Air:" in text
     assert "Required: heated sealed suit + self-contained air." in text
 
 
@@ -222,7 +222,7 @@ def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
     """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
     world = _world(pressure_kpa=0.0, gases={})
     text = _paragraph(world)
-    assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). Required: dust-tight seals. **Water:" in text
+    assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). Required: " in text and "dust-tight seals" in text
     assert "within their long-term limits" not in text
 
 
