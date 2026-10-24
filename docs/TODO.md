@@ -983,18 +983,6 @@ with `clamp()`.
   first (what is stored and where). Owner: none (pool).
   Prerequisites: none. Related: UX.175, MAP.258.
 
-- [ ] **UX.185 Phenomenon pages: paragraph text and neighbour links from the stored row**
-  Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
-  the lane reported, #3013). describe_phenomenon takes only a freshly
-  generated object, so a stored phenomenon page cannot show its
-  paragraph or its neighbour links. Do: add a loader that builds what
-  describe_phenomenon needs from the stored row, then show the paragraph
-  and the neighbour (previous and next) links on every phenomenon page.
-  Done: a stored nebula, black hole and rogue planet page each shows its
-  paragraph and neighbour links, and a test covers one of each. Owner:
-  none (pool).
-  Prerequisites: none. Related: UX.175.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -12835,30 +12823,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane / lane D.
   Prerequisites: none.
 
-- [ ] **GEN.699 Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9**
-  Boss, 1:28 AM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiV55YkdN6zTGyh2YTDgXkjU, answer 1 to the
-  coordinator's question), found by lane H in GEN.459 (#2868): the
-  interior heat today takes the radiogenic heat and divides it by a
-  drawn Urey ratio (0.1 to 0.9) to get the total, which hides the
-  formation heat. Do: model the primordial heat separately (accretion,
-  core formation and differentiation energy, then secular cooling by
-  mass, age and composition), so total heat is radiogenic plus
-  primordial and no Urey ratio is drawn; the Urey ratio becomes an
-  output; label stand-ins in the gap plan registry and read sources
-  before taking numbers. Done: a test that Earth-like bulk composition
-  and age give a total heat and Urey ratio inside the published range
-  without drawing the ratio, that heat falls with age, and that the
-  stored columns of GEN.459 stay consistent (a new column takes the next
-  migration). Owner: lane H, after GEN.461; check nobody started it
-  first.
-  Research (2026-10-09, 10-24 lane H): Lane H (12:19 PM EDT 2026-10-24
-  as the lane reported): next after GEN.461, stacking on it. Stand-ins
-  for the gap registry: 3500 K start-temperature ceiling, 273 K surface,
-  stagnant lid only (the tectonic-mode switch is the new item that
-  follows).
-  Prerequisites: none. Related: GEN.459, GEN.461.
-
 - [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
   Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
   plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
@@ -13065,6 +13029,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds no double white dwarf in a few hundred seeded systems, and the
   epoch is bumped if a drawn value changes (next free at merge). Owner:
   none (the star scatter lane, Core 3 or Core 1, is the nearest owner).
+  Research (2026-10-09, Lane H confirmation): Update 3:06 PM EDT
+  2026-10-24 (Lane H, relayed as the lane reported):
+  test_prevalence::test_no_binaries_at_minus_100 also fails on clean
+  main e7ff546 (0.002 binaries instead of 0), which is this item. Owner
+  unchanged.
   Prerequisites: none. Related: GEN.631, GEN.332.
 
 - [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
@@ -13096,7 +13065,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names the sources. Needs a research pass first (settle the sources
   before building). Owner: none (pool); lane H is the nearest owner
   after GEN.699.
-  Prerequisites: GEN.699. Related: GEN.699, GEN.461.
+  Prerequisites: none. Related: GEN.699, GEN.461.
 
 - [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
   Split from GEN.509 by Lane Draws (merged #3025 at about 2:14 PM EDT
@@ -14878,7 +14847,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: API.26.
+  Prerequisites: none.
 
 - [ ] **API.5 API version and compatibility checking**
   Boss (2026-10-01 19:28Z): "Another TODO item will be API version /
@@ -15063,24 +15032,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
 
-- [ ] **API.26 Bump API_VERSION for the shell, band and wedge sector address**
-  Found by Quality after the switch (PR #1607). `API_VERSION` is still
-  3, but the switch changed the sector address parameters of the API
-  from ring, layer and slot to shell, band and wedge, which is a
-  breaking change (`src/tests/test_api_version.py` says to bump it and
-  add its line to the change list in `docs/reference/api.md`). Owner: Core
-  (2026-10-15). Done: `API_VERSION` is 4, `docs/reference/api.md` lists the
-  change, and the version header tests pass. Open question for Boss
-  (default: bump to 4; there is no backward compatibility and Boss is
-  the only user, so no 3 route is kept). Not a bug.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: API.4.
-
 - [ ] **API.28 Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -15138,47 +15089,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   galaxy first": confirmed as the first version of the remote mode; the
   other commands refuse with a clear message until a later phase.
   Prerequisites: API.5, API.8. Related: API.3.
-
-- [ ] **API.31 Every outgoing web request sends a standard User-Agent with the software, its version and the API version**
-  Boss (2026-10-17, 11:33 AM EDT, typed in the project chat): "all web
-  requests should have a browser UA string saying the software, its
-  version number, and the API version being used that fits industry
-  standards." Read as (default taken, the coordinator's reading): every
-  outgoing HTTP request the software makes sends a `User-Agent` in the
-  RFC 9110 form of product tokens with a comment, for example
-  `PlanetGen/8.0.1721 (+https://github.com/dwhagar/planetGen)
-  PlanetGen-API/1.4`, the first token the release from
-  `planetgen/_version.py`, the comment the project URL, the last token
-  the API version from `planetgen/api/version.py`. One function builds
-  the string (the only place that spells it), so a test checks the
-  format and that it follows both versions when they change; the
-  outgoing callers are `web/lib/apiclient.py`, the CLI tools that fetch, any later API client (the
-  remote generate client of API.30) and the data downloads at build time
-  of the gap-filling plan (GEN.439, GEN.440, GEN.463, GEN.413, GEN.414,
-  GEN.485, GEN.499 and the atmosphere data of group X9), which must use
-  it. Requests the browser's own front end makes cannot set
-  `User-Agent`, so the page JavaScript that calls the API sends the
-  existing API version header (`API_VERSION_HEADER`,
-  `X-PlanetGen-API-Version`) with the same API version instead, and the
-  server keeps logging both (API.15). Done: one function builds the user
-  agent from the two versions; every outgoing request path above uses
-  it; the front end's API calls carry the API version header; a test
-  pins the format (valid product tokens, release, URL comment, API
-  version), that no outgoing path builds its own string, and that a
-  version bump changes it; the API docs and the data-download design
-  (docs/design/research/gap-filling-plan.md 6.5) name it.
-  Owner: Core 2, proposed (the interface housekeeping line beside API.15
-  and API.26; not asked yet, the coordinator tells Core 2 when it
-  reaches the item).
-  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
-  GEN.548 adds `planetgen/util/user_agent.py` with `user_agent()`, the
-  one function that builds the identifying User-Agent string; this item
-  reuses it instead of writing a second one (it is on the GEN.548
-  branch, so it is on main once GEN.548 merges).
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: API.5, API.15, API.30.
 
 - [ ] **test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug)**
   Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
@@ -18253,6 +18163,13 @@ clears each one.
   loaded full run on a lane machine no longer produces the load-only
   failures, and the load-flake items it covers are closed or
   re-measured. Owner: Bug Hunt.
+  Research (2026-10-09, Lane H load flakes): Update 3:06 PM EDT
+  2026-10-24 (Lane H, relayed as the lane reported): two more tests fail
+  under gate load and pass alone: test_planet_physics_fixes (gas giant
+  density) and test_star_scatter_passes. They join the list this item's
+  serial phase is meant to close. test_update_database_step fails on
+  lane machines for the GRANT reason already recorded on TEST.284 and
+  OPS.62.
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
 - [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
@@ -18304,6 +18221,20 @@ clears each one.
   or the stale test without weakening it. Done: all six pass on main,
   alone and in the suite. Owner: Bug Hunt (main-green rule).
   Prerequisites: none. Related: TEST.347, UX.152.
+
+- [ ] **TEST.349 The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug)**
+  Found by Core 1 (relayed 3:06 PM EDT 2026-10-24 as the lane reported;
+  Lane H and others saw browser tests fail the same way; filed by the
+  TODO thread). Kind: tooling failure, not reproduced by the TODO
+  thread. The error is in the browser-phase fixture setup of
+  `scripts/test.py changed`, before any test body, and appears on
+  origin/main on Core 1's lane. It blocks every lane from running
+  browser tests in its gate. Bug Hunt is adding diagnostics. Do: find
+  the fixture that reads a 'planets' key that is missing (a fixture
+  file, a database seed or an API payload that changed) and fix it.
+  Done: the browser phase starts and its tests run on main. Owner: Bug
+  Hunt. Related: TEST.344, TEST.343.
+  Prerequisites: none. Related: TEST.344, TEST.343.
 
 ## USR: User accounts
 

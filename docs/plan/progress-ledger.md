@@ -1352,3 +1352,7 @@ Baseline: PR #1817.
 | PERF.185 | 8.1 | The headline closes |
 | GEN.633 | 8.1 | Reproducible galaxies |
 | GEN.57 | 8.1 | Reproducible galaxies |
+| GEN.699 | 8.1 | Radiation chain for habitability (GEN.445) |
+| UX.185 | 8.1 | Habitability system |
+| API.26 | 8.1 | Admin and API housekeeping |
+| API.31 | 8.1 | Admin and API housekeeping |
