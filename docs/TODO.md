@@ -18753,6 +18753,16 @@ clears each one.
   nebula pages are the likely causes) and fix the page or the stale test
   without weakening it. Done: the test passes on main. Owner: Bug Hunt
   (main-green rule).
+  Empty page body (2026-10-09): Update 5:15 PM EDT 2026-10-24: the Redis
+  lane (as the lane reported) fetched all four datasets, including
+  ozone_uv, before its gate and still saw the web page tests fail with
+  an empty page body (test_web_facilities, test_class_pages,
+  test_web_population, test_admin_edits, test_web_search,
+  test_api_auth_sweep, test_eta_estimator); the Units lane saw the same
+  with the system page returning an empty body. So not every web page
+  red is missing setup data. Bug Hunt: while on this item, reproduce the
+  empty system page body on a clean current main and file the cause
+  once.
   Prerequisites: none. Related: TEST.348, UX.184.
 
 - [ ] **TEST.356 test_web_search: the star result link is red on clean main (bug)**
