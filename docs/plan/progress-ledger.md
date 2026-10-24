@@ -1270,3 +1270,4 @@ Baseline: PR #1817.
 | GEN.429 | 8.1 | Radiation chain for habitability (GEN.445) |
 | DB.69 | 8.1 | Bulk composition |
 | GEN.443 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.258 | 8.1 | Fly-through map |

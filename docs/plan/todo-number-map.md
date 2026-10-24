@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.183 |
-| MAP | MAP.289 |
+| MAP | MAP.290 |
 | NAV | NAV.63 |
 | GEN | GEN.705 |
 | PERF | PERF.180 |
@@ -1687,7 +1687,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.255 | The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug) | none | open |
 | MAP.256 | The map shows the information box twice when an object is selected: once in the window and once to its right (bug) | none | done, PR #2852 |
 | MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | none | open |
-| MAP.258 | N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript | none | open |
+| MAP.258 | N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript | none | done, PR #2896 |
 | MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena | none | open |
 | MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | none | open |
 | MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut | none | open |
@@ -1718,6 +1718,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.286 | Supernova remnant shells drawn by age on the maps | none | open |
 | MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | open |
 | MAP.288 | Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width | none | done, PR #2875 |
+| MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

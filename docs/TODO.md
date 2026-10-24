@@ -2652,7 +2652,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2669,27 +2669,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fly-to), MAP.209 and MAP.210 (verify after S1), MAP.249, MAP.195,
   MAP.237, MAP.212; each is decided when its slice merges. This umbrella
   closes with its subitems.
-- [ ] **MAP.258 N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Extend
-  the ladder (drill.py) with levels above 243 (729, 2,187, 6,561,
-  19,683, 59,049) until the root is a handful of blocks, write the
-  JavaScript twin drillChildren beside the count rules in
-  galaxyprisms.js, keep the Python and JavaScript twins equal under the
-  existing sweep tests, and add galaxy_block_stats rows at the new
-  levels (one Alembic revision and a rebuild; testing mode, new database
-  versions are fine). Ships nothing visible: the hierarchy exists. Size
-  M. Done: blocks exist from a sector up to a root of a few blocks, the
-  twin sweep tests pass for every level, and the stats rows are built.
-  Owner: lane Map nodes (the coordinator's new lane, 5:53 PM EDT as the
-  lane reported), with Core 2 as owner of galaxymap3d.js and
-  galaxystageview.js (rebase on its merges and tell it before each PR).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.259 N2: node aggregates for the pre-placed bright stars and scattered phenomena**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2708,7 +2687,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the coordinator's new lane, 5:53 PM EDT as the lane reported), with
   Core 2 as owner of galaxymap3d.js and galaxystageview.js (rebase on
   its merges and tell it before each PR).
-  Prerequisites: MAP.258. Related: MAP.257, MAP.146, MAP.249.
+  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.260 N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up**
   Zoom design (reports in
@@ -2729,7 +2708,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator's new lane, 5:53 PM EDT as the lane reported), with Core 2
   as owner of galaxymap3d.js and galaxystageview.js (rebase on its
   merges and tell it before each PR).
-  Prerequisites: MAP.258, MAP.259. Related: MAP.257, MAP.146, MAP.249.
+  Prerequisites: MAP.259. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.261 N4: the node cut on the page: galaxynodecut.js replaces the tile cut**
   Zoom design (reports in
@@ -2928,6 +2907,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-23 as the lane reported); design doc
   docs/design/interface/body-rendering.md.
   Prerequisites: none.
+
+- [ ] **MAP.289 The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug)**
+  Found by the map nodes lane while merging MAP.258 (#2896), as the lane
+  reported at 5:12 AM EDT 2026-10-24. /galaxy/profile is answered fresh
+  on every warm run for addressed sectors, so the warm-sectors figure
+  always shows one answer built instead of the count of sectors that are
+  really warm. Do: make the warm-sectors figure count the sectors whose
+  answer is cached (or built by the warm run), not the one fresh answer,
+  and test it with a warm run over several sectors. Owner: the map nodes
+  lane, with MAP.260 (the warm-up), which it builds next.
+  Prerequisites: none. Related: MAP.258, MAP.260.
 
 ## NAV: Navigation and courses
 
