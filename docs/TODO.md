@@ -1322,7 +1322,7 @@ with `clamp()`.
   the same menu and put it near the search icon's side of the top menu
   bar; the same for class links and other similar links: remove them and
   make the class letter, class name or similar link directly to the
-  appropriate page and section. Filed 12:50 AM EDT from the thread 'Link
+  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
   icons and chips to help sections' (root
   cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
   generator change, no epoch, no migration. Owner: the Link icons and
@@ -1344,7 +1344,7 @@ with `clamp()`.
   the same menu and put it near the search icon's side of the top menu
   bar; the same for class links and other similar links: remove them and
   make the class letter, class name or similar link directly to the
-  appropriate page and section. Filed 12:50 AM EDT from the thread 'Link
+  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
   icons and chips to help sections' (root
   cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
   generator change, no epoch, no migration. Owner: the Link icons and
@@ -1367,7 +1367,7 @@ with `clamp()`.
   the same menu and put it near the search icon's side of the top menu
   bar; the same for class links and other similar links: remove them and
   make the class letter, class name or similar link directly to the
-  appropriate page and section. Filed 12:50 AM EDT from the thread 'Link
+  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
   icons and chips to help sections' (root
   cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
   generator change, no epoch, no migration. Owner: the Link icons and
