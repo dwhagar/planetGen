@@ -209,6 +209,7 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_STAGE_OFFSET": "set by the job runner: stages before this step's",
     "PLANETGEN_STAGE_TOTAL": "set by the job runner: stages in the whole job",
     "PLANETGEN_WORK_PARENT": "set by a job for its child processes",
+    "PLANETGEN_JOB_ID": "set by the job runner: the job a step belongs to, so a run it starts records the job (PERF.99)",
     "PLANETGEN_WORKER_HOOKS": "set by a work queue for its workers",
     "PLANETGEN_MAINTENANCE_FILE": "where maintenance mode keeps its state (the test suite points it at a temporary file)",
     "PLANETGEN_STATE_DIR": "the folder maintenance mode's state and the backup archives live in, which "
