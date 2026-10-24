@@ -19,7 +19,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, bulk_draw, constants, giant_draw, metallicity, moon_composition
+from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, metallicity, moon_composition
 from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -505,6 +505,7 @@ def generate_planet_properties(planet, zone_override=None):
         # The composition comes first and the mass, density and gravity follow
         # from it (GEN.428, GEN.429; `bulk_draw`).
         bulk_draw.draw_terrestrial(planet, radius_given, mass_given)
+        giant_interior.clear(planet)
 
     if class_data["atmosphere"] is None:
         planet.atmosphere = "None"

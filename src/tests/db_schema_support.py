@@ -33,6 +33,21 @@ def drop_bulk_composition(conn):
         conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_8, {columns}, ALGORITHM=COPY")
 
 
+GIANT_INTERIOR_COLUMNS = (
+    "interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion", "has_helium_shell",
+)
+"""tuple: What migration 0154 (DB.89) added to `planets` and `moons`."""
+
+
+def drop_giant_interiors(conn):
+    """Makes the database older than v154: the interior columns and their check gone, and the layer tables."""
+    for table in ("planets", "moons"):
+        columns = ", ".join(f"DROP COLUMN {column}" for column in GIANT_INTERIOR_COLUMNS)
+        conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_9, {columns}, ALGORITHM=COPY")
+    conn.execute("DROP TABLE planet_interior_layers")
+    conn.execute("DROP TABLE moon_interior_layers")
+
+
 def old_schema_versions():
     """Every version with a checked-in schema, oldest first."""
     versions = []

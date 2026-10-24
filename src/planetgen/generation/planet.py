@@ -25,7 +25,7 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, bulk_composition, climate_draws, constants, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic
+from planetgen.physics import aerosols, atmosphere, bulk_composition, climate_draws, constants, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -208,6 +208,8 @@ class Planet(PlanetaryObject):
         *interior_heat.BODY_FIELDS,
         *interior_heat.OUTPUT_FIELDS,
         *bulk_composition.NEW_FIELDS,
+        *giant_interior.BODY_FIELDS,
+        giant_interior.LAYERS_ATTRIBUTE,
         *radiation.BODY_FIELDS,
         *habitability_world.BODY_FIELDS,
         *aerosols.BODY_FIELDS,
@@ -352,7 +354,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + bulk_composition.NEW_FIELDS + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + bulk_composition.NEW_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS:
             setattr(self, field, None)
 
         # From the star, should not be changed.

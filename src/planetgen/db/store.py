@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import activity, aerosols, atmosphere, bulk_composition, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
+from planetgen.physics import activity, aerosols, atmosphere, bulk_composition, bulk_mass, constants as physical_constants, giant_interior, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -618,7 +618,8 @@ know their parents' ids before anything is written, and `cur.lastrowid`
 still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
-    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "asteroid_belt_composition",
+    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
+    "asteroid_belt_composition",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -2934,6 +2935,9 @@ BODY_FIELDS = (
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
+    object_rows.each(tuple(name for name in giant_interior.BODY_FIELDS if name != "has_helium_shell")),
+    object_rows.computed("has_helium_shell", lambda body, context: _tristate(body.has_helium_shell),
+                         lambda row: {"has_helium_shell": _tristate_from_db(row["has_helium_shell"])}),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
@@ -2951,13 +2955,29 @@ PLANET_ONLY_FIELDS = tuple(
 PLANET_BODY_FIELDS = BODY_FIELDS + PLANET_ONLY_FIELDS
 
 
+INTERIOR_LAYER_COLUMNS = (*giant_interior.LAYER_FIELDS, *giant_interior.GAS_MATERIALS, *giant_interior.HEAVY_MATERIALS)
+"""tuple: The value columns of `planet_interior_layers`/`moon_interior_layers` (DB.89), after the owner id and `layer_index`."""
+
+
+def _insert_interior_layers(conn, table, id_column, owner_id, layers):
+    """Shared body for `planet_interior_layers`/`moon_interior_layers` (this module's own literal table names)."""
+    columns = ", ".join(INTERIOR_LAYER_COLUMNS)
+    marks = ", ".join("?" for _ in range(len(INTERIOR_LAYER_COLUMNS) + 2))
+    for index, layer in enumerate(layers or []):
+        conn.execute(
+            f"INSERT INTO {table} ({id_column}, layer_index, {columns}) VALUES ({marks})",
+            (owner_id, index, *(layer[name] for name in INTERIOR_LAYER_COLUMNS)),
+        )
+
+
 def body_child_rows(conn, body, body_id):
-    """Writes a planet's or moon's reflection spectrum rows (after any old ones were deleted)."""
+    """Writes a planet's or moon's reflection spectrum and interior layer rows (after any old ones were deleted)."""
     prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
     _insert_reflection_spectrum(
         conn, f"{prefix}_reflection_spectrum", id_column, body_id,
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
     )
+    _insert_interior_layers(conn, f"{prefix}_interior_layers", id_column, body_id, body.interior_layers)
 
 
 def planet_parent(star_id, star_system_id):
@@ -8867,11 +8887,18 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     visible = [r["value"] for r in spectrum_rows if r["spectrum_type"] == "visible"]
     non_visible = [r["value"] for r in spectrum_rows if r["spectrum_type"] == "non_visible"]
 
+    layer_rows = conn.execute(
+        f"SELECT {', '.join(INTERIOR_LAYER_COLUMNS)} FROM {table_prefix}_interior_layers "
+        f"WHERE {id_column} = ? ORDER BY layer_index",
+        (row["id"],),
+    ).fetchall()
+
     data = object_rows.load_dict(PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,
+        giant_interior.LAYERS_ATTRIBUTE: [{name: layer[name] for name in INTERIOR_LAYER_COLUMNS} for layer in layer_rows] or None,
         "moons": [],
     })
     return data

@@ -896,6 +896,35 @@ moon_reflection_spectrum = sa.Table(
 )
 
 
+moon_interior_layers = sa.Table(
+    'moon_interior_layers',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('layer_index', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('kind', sa.String(24), nullable=False),
+    sa.Column('state', sa.String(16), nullable=False),
+    sa.Column('top_pressure_gpa', mysql.DOUBLE(), nullable=False),
+    sa.Column('bottom_pressure_gpa', mysql.DOUBLE(), nullable=False),
+    sa.Column('mass_earth', mysql.DOUBLE(), nullable=False),
+    sa.Column('top_radius_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('bottom_radius_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('hydrogen', mysql.DOUBLE(), nullable=False),
+    sa.Column('helium', mysql.DOUBLE(), nullable=False),
+    sa.Column('iron', mysql.DOUBLE(), nullable=False),
+    sa.Column('rock', mysql.DOUBLE(), nullable=False),
+    sa.Column('water_liquid', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_x', mysql.DOUBLE(), nullable=False),
+    sa.Column('nh3_ice', mysql.DOUBLE(), nullable=False),
+    sa.Column('ch4_ice', mysql.DOUBLE(), nullable=False),
+    sa.Index('uq_moon_interior_layers_index', 'moon_id', 'layer_index', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_interior_layers_moon', ondelete='CASCADE'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='moon_interior_layers_chk_1'),
+    sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='moon_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
 moons = sa.Table(
     'moons',
     metadata,
@@ -1072,6 +1101,12 @@ moons = sa.Table(
     sa.Column('mantle_eta0_pa_s', mysql.DOUBLE(), nullable=True),
     sa.Column('mantle_activation_kj_mol', mysql.DOUBLE(), nullable=True),
     sa.Column('internal_heat_flux_w_m2', mysql.DOUBLE(), nullable=True),
+    sa.Column('interior_kind', sa.String(16), nullable=True),
+    sa.Column('core_mass_earth', mysql.DOUBLE(), nullable=True),
+    sa.Column('dilute_core_mass_earth', mysql.DOUBLE(), nullable=True),
+    sa.Column('metallization_pressure_gpa', mysql.DOUBLE(), nullable=True),
+    sa.Column('helium_depletion', mysql.DOUBLE(), nullable=True),
+    sa.Column('has_helium_shell', mysql.TINYINT(), nullable=True),
     sa.Index('ft_moons_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_moons_body_type', 'body_type'),
     sa.Index('idx_moons_life_chemical', 'life_chemical'),
@@ -1099,6 +1134,7 @@ moons = sa.Table(
     sa.CheckConstraint("(`ocean_class` in (_utf8mb4'ice-sealed',_utf8mb4'chloride brine',_utf8mb4'acid sulfate',_utf8mb4'soda',_utf8mb4'neutral'))", name='moons_chk_6'),
     sa.CheckConstraint("(`phosphorus` in (_utf8mb4'high',_utf8mb4'limited',_utf8mb4'starved'))", name='moons_chk_7'),
     sa.CheckConstraint("(`composition_origin` in (_utf8mb4'drawn',_utf8mb4'inverse'))", name='moons_chk_8'),
+    sa.CheckConstraint("(`interior_kind` in (_utf8mb4'gas_giant',_utf8mb4'ice_giant',_utf8mb4'brown_dwarf'))", name='moons_chk_9'),
     mysql_engine="InnoDB",
 )
 
@@ -1613,6 +1649,35 @@ planet_reflection_spectrum = sa.Table(
 )
 
 
+planet_interior_layers = sa.Table(
+    'planet_interior_layers',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('layer_index', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('kind', sa.String(24), nullable=False),
+    sa.Column('state', sa.String(16), nullable=False),
+    sa.Column('top_pressure_gpa', mysql.DOUBLE(), nullable=False),
+    sa.Column('bottom_pressure_gpa', mysql.DOUBLE(), nullable=False),
+    sa.Column('mass_earth', mysql.DOUBLE(), nullable=False),
+    sa.Column('top_radius_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('bottom_radius_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('hydrogen', mysql.DOUBLE(), nullable=False),
+    sa.Column('helium', mysql.DOUBLE(), nullable=False),
+    sa.Column('iron', mysql.DOUBLE(), nullable=False),
+    sa.Column('rock', mysql.DOUBLE(), nullable=False),
+    sa.Column('water_liquid', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_x', mysql.DOUBLE(), nullable=False),
+    sa.Column('nh3_ice', mysql.DOUBLE(), nullable=False),
+    sa.Column('ch4_ice', mysql.DOUBLE(), nullable=False),
+    sa.Index('uq_planet_interior_layers_index', 'planet_id', 'layer_index', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_interior_layers_planet', ondelete='CASCADE'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='planet_interior_layers_chk_1'),
+    sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='planet_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
 planets = sa.Table(
     'planets',
     metadata,
@@ -1791,6 +1856,12 @@ planets = sa.Table(
     sa.Column('mantle_eta0_pa_s', mysql.DOUBLE(), nullable=True),
     sa.Column('mantle_activation_kj_mol', mysql.DOUBLE(), nullable=True),
     sa.Column('internal_heat_flux_w_m2', mysql.DOUBLE(), nullable=True),
+    sa.Column('interior_kind', sa.String(16), nullable=True),
+    sa.Column('core_mass_earth', mysql.DOUBLE(), nullable=True),
+    sa.Column('dilute_core_mass_earth', mysql.DOUBLE(), nullable=True),
+    sa.Column('metallization_pressure_gpa', mysql.DOUBLE(), nullable=True),
+    sa.Column('helium_depletion', mysql.DOUBLE(), nullable=True),
+    sa.Column('has_helium_shell', mysql.TINYINT(), nullable=True),
     sa.Index('ft_planets_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_planets_body_type', 'body_type'),
     sa.Index('idx_planets_life_chemical', 'life_chemical'),
@@ -1814,6 +1885,7 @@ planets = sa.Table(
     sa.CheckConstraint("(`ocean_class` in (_utf8mb4'ice-sealed',_utf8mb4'chloride brine',_utf8mb4'acid sulfate',_utf8mb4'soda',_utf8mb4'neutral'))", name='planets_chk_6'),
     sa.CheckConstraint("(`phosphorus` in (_utf8mb4'high',_utf8mb4'limited',_utf8mb4'starved'))", name='planets_chk_7'),
     sa.CheckConstraint("(`composition_origin` in (_utf8mb4'drawn',_utf8mb4'inverse'))", name='planets_chk_8'),
+    sa.CheckConstraint("(`interior_kind` in (_utf8mb4'gas_giant',_utf8mb4'ice_giant',_utf8mb4'brown_dwarf'))", name='planets_chk_9'),
     mysql_engine="InnoDB",
 )
 
