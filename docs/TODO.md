@@ -15612,7 +15612,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ignores one, and the docs gate passes. Takes a generator epoch only if
   the key changes what a seed generates (it should not). Owner: Aux 12
   (Lane 4, the database lane that built the version key in DB.6 and owns
-  the migrations; takes it right after DB.100, ahead of DB.96 and DB.101);
+  the migrations; takes it first, ahead of DB.96, after OPS.29);
   nobody has started it.
   Prerequisites: none. Related: OPS.64, OPS.10, DB.6, PERF.32.
 
@@ -16680,6 +16680,39 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   settings; after GEN.631 reads them, so the page can be tried end to
   end).
   Prerequisites: none. Related: GEN.267, UX.125.
+
+- [ ] **ADM.129 Admin page buttons that start the habitability re-score and the map luminosity fill through the queue**
+  Boss, 7:00 PM EDT 2026-10-24 (as Core 5 reported it): asked whether
+  there is a way to regenerate all the habitability data. Today the only
+  way
+  is the command line, `planetgen rescore-habitability` (a queue run,
+  GEN.217
+  and PERF.106, split into one unit per run of ids by
+  PERF.116/PERF.122),
+  and `planetgen fill-map-luminosity` for the map luminosity. Do: add an
+  admin button "Regenerate habitability" that starts the same
+  rescore-habitability run through the queue, and one for "Fill map
+  luminosity", each with exactly the rules of a generation run: the
+  Busy check and the one-run lock (PERF.181), the first run line with
+  the
+  galaxy seed and version key (OPS.10), the admin audit log entry, the
+  Stop button (PERF.186), progress on the Queue page, and the retry
+  (web/queue_page.py RETRYABLE already lists both commands). Put the
+  buttons
+  where the other admin run starters are (the Generate page or the Queue
+  page; the owner picks, one place only), refuse them while another run
+  is
+  active, and show on the button what it does in one line (it re-scores
+  the stored planets and moons from their stored conditions; it does not
+  re-draw a planet, so after a physics or class change that alters the
+  draws, use the regenerate-sector or the planned regenerate-planet path
+  instead). Done: a test starts each run from the page and sees the
+  queue
+  run, the lock and the audit entry; the admin help names both buttons.
+  Owner: Core 5, after PERF.184 (it offered to take it; nobody else has
+  it).
+  Prerequisites: none. Related: GEN.217, PERF.106, PERF.116, PERF.122,
+  PERF.181, PERF.186, OPS.10.
 
 ## SEC: Security
 
