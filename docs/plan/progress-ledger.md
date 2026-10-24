@@ -1209,3 +1209,5 @@ Baseline: PR #1817.
 | GEN.454 | 8.1 | Mixture and stored values |
 | GEN.499 | 8.1 | Haze, dust and cloud |
 | GEN.456 | 8.1 | Haze, dust and cloud |
+| GEN.501 | 8.1 | Weight research (atmosphere) |
+| GEN.663 | 8.1 | Tuned draws and selection models |
