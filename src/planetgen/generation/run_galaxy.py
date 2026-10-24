@@ -20,7 +20,6 @@ import collections
 import copy
 import math
 import os
-import random
 import time
 
 import pymysql
@@ -364,10 +363,6 @@ def _fill_context(args, address):
                                    orbit_epoch_unix=orbit_epoch_unix)
 
 
-_RETRY_JITTER = random.Random()
-"""random.Random: Spreads the retries of `_take_to_the_deepest_floor` (no draw of the generator)."""
-
-
 def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):
     """
     GEN.633: before a sector is filled, takes its pre-placed bright stars down to the deepest floor the mass backfill
@@ -398,7 +393,7 @@ def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):
             conn.rollback()
             log.debug(f"The first fill of {tuple(address)} hit MySQL error {exc.args[0]}; trying again "
                       f"({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
-            time.sleep(_RETRY_JITTER.uniform(0.05, 0.25) * attempt)
+            time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)   # not a draw: the process id spreads the workers
         finally:
             conn.close()
 
