@@ -11528,6 +11528,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass cut is 14 solar masses, as in the code; the design note
   docs/design/systems/phenomenon-scatter-mass-cut.md is to be corrected to 14
   with that source wherever it still prints 20 or 8.
+  Research (2026-10-09, Update): Update 3:38 AM EDT 2026-10-24: stays
+  open as the umbrella until its children (GEN.553 to GEN.559 and
+  GEN.565) are finished; the TODO thread retires it then, as its Done
+  line says.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -12070,6 +12074,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09, Update): Update 3:38 AM EDT 2026-10-24 (as lane
+  J asked): the black hole part and the interstellar size law
+  (small-body-size-laws.md) are done in pieces. Lane J may take the
+  rest: audit the ejection survival of moons and the circumplanetary
+  disks of isolated planetary-mass objects, verify the sources before
+  any use (standing source rules), write the note under docs/design/,
+  and close the item when each of the four research parts has its
+  verified numbers or a stated gap. Owner: lane J, if no one else
+  started it (TODO found no other owner line).
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
@@ -12429,6 +12442,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the bare 1000 juggle) are replaced by GEN.587 in the same file groups,
   so a file group is swept for factors and laws in one pass where no
   lane has it open; each sweep stays bit-identical on the golden set.
+  Research (2026-10-09, Update): Update 3:38 AM EDT 2026-10-24 (as lane
+  J reported): first file group merged in #2893 (12 physics files:
+  activity, orbits, kepler, stability and similar convert AU, km,
+  light-years, parsecs, years and seconds through the unit registry;
+  every number bit-for-bit the same, no epoch). The item stays open; the
+  lane takes further groups, and GEN.587's later groups, which need an
+  epoch. Owner: lane J (taken from the pool, checked unstarted
+  elsewhere).
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
@@ -19680,19 +19701,6 @@ clears each one.
   states the real rule, and run the test 50 times. Done: 50 loops of the
   test pass. Owner: Bug Hunt, unless Core 4 prefers it, since the flag
   handling is generation code.
-  Prerequisites: none.
-
-- [ ] **TEST.327 test_web_browser_tables::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts fails on main: it counts 0 a.help-link elements and expects 7 since UX.180 to UX.182 (bug)**
-  Found by lane B at 2:52 AM EDT 2026-10-24 (as the lane reported) on
-  clean main:
-  src/tests/test_web_browser_tables.py::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts
-  counts 0 a.help-link and expects 7, since #2867 (UX.180 to UX.182)
-  changed the symbols on the Search page into links to the help
-  sections. Either the Search rows lost the links or the test still
-  expects the old markup. Do: find which, and fix the page or the test
-  (the page, if the links were meant to be there on Search rows). Done:
-  the test passes on main. Owner: symbols lane A proposed (it owns the
-  symbols and UX.157, UX.166); the lane that merged #2867 if different.
   Prerequisites: none.
 
 - [ ] **TEST.328 Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists**
