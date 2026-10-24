@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2244] - 2026-10-24
+
+**Headline:** The mail server, the site's address and the From address now open only for the Owner, after typing the password again.
+
+### Added
+- **The Owner account stub (USR.31).** The account the install seeds is the Owner; `python3 -m planetgen.cli.accounts --set-owner USER` makes another account the Owner (the old one becomes an admin) if that one is lost. The control database gains `admin_sessions.password_confirmed_at` (control schema v19), set at sign-in and renewed by `POST /api/auth/confirm-password`.
+- **Owner-only settings behind a recent password (ADM.86).** An option marked Owner (the mail server, `base_url`, the From address) can be changed only by the Owner whose password was typed within the last 10 minutes, from a signed-in session (an API key is never more than an admin). Admins see those options disabled with the reason; the Owner whose password is older sees a panel that asks for it. `GET /api/admin/settings` adds `reauth`, and an option's `fixed_kind` can be `reauth`. Backup downloads follow the same role.
+
 ## [8.0.2243] - 2026-10-24
 
 **Headline:** How old a star must be to host a planet now depends on the planet's air, temperature and gravity, not on its class letter.
