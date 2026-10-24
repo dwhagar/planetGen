@@ -1246,7 +1246,7 @@ with `clamp()`.
   A1): View opens the object's new page; the button code is Core 2's,
   D9 only changes the target. Done: no link to a system anchor remains
   and the old code is deleted.
-  Prerequisites: UX.170, MAP.288. Related: MAP.288.
+  Prerequisites: UX.170. Related: MAP.288.
 
 - [ ] **UX.177 Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
@@ -3085,46 +3085,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/interface/body-rendering.md.
   Prerequisites: none.
 
-- [ ] **MAP.288 Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width**
-  Boss, 12:00 AM EDT 2026-10-24 (a change, not strictly a bug): 'do away
-  with the info panel on the side of the galaxy / sector view and
-  instead just have the popup in an expanded map viewing window'. Core 2
-  reports that most of this is already inside MAP.256 (in its gate): the
-  Galaxy Map's side panel becomes the popup over the map and the map
-  window takes the full width. Do: finish it for the galaxy and sector
-  views (Galaxy Map and Sector Map, on every page and theme), and remove
-  the dead side-panel code and styles with no shim. The system maps (the
-  old box code) are not part of Boss's words; Core 2 may do them if it
-  is the same removal, else they stay separate. Done: the galaxy and
-  sector views show no side panel, the popup carries everything the
-  panel showed, and the map window is full width, with a browser test.
-  Owner: Core 2.
-  Research (2026-10-09, Update): Update 12:41 AM EDT 2026-10-24 (as Core
-  2 reported): the panel code for the galaxy view is done by MAP.256
-  (#2852: one info panel over the map, in the corner away from the last
-  click, with a Close button, map at full width, under 600 px wide the
-  panel sits under the map; system maps unchanged). Remaining for
-  MAP.288: delete the dead side-panel code and cover the sector view.
-  Owner: Core 2.
-  Research (2026-10-09, Decided): Update (Boss, 12:39 AM EDT 2026-10-24
-  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
-  relayed by the coordinator)): answer 6, option 1: system maps follow
-  the same rule, no side info panel, the popup alone; and the popup (the
-  little info box on the map) must carry a button that jumps to the
-  matching item in the list. Owner: Core 2. Added to scope: system maps
-  and the jump button.
-  Research (2026-10-09, Decided): Update 12:41 AM EDT 2026-10-24 (Boss,
-  message cmsg_01RuNTFUNB92A8cm5CbojQAi15aEAgwC9hSYKAw7e4zGHq, 'Jump =
-  View Button'): the jump button in the map popup is the View button, so
-  the popup's View button jumps to the matching item in the list. Owner:
-  Core 2.
-  Decided (2026-10-09): Update (Boss, 1:30 AM EDT 2026-10-24, card A1 of
-  the object detail pages): the popup View button opens the object's new
-  page (/object/<ref>), replacing the earlier wording that it jumps to
-  the matching row in the list. Core 2 keeps the button code; UX.176
-  changes the target when the page exists, and until then the button
-  keeps the list-row jump. Owner: Core 2.
-  Prerequisites: none.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -7701,59 +7661,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane I (the spine, to be started).
-- [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "let's definitely build the
-  database entries and data storage to store the albedo and greenhouse
-  values used, that's easy." `calculate_atmospheric_conditions` draws
-  the albedo from the class range and the greenhouse multiplier at
-  random and keeps only the temperature they gave
-  (`physics/planets.py`). Do: keep both numbers on the planet and moon
-  objects, give the temperature formula an inverse (solve for the
-  greenhouse multiplier from the albedo, the stored temperature and the
-  stored pressure, or the reverse), and let the migration of DB.67 use
-  it. Done: a test checks that the stored temperature equals the formula
-  applied to the stored albedo and greenhouse multiplier for every
-  class, and that the inverse returns the drawn values to a stated
-  tolerance; where the inverse has no solution it says so and the
-  migration draws from the class range, seeded.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): this item has no table of its own: it records the
-  albedo and greenhouse multiplier the drawn recipe (GEN.411) and the
-  ground (GEN.462) give; the only new rule is that it reads the row the
-  loader drew and never a fixed per-class value.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Parmentier and Guillot 2014: the equation in
-  Boss's note is not the published one; the semi-grey form (eq. 30) and
-  the picket-fence form (eq. 98, coefficients A to E from a0 to a3 and
-  b0 to b3) were read from the arXiv LaTeX source and the coefficient
-  code was tested in the grey limit; the open point is the opacity link
-  (kappa_R and gamma_v from the mixture), and the Parmentier 2015
-  opacity tables (arXiv:1311.6322) still have to be extracted.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): the Parmentier and Guillot
-  semi-grey form is equation 30 with mu_* throughout; beta is the band
-  fraction, not an opacity ratio.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/composition/atmosphere-colour.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: DB.67, GEN.85, GEN.355.
-  Owner: none for now (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads; Core 4's earlier proposal is not active). It needs a migration (0130 or later) and a generator epoch, so whoever takes it sequences with the DB lane and Core 4.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane D (model).
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
@@ -7829,7 +7736,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.412, GEN.452. Related: GEN.411, GEN.412,
+  Prerequisites: GEN.411, GEN.452. Related: GEN.411, GEN.412,
   GEN.423, TEST.209, GEN.452.
   Merged research (2026-10-17): the freeze-out ordering reads the
   checked saturation curves of part 01 section 7 and part 06 (GEN.452
@@ -7974,7 +7881,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.422,
+  Prerequisites: GEN.411. Related: GEN.411, GEN.422,
   TEST.209.
   Merged research (2026-10-17): part 03 gives the greenhouse multiplier
   in the repo's own variable, (T_s / T_e)^4 - 1, and its inverse for the
@@ -14530,7 +14437,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the ground and air composition (GEN.412, GEN.462, GEN.414);
   delete the two class ranges. Done: no class range for albedo or
   greenhouse is left. Owner: Composition K and L.
-  Prerequisites: GEN.412, GEN.462, GEN.422.
+  Prerequisites: GEN.462, GEN.422.
 
 - [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
   Step C10 of the condition-based classes build (design draft
@@ -14666,6 +14573,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration). Owner: lane H, after GEN.461; check nobody started it
   first.
   Prerequisites: GEN.461. Related: GEN.459, GEN.461.
+
+- [ ] **GEN.700 Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow**
+  Source: reports/habitability-model-gaps-2026-10-23.md item 4 (build
+  plan row 3), relayed by lane D (habitability model gaps) at 1:59 AM
+  EDT 2026-10-24 as the lane reported. hydrosphere.moon_tidal_flux_w_m2
+  draws a forced eccentricity and uses the result to thicken or thin the
+  ice lid, then throws it away; habitability_world.energy_flux_w_m2
+  reads only the radiogenic heat, so an Europa or Enceladus analogue
+  scores its under-ice life on a heat flow one to three orders of
+  magnitude too low. Do: keep the tidal flux on the moon (a new column,
+  with its entry in db/column_units.py in the same PR), add it to the
+  heat flow the chemical energy term reads, and update design section 8
+  (it says tides are not counted). Done: tests with an Io-, a Europa-
+  and an Enceladus-like moon show the tide raising the energy term, and
+  the stored column matches the flux the ice lid used. A new column
+  takes the next migration and the next free generator epoch at merge
+  (testing mode: fine). Owner: lane D; check nobody started it first.
+  Prerequisites: none. Related: GEN.412, GEN.649.
+
+- [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
+  Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
+  plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
+  reported. rogue_planets has no habitability columns and RoguePlanet
+  never calls habitability_world, although a rogue with a liquid ocean
+  under ice or under a hydrogen envelope is the case Suitability and the
+  life scores were built for. Do: score columns on rogue_planets
+  (entries in db/column_units.py), a World built from the surface regime
+  (pressure, temperature, a hydrogen envelope as H2, ocean depth, the
+  galactic cosmic-ray dose through the column mass, heat flow as the
+  only energy), and the API fields. Wanderers (GEN.557) may replace the
+  rogue body chain, so check GEN.557 and GEN.687 first and build on
+  whichever representation is current. Done: a test that a Hycean-like
+  rogue scores above a bare ice rogue, and the scores show in the API. A
+  new migration and the next free epoch at merge. Owner: lane D; check
+  nobody started it first.
+  Prerequisites: GEN.649. Related: GEN.557, GEN.687.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15832,7 +15775,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
+  Prerequisites: GEN.411, GEN.422, GEN.423, GEN.424. Related:
   DB.65, DB.68, GEN.412.
   Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
   EDT as the lane reported): GEN.324 took 0105_satellite_stars because
@@ -18536,7 +18479,7 @@ clears each one.
   mixture. Runs in the `changed` gate for the files involved. Done: it
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
-  Prerequisites: GEN.411, GEN.412, GEN.415, DB.67,
+  Prerequisites: GEN.411, GEN.415, DB.67,
   DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
@@ -19928,6 +19871,17 @@ clears each one.
   repeated gates. Note: UX.180 changes the header menus (the Help menu),
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
+
+- [ ] **TEST.325 test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug)**
+  Found by lane D at 1:59 AM EDT 2026-10-24 (as the lane reported) while
+  merging GEN.412; it fails on plain main.
+  tests/test_migration_habitable_worlds.py::test_a_v135_galaxy_gets_its_counts...
+  downgrades to v138, but DB.73's v140 marker is still read as 140, so
+  the fixture is inconsistent. Owner: lane B (lists, the DB.73 author).
+  Do: make the test downgrade past the v140 marker or reset the marker.
+  Done: the test passes on main. DB.98 (the Alembic re-baseline) may
+  delete this test; if it does, close this with DB.98.
+  Prerequisites: none.
 
 ## USR: User accounts
 
