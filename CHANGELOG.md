@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2051] - 2026-10-24
+
+**Headline:** Planet and moon lists now show the habitability symbols instead of the long notes.
+
+### Changed
+- **Habitability symbols in the lists (UX.100).** On a system page each planet and moon row now shows the overall rating symbol and the six domain symbols (pressure, temperature, air chemistry, water chemistry, radiation, suitability), each in its Blue, Green, Yellow or Red colour with the rating in its tooltip, beside the equipment chip. The notes they replace (the long tooltip, the per-domain colour words and the three stored scores) are gone from the row; the description below it says in words where the world falls in each category. A row names its class and a "Habitable class" chip, no longer a Terrestrial or Gas Giant label, and counts its moons. The Search page's planet and moon panels gain a Habitability column of the same symbols, and their API rows carry `phi4` and the six `tier_<domain>` ratings. The `hab_note` field the system detail API added to each planet and moon is removed.
+
 ## [8.0.2050] - 2026-10-23
 
 **Headline:** The composition spine's interfaces are published: a body's bulk composition and an atmosphere's mixture are each read through one accessor, so the radiation, colour and habitability work can build against them before the draws land.
