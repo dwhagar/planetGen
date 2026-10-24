@@ -1178,3 +1178,7 @@ Baseline: PR #1817.
 | MAP.272 | 8.1 | Fly-through map |
 | MAP.273 | 8.1 | Fly-through map |
 | GEN.420 | 8.1 | Descriptions and maps |
+| PERF.115 | 8.1 | Queue, caches and performance |
+| PERF.116 | 8.1 | Queue, caches and performance |
+| PERF.117 | 8.1 | Queue, caches and performance |
+| MAP.276 | 8.1 | Fly-through map |

@@ -2892,14 +2892,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.670, GEN.419.
 
-- [ ] **MAP.276 Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow**
-  Class texture, spots by activity, luminosity glow, white dwarf and
-  brown dwarf variants. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  6), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: none.
-
 - [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
   Thin air, none and thick air each draw their own glow. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -15326,90 +15318,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
   Prerequisites: none. Related: PERF.98, PERF.107.
-
-- [ ] **PERF.115 The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding:
-  `settle_after_run` (generation/run_galaxy.py) calls
-  `sector_paths.settle_sectors`, which settles the sectors one after the
-  other in one process; only a crowded sector's bodies are split over
-  worker processes inside it (PERF.80). PERF.107 moves the stage onto
-  the queue as ONE one-shot unit. Done: the stage is timed and the
-  figure recorded; if it justifies it, the settle runs as static chunks
-  of sectors (each path depends only on the final neighbour set, which
-  is fixed by then, and each chunk saves only its own sectors' paths).
-  Same rule for every stage: measure first. Time the stage on an idle
-  box for a galaxy of the size a real run makes and write the figure in
-  the PR; split it into parallel units only if that time is large enough
-  to matter (about a minute or more), otherwise leave it as one unit and
-  say so in the PR. Either way the result must be identical for the same
-  seed at 1 and at 4 workers (a test that compares the stored rows), and
-  the units are static chunks, not a work-stealing split, so a rerun
-  gives the same chunks.
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.107, PERF.80.
-
-- [ ] **PERF.116 The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding:
-  `fill_habitability` (generation/run_plan.py) re-scores the systems in
-  id order in batches of HABITABILITY_BATCH_SYSTEMS on one connection in
-  one process (each body is pure Python work in
-  `store.refresh_habitability`), and PERF.106 only moves the plan modes
-  onto run records. Done: the stage is timed and the figure recorded; if
-  it justifies it, the re-score runs as static id-range chunks of
-  systems, one transaction per batch as now. Same rule for every stage:
-  measure first. Time the stage on an idle box for a galaxy of the size
-  a real run makes and write the figure in the PR; split it into
-  parallel units only if that time is large enough to matter (about a
-  minute or more), otherwise leave it as one unit and say so in the PR.
-  Either way the result must be identical for the same seed at 1 and at
-  4 workers (a test that compares the stored rows), and the units are
-  static chunks, not a work-stealing split, so a rerun gives the same
-  chunks.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the flag
-  is `plan --fill-habitability`, not `plan --habitability` (PERF.122,
-  2026-10-17, 4:19 PM EDT; the code in `cli/generate.py` uses
-  `--fill-habitability`).
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.106.
-
-- [ ] **PERF.117 The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding:
-  `fill_map_luminosity` (generation/run_plan.py) fills
-  `phenomenon_scatter.map_luminosity_sol` in id-range batches of
-  MAP_LUMINOSITY_BATCH_IDS one after the other on one connection, as
-  SQL, and PERF.106 only moves the plan modes onto run records. It is
-  database-bound, so more connections may not help: that is what the
-  measurement decides. Done: the stage is timed and the figure recorded;
-  if parallel id-range chunks (the same batches, each its own statement
-  and commit) shorten it, it runs that way. Same rule for every stage:
-  measure first. Time the stage on an idle box for a galaxy of the size
-  a real run makes and write the figure in the PR; split it into
-  parallel units only if that time is large enough to matter (about a
-  minute or more), otherwise leave it as one unit and say so in the PR.
-  Either way the result must be identical for the same seed at 1 and at
-  4 workers (a test that compares the stored rows), and the units are
-  static chunks, not a work-stealing split, so a rerun gives the same
-  chunks.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the flag
-  is `plan --fill-map-luminosity`, not `plan --map-luminosity`
-  (PERF.122, 2026-10-17, 4:19 PM EDT; the code in `cli/generate.py` uses
-  `--fill-map-luminosity`).
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
