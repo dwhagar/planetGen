@@ -83,3 +83,5 @@ Boss, 7:41 PM EDT 2026-10-21: every lane builds the next steps of its build path
 Update 7:28 PM EDT 2026-10-23: GEN.453 merged as #2726 and took generator epoch 62; the next free epoch is 63 (GEN.450 now plans 63, numbered at merge) and the next free migration stays 0135. The GEN.648 ladder is nine steps (Boss, 7:23 PM EDT). Test environment note from lane F: the MySQL test user needs GRANT OPTION or test_update_database_step fails.
 
 Update 8:05 PM EDT 2026-10-23: three lanes plan generator epoch 63 (lane F's ozone GEN.413, lane I's GEN.429 with GEN.428 and DB.69, and GEN.450 of Core 4); the first to merge keeps 63 and the others renumber at merge, as the standing rule says. Schema 135 is held the same way by GEN.412, GEN.414 and lane I's DB.69.
+
+Update 9:35 PM EDT 2026-10-23: GEN.413 merged as #2761 and took generator epoch 63 and schema 135 (migration 0135). The next free epoch is 64 and the next free migration and schema is 0136. Lane B (DB.73), lane G (GEN.414) and lane I (GEN.428, GEN.429, DB.69) renumber at merge: the first to merge keeps the next number, as the standing rule says.

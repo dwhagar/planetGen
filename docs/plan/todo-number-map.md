@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.158 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.667 |
+| GEN | GEN.669 |
 | PERF | PERF.176 |
 | DB | DB.96 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.307 |
+| TEST | TEST.308 |
 | USR | USR.32 |
 | OPS | OPS.68 |
 | DOC | DOC.79 |
@@ -1134,7 +1134,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | done, PR #2508 |
 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
-| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | open |
+| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | done, PR #2761 |
 | GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | open |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
 | GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library | none | done, PR #2566 |
@@ -1388,6 +1388,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | open |
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | open |
 | GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | open |
+| GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
+| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2609,6 +2611,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | open |
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | open |
 | TEST.306 | Five physics modules are imported only by tests and no item names them | none | open |
+| TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
