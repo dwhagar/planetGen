@@ -4159,7 +4159,7 @@
    "option": "Other populations (thick disc, halo, young, M host)",
    "gate_text": "not o1",
    "weight_text": "log10 f ~ U[-0.23, +0.40]",
-   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215), so no thick-thin offset in the planet-relevant ratio (DATA, COMPUTED; tunable-gaps 3.2)",
+   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, Botelho 2019) as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -4170,7 +4170,7 @@
     "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "thick-disc [Th/Mg] from Hypatia (N=32, scale of heterogeneous catalogues, 0.14 dex under the solar-twin scale of o1); halo, young and M hosts have no Th data (GEN.514)",
+   "limit": "thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -4202,11 +4202,11 @@
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": -0.063,
+    "mu": 0.061,
     "sigma": 0.19,
     "range": [
-     -0.64,
-     0.52
+     -0.56,
+     0.6
     ]
    }
   },
