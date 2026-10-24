@@ -5197,7 +5197,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220,
+  Prerequisites: SEC.33, TEST.261, MAP.220,, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.751, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -6755,6 +6755,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Math lane. This replaces any earlier owner line on this item.
   Taken from Core 3, which has not started it; the Math lane confirms
   with TODO before starting.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
+  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
+  nobody started it.
   Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
 
 - [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
@@ -8551,6 +8555,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tweak level in the report; record both in the registry (GEN.725) in
   the same PR that uses the value. Nothing changes a generated world
   until the owning item uses it.
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: a research thread (the coordinator starts it); GEN.481 and
+  GEN.482 gate the inputs of GEN.726.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
@@ -8626,6 +8637,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   supplement tables and Zeleznik 1991 (NIST); the fO2 exponents can now
   be read from the primary papers, which moves the redox stand-in toward
   Verified.
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: the same research thread as GEN.481.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -12780,6 +12797,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Math lane. This replaces any earlier owner line on this item.
   Taken from lane D, which has not started it; the Math lane confirms
   with TODO before starting.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
+  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
+  nobody started it.
   Prerequisites: none.
 
 - [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
@@ -13009,6 +13030,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/physics-grounding-assessment-2026-10-24.md contradiction 14):
   Owner: Math lane. This replaces any earlier owner line on this item.
   Free; the Math lane confirms with TODO before starting.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
+  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
+  nobody started it.
   Prerequisites: none. Related: GEN.631, GEN.332.
 
 - [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
@@ -13245,13 +13270,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   carry eccentricity, the stability check uses it, and a test compares
   the generated distribution with a published one. Each stand-in it
   touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
-  not take it before 8.1 closes).
+  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
   Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24: Owner: Math
   lane, as the pair of GEN.737 (Boss, 5:16 PM EDT, via the coordinator:
   the 14 physics items go to the Math lane; tidal heating needs this
   eccentricity). This replaces any earlier owner line on this item.
   Free; the Math lane confirms with TODO before starting.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
+  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
+  nobody started it.
   Prerequisites: none. Related: GEN.582, GEN.656, GEN.699.
 
 - [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
@@ -13267,8 +13299,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to counts. Done: the generated planets-per-star distribution matches
   the published one within its uncertainty, with the tuning recorded in
   the registry. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: Lane 3 (before GEN.729 and GEN.750).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.503, GEN.504, GEN.650.
 
 - [ ] **GEN.729 Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked**
@@ -13288,6 +13329,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   records its source tier and tweak level in the gap plan registry
   (GEN.725). Owner: pool (first free lane; 8.1 core lanes do not take it
   before 8.1 closes).
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: Lane 3, after GEN.728.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.503, GEN.504, GEN.650.
 
 - [ ] **GEN.730 Formation-era dynamics: giant impacts, scattering and instability instead of one survival constant**
@@ -13304,6 +13355,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constant. Each stand-in it touches records its source tier and tweak
   level in the gap plan registry (GEN.725). Owner: pool (first free
   lane; 8.1 core lanes do not take it before 8.1 closes).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.105, GEN.650, GEN.510.
 
 - [ ] **GEN.731 Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances**
@@ -13321,8 +13376,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and lock state follow from the orbit, the age and the interior, with
   tests on Mercury, Venus, Earth and a hot Jupiter. Each stand-in it
   touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
-  not take it before 8.1 closes).
+  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
+  five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.737.
 
 - [ ] **GEN.732 Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body**
@@ -13338,8 +13399,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   limit. Done: rings exist as data, the painter reads them, and a test
   checks Saturn, Uranus and Neptune-like cases. GEN.670 is colour
   research only. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: MAP.275, GEN.670.
 
 - [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
@@ -13376,6 +13440,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so the data source for this item exists. Download at setup, raw tables
   never in the repository, licence note only in DATA-LICENSE.md (Boss
   manages it).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.642, GEN.460.
 
 - [ ] **GEN.734 Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance**
@@ -13392,8 +13460,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry, and give each a replacing plan. Done: the four tables carry
   a source or a labelled stand-in with a tier, and each has a named
   replacing item. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
   Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
   2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 2, 3 and
   4: planet-minus-star Fe/Mg scatter (core population N(0, 0.10 dex),
@@ -13403,6 +13470,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its source tier and tweak level in the report; record both in the
   registry (GEN.725) in the same PR that uses the value. Nothing changes
   a generated world until the owning item uses it.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.725, GEN.711.
 
 - [ ] **GEN.735 Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate**
@@ -13425,6 +13496,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
   the new Math lane (physics route 'derivable now',
   reports/physics-gaps-2026-10-24.md). Owner: Lane H (started 4:14 PM EDT 2026-10-24, as the coordinator relayed; the Math lane skips it).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.699, GEN.721.
 
 - [ ] **GEN.736 Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model**
@@ -13444,6 +13519,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Each stand-in it touches records its source tier and tweak level in
   the gap plan registry (GEN.725). Owner: pool (first free lane; 8.1
   core lanes do not take it before 8.1 closes).
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: Lane H, after GEN.735.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.699, GEN.444, GEN.731.
 
 - [ ] **GEN.737 Tidal heating from the orbit, stored and counted for moons and planets**
@@ -13471,6 +13556,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Math lane. This replaces any earlier owner line on this item.
   Free (8.4). It needs the eccentricity of GEN.727, so take GEN.727 with
   it; the Math lane confirms with TODO before starting.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
+  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
+  nobody started it.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
 
 - [ ] **GEN.738 Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss**
@@ -13487,8 +13580,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replace AM19 to AM23. Done: escape comes from a model with tests on
   Mars, Venus, Titan and a sub-Neptune, and the stand-ins are replaced
   or relabelled. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.511, GEN.483, GEN.675.
 
 - [ ] **GEN.739 Impact erosion and late delivery of atmospheres, with history**
@@ -13504,6 +13600,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   source tier and tweak level in the gap plan registry (GEN.725). Owner:
   pool (first free lane; 8.1 core lanes do not take it before 8.1
   closes).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.726, GEN.481.
 
 - [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
@@ -13518,8 +13618,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.649), with the abiotic baseline kept. Done: an inhabited world's
   air shows the life-driven gases, with tests across life stages and an
   abiotic control. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.649, GEN.525, GEN.750.
 
 - [ ] **GEN.741 Post-main-sequence stellar tracks: subgiant, red giant, horizontal branch, asymptotic giant and supergiant from mass and age instead of random draws**
@@ -13538,8 +13641,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use them for evolved stars and their planets. Done: evolved stars come
   from tracks, with a test on the Hertzsprung-Russell diagram of a
   synthetic cluster. Each stand-in it touches records its source tier
-  and tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  and tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
   Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
   2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 15 and
   16: the horizontal and asymptotic branch durations are now Verified
@@ -13551,6 +13653,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level in the report; record both in the registry (GEN.725) in the same
   PR that uses the value. Nothing changes a generated world until the
   owning item uses it.
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: Lane A, after GEN.652 and GEN.755 (the MIST post-main-sequence
+  check).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.652, GEN.553.
 
 - [ ] **GEN.742 White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature**
@@ -13566,14 +13679,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.553 may absorb it. Done: white dwarf luminosity comes from the
   sequences, with a test on a cooling-age sweep. Each stand-in it
   touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
-  not take it before 8.1 closes).
+  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
   Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
   3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
   the new Math lane (physics route 'derivable now',
   reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
   TODO thread; nobody has started it; check with Lane A first, because
   GEN.553 may absorb the cooling law).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
@@ -13589,8 +13705,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dwarf layers to the other core types. Done: neutron star radius and
   structure follow from the tables for a mass sweep, with a test against
   NICER radii. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first
-  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 1, after its first
+  seven items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.272, GEN.553.
 
 - [ ] **GEN.744 Alpha-enhanced stellar tracks and an age-metallicity relation from the galaxy's own history**
@@ -13610,6 +13732,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its source tier and tweak level in the gap plan registry (GEN.725).
   Owner: pool (first free lane; 8.1 core lanes do not take it before 8.1
   closes).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 1, after its first
+  seven items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.405, GEN.652.
 
 - [ ] **GEN.745 Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share**
@@ -13627,6 +13756,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Sun and an M dwarf. Each stand-in it touches records its source
   tier and tweak level in the gap plan registry (GEN.725). Owner: pool
   (first free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 1, after its first
+  seven items; takes it only if nobody has started it.
   Prerequisites: none. Related: MAP.269, GEN.523, GEN.748.
 
 - [ ] **GEN.746 Cosmic-ray dose below 100 g/cm2 of air from shower simulations instead of a straight stand-in between the Moon and Mars**
@@ -13641,8 +13777,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replace the stand-in. Done: dose against depth follows the published
   curve, with tests at sea level, a mountain and Mars. Each stand-in it
   touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
-  not take it before 8.1 closes).
+  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
+  five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.444, GEN.445.
 
 - [ ] **GEN.747 Solar energetic particle events: the full event set and the Weibull parameters**
@@ -13673,6 +13815,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/secondhand-citations-2026-10-24-files/, a second-hand find
   proposed at Confident Unverified; use it as a cross-check on the 255
   NOAA events.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
+  five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.436, GEN.444.
 
 - [ ] **GEN.748 Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's**
@@ -13686,8 +13835,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and narrow the spread to the source. Done: the ozone column and UV at
   the surface match the source across a temperature sweep. Each stand-in
   it touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
-  not take it before 8.1 closes).
+  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
+  five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.745, GEN.444.
 
 - [ ] **GEN.749 Trapped radiation belts and the magnetosphere's shielding beyond a dipole size**
@@ -13702,6 +13857,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   records its source tier and tweak level in the gap plan registry
   (GEN.725). Owner: pool (first free lane; 8.1 core lanes do not take it
   before 8.1 closes).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
+  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
+  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
+  five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.736, GEN.444.
 
 - [ ] **GEN.750 Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics)**
@@ -13746,6 +13908,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics-based steps like the others, with its source tier and tweak
   level in the registry. No separate item. Suggested owner Lane 3 (items
   nobody has started), 8.4, pending Boss's answer on early 8.4 starts.
+  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
+  card 'Yes, pool lanes may start them'): free pool lanes may start
+  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
+  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
+  only items nobody has started and confirms with TODO first. Proposed
+  owner: Lane 3, after GEN.729.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.751 Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list**
@@ -13760,6 +13932,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tweak level (GEN.725). Done: the five gases exist in the table with
   sources and a lava-world test. Owner: pool (first free atmosphere
   lane).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: none. Related: GEN.674, GEN.703.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
@@ -13779,6 +13955,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss lets 8.4 start earlier).
   Prerequisites: GEN.422, GEN.462. Related: GEN.639, GEN.684, GEN.725,
   GEN.726.
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
 
 - [ ] **GEN.753 Validation sweep for each physics area: compare generated populations with published statistics**
   Generate large populations and compare each with the published
@@ -13793,6 +13973,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level (L0 to L4) is recorded in the registry (GEN.725). Found by the
   physics fix plan thread. Owner: pool (first free lane after 8.1
   closes, unless Boss lets 8.4 start earlier).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: GEN.503, GEN.504. Related: GEN.725, GEN.711.
 
 - [ ] **GEN.754 Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads**
@@ -13817,6 +14001,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   note only in DATA-LICENSE.md) and reduce them to the table GEN.741
   needs. Found by the physics fix plan thread. Owner: Lane A (after
   GEN.652, with GEN.741).
+  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
+  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
+  to go forward without correcting the physics"); it is a prerequisite
+  of the headline GEN.301.
   Prerequisites: GEN.652. Related: GEN.741, GEN.553.
 
 - [ ] **GEN.756 Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py)**
@@ -18955,47 +19143,6 @@ clears each one.
   saw it. Lane H owns the decision: the cap is wrong with a stated
   physics reason, or the model is.
   Prerequisites: none. Related: GEN.721, GEN.735.
-
-- [ ] **TEST.354 test_api.py::test_the_description_splits_into_every_body is red on clean main: the facts section appears twice (facts, prose, composition, ratings, facts) (bug)**
-  Found by the Map nodes lane (relayed 4:18 PM EDT 2026-10-24 as the
-  lane reported, on clean main; filed by the TODO thread). The TODO
-  thread's machine skips the test, so it is not reproduced here. Do:
-  find which merge added a second facts section to the body description
-  (the property sheet and object page work, UX.184 and UX.173, and the
-  composition sections are the likely causes) and fix the description
-  builder or the stale test, with the reason written down. Done: the
-  test passes on main. Owner: Bug Hunt (first free in its queue after
-  TEST.350 and TEST.344).
-  Prerequisites: none. Related: UX.184, TEST.351.
-
-- [ ] **TEST.355 test_class_pages: the phenomenon link (nebula D) is red on clean main (bug)**
-  Found by the class lane (relayed about 4:20 PM EDT 2026-10-24 as the
-  lane reported, on clean origin/main; filed by the TODO thread). Not
-  reproduced by the TODO thread. Do: find which merge changed the
-  phenomenon link on the class page (the object pages of UX.184 and the
-  nebula pages are the likely causes) and fix the page or the stale test
-  without weakening it. Done: the test passes on main. Owner: Bug Hunt
-  (main-green rule).
-  Empty page body (2026-10-09): Update 5:15 PM EDT 2026-10-24: the Redis
-  lane (as the lane reported) fetched all four datasets, including
-  ozone_uv, before its gate and still saw the web page tests fail with
-  an empty page body (test_web_facilities, test_class_pages,
-  test_web_population, test_admin_edits, test_web_search,
-  test_api_auth_sweep, test_eta_estimator); the Units lane saw the same
-  with the system page returning an empty body. So not every web page
-  red is missing setup data. Bug Hunt: while on this item, reproduce the
-  empty system page body on a clean current main and file the cause
-  once.
-  Prerequisites: none. Related: TEST.348, UX.184.
-
-- [ ] **TEST.356 test_web_search: the star result link is red on clean main (bug)**
-  Found by the class lane (relayed about 4:20 PM EDT 2026-10-24 as the
-  lane reported, on clean origin/main; filed by the TODO thread). Not
-  reproduced by the TODO thread. Do: find which merge changed the star
-  search result link (the object pages of UX.184 are the likely cause)
-  and fix the page or the stale test without weakening it. Done: the
-  test passes on main. Owner: Bug Hunt (main-green rule).
-  Prerequisites: none. Related: UX.184.
 
 - [ ] **TEST.357 changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug)**
   Found by the Redis lane's gate (relayed 5:12 PM EDT 2026-10-24 as the
