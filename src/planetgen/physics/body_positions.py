@@ -28,11 +28,13 @@ checks the two against each other. NAV.6 plans courses on this one.
 
 import math
 
-from planetgen.physics import body_state, constants
+from planetgen.physics import body_state, unit_registry as units
 from planetgen.physics.kepler import comet_orbital_state, gravitational_parameter_au3_yr2, wrapped_turn_deg
 from planetgen.physics.system_tree import OrbitNode, TreeMember, member_offsets_au
 
-AU_KM = constants.AU_TO_KM
+_au_to_km = units.converter("au", "km")
+_km_to_au = units.converter("km", "au")
+_yr_to_s = units.converter("yr", "s")
 
 
 def _star_positions_km(scene, years):
@@ -46,11 +48,11 @@ def _star_positions_km(scene, years):
     start = scene.get("epoch_unix")
     if start is None:
         start = nodes[0].epoch_unix if nodes else 0.0
-    offsets = member_offsets_au(members, nodes, start + years * constants.SECONDS_PER_YEAR)
+    offsets = member_offsets_au(members, nodes, start + _yr_to_s(years))
     refs = {member["member_no"]: member["ref"] for member in tree["members"]}
     origin = next((number for number, ref in refs.items() if ref == tree.get("origin")), None)
     shift = offsets[origin] if origin is not None else (0.0, 0.0, 0.0)
-    return {refs[number]: [(offset[axis] - shift[axis]) * AU_KM for axis in range(3)] for number, offset in offsets.items()}
+    return {refs[number]: [_au_to_km(offset[axis] - shift[axis]) for axis in range(3)] for number, offset in offsets.items()}
 
 
 def _relative_state_km(orbit, years, scene_epoch_unix):
@@ -60,14 +62,14 @@ def _relative_state_km(orbit, years, scene_epoch_unix):
     offset = 0.0 if epoch is None or scene_epoch_unix is None else scene_epoch_unix - epoch
     position, _velocity = body_state.advance(
         orbit["position_km"], orbit["velocity_kms"], orbit["distance_km"], orbit["period_years"],
-        years * constants.SECONDS_PER_YEAR + offset)
+        _yr_to_s(years) + offset)
     return list(position)
 
 
 def _comet_relative_km(orbit, years):
     """A comet's position relative to its star, in km."""
     k = orbit["kepler"]
-    q_au = k["perihelion_distance_km"] / AU_KM
+    q_au = _km_to_au(k["perihelion_distance_km"])
     if orbit["type"] == "elliptical":
         anomaly = math.radians(k["mean_anomaly_deg"] + wrapped_turn_deg(years, k["period_years"]))
         state = comet_orbital_state(
@@ -80,7 +82,7 @@ def _comet_relative_km(orbit, years):
         state = comet_orbital_state(
             "parabolic", q_au, 1.0, k["inclination_deg"], k["arg_periapsis_deg"],
             k["ascending_node_deg"], k["primary_mass_solar"], parabolic_mean_anomaly_value=anomaly)
-    return [state["position_x_au"] * AU_KM, state["position_y_au"] * AU_KM, state["position_z_au"] * AU_KM]
+    return [_au_to_km(state["position_x_au"]), _au_to_km(state["position_y_au"]), _au_to_km(state["position_z_au"])]
 
 
 def _add(a, b):

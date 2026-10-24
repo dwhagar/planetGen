@@ -1,0 +1,5 @@
+**Headline:** Twelve physics files now convert astronomical units, years, light-years and parsecs through the one unit registry, with the same numbers.
+
+### Changed
+- `unit_registry.converter(from_key, to_key)` returns a function for one conversion, looked up once when a module loads: a multiply by the larger-to-smaller ratio or a divide by the smaller-to-larger one, a power of ten taken as the exact power, so it gives the same float as the hand-written `* 1000.0`, `/ AU_TO_KM` or `* SECONDS_PER_YEAR` it replaces.
+- Twelve files (`activity`, `body_positions`, `body_state`, `formation`, `hosting_gate`, `kepler`, `orbits`, `planet_survival`, `planet_zones`, `pre_main_sequence`, `stability`, `system_tree`) use it for their AU, km, m, light-year, parsec, year, second and Gyr conversions (GEN.571, first file group). `tests/test_unit_converters.py` holds each conversion against the expression it replaced on 7,000 inputs, bit for bit. The module-level `AU_KM` of `body_positions` and `system_tree`, `SECONDS_PER_YEAR` of `system_tree` and `YEAR_S` of `pre_main_sequence` are gone; nothing else read them.
