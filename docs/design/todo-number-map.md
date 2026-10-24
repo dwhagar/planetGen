@@ -13,12 +13,12 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.155 |
+| UX | UX.157 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.659 |
+| GEN | GEN.660 |
 | PERF | PERF.176 |
-| DB | DB.94 |
+| DB | DB.96 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
@@ -642,6 +642,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | none | open |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | none | open |
 | DB.93 | Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object | none | open |
+| DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | open |
+| DB.95 | The sector_objects view includes the moons of free planets | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1341,7 +1343,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.619 | A variable sector edge for small galaxies: 4, 2 or 1 pc chosen by the thin disc scale length, with the one-star outline rule as a density threshold | none | open |
 | GEN.620 | The region removal command: its own admin command that deletes the halo or the satellite galaxies from a made galaxy and makes their cells invalid addresses (region argument halo or satellites, needs the switch already off) | none | open |
 | GEN.621 | The Scale dial's Auto default draws a galaxy about half the Milky Way's size, with an epoch bump | none | done, PR #2418 |
-| GEN.622 | pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug) | none | open |
+| GEN.622 | pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug) | none | done, PR #2739 |
 | GEN.623 | Data tables carry no licence column or licence check; the licence information lives in DATA-LICENSE.md | none | done, PR #2596 |
 | GEN.624 | Satellite galaxies scale with the host galaxy's mass: a small galaxy no longer pays for 11 satellites (decided by Boss; needs a generator epoch) (bug) | none | done, PR #2638 |
 | GEN.625 | Tune the Auto galaxy defaults so the plan coverage warning never fires and the average default galaxy is at most half the Milky Way's size (decided by Boss; needs a generator epoch) (bug) | none | done, PR #2627 |
@@ -1378,6 +1380,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | open |
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | open |
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | open |
+| GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2184,6 +2187,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | open |
 | UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | open |
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
+| UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | open |
+| UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

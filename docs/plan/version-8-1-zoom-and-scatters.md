@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 7:57 PM EDT 2026-10-23: 754 of 1162 items finished (64.9 percent), 408 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 111, phase 2 40, phase 3 25, phase 4 14, phase 5 77, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 2, phase 11 48, phase 12 11 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 8:10 PM EDT 2026-10-23: 755 of 1167 items finished (64.7 percent), 412 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 111, phase 2 40, phase 3 25, phase 4 14, phase 5 81, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 2, phase 11 48, phase 12 11 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -386,6 +386,8 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | GEN.654 |  |
 | DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | GEN.649 |  |
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | UX.151, DB.91, GEN.649 |  |
+| UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) |  | Habitability lane B sub-item, requested by lane B 8:08 PM EDT 2026-10-23 (relayed). |
+| UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) |  | Habitability lane B sub-item, requested by lane B 8:08 PM EDT 2026-10-23 (relayed). |
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree | GEN.643 |  |
 | GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | GEN.644, GEN.643 |  |
 | DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule |  |  |
@@ -404,6 +406,8 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | GEN.553 |  |
 | GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | GEN.553 |  |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue |  |  |
+| DB.94 | The object index, resolve_object and the search panels read the moons of free planets | DB.73 | Habitability lane B sub-item, requested by lane B 8:08 PM EDT 2026-10-23 (relayed). |
+| DB.95 | The sector_objects view includes the moons of free planets | DB.73 | Habitability lane B sub-item, requested by lane B 8:08 PM EDT 2026-10-23 (relayed). |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give |  | Boss 11:24 PM EDT; the inverse feeds the migration. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, DB.73, GEN.565 |  |
@@ -484,6 +488,7 @@ Moved into 8.1 from 8.4 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 |---|---|---|---|
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID |  |  |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 |  |  |
+| GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) |  | Found by lane J, 8:08 PM EDT 2026-10-23. |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | DB.73, GEN.565 |  |
 | GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | GEN.565 |  |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | GEN.565, GEN.570 |  |
@@ -509,7 +514,6 @@ Moved into 8.1 from 8.4 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | DB.75 |  |
 | GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332, GEN.581 |  |
 | GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | GEN.553 |  |
-| GEN.622 | pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug) |  |  |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system |  |  |
 | GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | GEN.428 | Body composition research lane finding F7, cluster 6 (parts A and C); generator epoch bump. Core 4 proposed. |
 | GEN.641 | Research: the interior of a giant planet, ice giant and brown dwarf: the layers (molecular, liquid and metallic hydrogen and helium, helium rain, a dilute core), whether there is a rocky or icy core, and what the core is made of |  |  |

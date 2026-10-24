@@ -1081,6 +1081,25 @@ with `clamp()`.
   Prerequisites: GEN.655, DB.93, UX.153. Related: UX.101, UX.152,
   UX.100.
 
+- [ ] **UX.155 The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2)**
+  Sub-item of UX.100, filed by the TODO thread from lane B's report of
+  8:08 PM EDT 2026-10-23 (as the lane reported): UX.100 part 1 merged as
+  #2737 (system page and Search panels). Do: the /lists planet and moon
+  pages get the Habitability symbols column through the shared data
+  table symbols cell type of #2737, and the list API rows carry phi4 and
+  the six tier_<domain> ratings. Done: the lists show the overall and
+  six domain symbols and no notes, with a browser test. Owner:
+  Habitability lane B (planet and moon lists).
+  Prerequisites: none. Related: UX.100, UX.101, UX.152.
+
+- [ ] **UX.156 The planet and moon item pages show the PHI-6 symbols (UX.100 part 3)**
+  Sub-item of UX.100, filed by the TODO thread from lane B's report of
+  8:08 PM EDT 2026-10-23 (as the lane reported). Do: the planet and moon
+  pages show the overall and six domain symbols from the UX.101 helper
+  in place of the notes. Done: the pages show the symbols, with a test.
+  Owner: Habitability lane B (planet and moon lists).
+  Prerequisites: none. Related: UX.100, UX.101.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14581,25 +14600,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
 
-- [ ] **GEN.622 pulsar_radial_factor divides by zero beyond about 580 kpc galactic radius (bug)**
-  Found by Core 5 (relayed 3:41 PM EDT 2026-10-22 as the lane's clock
-  reads, while building the TEST.160 audit), filed by the TODO thread.
-  Kind: bug, low priority, no test yet. `pulsar_radial_factor` in
-  src/planetgen/galaxy/remnant_distribution.py divides by zero beyond
-  about 580 kpc galactic radius. That is past the 262 kpc reach of a
-  generated galaxy, so no real run can hit it; it matters only if the
-  reach grows or the function is called with an arbitrary radius. Fails
-  on main: only for a radius beyond about 580 kpc. Do: make the function
-  return the physical limit there (the factor falls to its asymptote or
-  zero) instead of dividing by zero, with a test at 579 kpc, 581 kpc and
-  10,000 kpc. Done: no radius raises, and the values on both sides of
-  the old pole are continuous. Owner: none (the coordinator assigns;
-  Core 4 owns the remnant distribution work of GEN.554).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.554, TEST.160.
-
 - [ ] **GEN.629 The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together**
   Finding of Blocker 3 in GEN.495 (relayed 11:56 PM EDT 2026-10-22 as
   the coordinator and the lane reported), filed by the TODO thread.
@@ -15349,6 +15349,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
   Owner: Survival equipment lane (thread 'Survival equipment fields').
   Prerequisites: GEN.414, GEN.655. Related: GEN.414.
+
+- [ ] **GEN.659 The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug)**
+  Found by Habitability lane J (relayed 8:08 PM EDT 2026-10-23 as the
+  lane reported, reports/small-body-size-laws-2026-10-23.md); filed by
+  the TODO thread. Reproducer: INTERSTELLAR_DEBRIS_DENSITY_PC3 is 1e12
+  per pc^3 and docs/design/unified-star-like-objects.md said the same
+  (that design line is corrected); the measured value is 7e14 to 1.8e15
+  per pc^3 (Jewitt and Seligman 2023, Do et al. 2018). Kind: bug. Do:
+  the constant, the computed interstellar_debris_count and the sentences
+  in docs/design/interstellar-object-rates.md,
+  phenomena-catalogue-and-fill.md and collisions-and-mergers.md read the
+  measured range, verified by a lane against the two papers before use
+  under the standing source rules. Done: the computed count shown on the
+  sector page follows the measured density and the tests agree. The
+  count is shown, not drawn, so no generator epoch is expected. Owner:
+  Habitability lane J (it found it).
+  Prerequisites: none. Related: GEN.566, GEN.579.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17371,6 +17388,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
   Owner: Survival equipment lane (thread 'Survival equipment fields').
   Prerequisites: GEN.655.
+
+- [ ] **DB.94 The object index, resolve_object and the search panels read the moons of free planets**
+  Follow-up of DB.73, filed by the TODO thread from lane B's report of
+  8:08 PM EDT 2026-10-23 (as the lane reported): DB.73 is built
+  (migration 0135 or the next free number at merge, parent_type and
+  parent_id on stars, belts, comets, black holes, neutron stars, rogue
+  planets and interstellar comets; moons.rogue_planet_id so a moon can
+  hang under a rogue planet; set_parent keeps the row and the ID). Do:
+  the object index, resolve_object and the search panels find the moons
+  of free planets. Done: a moon under a rogue planet resolves by its
+  object ID and appears in search. Owner: Habitability lane B (planet
+  and moon lists).
+  Prerequisites: DB.73. Related: DB.73.
+
+- [ ] **DB.95 The sector_objects view includes the moons of free planets**
+  Follow-up of DB.73, filed by the TODO thread from lane B's report of
+  8:08 PM EDT 2026-10-23 (as the lane reported). Do: the sector_objects
+  view lists the moons that hang under a free planet. Done: a sector
+  page counts and lists those moons. Owner: Habitability lane B (planet
+  and moon lists).
+  Prerequisites: DB.73. Related: DB.73.
 
 ## API: The JSON API
 

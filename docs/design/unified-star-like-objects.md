@@ -40,7 +40,7 @@ Counts per local 64 pc^3 sector use about 8 to 10 stars [S: `interstellar-object
 | Brown dwarf, in a tree | `multistar._star_leaf` with `brown_dwarf.state` (GEN.252) [S] | Scatter time | `scatter_members.kind = 'brown-dwarf'` | Not read by the fill. |
 | Brown dwarf, free-floating | `RoguePlanet(mass_bin="brown-dwarf")`; mass from `brown_dwarf.sample_mass_solar` [S] | Stage E, a Poisson count of 0.214 per star [S] | `rogue_planets` with `planet_class` NULL | Canned composition sentence; age uniform 0.1 to 10 Gy [S]; the rogue surface module re-types the Burrows luminosity law with a hard-coded 0.05 [S]; no companion (15% of brown dwarfs are pairs, GEN.331 is open). |
 | Rogue planet | `RoguePlanet` [S] | Stage E, 5.8 per star over four mass bins, drawn from one mass function (Mroz 2017, 2020; Johnson 2020) [S] | `rogue_planets` | Terrestrial bulk density uniform in a range, composition a canned sentence per bin, no link to a former host, velocity from the solar circle's speed wherever it sits, `has_moons` a boolean [S]. |
-| Interstellar comet | `InterstellarComet` [S] | Stage E at a design rate of 0.007 per pc^3 (0.05 per star) against a real 1e12 per pc^3 shown as a computed count [S] | `interstellar_comets`, `interstellar_comet_composition` | No mass, no size distribution, activity a 50% coin, three components from a list of ten. |
+| Interstellar comet | `InterstellarComet` [S] | Stage E at a design rate of 0.007 per pc^3 (0.05 per star) against a measured 7e14 to 1.8e15 per pc^3 (Jewitt and Seligman 2023, Do et al. 2018; corrected from 1e12 on 2026-10-23) shown as a computed count [S] | `interstellar_comets`, `interstellar_comet_composition` | No mass, no size distribution, activity a 50% coin, three components from a list of ten. |
 | Planet and moon | `Planet`; moons only for a non-moon planet (`generate_moons`), stable zone out to 0.4895 of the Hill radius (`MOON_PROGRADE_STABLE_HILL_FRACTION`) [S] | Inside `StarSystem` | `planets`, `moons` | A moon never has a moon (nesting is fixed at two levels in the class) [S]. |
 | Multi-star hierarchy | `draw_member_tree`, up to 12 members, Mardling-Aarseth, Eggleton-Kiseleva and Kozai screens, `group` nodes for young non-hierarchical systems [S] | Scatter time only | `scatter_nodes`, `scatter_members`; `orbit_nodes` exists and is empty [S] | Not consumed by the fill. |
 
@@ -137,7 +137,7 @@ Stage E becomes "wanderers": the bodies whose origin row says "ejected from a sy
 **Unbound comets.**
 
 - **Class.** A small body (`comet`), origin "ejected from a system" (most of them) or "formed in isolation" (none expected, a table row with weight 0 until a source says otherwise).
-- **Counts.** The real density is about 1e12 per pc^3 (range 1e11 to 1e14) [S], so most cannot be rows. Use the same device as the remnant mass cut: a lowest size, rows above it drawn at fill from the cell's stream, and the count below it stays a computed figure on the sector page (`interstellar_debris_count` exists [S]). The size-frequency law and the cut are a research item (candidates: the inferences from 'Oumuamua and Borisov in Jewitt and Seligman 2023, which `tuning.py` already cites [S], and Do, Tucker and Tonry 2018 [R]). The design rate of 0.007 per pc^3 is a placeholder labelled as such until then.
+- **Counts.** The measured density is about 7e14 to 1.8e15 per pc^3 (Jewitt and Seligman 2023, Do et al. 2018, read by the bulk composition lane on 2026-10-23 in reports/small-body-size-laws-2026-10-23.md; this replaces the earlier 1e12, range 1e11 to 1e14), so most cannot be rows. Use the same device as the remnant mass cut: a lowest size, rows above it drawn at fill from the cell's stream, and the count below it stays a computed figure on the sector page (`interstellar_debris_count` exists [S]). The size-frequency law and the cut are a research item (candidates: the inferences from 'Oumuamua and Borisov in Jewitt and Seligman 2023, which `tuning.py` already cites [S], and Do, Tucker and Tonry 2018 [R]). The design rate of 0.007 per pc^3 is a placeholder labelled as such until then.
 - **Properties.** Mass and size from the size law, composition from the comet table (GEN.495, GEN.442; the within-system shape is a stand-in and the two interstellar objects bracket the offset, per decision D6 of the tunable gaps note [S]), activity derived from composition, size and distance to the nearest star (replacing the 50% coin), velocity from the population plus ejection speed. A comet is a body, so a star's captured comet or a comet bound to a wanderer is the same class with a parent.
 
 ### 3.7 Storage
@@ -218,7 +218,7 @@ Epoch and migrations: every item that changes a drawn value bumps the generator 
 **D5. Unbound comet rows.**
 1. Rows above a size cut with a research-backed size law; the rest stays a computed count. **Recommended:** the same pattern as the remnant mass cut that Boss approved on 2026-10-09 (default 14 Msun in the code).
 2. Keep the 0.007 per pc^3 design rate.
-3. Raise the design rate and show every comet (not possible at 1e12 per pc^3, listed for completeness).
+3. Raise the design rate and show every comet (not possible at 7e14 to 1.8e15 per pc^3, listed for completeness).
 
 **D6. Version.**
 1. A new phase of 8.4, after the composition fractions and before the surfaces; GEN.315 stays in 8.1. **Recommended.**
