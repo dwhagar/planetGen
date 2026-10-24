@@ -151,7 +151,7 @@ def test_home_renders_the_front_door_and_shell(client, fake):
     assert re.search(r'<script src="/static/theme.js\?v=[^"]+"></script>', html)
     assert re.search(r'<link rel="stylesheet" href="/static/style.css\?v=[^"]+">', html)
     assert "data-theme-toggle hidden" in html
-    assert '<form class="site-search" role="search" method="get" action="/search">' in html
+    assert 'class="site-search-link" name="search" label="Search" title="Search" href="/search"' in html
     assert '<sl-dropdown class="site-menu"' in html
     assert re.search(r'<script type="module" src="/static/components.js\?v=[^"]+"></script>', html)
     # UX.55: the counts are links to their lists, and the tools are entry points.
@@ -245,13 +245,12 @@ def test_the_gear_menu_lists_lists(client, fake):
     assert 'class="site-search"' not in gear
 
 
-def test_the_search_control_is_an_icon_button_with_a_name(client, fake):
+def test_the_search_control_is_an_icon_link_to_the_search_page(client, fake):
+    """UX.160: the search icon goes straight to the Search page; no box drops down."""
     html = client.get("/").get_data(as_text=True)
-    control = re.search(r'<sl-dropdown class="site-search-menu".*?</sl-dropdown>', html, re.S).group(0)
-    assert '<sl-icon-button slot="trigger" name="search" label="Search"' in control
-    # No text beside the icon: the trigger holds nothing but the icon.
-    assert re.search(r'<sl-icon-button[^>]*></sl-icon-button>', control)
-    assert html.count('class="site-search"') == 1
+    control = re.search(r'<sl-icon-button class="site-search-link"[^>]*></sl-icon-button>', html).group(0)
+    assert 'name="search" label="Search"' in control and 'href="/search"' in control
+    assert 'class="site-search"' not in html and "site-search-menu" not in html and 'type="search" name="q"' not in html
 
 
 def test_database_comes_from_config_never_the_url(client, fake):

@@ -45,21 +45,11 @@ subhead (badges or actions under the <h1>). -#}
   </ul>
 </nav>
 {%- endmacro -%}
-{#- The search control (UX.146): one icon-only button that drops the search
-    box down and puts the cursor in it (static/headersearch.js). Not on the
-    Search page itself, which has its own Name box (UX.54). -#}
+{#- The search control (UX.160): one icon-only link to the Search page, which has its own Name box (UX.54).
+    Not on the Search page itself. -#}
 {%- macro search_menu() -%}
 {%- if request.endpoint != 'web.search' -%}
-<sl-dropdown class="site-search-menu" placement="bottom-end" distance="6">
-  <sl-icon-button slot="trigger" name="search" label="Search" title="Search"></sl-icon-button>
-  <div class="site-search-panel">
-    <form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
-      <label class="sr-only" for="site-search">Search by name</label>
-      <input id="site-search" type="search" name="q" placeholder="Search names" autocomplete="off" enterkeyhint="search">
-      <button type="submit">Search</button>
-    </form>
-  </div>
-</sl-dropdown>
+<sl-icon-button class="site-search-link" name="search" label="Search" title="Search" href="{{ url_for('web.search') }}"></sl-icon-button>
 {%- endif -%}
 {%- endmacro -%}
 {#- The Help menu (UX.180), beside the search button: the reference pages, Classes and Habitability. It is current on
