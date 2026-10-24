@@ -333,3 +333,5 @@ Update 4:22 PM EDT 2026-10-24: the second-hand citations report (reports/secondh
 Update 4:26 PM EDT 2026-10-24: Bug Hunt merged #3075 (the Python half of TEST.350: 20 facility and population page tests, test fixes only). TEST.350 stays open for one browser test (web.system plain buttons).
 
 Update 4:31 PM EDT 2026-10-24: PERF.186 (CRITICAL Stop everything) and PERF.183 (smoke run) retired (#3078, Lane OOM). New: PERF.187 (the phenomena scatter holds 6.4 GB in its own process, every other step under 300 MB; Lane OOM, high priority). PERF.184 (Core 5) now also owns the red test_eta_estimator.py::test_the_queue_page_shows_a_range_or_estimating. 969 of 1331 8.1 items finished (72.8 percent), 362 open.
+
+Update 4:41 PM EDT 2026-10-24: the second-hand citations report now has Parts 8 and 9 (papers Boss cannot access, second-hand data, and four first-hand papers Boss uploaded: Wolff 2009, Lodders 2003, Paranicas 2009, Gronoff 2011); the registry input is on GEN.725.

@@ -13153,6 +13153,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the flare exponent 1.99 is found (Capistrant and Dittmann 2025).
   Boss's reference list has two author errors (Zhu 2020 is Yang, Xie and
   Zhou 2020; HAZMAT VII is Loyd et al.).
+  Sources (2026-10-09): Update 4:41 PM EDT 2026-10-24, from
+  reports/secondhand-citations-2026-10-24.md Parts 8 and 9 (as the lane
+  reported): (1) papers Boss cannot access, never re-list: Fray and
+  Schmitt 2009, ICRP 103, Karkoschka 1994 and Karkoschka and Tomasko,
+  Tomasko 2008, Ayers 1980, Frost 1991, Hirschmann 2012, Palme and
+  O'Neill 2014, JPL 19-5, Bogaard 1978, Huebner 1992, Huebner and
+  Mukherjee 2015. (2) Second-hand data for the registry, tiers to be
+  assigned by the registry owner: Frost buffer constants via
+  PetroBuffer; Palme and O'Neill via the Wang 2018 concordance (K 237,
+  Th 0.0746, U 0.0198); 62 JPL 19-5 rate lines from GEOS-Chem (label the
+  older-vintage chlorine test reactions); Bogaard-derived King factors
+  via PICASO (SO2 1.0626, H2S 1.0019, Marginal); Huebner photo rates via
+  the Leiden database (Heays 2017) scaled to 1 au (NH3 1.54e-4 against
+  the plan's 1.80e-4, within 15 percent; HCN 7.9e-6 against Biver 1.6e-5
+  to 1.9e-5, a factor 2 conflict, so keep the range). (3) Boss uploaded
+  Wolff 2009, Lodders 2003, Paranicas 2009 and Gronoff 2011, now
+  first-hand (Lodders: water ice 182 K, ammonia hydrate 131 K, methane
+  clathrate 78 K at 1e-4 bar, 22.75 percent of oxygen in rock first;
+  Wolff solar-band w0 0.922 to 0.926, 0.940 for the smaller-grain case).
+  Cooper 2001, Patterson 2012, Nordheim 2018 and Gronoff 2009 are still
+  unread.
   Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
 
 - [ ] **GEN.726 Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity**
