@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2121] - 2026-10-24
+
+**Headline:** The potassium-to-uranium row keeps its labelled stand-in, as decided.
+
+### Changed
+- **Row o3 (K/U) decision recorded (GEN.514 note).** Boss chose to keep the stand-in and not use the sodium proxy. Docs only.
+
 ## [8.0.2120] - 2026-10-24
 
 **Headline:** Picking something on the Galaxy Map shows its information once, over the map, not also in a panel beside it.
