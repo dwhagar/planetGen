@@ -295,3 +295,7 @@ the same three bands up to 2 Msun, then 1.4 M^3.5 to 55 Msun and a linear law ab
 it would change every massive star the generators draw, and the supergiant luminosities built on it. The two share one evaluator and
 agree to 2 Msun; between 2 and 20 Msun the map's is 7% higher, and above 55 Msun it is lower (1.07e10 against 1.28e11 Lsun at 4
 million Msun). Nothing may call the map function for a star's own luminosity, or the generators' for a map rank.
+
+## What a run at the default cut places (GEN.677)
+
+A run at the 14 solar mass cut placed about 86,000 stellar black holes per pair of inner shells and no neutron star that is not a magnetar, which read as an inverted ratio. It is the cut, not the rates. The scatter places a class only above the cut (`share_above`): the stellar black holes draw 5 to 20 solar masses, so 40% of them (14 to 20) are scattered; the neutron stars draw 1.1 to 2.2, so none is, and the sector that holds one draws it when it is filled (`below_cut_draws`, at the rate of `tuning.phenomenon_rate_per_star`). Each class is placed at the count its model rate gives (the stellar remnant model of `galaxy/remnant_density.py`): at the default cut the black hole count is within 1% of `shell_expected_by_class`, and with every mass scattered (cut 1) the neutron stars outnumber the black holes about 2 to 1 on the toy galaxy of the tests, as the model has them. The stage line now says what the cut leaves to the sectors (`phenomenon_scatter.cut_summary`), the magnetars being scattered at every cut. No generated value changes.

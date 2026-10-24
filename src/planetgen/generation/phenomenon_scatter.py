@@ -250,6 +250,33 @@ def _scattered_rates(min_mass_solar):
     return rates
 
 
+def cut_summary(min_mass_solar):
+    """
+    What the scatter places and what it leaves to the sectors at this cut, as the phrase the stage's log line gives
+    (GEN.677). A class is scattered only above the cut (`share_above`), the sectors draw the rest when they are filled
+    (`below_cut_draws`), so at a cut over the neutron stars' heaviest (2.2 solar masses) no ordinary neutron star is
+    scattered while the stellar black holes above the cut are: the run's log read that as an inverted ratio. The magnetars
+    are scattered at every cut.
+    """
+    scattered, left = [], []
+    for kind, subtype, label in (("black-hole", "stellar", "stellar black holes"), ("neutron-star", None, "neutron stars")):
+        low, high = mass_law(kind, subtype)[0]
+        share = share_above(kind, subtype, min_mass_solar)
+        if share >= 1.0:
+            scattered.append(f"all {label}")
+        elif share > 0.0:
+            scattered.append(f"{label} from {min_mass_solar:g} solar masses")
+        else:
+            left.append(f"the {label} (all under {high:g} solar masses)")
+    head = f"{' and '.join(scattered)}; " if scattered else ""
+    if not left:
+        return head[:-2]
+    note = f"the sectors draw {' and '.join(left)} when they are filled"
+    if any(part.startswith("the neutron") for part in left):
+        note += ", but the magnetars are scattered at every cut"
+    return head + note
+
+
 def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1, seed, skip_addresses=None,
                   min_mass_solar=None):
     """
@@ -465,14 +492,22 @@ def shell_expected(shape, shell_index, high_band, edge_pc, expected_at_density_1
     sample bands, as `bright_stars.shell_expected_stars` does for stars."""
     if min_mass_solar is None:
         min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
+    return sum(shell_expected_by_class(shape, shell_index, high_band, edge_pc, expected_at_density_1,
+                                       min_mass_solar).values())
+
+
+def shell_expected_by_class(shape, shell_index, high_band, edge_pc, expected_at_density_1, min_mass_solar=None):
+    """`shell_expected` per class: `{(kind, subtype): about how many}` for each class with anything above the cut."""
+    if min_mass_solar is None:
+        min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
     fractions = {population: 1.0 for population in bright_stars.POPULATIONS}
     rates = _scattered_rates(min_mass_solar)
-    total = 0.0
+    totals = {(kind, subtype): 0.0 for kind, subtype, _rate in rates}
     for _band, plane, z, stars in bright_stars.sampled_band_expectations(
             shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
-        total += stars * sum(rate * _expectation_factor(shape, kind, subtype, plane, z)
-                             for kind, subtype, rate in rates)
-    return total
+        for kind, subtype, rate in rates:
+            totals[(kind, subtype)] += stars * rate * _expectation_factor(shape, kind, subtype, plane, z)
+    return totals
 
 
 def _expectation_factor(shape, kind, subtype, plane, z):

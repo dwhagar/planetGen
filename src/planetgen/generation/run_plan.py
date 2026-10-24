@@ -2439,7 +2439,7 @@ def scatter_phenomena(args):
         shape = _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar)
         e_value = skeleton.expected_system_count_at_density_1
         log.normal(f"Phenomena: about {round(shape.expected_rows):,} to place in {shape.shell_total:,} shells "
-                   f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
+                   f"({phenomenon_scatter.cut_summary(min_mass_solar)}).")
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         landed = [0]
