@@ -2824,6 +2824,38 @@ def test_galaxy_map_wheel_carries_the_zoom_down_through_the_windows_and_back_up(
     assert parse_qs(_query(page))["win"][0].startswith("243."), "back out on the parent window, the 243-shell blocks"
 
 
+def test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop(page, map_site):
+    """MAP.263: the camera is the only state. From the whole galaxy, turned to an angle of the reader's own, one
+    unbroken wheel scroll carries the view down through every window to the sectors: the camera is never flown to a
+    preset (never `flying`), its turn is never reset, and the distance falls at every tick (no stop at a stage's end)."""
+    _open_galaxy(page, map_site)
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    centre = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.move(*centre)
+    page.mouse.down()
+    page.mouse.move(centre[0], centre[1] + 60, steps=6)
+    page.mouse.up()
+    start = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    assert start["tilt"] > 5, "the reader's own turn is not the preset's"
+    seen = []
+    for _ in range(260):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(30)
+        camera = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+        assert not camera["flying"], "a flight to a preset"
+        seen.append(camera)
+        win = parse_qs(_query(page)).get("win", [""])[0]
+        if win.startswith("1.") or "open=1" in _query(page):
+            break
+    else:
+        pytest.fail(f"the scroll never reached the sectors: {seen[-1]}")
+    assert all(abs(c["tilt"] - start["tilt"]) < 0.5 for c in seen), "the turn was reset on the way"
+    # The tick that carries across a stage is the only one that does not come closer: never two in a row.
+    stalls = [n for n in range(1, len(seen)) if seen[n]["dist"] >= seen[n - 1]["dist"] * (1 - 1e-9)]
+    assert not any(b - a == 1 for a, b in zip(stalls, stalls[1:])), f"the zoom stopped at ticks {stalls} of {len(seen)}"
+    assert seen[-1]["dist"] < start["dist"] / 50, (start["dist"], seen[-1]["dist"])
+
+
 # --- The halo beyond the outline (MAP.243) -----------------------------------------------
 
 def _tooltip(page):
@@ -2879,7 +2911,7 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
             spot = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.left + r.width / 2, Math.min(r.top + r.height / 2, innerHeight - 10)]; }")
         page.mouse.move(*spot)
         page.mouse.wheel(0, -400)
-        page.wait_for_timeout(1000)  # past the wheel's cooldown between one stage and the next
+        page.wait_for_timeout(1000)  # a moment for the next window to arrive
         if len(_crumbs(page)) >= 6:
             break
     _settle(page)
