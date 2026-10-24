@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2171] - 2026-10-24
+
+**Headline:** The hosted nebula row tests no longer fail when the built star draws a heavier companion.
+
+### Fixed
+- **`test_hosted_nebula_rows` failed with all data sets fetched (TEST.311).** The test built the row's star as a plain `StarSystem`, which draws a member tree of its own (GEN.631), and a heavier companion drawn there became `stars[0]` and lit, or did not light, a nebula the row does not predict. A sector fill never draws a tree for a row with no stored members: it passes `stored_trees.SINGLE`. The test now builds the star the same way.
+TODO items resolved: TEST.311. Added: none.
+
 ## [8.0.2170] - 2026-10-24
 
 **Headline:** Every test that drives headless Chromium now runs in the browser phase of the test runner, not beside the all-core tests.
