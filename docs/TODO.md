@@ -11037,6 +11037,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Update): Blocked on the size-frequency law and
   cut, filed as research item GEN.713. Lane K reported 7:50 AM
   EDT 2026-10-24, as the lane reported.
+  Research (2026-10-09, 10-24 GEN.713): GEN.713 research is done (Lane
+  K, reports/gen713-comet-size-law-2026-10-24.md, about 2:30 PM EDT
+  2026-10-24 as the lane reported). Findings: (1) the design text's real
+  rate of 1e12 per pc^3 disagrees with the sources by about three orders
+  of magnitude: Do et al. 2018 and Jewitt and Seligman 2023 give 0.1 to
+  0.2 per au^3 for objects of about 100 m, which is about 1e15 per pc^3;
+  the 1e12 has no source, so a verified source wins. (2) The size index
+  is not measured: -2.5 (collisional cascade), -3 (broad), -3.8
+  (free-floating planets), and steeper than -3 is needed so mass does
+  not diverge; draw the cumulative index over 2.5 to 3.8 per galaxy as a
+  labelled stand-in (widest range rule). (3) Keep the remnant-mass-cut
+  device: choose a lowest size by how many rows a sector may hold (with
+  index 3 there are 8.8e14 per pc^3 above 100 m and about 1 above 10^4
+  km). (4) Bound long-period comets (Oort cloud, Boe et al. 2019:
+  cumulative index about 3.6 above 1 km, nearly flat from 100 m to 1 km)
+  are a different population from the unbound ones this item covers. (5)
+  Dryness: the cometary fraction must be below 2.4e-4 per au^3, so dry
+  objects like Oumuamua need a rocky share above 0.9988 if the comet
+  density is the limit. Not read: the body of Boe 2019 and the Fig. 19
+  caption limits.
   Prerequisites: GEN.557. Related: GEN.550, GEN.520.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
@@ -13258,23 +13278,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a registry row. Owner: the class lane (it knows the values).
   Prerequisites: none. Related: GEN.650, GEN.646, GEN.509, GEN.510,
   GEN.675.
-
-- [ ] **GEN.713 Research the size law and the cut for long-period and interstellar comets (blocks GEN.559)**
-  Habitability lane K (7:50 AM EDT 2026-10-24, as the lane reported)
-  found GEN.559 blocked on this research gap after the comet composition
-  of GEN.442. Do: read Jewitt and Seligman 2023 (already cited in
-  tuning.py) and verify Do, Tucker and Tonry 2018 (recalled,
-  unverified); report the size-frequency law for long-period and
-  interstellar comets, the lowest size worth a row, the range of the
-  law, and the source for each figure; where no verified source exists,
-  say so, and apply the standing source rules (verified wins; two in
-  doubt = newest; two in question = widest range). Done: a report under
-  /mnt/project-files/reports/ with the law, the cut and the sources, and
-  GEN.559's text updated by the TODO thread. Owner: none (pool), a short
-  read-only research thread.
-  Research (2026-10-09, 10-24 Lane K): Owner: Lane K, after GEN.714
-  (confirmed unstarted 2:02 PM EDT 2026-10-24).
-  Prerequisites: none. Related: GEN.559, GEN.550.
 
 - [ ] **GEN.714 Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug)**
   Found by Habitability lane K (8:56 AM EDT 2026-10-24, as the lane
