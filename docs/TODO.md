@@ -19818,7 +19818,7 @@ clears each one.
   of these tests; do this after DB.98 and only for what is left. Done:
   adding a migration needs no edit to those tests. Owner: none (pool);
   the regression-test cleanup lane proposed, after DB.98.
-  Prerequisites: DB.98.
+  Prerequisites: none. Related: DB.98.
 
 ## USR: User accounts
 
