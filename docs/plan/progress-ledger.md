@@ -1211,3 +1211,4 @@ Baseline: PR #1817.
 | GEN.456 | 8.1 | Haze, dust and cloud |
 | GEN.501 | 8.1 | Weight research (atmosphere) |
 | GEN.663 | 8.1 | Tuned draws and selection models |
+| GEN.92 | 8.4 | Planet classes |

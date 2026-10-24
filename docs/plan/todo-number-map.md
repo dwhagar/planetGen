@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.313 |
+| TEST | TEST.314 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -817,7 +817,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.89 | The habitability score for every planet and moon | none | done, PR #1025 |
 | GEN.90 | Refactor the planet classes around the habitability index | none | open |
 | GEN.91 | Classes like S and V in the hot and cold zones | none | open |
-| GEN.92 | Life and its highest stage follow the habitability score | none | open |
+| GEN.92 | Life and its highest stage follow the habitability score | none | done, PR #2833 |
 | GEN.93 | Nebula conditions in planet generation | none | open |
 | GEN.94 | Feasibility study: can planets form in each nebula class, and what changes | none | done, PR #823 |
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
@@ -2662,6 +2662,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.310 | Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report | none | open |
 | TEST.311 | test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug) | none | open |
 | TEST.312 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails on main for the new ozone_uv dataset (bug) | none | done, PR #2810 |
+| TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
