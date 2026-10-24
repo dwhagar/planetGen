@@ -1,5 +1,0 @@
-**Headline:** The Galaxy Map keeps its stars in one buffer that each node adds to as it arrives, and positions are exact however far from the galaxy's centre the camera is.
-
-### Changed
-- **One star buffer, filled node by node (MAP.267).** A node arriving writes its own stars at the end of the star buffer and a node leaving is cut out by moving the tail of the buffer into its place; the nodes already drawn are not touched, where every change of the view used to rebuild every star (`static/starbuffer.js`, `SlotStore`). The buffer doubles when it is full. A change of the star filters still starts it afresh.
-- **Stars are placed relative to the eye (MAP.267).** Each position is a high and a low float32 and the shader subtracts the camera's own pair, so a star keeps under a quarter pixel down to about 0.2 AU from the camera at any distance from the galaxy's centre (one float32 was a dozen pixels off a parsec away 260 kpc out). The old frame rounded to a whole parsec at the camera's target is gone. The other browser buffers (territory dots, superbubbles, rings, block prisms, the system view) are still absolute: they stay with MAP.240.
