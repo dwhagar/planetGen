@@ -13109,6 +13109,454 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.707, GEN.711, GEN.724.
   Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
 
+- [ ] **GEN.726 Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  A1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T7. Today:
+  On main the surface pressure is a class density range times gravity
+  (retention factor gravity^1, 'a starting point, not derived from a
+  retention model') times the scale height; the new mixture draw takes
+  pressure_bar as an input and the design formula P = min(P_supply,
+  P_retention, P_vapour) has no definition of P_supply. Real physics:
+  pressure = atmosphere mass times g over 4 pi R squared, where the mass
+  is the delivered volatiles (GEN.481) times the degassed share (redox,
+  GEN.482) minus escape, impact erosion and sinks. Do: define P_supply
+  in a physics module, feed it to the mixture draw and the fixed point
+  of GEN.422, and register its stand-ins. Done: pressure is derived from
+  an inventory for every body, with a test across the Solar System
+  bodies and a sweep showing the pressure distribution, and no class
+  pressure range is read. Each stand-in it touches records its source
+  tier and tweak level in the gap plan registry (GEN.725). Owner: pool
+  (first free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.411, GEN.422, GEN.481, GEN.482,
+  GEN.511.
+
+- [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  F3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: n/a (left
+  out). Today: Every planet and moon orbit is circular and inclination
+  is uniform up to a maximum (the code says 'this generator only ever
+  models circular orbits'); there are no seasons, no eccentric-orbit
+  tidal heating, and the stability and insolation rules assume circles.
+  Real physics: eccentricity and inclination distributions by
+  multiplicity and age (Kepler and radial velocity statistics), with
+  seasons, eccentric insolation and tidal heating following from them.
+  Do: draw eccentricity and inclination from a sourced law, store them,
+  and make insolation, the stability rule and the latitude bands read
+  them; GEN.582 only labels the fields as origin data. Done: orbits
+  carry eccentricity, the stability check uses it, and a test compares
+  the generated distribution with a published one. Each stand-in it
+  touches records its source tier and tweak level in the gap plan
+  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
+  not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.582, GEN.656, GEN.699.
+
+- [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  F1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T7. Today:
+  The number of planets is a uniform integer between 0 (or 1) and a
+  ceiling from the disc's isolation-mass budget, with a metallicity cap.
+  Real physics: multiplicity and occurrence distributions from Kepler
+  and radial velocity surveys by star mass and metallicity. Do: replace
+  the uniform count with a sourced occurrence law; the Kepler harness
+  GEN.503 and GEN.504 tunes sizes and periods, not counts, so extend it
+  to counts. Done: the generated planets-per-star distribution matches
+  the published one within its uncertainty, with the tuning recorded in
+  the registry. Each stand-in it touches records its source tier and
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.503, GEN.504, GEN.650.
+
+- [ ] **GEN.729 Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  F2; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T3 (ratio),
+  T9 (first slot). Today: The first slot sits at 0.05 to 0.4 of the
+  habitable zone's inner edge, each next slot is a uniform 1.3 to 1.8
+  times the last, at least 10 mutual Hill radii apart; a belt appears
+  with probability 0.1. No resonances, no similar-size neighbours. Real
+  physics: the observed period-ratio distribution, resonance pile-ups
+  and the 'peas in a pod' size uniformity, with dynamical stability
+  checked. Do: draw spacing and neighbour sizes from the sourced
+  statistics and keep the Hill-radius stability floor. Done: the
+  generated period-ratio and neighbour-size distributions match the
+  published ones, with the tuning recorded. Each stand-in it touches
+  records its source tier and tweak level in the gap plan registry
+  (GEN.725). Owner: pool (first free lane; 8.1 core lanes do not take it
+  before 8.1 closes).
+  Prerequisites: none. Related: GEN.503, GEN.504, GEN.650.
+
+- [ ] **GEN.730 Formation-era dynamics: giant impacts, scattering and instability instead of one survival constant**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  F7; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T3. Today:
+  Giant impacts and scattering reduce to one constant: 0.4 of the
+  oligarchs survive as planets. Real physics: formation-era dynamics:
+  impacts, instability, resonance capture. Do: replace the constant with
+  a reduced model of the formation era (for example a survival law by
+  oligarch count and spacing) tuned to occurrence data; GEN.105 is the
+  later orbital update, not formation. Done: the survival share comes
+  from a model with a test against a published population, not from a
+  constant. Each stand-in it touches records its source tier and tweak
+  level in the gap plan registry (GEN.725). Owner: pool (first free
+  lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.105, GEN.650, GEN.510.
+
+- [ ] **GEN.731 Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  F8; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T6 (day),
+  T3 (Q, k2). Today: Planet day length is log-uniform over 8 to 48 hours
+  (rocky) or uniform 8 to 20 (giants); tilt for rocky planets follows a
+  single impact-tilt formula; tidal locking uses one fixed Q and k2 for
+  every body. Real physics: spin from accretion angular momentum, tidal
+  despinning with per-body Q and k2, spin-orbit resonances (Mercury
+  3:2), atmospheric tides. Do: draw initial spin from a sourced law,
+  evolve it by tides with Q and k2 from the interior (reading the
+  GEN.699 heat model), and store the resonance state. Done: day length
+  and lock state follow from the orbit, the age and the interior, with
+  tests on Mercury, Venus, Earth and a hot Jupiter. Each stand-in it
+  touches records its source tier and tweak level in the gap plan
+  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
+  not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.699, GEN.727, GEN.737.
+
+- [ ] **GEN.732 Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  F10; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: n/a (left
+  out). Today: No planetary rings exist in the data; the painter
+  (MAP.275) is to draw rings with gaps but has nothing to draw from.
+  Real physics: ring mass and extent from the Roche limit and the origin
+  (a disrupted moon or captured body), with composition. Do: add a ring
+  model and stored fields (inner and outer radius, optical depth,
+  composition class), drawn from the planet's moons, impacts and Roche
+  limit. Done: rings exist as data, the painter reads them, and a test
+  checks Saturn, Uranus and Neptune-like cases. GEN.670 is colour
+  research only. Each stand-in it touches records its source tier and
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: MAP.275, GEN.670.
+
+- [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  C4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T5
+  (polytrope), T7 (helium rain), T6 (core odds). Today: Giant interiors
+  use an n=1 polytrope for layer pressures, helium rain as a straight
+  line through Jupiter and Saturn, and placeholders for a 50 percent
+  compact-core chance and its mass range; the hydrogen-helium
+  equation-of-state tables are not downloaded. GEN.642 is built on these
+  stand-ins. Real physics: a real hydrogen-helium equation of state (CMS
+  or Saumon-Chabrier) and interior models. Do: add the table download to
+  the shared setup fetch step (Boss manages licensing, the licence goes
+  in DATA-LICENSE.md only) and replace the polytrope in the giant
+  interior solver. Done: giant radius and layer pressures come from the
+  tables, with tests on Jupiter, Saturn, Uranus and Neptune. Each
+  stand-in it touches records its source tier and tweak level in the gap
+  plan registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes
+  do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.642, GEN.460.
+
+- [ ] **GEN.734 Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  C8; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
+  The recipes mark four weight tables open: planet minus star Fe/Mg
+  scatter (gap plan BC8), core light elements (BC18), rogue-planet
+  stripping at ejection (BC11) and moon composition against distance
+  (BC6). They are gap plan rows only and have no TODO item. Real
+  physics: data that is not yet public (BC8, BC11, BC18) or composition
+  built from the disc (BC6). Do: find the best available source or model
+  for each, label the stand-in with tier and tweak level in the
+  registry, and give each a replacing plan. Done: the four tables carry
+  a source or a labelled stand-in with a tier, and each has a named
+  replacing item. Each stand-in it touches records its source tier and
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.725, GEN.711.
+
+- [ ] **GEN.735 Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  H1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T5. Today:
+  The GEN.699 interior heat model is a one-box stagnant-lid model:
+  mantle and core share one temperature, surface held at 273 K, a 3500 K
+  ceiling, viscosity and activation energy drawn from the paper's range.
+  GEN.721 adds only the mobile-lid switch. Real physics: mobile-lid
+  cooling, a separate core, a pressure-dependent liquidus, coupling to
+  climate. Do: extend the model with a separate core and a regime from
+  the thermal history, and couple the surface temperature to the climate
+  model. Done: heat flow and regime follow from mass, water and age,
+  with an Earth and Venus test. Each stand-in it touches records its
+  source tier and tweak level in the gap plan registry (GEN.725). Owner:
+  pool (first free lane; 8.1 core lanes do not take it before 8.1
+  closes).
+  Prerequisites: none. Related: GEN.699, GEN.721.
+
+- [ ] **GEN.736 Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  H3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T7. Today:
+  Magnetic field is a set of design defaults: a dynamo needs 0.05 Earth
+  masses and a core fraction of 0.15; lifetime is 4 Gyr times mass^0.5
+  times a uniform factor; moment is 7.8e22 A m2 times mass; giants are
+  interpolated between Neptune, Saturn and Jupiter; moons are 10 percent
+  Ganymede-like. Real physics: a dynamo from the core's heat flow and
+  rotation (the buoyancy-flux scaling), reading the new interior heat
+  model. Do: compute the field strength and its lifetime from the core
+  heat flow (GEN.699) and the spin (GEN.731), and feed it to the
+  radiation shielding. Done: field strength comes from heat flow and
+  spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead).
+  Each stand-in it touches records its source tier and tweak level in
+  the gap plan registry (GEN.725). Owner: pool (first free lane; 8.1
+  core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.699, GEN.444, GEN.731.
+
+- [ ] **GEN.737 Tidal heating from the orbit, stored and counted for moons and planets**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  H4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T9
+  (resonance boost), T6 (eccentricity). Today: Tidal heating of an icy
+  moon uses a forced eccentricity drawn log-uniform 0.001 to 0.01, a
+  random 1 to 50 times resonance boost for small moons and one fixed
+  k2/Q, and the result is thrown away after thickening the ice shell;
+  rocky moons and planets get none; habitability's energy term ignores
+  it. Lane D flagged it on 10-23. Real physics: tidal heating from the
+  orbit (eccentricity, resonances, rheology), stored and counted. Do:
+  compute the heating from the eccentricity (GEN.727) and a rheology,
+  store it, and add it to the interior heat model and the habitability
+  energy term. Done: tidal heating is stored and counted for rocky and
+  icy bodies, with tests on Io, Europa, Enceladus and the Moon. Each
+  stand-in it touches records its source tier and tweak level in the gap
+  plan registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes
+  do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
+
+- [ ] **GEN.738 Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  A3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T9 (exobase
+  ratios), T6. Today: Escape is a Jeans filter whose exobase ratios are
+  fitted to three bodies (AM19), an XUV exponent of 0.25 (AM20), a width
+  and loss thresholds (AM21 to AM23); sub-Neptune envelopes use an
+  energy-limited formula. The registry names 'a thermosphere model' with
+  no number. Real physics: a thermosphere model, hydrodynamic escape,
+  time-integrated XUV loss of atmospheres. Do: build a thermosphere and
+  escape model with a time integral over the star's XUV history and
+  replace AM19 to AM23. Done: escape comes from a model with tests on
+  Mars, Venus, Titan and a sub-Neptune, and the stand-ins are replaced
+  or relabelled. Each stand-in it touches records its source tier and
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.511, GEN.483, GEN.675.
+
+- [ ] **GEN.739 Impact erosion and late delivery of atmospheres, with history**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  A5; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: n/a (left
+  out). Today: There is no impact erosion or late delivery of volatiles.
+  Real physics: impact-driven loss and delivery with history. Do: add an
+  impact history to the supply law (GEN.726) so that late veneers and
+  erosion change the inventory. Done: the inventory includes impact
+  delivery and loss, with a test against the observed volatile budgets
+  of the terrestrial planets. Each stand-in it touches records its
+  source tier and tweak level in the gap plan registry (GEN.725). Owner:
+  pool (first free lane; 8.1 core lanes do not take it before 8.1
+  closes).
+  Prerequisites: none. Related: GEN.726, GEN.481.
+
+- [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  A12; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: n/a (left
+  out). Today: Oxygen comes from abiotic rows with placeholder
+  fractions; there is no model of oxygen building up with a biosphere.
+  Real physics: a coupling between the life stage and the atmosphere's
+  gases. Do: add a biosphere term to the mixture draw for oxygen,
+  methane and other biosignature gases, gated by the life stage
+  (GEN.649), with the abiotic baseline kept. Done: an inhabited world's
+  air shows the life-driven gases, with tests across life stages and an
+  abiotic control. Each stand-in it touches records its source tier and
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.649, GEN.525, GEN.750.
+
+- [ ] **GEN.741 Post-main-sequence stellar tracks: subgiant, red giant, horizontal branch, asymptotic giant and supergiant from mass and age instead of random draws**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  S2; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
+  After the main sequence the subgiant is a straight line to a fixed end
+  point; red-giant luminosity is sampled from a law and temperature is
+  uniform in a range; horizontal-branch, asymptotic-giant and supergiant
+  temperatures are uniform in a range; supergiant luminosity is the
+  main-sequence value times a uniform growth factor; red or blue
+  supergiant is a fixed fraction. GEN.652 covers only the main sequence.
+  Real physics: post-main-sequence tracks (isochrone tables) giving
+  luminosity, radius and Teff from mass, age and metallicity. Do: read
+  the MIST post-main-sequence phases once GEN.652 lands the table, and
+  use them for evolved stars and their planets. Done: evolved stars come
+  from tracks, with a test on the Hertzsprung-Russell diagram of a
+  synthetic cluster. Each stand-in it touches records its source tier
+  and tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.652, GEN.553.
+
+- [ ] **GEN.742 White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  S3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T5. Today:
+  White dwarf luminosity is a power law of cooling age, clamped to a
+  range; the cooling-sequence download (Bedard 2020) is used for radius
+  and layers, not for cooling. The spectral type is BC19 in the gap
+  plan. Real physics: cooling sequences by mass and atmosphere
+  (including crystallisation and spectral type against temperature). Do:
+  use the downloaded cooling sequences for luminosity against age;
+  GEN.553 may absorb it. Done: white dwarf luminosity comes from the
+  sequences, with a test on a cooling-age sweep. Each stand-in it
+  touches records its source tier and tweak level in the gap plan
+  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
+  not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.553, GEN.652.
+
+- [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  S4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T2. Today:
+  Neutron star radius comes from a measured band; the inner crust and
+  core need an equation of state that nothing integrates yet (21 tables
+  are on disk). Helium-core and oxygen-neon white dwarfs have no layers
+  because the sequences are carbon-oxygen. Real physics: integrate the
+  tables for radius and structure; add the other white dwarf types. Do:
+  write the TOV integration over the tables on disk and extend the white
+  dwarf layers to the other core types. Done: neutron star radius and
+  structure follow from the tables for a mass sweep, with a test against
+  NICER radii. Each stand-in it touches records its source tier and
+  tweak level in the gap plan registry (GEN.725). Owner: pool (first
+  free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.272, GEN.553.
+
+- [ ] **GEN.744 Alpha-enhanced stellar tracks and an age-metallicity relation from the galaxy's own history**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  S7; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
+  The isochrone grid is solar-scaled (no [alpha/Fe]) but the thick-disc
+  branch is alpha-enhanced; thick-disc ages use an 8 Gyr gate and age
+  and metallicity are independent (D12 stand-in); the cluster [Fe/H]
+  spread of 0.15 is recalled and the satellite alpha pattern is open.
+  Real physics: alpha-enhanced tracks and an age-metallicity relation
+  from the galaxy's own history. Do: add alpha-enhanced tracks for the
+  thick disc and halo and draw age with metallicity from the galaxy
+  model; GEN.405 covers the galaxy-model part. Done: thick-disc stars
+  use alpha-enhanced tracks and a correlated age and metallicity, with a
+  test against the observed relation. Each stand-in it touches records
+  its source tier and tweak level in the gap plan registry (GEN.725).
+  Owner: pool (first free lane; 8.1 core lanes do not take it before 8.1
+  closes).
+  Prerequisites: none. Related: GEN.405, GEN.652.
+
+- [ ] **GEN.745 Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  S8; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
+  The star's light is a blackbody of its Teff with the UV bands
+  multiplied by one seeded share (UV-C 0.1 to 1), and the UV-B and UV-A
+  shares follow one family fitted to the Sun; map colour is also a
+  blackbody (MAP.269 bug). Real physics: model-atmosphere spectra by
+  Teff, gravity and activity (BT-Settl; MUSCLES for M dwarfs); the
+  blackbody has no line blanketing or chromosphere. Do: add a spectral
+  library lookup and replace the UV shares and the map colour source.
+  Done: UV bands and colour come from a library spectrum with tests on
+  the Sun and an M dwarf. Each stand-in it touches records its source
+  tier and tweak level in the gap plan registry (GEN.725). Owner: pool
+  (first free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: MAP.269, GEN.523, GEN.748.
+
+- [ ] **GEN.746 Cosmic-ray dose below 100 g/cm2 of air from shower simulations instead of a straight stand-in between the Moon and Mars**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  R1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
+  Cosmic-ray dose below 100 g/cm2 of air is a straight stand-in between
+  the Moon (500 mSv/yr) and the Mars measurement (232 mSv/yr). Data job
+  AD5 in the gap plan has no open TODO item. Real physics: shower
+  simulations or a published dose-versus-depth curve. Do: fetch the
+  published dose against atmospheric depth data (AD5), fit a curve, and
+  replace the stand-in. Done: dose against depth follows the published
+  curve, with tests at sea level, a mountain and Mars. Each stand-in it
+  touches records its source tier and tweak level in the gap plan
+  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
+  not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.444, GEN.445.
+
+- [ ] **GEN.747 Solar energetic particle events: the full event set and the Weibull parameters**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  R2; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T2. Today:
+  Solar energetic particles: the Band form and two events are read; the
+  Weibull parameters and 32 of 34 events are open. GEN.436 is built.
+  Real physics: the full event set. Do: obtain and fit the missing
+  events and parameters, label what stays a stand-in. Done: the event
+  rate and spectrum come from the full set, with a test against the
+  published distribution. Each stand-in it touches records its source
+  tier and tweak level in the gap plan registry (GEN.725). Owner: pool
+  (first free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.436, GEN.444.
+
+- [ ] **GEN.748 Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  R3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T5. Today:
+  Ozone has no temperature dependence in the Chappuis band, and the
+  ozone spread is a seeded range wider than the paper's. Star UV is
+  covered by GEN.745. Real physics: temperature-dependent cross
+  sections and the paper's spread. Do: add the temperature dependence
+  and narrow the spread to the source. Done: the ozone column and UV at
+  the surface match the source across a temperature sweep. Each stand-in
+  it touches records its source tier and tweak level in the gap plan
+  registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes do
+  not take it before 8.1 closes).
+  Prerequisites: none. Related: GEN.745, GEN.444.
+
+- [ ] **GEN.749 Trapped radiation belts and the magnetosphere's shielding beyond a dipole size**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  R6; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: n/a (left
+  out). Today: Trapped radiation belts and shielding beyond a dipole
+  size are not modelled. Real physics: a belt model. Do: add a belt
+  model that reads the dynamo field (GEN.736) and the stellar wind, for
+  the radiation dose at orbit. Done: belts exist for planets with a
+  field, with tests on Earth and Jupiter. Each stand-in it touches
+  records its source tier and tweak level in the gap plan registry
+  (GEN.725). Owner: pool (first free lane; 8.1 core lanes do not take it
+  before 8.1 closes).
+  Prerequisites: none. Related: GEN.736, GEN.444.
+
+- [ ] **GEN.750 Evolutionary timeline: a model of the time to each life stage from conditions, or a ruling that the presets stay (Boss to rule)**
+  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
+  L1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
+  TODO thread). Kind: realism. Source tier of today's value: T9 (fast,
+  slow); normal is one Earth data point. Today: The evolutionary
+  timeline is three fixed presets (normal: abiogenesis 0.5 Gyr,
+  photosynthesis 1.5, complex cells 2.5, multicellularity 4.0,
+  civilisation 4.5; fast; slow) chosen by the star. The module says it
+  is 'purely speculative... not based on any established scientific
+  models of astrobiology', and the 'normal' row is Earth's history,
+  which the NO FIXED CONTENT rule forbids as a preset. Real physics: a
+  model of the time to each stage from conditions (energy, water,
+  temperature, stability), with the Earth as a test point. This is
+  partly unknowable, so it may be a deliberate design choice. Do: ask
+  Boss whether a model is wanted; if yes, build one and register its
+  tier and tweak level; if no, replace the Earth-history preset with a
+  drawn timeline and record the ruling. Done: Boss's ruling is recorded
+  and the timeline either follows from conditions or is a labelled
+  design draw that does not copy Earth. Each stand-in it touches records
+  its source tier and tweak level in the gap plan registry (GEN.725).
+  Owner: pool (first free lane; 8.1 core lanes do not take it before 8.1
+  closes). Needs a ruling from Boss before any code.
+  Prerequisites: none. Related: GEN.649, GEN.740.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18264,6 +18712,23 @@ clears each one.
   weakening them. Done: all pass on main, alone and in the suite. Owner:
   Bug Hunt (main-green rule). Related: TEST.347, TEST.346.
   Prerequisites: none. Related: TEST.346, TEST.347, TEST.348.
+
+- [ ] **TEST.351 test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not fails on main for planet and moon: GEN.699's columns internal_heat_flux_w_m2, mantle_activation_kj_mol and mantle_eta0_pa_s are neither on the sheet nor in NOT_SHOWN (bug)**
+  Found by Lane I (relayed 3:50 PM EDT 2026-10-24 as the lane reported,
+  on main after #3046; filed by the TODO thread). Kind: failing test on
+  main caused by GEN.699 (Lane H). Do: put the three columns on the
+  property sheet or list them in NOT_SHOWN with the reason. Done: the
+  test passes on main. Owner: Lane H (its change), otherwise Bug Hunt.
+  Related: GEN.699.
+  Prerequisites: none. Related: GEN.699, TEST.350.
+
+- [ ] **TEST.352 test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug)**
+  Found by Lane I (relayed 3:50 PM EDT 2026-10-24 as the lane reported;
+  filed by the TODO thread). Kind: failing test on main, stale list. Do:
+  remove the four star disk columns from NULL_IN_THIS_GALAXY in
+  test_db_column_round_trip. Done: the test passes on main. Owner: Bug
+  Hunt (main-green rule). Related: TEST.350.
+  Prerequisites: none. Related: TEST.350.
 
 ## USR: User accounts
 
