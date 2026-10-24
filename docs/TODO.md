@@ -11094,50 +11094,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check the year on the item's citation.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.410.
 
-- [ ] **GEN.503 The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One build used by every builder group: a target table
-  with the columns row id, statistic, value, sigma, source, label,
-  validity range and selection-model id; a simulate-and-compare function
-  per target (chi-square within 2 sigma, or a binomial or Wilson
-  interval for counts); and a check in the loader (extends TEST.214)
-  that refuses a tunable row with no target-table entry. The knob scope
-  is the validity range of the data (for example [Fe/H] -0.5 to +0.5 for
-  the Kepler metallicity null, 20 pc for brown dwarfs, FGK for the
-  radius valley); outside it a draw is a flagged extrapolation. The
-  tuned seeded draw keeps its knobs tunable and a retune is a table
-  version change and so a generator epoch bump. Do: build the table
-  format, the comparison function and the loader check, with one worked
-  example row. Done: a test draws a tunable row at many seeds and
-  compares it with its target within the stated sigma, the loader
-  refuses a tunable row without a target, and the harness holds no Solar
-  System value as a target without the flag. Owner: Core 4 (proposed,
-  with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.472, GEN.478, TEST.214,
-  GEN.480, GEN.494.
-  Registry hook (2026-10-17, gap-filling plan,
-  docs/design/research/gap-filling-plan.md, group X1): the target table gets the
-  fill id and the falsifier test of each stand-in, so a replaced
-  stand-in is checked against the same target (plan section 6.3). Each
-  filled value in the docs carries one line `Fill <id> (<kind>,
-  <evidence>): ...`.
-  Boss's general rules (typed in the project chat at 12:39 PM EDT on
-  2026-10-17, relayed by the coordinator): when in doubt, verified wins;
-  when two verified sources are in doubt, the newest wins; when two
-  sources are both in question, the one that takes the most permission
-  wins (his words 'most permission take wins'; Boss confirmed by card at
-  1:12 PM EDT, relayed in words, that it means the widest range of the
-  two sources: Decided). At 12:40 PM EDT,
-  by card (relayed in words), his six earlier 'widen and keep both'
-  answers stand; the newest-wins rule applies to every conflict after
-  them. The stand-in registry's conflict rule is the one in the gap plan
-  section 6.4 as updated.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.504 The Kepler transit-plus-recovery selection model**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -11278,7 +11234,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.504. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.504. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.510 Tuned draw builder B2: delivery and water worlds**
@@ -11305,7 +11261,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.511 Tuned draw builder B3: retention and lava worlds**
@@ -11336,7 +11292,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.512 Tuned draw builder B4: the iron branch**
@@ -11369,7 +11325,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.513 Tuned draw builder B5: redox and white-dwarf debris**
@@ -11399,7 +11355,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.508. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.508. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.514 Tuned draw builder B6: radioisotopes**
@@ -11485,7 +11441,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.517 Tuned draw builder B9: brown dwarfs**
@@ -11580,7 +11536,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.520 Tuned draw builder B12: the comet sampler**
@@ -11620,7 +11576,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.507. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.507. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.521 Tuned draw builder B13: belts**
