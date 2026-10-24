@@ -619,7 +619,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | done, PR #2856 |
 | DB.69 | Planets and moons store the composition fractions | none | done, PR #2751 |
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
-| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | none | open |
+| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | none | done, PR #3110 |
 | DB.72 | The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug) | none | done, PR #2060 |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | done, PR #2863 |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
@@ -1153,7 +1153,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | none | open |
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | none | open |
 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | open |
-| GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | open |
+| GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | done, PR #3110 |
 | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | done, PR #1957 |
 | GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | none | done, PR #2063 |
 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | done, PR #2580 |
@@ -2376,7 +2376,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
-| UX.188 | Object pages put the critical facts first: planet basics under the render, details in sections after | none | open |
+| UX.188 | Every object info page puts the critical facts first, as a nav system would for a starship captain; planet basics under the render, details in sections after | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

@@ -1393,3 +1393,5 @@ Baseline: PR #1817.
 | TEST.352 | 8.1 | Bugs and flaky tests |
 | TEST.357 | 8.1 | Radiation chain for habitability (GEN.445) |
 | TEST.353 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.424 | 8.1 | Mixture and stored values |
+| DB.71 | 8.1 | Mixture and stored values |

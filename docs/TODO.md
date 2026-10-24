@@ -940,7 +940,7 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
-- [ ] **UX.188 Object pages put the critical facts first: planet basics under the render, details in sections after**
+- [ ] **UX.188 Every object info page puts the critical facts first, as a nav system would for a starship captain; planet basics under the render, details in sections after**
   Boss (5:50 PM EDT 2026-10-24, design note): 'Redesign the object pages
   so that we frontload with the critical information, planet basics
   (temp, pressure, gravity, habitability, etc etc etc) and details come
@@ -961,6 +961,19 @@ with `clamp()`.
   page. Owner: Aux 11 (Lane 3, pages and markers).
   Prerequisites: none. Related: UX.143, UX.144, UX.150, UX.187, GEN.430,
   GEN.445.
+  Research (2026-10-09, Boss widening): Widened by Boss (5:51 PM EDT
+  2026-10-24): 'Same for ALL object info pages, most basic critical info
+  comes first, then details come after. We're doing this from the
+  perspective of this was a nav system so what would a hypothetical
+  starship captain want to know about a given object, sector, etc
+  first.' The item covers every object info page: sector, region,
+  system, star, planet, moon, belt, comet, each phenomenon, nebula and
+  cluster. For each kind the page opens with a short block of what a
+  captain needs first (what it is, where it is and how to reach it,
+  danger, whether it can be landed on, resources, habitability for
+  planets and moons), then titled detail sections. The owner writes the
+  order of the basics for each kind in the PR. Related: UX.143, UX.144,
+  UX.187.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -7303,39 +7316,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wired in (that rides lane I's GEN.411, which takes the epoch), so no
   generated value moves. Opacities are labelled stand-ins until GEN.703
   (lane E). The item stays open for the wiring step.
-- [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
-  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
-  10:29 PM EDT; code read on main, line numbers as that thread gave
-  them; report
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
-  written): `habitability_world.py` 244 recomputes a mean molar mass but
-  never writes it back, and it uses 28 g/mol for every balance gas,
-  which is wrong for helium (4 g/mol) and for the rest of the table. Do:
-  name the balance gas in the mixture (helium, neon, ammonia and so on
-  from GEN.410), give each its molar mass, store the mean molar mass
-  with the mixture and let the habitability code read it. Done: a
-  helium-rich atmosphere has a mean molar mass near 2 to 4 g/mol, not
-  28; habitability, the scale height and the molar density all read the
-  same stored number; a test says so.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
-  2026-10-24 (Boss asked for every blocker to have an owner): Lane I,
-  inside its PR 4 (GEN.452, GEN.411, DB.71 and GEN.424 are one PR per
-  its plan); the older Core 4 line is stale.
-  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
-  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
-  as three separate PRs, each when its own gate is green: (1) GEN.452,
-  (2) GEN.411, (3) GEN.424 with DB.71.
-  Research (2026-10-09, Owner): Owner reconciled: Lane I, inside PR 4
-  with GEN.411, GEN.452 and DB.71 (held until the supply law GEN.726
-  merges). The 'returned to the pool' line above is superseded. (TODO,
-  2026-10-24 5:27 PM EDT, from the physics fix plan thread's reconcile
-  ask.)
-  Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
-
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -15306,7 +15286,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.422, GEN.423, GEN.424. Related:
+  Prerequisites: GEN.411, GEN.422, GEN.423. Related:
   DB.65, DB.68, GEN.412.
   Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
   EDT as the lane reported): GEN.324 took 0105_satellite_stars because
@@ -15383,38 +15363,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
   2026-10-24 (Boss asked for every blocker to have an owner): Lane K,
   after GEN.441 slice 2, GEN.462 and GEN.466. Not started.
-
-- [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
-  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
-  1:00 AM EDT as the lane reported; merged as
-  docs/design/composition/atmosphere-composition.md section 3), filed by the TODO
-  thread. Finding 10: the stored partials (O2, CO2, CO, N2, Ar, H2, H2O,
-  CH4, H2S, SO2) miss He, Ne, Kr, Xe, NH3, NH4SH, HCN, C2H6, C2H2, OCS,
-  HCl, HF, N2O, NO2, O3, Na, K, SiO, Mg, Fe, TiO, VO and PH3, which the
-  class mixes and the descriptions already name or the physics needs
-  (the species-by-class table of part 05 section 13 lists each with the
-  class that needs it). GEN.411 splits the pressure into partials,
-  GEN.413 adds ozone and the items GEN.452, GEN.454 and the lava and
-  exosphere items draw more species, so every drawn partial needs a
-  place to live. Do: the design (GEN.409) chooses between more columns
-  and a per-planet table keyed by the gas table's species; store the
-  partial pressure of every species of the table that the planet or moon
-  holds, read the mean molar mass and the molar density from it, and
-  keep the ten old columns only if the design says so (no shim). Alembic
-  revision after the DB.67 one; the migration fills the new species with
-  the drawn values from GEN.411 for existing rows (or zero). Done: a
-  migration test upgrades and downgrades, the partials of every stored
-  row sum to the pressure, and a species outside the table cannot be
-  stored. Owner: Core 4 (proposed, with the atmosphere chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, DB.67. Related: DB.67, DB.68,
-  GEN.411, GEN.413, GEN.415.
-  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
-  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
-  as three separate PRs, each when its own gate is green: (1) GEN.452,
-  (2) GEN.411, (3) GEN.424 with DB.71.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
   Part of the unified orbited-body chain (GEN.550; design note
