@@ -38,7 +38,7 @@ import os
 import sys
 
 from planetgen.admin import activity_log, auth
-from planetgen.util import logpaths, settings, settings_writer
+from planetgen.util import log, logpaths, settings, settings_writer
 
 DOCS_PATH = os.path.join(logpaths.PROJECT_ROOT, "docs", "reference", "config.md")
 EXAMPLE_PATH = os.path.join(logpaths.PROJECT_ROOT, "config.json.example")
@@ -232,7 +232,9 @@ def main(argv=None):
     restore.add_argument("backup")
     for sub in (save, unset, restore):
         add_mysql_connection_args(sub)
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     if args.command == "check":
         return run_check()
     if args.command == "docs":

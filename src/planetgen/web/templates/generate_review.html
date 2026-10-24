@@ -3,7 +3,7 @@
     the task's page, which fills the form again. A job that can be run again can also be kept under a name (ADM.125),
     posted to the recipes route, which keeps the same fields. -#}
 {% extends "generate_base.html" %}
-{% from "partials/generate_fields.html" import disregard_data with context %}
+{% from "partials/generate_fields.html" import debug_box, disregard_data with context %}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
 <section class="panel generate-review" id="review" aria-labelledby="review-heading">
@@ -52,6 +52,9 @@
       {%- endfor %}
       {%- if task.key not in ("check", "wipe") and not review.fields|selectattr(0, "equalto", "disregard_missing_data")|list %}
       {{ disregard_data("review-disregard-data") }}
+      {%- endif %}
+      {%- if not review.fields|selectattr(0, "equalto", "debug")|list %}
+      {{ debug_box("review-debug-run") }}
       {%- endif %}
       <input type="hidden" name="{{ estimate_confirm_field }}" value="1">
       {%- if review.estimate and review.estimate.refused %}

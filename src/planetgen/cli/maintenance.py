@@ -18,13 +18,16 @@ import argparse
 import sys
 
 from planetgen.admin import maintenance
+from planetgen.util import log
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", choices=("on", "off", "status"))
     parser.add_argument("--eta", default="", help="When it should finish, in words (shown to visitors)")
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     try:
         if args.command == "on":
             maintenance.turn_on(args.eta, by="command line")

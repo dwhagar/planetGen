@@ -57,6 +57,7 @@ from planetgen.db.store import (
     mysql_config_from_args,
     schema_status,
 )
+from planetgen.util import log
 
 
 LINE_SECONDS = 30.0
@@ -231,7 +232,9 @@ def main():
     parser.add_argument("--status", action="store_true",
                         help="Print '<current version> <target version> <pending steps> <database>' "
                              "and change nothing.")
+    log.add_debug_arguments(parser)
     args = parser.parse_args()
+    log.apply_debug_arguments(args, parser)
 
     config = mysql_config_from_args(args)
 

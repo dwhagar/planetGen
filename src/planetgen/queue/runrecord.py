@@ -46,6 +46,8 @@ import socket
 import time
 from dataclasses import asdict, dataclass
 
+from planetgen.util import log as debug_log
+
 PREFIX = "planetgen"
 """str: Every key starts with this."""
 
@@ -144,6 +146,11 @@ def plan_key(run_id, index):
     return _k("run", run_id, f"s{index}", "plan")
 
 
+def debug_key(run_id):
+    """The stream of debug lines the run's workers relay to the process that started it (`planetgen.util.log.relayed`)."""
+    return _k("run", run_id, "debug")
+
+
 def banner_key(run_id):
     return _k("run", run_id, "banner")
 
@@ -237,7 +244,7 @@ def active_run(conn, kind=GENERATION):
 
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
-              steps=None, kind=GENERATION, disregard_missing_data=False):
+              steps=None, kind=GENERATION, disregard_missing_data=False, debug=""):
     """
     Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
     generation run and one of those may be live together).
@@ -249,6 +256,9 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
             unit that completes a stage reads the next one from here (PERF.118).
         disregard_missing_data (bool): Whether the run was told to take a labelled fallback for a missing downloaded data
             file (GEN.599); every unit's worker is set the same (`queue.units.run_unit`).
+        debug (str): `""` for an ordinary run; for a debug run, the areas it shows (`planetgen.util.log.parse_areas`,
+            `"all"` for every one). Every unit's worker then relays the debug lines it writes to the stream
+            `debug_key(run_id)`, and the process that started the run prints them (`planetgen.util.log.RelayReader`).
 
     Returns:
         str: The run id.
@@ -274,7 +284,8 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
     pipe.hset(run_key(run_id), mapping={
         "title": title, "kind": kind, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
-        "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "", "current": 0, "created": now, "started": now, "updated": now,
+        "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "",
+        "debug": debug or "", "current": 0, "created": now, "started": now, "updated": now,
         "finished": "", "error": "", "owner": _owner()})
     for index, stage in enumerate(declared):
         pipe.hset(stage_key(run_id, index), mapping={"units": stage["units"], "cost_total": stage["cost"], "done": 0,
@@ -448,6 +459,9 @@ def log(conn, run_id, message, level="info", kind="log", now=None, **fields):
     """Appends a line to the run's event stream; returns its id."""
     entry = {"t": _now(now), "level": level, "kind": kind, "message": message,
              **{name: value for name, value in fields.items() if value is not None}}
+    if debug_log.debug_log_active():
+        debug_log.trace(f"run {run_id}: {message} ({kind}" + "".join(f", {name}={value}" for name, value in fields.items()
+                                                                  if value is not None) + ")", area="queue")
     return _s(conn.xadd(events_key(run_id), entry, maxlen=EVENTS_MAXLEN, approximate=True))
 
 

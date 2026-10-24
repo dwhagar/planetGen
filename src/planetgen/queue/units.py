@@ -27,6 +27,7 @@ the next (`wrapper.advance`).
 """
 
 import json
+import os
 import time
 
 import rq
@@ -35,6 +36,7 @@ from rq.job import Callback
 from planetgen.datasets import fetch
 from planetgen.db import store
 from planetgen.queue import commands, redisqueue, runrecord
+from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 FAILURE_FUNCTION = "planetgen.queue.units.unit_failed"
@@ -162,21 +164,43 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         dict: `seconds` the unit took, or `skipped`.
     """
     conn = rq.get_current_job().connection
-    state, disregard = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data")
+    state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
     if runrecord._s(state) != "running":
         return {"skipped": True}
     fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))      # GEN.599: the run's own switch, in every worker
+    wanted = runrecord._s(debug)
+    if not wanted:
+        return _do_unit(conn, run_id, stage, unit, kind, args, cost)
+    # A debug run (`--debug`, or debug mode in config.json): this worker's stdout goes nowhere, so what the unit
+    # logs is relayed to the process that started the run, which prints it as it arrives.
+    with log.relayed(conn, runrecord.debug_key(run_id), "" if wanted == "all" else wanted):
+        return _do_unit(conn, run_id, stage, unit, kind, args, cost)
+
+
+def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
+    log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
+              f"arguments {_short(args)}", area="queue")
     result = commands.unit_function(kind)(args, _Reporter(conn, run_id, stage, unit))
     seconds = time.monotonic() - started
+    log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
+    log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
     outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds)
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
+    log.trace(f"unit {unit} of stage {stage} of run {run_id} recorded; "
+              f"{'it completes the stage: the next is queued' if outcome.advance else f'{outcome.done} unit(s) done'}",
+              area="queue")
     if outcome.advance:
         from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
         wrapper.finish_stage(conn, run_id, stage)
         wrapper.advance(conn, run_id, stage + 1)
     return {"seconds": seconds}
+
+
+def _short(value, limit=300):
+    text = json.dumps(value, default=str)
+    return text if len(text) <= limit else text[:limit] + f"... ({len(text)} chars)"
 
 
 def warm_unit(job):
@@ -251,11 +275,12 @@ def _progress(conn, run_id, stage):
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep):
+                 sleep=time.sleep, on_debug=None):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
-    `ENSURE_SECONDS` (starting workers, replacing dead ones).
+    `ENSURE_SECONDS` (starting workers, replacing dead ones), and `on_debug()` at every poll and when the stage ends
+    (a debug run prints the lines its workers relayed, `planetgen.util.log.RelayReader`).
 
     Raises:
         RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was cancelled).
@@ -274,11 +299,15 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
     while True:
         runrecord.touch(conn, run_id)
         drain()
+        if on_debug is not None:
+            on_debug()
         if len(seen) >= units:
             return
         state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
         if state not in runrecord.LIVE_STATES:
             drain()         # the last units may have finished between the two reads
+            if on_debug is not None:
+                on_debug()
             if len(seen) >= units:
                 return
             error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))

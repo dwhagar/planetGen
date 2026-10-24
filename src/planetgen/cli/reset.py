@@ -61,6 +61,7 @@ from planetgen.db import dataversion
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
+from planetgen.util import log
 
 _EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
 """set: Real tables that exist in every fresh database but hold
@@ -222,7 +223,9 @@ def main():
     parser.add_argument('--dry-run', action='store_true',
                          help="List every table (and its row count) that would be wiped, without "
                               "changing anything.")
+    log.add_debug_arguments(parser)
     args = parser.parse_args()
+    log.apply_debug_arguments(args, parser)
 
     config = mysql_config_from_args(args)
     try:

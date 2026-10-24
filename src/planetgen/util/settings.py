@@ -769,12 +769,20 @@ class Settings(_Section):
                             label="API address",
                             summary="Where the API lives, for scripts that call it from outside the "
                                     "web app.")
-    debug: bool = opt(False, "Write a verbose debug log to log_file: every decision the generator makes, every "
-                      "random roll, every SQL statement and request. The log grows fast.", env="PLANETGEN_DEBUG",
+    debug: bool = opt(False, "Debug mode: every decision the generator makes, every "
+                      "random roll, every SQL statement, queue event and request, written to the console of each "
+                      "planetgen command (stdout) and to log_file. The output is large.", env="PLANETGEN_DEBUG",
                       restart=True, editable=False, group="logging",
                       label="Debug log",
                       summary="Write a very detailed log of everything the generator does; it grows "
                               "fast.")
+    debug_areas: str = opt("", "Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib "
+                           "(comma separated; a leading - leaves one out). Empty writes everything but branch, "
+                           "which logs every conditional jump of the program's own code and is written only "
+                           "when named.",
+                           env="PLANETGEN_DEBUG_AREAS", restart=True, editable=False, group="logging",
+                           label="Debug areas",
+                           summary="Which kinds of detail debug mode writes; empty is all of them.")
     log_file: str = opt(logpaths.DEFAULT_LOG_FILE, "Where the debug log goes.",
                         env="PLANETGEN_LOG_FILE", restart=True, editable=False, group="logging",
                         label="Debug log file",

@@ -37,6 +37,7 @@ import uuid
 import pymysql
 
 from planetgen.db import login, store
+from planetgen.util import log
 
 DEFAULT_SEED = "0000000000000000000000000000BEEF"
 DEFAULT_SECTORS = 2
@@ -354,7 +355,10 @@ def format_report(args, results, profile):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Times a small galaxy from the plan to the finished fill.")
     add_benchmark_arguments(parser)
-    run_benchmark(parser.parse_args(argv))
+    log.add_debug_arguments(parser)
+    args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
+    run_benchmark(args)
 
 
 if __name__ == "__main__":

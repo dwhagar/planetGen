@@ -65,7 +65,7 @@ def test_no_log_file_when_debug_is_off(tmp_path, monkeypatch):
     log.error("nor this")
     assert not log.debug_log_active()
     assert not path.exists()
-    assert not getattr(draw.random, "_planetgen_traced", False)
+    assert not getattr(draw.Stream.random, "_planetgen_traced", False)
 
 
 def test_debug_log_records_timestamped_lines_with_their_source(debug_log):
@@ -133,16 +133,17 @@ def test_tracing_does_not_change_a_seeded_run(tmp_path, monkeypatch):
     monkeypatch.setenv("PLANETGEN_LOG_FILE", str(tmp_path / "planetgen.log"))
     log.configure(log.NORMAL)
     try:
-        assert getattr(draw.random, "_planetgen_traced", False)
+        assert getattr(draw.Stream.random, "_planetgen_traced", False)
         traced = draws()
     finally:
         monkeypatch.setenv("PLANETGEN_DEBUG", "0")
         log.configure(log.NORMAL)
     assert traced == plain
-    assert not getattr(draw.random, "_planetgen_traced", False)
+    assert not getattr(draw.Stream.random, "_planetgen_traced", False)
 
 
-def test_rolls_stay_off_the_console_under_cli_debug(debug_log, capsys):
+def test_rolls_reach_the_console_under_cli_debug_and_the_debug_log_both(debug_log, capsys):
+    """Boss, 5:35 PM EDT 10-23: debug mode writes to stdout and to the debug log."""
     log.configure(log.DEBUG)
     try:
         draw.random()
@@ -151,9 +152,10 @@ def test_rolls_stay_off_the_console_under_cli_debug(debug_log, capsys):
         log.configure(log.NORMAL)
     out = capsys.readouterr().out
     assert "console-visible decision" in out
-    assert " roll draw." not in out
+    assert " roll draw.random()" in out
     _flush()
-    assert " roll draw." in debug_log.read_text()
+    text = debug_log.read_text()
+    assert " roll draw.random()" in text and "console-visible decision" in text
 
 
 def test_unwritable_log_file_does_not_break_the_program(tmp_path, monkeypatch, capsys):

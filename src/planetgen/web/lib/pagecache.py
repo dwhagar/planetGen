@@ -62,6 +62,7 @@ import redis
 
 from planetgen.db import dataversion
 from planetgen.queue import redisclient
+from planetgen.util import log
 from planetgen.util.settings import PageCache
 from planetgen.web.lib.xfetch import XFETCH_BETA, XFETCH_MIN_SECONDS, xfetch_early
 from planetgen.web.lib import pagetags
@@ -263,6 +264,12 @@ class ResponseCache:
 
     def get(self, db, target):
         """The cached body for `target` in `db`, or `None`."""
+        body = self._get(db, target)
+        if log.debug_log_active():
+            log.trace(f"page cache {'miss' if body is None else 'hit'}: {target} (database {db})", area="cache")
+        return body
+
+    def _get(self, db, target):
         if not self._fresh_stamp(db):
             return None
         with self._lock:

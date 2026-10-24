@@ -240,7 +240,9 @@ def main():
                              "run moves the oldest of each table, warns with the backlog and leaves the rest due "
                              "for the next run.")
     parser.add_argument('--version', action=VersionAction, banner=version_banner('planetgen.cli.orbits'))
+    log.add_debug_arguments(parser)
     args = parser.parse_args()
+    log.apply_debug_arguments(args, parser)
     if args.row_ceiling < 0:
         parser.error("--row-ceiling must be 0 (no ceiling) or more.")
 

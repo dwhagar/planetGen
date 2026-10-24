@@ -1940,7 +1940,7 @@
     },
     "debug": {
       "default": false,
-      "description": "Write a verbose debug log to log_file: every decision the generator makes, every random roll, every SQL statement and request. The log grows fast.",
+      "description": "Debug mode: every decision the generator makes, every random roll, every SQL statement, queue event and request, written to the console of each planetgen command (stdout) and to log_file. The output is large.",
       "title": "Debug",
       "type": "boolean",
       "x-advanced": false,
@@ -1956,6 +1956,25 @@
       "x-secret": false,
       "x-slider": null,
       "x-summary": "Write a very detailed log of everything the generator does; it grows fast."
+    },
+    "debug_areas": {
+      "default": "",
+      "description": "Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib (comma separated; a leading - leaves one out). Empty writes everything but branch, which logs every conditional jump of the program's own code and is written only when named.",
+      "title": "Debug Areas",
+      "type": "string",
+      "x-advanced": false,
+      "x-choice-labels": null,
+      "x-control": null,
+      "x-editable": false,
+      "x-env": "PLANETGEN_DEBUG_AREAS",
+      "x-group": "logging",
+      "x-label": "Debug areas",
+      "x-min_role": "admin",
+      "x-multiline": false,
+      "x-restart": true,
+      "x-secret": false,
+      "x-slider": null,
+      "x-summary": "Which kinds of detail debug mode writes; empty is all of them."
     },
     "icons": {
       "$ref": "#/$defs/Icons",
