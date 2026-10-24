@@ -13,12 +13,12 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.187 |
+| UX | UX.188 |
 | MAP | MAP.293 |
 | NAV | NAV.63 |
 | GEN | GEN.764 |
 | PERF | PERF.192 |
-| DB | DB.101 |
+| DB | DB.102 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
@@ -649,6 +649,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | done, PR #2931 |
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | none | open |
 | DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results | none | open |
+| DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -2374,6 +2375,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages | none | done, PR #3065 |
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
+| UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
