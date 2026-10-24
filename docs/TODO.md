@@ -1015,24 +1015,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.151 Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Extends the icon library of UX.101: four vector shapes (one per
-  kind) and the cluster layout: each icon with a small digit 0 to 9
-  beside the PHI-6 symbols, readable at the list size, both themes, with
-  an accessible text label and a 0 state that reads as none. Owner:
-  the Composition-first stars lane. Done: the shapes in the library, the cluster
-  component with a visual test at three sizes, and the colour rule for
-  the digit (or none) written down.
-  Prerequisites: none. Related: UX.101, UX.100.
-
 - [ ] **UX.152 Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
   'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
@@ -1048,7 +1030,7 @@ with `clamp()`.
   shim. Owner: Habitability lane B. Done: every page shows the cluster,
   no page shows human operability, and a browser test (TEST.300) checks
   the cluster on a list and a page.
-  Prerequisites: UX.151, DB.91, GEN.649. Related: UX.151, UX.100,
+  Prerequisites: DB.91, GEN.649. Related: UX.151, UX.100,
   TEST.300.
 
 - [ ] **UX.153 Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none**
@@ -15897,19 +15879,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
-- [ ] **PERF.161 bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. The component pass is batched in PERF.146; _reach_spots
-  in bright_stars still calls tier_at once per candidate. Do: batch it
-  the same way. Done: identical output and a time drop on the benchmark.
-  Owner: Performance (proposed by the TODO thread, because the lane
-  found it and PERF.146 lives there; the coordinator can move it).
-  Prerequisites: none. Related: PERF.146.
-
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -15956,23 +15925,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the version 'later' page, phase 3, and is built only if a later
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
-
-- [ ] **PERF.171 The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter**
-  Candidate follow-up from the Performance lane (relayed 12:54 PM EDT
-  2026-10-23 as the lane reported, PERF.167 merged as #2679, not
-  measured); filed by the TODO thread, low rank. PERF.167 found that the
-  phenomenon scatter dropped only the address and class indexes, so with
-  the cell and due-time indexes on every insert read pages once the
-  table passed the 128 MB buffer pool; dropping and rebuilding them took
-  4.2M rows from 266 s to 145 s (+22 s rebuild) and the large galaxy
-  from over 90 minutes to 72.7. The bright-star scatter may do the same.
-  Do: measure the bright-star scatter's insert rate with and without its
-  cell and due-time indexes, and if the saving is worth it add them to
-  its drop-and-rebuild list. Value-neutral (no epoch). Done: the
-  measured times are on this item and the indexes are dropped and
-  rebuilt where it pays, or the item records that it does not. Owner:
-  none (pool, Performance if it has room).
-  Prerequisites: none. Related: PERF.167, PERF.164.
 
 - [ ] **PERF.172 The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123)**
   Split from PERF.123 (Core 5's suggestion, relayed 2:50 PM EDT
