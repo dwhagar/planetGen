@@ -1174,3 +1174,6 @@ Baseline: PR #1817.
 | GEN.418 | 8.1 | Atmosphere colour |
 | GEN.419 | 8.1 | Atmosphere colour |
 | TEST.309 | 8.1 | Bugs and flaky tests |
+| MAP.271 | 8.1 | Fly-through map |
+| MAP.272 | 8.1 | Fly-through map |
+| MAP.273 | 8.1 | Fly-through map |

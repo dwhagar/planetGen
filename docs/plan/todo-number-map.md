@@ -1666,9 +1666,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | none | open |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) | none | open |
 | MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) | none | open |
-| MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns | none | open |
-| MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers | none | open |
-| MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | none | open |
+| MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns | none | done, PR #2789 |
+| MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers | none | done, PR #2789 |
+| MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | none | done, PR #2789 |
 | MAP.274 | Land colour from the bulk composition: oxidation and rock type | none | open |
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | none | open |
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | open |
