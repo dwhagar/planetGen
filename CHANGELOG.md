@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2204] - 2026-10-24
+
+**Headline:** Planets, moons, stars, belts and comets each have a full page of their own.
+
+### Changed
+
+- **The object page (UX.170, UX.171, UX.172).** A star, planet or moon page opens with a picture of the body drawn from its stored properties (the same painters the system map uses), and every star, planet, moon, asteroid belt or comet page continues with the object's whole property table (every stored value, grouped, with the ones that are not stored marked as such), then its description, then a tree of what it holds: a star lists its planets, belts and comets, a planet its moons, each row linked to the object's own page and opened in place. Every page names its star (and planet, for a moon) in its location, links to the previous and next object at the same level, and carries its own admin menu. A level longer than a page ends in a "Show more" button, and the tree works from the keyboard with the arrow keys.
+
 ## [8.0.2203] - 2026-10-24
 
 **Headline:** `GET /api/objects/<ref>/children` now pages through what belongs to a sector, system, star or planet, with the counts a tree row needs.
