@@ -227,7 +227,7 @@ What is left is MySQL's work per row: the stored `cell_key` expression and the p
 secondary index off, which the three workers and the server share four cores for. The same trick would help the bright-star
 scatter (its due-time and cell indexes), not measured.
 
-## The warm-up, the member counts and the shell weights (PERF.156 to PERF.159)
+## The warm-up, the member counts and the shell weights (PERF.156 to PERF.161, PERF.171)
 
 Measured with `planetgen benchmark --suite --size medium` (4e9 solar masses, release 8.0.2039, 3 workers, one run) and on a
 kept galaxy of the same build (`plan`, the three scatters and the band run one by one into a database of their own).
@@ -268,6 +268,18 @@ kept galaxy of the same build (`plan`, the three scatters and the band run one b
   in runs now (`run_plan._shell_weights`; fewer than 64 shells, one CPU or no `fork` stay in the process). Each shell is the same call
   on the same numbers wherever it runs, so the weights and the units are those of the loop (a test compares them; the medium galaxy
   gives identical units). The expansion takes 11 s on 4 cores.
+- **`_reach_spots` calls `tier_at` per candidate (PERF.161): measured, left as it is.** Over the 25 units that draw beyond the
+  outline at `medium` (3,154 shell runs, 21.0 s of CPU in all) `tier_at` is 5.2 s, about 0.5 ms a call because every call is a
+  cache miss (1,973 of 2,285 in one unit) that probes the band's densities on its own. The component pass could batch its places
+  because it knows them all first. A reach candidate's place comes from four draws of the stream, and the draws after it (the
+  keep test, the population pick) are made only for the candidates that pass, so the next candidate's place depends on the
+  last one's outcome: the places cannot be listed ahead without changing the stream (an epoch), and a per-call memo never
+  hits. The saving possible is under 5 s of CPU spread over the workers; no code was changed.
+- **The bright-star scatter's indexes (PERF.171): dropping them while the rows go in does not pay at `medium`.** The band step
+  (804,795 rows added, 3 workers, one run each, table 451 MB against a 128 MB buffer pool): 525 s with the indexes kept, 508 s
+  with the five secondary indexes dropped (the cluster index stays: a foreign key needs it) plus 16 s to build them again, 524 s.
+  The luminosity pass (26,291 rows) is no different. Nothing was changed. The phenomenon scatter gained at 4.2 million rows
+  and up (PERF.167); this table is 0.9 million rows at `medium`, so a larger size may differ and was not measured.
 - **Seen, not fixed here:** every unit's connection runs the schema check (`GET_LOCK`, the `CREATE TABLE IF NOT EXISTS` list and
   `CREATE OR REPLACE VIEW`), 861 times over the band step, about 130 s of server time. The suite's `--keep` is accepted but the
   scratch databases are dropped on success (so a kept galaxy has to be built command by command, as here).
