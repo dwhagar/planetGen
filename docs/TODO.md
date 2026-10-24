@@ -12951,6 +12951,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   formation; the class shares become sweep outputs, not inputs. Done: no
   class draw is left in the planet stage and a sweep reports the kinds.
   Owner: Composition J (quantities and bulk composition).
+  Research (2026-10-09, 10-24 class lane): Owner changed to the class
+  lane (lane J confirmed free 2:02 PM EDT 2026-10-24 as the lane
+  reported), to feed GEN.646.
   Prerequisites: GEN.556.
 
 - [ ] **GEN.682 Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range**
@@ -13009,6 +13012,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.647 and GEN.646. Do: the age a body needs follows its formation
   and decay processes (GEN.428); delete age_ranges. Done: nothing reads
   age_ranges. Owner: Composition spine lane I.
+  Research (2026-10-09, 10-24 class lane): Owner changed to the class
+  lane (lane I confirmed free 2:02 PM EDT 2026-10-24 as the lane
+  reported), to feed GEN.646.
   Prerequisites: none.
 
 - [ ] **GEN.687 Rogue planets get their class from classify; delete choose_rogue_planet_class**
@@ -13108,24 +13114,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   follows).
   Prerequisites: none. Related: GEN.459, GEN.461.
 
-- [ ] **GEN.700 Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow**
-  Source: reports/habitability-model-gaps-2026-10-23.md item 4 (build
-  plan row 3), relayed by lane D (habitability model gaps) at 1:59 AM
-  EDT 2026-10-24 as the lane reported. hydrosphere.moon_tidal_flux_w_m2
-  draws a forced eccentricity and uses the result to thicken or thin the
-  ice lid, then throws it away; habitability_world.energy_flux_w_m2
-  reads only the radiogenic heat, so an Europa or Enceladus analogue
-  scores its under-ice life on a heat flow one to three orders of
-  magnitude too low. Do: keep the tidal flux on the moon (a new column,
-  with its entry in db/column_units.py in the same PR), add it to the
-  heat flow the chemical energy term reads, and update design section 8
-  (it says tides are not counted). Done: tests with an Io-, a Europa-
-  and an Enceladus-like moon show the tide raising the energy term, and
-  the stored column matches the flux the ice lid used. A new column
-  takes the next migration and the next free generator epoch at merge
-  (testing mode: fine). Owner: lane D; check nobody started it first.
-  Prerequisites: none. Related: GEN.412, GEN.649.
-
 - [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
   Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
   plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
@@ -13143,24 +13131,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   new migration and the next free epoch at merge. Owner: lane D; check
   nobody started it first.
   Prerequisites: none. Related: GEN.557, GEN.687.
-
-- [ ] **GEN.704 Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug)**
-  Found by lane E while wiring GEN.445 (reported 4:51 AM EDT
-  2026-10-24). validation.reconcile_moved_planet re-runs
-  calculate_atmospheric_conditions on each moon of a moved planet, so
-  the moon's star distance updates, but it never re-runs generate_spin,
-  the dose or the habitability for the moon. The moon keeps its dose,
-  SEP, UV and habitability from the old distance. Seen: a moon at 0.229
-  au when its dose was drawn and 0.318 au at the end, with the UV 1.93
-  times off. Planets are fine because they do get generate_spin. Do:
-  after the moon's atmospheric conditions are recalculated, re-run the
-  same steps a planet gets (spin, dose, habitability) for each moon, in
-  the order the planet path uses; add a test that moves a planet and
-  checks each moon's dose and UV against the new distance. Changes the
-  stored values of moons of moved planets, so it needs a generator
-  epoch. Owner: lane D (lane D took it at 5:39 AM EDT 2026-10-24 as the lane
-  reported, after GEN.649, folded into the epoch of its next PR).
-  Prerequisites: none. Related: GEN.445, GEN.444.
 
 - [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
   Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
@@ -13285,6 +13255,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/ with the law, the cut and the sources, and
   GEN.559's text updated by the TODO thread. Owner: none (pool), a short
   read-only research thread.
+  Research (2026-10-09, 10-24 Lane K): Owner: Lane K, after GEN.714
+  (confirmed unstarted 2:02 PM EDT 2026-10-24).
   Prerequisites: none. Related: GEN.559, GEN.550.
 
 - [ ] **GEN.714 Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug)**
@@ -13301,6 +13273,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the gap plan registry. Changes drawn values: a generator epoch.
   Prerequisite of the GEN.466 wiring. Owner: none (pool); Lane K
   proposed after the class cut-over.
+  Research (2026-10-09, 10-24 Lane K): Owner: Lane K (took it 2:01 PM
+  EDT 2026-10-24 as the lane reported; nobody had started it).
   Prerequisites: none. Related: GEN.466, GEN.646.
 
 - [ ] **GEN.715 Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703**
@@ -18544,6 +18518,29 @@ clears each one.
   the test is repeatable or the product cause is fixed. Related:
   TEST.334, TEST.339. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.334, TEST.339.
+
+- [ ] **TEST.343 Three tests red on main since the habitable_systems table (MAP.220, #2945): point columns, parent-relative positions, and VALUES() in migration 0148 (bug)**
+  Reported by lane D from its gate (2:02 PM EDT 2026-10-24 as the lane
+  reported); TODO reproduced all three on main at 2:03 PM EDT. (1)
+  test_point_columns::test_every_table_holding_an_object_is_on_exactly_one_list:
+  habitable_systems holds an object or a point and is on neither LAYOUTS
+  nor NOT_BODIES of db/point_columns.py. (2)
+  test_parent_relative_positions::test_no_table_inside_a_system_stores_an_absolute_position:
+  habitable_systems has star_system_id and no layout-frame point. (3)
+  test_sql_portability::test_no_new_values_function_in_on_duplicate_key_update:
+  migration 0148_habitable_worlds_per_system.py line 44 uses
+  VALUES(habitable_worlds) in ON DUPLICATE KEY UPDATE (deprecated since
+  MySQL 8.0.20; use a row alias, or add it to VALUES_FUNCTION_ALLOWED
+  with a reason). Do: put habitable_systems on the right list (or
+  NOT_BODIES with the reason, since the table is a marker cache), fix
+  the migration statement without changing its result (an existing
+  migration may be edited only while the schema version is unreleased;
+  otherwise add the allowance), and rerun the three tests. Done: all
+  three pass on main. Not reproduced: test_api galaxy tiles carry no
+  comets (likely fixed by TEST.342) and the gas giant density test
+  (passes on main). Owner: none (pool); Core 2 is the natural pick since
+  MAP.220 is map work.
+  Prerequisites: none. Related: MAP.220, TEST.342.
 
 ## USR: User accounts
 

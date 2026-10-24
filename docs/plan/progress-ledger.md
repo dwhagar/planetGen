@@ -1336,3 +1336,5 @@ Baseline: PR #1817.
 | OPS.15 | 8.1 | Reproducible galaxies |
 | TEST.130 | 8.1 | Bugs and flaky tests |
 | GEN.709 | 8.1 | Bugs and flaky tests |
+| GEN.704 | 8.1 | Habitability system |
+| GEN.700 | 8.1 | Habitability system |
