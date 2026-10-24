@@ -1,7 +1,7 @@
 # tests/member_systems.py
 
 """
-A system of three stars for the tests of GEN.630, which the fill does not build yet (GEN.631): a binary the generator
+A system of three stars for the tests of GEN.630, built by hand: a binary the generator
 made with one more star orbiting the pair as a whole. The tree is two nodes, node 0 the pair (as a pair is stored,
 now the slot-0 child of the new root) and node 1 the root, with the pair in slot 0 and the new star in slot 1.
 """

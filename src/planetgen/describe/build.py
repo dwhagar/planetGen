@@ -580,6 +580,7 @@ def describe(system):
                                       (system.secondary_star, system.secondary_planets, system.secondary_comets)):
             children.append(_star_section(star, [_body_section(body) for body in planets]
                                           + [_comet_section(comet) for comet in comets]))
+        children += [_star_section(star) for star in system.member_stars]    # GEN.631: the stars beyond the pair
     else:
         children = [_star_section(system.star)]
     if system.binary_type != "wide":

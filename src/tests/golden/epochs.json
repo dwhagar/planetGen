@@ -350,6 +350,12 @@
       "epoch": 71,
       "first_release": "8.0.2152",
       "reason": "Each ordinary star draws a UV-C share of its blackbody (log-uniform 0.1 to 1) on its own stream and stores it (schema 145), so every stored star gains a value (GEN.443)"
+    },
+    {
+      "epoch": 72,
+      "first_release": null,
+      "pending": true,
+      "reason": "A system draws its stars as a tree at the odds of the star-count table in place of one companion at a per-class chance, so triples and larger systems exist and the companion stream moves (GEN.631)"
     }
   ]
 }
