@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.180 |
+| UX | UX.183 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
 | GEN | GEN.696 |
@@ -2277,6 +2277,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.177 | Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID | none | open |
 | UX.178 | Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules | none | open |
 | UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) | none | open |
+| UX.180 | A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away | none | open |
+| UX.181 | Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page | none | open |
+| UX.182 | The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
