@@ -1315,3 +1315,4 @@ Baseline: PR #1817.
 | TEST.339 | 8.1 | Bugs and flaky tests |
 | OPS.35 | 8.1 | Admin and API housekeeping |
 | GEN.703 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.712 | 8.1 | Stored surface composition |
