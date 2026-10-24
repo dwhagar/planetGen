@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2220] - 2026-10-24
+
+**Headline:** The server now refuses to run more worker processes than its memory and cores can hold, whatever starts them.
+
+### Added
+- **PERF.185: a cap on all planetgen worker processes on one host.** A start of a worker for any queue is refused once the host already runs `queue.max_host_workers` of them (0, the default, sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four a core, never fewer than the cores plus four; a 16 GB, 8 core host gets 31). The count comes from the process list, so a worker still importing its libraries counts. The refusal is logged once a minute and counted, and the Queue page shows the cap, how many run and how many starts were refused in the last hour. This is the second guard behind PERF.181: even if something else starts workers in a burst, the host cannot be filled.
+
 ## [8.0.2219] - 2026-10-24
 
 **Headline:** Every planet and moon list, system tree, object page and API answer now shows the four life scores (Microbial, Flora, Fauna, Sentient, 0 to 9) beside the PHI-6 symbols.
