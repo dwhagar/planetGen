@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2178] - 2026-10-24
+
+**Headline:** A sector the Galaxy Map generates when you visit it now counts in the block totals at once.
+
+### Fixed
+- **A sector generated on a visit, or generated again from its page, never reached the Galaxy Map's block totals (DB.83).** Only a `galaxy` run, a fill and a deletion kept `galaxy_block_stats` and `galaxy_block_lights` up to date, so cells above a sector showed stale or missing totals until `planetgen fill-block-totals` ran. `ensure_sector_generated` and `regenerate_sector_cell` now bring the blocks above the sector up to date after they save it; a failure only warns.
+
 ## [8.0.2177] - 2026-10-24
 
 **Headline:** Asteroid belts, comets and interstellar comets are now made of real materials, and their densities and masses follow from what they are made of.
