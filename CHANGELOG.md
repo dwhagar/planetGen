@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2134] - 2026-10-24
+
+**Headline:** The plan no longer prints its table of where the time went unless asked.
+
+### Changed
+- **The "Where the plan's time went" table is printed only with `--timing` or `--debug` (UX.162).** Every galaxy plan ended with a step table made for finding slow steps (PERF.163). A plain plan's text is back to what it was before; `planetgen plan --timing` prints the same table.
+
 ## [8.0.2133] - 2026-10-24
 
 **Headline:** A galaxy plan takes about half as long, because the digest it stores with the galaxy is worked out alongside the plan.
