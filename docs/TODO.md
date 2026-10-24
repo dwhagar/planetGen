@@ -1089,8 +1089,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D1) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: one registry that lists, for every object kind, the stored
   properties to show, with units and labels, served as GET
@@ -1110,8 +1110,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D2) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: GET /api/objects/<ref>/children with keyset paging, the
   summary line fields and the counts, plus the feed the sector tree
@@ -1130,8 +1130,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D3) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: rebuild templates/item.html and web/item_pages.py so every
   star, planet and moon page has a header, the Location chain (including
@@ -1151,8 +1151,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D4) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: a bodyview.js that draws the body's rendered example on
   its own page from the existing data-look record (MAP.271 painters),
@@ -1170,8 +1170,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D5) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: a reusable summary tree (lazy partial, small script,
   keyboard and screen-reader support, a no-script fallback, a
@@ -1188,13 +1188,13 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D6) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: the system page's stars table and body list become the
   tree; remove the dropdown rows, star_notes_html and the class links in
   rows; move species, facilities and the per-body admin menu to the
-  object page. Boss's choice C: the old dropdown text is gone, no shim.
+  object page. Decided (Boss, 1:30 AM EDT 2026-10-24, card C1): the old dropdown text is gone, replaced by the tree, no switch and no shim.
   D6 must not merge before D3, so the description is never lost between
   merges. Done: the system page shows the tree only and a test shows
   that every removed item is reachable on its object page.
@@ -1209,8 +1209,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D7) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: the sector page's Contents rows expand into the tree
   (system, then stars and planets, then moons) and keep the facets,
@@ -1227,8 +1227,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D8) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: the same anatomy (header, Location, sheet, description,
   children) for phenomena, facilities, clusters and regions; this
@@ -1246,14 +1246,14 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D9) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: every link to a body (object_url, search, lists, describer
   references, the map popup View button of MAP.288) opens /object/<ref>;
   delete body_anchor, bodyanchor.js and the row-highlight styles. The
-  popup button's target waits on Boss's card A (View opens the page,
-  jumps to the row in the tree, or both); the button code is Core 2's,
+  popup button's target is Decided (Boss, 1:30 AM EDT 2026-10-24, card
+  A1): View opens the object's new page; the button code is Core 2's,
   D9 only changes the target. Done: no link to a system anchor remains
   and the old code is deleted.
   Prerequisites: UX.170, MAP.288. Related: MAP.288.
@@ -1267,8 +1267,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D10) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: a page-walk for every kind in objectref.KINDS (extends
   TEST.267), tree browser tests in Chromium and Firefox, accessibility
@@ -1287,8 +1287,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D11) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.1,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: write docs/design/interface/object-pages.md, update the
   route list and docs/design/composition body-rendering notes and the
@@ -1305,8 +1305,8 @@ with `clamp()`.
   its rendered example, property table and paragraph text. Filed from
   the design draft design-drafts/object-detail-pages-2026-10-24.md
   section 4 (label D12) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1 is
-  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  generator change, no epoch, no migration, no wipe. Version: 8.2,
+  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1: D12 stays in 8.2). Owner: the
   Detail pages lane (a new lane, to be started; check nobody started it
   first). Do: sitemap entries and an Open Graph image for object pages.
   Optional; belongs to 8.2. Done: the sitemap lists the object pages and
@@ -3128,6 +3128,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   View Button'): the jump button in the map popup is the View button, so
   the popup's View button jumps to the matching item in the list. Owner:
   Core 2.
+  Decided (2026-10-09): Update (Boss, 1:30 AM EDT 2026-10-24, card A1 of
+  the object detail pages): the popup View button opens the object's new
+  page (/object/<ref>), replacing the earlier wording that it jumps to
+  the matching row in the list. Core 2 keeps the button code; UX.176
+  changes the target when the page exists, and until then the button
+  keeps the list-row jump. Owner: Core 2.
   Prerequisites: none.
 ## NAV: Navigation and courses
 
