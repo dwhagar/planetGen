@@ -2903,7 +2903,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
   as the thread reported. Version placement is a proposal until Boss
   answers the choices in section 11 of the draft.
-  Prerequisites: MAP.271, MAP.272, GEN.419, GEN.422.
+  Prerequisites: MAP.271, MAP.272, GEN.422.
 
 - [ ] **MAP.276 Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow**
   Class texture, spots by activity, luminosity glow, white dwarf and
@@ -7763,84 +7763,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
 
-- [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "sky color and atmosphere color
-  are the same I believe, so let's word it as atmosphere color" and the
-  colour is the absolute one, not adapted to the star (Boss's card,
-  10:24 PM EDT as the coordinator reported). Compute the clear-sky
-  colour at noon from the star's light (GEN.416), the Rayleigh depth
-  (GEN.417), the Chappuis absorption of the stored ozone, the stored
-  cloud, dust and haze (Mie extinction plus the absorption slope), the
-  ground's bounce from the stored albedo, and a thick-air limit for tau
-  above about 0.5 where single scattering over-saturates (white sky,
-  reddened sun, no sun disc at very large tau). Returns the hex colour
-  and a short word. Done: Earth gives a pale blue under the Sun, a thin
-  clear CO2 world and a dusty one differ, a 1 MPa nitrogen world is
-  white-cyan with an orange sun, a 9 MPa CO2 world is white;
-  deterministic and free of NaN for every class; the label says when
-  aerosols dominate the answer.
-  Prerequisites: GEN.414, DB.67, DB.68,
-  GEN.441, GEN.462.
-  The ground's bounce reads the surface composition of GEN.441 (the
-  ground's colour and reflectance) where it is stored.
-  Update (2026-10-09): Habitability lane F (2026-10-23, GEN.413 merged
-  as #2761): the Chappuis ozone cross-section table (the visible band
-  that colours the sky) is left for this item; the UV cross sections are
-  in AD9 (GEN.443).
-  Related: GEN.419, GEN.420.
-
-- [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): gas giants are in the first
-  version (Boss's card, 10:24 PM EDT as the coordinator reported). A
-  giant has no surface, so the colour is that of the light seen from a
-  chosen reference pressure level (the cloud top or a fixed bar, the
-  design GEN.409 settles), through the Rayleigh depth of the hydrogen
-  and helium above it, the methane absorption that tints ice giants
-  blue-green, and the stored cloud and haze depths. Sources check
-  (GEN.408, section 5): the class comes from T_eff by the Sudarsky table
-  (I below about 150 K, II about 250 K, III above about 350 K, IV 900 to
-  1500 K, V above about 1500 K), the B, V, R, I colour from the nearest
-  model of Cahoy, Marley and Fortney 2010 (Table 6) interpolated in
-  distance and metallicity, with no colour fixed per class letter; the
-  methane band strengths of Karkoschka 1994 and of Karkoschka and Tomasko
-  are missing and are Boss's to research. Done: a hydrogen and
-  helium giant, a methane-rich ice giant and a cloud-covered giant each
-  give a colour that follows the stored composition and the reference
-  level, with no per-class colour and no NaN.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): visible methane, ammonia and water
-  absorption for the giants from Karkoschka 1994 and Karkoschka and
-  Tomasko 2009, 2010 and 2011 (0.3 to 1.0 micron, low-temperature band
-  analysis; weak-band windows at 727 and 890 nm), Coles 2018 ammonia
-  coefficients with low-temperature CH4 correlated-k grids, and the weak
-  visible tails of NH3, SO2 and NO2 (master section 6 item 3 of
-  docs/design/composition/atmosphere-composition.md). Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Giant colour reads the giant rows of part 09 and
-  the Parmentier and Guillot formulas (GEN.423); the 'Coles 2018'
-  ammonia source of Boss's note is Coles, Yurchenko and Tennyson 2019,
-  and its claim to resolve anomalies near 500 mbar is unsupported
-  (chi-squared per point 1.93 to 1.60 and 2.06 to 1.76; the NH3 cloud
-  sits at 0.55 to 0.57 bar).
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the visible line lists of
-  CH4 and NH3 (Karkoschka 1994, Karkoschka and Tomasko 2009 and 2010,
-  Sithajan 2025).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  methane band strengths are no longer Boss's to research (Boss,
-  2026-10-18, 3:07 PM EDT: "I have already provided all the AD1 data I
-  can!"): remaining AD1 gaps are labelled stand-ins and methane comes
-  from the Oxford k-tables (GEN.422).
-  Prerequisites: GEN.418. Related: GEN.409, GEN.420.
-
 - [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): A new "Atmosphere colour" row in
@@ -7852,7 +7774,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with air and absent for an airless one; every output shows the word,
   the web page shows the chip; the existing description parity tests
   pass.
-  Prerequisites: GEN.418, GEN.419. Related: GEN.208, GEN.218, MAP.244,
+  Related: GEN.208, GEN.218, MAP.244,
   DOC.64.
 
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
@@ -17070,7 +16992,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
   as the thread reported. Version placement is a proposal until Boss
   answers the choices in section 11 of the draft.
-  Prerequisites: GEN.414, GEN.418, GEN.419.
+  Prerequisites: GEN.414.
 
 ## API: The JSON API
 
@@ -22257,7 +22179,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-  Prerequisites: VIEW.12, VIEW.13, VIEW.6, GEN.418. Related:
+  Prerequisites: VIEW.12, VIEW.13, VIEW.6. Related:
   VIEW.2.
 
 - [ ] **VIEW.15 Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API**

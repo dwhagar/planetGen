@@ -31,9 +31,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.278 | Phenomena painters: rogue planet, comet, nebula, remnant, asteroid field and black hole disc | MAP.271, MAP.272, GEN.488 | Body rendering R9; proposed 9.0. |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | MAP.271, DB.96 | Body rendering R8; proposed 9.0. |
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | MAP.271, MAP.272 | Body rendering R7; proposed 9.0. |
-| MAP.275 | Gas and ice giant painter: bands, storms, chemistry tint, thermal glow and rings with gaps | MAP.271, MAP.272, GEN.419, GEN.422 | Body rendering R6; proposed 9.0. |
+| MAP.275 | Gas and ice giant painter: bands, storms, chemistry tint, thermal glow and rings with gaps | MAP.271, MAP.272, GEN.422 | Body rendering R6; proposed 9.0. |
 | MAP.274 | Land colour from the bulk composition: oxidation and rock type | GEN.411, GEN.428, GEN.429, MAP.273 | Body rendering R5; proposed 9.0. |
 | MAP.273 | Solid world painter: ocean, land, ice and cloud from the stored fractions and the atmosphere colour | MAP.271, MAP.272, GEN.441, GEN.461, GEN.462 | Body rendering R4; proposed 9.0. |
 | MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers |  | Body rendering R3; proposed 9.0. |
-| DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | GEN.414, GEN.418, GEN.419 | Body rendering R2; proposed 9.0. |
+| DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | GEN.414 | Body rendering R2; proposed 9.0. |
 | MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns |  | Body rendering R1; proposed 9.0. |
