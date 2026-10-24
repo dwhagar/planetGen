@@ -7690,6 +7690,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane H (surface dose).
+  Research (2026-10-09, Update): Lane L (9:48 AM EDT 2026-10-24, as the
+  lane reported): merged #2966: the pure module
+  physics/atmosphere_state.py works out the air's mean molar mass,
+  density, scale height and greenhouse warming from the stored gases;
+  design note docs/design/composition/atmosphere-state.md. It is not
+  wired in (that rides lane I's GEN.411, which takes the epoch), so no
+  generated value moves. Opacities are labelled stand-ins until GEN.703
+  (lane E). The item stays open for the wiring step.
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
   10:29 PM EDT; code read on main, line numbers as that thread gave
@@ -13254,19 +13262,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   validity range and falsifier test, so none is silent. Done: every
   constant above has a registry row. Owner: lane L (it knows the
   values).
-  Prerequisites: none.
-
-- [ ] **GEN.677 The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P3.
-  Do: find why the phenomena scatter draws that many stellar-mass black
-  holes and no neutron stars that are not magnetars, and bring both
-  counts into line with the stellar-remnant rates behind them (the
-  scatter limits by place of GEN.377 are related). Done: a test on the
-  counts per shell pair against the model's expected remnant numbers.
-  Owner: none for now (pool; Core 4 proposed). It changes generated
-  values, so it needs a generator epoch.
   Prerequisites: none.
 
 - [ ] **GEN.678 The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug)**
@@ -18979,6 +18974,11 @@ clears each one.
   them). Do: find whether one cause covers TEST.338 and these three, fix
   the product, and keep each test's intent. Done: all four pass on main.
   Owner: Bug Hunt (proposed), with TEST.338.
+  Research (2026-10-09, Update): Core 4 (9:55 AM EDT 2026-10-24, as the
+  lane reported) fixed test_gen_stored_trees (the N-star exact
+  eccentricity) and test_migration_bulk_composition in #2968; still red
+  on main: test_emission_members (hot star) and test_bright_star_scatter
+  (TEST.338). Details in reports/core4-gen677-report-2026-10-24.md.
   Prerequisites: none. Related: TEST.338, TEST.337, GEN.651, GEN.631.
 
 - [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**

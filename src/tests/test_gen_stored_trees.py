@@ -275,7 +275,9 @@ def test_a_fill_builds_each_row_from_its_stored_tree_and_spends_the_rows_of_the_
                                   "interaction", "flags"):
                         if field == "eccentricity" and node[field] == 0.0 and planned.kind == "close":
                             continue  # a P-type pair is built, and tracked, on a circle
-                        if field == "eccentricity" and planned.eccentricity > tuning.WIDE_BINARY_ECCENTRICITY_MAX:
+                        if (field == "eccentricity" and len(plan.members) == 2
+                                    and planned.eccentricity > tuning.WIDE_BINARY_ECCENTRICITY_MAX):
+                            # only the two-star build holds a pair under the wide limit; an N-star build keeps the node
                             assert node[field] == pytest.approx(tuning.WIDE_BINARY_ECCENTRICITY_MAX, rel=1e-6)
                             continue  # a wide pair is held under the eccentricity limit
                         assert node[field] == pytest.approx(getattr(planned, field))
