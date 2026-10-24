@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2153] - 2026-10-24
+
+**Headline:** The Galaxy Map's block ladder now runs up from 243 sectors to a root of three blocks, the nodes the single-space map will be drawn from.
+
+### Changed
+- **The block ladder has a root (MAP.258).** `galaxy/drill.py` and the page's `galaxyprisms.js` go 177,147, 59,049, 19,683, 6,561, 2,187, 729, 243, 81, 27, 9, 3 shells deep and then a sector (every size three times its child). The 177,147 root is one row cut into three wedges and holds the whole grid. The page gets `drillChildren` and `drillBlockSectors` (twins of `drill_children` and `drill_block_sectors`, held equal by `test_galaxyprisms.py`). The stages and map windows keep their level-243 top through `STAGE_LEVELS`, `STAGE_TOP` and `stage_parent`; a stage or window key above 243 is refused.
+- **Blocks below 243 moved.** A level's rows and wedges are its parent's counts times a rounded ratio, so the new levels above change the rows and wedges of 243, 81, 27, 9 and 3: a block key names another block than before, and a bookmarked stage address lands somewhere else.
+- **Schema v146 (migration 0146).** `galaxy_block_stats.m` is INT UNSIGNED and the table is filled again with a row for every level; the nebula block tables are made again from the nebulae when they were filled. The migration reads every generated sector once and can take a while on a big galaxy. `TILE_FORMAT` goes to 2 so the stored stages are rebuilt once.
+
 ## [8.0.2152] - 2026-10-24
 
 **Headline:** Every star now carries its own ultraviolet-C share, and a planet or moon's ground light and UV index can be read from what it stores.
