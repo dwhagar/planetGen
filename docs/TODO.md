@@ -19719,9 +19719,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   MYJwm2dfDuwgBEf8JuSxKD): add `markdown` to the requirements, so the
   verify step stays as it is; no shim. Do: add `markdown` to the
   requirements file the setup script installs from. Done: the script
-  exits 0 on a fresh machine. Owner: not assigned (OPS queue; the
-  environment settings copy of the script is Boss's, so the lane edits
-  the example and tells the coordinator).
+  exits 0 on a fresh machine. Owner: the Debug mode lane, after OPS.66
+  (coordinator, 10:07 AM EDT 2026-10-24; the environment settings copy
+  of the script is Boss's, so the lane edits the example and tells the
+  coordinator).
   Second reason it matters (Core 5, relayed 2:50 PM EDT 2026-10-23 as
   the lane's clock reads): current main needs the `argon2-cffi` package
   (SEC.32; in setup.py and requirements-server.lock), but a lane
