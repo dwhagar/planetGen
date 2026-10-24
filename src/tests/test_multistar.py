@@ -181,7 +181,7 @@ def test_the_companion_table_is_consistent():
     for name, table in multistar.MEMBER_STATE_BY_PLACED.items():
         assert sum(default for default, _, _ in table.values()) <= 1.0, name
         for state, (default, low, high) in table.items():
-            assert state in multistar.MEMBER_KINDS or state == "star", (name, state)
+            assert state in multistar.MEMBER_KINDS or state in multistar.COMPANION_STATES, (name, state)
             assert 0.0 <= low <= default <= high <= 1.0, (name, state)
     black_hole = multistar.MEMBER_STATE_BY_PLACED["black-hole"]
     assert sum(default for default, _, _ in black_hole.values()) == pytest.approx(0.0125)

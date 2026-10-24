@@ -53,7 +53,7 @@ from statistics import NormalDist
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
+    accretion, brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -130,10 +130,9 @@ DIRECT_COLLAPSE_HOLE_SOL = 20.0
 lies in a window of `remnant_progenitors`, which is every one the generator draws), or, when the progenitor is not known,
 when the hole is `DIRECT_COLLAPSE_HOLE_SOL` or more (a stand-in; the note leaves it open)."""
 
-BLACK_HOLE_TERTIARY_CHANCE = 0.30
 COMPACT_TERTIARY_SHARE = 0.10
-"""float: A black hole with a companion has a third member in 30% of systems, which is
-a neutron star or a black hole in 10% of those (a design default)."""
+"""float: A compact binary has a third member in the share of the `compact-triple` row (30%, GEN.272; before it, black holes
+only), which is a compact object in 10% of those (a design default)."""
 
 BROWN_DWARF_MAX_MASS_SOL = 0.08
 BROWN_DWARF_DESERT_AU = 5.0
@@ -149,6 +148,9 @@ MEMBER_KINDS = ("main-sequence", "giant", "white-dwarf", "neutron-star", "black-
                 "pre-main-sequence", "protostar", "stripped-helium", "thorne-zytkow", "wolf-rayet")
 """tuple: Every member kind. The last three exist for the type generators that follow (the evolution of a
 Wolf-Rayet star, a stripped helium star and a Thorne-Zytkow object is theirs); `star_labels` names them."""
+COMPANION_STATES = ("star", "black-widow", "redback")
+"""tuple: The states of `MEMBER_STATE_BY_PLACED` that are not member kinds: the companion is a star of the tree's laws, or
+one of a pulsar's two spiders (GEN.272)."""
 PLACED_KINDS = ("star", "black-hole", "intermediate-mass-black-hole", "neutron-star", "white-dwarf")
 
 MEMBER_DIRECT_COLLAPSE = 1
@@ -165,12 +167,15 @@ MEMBER_FK_COMAE = 1024
 MEMBER_MAGNETIC = 2048
 MEMBER_BARIUM = 4096
 MEMBER_SYMBIOTIC = 8192
+MEMBER_MICROQUASAR = 16384
+MEMBER_ABLATING = 32768
 MEMBER_FLAGS = {"direct_collapse": MEMBER_DIRECT_COLLAPSE, "mass_reversed": MEMBER_MASS_REVERSED,
                 "mass_gainer": MEMBER_MASS_GAINER, "merger_product": MEMBER_MERGER_PRODUCT, "be": MEMBER_BE,
                 "fragile": MEMBER_FRAGILE, "theoretical": MEMBER_THEORETICAL,
                 "runaway_supernova": MEMBER_RUNAWAY_SUPERNOVA, "runaway_dynamical": MEMBER_RUNAWAY_DYNAMICAL,
                 "r_crb": MEMBER_R_CRB, "fk_comae": MEMBER_FK_COMAE, "magnetic": MEMBER_MAGNETIC,
-                "barium": MEMBER_BARIUM, "symbiotic": MEMBER_SYMBIOTIC}
+                "barium": MEMBER_BARIUM, "symbiotic": MEMBER_SYMBIOTIC, "microquasar": MEMBER_MICROQUASAR,
+                "ablating": MEMBER_ABLATING}
 """dict: The bits of `Member.flags`. The classifier sets `mass_gainer` (the star that receives the mass of a
 semi-detached or contact pair), `mass_reversed` (the donor of a semi-detached pair that was the heavier at birth: an Algol),
 `fragile` and `theoretical`; the close-binary types (GEN.270) set `merger_product` (a massive star that merged, a field blue
@@ -182,6 +187,11 @@ RUNAWAY_ORIGIN_FLAGS = {"supernova": MEMBER_RUNAWAY_SUPERNOVA, "dynamical": MEMB
 """dict: A runaway's origin -> the flag bit that records it."""
 NODE_INTERACTED = 1
 NODE_KL_ACTIVE = 2
+NODE_WIND_FED = 4
+NODE_DISC_FED = 8
+"""int: The node bits of an `accreting` pair of a neutron star or a black hole (GEN.272): the gas is a hot star's wind
+(`NODE_WIND_FED`) or a Be star's decretion disc (`NODE_DISC_FED`); neither is a donor that fills its lobe. They are what
+`MemberTree.x_ray_luminosities` reads."""
 
 MEMBER_STATE_BY_PLACED = {
     "star-massive": {"neutron-star": (0.002, 0.00033, 0.0133), "black-hole": (0.001, 0.00017, 0.0067)},
@@ -192,9 +202,9 @@ MEMBER_STATE_BY_PLACED = {
     "intermediate-mass-black-hole": {"star": (0.01, 0.001, 0.05)},
     "neutron-star": {"star": (0.02, 0.01, 0.03), "neutron-star": (1.8e-4, 6e-5, 4.3e-4),
                      "black-hole": (2.5e-5, 7e-6, 7e-5)},
-    "recycled-pulsar": {"white-dwarf": (0.62, 0.50, 0.70), "star": (0.12, 0.05, 0.20),
-                        "brown-dwarf": (0.04, 0.01, 0.08), "neutron-star": (2.0e-3, 6e-4, 4.3e-3),
-                        "black-hole": (2.5e-5, 7e-6, 7e-5)},
+    "recycled-pulsar": {"white-dwarf": (0.661, 0.55, 0.72), "black-widow": (0.0624, 0.03, 0.09),
+                        "redback": (0.0312, 0.015, 0.05), "star": (0.0234, 0.01, 0.04),
+                        "neutron-star": (2.0e-3, 6e-4, 4.3e-3), "black-hole": (2.5e-5, 7e-6, 7e-5)},
     "white-dwarf": {"star": (0.205, 0.15, 0.22), "white-dwarf": (0.095, 0.05, 0.12)},
     "planetary-nebula-star": {"star": (0.15, 0.10, 0.20), "white-dwarf": (0.05, 0.03, 0.10)},
 }
@@ -204,7 +214,9 @@ MEMBER_STATE_BY_PLACED = {
 solar masses or more, `star-intermediate` for 2 to 14) adds a compact companion to its
 tree of stars, inside the last third of its life; the other classes decide whether the
 placed object has a companion at all, and which one. Other placed stars get no compact
-companion here."""
+companion here. The states a compact or white dwarf placed object can have are `star`, `brown-dwarf`, `white-dwarf`,
+`neutron-star`, `black-hole`, and (GEN.272) `black-widow` and `redback`, a recycled pulsar's spider companions, which ablate
+it. The low-mass X-ray binaries are part of a neutron star's and a black hole's `star` odds (`draw_low_mass_xray_pair`)."""
 
 
 @dataclass(frozen=True)
@@ -313,6 +325,63 @@ class MemberTree:
         orbits whose radial-velocity swing a spectrograph resolves."""
         return tuple(node.node_no for node in self.nodes if node.separation_au < tuning.SPECTROSCOPIC_MAX_AXIS_AU)
 
+    def _pair_members(self, node):
+        """The two members of a node whose children are single members, else None."""
+        pair = [member for member in self.members if member.parent_node_no == node.node_no]
+        return pair if len(pair) == 2 else None
+
+    def x_ray_luminosities(self):
+        """
+        `{node_no: watts}` for every `accreting` pair of a neutron star or a black hole and a single member (GEN.272; derived,
+        never stored): `eta Mdot c^2` at most the accretor's Eddington limit (`physics.accretion.x_ray_luminosity_w`). The
+        gas is a wind (`NODE_WIND_FED`), a Be star's disc (`NODE_DISC_FED`) or a donor that fills its lobe. A white dwarf's
+        accretion is not X-ray and is not listed.
+        """
+        found = {}
+        for node in self.nodes:
+            pair = self._pair_members(node) if node.interaction == "accreting" else None
+            accretor = None if pair is None else next((m for m in pair if m.kind in COMPACT_KINDS), None)
+            if accretor is None:
+                continue
+            donor = pair[0] if accretor is pair[1] else pair[1]
+            mode = "wind" if node.flags & NODE_WIND_FED else "disc" if node.flags & NODE_DISC_FED else "overflow"
+            found[node.node_no] = accretion.x_ray_luminosity_w(
+                mode, accretor.kind, accretor.mass_solar, accretor.radius_au, donor.kind, donor.mass_solar,
+                donor.radius_au, node.separation_au, node.eccentricity)
+        return found
+
+    def be_xray_nodes(self):
+        """The node numbers of the Be/X-ray binaries (GEN.272; derived): an `accreting` pair fed by a disc, whose donor is
+        flagged `be`."""
+        return tuple(node.node_no for node in self.nodes
+                     if node.interaction == "accreting" and node.flags & NODE_DISC_FED)
+
+    def spider_nodes(self):
+        """`{node_no: 'black-widow' or 'redback'}` for the pairs of an ablating pulsar and its companion (GEN.272; derived):
+        a companion under 0.1 solar masses is a black widow, a heavier one a redback (the mass gap is empty)."""
+        found = {}
+        for node in self.nodes:
+            pair = self._pair_members(node)
+            if pair is None or not any(m.flags & MEMBER_ABLATING for m in pair):
+                continue
+            companion = next(m for m in pair if not m.flags & MEMBER_ABLATING)
+            found[node.node_no] = "black-widow" if companion.mass_solar < 0.1 else "redback"
+        return found
+
+    def dormant_nodes(self):
+        """The node numbers of the dormant neutron stars and black holes with a star (GEN.272, the Gaia kind; derived): a
+        `detached` pair of a neutron star or a black hole and a main-sequence star, a subgiant or a giant."""
+        found = []
+        for node in self.nodes:
+            pair = self._pair_members(node) if node.interaction == "detached" else None
+            if pair is None:
+                continue
+            kinds = {m.kind for m in pair}
+            if kinds & set(COMPACT_KINDS) and kinds & {"main-sequence", "giant"} and not kinds - set(COMPACT_KINDS) - {
+                    "main-sequence", "giant"}:
+                found.append(node.node_no)
+        return tuple(found)
+
 
 def pair_eclipses(separation_au, inclination_deg, radius_a_au, radius_b_au):
     """Whether a pair of these radii (AU) on an orbit of this semi-major axis (AU) and inclination (degrees, 90 is
@@ -335,6 +404,9 @@ class _Leaf:
     """tuple or None: `(low, high)` AU. A pair of two single members, one of which has this, is placed with an axis
     log-uniform over it (GEN.271: the close double white dwarf, the post-common-envelope pair, the cataclysmic
     variable, whose axis is the one that fills the donor's lobe), in place of the period law."""
+    accretes: str | None = None
+    """str or None: `wind`, `disc` or `overflow` on the neutron star or black hole of a pair that accretes (GEN.272): the
+    pair is `accreting` whatever its geometry says, and a pair of a neutron star or black hole with no such leaf never is."""
 
     @property
     def compact(self):
@@ -827,12 +899,18 @@ class _Builder:
                 continue
             interaction, member_flags = self.interaction(left, right, axis, e)
             pair = self.pair_leaves(left, right)
+            accretes = None if pair is None else next((leaf.accretes for leaf in pair if leaf.accretes), None)
+            if accretes is not None:
+                interaction = "accreting"  # the wind of a supergiant or the disc of a Be star feeds it without a full lobe
+            elif interaction == "accreting" and any(leaf.compact for leaf in pair):
+                continue  # a neutron star or a black hole accretes only in the X-ray binary draws, which fix the rate
             if interaction == "accreting" and any(leaf.kind == "white-dwarf" for leaf in pair) and (
                     span is None or span[0] < span[1]):
                 continue  # a white dwarf accretes only in the cataclysmic variable and AM CVn draws, which fix the rate
             if _gate_forbids(interaction, heavy, self.age_yr, () if pair is None else (pair[0].kind, pair[1].kind)):
                 continue
             flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
+            flags |= {"wind": NODE_WIND_FED, "disc": NODE_DISC_FED}.get(accretes, 0)
             if parent is not None:
                 if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual):
                     continue
@@ -918,10 +996,11 @@ def _shape(units, rng):
     return (_shape(items[:split], rng), _shape(items[split:], rng))
 
 
-STAR_TYPE_DRAWS = 7
-"""int: The uniforms a placed star's tree draws first, in a fixed order, for the close-binary types (GEN.270) and the giants'
-white dwarf companions (GEN.271): the merger product, the Be star, its stripped companion, the mass gainer, the exotic
-star, the merger's rejuvenation and the barium or symbiotic star."""
+STAR_TYPE_DRAWS = 10
+"""int: The uniforms a placed star's tree draws first, in a fixed order, for the close-binary types (GEN.270), the giants'
+white dwarf companions (GEN.271) and the high-mass X-ray binaries (GEN.272): the merger product, the Be star, its stripped
+companion, the mass gainer, the exotic star, the merger's rejuvenation, the barium or symbiotic star, whether the compact
+companion of a massive star accretes, whether it is fed by a Be star's disc, and whether it launches jets."""
 
 
 def _young(age_yr):
@@ -1080,6 +1159,101 @@ def draw_giant_companion(leaf_kind, birth_mass_sol, unit):
     return "barium" if unit - entry.default < entry.by_class["barium and CH (G and K giants)"] else None
 
 
+def draw_accreting_compact(case, unit, mode_unit=0.0, age_yr=0.0):
+    """
+    How a neutron star or a black hole accretes (GEN.272), for a registry `case`; `None` for none. One or two uniforms.
+
+    * `high-mass-xray-binary` (a living massive star's compact companion): it accretes at the `accreting_fraction` knob (40%,
+      `unit`); 60% of those (`be_xray_share`, `mode_unit`) are fed by a Be star's disc (`disc`, the Be/X-ray binary, of the
+      young population only: a halo or old star is never one), the rest by a supergiant's wind (`wind`).
+    * `low-mass-xray-binary` (the low-mass star of a neutron star or a black hole): `overflow` for the knob's 1% (`unit`), of
+      the intermediate and old populations only.
+    * `microquasar` (an accreting neutron star or black hole): `jets` for `tuning.MICROQUASAR_SHARE_OF_XRAY_BINARIES`.
+    """
+    knobs = system_types.TUNING_KNOBS["accreting_fraction"]
+    if case == "high-mass-xray-binary":
+        if unit >= knobs[case]:
+            return None
+        be_share = system_types.SYSTEM_TYPE_RATES[case].by_class["be_xray_share"]
+        return "disc" if mode_unit < be_share and _young(age_yr) else "wind"
+    if case == "low-mass-xray-binary":
+        return "overflow" if unit < knobs[case] and not _young(age_yr) else None
+    if case == "microquasar":
+        return "jets" if unit < tuning.MICROQUASAR_SHARE_OF_XRAY_BINARIES else None
+    raise ValueError(f"unknown accreting-compact case {case!r}")
+
+
+def draw_low_mass_xray_pair(placed, age_yr, unit):
+    """
+    Whether the `star` companion of a neutron star or a black hole is the low-mass donor of a low-mass X-ray binary pair
+    (GEN.272, `low-mass-xray-binary`): the row's 5e-5 of neutron stars and 1e-3 of black holes are part of the `star` odds, so
+    the share of the star companions is the row's rate over those odds (0.25% of a neutron star's, 10% of a black hole's).
+    Not for a recycled pulsar (its companions are the spiders, white dwarfs and the rest) and not in the young population.
+    One uniform.
+    """
+    if placed.kind not in COMPACT_KINDS or placed.recycled or _young(age_yr):
+        return False
+    row = system_types.SYSTEM_TYPE_RATES["low-mass-xray-binary"]
+    rate = row.by_class["black hole"] if placed.kind == "black-hole" else row.default
+    return unit < rate / MEMBER_STATE_BY_PLACED[placed_class(placed)]["star"][0]
+
+
+def _xray_span(donor, compact, period_days):
+    """The axis span `(low, high)` of an X-ray binary of this period range, days, log-uniform: the range's axes about the
+    pair's mass, the low end no closer than keeps the donor inside `MAX_FILL_FACTOR` of its lobe and the high end at least
+    `tuning.XRAY_SPAN_ROOM` times the low one."""
+    total = donor.mass + compact.mass
+    low, high = (stability.axis_au(days / 365.25, total) for days in period_days)
+    low = max(low, roche.separation_for_filling(donor.radius_au, MAX_FILL_FACTOR, donor.mass, compact.mass))
+    return low, max(high, low * tuning.XRAY_SPAN_ROOM)
+
+
+def _feed_compact(donor, compact, mode, jet_unit):
+    """Makes the pair of `donor` and `compact` an X-ray binary fed in `mode` (GEN.272): the pair carries the mode, its axis
+    is log-uniform over the period range of the mode, a Be donor of a `disc` pair is flagged `be`, and the compact object
+    launches jets (`microquasar`) at `tuning.MICROQUASAR_SHARE_OF_XRAY_BINARIES`."""
+    days = tuning.BE_XRAY_PERIOD_DAYS if mode == "disc" else tuning.SUPERGIANT_XRAY_PERIOD_DAYS
+    compact.orbit_au = _xray_span(donor, compact, days)
+    compact.accretes = mode
+    if mode == "disc":
+        donor.flags |= MEMBER_BE
+    if draw_accreting_compact("microquasar", jet_unit) is not None:
+        compact.flags |= MEMBER_MICROQUASAR
+
+
+def _low_mass_xray_companion(placed, base, age_yr, rng):
+    """The low-mass star of a low-mass X-ray binary pair (`draw_low_mass_xray_pair`, GEN.272), or None when none fits. Its
+    pair accretes at the knob's 1% (`draw_accreting_compact`): the donor, a main-sequence star, fills its lobe at a period
+    of `tuning.LOW_MASS_XRAY_PERIOD_DAYS`, and the compact object is flagged `microquasar` at its share. The rest are
+    detached pairs on the interacted period law."""
+    mode = draw_accreting_compact("low-mass-xray-binary", rng.random(), age_yr=age_yr)
+    for _ in range(PAIR_RETRIES):
+        donor = _star_leaf(_alive_star_mass(*tuning.LOW_MASS_XRAY_DONOR_MASS_RANGE_SOL, age_yr, rng, placed.tree_fe_h), age_yr,
+                           rng, fe_h=placed.tree_fe_h)
+        if mode is None:
+            return donor
+        axis = _filling_axis_au(donor, placed.mass_solar, tuning.LOW_MASS_XRAY_PERIOD_DAYS) if (
+            donor.kind == "main-sequence") else None
+        if axis is not None:
+            donor.orbit_au = (axis, axis)
+            donor.accretes = mode
+            if draw_accreting_compact("microquasar", rng.random()) is not None:
+                base.flags |= MEMBER_MICROQUASAR
+            return donor
+    return None
+
+
+def _spider_companion(placed, base, state, age_yr, rng):
+    """The companion of a recycled pulsar that is a black widow (`black-widow`: 0.01 to 0.05 solar masses) or a redback
+    (`redback`: 0.2 to 0.4), on an orbit of `tuning.SPIDER_PERIOD_DAYS`, with the pulsar flagged `ablating`."""
+    low, high = tuning.BLACK_WIDOW_MASS_RANGE_SOL if state == "black-widow" else tuning.REDBACK_MASS_RANGE_SOL
+    companion = _star_leaf(rng.uniform(low, high), age_yr, rng, fe_h=placed.tree_fe_h)
+    total = placed.mass_solar + companion.mass
+    companion.orbit_au = tuple(stability.axis_au(days / 365.25, total) for days in tuning.SPIDER_PERIOD_DAYS)
+    base.flags |= MEMBER_ABLATING
+    return companion
+
+
 def _filling_axis_au(donor, accretor_mass, period_range_days):
     """The axis at which `donor` fills its lobe by `tuning.ACCRETING_FILL_FACTOR` about an accretor of `accretor_mass`, or
     None when the period falls outside `period_range_days`."""
@@ -1202,6 +1376,10 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         giant_type = draw_giant_companion(leaf.kind, birth, types[6])
         if compact is None and giant_type is not None:
             compact = _giant_white_dwarf(leaf, giant_type, age_yr, rng, placed.tree_fe_h)
+        elif compact is not None and not bound_runaway and placed_class(placed) == "star-massive":
+            mode = draw_accreting_compact("high-mass-xray-binary", types[7], types[8], age_yr)
+            if mode is not None:
+                _feed_compact(leaf, compact, mode, types[9])
         if n_stars is None:
             count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
             if merger == "massive":
@@ -1233,14 +1411,21 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         return leaves, [0]
     binary = (draw_white_dwarf_binary(placed_class(placed), state, age_yr, rng.random())
               if placed.kind == "white-dwarf" else None)
-    companion = (_white_dwarf_companion(placed, base, binary, age_yr, rng) if binary is not None
-                 else _compact_pair_companion(placed, state, age_yr, rng))
+    if binary is not None:
+        companion = _white_dwarf_companion(placed, base, binary, age_yr, rng)
+    elif state == "star" and placed.kind in COMPACT_KINDS and draw_low_mass_xray_pair(placed, age_yr, rng.random()):
+        companion = _low_mass_xray_companion(placed, base, age_yr, rng)
+    elif state in ("black-widow", "redback"):
+        companion = _spider_companion(placed, base, state, age_yr, rng)
+    else:
+        companion = _compact_pair_companion(placed, state, age_yr, rng)
     if companion is None:
         return leaves, [0]
     leaves.append(companion)
     units = [(0, 1)]
-    if placed.kind == "black-hole" and rng.random() < BLACK_HOLE_TERTIARY_CHANCE and max_stars >= 3:
-        third = _black_hole_tertiary(placed, age_yr, rng)
+    if (placed.kind in COMPACT_KINDS and max_stars >= 3
+            and rng.random() < system_types.SYSTEM_TYPE_RATES["compact-triple"].default):
+        third = _compact_tertiary(placed, age_yr, rng)
         if third is not None and sum(leaf.compact for leaf in leaves + [third]) <= MAX_COMPACT_MEMBERS:
             leaves.append(third)
             units.append(2)
@@ -1287,17 +1472,22 @@ def _compact_pair_companion(placed, state, age_yr, rng):
     if state in ("star", "brown-dwarf"):
         if state == "brown-dwarf":
             return _star_leaf(rng.uniform(0.02, 0.07), age_yr, rng, fe_h=placed.tree_fe_h)
-        low, high = (0.5, 16.0) if placed.kind == "neutron-star" else (0.1, 8.0)
+        low, high = (0.1, 1.0) if placed.recycled else (0.5, 16.0) if placed.kind == "neutron-star" else (0.1, 8.0)
         return _star_leaf(_alive_star_mass(low, high, age_yr, rng, placed.tree_fe_h), age_yr, rng,
                           fe_h=placed.tree_fe_h)
     limit = placed.mass_solar if state == "black-hole" else None
     return _remnant(state, age_yr, 0.0, rng, limit_mass=limit, fe_h=placed.tree_fe_h)
 
 
-def _black_hole_tertiary(placed, age_yr, rng):
+def _compact_tertiary(placed, age_yr, rng):
+    """The third member of a compact binary's tree (GEN.272, `compact-triple`'s 30%): a compact object of the placed
+    object's own kind at 80% and the other kind at 20%, in `COMPACT_TERTIARY_SHARE` of them (a black hole's lighter than
+    the placed one), else a star."""
     if rng.random() < COMPACT_TERTIARY_SHARE:
-        kind = "black-hole" if rng.random() < 0.8 else "neutron-star"
-        return _remnant(kind, age_yr, 0.0, rng, limit_mass=placed.mass_solar, fe_h=placed.tree_fe_h)
+        own = rng.random() < 0.8
+        kind = placed.kind if own else ("neutron-star" if placed.kind == "black-hole" else "black-hole")
+        limit = placed.mass_solar if kind == "black-hole" and placed.kind == "black-hole" else None
+        return _remnant(kind, age_yr, 0.0, rng, limit_mass=limit, fe_h=placed.tree_fe_h)
     return _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng, placed.tree_fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
 
 
