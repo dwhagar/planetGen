@@ -8882,7 +8882,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane H (surface dose).
+  Owner: Habitability lane H (surface dose), except slice 1, the pure surface-dose kernels (physics/surface_dose.py: stopping-column cutoff, GCR and SEP shielding by composition, muon floor, dose quantities; the gamma and radon ground dose is lane H's, already in physics/radiation.py on the GEN.459 branch (gamma_dose_msv_yr, radon_dose_msv_yr, ground_dose_msv_yr fed by physics/radiogenic.py), and lane E calls it; tests against Earth, Mars, Moon and Titan; no stored value, no epoch), which Habitability lane E took at 8:55 PM EDT 2026-10-23 on Boss's word that lane E must not idle. Slice 2 (wiring into generate_dose, epoch, migration, deleting the proxy) waits on GEN.443, GEN.441 and GEN.459; lane H and lane E decide who wires it.
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
