@@ -1,6 +1,6 @@
 # Weight research dispositions: what GEN.480 to GEN.494 and GEN.501 found for the 43 open atmosphere rows
 
-Status: closes the research items GEN.480 to GEN.494 and GEN.501 (lane M, 2026-10-23). Source of the findings: `docs/design/tunable-gaps.md` section 3 and the worker reports in `docs/design/tunable-gaps-sources/`, `docs/design/boss-papers-2026-10-17.md` and `docs/design/open-gaps-closest-laws-2026-10-17.md`; nothing in this note is a new reading of a paper. What this note adds is the decision for each row, written into the machine columns (`scripts/atmosphere_recipes_data.py`) and the data file the loader reads.
+Status: closes the research items GEN.480 to GEN.494 and GEN.501 (lane M, 2026-10-23). Source of the findings: `docs/design/composition/tunable-gaps.md` section 3 and the worker reports in `docs/design/composition/tunable-gaps-sources/`, `docs/design/boss-papers-2026-10-17.md` and `docs/design/open-gaps-closest-laws-2026-10-17.md`; nothing in this note is a new reading of a paper. What this note adds is the decision for each row, written into the machine columns (`scripts/atmosphere_recipes_data.py`) and the data file the loader reads.
 
 ## 1. The rule applied
 

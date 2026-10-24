@@ -1,6 +1,6 @@
 # The JWST atmosphere target-selection model (GEN.506)
 
-Status: built 2026-10-23 by lane M. Code `src/planetgen/physics/jwst_selection.py`, fit script `scripts/fit_jwst_selection.py`, data `src/planetgen/physics/data/jwst_selection.json`, tests `src/tests/test_jwst_selection.py`. It is the selection model `jwst-target-selection` of the tuning harness (GEN.503, `docs/design/tunable-gaps.md` section 4) for retention and lava worlds (B3, GEN.511), giants (B8, GEN.516) and aerosols (B11, GEN.519).
+Status: built 2026-10-23 by lane M. Code `src/planetgen/physics/jwst_selection.py`, fit script `scripts/fit_jwst_selection.py`, data `src/planetgen/physics/data/jwst_selection.json`, tests `src/tests/test_jwst_selection.py`. It is the selection model `jwst-target-selection` of the tuning harness (GEN.503, `docs/design/composition/tunable-gaps.md` section 4) for retention and lava worlds (B3, GEN.511), giants (B8, GEN.516) and aerosols (B11, GEN.519).
 
 ## 1. What it answers
 

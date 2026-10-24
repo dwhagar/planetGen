@@ -1,7 +1,7 @@
 # planetgen/physics/brown_dwarf_types.py
 
 """
-Effective temperature against spectral type of brown dwarfs (GEN.517, docs/design/brown-dwarf-types.md)
+Effective temperature against spectral type of brown dwarfs (GEN.517, docs/design/composition/brown-dwarf-types.md)
 =====================================================================================================
 
 The empirical map of Kirkpatrick et al. 2021, Table 13 (525 L, T and Y dwarfs within 20 pc), in the data file

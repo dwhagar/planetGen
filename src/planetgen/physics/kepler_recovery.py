@@ -1,7 +1,7 @@
 # planetgen/physics/kepler_recovery.py
 
 """
-The Kepler transit-plus-recovery selection model (GEN.504, docs/design/tunable-gaps.md sections 3.1 and 4, docs/design/kepler-recovery.md)
+The Kepler transit-plus-recovery selection model (GEN.504, docs/design/composition/tunable-gaps.md sections 3.1 and 4, docs/design/composition/kepler-recovery.md)
 ==========================================================================================================================================
 
 Whether the Kepler pipeline would have found a transiting planet, so that a tuned feature of the Kepler planets (the radius valley, the

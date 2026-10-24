@@ -1,7 +1,7 @@
 # planetgen/physics/wd_pollution.py
 
 """
-The white-dwarf pollution detection model (GEN.508, docs/design/tunable-gaps.md sections 3.2 and 4, docs/design/wd-pollution-detection.md)
+The white-dwarf pollution detection model (GEN.508, docs/design/composition/tunable-gaps.md sections 3.2 and 4, docs/design/composition/wd-pollution-detection.md)
 ===========================================================================================================================
 
 What the 24 polluted white dwarfs with an oxygen fugacity (Doyle et al. 2020 Table 1, Doyle et al. 2023 Table 4) can and cannot show.

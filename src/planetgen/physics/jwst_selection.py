@@ -1,7 +1,7 @@
 # planetgen/physics/jwst_selection.py
 
 """
-The JWST atmosphere target-selection model (GEN.506, docs/design/tunable-gaps.md sections 3.3, 3.4 and 4, docs/design/jwst-selection.md)
+The JWST atmosphere target-selection model (GEN.506, docs/design/composition/tunable-gaps.md sections 3.3, 3.4 and 4, docs/design/composition/jwst-selection.md)
 ==========================================================================================================================================
 
 Which planets JWST has observed for their atmospheres, so that a tuned share of clear, retained or hazy atmospheres is compared with the

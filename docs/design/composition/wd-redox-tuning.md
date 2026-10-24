@@ -1,6 +1,6 @@
 # Redox of rocky debris: the retune of rows a3 and a4 (GEN.513)
 
-Status: built 2026-10-23 by lane M. Rows a3 (building blocks of asteroids, C and D types) and a4 (debris of white dwarfs) of the atmosphere recipes (`scripts/atmosphere_recipes_data.py`), their four targets in `physics/data/tuning_targets.json`, and the detection model of GEN.508 (`docs/design/wd-pollution-detection.md`). Tests in `src/tests/test_wd_pollution.py` and `src/tests/test_tuning_harness.py`.
+Status: built 2026-10-23 by lane M. Rows a3 (building blocks of asteroids, C and D types) and a4 (debris of white dwarfs) of the atmosphere recipes (`scripts/atmosphere_recipes_data.py`), their four targets in `physics/data/tuning_targets.json`, and the detection model of GEN.508 (`docs/design/composition/wd-pollution-detection.md`). Tests in `src/tests/test_wd_pollution.py` and `src/tests/test_tuning_harness.py`.
 
 ## 1. What was tuned
 

@@ -2,7 +2,7 @@
 
 """
 The design-flag registry (GEN.525): the life-linked gases m3, m4 and m11 are labelled design brackets that are off unless a named
-flag allows them, and never tuned (decision D4 of docs/design/tunable-gaps.md).
+flag allows them, and never tuned (decision D4 of docs/design/composition/tunable-gaps.md).
 """
 
 import copy

@@ -1,7 +1,7 @@
 {
  "title": "The design-flag registry of the atmosphere recipes",
  "version": 1,
- "note": "Rows whose quantity no ensemble can define: no exoplanet measures it, or it is whether life makes a gas. Each keeps a labelled design bracket, is off unless one of its enabling flags is set, and is never tuned (decision D4 of docs/design/tunable-gaps.md).",
+ "note": "Rows whose quantity no ensemble can define: no exoplanet measures it, or it is whether life makes a gas. Each keeps a labelled design bracket, is off unless one of its enabling flags is set, and is never tuned (decision D4 of docs/design/composition/tunable-gaps.md).",
  "flags": [
   {
    "row": "m3",

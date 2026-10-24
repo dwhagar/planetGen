@@ -1,7 +1,7 @@
 # planetgen/physics/comet_admission.py
 
 """
-The comet admission model (GEN.507, docs/design/tunable-gaps.md sections 3.5 and 4, docs/design/comet-admission.md)
+The comet admission model (GEN.507, docs/design/composition/tunable-gaps.md sections 3.5 and 4, docs/design/composition/comet-admission.md)
 ===============================================================================================================
 
 Which comets have a published coma composition and at what heliocentric distance it was measured, so that the comet volatile ratios

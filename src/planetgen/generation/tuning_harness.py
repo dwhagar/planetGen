@@ -1,7 +1,7 @@
 # planetgen/generation/tuning_harness.py
 
 """
-The shared tuning harness (GEN.503, docs/design/tunable-gaps.md sections 1 and 4)
+The shared tuning harness (GEN.503, docs/design/composition/tunable-gaps.md sections 1 and 4)
 ===================================================================================
 
 A composition value with no sourced weight can be a seeded draw whose knobs are tuned to a published population statistic and

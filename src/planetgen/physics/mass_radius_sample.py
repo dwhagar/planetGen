@@ -1,7 +1,7 @@
 # planetgen/physics/mass_radius_sample.py
 
 """
-The mass-radius sample selection model (GEN.505, docs/design/tunable-gaps.md sections 3.1 and 4, docs/design/mass-radius-sample.md)
+The mass-radius sample selection model (GEN.505, docs/design/composition/tunable-gaps.md sections 3.1 and 4, docs/design/composition/mass-radius-sample.md)
 =================================================================================================================================
 
 Which planets enter the sample of precisely measured planets, mass better than 25 percent and radius better than 8 percent (Luque

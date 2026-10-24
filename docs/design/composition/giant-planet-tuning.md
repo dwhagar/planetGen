@@ -1,6 +1,6 @@
 # Giant planets: the retune of rows f5 and f7 (GEN.516)
 
-Status: built 2026-10-23 by lane M (builder B8, `docs/design/tunable-gaps.md` section 4). Rows f5 (heavy-element enrichment of giants), f6 (its bins) and f7 (C/O) of the atmosphere recipes (`scripts/atmosphere_recipes_data.py`); seven targets in `physics/data/tuning_targets.json`; tests in `src/tests/test_tuned_draws.py`.
+Status: built 2026-10-23 by lane M (builder B8, `docs/design/composition/tunable-gaps.md` section 4). Rows f5 (heavy-element enrichment of giants), f6 (its bins) and f7 (C/O) of the atmosphere recipes (`scripts/atmosphere_recipes_data.py`); seven targets in `physics/data/tuning_targets.json`; tests in `src/tests/test_tuned_draws.py`.
 
 ## 1. f5: the enrichment follows the later, larger fit
 

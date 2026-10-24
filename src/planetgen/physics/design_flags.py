@@ -1,12 +1,12 @@
 # planetgen/physics/design_flags.py
 
 """
-The design-flag registry (GEN.525, docs/design/design-flags.md)
+The design-flag registry (GEN.525, docs/design/composition/design-flags.md)
 ===============================================================
 
 Some rows of the atmosphere recipes stand for a quantity no ensemble can define: no exoplanet has a measured nitrous oxide,
 phosphine or nitrogen dioxide, and whether a world makes them depends on whether it has life. Decision D4 of
-`docs/design/tunable-gaps.md` keeps each as a labelled design bracket that is off unless a named flag (the life stage, the
+`docs/design/composition/tunable-gaps.md` keeps each as a labelled design bracket that is off unless a named flag (the life stage, the
 stellar energetic particles, lightning) allows it, and never tunes it. The data file `design_flags.json` lists those rows; this
 module reads it and `check` proves the recipes honour it: the row exists, is labelled as a design part, takes its bracket
 from the constant the registry names, is zero when none of its enabling flags is set, is not marked tunable and has no target

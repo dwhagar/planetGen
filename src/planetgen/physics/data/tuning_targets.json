@@ -1,7 +1,7 @@
 {
  "title": "The tuning-target table (GEN.503): the published statistics the tunable draws are tuned to",
  "version": 1,
- "note": "One entry per published statistic. A tunable row of the possibility tables must have a target here (TargetTable.require). A value measured only in the Solar System is a test-point with the solar_system flag, never a target. Labels: READ, DATA, COMPUTED, 2ND-HAND may be tuned to; SNIPPET, RECALLED and NOT REACHED are listed and never tuned to. Source: docs/design/tunable-gaps.md.",
+ "note": "One entry per published statistic. A tunable row of the possibility tables must have a target here (TargetTable.require). A value measured only in the Solar System is a test-point with the solar_system flag, never a target. Labels: READ, DATA, COMPUTED, 2ND-HAND may be tuned to; SNIPPET, RECALLED and NOT REACHED are listed and never tuned to. Source: docs/design/composition/tunable-gaps.md.",
  "targets": [
   {
    "id": "a3-mean",
@@ -41,7 +41,7 @@
     "host_type": "WD"
    },
    "fill_id": "GEN.513",
-   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/wd-pollution-detection.md)",
+   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/composition/wd-pollution-detection.md)",
    "selection_model": "wd-pollution-detection",
    "field": "diw",
    "subject": {
@@ -89,7 +89,7 @@
     "host_type": "WD"
    },
    "fill_id": "GEN.513",
-   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/wd-pollution-detection.md)",
+   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/composition/wd-pollution-detection.md)",
    "selection_model": "wd-pollution-detection",
    "field": "diw",
    "subject": {

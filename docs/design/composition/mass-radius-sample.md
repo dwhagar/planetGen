@@ -1,6 +1,6 @@
 # The mass-radius sample selection model (GEN.505)
 
-Status: built 2026-10-23 by lane M. Code `src/planetgen/physics/mass_radius_sample.py`, fit script `scripts/fit_mass_radius_sample.py`, data `src/planetgen/physics/data/mass_radius_sample.json`, tests `src/tests/test_mass_radius_sample.py`. It is the selection model `mass-radius-sample` of the tuning harness (GEN.503, `docs/design/tunable-gaps.md` section 4) for the water-rich share (B2, GEN.510) and the iron branch (B4, GEN.512).
+Status: built 2026-10-23 by lane M. Code `src/planetgen/physics/mass_radius_sample.py`, fit script `scripts/fit_mass_radius_sample.py`, data `src/planetgen/physics/data/mass_radius_sample.json`, tests `src/tests/test_mass_radius_sample.py`. It is the selection model `mass-radius-sample` of the tuning harness (GEN.503, `docs/design/composition/tunable-gaps.md` section 4) for the water-rich share (B2, GEN.510) and the iron branch (B4, GEN.512).
 
 ## 1. What it answers
 
