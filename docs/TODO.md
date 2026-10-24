@@ -15203,62 +15203,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
 
-- [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen galaxy`
-  runs eight jobs in one run (sector generation in nine modes, the link,
-  the three scatters through `--then-scatter`, the backfill, the
-  population pass through `--population` and the settle, each switched
-  by a flag). Done: generating sectors is one command (its modes are its
-  own parameters: random start with neighborhood, shell, block, center
-  sector, band, wedge, course); `link`, `backfill`, `population` and
-  `settle` are each their own command; `--then-scatter`, `--population`,
-  `--no-settle` and `--backfill-from none` are gone, because what runs
-  is what the step list holds; `planetgen galaxy` stays only as the way
-  to ask the wrapper for the usual list (sectors, link, scatters,
-  backfill, population, settle) and prints it with `--estimate-only`;
-  the same seed gives the same galaxy as today at 1 and 4 workers.
-  Owner: Core 5 (proposed; the PERF.118 chain).
-  Slice 1 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported): the link, backfill and settle commands (settle --since).
-  Slice 2 merged in #2665 (Core 5, 10:15 AM EDT 2026-10-23 as the lane
-  reported): `planetgen sectors` takes the plan's density like galaxy, and
-  the shell, band, span, course and neighborhood stages cut their own
-  sectors from the run's arguments (slices 2b and 2c went in with it).
-  Left: D1 (the galaxy command has no opt-outs, and link, backfill, settle
-  and population are root commands; built, in test), C (random starts
-  picked in the cut from the run seed; it needs the next free generator
-  epoch, numbered at merge, 60 on 10:15 AM EDT main), and D2 (the galaxy
-  as one wrapper run).
-  Prerequisites: none. Related: PERF.107,
-  PERF.108, PERF.118, PERF.120.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-  Decided (Boss, four card taps 5:12 to 5:18 PM EDT 2026-10-22 as the
-  lane's clock reads, each the recommended option; design draft
-  /mnt/project-files/design-drafts/perf123-galaxy-as-step-list.md): the
-  root commands are `sectors`, `link`, `backfill`, `population`, `settle`;
-  `galaxy` has no opt-outs; the estimate and the large-run prompt become a
-  step-list preview from the run's own cut; random starts are picked from
-  the run's seed when the step is cut, which changes which sector a
-  seed's random start lands on, so that slice takes a generator epoch.
-  Re-cut (Core 5, relayed 2:50 PM EDT 2026-10-23 as the lane's clock
-  reads; the TODO thread agreed): D1 and C go through one gate together
-  now; D2 (the galaxy as one wrapper run, which needs the population and
-  phenomenon work of PERF.124 and PERF.125 to be units) is split out as
-  PERF.172, so this item closes when D1 and C merge. Slice C needs NO
-  generator epoch: the run seed is a fresh random value per run that no
-  option can supply, so the same inputs give the same output as before.
-  That revises the card answer of 5:12 to 5:18 PM EDT 2026-10-22 (point
-  4), which expected an epoch because the random start would land on
-  another sector for a given seed; the epoch placeholder 61 for slice C
-  is dropped.
-
 - [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -15273,7 +15217,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shim; the Generate page and the one-off pages ask for the settle as a
   step (PERF.119); a test per command. Owner: Core 5 (proposed; the
   PERF.118 chain).
-  Prerequisites: PERF.123. Related: PERF.119, PERF.120,
+  Prerequisites: none. Related: PERF.119, PERF.120,
   PERF.123, PERF.125.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -15318,7 +15262,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
-  Prerequisites: PERF.123. Related: PERF.31, PERF.118, PERF.120.
+  Prerequisites: none. Related: PERF.31, PERF.118, PERF.120.
   Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
 
 - [ ] **PERF.129 Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes**
@@ -15575,7 +15519,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retired. PERF.150 left an interim wait in queue/runwait.py; this item
   lands with Core 5 and removes that file when the waiting list
   replaces it.
-  Prerequisites: PERF.119, PERF.123, PERF.99. Related: PERF.98, PERF.99,
+  Prerequisites: PERF.119, PERF.99. Related: PERF.98, PERF.99,
   PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
 - [ ] **PERF.155 A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6)**
@@ -19806,6 +19750,12 @@ clears each one.
   command to see why. This item stays open as 'cause of the dying
   workers unknown': if it recurs, the error now names the exit code.
   Done is unchanged except that a recurrence is now diagnosable.
+  Research (2026-10-09, Update): Update 1:17 AM EDT 2026-10-24 (as Core
+  5 reported): the test ran `galaxy` with all stages; after PERF.123
+  (#2865) `galaxy` always does every stage, so Core 5 changed
+  test_parallel_generation.py to run `sectors` instead. Recheck whether
+  the 900 s timeout still happens, and close this item if not. Owner:
+  Bug Hunt.
   Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
 
 - [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**
@@ -20111,6 +20061,10 @@ clears each one.
   existing one for datasets fetched at setup. Done: the test passes on a
   machine without the file and still fails when a required file is
   missing. Owner: Bug Hunt or lane E (GEN.443).
+  Research (2026-10-09, Update): Update 1:17 AM EDT 2026-10-24: Core 5
+  reports the same failure on its lane machine (the ozone_uv file is not
+  downloaded there; the OPS.62 environment setup family). The fix is in
+  the test, not on each machine.
   Prerequisites: none. Related: GEN.443.
 
 - [ ] **TEST.320 test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug)**
@@ -20141,6 +20095,30 @@ clears each one.
   words). Done: the test passes on main. Owner: Habitability B lane
   (DB.73's author).
   Prerequisites: none. Related: DB.73.
+
+- [ ] **TEST.323 test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug)**
+  Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported): on
+  its lane machine every run of
+  src/tests/test_web_browser_fixture_maps.py fails, 41 tests, with
+  'Page.wait_for_selector: .starmap-sr-list button timed out (120 s)' or
+  'nothing to click on the Galaxy Map'; Core 5 checked a clean main
+  worktree and it fails there too. Reproducer: python3 -m pytest
+  src/tests/test_web_browser_fixture_maps.py::test_sector_map_click_picks_a_star.
+  Possibly already cured by #2742 (the fixture map site now answers the
+  nebula cover) or by MAP.256 (#2852, the selection panel moved) if the
+  lane machine's main was older; recheck on current main first. Do:
+  reproduce on current main, find the cause (the selector or the fixture
+  site), fix. Done: the 41 tests pass on current main. Owner: Bug Hunt.
+  Prerequisites: none. Related: MAP.256, MAP.143.
+
+- [ ] **TEST.324 test_web_header_menus top-bar [1280x720-light] times out under load (bug)**
+  Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported):
+  test_web_header_menus top-bar [1280x720-light] timed out once in a
+  loaded gate and passes alone on its branch and on main. Do: wait on
+  the menu state, not on fixed time. Done: passes under load 9 in
+  repeated gates. Note: UX.180 changes the header menus (the Help menu),
+  so the fix should land with or after it. Owner: Bug Hunt.
+  Prerequisites: none. Related: UX.180, TEST.317.
 
 ## USR: User accounts
 
