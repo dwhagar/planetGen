@@ -312,6 +312,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `ratelimit.pages.galaxy_tiles` | Map data limit | text | 600 per minute | after a restart | any admin | none | Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, fetched as the map's camera moves. Empty turns it off. |
 | `ratelimit.pages.health` | Health check limit | text | 60 per minute | after a restart | any admin | none | Limit on /api/health. Empty turns it off. |
 | `ratelimit.pages.other` | Other pages limit | text | 300 per minute | after a restart | any admin | none | Limit on every other page, counted together. Empty turns it off. |
+| `api_log.internal` | Log the pages' own API calls | "all" or "off" | all | at once | any admin | none | Whether the calls the web pages make to the API in-process (about six for each page view) are written to the activity log as API lines: all, or off. |
 | `login_allowlist` | Never-locked-out addresses | list of text | empty list | after a restart | the Owner | `PLANETGEN_LOGIN_ALLOWLIST` | Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. Environment: comma- or space-separated. |
 | `admin_cookie_insecure` | Admin login over plain HTTP | true or false | false | after a restart | command line only | `PLANETGEN_ADMIN_COOKIE_INSECURE` | Send the admin session cookie over plain HTTP. Only for local development without TLS; a production deployment must never set it. |
 | `secret_key` | Form signing key | text | empty | after a restart | command line only | `PLANETGEN_SECRET_KEY` | Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once). **Secret.** |
@@ -376,8 +377,8 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 
 Separate from the debug log, planetGen always writes a short record of
 who did what to `planetgen.log` in `log_dir` (SEC.28,
-`../src/planetgen/admin/activity_log.py`): sign-ins, refused requests and
-every change to the database. It is on whatever `debug` says; with
+`../src/planetgen/admin/activity_log.py`): sign-ins, refused requests,
+every change to the database and every API call. It is on whatever `debug` says; with
 `debug` on, each line is copied into the debug log too. Passwords,
 session tokens and API keys are never written.
 
@@ -406,6 +407,9 @@ at 200 characters.
 | `AUTHZ` | `login.required` (an admin route with no session or key); `session.invalid` (an expired, ended or unknown session cookie); `apikey.invalid` (an unknown or revoked API key); `credentials.unchanged` (an admin route refused until the first credentials are changed); `admin.required` (an admin-only page action refused); `csrf.failed` (a form token that doesn't match); each with `path=` |
 | `DB` | every write through the web interface or API (`sector.create`, `system.update`, `star.rename`, `facility.create`, `lockout.lift`, ...: the same action names as `admin_audit_log`, with `target=` and `detail=`; `planetgen.cli.lockouts` writes `lockout.lift`, `devices.revoke` and `totp.reset` too); `migrate` (each schema migration step, `db=`, `from_version=`, `to_version=`) |
 | `GEN` | `generate.start` and `generate.finish` for each `planetgen` run that writes the database (`command=`, `db=`; the finish line adds `status=ok/failed/interrupted`, `seconds=`, `sectors=`, `systems=`, `phenomena=`); `job.start` and `job.cancel` for the admin Generate page |
+| `API` | `call` for every request to `/api/...` (API.15), written when the answer is ready: `user=` (the owner of the API key, the signed-in user, `god` for a command-line tool, or `-`), `via=` (`key`, `session`, `anonymous` or `console`), `method=`, `route=` (the matched route, `-` for none), `path=`, `status=` (the HTTP response code), `ms=`, `bytes_in=`, `bytes_out=`, `rid=` (also sent back as `X-Request-Id`), `ua=`, `client_api=` (the API version the client sent), and when they apply `key_id=` and `key_prefix=` (never the key), `internal=1` (a call a web page made to the API in-process, about six for each page view) and `ratelimited=1`. A command-line tool that does what an API route does writes the same line with `user="god"`, `via=console` and `status=200` or `500` |
+
+The API lines use HTTP response codes, for parity with the web server's own logs; a request the web server refuses before it reaches the program (a 413 from `LimitRequestBody`, a failed TLS handshake) appears only in the web server's log. `api_log.internal` set to `off` leaves out the calls the web pages make to the API in-process; the default logs all of them. Request bodies, tokens and `Authorization` headers are never written. The address is the client's full address, kept as long as the file is (the rotation below: 30 copies of up to 100 MB).
 
 Failed and locked sign-ins and wrong current passwords also go into the
 control database's `admin_audit_log` (kept 90 days), which the admin

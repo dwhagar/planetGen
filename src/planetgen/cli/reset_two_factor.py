@@ -41,6 +41,7 @@ def main(argv=None):
             parser.error(f"no admin named {args.user!r}.")
         was_on = auth.disable_totp(conn, row["id"])
         activity_log.event("DB", "totp.reset", user=activity_log.login_name(), target=f"user:{args.user}")
+        activity_log.console_call("cli/reset-two-factor", target=f"user:{args.user}")
         print(f"Two-factor sign-in for {args.user} is off{'' if was_on else ' (it was not set up)'}.")
         return 0
     finally:

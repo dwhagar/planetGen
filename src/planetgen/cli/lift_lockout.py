@@ -54,6 +54,7 @@ def main(argv=None):
         return 1
     target = f"{scope}:{subject}" if scope else "all"
     activity_log.event("DB", "lockout.lift", user=activity_log.login_name(), target=target, lifted=lifted)
+    activity_log.console_call("cli/lift-lockout", target=target)
     print(f"Lifted {lifted} lockout{'' if lifted == 1 else 's'} ({target}).")
     return 0
 

@@ -56,6 +56,10 @@ The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical
 
 Every request the software makes to another site sends one `User-Agent` in the RFC 9110 form of product tokens with a comment, `PlanetGen/<release> (+<project URL>) PlanetGen-API/<API version>`, for example `PlanetGen/8.0.2017 (+https://github.com/dwhagar/planetGen) PlanetGen-API/7` (API.31). `planetgen.util.user_agent.user_agent()` builds it and is the only place that spells it; the API client the web pages use, the setup-time dataset downloads (`planetgen.datasets.fetch`, [gap-filling-plan.md](../design/research/gap-filling-plan.md) section 6.5) and the build script for the element tables all send it. A page's own JavaScript cannot set `User-Agent`, so `static/apiversion.js` (loaded first by every page) adds the `X-PlanetGen-API-Version` header, with the same API version, to each `fetch` and `XMLHttpRequest` the page makes to this site's `/api/`.
 
+## The API call log
+
+Every request to `/api/...` leaves one `API call` line in the activity log (`planetgen.log`, category `API`, API.15): the time, the account that made it (the key's owner, the signed-in user, or `god` for a command-line tool), how it came in (`via=key`, `session`, `anonymous` or `console`), the method, route, the HTTP response code, the time taken and the sizes. The log uses HTTP response codes, for parity with the web server's own logs. The same id is sent back in the `X-Request-Id` header (a client may send its own, 8 to 64 letters, digits, dots, dashes or underscores), so a client can quote it. Keys, tokens, passwords and request bodies are never written. `api_log.internal` set to `off` leaves out the calls the web pages make in-process. The fields are listed in [config.md](config.md).
+
 ## Endpoints
 
 All under `/api/`, all JSON in, JSON out. Every endpoint below except

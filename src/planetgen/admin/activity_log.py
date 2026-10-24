@@ -77,7 +77,7 @@ MAX_VALUE_LENGTH = 200
 """int: Quoted values (usernames, paths, details) are cut to this many
 characters, so one request can't write an arbitrarily long line."""
 
-CATEGORIES = ("AUTH", "AUTHZ", "DB", "GEN")
+CATEGORIES = ("AUTH", "AUTHZ", "DB", "GEN", "API")
 """tuple: The categories a line may carry."""
 
 _logger = logging.getLogger("planetgen.activity")
@@ -269,6 +269,24 @@ def event(category, action, user=None, ip=None, **fields):
     from planetgen.util import log
     log.trace("activity: %s", line)
     return line
+
+
+CONSOLE_USER = "god"
+"""str: The `user` of an API-shaped action run from the console (API.15)."""
+
+
+def console_call(route, status=200, **fields):
+    """
+    The `API call` line (`planetgen.api.calllog`) for an API-shaped action a command-line tool ran with no request:
+    `user=god`, `via=console`. Never raises.
+
+    Args:
+        route (str): What was done, written like a route (`cli/lift-lockout`).
+        status (int): 200 for success, 500 for failure (the HTTP codes the API lines use).
+        **fields: Any further `key=value` fields (`target`).
+    """
+    return event("API", "call", user=CONSOLE_USER, ip="-", method="CLI", route=route, status=status, via="console",
+                 **fields)
 
 
 def login_name():

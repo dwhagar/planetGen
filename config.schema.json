@@ -1,5 +1,33 @@
 {
   "$defs": {
+    "ApiLog": {
+      "properties": {
+        "internal": {
+          "default": "all",
+          "description": "Whether the calls the web pages make to the API in-process (about six for each page view) are written to the activity log as API lines: all, or off.",
+          "enum": [
+            "all",
+            "off"
+          ],
+          "title": "Internal",
+          "type": "string",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "housekeeping",
+          "x-label": "Log the pages' own API calls",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "All API calls are logged by default; off leaves out the ones the web pages make to themselves."
+        }
+      },
+      "title": "ApiLog",
+      "type": "object"
+    },
     "Cache": {
       "properties": {
         "max_mb": {
@@ -1745,6 +1773,12 @@
       "x-secret": false,
       "x-slider": null,
       "x-summary": "Where the API lives, for scripts that call it from outside the web app."
+    },
+    "api_log": {
+      "$ref": "#/$defs/ApiLog",
+      "default": {
+        "internal": "all"
+      }
     },
     "base_url": {
       "default": "http://localhost/",

@@ -41,6 +41,12 @@ def _lines(folder):
     return path.read_text(encoding="utf-8").splitlines() if path.exists() else []
 
 
+def _lines_but_api(folder):
+    """The lines of the other categories: every `/api/` request also writes an `API call` line (API.15,
+    `test_api_call_log.py`), which these tests do not look at."""
+    return [line for line in _lines(folder) if " API call " not in line]
+
+
 # --- line format --------------------------------------------------------------
 
 def test_line_shape():
@@ -246,13 +252,13 @@ def test_failed_and_good_logins_are_logged_with_the_address(real_app, log_dir):
     assert _login(client, "admin", "wrong", ip="203.0.113.5").status_code == 401
     assert _login(client, "admin", real_app.first_password).status_code == 200
     assert client.post("/api/auth/logout", environ_base={"REMOTE_ADDR": "198.51.100.9"}).status_code == 200
-    events = [LINE.match(line).groupdict() for line in _lines(log_dir)]
+    events = [LINE.match(line).groupdict() for line in _lines_but_api(log_dir)]
     assert [(e["cat"], e["action"], e["ip"], e["user"]) for e in events] == [
         ("AUTH", "login.failed", "203.0.113.5", "admin"),
         ("AUTH", "login.ok", "198.51.100.9", "admin"),
         ("AUTH", "logout", "198.51.100.9", "admin"),
     ]
-    assert "wrong" not in "".join(_lines(log_dir)) and real_app.first_password not in "".join(_lines(log_dir))
+    assert "wrong" not in "".join(_lines_but_api(log_dir)) and real_app.first_password not in "".join(_lines_but_api(log_dir))
 
 
 def test_failures_go_to_the_audit_log_and_the_api(real_app):
@@ -309,9 +315,9 @@ def test_refused_requests_are_logged(real_app, log_dir):
     client.get("/api/auth/me", headers={"Authorization": "Bearer pg_nope"})
     client.set_cookie("pg_admin_session", "forged")
     client.get("/api/auth/me")
-    actions = [LINE.match(line).group("action") for line in _lines(log_dir)]
+    actions = [LINE.match(line).group("action") for line in _lines_but_api(log_dir)]
     assert actions == ["login.required", "apikey.invalid", "session.invalid"]
-    assert ' path=/api/auth/api-keys' in _lines(log_dir)[0] and " ip=192.0.2.10 " in _lines(log_dir)[0]
+    assert ' path=/api/auth/api-keys' in _lines_but_api(log_dir)[0] and " ip=192.0.2.10 " in _lines_but_api(log_dir)[0]
 
 
 def test_database_writes_are_logged(real_app, log_dir):
