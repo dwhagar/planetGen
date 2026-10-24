@@ -396,7 +396,7 @@ def _ratings_block(planet):
     rows = [{"domain": row["domain"], "tier": row["tier"], "score": row["score"], "text": inline([row["text"]])}
             for row in result["rows"]]
     return model.ratings({"name": "PHI-6", "score": result["overall"], "tier": habitability.tier(result["overall"])},
-                         rows, [result["gear"]])
+                         rows, model.chem_text(result["gear"]))
 
 
 def _equipment_block(planet):
@@ -411,7 +411,7 @@ def _equipment_block(planet):
     for index, item in enumerate(equipment.items(levels)):
         tech = equipment.item_tech(item.name, tuning.SPECIES_EQUIPMENT_TECH)
         made = "no tech level makes it" if tech >= 99 else f"made at tech level {tech:g}"
-        rows.append(fact(f"equipment-{index}", item.name[:1].upper() + item.name[1:],
+        rows.append(fact(f"equipment-{index}", model.chem_text(item.name[:1].upper() + item.name[1:]),
                          f"{item.severity.capitalize()}; {item.domain.lower()}; {made}"))
     if levels.get("shelter_column_g_cm2"):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))

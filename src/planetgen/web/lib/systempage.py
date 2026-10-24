@@ -27,6 +27,7 @@ row's detail instead.
 
 from planetgen.describe.html import blocks_html
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
+from planetgen.util import chem
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import (
     distance_km_html, esc, format_gravity_g_short, format_number, measured_html, period_years_html, speed_kms_html,
@@ -289,7 +290,7 @@ def _habitability_chip(body):
         return ""
     worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
     text = " + ".join(levels["required"]) or " + ".join(levels["recommended"]) or f"PHI-6 {TIER_NAMES[worst]}"
-    return f'<span class="flag flag-tier flag-tier-{worst}">{esc(text[:1].upper() + text[1:])}</span>'
+    return f'<span class="flag flag-tier flag-tier-{worst}">{chem.mark_html(text[:1].upper() + text[1:])}</span>'
 
 
 def _gravity_text(gravity_g):

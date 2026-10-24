@@ -8,11 +8,11 @@
     <thead><tr><th scope="col">Item</th><th scope="col">When it is needed</th></tr></thead>
     <tbody>
       {%- for label, meaning in equipment %}
-      <tr><th scope="row">{{ label }}</th><td>{{ meaning }}</td></tr>
+      <tr><th scope="row">{{ label|chem }}</th><td>{{ meaning|chem }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
-  <p>{{ equipment_rule }}</p>
+  <p>{{ equipment_rule|chem }}</p>
 </section>
 
 <section class="panel" aria-labelledby="symbols-heading">
