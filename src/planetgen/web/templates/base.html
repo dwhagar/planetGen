@@ -130,6 +130,8 @@ subhead (badges or actions under the <h1>). -#}
 {%- if head_info.json_ld %}
 <script type="application/ld+json">{{ head_info.json_ld | safe }}</script>
 {%- endif %}
+<meta name="planetgen-api-version" content="{{ api_version }}" data-header="{{ api_version_header }}">
+<script type="module" src="{{ static_url('apiversion.js') }}"></script>
 <script src="{{ static_url('theme.js') }}"></script>
 <script src="{{ static_url('localtime.js') }}" defer></script>
 <script src="{{ static_url('galaxybanner.js') }}" defer></script>

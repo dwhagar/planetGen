@@ -15,13 +15,33 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import life_facts, model
-from planetgen.describe.model import fact, facts, inline, measured, prose, qty, section, swatch
+from planetgen.describe.model import (
+    fact,
+    facts,
+    inline,
+    measured,
+    prose,
+    qty,
+    section,
+    swatch,
+)
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
-from planetgen.physics import atmosphere as atmosphere_physics, atmosphere_colour, equipment, habitability, pre_main_sequence, protection, regional_temperature, unit_registry
+from planetgen.physics import atmosphere as atmosphere_physics
+from planetgen.physics import (
+    atmosphere_colour,
+    equipment,
+    habitability,
+    habitability_explain,
+    pre_main_sequence,
+    protection,
+    regional_temperature,
+    unit_registry,
+)
 from planetgen.physics.quantity import Quantity
+from planetgen.util.format import three_figures_or_tiny
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
 """float: A compressed heliosphere is mentioned when it is under this share of the open-space one."""
@@ -399,6 +419,41 @@ def _ratings_block(planet):
                          rows, model.chem_text(result["gear"]))
 
 
+def _radiation_block(planet):
+    """GEN.445: the terms behind the Radiation rating of a scored rocky body, each with the composition that sets it: the dose from
+    cosmic rays (the air above and the magnetic field), stellar particles, the ground (its potassium, thorium and uranium) and
+    the ultraviolet (the ozone). None for a gas giant or a body not scored."""
+    if planet.body_type == "g" or getattr(planet, "surface_dose_msv_yr", None) is None:
+        return None
+    terms = habitability_explain.radiation_terms(planet)
+
+    def dose(msv_yr):
+        return qty("dose", msv_yr / 1000.0, "Sv/yr")
+
+    air = ", ".join(f"{name} {three_figures_or_tiny(share * 100.0)} percent" for name, share in terms.air)
+    shield = (f" under {three_figures_or_tiny(terms.column_g_cm2)} g/cm2 of air ({air})" if terms.column_g_cm2 > 0.0 and air
+              else f" under {three_figures_or_tiny(terms.column_g_cm2)} g/cm2 of air" if terms.column_g_cm2 > 0.0
+              else " with no air to stop them")
+    field = (f" and a {three_figures_or_tiny(terms.cutoff_gv)} GV magnetic cutoff" if terms.cutoff_gv > 0.0
+             else " and no magnetic field")
+    ground = ""
+    if terms.potassium_ppm is not None:
+        ground = (f": the gamma rays and radon of {three_figures_or_tiny(terms.potassium_ppm)} ppm potassium, "
+                  f"{three_figures_or_tiny(terms.thorium_ppm)} ppm thorium and {three_figures_or_tiny(terms.uranium_ppm)} ppm uranium "
+                  f"in the rock at formation")
+    ozone = ("" if terms.ozone_du is None else f", under {three_figures_or_tiny(terms.ozone_du)} Dobson units of ozone"
+             if terms.ozone_du > 0.0 else ", with no ozone")
+    rows = [
+        fact("radiation-dose", "Total dose", dose(terms.total_msv_yr)),
+        fact("radiation-limit", "Sets the rating", f"The {terms.limit}, {terms.tier}"),
+        fact("radiation-cosmic", "Cosmic rays", dose(terms.gcr_msv_yr), shield + field),
+        fact("radiation-stellar", "Stellar particles", dose(terms.sep_msv_yr), ", from the star's flares, cut by the same air and field"),
+        fact("radiation-ground", "Ground", dose(terms.ground_msv_yr), ground),
+        fact("radiation-uv", "Ultraviolet", qty("ratio", terms.uv_index), " times Earth's DNA-damaging dose" + ozone),
+    ]
+    return facts("Radiation", rows)
+
+
 SLOT_LABELS = {"body": "Body protection", "filter": "Air filter", "supply": "Air supply", "radiation": "Radiation shelter"}
 """dict: The label of each slot of the survival equipment in a body's details."""
 
@@ -435,6 +490,7 @@ def _planet_section(planet):
         blocks.append(_atmosphere_composition(planet))
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
     blocks.append(_ratings_block(planet))
+    blocks.append(_radiation_block(planet))
     blocks.append(_equipment_block(planet))
     life = life_facts.resolve(planet)
     blocks.append(prose("life", *_life_sentences(life)))

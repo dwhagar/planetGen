@@ -72,7 +72,7 @@ def test_a_v151_galaxy_gets_the_column_and_every_moon_keeps_its_row(mysql_config
     try:
         rows = conn.execute("SELECT tidal_flux_w_m2 FROM moons WHERE star_system_id = ?", (system_id,)).fetchall()
         assert len(rows) == count and all(row["tidal_flux_w_m2"] is None for row in rows)
-        assert store._stored_version(conn, "schema_migrations") == 152
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION  # a second run changes nothing

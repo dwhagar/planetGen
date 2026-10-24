@@ -2,6 +2,89 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2230] - 2026-10-24
+
+**Headline:** Neutron stars and black holes now have the accreting companions astronomers see: high-mass and low-mass X-ray binaries, microquasars, spider millisecond pulsars and compact triples, each with an X-ray luminosity under its Eddington limit.
+
+### Added
+- **High-mass X-ray binaries.** 40% of the compact companions of living massive stars accrete; 60% of those are Be/X-ray binaries (young systems only), the rest wind-fed supergiant binaries.
+- **Low-mass X-ray binaries.** 5e-5 of neutron stars and 1e-3 of black holes have a low-mass star on a tight orbit, and 1% of those accrete from a donor filling its lobe at a period of 4 to 24 hours.
+- **Microquasars.** One in ten accreting neutron stars and black holes launches jets (new member flag `microquasar`).
+- **Spider millisecond pulsars.** Recycled pulsars have black widow (6%), redback (3%) and other (2%) companions with the observed masses and periods of hours (new member flag `ablating`).
+- **X-ray luminosity.** A tree derives the luminosity of each accreting pair from the gas it captures, never above the accretor's Eddington limit.
+- **Dormant companions and compact triples.** Detached neutron star and black hole pairs with a star are listed as dormant (the Gaia kind), and 30% of neutron star and black hole binaries now have a third member (black holes only before).
+
+### Changed
+- **Generated systems change.** A neutron star or black hole pair no longer accretes by chance geometry; the recycled pulsar companion odds follow the registry classes. Every galaxy regenerates differently (generator epoch recorded).
+
+generation-output: changed
+
+## [8.0.2229] - 2026-10-24
+
+**Headline:** The 2D System Map now shows the stars beyond the pair of a triple or larger system, each with its own planets.
+
+### Changed
+- **Further stars on the 2D System Map (MAP.290).** In a system of three or more stars, the 2D System Map draws each star beyond the pair as a star marker on the whole-system view, in the direction it lies from the middle (at a fixed distance, as a wide pair's second star already is, and stepped in where two would overlap). Clicking it opens a view of its own with the planets and belts that orbit it, named through the label engine, and a Back button returns to the whole system. Before, only the pair was drawn; the table, text and 3D view already had them.
+
+TODO items resolved: MAP.290. Added: none.
+
+## [8.0.2228] - 2026-10-24
+
+**Headline:** A planet's details now show where its radiation comes from, term by term, with the air, magnetic field, ozone and rock that set each one.
+
+### Changed
+- **GEN.445 and DOC.75: the Radiation rating explains itself.** A rocky planet or moon gets a Radiation table in its details: the total dose, which of the dose and the ultraviolet sets the rating, the cosmic rays (with the column of air above and the gases in it, and the magnetic cutoff), the stellar particles, the ground (with the potassium, thorium and uranium of its rock) and the ultraviolet as a multiple of Earth's (with its ozone). The habitability help page has a new section, Where the radiation comes from, with the limits read from the score. Nothing generated changes.
+
+## [8.0.2227] - 2026-10-24
+
+**Headline:** The admin edit tests post to the body's own page, and the phenomenon class-link tests stub the property sheet the page now reads.
+
+### Fixed
+- **`test_system_page_regenerates_a_planet` and `test_system_page_changes_a_class` failed on main (TEST.347).** UX.173 moved a planet's Admin menu from the system page to the planet's own page, so the system page now refuses a planet target ("That isn't something on this page") and has no Change class button. The tests now post to `/object/planet:<id>` and look for Change class there; the system page still has Change star.
+- **`test_phenomenon_page_links_its_class` (five cases) and `test_phenomenon_unknown_class_stays_text` failed on main with a 502 (TEST.348).** The phenomenon page reads the object's property sheet (`get_object_sheet`), which the fake API of `test_class_pages.py` did not stub, so the page's own call went to a missing server. The fake now answers it with no groups.
+TODO items resolved: TEST.347, TEST.348. Added: none.
+
+## [8.0.2226] - 2026-10-24
+
+**Headline:** The program has one log record and one way to write it, ready for every log to move onto.
+
+### Changed
+- **The logging layer and the written standard (UX.121).** A log record is a UTC time, an RFC 5424 severity, a short component name, a message and `key=value` fields. It is written as a file line (logfmt, always UTC), a JSON line, or a display line (local time labelled with its zone; the command line's plain text has no time). A stage's start, finish and failure have one wording and one divider. Nothing in the program writes through it yet; the command line, the job logs and the download move in UX.122, the web displays and `update.sh` in UX.123. The standard and the list of every place the program logs are in `docs/design/operations/logging-standard.md`.
+
+## [8.0.2225] - 2026-10-24
+
+**Headline:** The API version is 7 and records the shell, band and wedge address change, and every outgoing request now sends the standard User-Agent (the page scripts send the API version header).
+
+### Changed
+- **`API_VERSION` is 7 (API.26).** The switch of every sector address to `shell`/`band`/`wedge` (2026-10-15) never raised the version, and versions 4, 5 and 6 were taken by later changes, so 7 carries it; `docs/reference/api.md` lists it and the route snapshot moves with it. No route that takes the old `ring`/`layer`/`slot` names is kept.
+- **One User-Agent everywhere (API.31).** `planetgen.util.user_agent.user_agent()` (release, project URL, API version) was already used by the dataset downloads; the web pages' API client and `scripts/build_element_tables.py` now send it too.
+- **The page scripts send the API version.** A browser script cannot set `User-Agent`, so `static/apiversion.js`, loaded first by every page, adds `X-PlanetGen-API-Version` to each `fetch` and `XMLHttpRequest` to the site's own `/api/`. The server keeps answering with the header (API.22).
+- `tests/test_user_agent.py` pins the format (product tokens, release, URL comment, API version), that it follows both versions, that every outgoing path calls the one function and that no other module opens a URL; `tests/js/apiversion.test.mjs` covers the page script.
+
+TODO items resolved: API.26, API.31. Added: none.
+
+## [8.0.2224] - 2026-10-24
+
+**Headline:** A planet's inner heat is now the heat its rock makes plus the heat it was born with, so a young world is much hotter than an old one and no longer a fixed share radiogenic.
+
+### Changed
+- **Formation heat modelled (GEN.699).** `planetgen.physics.interior_heat` follows a body's mantle from its making: it starts as hot as the energy of assembling the body allows (a magma ocean for a planet, cold for a planetesimal), then cools by convection through the mantle's boundary layer while its radioactive rock (the stored potassium, thorium, uranium and aluminium-26 of GEN.459) heats it. It is the stagnant-lid model of Guimond, Rudge and Shorttle 2022. The heat out is the radiogenic heat plus the cooling of the interior.
+- **The Urey ratio is an output.** It is no longer drawn between 0.1 and 0.9; it is the radiogenic share of the heat that comes out. An Earth-mass twin gives 27 to 37 TW and a ratio of 0.57 to 0.76 over the published range of mantle rheologies, and a body of 0.1 billion years gives four to thirty times more heat than at 4.5.
+- **Stored (schema 153).** `planets` and `moons` gain `mantle_eta0_pa_s` and `mantle_activation_kj_mol` (the two draws of the mantle's rheology) and `internal_heat_flux_w_m2` (the heat flow at the body's surface); `urey_ratio` keeps its column and is now computed. NULL on rows made before this release.
+- The heat flow of every rocky planet, moon and rogue changes, and with it the ice shell, the ocean, the volcanism gate and the habitability score that read it.
+- Generator epoch bump (numbered at merge).
+
+generation-output: changed
+
+## [8.0.2223] - 2026-10-24
+
+**Headline:** Every phenomenon page now says what the object is in words, and links to the phenomenon before and after it.
+
+### Changed
+- A stored nebula, quasar, rogue planet, interstellar comet, asteroid field, supernova remnant, black hole or neutron star page has an "About" paragraph, built from the stored row by the same sentences the generator's description uses (UX.185). A row too bare to describe shows no paragraph.
+- Each phenomenon page has Previous and Next links to the free phenomenon of its type before and after it. The API answer for a phenomenon carries them as `previous` and `next`, and a supernova remnant's centre as `compact_remnant_name`.
+- The neighbour links wrap on a narrow screen.
+
 ## [8.0.2222] - 2026-10-24
 
 **Headline:** A sector holds the same stars and systems whichever order a galaxy's sectors are generated in.

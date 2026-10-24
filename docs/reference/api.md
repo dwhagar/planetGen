@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
+- **7** (API.26): every sector address in a request or an answer is `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers), where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`). The switch to shells, bands and wedges was made on 2026-10-15 without raising the version, so 4, 5 and 6 were taken by later changes and this one carries it. No route that takes the old names is kept.
 - **6** (PERF.99): `GET /api/admin/work` and `GET /api/admin/work/<id>` return the runs in Redis (`items` are runs with their stage, units and time left, not job tree roots; `<id>` is a run id and answers the run with its stages and log), `POST /api/admin/work/<id>/control` takes `cancel` or `clear` (`pause` and `resume` of a node are gone), `POST /api/admin/work/<id>/delete` and `clear-finished` delete runs, `GET /api/admin/work/<id>/log` is new, and `POST /api/admin/work/lease/clear` is gone (clear the run instead).
 - **5** (DB.51): `GET /api/systems/<uid>/sections` is gone: the description is a document built from stored data, not a table of paragraphs.
 - **4** (ADM.50): `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` are gone with the galaxy settings files.
@@ -47,7 +48,11 @@ Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` hea
 - **2** (API.23, stage 1): sectors, systems and phenomena are named by their object ID, printed as `0008000000-4000000-000`, and not by their database row number. IDs appear in every `id`, `sector_id` and `ref` field of those answers, in the URLs (`/api/systems/<id>`, `/api/sectors/<id>`, `/api/phenomena/<type>/<id>`, `/api/nebulae/<id>/...`) and in `from`/`to`/`course` references such as `system:0008000000-4000000-000`. A row number is refused (404). A sector's ID is the hex designation of its grid address (shell, band and wedge bit-packed, e.g. `FE81000A2B`), or `(1 << 40) + id` when it was made by hand with no grid address.
 - **1**: the first numbered version.
 
-The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. The API version was not raised for it.
+The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. Version 6 records it.
+
+## The User-Agent and the version header
+
+Every request the software makes to another site sends one `User-Agent` in the RFC 9110 form of product tokens with a comment, `PlanetGen/<release> (+<project URL>) PlanetGen-API/<API version>`, for example `PlanetGen/8.0.2017 (+https://github.com/dwhagar/planetGen) PlanetGen-API/7` (API.31). `planetgen.util.user_agent.user_agent()` builds it and is the only place that spells it; the API client the web pages use, the setup-time dataset downloads (`planetgen.datasets.fetch`, [gap-filling-plan.md](../design/research/gap-filling-plan.md) section 6.5) and the build script for the element tables all send it. A page's own JavaScript cannot set `User-Agent`, so `static/apiversion.js` (loaded first by every page) adds the `X-PlanetGen-API-Version` header, with the same API version, to each `fetch` and `XMLHttpRequest` the page makes to this site's `/api/`.
 
 ## Endpoints
 

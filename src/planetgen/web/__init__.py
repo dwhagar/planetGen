@@ -52,6 +52,7 @@ from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
 from planetgen.web.lib.modulegraph import module_graph  # noqa: E402
 from planetgen.api.limiter import page_limit  # noqa: E402
+from planetgen.api.version import API_VERSION, API_VERSION_HEADER  # noqa: E402
 from planetgen.util.settings import get_settings  # noqa: E402
 from planetgen.util import chem, settings_view  # noqa: E402
 
@@ -193,6 +194,8 @@ def edit_flashes():
 def _template_globals():
     return {
         "site_name": get_settings().site_name,
+        "api_version": API_VERSION,
+        "api_version_header": API_VERSION_HEADER,
         "site_version": STATIC_VERSION,
         "seo_head": seo.head,
         "site_tagline": get_settings().site.tagline,
