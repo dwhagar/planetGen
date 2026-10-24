@@ -68,6 +68,41 @@ def test_look_is_the_same_for_the_same_row():
     assert bl.look_json(bl.planet_look(_planet())) == bl.look_json(bl.planet_look(_planet()))
 
 
+def _earth_air(**over):
+    row = _planet(gravity_g=1.0, _star_temperature_k=5772.0, p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95, p_co2_kpa=0.04)
+    row.update(over)
+    return row
+
+
+def _channels(hex_colour):
+    return [int(hex_colour[i:i + 2], 16) for i in (1, 3, 5)]
+
+
+def test_the_glow_is_the_atmosphere_colour_of_the_stored_air_under_its_star():
+    """MAP.244: the temperature gesture is gone; the limb colour follows the air and the star."""
+    sun = bl.planet_look(_earth_air())["glow"]
+    dwarf = bl.planet_look(_earth_air(_star_temperature_k=3300.0))["glow"]
+    r, g, b = _channels(sun)
+    assert b == 255 and b > g > r and sun != "#bfe3ff"
+    assert _channels(dwarf)[2] < b                          # a red dwarf's air is not blue
+    assert bl.planet_look(_earth_air(surface_temperature_k=400.0))["glow"] == sun        # temperature no longer decides it
+
+
+def test_thick_carbon_dioxide_glows_orange_and_a_row_without_a_star_has_no_glow():
+    venus = bl.planet_look(_earth_air(atmosphere="Carbon Dioxide", atmospheric_pressure_pa=9.2e6, gravity_g=0.9, p_co2_kpa=8880.0,
+                                      p_n2_kpa=320.0, p_o2_kpa=0.0, p_ar_kpa=0.0))
+    r, g, b = _channels(venus["glow"])
+    assert r > g > b
+    unknown = bl.planet_look(_earth_air(_star_temperature_k=None))
+    assert unknown["atm"] is True and "glow" not in unknown
+
+
+def test_a_giant_glows_with_the_colour_of_the_air_above_its_clouds():
+    giant = bl.planet_look(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
+                                   surface_temperature_k=130.0, _star_temperature_k=5772.0, p_h2_kpa=86.0))
+    assert giant["body"] == "gas" and len(giant["glow"]) == 7
+
+
 def test_star_colour_is_the_blackbody_colour_of_its_temperature():
     from planetgen.physics import photometry
     star = {"id": 3, "star_type": "M3V", "yerkes_class": "V", "temperature_k": 3400.0, "luminosity_w": 1e24}
@@ -81,3 +116,54 @@ def test_star_colour_is_the_blackbody_colour_of_its_temperature():
 def test_star_without_a_temperature_falls_back_to_the_spectral_colour():
     star = {"id": 4, "star_type": "K2V", "temperature_k": None, "luminosity_w": 1e26}
     assert bl.star_look(star)["color"].startswith("#")
+
+
+# --- Phenomena (MAP.278) -----------------------------------------------------
+
+def test_asteroid_grain_colour_follows_the_composition_family():
+    assert bl.asteroid_grain_color("B3") == bl.ASTEROID_GRAIN_COLORS["carbonaceous"]
+    assert bl.asteroid_grain_color("E2") == bl.ASTEROID_GRAIN_COLORS["stony"]
+    assert bl.asteroid_grain_color("H1") == bl.ASTEROID_GRAIN_COLORS["metallic"]
+    assert bl.asteroid_grain_color("L4") == bl.ASTEROID_GRAIN_COLORS["icy"]
+    assert bl.asteroid_grain_color(None) == "#b89a6e"
+    assert bl.asteroid_grain_color("Z9") == "#b89a6e"
+
+
+def test_rogue_planet_look_is_icy_when_cold_dry_when_warm_and_has_no_sea():
+    cold = bl.rogue_planet_look({"id": 1, "planet_type": "t", "surface_temperature_k": 60.0, "radius_km": 5000})
+    warm = bl.rogue_planet_look({"id": 1, "planet_type": "t", "surface_temperature_k": 300.0, "radius_km": 5000})
+    assert cold["hydro"] == "ice" and warm["hydro"] == "dry"
+    assert "ocean" not in cold and "glow" not in cold
+    assert cold["kind"] == "rogue_planet" and cold["seed"] == bl.seed_for("rogue_planet", 1)
+    buried = bl.rogue_planet_look({"id": 2, "planet_type": "t", "surface_temperature_k": 80.0,
+                                   "has_liquid_water": 1, "ice_shell_thickness_km": 30.0})
+    assert buried["hydro"] == "ice-covered ocean"
+
+
+def test_rogue_giant_uses_the_giant_colour_and_falls_back_to_effective_temperature():
+    giant = bl.rogue_planet_look({"id": 3, "planet_type": "g", "surface_temperature_k": None,
+                                  "effective_temperature_k": 100.0})
+    assert giant["body"] == "gas" and giant["color"] == bl.giant_color(100.0)
+
+
+def test_comet_nucleus_is_pale_when_active_and_dark_when_not():
+    assert bl.comet_nucleus_color({"is_active": 1}) != bl.comet_nucleus_color({"is_active": 0})
+
+
+def test_blackbody_hex_rejects_unusable_temperatures():
+    assert bl.blackbody_hex(None) is None and bl.blackbody_hex(0) is None
+    assert bl.blackbody_hex(1.5e7).startswith("#")
+
+
+def test_phenomenon_view_carries_the_painters_data():
+    from planetgen.web.maps import phenomenonrender as pr
+    params, _ = pr._params("rogue_planet", {"id": 9, "planet_type": "t", "surface_temperature_k": 50.0})
+    assert params["look"]["body"] == "solid" and params["seed"] == params["look"]["seed"]
+    params, _ = pr._params("interstellar_comet", {"id": 4, "is_active": 1})
+    assert params["nucleus"] == bl.comet_nucleus_color({"is_active": 1}) and "seed" in params
+    params, _ = pr._params("black_hole", {"id": 5, "has_accretion_disk": 1, "temperature_k": 1e7, "mass_class": "stellar"})
+    assert params["diskColor"].startswith("#")
+    params, _ = pr._params("black_hole", {"id": 5, "has_accretion_disk": 0, "temperature_k": 1e7})
+    assert params["diskColor"] is None
+    params, _ = pr._params("neutron_star", {"id": 6, "surface_temperature_k": 1e6, "spin_period_ms": 33})
+    assert params["surface"].startswith("#")

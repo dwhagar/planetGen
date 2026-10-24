@@ -33,7 +33,7 @@ def test_class_s_ranges():
     assert low_kg / pc.EARTH_MASS_TO_KG == pytest.approx(2.0, rel=0.01)
     assert high_kg / pc.EARTH_MASS_TO_KG == pytest.approx(10.0, rel=0.01)
     assert data["h"] and data["e"] and data["c"] and data["r"]
-    assert data["type"] == "t" and data["life_chemical"] is None
+    assert data["type"] == "t" and "life_chemical" not in data
     assert "S" not in tuning.HABITABLE_PLANET_CLASSES
     assert "S" in tuning.MOON_BLACKLIST
     assert tuning.PLANET_CLASS_PROBABILITIES["S"] > 0

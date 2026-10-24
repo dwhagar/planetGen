@@ -2,7 +2,7 @@
 
 Asked by Boss, 10:15 PM EDT 2026-10-23: the 3D rendered objects get texture, colour and atmospheric glow from composition and the other computed factors. Planets with oceans get a very rough vector-style picture of ocean, cloud and land colours; gas giants show colour and layers like Jupiter and Saturn, roughly; all rendered planets and moons are replaced with newly rendered surfaces; stars get a full paint job from luminosity and spectral class; phenomena (comets, rogue planets, nebulae, remnants) use as much of the calculated data as possible.
 
-Status: approved by Boss (10:28 PM EDT 2026-10-23, decisions in section 10). Built so far: R1 `bodylook.py` (MAP.271), R3 `bodytexture.js` (MAP.272), R4a `solidpaint.js` (MAP.273) and R7 `starpaint.js` (MAP.276) on the System Map; the rest follows the plan in section 11. Items: MAP.270 to MAP.285, DB.96, DB.99, GEN.670, UX.158.
+Status: approved by Boss (10:28 PM EDT 2026-10-23, decisions in section 10). Built so far: R1 `bodylook.py` (MAP.271), R3 `bodytexture.js` (MAP.272), R4a `solidpaint.js` (MAP.273) and R7 `starpaint.js` (MAP.276) on the System Map, and R9a (MAP.278: rogue planet, comet, black hole, neutron star and asteroid field looks from stored data; remnant shells by age still open); the rest follows the plan in section 11. Items: MAP.270 to MAP.285, DB.96, DB.99, GEN.670, UX.158.
 
 ## 1. What renders today (read from the repo)
 
@@ -18,7 +18,7 @@ The key finding: the colour work is built in Python but not stored or sent.
 
 - `physics/atmosphere_colour.py` (GEN.416 to GEN.418) returns an `AtmosphereColour` (sRGB, a colour word, ozone, haze, dust, cloud) from the air column, the star's spectrum and the ground albedo.
 - `physics/giant_colour.py` (GEN.419) does the same for a giant at the cloud-top reference level.
-- `models.py` has no colour, albedo, haze or cloud columns on `planets` or `moons`; the maps still use `_CLASS_COLORS` (MAP.244 is open). So step zero is to store or derive the colour and hand it to the page.
+- `models.py` has no colour, albedo, haze or cloud columns on `planets` or `moons`; the marker fill still uses `_CLASS_COLORS`. The limb glow is derived (MAP.244, built): `bodylook.air_colour` works the atmosphere colour of the stored mixture and ozone column under the body's own star (`_star_temperature_k`, put on each row by `systemmap._put_star_temperatures`) at render time, about 3 ms a body, and the look record's `glow` is its hex; a giant's is the colour of the air above 1 bar (no stored cloud deck yet). A row with no star temperature or no stored mixture has no `glow`. Storing the colour as a column (R2) is still open and would only cache this.
 - Stored today and usable: `ocean_fraction`, `land_fraction`, `ocean_depth_km`, `ocean_class`, `ice_shell_km`, `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, hycean), `water_mass_fraction`, the partial pressures `p_*_kpa`, `uv_surface_index`, surface temperature, radius, mass, rotation and obliquity where stored, magnetic data (`dipole_class`), and the planet class.
 - Not yet stored: cloud cover, albedo (GEN.412), haze/dust/cloud depths (GEN.414), ground (surface) colour, ice fraction (the polar cap size), mineral surface type.
 

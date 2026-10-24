@@ -209,7 +209,7 @@ connectivity to that specific schema rather than the default one.
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
   `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`), `belts` (each with its `composition`,
+  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 [R2]`, the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
@@ -235,8 +235,12 @@ connectivity to that specific schema rather than the default one.
   `overall`, the `gear` a visitor needs and a row per category), `composition`
   or `prose` (sentences). Text is a list of strings and typed items: a
   quantity `{"qty": {"kind", "si", ...}}` (`si` in the kind's base unit, never
-  formatted), a link `{"ref", "name"}` or `{"strong"}`. Built from the
-  database rows on each request.
+  formatted), a link `{"ref", "name"}`, `{"strong"}`, a chemical formula
+  `{"chem"}` or a colour `{"swatch": {"hex": "#99bfff", "word": "pale blue"}}`.
+  A planet or moon with a solid surface and air has an `atmosphere_colour`
+  fact whose value is a swatch (the clear-sky colour of its air under its
+  star, [atmosphere-colour.md](atmosphere-colour.md); absent for an airless
+  body and for a giant). Built from the database rows on each request.
 - `GET /api/systems/<id>/text?format=wikitext|markdown|text` — the same
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
@@ -575,7 +579,7 @@ connectivity to that specific schema rather than the default one.
   the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
   type, supported life chemistry, the equipment a human needs
-  (`equipment`/`moon_equipment`, tier 0 to 4); asteroid belt density; phenomenon type
+  (`equipment`/`moon_equipment`, one value per item the body needs, such as `pressure_suit` or `hardened_habitat`; a body matches when it needs any ticked item; GEN.655); asteroid belt density; phenomenon type
   and phenomenon class, the class tag written `<type>:<class>` such as
   `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
@@ -677,8 +681,8 @@ connectivity to that specific schema rather than the default one.
   species' own limits through the six habitability domains: `unaided` (no
   domain is Red) and `equipped` (could with the kit its tech level can make,
   Water not Red, and not already unaided), each entry with `id`, `name`,
-  `homeworld_planet_id`, `tech_level`, `phi4`, `equipment` (the kit its limits
-  ask for), `failing` (the Red domains) and `domains` (`{score, tier}` per
+  `homeworld_planet_id`, `tech_level`, `phi4`, `equipment` (the required items its limits
+  ask for, as the equipment line), `failing` (the Red domains) and `domains` (`{score, tier}` per
   domain), best first. `scored` is false for a gas giant or a body saved
   without a score (both lists empty). `404` if unknown.
 - `GET /api/systems/<id>/habitable-species` — the same for every rocky

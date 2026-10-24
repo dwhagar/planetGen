@@ -288,3 +288,7 @@ All under `docs/design/composition/tunable-gaps-sources/` (copied unchanged from
 - Statistics from retrievals (LExACoM) are method dependent (0.2 to 0.3 geometry systematic in C/O); they are tuning targets with a wide tolerance, not truth.
 - Population-level tuning uses what astronomers could observe (FGK dwarfs in the Kepler field, nearby M dwarfs, JWST targets chosen for signal); the generated galaxy covers other populations, so each knob carries a validity range and extrapolation is flagged.
 - Classes T, F, P, S, X are this lane's own grouping of the workers' (a), (b), (c) verdicts and "derive" recommendations, written so a builder can see at a glance whether the work is a fit, a formula or a decision.
+
+## The power of a target (GEN.665)
+
+`tuning_harness.power(target, comparison)` asks whether a value wrong by a factor of 2 (0.301 dex on a log scale; 0.25 for a proportion) lies outside 2 sigma of the comparison. Every shipped target refuses both sides except two, listed in `WEAK_TARGETS` of `test_tuned_draws.py`: `k5-mean` (3 comets, refuses neither side) and `k7-H2S-sd` (refuses a doubled spread, not a halved one). A new target that is weak in this sense must be listed there with the reason.

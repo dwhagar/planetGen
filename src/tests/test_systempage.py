@@ -111,7 +111,8 @@ _SPRITE = "/static/icons.svg"
 
 def _scored(body, phi4=0.8, **tiers):
     values = {f"tier_{domain}": 0 for domain in ("pressure", "temperature", "air", "water", "radiation", "suitability")}
-    body.update(equipment_tier=1, phi4=phi4, **{**values, **{f"tier_{k}": v for k, v in tiers.items()}})
+    body.update(equipment={"required": ["gas-mix mask"], "recommended": [], "line": "Required: gas-mix mask.", "code": "S1",
+                         "items": [{"slot": "supply", "item": "gas-mix mask", "severity": "required", "domain": "Air"}]}, phi4=phi4, **{**values, **{f"tier_{k}": v for k, v in tiers.items()}})
     return body
 
 
@@ -154,3 +155,16 @@ def test_every_body_row_has_an_anchor():
         assert html.count(f'<li id="{anchor}"') == 1, anchor
     # A single star has no row of its own: its link opens the system page.
     assert 'id="star-' not in html
+
+
+def test_equipment_chips_are_solid_when_required_and_outlined_when_recommended():
+    """UX.154: one chip per item, in the colour of the domain it comes from."""
+    body = _scored(_body(3, "Rocky", 1.0), air=2, radiation=3)
+    body["equipment"]["items"] = [
+        {"slot": "supply", "item": "gas-mix mask", "severity": "required", "domain": "Air"},
+        {"slot": "radiation", "item": "hardened habitat", "severity": "recommended", "domain": "Radiation"}]
+    html = _planet_row_html(body, {"planets": {}, "moons": {}}, sprite_url=_SPRITE)
+    assert 'flag-eq-required flag-tier flag-tier-2">Gas-mix mask</span>' in html
+    assert 'flag-eq-recommended flag-tier flag-tier-3">Hardened habitat <span class="sr-only">(recommended)</span>' in html
+    body["equipment"]["items"] = []
+    assert "PHI-6 Red" in _planet_row_html(body, {"planets": {}, "moons": {}}, sprite_url=_SPRITE)

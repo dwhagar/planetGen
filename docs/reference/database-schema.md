@@ -115,6 +115,29 @@ The `table_*` columns that once held copies of already-formatted display
 text (e.g. `"1.2 R☉"`) were the one exception to both conventions; v5
 dropped them (see "The searchable-field principle" below).
 
+### Units of a column
+
+Every numeric column declares the unit it is stored in, in one list: `db/column_units.py` (DB.76). `TABLES` gives, for each
+table, the columns of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key of the unit registry
+(`physics/unit_registry.py`, GEN.568), which holds the kind of each unit and its factor to the base unit of its kind, or of
+`LOCAL_UNITS` for the few the registry does not hold yet. The registry is the only table of units (see
+`docs/design/units-and-number-formatting.md`); this page states no factor.
+
+Rules (Boss's cards Q3 and Q4 of `docs/design/unified-unit-quantity.md`):
+
+- **The stored unit is chosen for precision, not forced to SI.** A position keeps its frame's unit (galaxy parsec, sector
+  milliparsec, system kilometres or AU) because a double's spacing grows with the number.
+- **The suffix stays in the name and equals the declaration.** `SUFFIXES` maps each suffix to its unit, and
+  `tests/test_column_units.py` fails when a column's suffix and declaration disagree, when a numeric column has no
+  declaration, or when a declaration names no column. A new table cannot ship without declaring its numeric columns in the
+  same change.
+- **A column with no unit of its own is declared by what it is:** `ratio`, `count`, `index`, `id`, `key`, `seed`, `flag`,
+  `unit-vector`, `row-defined` or `unspecified` (a quantity whose code states no unit; it waits for a source, DB.86).
+- **Values are not converted on write.** The object classes hold each field in the unit its `FIELD_UNITS` declares
+  (`generation/mass_object.py`, for the families declared so far); a value reaches a column in that unit, and a `Quantity` (`physics/quantity.py`) is how it is
+  read in any other unit at the edges (the describer, the API, the page).
+- The point columns of an object (`point_columns.PointLayout`) read their position and mass units from this list.
+
 ### The searchable-field principle
 
 *Historical: v5 dropped every `table_*`/`binary_table_*` column described
@@ -1407,7 +1430,10 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `uv_surface_index`, `ozone_loss_flag` | DOUBLE, BOOLEAN | nullable | Added in v75 (GEN.87). DNA-weighted surface UV against Earth's 1 (the star's 200 to 300 nm power against the Sun's, floored at 0.1, times its flux, times the ozone shielding (`ozone_column_du` / 300 DU)^-1.6 up to 1,000 when there is none), and whether ozone is lost: the layer exists but the star's `lethal_event_rate_per_gyr` is over 10 (one per 100 Myr) or particles give 100 mSv/yr at the ozone layer. NULL for a gas giant, and `uv_surface_index` NULL without a star temperature. |
 | `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_air`, `phi4_radiation` | DOUBLE | nullable | Added in v76 (GEN.89); `phi4_chemistry` was renamed `phi4_air` in v87. The PHI-4 display score for a human visitor: the four domains each 0 to 1 (1 is Blue) and `phi4`, their geometric mean (0 when any domain is 0). NULL for a gas giant and on a row generated before v76. |
 | `tier_pressure`, `tier_temperature`, `tier_air`, `tier_radiation` | TINYINT | nullable | Added in v76 (GEN.89); `tier_chemistry` was renamed `tier_air` in v87. Each domain's colour: 0 Blue, 1 Green, 2 Yellow, 3 Red. |
-| `equipment_tier` | TINYINT | nullable | Added in v76 (GEN.89). The kit a human needs: 0 ideal (named shirtsleeve before 2026-10-10), 1 breathing mask, 2 mask with scrubber, 3 environment suit, 4 full life support with radiation hardening. A pulsar's, neutron star's or black hole's planet is always 4. |
+| `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`, `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter`, `eq_shelter_rec` | TINYINT | nullable | Added in v136 (GEN.655, DB.93), replacing `equipment_tier` (v76). The survival equipment a human needs, as levels: `eq_body` is the required Body Protection (0 none, 1 clothing, 2 thermal suit, 3 sealed suit, 4 pressure suit, 5 armoured suit, 6 vehicle only) and `eq_body_kind` what set it (0 none, 1 cold, 2 heat, 3 pressure, 4 chemical, 5 diving, 6 UV, 7 gravity); `eq_body_rec` and `eq_body_rec_kind` the recommended level, above the required one only (else NULL); `eq_rad_suit` and `eq_rad_suit_rec` the radiation suit step (1 shielded garment, 2 storm vest, 3 hardened suit); `eq_mobility` the powered frame (1 recommended, 2 required); `eq_dust` the dust filter or seals; `eq_gas_filter` the gas filter grade 0 to 3; `eq_co2_scrub` the CO2 scrubber; `eq_supply` and `eq_supply_rec` the Air Supply 0 to 4; `eq_shelter` and `eq_shelter_rec` the radiation shelter (1 shielded shelter, 2 hardened habitat). Where an item has a recommended and a required level, the recommended is stored in the `_rec` column (a 1 in a field with only one encoding is recommended, 2 required). NULL for a gas giant, a body saved without a score and a row not yet re-scored (`planetgen rescore-habitability`). The name, the short code and the lists are derived (`physics/equipment.py`), never stored. |
+| `shelter_column_g_cm2`, `outside_hours` | DOUBLE | nullable | Added in v136 (GEN.655). The shielding in g/cm2 a shelter needs to bring the year's dose to the limit, and the hours outside a year the listed suit allows (NULL when unlimited or no shelter is needed). |
+| `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k` | DOUBLE | nullable | Added in v137 (GEN.656). The mean surface temperature spread over a world that turns on its own: the annual mean of the polar (60 degrees and over), northern (20 to 60 N), equatorial and southern (20 to 60 S) bands in kelvin, from the annual insolation of the stored axial tilt and the air column's heat transport, and the day and night swing at the equator (`physics/regional_temperature.py`). NULL for a gas giant, an unscored body, a tidally locked world and a row not yet re-scored. |
+| `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` | DOUBLE | nullable | Added in v137 (GEN.656). The same for a tidally locked world (rotation period equal to the orbital period): the day side, the terminator ring and the night side, kelvin. NULL for any other body. |
 | `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The Xenobiology numbers: microbial life (the product of the four likelihoods `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation), complex life (`phi_bio` times the metazoa's gas tolerance) and human operability with equipment (`phi_tech`, the geometric mean of the pressure, temperature, water and radiation mitigation factors). |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
 | `flux_variation` | DOUBLE | nullable | Added in v87 (DB.26, GEN.148). The relative swing of the stellar flux over the orbit or pair cycle; 0 is steady. NULL until regenerated. |
@@ -2131,9 +2157,17 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
-### v136 (GEN.666): `evolutionary_speed` is gone, the pace is stored once
+### v138 (GEN.666): `evolutionary_speed` is gone, the pace is stored once
 
-Migration 0136 drops `planets.evolutionary_speed` and `moons.evolutionary_speed`. A world's pace (`fast`, `normal` or `slow`, a `tuning.EVOLUTIONARY_TIMELINES` key) was stored twice, once as the speed its life sentence named and once as the pace its timeline was built on, and the two were separate draws, so a page could name two paces. The generator now draws it once and stores it in `evolutionary_pace`, for every body that has a life chemistry (a moon or a world outside the habitable zone has a pace and no timeline: `life_system_age_gyr` is NULL). A row that had a speed and no pace takes the speed as its pace; a row with both keeps its pace, which its ages and milestone were built on. The version is detected from `planets.evolutionary_speed` being gone.
+Migration 0138 drops `planets.evolutionary_speed` and `moons.evolutionary_speed`. A world's pace (`fast`, `normal` or `slow`, a `tuning.EVOLUTIONARY_TIMELINES` key) was stored twice, once as the speed its life sentence named and once as the pace its timeline was built on, and the two were separate draws, so a page could name two paces. The generator now draws it once and stores it in `evolutionary_pace`, for every body that has a life chemistry (a moon or a world outside the habitable zone has a pace and no timeline: `life_system_age_gyr` is NULL). A row that had a speed and no pace takes the speed as its pace; a row with both keeps its pace, which its ages and milestone were built on. The version is detected from `planets.evolutionary_speed` being gone.
+
+### v137 (GEN.656): regional temperatures and the day and night swing
+
+Migration 0137 adds eight DOUBLE columns (`temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k`, all nullable) to `planets` and `moons`, one `ALGORITHM=COPY` statement per table. They are a pure function of stored columns, so there is no backfill and no generator epoch: `planetgen rescore-habitability` fills them for a galaxy made earlier. See docs/design/habitability/survival-equipment-fields.md section 5.5.
+
+### v136 (GEN.655, DB.93): the survival equipment levels replace `equipment_tier`
+
+Migration 0136 adds the `eq_*` TINYINT columns, `shelter_column_g_cm2` and `outside_hours` to `planets` and `moons` (all nullable) and drops `equipment_tier`, in one `ALGORITHM=COPY` statement per table (a FULLTEXT index on those tables refuses an instant drop). The levels are a pure function of the stored conditions, so there is no backfill and no generator epoch: `planetgen rescore-habitability` fills them for a galaxy made earlier. See docs/design/survival-equipment-fields.md.
 
 ### v135 (GEN.413): `planets.ozone_column_du` and `moons.ozone_column_du`
 

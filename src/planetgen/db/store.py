@@ -1543,8 +1543,10 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
-    (136, lambda shape: ("planets", "life_stage") in shape["columns"]
+    (138, lambda shape: ("planets", "life_stage") in shape["columns"]
      and ("planets", "evolutionary_speed") not in shape["columns"]),
+    (137, _column_marker("planets", "temp_swing_k")),
+    (136, _column_marker("planets", "eq_body")),
     (135, _column_marker("planets", "ozone_column_du")),
     (134, _column_marker("system_configs", "max_stars")),
     (133, _column_marker("stars", "slot")),
@@ -4588,7 +4590,7 @@ def stored_world(conn, table, row, with_life=True):
     """
     if row["body_type"] == "g" or row["surface_temperature_k"] is None or row["energy_flux_w_m2"] is None:
         return None
-    values = {**dict(row), "native_life": _stored_native_life(row) if with_life else "none"}
+    values = {**dict(row), "is_moon": table == "moons", "native_life": _stored_native_life(row) if with_life else "none"}
     return habitability_world.world_from(values, lethal_host=compact_host_of_star(conn, row["star_id"]))
 
 
@@ -4634,6 +4636,7 @@ def _refresh_cloud_doses(conn, system_changes):
                     # GEN.89: the dose is one of the score's inputs. (A compact host's planet is
                     # rated at a lethal dose whatever the cosmic rays do.)
                     scores = habitability_world.compute({**dict(row), "surface_dose_msv_yr": total,
+                                                         "dose_helio_mult": multiplier, "is_moon": table == "moons",
                                                          "native_life": _stored_native_life(row)})
                     scored = tuple(scores[name] for name in habitability_world.SCORE_FIELDS)
                 rows.append((row["id"], multiplier, total, *scored))
@@ -4683,7 +4686,8 @@ def refresh_habitability(conn, system_id):
                 (system_id,)).fetchall():
             swing = swings.get((table, row["id"]), 0.0)
             scores = habitability_world.compute(
-                {**dict(row), "flux_variation": swing, "native_life": _stored_native_life(row)},
+                {**dict(row), "flux_variation": swing, "is_moon": table == "moons",
+                 "native_life": _stored_native_life(row)},
                 compact_host_of_star(conn, row["star_id"]))
             rows.append((row["id"], *(scores[name] for name in habitability_world.SCORE_FIELDS), swing))
         if rows:

@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.2089 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.2117 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -244,6 +244,7 @@ its options:
 | [docs/deployment/WINDOWS.md](docs/deployment/WINDOWS.md) | Windows is unsupported; the simplest setup, WSL2 |
 | [docs/reference/html-interface.md](docs/reference/html-interface.md) | How the website works |
 | [docs/reference/api.md](docs/reference/api.md) | The JSON API |
+| [docs/reference/atmosphere-colour.md](docs/reference/atmosphere-colour.md) | How a planet's atmosphere colour is worked out |
 | [docs/reference/system-file-format.md](docs/reference/system-file-format.md) | The JSON file that describes one star system for `planetgen system` |
 | [docs/reference/example-systems.md](docs/reference/example-systems.md) | The example system files and what each one tests |
 | [docs/reference/database-schema.md](docs/reference/database-schema.md) | The database tables and migrations |

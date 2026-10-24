@@ -18,16 +18,13 @@ and solar-storm doses need a shelter, not a suit.
 Everything here is a pure function of a `habitability.World`.
 """
 
-from planetgen.physics import atmosphere, habitability
+from dataclasses import replace
+
+from planetgen.physics import atmosphere, equipment, habitability, regional_temperature
 from planetgen.physics.habitability import (
     ARMSTRONG_KPA, MASK_MIN_KPA, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 from planetgen.physics.protection_limits import limit
 from planetgen.util.format import three_figures_or_tiny
-
-SUIT_RANK = {"none": 0, "mask": 1, "scrubber": 2, "garment": 3, "suit": 4, "hardened": 5}
-"""dict: How heavy a class of gear is, lightest first: nothing, a breathing mask, a mask with a
-scrubber, clothing or garments for the weather, an environment suit, a hardened habitat (no suit helps)."""
-
 
 
 def _gas(symbol):
@@ -160,12 +157,6 @@ SHORT_GEAR = {
 }
 """dict: The gear in the short words a description uses ("so a pressure suit is needed")."""
 
-OVERALL_GEAR = {"none": "no equipment", "mask": "a breathing mask", "scrubber": "a mask with a scrubber",
-                "suit": "an environment suit", "hardened": "a hardened habitat"}
-"""dict: What a visitor needs overall by the heaviest class of gear any stressor asks for (the lighter
-classes name their own gear)."""
-
-
 def _be(gear):
     """"are" for gear named in the plural ("cooling garments"), else "is"."""
     return "are" if gear.endswith("garments") else "is"
@@ -175,23 +166,69 @@ def _short(gear):
     return SHORT_GEAR.get(gear, gear)
 
 
-def kit_sentence(world, needs=None):
-    """The gear a visitor needs overall, as a phrase: the heaviest class of gear any stressor asks for."""
-    needs = needs or requirements(world)
-    body = [need for name, need in needs.items() if name in ("Pressure", "Temperature", "Air", "Radiation")]
-    top = max(SUIT_RANK[need[0]] for need in body)
-    rank = next(name for name, value in SUIT_RANK.items() if value == top)
-    if rank in OVERALL_GEAR:
-        return OVERALL_GEAR[rank]
-    return _join(dict.fromkeys(_short(need[1]) for need in body if SUIT_RANK[need[0]] == top and need[1]))
+def gear_clause(levels):
+    """The survival equipment as the clause that ends a rating's headline, from its stored levels
+    (`equipment.compute`): "and a visitor needs a + b, and should add c", "and a visitor should bring c", or the empty
+    string for a world that needs nothing (a world that needs nothing is never described by what it does not need)."""
+    required, recommended = equipment.required_names(levels), equipment.recommended_names(levels)
+    if required and recommended:
+        return f"and a visitor needs {' + '.join(required)}, and should add {' + '.join(recommended)}"
+    if required:
+        return f"and a visitor needs {' + '.join(required)}"
+    if recommended:
+        return f"and a visitor should bring {' + '.join(recommended)}"
+    return ""
 
 
-def rating(world, compact_host=None):
+_TEMPERATURE_RANK = {"none": 0, "garment": 1, "suit": 2}
+
+_PLACES = (("temp_polar_k", "at the poles"), ("temp_north_k", "in the north"), ("temp_equator_k", "at the equator"),
+           ("temp_south_k", "in the south"), ("temp_day_side_k", "on the day side"),
+           ("temp_terminator_k", "at the terminator"), ("temp_night_side_k", "on the night side"))
+
+
+def regional_sentence(world, regions):
+    """
+    The regional sentence of the Temperature row (GEN.656): where the world is colder or hotter than its mean, as
+    "The equator averages 12 C and the poles -22 C", the day and night swing when it is 5 K or more, and, for a place
+    whose temperature calls for heavier gear than the mean does, "At the poles, where it is -70 C, a heated sealed
+    suit is recommended." `regions` maps the `regional_temperature.FIELDS` to kelvin (a stored row or a body); `""` when
+    there are none.
+    """
+    if not regions or not any(regions.get(field) for field in regional_temperature.FIELDS):
+        return ""
+    celsius = {field: regions[field] - 273.15 for field, _ in _PLACES if regions.get(field)}
+    if "temp_day_side_k" in celsius:
+        parts = [f"The day side averages {_celsius(celsius['temp_day_side_k'])}",
+                 f"the terminator {_celsius(celsius['temp_terminator_k'])}",
+                 f"and the night side {_celsius(celsius['temp_night_side_k'])}"]
+        text = ", ".join(parts) + "."
+    else:
+        text = (f"The equator averages {_celsius(celsius['temp_equator_k'])} and the poles "
+                f"{_celsius(celsius['temp_polar_k'])}.")
+    swing = regions.get("temp_swing_k")
+    if swing and swing >= 5.0:
+        text += f" Day and night differ by about {three_figures_or_tiny(swing)} K."
+    mean_rank = _TEMPERATURE_RANK.get(temperature_need(world)[0], 0)
+    worst = None
+    for field, place in _PLACES:
+        if field not in celsius:
+            continue
+        rank, gear, _ = temperature_need(replace(world, temperature_c=celsius[field], flux_variation=0.0))
+        if gear and _TEMPERATURE_RANK.get(rank, 0) > mean_rank and (worst is None or _TEMPERATURE_RANK[rank] > worst[0]):
+            worst = (_TEMPERATURE_RANK[rank], place, celsius[field], gear)
+    if worst:
+        text += f" {worst[1][0].upper() + worst[1][1:]}, where it is {_celsius(worst[2])}, {worst[3]} is recommended."
+    return text
+
+
+def rating(world, compact_host=None, regions=None):
     """
     The habitability rating of a scored rocky body as data (GEN.208, GEN.216, UX.104): `overall` (the
-    PHI-6 value), `gear` (what a visitor needs overall) and `rows`, one per category in `DOMAINS`
+    PHI-6 value), `gear` (the survival equipment a visitor needs, as `gear_clause`) and `rows`, one per category in `DOMAINS`
     order: `domain`, `tier`, `score` and `text`, the one short sentence of the number and its
-    consequence.
+    consequence. `regions` (the stored regional temperatures, `regional_temperature.FIELDS`) adds the regional sentence to
+    the Temperature row.
     """
     scores = habitability.phi4(world)
     needs = requirements(world)
@@ -199,8 +236,10 @@ def rating(world, compact_host=None):
     for name in habitability.DOMAINS:
         value, colour = scores[name]
         sentence = _suitability_clause(world) if name == "Suitability" else _clause(name, world, needs[name], compact_host)
+        if name == "Temperature" and regions:
+            sentence = " ".join(part for part in (sentence, regional_sentence(world, regions)) if part)
         rows.append({"domain": name, "tier": colour, "score": value, "text": sentence})
-    return {"overall": scores["PHI-4"], "gear": kit_sentence(world, needs), "rows": rows}
+    return {"overall": scores["PHI-4"], "gear": gear_clause(equipment.compute(world)), "rows": rows}
 
 
 def _clause(name, world, need, compact_host):

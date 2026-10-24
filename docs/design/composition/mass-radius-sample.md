@@ -34,3 +34,7 @@ For a transiting planet the cut depends on two errors:
 - The two errors are independent of the planet's other properties and Gaussian in the log; the archive mixes instruments and methods (transit-timing masses are in the sample).
 - Validity: radius under 4 Earth radii; a larger planet is an extrapolation and the target's validity range flags it.
 - The values depend on the archive's content on the retrieval date. Re-running the script after the archive grows changes the file and is a table version change.
+
+## 5. The weak cut, as a finding (GEN.665)
+
+The cut is kept as built, not strengthened. A stronger cut would need the host's apparent magnitude and the follow-up choice, and a generated system has neither, so the slopes near 1 of section 3 are the honest result: the cut tilts a density distribution mildly and does not remove light or shallow planets. A target tuned through it therefore sees almost the planets' own distribution, and its power is that of the published sample alone. Section 3 says how mild the tilt is; the tuning notes of B2 and B4 (GEN.510, GEN.512) read it that way.

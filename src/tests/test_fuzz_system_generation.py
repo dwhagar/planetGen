@@ -312,10 +312,10 @@ def assert_life_caps(system, cfg):
         stage = obj.life_stage
         if stage is None:
             continue
-        cap = prog.PLANET_CLASS_MAX_LIFE_STAGE.get(obj.planet_class)
+        cap = planetLife.stage_ceiling(obj)
         if cap is not None:
             assert evolution.MILESTONE_KEYS.index(stage) <= evolution.MILESTONE_KEYS.index(cap), (
-                f"class {obj.planet_class} reports {stage}, above its cap {cap}")
+                f"a body whose index allows {cap} reports {stage}")
         if cfg.INTELLIGENT_LIFE is False:
             assert stage != "technological_civilization"
 
@@ -636,22 +636,22 @@ def test_binary_secondary_is_never_heavier_than_primary():
 
 @settings(max_examples=scaled(60))
 @given(seed=SEEDS, star_type=st.sampled_from(ALL_STAR_TYPES),
-       planet_class=st.one_of(st.none(), st.sampled_from(PLANET_CLASSES), hostile_text),
+       max_stage=st.sampled_from([None, *evolution.MILESTONE_KEYS]),
        intelligent=st.sampled_from([None, True, False]),
        age=st.sampled_from([None, "young", "old"]))
-def test_evolutionary_timeline_respects_caps_for_any_star(seed, star_type, planet_class, intelligent, age):
+def test_evolutionary_timeline_respects_caps_for_any_star(seed, star_type, max_stage, intelligent, age):
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
     cfg.INTELLIGENT_LIFE = intelligent
     cfg.AGE = age
     with _deterministic_entropy(seed):
         star = Star(cfg)
-        state = evolution.get_evolutionary_state(star, planet_class, evolution.draw_scale(star))
+        state = evolution.get_evolutionary_state(star, evolution.draw_scale(star), max_stage=max_stage)
     assert state["scale"] in prog.EVOLUTIONARY_TIMELINES
     assert all(state[key] is None or math.isfinite(state[key]) for key in ("milestone_age_gyr", "system_age_gyr"))
     stage = state["stage"]
     if stage is not None:
-        cap = prog.PLANET_CLASS_MAX_LIFE_STAGE.get(planet_class)
+        cap = max_stage
         if cap is not None:
             assert evolution.MILESTONE_KEYS.index(stage) <= evolution.MILESTONE_KEYS.index(cap)
         if intelligent is False:

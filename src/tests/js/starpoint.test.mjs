@@ -153,3 +153,25 @@ test("the sector scene's far brightness follows the star's own and never exceeds
   assert.ok(SS.lightFarBright({ bright: 0.9 }) > SS.lightFarBright({ bright: 0.8 }));
   assert.equal(SS.lightFarBright({ bright: 0.2 }), 0.2, "a rogue planet stays dim");
 });
+
+test("a far star still glows: a halo sized and strengthened by its luminosity around the point (Boss, 2026-10-23)", () => {
+  assert.ok(P.pointHaloPx(0) > 0 && P.pointHaloPx(0) < P.pointHaloPx(0.5) && P.pointHaloPx(0.5) < P.pointHaloPx(1));
+  assert.ok(P.pointHaloGlow(0) > 0 && P.pointHaloGlow(0) < P.pointHaloGlow(1));
+  assert.equal(P.pointHaloPx(2), P.pointHaloPx(1));
+  // Far away the light is its point plus its halo, the core still POINT_PX; near a sector the full look.
+  const halo = P.pointHaloPx(1);
+  assert.equal(P.pointSizePx(30, 20000, 1, halo), P.POINT_PX + halo);
+  assert.ok(Math.abs(P.pointCoreShare(4, 30, 20000, 1, halo) - P.POINT_PX / (P.POINT_PX + halo)) < 1e-12);
+  assert.equal(P.pointSizePx(30, P.NEAR_SECTOR_PC, 1, halo), 30);
+  // A far core is whitened less than a grown one, so the star's own color shows.
+  assert.ok(P.POINT_WHITEN < P.GROWN_WHITEN);
+});
+
+test("both scenes' shaders draw the far halo", () => {
+  for (const name of ["galaxymap3d.js", "sectorscene.js"]) {
+    const text = source(name);
+    assert.match(text, /HaloPx/, name);
+    assert.match(text, /HaloGlow/, name);
+    assert.match(text, /POINT_WHITEN/, name);
+  }
+});

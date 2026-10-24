@@ -93,3 +93,12 @@ def test_a_layouts_units_are_the_registrys():
     assert point_columns.LAYOUTS["star_systems"].mass_unit == "kg"
     assert point_columns.LAYOUTS["black_holes"].mass_unit == "Msun"
     assert point_columns.LAYOUTS["stars"].position_unit == "au"
+
+
+def test_no_column_is_left_without_a_unit_and_the_six_found_by_db76_have_the_units_their_code_uses():
+    assert "unspecified" not in set(column_units.COLUMNS.values())
+    for table in ("planets", "moons"):
+        assert column_units.COLUMNS[(table, "atm_density")] == "kg_m3"
+        assert column_units.COLUMNS[(table, "atm_molar_density")] == "kg/mol"
+    assert column_units.COLUMNS[("asteroid_fields", "formed_at")] == "unix_s"
+    assert column_units.COLUMNS[("comets", "parabolic_mean_anomaly")] == "ratio"

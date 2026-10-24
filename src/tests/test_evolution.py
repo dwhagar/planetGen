@@ -1,14 +1,10 @@
 """
 evolution.get_evolutionary_state regression tests.
 
-Covers the fix for a bug where a planet's fixed per-class flavor text (e.g.
-Class G: "a rocky, barren world with simple life") and its evolutionary/
-civilization-tech milestone were rolled by two entirely independent code
-paths -- `planet_class` was never passed into the timeline
-at all -- so an old/fast-evolving star, or a forced `INTELLIGENT_LIFE=True`,
-could still produce "Technological Civilization" for a planet whose own
-class text says life there tops out at "simple"/"bacterial". Fixed via
-`program_constants.PLANET_CLASS_MAX_LIFE_STAGE`.
+The most advanced milestone a timeline reports is capped by `max_stage` (the habitability index's ceiling,
+`generation.life.stage_ceiling`) and by INTELLIGENT_LIFE=False, never by a class letter (GEN.92, GEN.647): a forced
+INTELLIGENT_LIFE=True at a very old age must still stop at the cap it is given. GEN.666 adds the pace: one draw
+(`draw_scale`) the state is built at.
 
 Run with: pytest src/tests/test_evolution.py
 """
@@ -37,73 +33,43 @@ def _star(intelligent_life=None, age=None):
     return star
 
 
-def _stage(star, planet_class=None):
+def _stage(star, max_stage=None):
     """The milestone `get_evolutionary_state` reports for a star at the pace drawn for it."""
-    return get_evolutionary_state(star, planet_class, draw_scale(star))["stage"]
+    return get_evolutionary_state(star, draw_scale(star), max_stage)["stage"]
 
 
-@pytest.mark.parametrize("capped_class,forbidden_milestones", [
-    ("E", ["photosynthesis", "complex_cells", "multicellularity", "technological_civilization"]),
-    ("F", ["complex_cells", "multicellularity", "technological_civilization"]),
-    ("G", ["complex_cells", "multicellularity", "technological_civilization"]),
-    ("L", ["technological_civilization"]),
+@pytest.mark.parametrize("max_stage,forbidden_milestones", [
+    ("abiogenesis", ["photosynthesis", "complex_cells", "multicellularity", "technological_civilization"]),
+    ("photosynthesis", ["complex_cells", "multicellularity", "technological_civilization"]),
+    ("multicellularity", ["technological_civilization"]),
 ])
-def test_capped_class_never_exceeds_its_own_ceiling_even_when_forced(capped_class, forbidden_milestones):
-    """
-    The direct regression case: INTELLIGENT_LIFE=True at a very old age
-    (every milestone, including Technological Civilization, is reachable)
-    must still never report a milestone above the class's own cap.
-    """
+def test_a_capped_timeline_never_exceeds_its_ceiling_even_when_forced(max_stage, forbidden_milestones):
+    """INTELLIGENT_LIFE=True at a very old age (every milestone is reachable) must still never report a milestone
+    above the cap."""
     star = _star(intelligent_life=True, age=20.0)
-    stage = _stage(star, capped_class)
-    assert stage not in forbidden_milestones, f"Class {capped_class} reported {stage!r} despite its own cap"
+    stage = _stage(star, max_stage)
+    assert stage not in forbidden_milestones, f"{max_stage} reported {stage!r} despite its cap"
 
 
-def test_uncapped_class_can_still_reach_technological_civilization():
-    # Regression guard for the fix itself over-restricting: a class with no
-    # entry in PLANET_CLASS_MAX_LIFE_STAGE (M: "a terrestrial Earth-like
-    # world") must behave exactly as before -- INTELLIGENT_LIFE=True at an
-    # old age still reports a full civilization.
-    star = _star(intelligent_life=True, age=20.0)
-    assert _stage(star, "M") == "technological_civilization"
-
-
-def test_none_planet_class_stays_uncapped():
-    # Same as above but exercising the explicit planet_class=None default,
-    # for a caller that doesn't know/care about class.
+def test_an_uncapped_timeline_can_still_reach_technological_civilization():
     star = _star(intelligent_life=True, age=20.0)
     assert _stage(star) == "technological_civilization"
 
 
-def test_intelligent_life_false_still_downgrades_uncapped_class():
-    # Pre-existing behavior, unchanged by this fix: INTELLIGENT_LIFE=False
-    # never reports a civilization even for an otherwise-uncapped class.
+def test_intelligent_life_false_downgrades_an_uncapped_timeline():
     star = _star(intelligent_life=False, age=20.0)
-    assert _stage(star, "M") != "technological_civilization"
+    assert _stage(star) != "technological_civilization"
 
 
-def test_intelligent_life_false_does_not_raise_a_capped_class_above_its_own_ceiling():
-    # A class capped below Multicellularity (F: "photosynthesis") combined
-    # with INTELLIGENT_LIFE=False (which alone would only cap at
-    # Multicellularity) must still respect the tighter of the two caps.
+def test_intelligent_life_false_does_not_raise_a_capped_timeline():
+    # INTELLIGENT_LIFE=False alone caps at Multicellularity; a tighter cap still wins.
     star = _star(intelligent_life=False, age=20.0)
-    assert _stage(star, "F") in ("abiogenesis", "photosynthesis")
+    assert _stage(star, "photosynthesis") in ("abiogenesis", "photosynthesis")
 
 
-def test_forced_milestone_for_capped_class_is_its_own_ceiling_not_no_milestone():
-    # INTELLIGENT_LIFE=True on a capped class shouldn't silently report
-    # "no significant milestone" either -- it should force the highest
-    # stage that class's own cap actually allows.
+def test_forced_milestone_for_a_capped_timeline_is_its_ceiling_not_no_milestone():
     star = _star(intelligent_life=True, age=20.0)
-    assert _stage(star, "G") == "photosynthesis"
-
-
-@pytest.mark.parametrize("planet_class", list(prog_c.PLANET_CLASS_MAX_LIFE_STAGE.keys()))
-def test_every_capped_class_is_a_real_milestone_key(planet_class):
-    # Guards PLANET_CLASS_MAX_LIFE_STAGE itself against a typo'd milestone
-    # key that MILESTONE_KEYS.index() would raise ValueError on at
-    # generation time.
-    assert prog_c.PLANET_CLASS_MAX_LIFE_STAGE[planet_class] in MILESTONE_KEYS
+    assert _stage(star, "photosynthesis") == "photosynthesis"
 
 
 # --- GEN.666: one pace -----------------------------------------------------------------------------------------
@@ -115,7 +81,7 @@ def test_the_state_carries_the_pace_it_was_given_and_draws_nothing(age, intellig
     star = _star(intelligent_life=intelligent_life, age=age)
     for scale in prog_c.EVOLUTIONARY_TIMELINES:
         with draw.bound(51):
-            state = get_evolutionary_state(star, "M", scale)
+            state = get_evolutionary_state(star, scale)
             next_draw = draw.random()
         with draw.bound(51):
             assert draw.random() == next_draw  # the state took nothing from the stream

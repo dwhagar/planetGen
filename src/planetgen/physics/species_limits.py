@@ -19,7 +19,7 @@ This module reads no database; callers pass the `habitability.World`.
 import math
 
 from planetgen import tuning
-from planetgen.physics import habitability, habitability_world
+from planetgen.physics import equipment, habitability
 from planetgen.physics.protection_limits import LIMITS, limit
 
 # Edges of each side of each band, outermost first. A side moves as a whole, so the spacing between its edges
@@ -123,9 +123,9 @@ def assess(world, overrides, tech_level=None, native=False):
 
     Returns:
         dict: `domains` (`{domain: (score, tier)}` for the six habitability domains and `"PHI-4"` the overall score,
-            as `habitability.phi4`), `equipment` (the kit its limits ask for, `habitability.equipment`), `unaided`
+            as `habitability.phi4`), `equipment` (the kit its limits ask for, as the line of `equipment.line`: required and recommended items, empty when none is needed), `unaided`
             (no domain Red), `equipped` (it can live there with the kit: Water is not Red, and the species' `tech_level`
-            reaches the kit's `tuning.SPECIES_EQUIPMENT_MIN_TECH`; a species with no tech level has no kit) and
+            reaches that of every required item, `tuning.SPECIES_EQUIPMENT_TECH`; a species with no tech level has no kit) and
             `failing` (the domains that are Red, in page order).
 
     `native` is true for the species' own homeworld: Suitability is not judged there, because the water and the food
@@ -133,12 +133,11 @@ def assess(world, overrides, tech_level=None, native=False):
     """
     bands = habitability.bands(overrides)
     domains = habitability.phi4(world, bands)
-    kit = habitability.equipment(world, bands)
+    levels = equipment.compute(world, bands)
     failing = [name for name in habitability.DOMAINS if domains[name][1] == "Red" and not (native and name == "Suitability")]
-    tier = habitability_world.EQUIPMENT_NAMES.index(kit)
     equipped = (domains["Water"][1] != "Red" and tech_level is not None
-                and tech_level >= tuning.SPECIES_EQUIPMENT_MIN_TECH[tier])
-    return {"domains": domains, "equipment": kit, "unaided": not failing, "equipped": equipped, "failing": failing}
+                and tech_level >= equipment.tech_needed(levels, tuning.SPECIES_EQUIPMENT_TECH))
+    return {"domains": domains, "equipment": equipment.line(levels), "unaided": not failing, "equipped": equipped, "failing": failing}
 
 
 def explain(world, overrides, failing):

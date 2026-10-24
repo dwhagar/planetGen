@@ -47,7 +47,7 @@ def resolve(planet):
     if not planet.life_chemical:
         return None
     timeline = None
-    if planet.has_timeline and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+    if planet.has_timeline:
         stage = planet.life_stage
         timeline = Timeline(
             planet.life_system_age_gyr, stage,

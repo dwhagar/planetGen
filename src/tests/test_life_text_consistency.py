@@ -61,7 +61,7 @@ def conflicts(body, paragraphs):
             found.append(f"chemistry: {other!r} is named on a {body.life_chemical!r} world")
     timeline = paragraphs.get("timeline")
     if timeline is None:
-        if body.has_timeline and body.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+        if body.has_timeline:
             found.append("timeline: the body has one and the page shows none")
         return found
     if not body.has_timeline:

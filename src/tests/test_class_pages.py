@@ -347,12 +347,12 @@ def test_stars_table_hides_role_for_a_single_star(app):
 # --- UX.90: the habitability levels page --------------------------------------------
 
 def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(client):
-    from planetgen.physics.habitability_world import EQUIPMENT_LABELS
+    from planetgen.web.lib import habitability_ref
 
     html = _html(client, "/classes/habitability")
-    for label in EQUIPMENT_LABELS:
-        assert label in html
-    assert EQUIPMENT_LABELS[0] == "Ideal" and "Shirtsleeve" not in html
+    for item, _when in habitability_ref.EQUIPMENT_ITEMS:
+        assert item in html
+    assert "Shirtsleeve" not in html
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"<h3>{domain}</h3>" in html
     for colour in ("Blue", "Green", "Yellow", "Red"):
@@ -406,7 +406,7 @@ def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client
 def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(client):
     assert 'href="/classes/habitability"' in _html(client, "/classes")
     system = _system()
-    system["planets"][0].update({"equipment_tier": 0, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
+    system["planets"][0].update({"equipment": {"required": [], "recommended": [], "line": "", "code": "", "items": []}, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
                                  "tier_air": 0, "tier_water": 0, "tier_radiation": 0,
                                  "tier_suitability": 0})
     html = system_list_html(system, _SECTIONS, habitability_url="/classes/habitability")

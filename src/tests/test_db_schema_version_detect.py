@@ -10,10 +10,13 @@ is missing. One older than the Alembic baseline (v61) is refused.
 import pytest
 
 from planetgen.db import alembic_runner, store
+from planetgen.physics import equipment, regional_temperature
 from tests.db_schema_support import load_old_schema, old_schema_versions
 
 # A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
 pytestmark = pytest.mark.fresh_database
+
+EQUIPMENT_COLUMNS = equipment.FIELDS
 
 
 def _forget_version(config, drop=False):
@@ -39,7 +42,11 @@ def _make_older_than_the_baseline(config):
     conn = store.get_connection(config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v136 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v138 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
+                         + ", ALGORITHM=COPY")  # v137
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in EQUIPMENT_COLUMNS)
+                         + ", ALGORITHM=COPY")  # v136
             conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135
         conn.execute("ALTER TABLE system_configs DROP COLUMN stars, DROP COLUMN max_stars, DROP COLUMN prevalence_multi_star,"
                      " ALGORITHM=COPY")  # v134
@@ -125,7 +132,6 @@ def _make_older_than_the_baseline(config):
         conn.execute("ALTER TABLE sector_stats DROP COLUMN bright_mass_sol")  # v79
         conn.execute("DROP TABLE id_counters")  # v78
         conn.execute("DROP TABLE phenomenon_scatter_classes")  # v77
-        conn.execute("ALTER TABLE planets DROP COLUMN equipment_tier")  # v76
         conn.execute("ALTER TABLE planets DROP COLUMN surface_dose_msv_yr")  # v75
         conn.execute("ALTER TABLE planets DROP COLUMN ocean_class")  # v74
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN bright_star_mass_limit_sol")  # v73

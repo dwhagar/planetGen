@@ -22,7 +22,7 @@ the star's final age rather than a provisional pre-adjustment one.
 
 from planetgen.generation import evolution
 from planetgen import tuning
-from planetgen.physics import habitability_world
+from planetgen.physics import habitability_world, planet_classes
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.stellar_object import get_star_evolutionary_profile, get_star_spectral_class
@@ -31,8 +31,12 @@ from planetgen.generation.stellar_object import get_star_evolutionary_profile, g
 def get_viable_life_chemicals(planet, spectral_class=None):
     """
     Determines the viable life chemicals for a planet by finding the
-    intersection of chemicals supported by both the planet's class and
-    its star's spectral type. Normalizes the probabilities to sum to 1.0.
+    intersection of chemicals its conditions allow (each chemical's
+    `requires` in `tuning.LIFE_CHEMICALS`, read from the body's stored
+    air, ocean and temperature) and those its star's spectral type
+    supports. Normalizes the probabilities to sum to 1.0. A class letter
+    is never read: a gas giant has no surface to live on and a rocky body
+    is judged by what it stores (GEN.647).
 
     Args:
         planet (Planet): The planet or moon to evaluate.
@@ -45,12 +49,11 @@ def get_viable_life_chemicals(planet, spectral_class=None):
         dict: A dictionary mapping viable life chemical strings to their
               normalized float probabilities (e.g., {"Melanin": 0.6}).
     """
-    # Retrieve the base list of possible chemicals for this specific planet class
-    planet_data = tuning.PLANET_CLASSES.get(planet.planet_class)
-    if not planet_data or not planet_data.get("life_chemical"):
+    if planet.body_type == "g":
         return {}
-
-    planet_chems = planet_data["life_chemical"]
+    found = planet_classes.quantities(planet_classes.values_from_body(planet))
+    planet_chems = [name for name, data in tuning.LIFE_CHEMICALS.items()
+                    if planet_classes.holds(data["requires"], found, missing=None)]
 
     if not planet.star.type:
         return {}
@@ -112,6 +115,13 @@ def life_ceiling(planet):
     if complex_life is not None and complex_life < least:
         return "microbial"
     return None
+
+
+def stage_ceiling(planet):
+    """The most advanced milestone the habitability index allows on `planet` (`evolution.MILESTONE_KEYS`), or `None` for
+    no limit: photosynthesis (microbial life) when the complex-life score is under `HABITABILITY_LIFE_SCORE_MIN`
+    (`life_ceiling`); nothing else caps it, since the class letter no longer does (GEN.92)."""
+    return "photosynthesis" if life_ceiling(planet) == "microbial" else None
 
 
 def _set_description(planet):
@@ -185,8 +195,7 @@ def apply_life_data(planet):
     # population pass then gave it a species no page would show).
     if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
         _set_evolutionary_state(planet, evolution.get_evolutionary_state(
-            planet.star, planet.planet_class, planet.evolutionary_pace,
-            max_stage="photosynthesis" if ceiling == "microbial" else None))
+            planet.star, planet.evolutionary_pace, max_stage=stage_ceiling(planet)))
     else:
         _set_evolutionary_state(planet, None)
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
@@ -261,18 +270,18 @@ def decide_flavor_text(planet):
         available_orbital_flavor = tuning.ORBITAL_FLAVOR
 
     # Check for habitable and multicellular/technological life
-    is_habitable = planet.planet_class in tuning.HABITABLE_PLANET_CLASSES
+    is_habitable = planet.life_chemical is not None
     has_multicellular_life = planet.life_stage in ("multicellularity", "technological_civilization")
 
     if is_habitable and has_multicellular_life:
         selected_flavor = draw.choice(available_habitable_flavor)
         flavor_category = "habitable (multicellular/technological life present)"
         flavor_list = "habitable"
-    elif planet.body_type == "t" and planet.planet_class != "A":
+    elif planet.body_type == "t" and planet_classes.classify(planet) != "A":
         selected_flavor = draw.choice(available_planet_flavor)
         flavor_category = "planet (terrestrial body, not class A)"
         flavor_list = "planet"
-    elif planet.body_type == "g" or planet.planet_class == "A":
+    elif planet.body_type == "g" or planet_classes.classify(planet) == "A":
         selected_flavor = draw.choice(available_orbital_flavor)
         flavor_category = "orbital (gas giant or class A body)"
         flavor_list = "orbital"

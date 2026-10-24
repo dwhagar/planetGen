@@ -2,6 +2,255 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2117] - 2026-10-24
+
+**Headline:** The planet lists and the system page now show each piece of survival equipment as its own chip, solid when required and outlined when only recommended.
+
+### Changed
+- **Equipment chips (UX.154).** On a system page each planet and moon row shows one chip per item of its needs list instead of one chip with the items joined by plus signs. A required item is a solid chip, a recommended one an outlined chip (with "recommended" read aloud for screen readers), each in the colour of the PHI-6 domain the item comes from. The Equipment column of the Search page's planet and moon panels draws the same chips; a search row's API entry gains `equipment_items` (`item`, `severity`, `domain`). A world that needs nothing still shows no equipment chip.
+
+## [8.0.2116] - 2026-10-24
+
+**Headline:** A planet's page now says how much colder its poles and how much hotter its equator run than its mean temperature, and how far day and night differ.
+
+### Added
+- **Regional temperatures and the day and night swing (GEN.656).** Every rocky planet and moon stores the annual mean of its polar, northern, equatorial and southern bands and the day and night swing at the equator (kelvin); a tidally locked world stores its day side, terminator and night side instead (`physics/regional_temperature.py`, schema v137, migration 0137). The bands come from the annual insolation of the axial tilt, flattened by the air's heat transport (Earth's poles come out about 35 K under its mean, Venus is nearly even). The Temperature row of the habitability rating gains a sentence such as "The equator averages 28.7 C and the poles -17.9 C", the swing when it is 5 K or more, and, where a place needs heavier gear than the mean, that gear as recommended. The API's `equipment` object gains `regions`. A galaxy made earlier gets the columns from `planetgen rescore-habitability`; there is no generator epoch.
+
+## [8.0.2115] - 2026-10-24
+
+**Headline:** The greenhouse closure that checks a planet's stored warming against a physical opacity is in place (GEN.443, greenhouse kernel).
+
+### Changed
+
+- New `planetgen.physics.greenhouse`: the Robinson and Catling grey-atmosphere closure (surface temperature from an infrared optical depth, and the inverse), the greenhouse factor from the effective temperature, and the check of a stored multiplier. It reproduces Earth (optical depth 1.82, factor 0.625) and a Venus-like world. Nothing calls it yet and no stored value changes; the composition side of the check waits on the infrared opacity data and the stored multiplier.
+
+## [8.0.2114] - 2026-10-24
+
+**Headline:** The Generate log stays in a fixed-width font when the web server adds its own Content-Security-Policy.
+
+### Fixed
+- **The Generate log was no longer fixed width (UX.148).** Xterm.js sets the terminal rows' font in a `<style>` element it writes itself. A web server that sends its own Content-Security-Policy as well as the app's (Boss's Apache does) enforces both, and its policy, with no `'unsafe-inline'` for styles, blocked that element, so the log fell back to the page's proportional font and columns stopped lining up. `style.css` now gives `.job-terminal .xterm-rows` the monospace font, size and `white-space: pre` too. The deployment guide already says not to repeat the security headers in the web server; removing the server's own header is still the better setup. `test_the_log_stays_fixed_width_when_the_web_server_adds_a_stricter_policy` fails without the change.
+
+TODO items resolved: UX.148. Added: none.
+
+## [8.0.2113] - 2026-10-24
+
+**Headline:** Stars on the Galaxy Map glow at every distance, the glow's size and strength from the star's luminosity and its colour from the star's temperature.
+
+### Fixed
+- **Stars on the map did not glow (Boss's live observation).** Since MAP.208 a star farther than about three sectors from the camera was a 1.5 pixel point with no halo and a core whitened toward white, so only stars near the camera glowed and the rest read as white dots. A far point now keeps a halo of its own (`starpoint.js`: `POINT_HALO_PX` 3 to 12 pixels and `POINT_HALO_GLOW` 0.3 to 0.75, faint star to bright star by luminosity), which grows smoothly into the full halo near a sector, and its core is whitened less (`POINT_WHITEN`), so the star's blackbody colour shows. The Galaxy Map and the sector scene draw it the same way; the far halo shares one shader attribute with the grown glow, since a vertex shader holds 16 at most. Tests in `starpoint.test.mjs`.
+TODO items resolved: none (the stars-glow bug is being filed by the TODO thread). Added: none.
+
+## [8.0.2112] - 2026-10-24
+
+**Headline:** The solid-world and star painters load their shared helper with the release stamp, so a new release cannot serve a stale copy.
+
+### Changed
+
+- `solidpaint.js` and `starpaint.js` import `bodytexture.js` with the page's `?v=` stamp, as every other script does (TEST.310; the page-shell test caught it).
+
+## [8.0.2111] - 2026-10-24
+
+**Headline:** The page cache can no longer fill Redis and stop a galaxy run; the Redis memory limit is now 4 GB.
+
+### Changed
+
+- The shared page cache stops adding answers to Redis once Redis is 70 percent full, so the job queue and run records always have room. (A 512 MB Redis was full of cached pages, about 365 MB of them, when the phenomena scatter died.)
+- `./update.sh` now warns when the Redis `maxmemory` is under 2 GB and `examples/redis/planetgen.conf` ships `maxmemory 4gb`.
+- `planetgen reset` drops that database's cached pages from Redis.
+
+## [8.0.2110] - 2026-10-24
+
+**Headline:** A full Redis now stops a run with one plain message instead of a 70-line double traceback, and the "too big" estimate warning no longer says "Refused" and "Going ahead" in the same breath.
+
+### Changed
+
+- When Redis runs out of memory during a run, the run is marked failed with a message that says so and says to raise `maxmemory`; the second failure while recording the stop is no longer shown on top of it.
+- The disk-estimate warning for a run that goes ahead anyway now reads "This would take about ..." instead of "Refused: this would take about ...". Under `--strict` the refusal is unchanged.
+
+## [8.0.2109] - 2026-10-24
+
+**Headline:** Life no longer depends on a planet's class letter: a world carries life when its stored conditions and its star allow it.
+
+### Changed
+- **Life follows the conditions (GEN.92, GEN.647).** `LIFE_CHEMICALS` entries now state what a body must store (`requires`: free oxygen for chlorophyll a and the blue porphyrins, none for retinal's and the bacteriochlorophylls' reducing air, an acidic ocean for zinc-bacteriochlorophyll, air for every light-harvesting pigment), and `get_viable_life_chemicals` offers a body the chemicals it satisfies that its star's spectrum supports. A gas giant carries none. The per-class `life_chemical` lists and `PLANET_CLASS_MAX_LIFE_STAGE` are deleted: the most advanced life stage is capped only by the habitability index (`life.stage_ceiling`), and the timeline paragraph and flavour line no longer read the class letter. `get_evolutionary_state` and `get_evolutionary_timeline` lose their `planet_class` argument.
+- **More worlds carry life.** Any rocky body the index gives microbial life can now carry it: small icy bodies with an ocean under the ice, and a few volcanic or super-Earth worlds, where the class list once allowed only eleven classes. Worlds that were capped by their letter (E, F, G, L and Q) reach as far as the index allows.
+generation-output: changed
+
+## [8.0.2108] - 2026-10-24
+
+**Headline:** The stellar-particle shielding and radiation-weight kernels for the derived surface radiation are in place (GEN.444, slice 1).
+
+### Changed
+
+- New `planetgen.physics.surface_dose`: the Band spectrum of a stellar particle event with the share that gets past an atmospheric and a magnetic cutoff, the shielding of a mixed column by nuclear interaction length, and the ICRP 103 radiation weights. Nothing calls it yet and no stored value changes; the wiring, the epoch and the removal of the proxies are the second slice, after GEN.443, GEN.441 and GEN.459.
+
+## [8.0.2107] - 2026-10-24
+
+**Headline:** The ammonia activity factor is recorded as a labelled stand-in with its bracket and evidence limits.
+
+### Changed
+- **Gap plan registry (GEN.501).** Boss decided the NH3 gap cannot be filled; the factor 1.078 stays, registered as a stand-in with the bracket 1.05 to 1.10, the evidence limits and what would replace it. Docs only.
+
+## [8.0.2106] - 2026-10-24
+
+**Headline:** The ammonia activity factor's label now records that the evidence behind it was checked and is not verified.
+
+### Changed
+- **NH3 activity factor source text (GEN.501).** Notes the evidence check of 2026-10-24: supporting citations partly wrong, solar-cycle amplitude near 200 nm uncertain by up to five times, so the factor could exceed 1.10. The value 1.078 is unchanged.
+
+## [8.0.2105] - 2026-10-24
+
+**Headline:** The ammonia photolysis activity factor now carries the value Boss supplied, labelled as not yet checked against the published table.
+
+### Changed
+- **NH3 activity factor 1.075 to 1.078 (GEN.501).** From the quiet and active rates Boss supplied (1.80e-4 and 1.94e-4 per s at 1 AU); the Huebner tables are still NOT REACHED, so the row stays labelled unverified and the quiet lifetime 6.7e3 s (Heays 2017) is kept.
+
+## [8.0.2104] - 2026-10-24
+
+**Headline:** The thorium-to-uranium ratio of a planet's rock now follows the history of its galaxy's disc.
+
+### Changed
+- **Row o4 of the atmosphere recipes reads the disc's r-process enrichment (GEN.663).** The uniform birth epoch of 3 to 13 Gyr is gone; `physics/rprocess_enrichment.py` works out the enrichment factor from the disc's star formation history and a merger delay law (a labelled stand-in). The recipes are not read by the generator yet, so no generated value changes.
+
+## [8.0.2103] - 2026-10-24
+
+**Headline:** The atmosphere mixture draw covers every class: Venus-like and Mars-like air, abiotic oxygen, Titan-like and Pluto-like air, comet comae, and the vapour over a lava world.
+
+### Added
+- **`draw_mixture` families (GEN.479, GEN.456, GEN.499).** `physics/mixture_evolved.py` (a Venus-like or Mars-like body is the outgassed gas without its water and most of its sulfur over a crust that buffers the oxygen; an abiotic-oxygen world keeps the oxygen of its lost water; Titan-like air is nitrogen and methane at the methane's saturation; a Pluto-like air stands over its ices by Raoult's law), `physics/mixture_coma.py` (a comet's coma from the drawn ratios to water) and `physics/mixture_lava.py` (the vapour over an ideal-solution melt of the bulk silicate Earth's oxides at the held oxygen fugacity, from the melt's element potentials: 1.8e-4 bar at 2000 K and 1.1e-2 bar at 2500 K against Kite et al. 2016's 2e-4 and 8e-3, sodium and potassium first, SiO above O2 beyond about 2900 K). A white-dwarf planet with a vapour exosphere takes the lava chemistry; one without has no gas. Not called by the generator yet: no generator epoch.
+- **Trace gases after the life stage (`physics/mixture_trace.py`, GEN.479).** `draw_trace_gases(subject, mixture)` draws table m of the possibility tables from the quantities the life stage gives (`required_trace_inputs` names them) and adds N2O, PH3, HCl, HF, NO2 and CH3Cl at design-bracket amounts, with the ozone rows left in the result for the ozone code.
+- **Two alkali oxide liquids in the species table** (`Na2O(L)`, `K2O(L)`, from the same NASA Glenn database) and `Species.supercooled_g_over_rt`, the liquid's free energy below its melting point.
+
+### Changed
+- **The planned rocky classes U, Y and Z have the rocky rows of the possibility tables** (`ROCKY` in `scripts/atmosphere_recipes_data.py`, the data file rebuilt): the rows of table j are gated on them and table j3 and j4 need a retention row. No existing class changes, so no generated body changes.
+- **`mixture_draw.family_of(recipe, subject)` takes the subject**, because a hot-zone body is a lava world only where its surface is molten.
+
+## [8.0.2102] - 2026-10-24
+
+**Headline:** The tuning targets now state which wrong values they can refuse, and the thorium rows share one scale.
+
+### Changed
+- **The thick-disc thorium row o2 is on the solar-twin scale of row o1 (GEN.664).** Its centre moves from -0.063 to 0.061 dex (the Hypatia thick-minus-thin offset of -0.019 added to +0.08), its target with it. The recipes are not read by the generator yet, so no generated value changes.
+
+### Added
+- **A power check for every tuning target (GEN.665).** `tuning_harness.power` tells whether a factor-2 error is refused; two weak targets are named, and the white-dwarf redox and mass-radius notes record why the width 0.22 and the weak cut stay.
+
+## [8.0.2101] - 2026-10-24
+
+**Headline:** A world's survival equipment is a list of what a visitor needs, item by item, from the physics, instead of one tier from 0 to 4.
+
+### Changed
+- **The equipment line (GEN.655, DB.93).** `equipment_tier` is gone. Each planet and moon now stores the levels of four slots (body protection, air filter or scrubber, air supply, radiation protection) as `eq_*` columns (schema v136) and shows what a human needs, required or recommended, and nothing for a world that needs nothing: "Required: pressure suit + dust-tight seals. Recommended: hardened habitat." with a short code (`B4p F100 S2 [R2]`). The radiation ladder is a shielded garment, a storm vest, a hardened suit, a shielded shelter and a hardened habitat, run through the dose curves. The PHI-6 scores are unchanged. The search page has one tick per item, the species fit reads a tech level per item (`tuning.SPECIES_EQUIPMENT_TECH`), and the description and the habitability levels page use the same list. Run `planetgen rescore-habitability` to fill the levels of an existing galaxy. Design: `docs/design/survival-equipment-fields.md`.
+
+## [8.0.2100] - 2026-10-24
+
+**Headline:** One table now shows the order of every random draw from a star to its planets' habitability rating.
+
+### Changed
+
+- **One draw-order table from the star to the PHI-6 (DOC.78).** `docs/design/composition/composition-spine-contracts.md` gains section 4: every star and body block in the order its draws are made, which stream each uses, and the rule for changing the order. Documentation only; no generator change.
+
+## [8.0.2099] - 2026-10-24
+
+**Headline:** The real-data checks of the downloaded data sets now wait for every data set, so a machine that updated before the ozone file was added no longer shows a failing test.
+
+### Changed
+- **TEST.312.** `test_datasets_real` skipped only when the first three data sets were missing, so a machine whose cache held those but not the ozone cross sections (AD9) failed `test_the_catalogue_reports_nothing_missing`. It now skips unless the whole catalogue is in the cache.
+
+## [8.0.2098] - 2026-10-24
+
+**Headline:** The documentation now explains how a planet's atmosphere colour is worked out and where it appears.
+
+### Changed
+- A new reference page describes the atmosphere colour: what it is made from, the method from Rayleigh scattering to the thick-air limit and the giants' reference level, what it leaves out (sunsets, twilight, the view from the planet) and its sources. The API page, the description document page and the web interface page point to it and describe the new colour item and the Atmosphere Colour row.
+
+## [8.0.2097] - 2026-10-24
+
+**Headline:** The glow around a planet on the System Map now has the colour of its own air, under its own star.
+
+### Changed
+- The rim glow of a planet or moon with air on the System Map follows its atmosphere colour, worked out from the stored gases and ozone and the temperature of the star it orbits: a pale blue under a Sun-like star, cream or paler under a red dwarf, orange for a thick carbon dioxide world. The old three-colour glow by temperature is gone. A gas or ice giant glows in the colour of the air above 1 bar; a body with no star temperature or no stored gases has no glow.
+
+## [8.0.2096] - 2026-10-24
+
+**Headline:** The radius, inflation and heavy-element mass of a giant planet now have their checked kernels, ready to replace the old anchored relation.
+
+### Added
+- **`physics/giant_radius.py` and `giant_radius_tables.py`** (GEN.460, first part, no behaviour change yet): the Fortney, Marley and Barnes 2007 giant radius tables (Tables 2 to 4, three ages, five distances, five core masses, 17 to 3,594 Earth masses) interpolated in mass, flux, age and core mass, with three misprinted cells corrected by their neighbours; the hot-giant inflation of Sestovic, Demory and Queloz 2018 (a stand-in for the physical efficiency of Thorngren and Fortney 2018); and the heavy-element mass law of Chachan et al. 2025 with its 66 percent scatter. A planet that is mostly heavy elements is outside the tables and `covers` says so.
+
+## [8.0.2095] - 2026-10-24
+
+**Headline:** The browser holds measured values in a Quantity and reads every unit factor from the registry.
+
+### Added
+- **The browser's Quantity** (UX.128). `static/quantity.js` mirrors the Python `Quantity`: a number in one registry unit, answered in any other unit of its kind, with the same bounds checks. `unitladder.js` shows one with `formatMeasure`.
+
+### Changed
+- The unit formatter's `format*` names read the registry unit they are for, and the factors it exported (`KM_M`, `AU_M`, `LIGHTYEAR_M`, `PARSEC_M`, `SECONDS_PER_YEAR`, `STANDARD_GRAVITY` and the rest) are removed.
+- The light-year to parsec conversion of the galaxy map and the generate buttons, the speed steps of the orbit clock, the time estimate of the limit sliders, the duration words of the settings page and the Sun's radius in the system scale go through the registry.
+
+## [8.0.2094] - 2026-10-24
+
+**Headline:** A sector's count of interstellar comets and planetesimals is now about a thousand times larger, matching the measured density.
+
+### Changed
+- `INTERSTELLAR_DEBRIS_DENSITY_PC3` moves from 1e12 to 1e15 per pc³: Do, Tucker and Tonry (2018) and Jewitt and Seligman (2023) put the density of interstellar objects like 'Oumuamua at 0.1 to 0.2 per AU³, which is 7e14 to 1.8e15 per pc³; the old 1e11 to 1e14 range was three orders too low. The figure on a sector page ("about 10^16 interstellar comets and planetesimals") is the only output that changes; no row and no generator output moves (GEN.659). The three design notes that quoted 1e12 are corrected.
+
+## [8.0.2093] - 2026-10-24
+
+**Headline:** Ten more places that wrote a physical law by hand now call the one declared law, with the same numbers.
+
+### Changed
+- The Schwarzschild radius (black holes, quasars, the phenomena plausibility check), surface gravity (planets, rogue planets, the plausibility range, the planet query), escape speed and mean density (collision outcomes) and the volume of a sphere (comet nuclei, gas clouds, pulsar planets) come from `physics/relations.py` instead of a typed formula (GEN.587, first file group). Every replaced expression gives the same float bit for bit; the sites whose operation order would change the last digit (`multistar._schwarzschild_au`, the `mathcheck` Schwarzschild helper, `lensing`) are left for the epoch-changing pass.
+
+## [8.0.2092] - 2026-10-24
+
+**Headline:** The last six columns without a declared unit now have one, read from the code that uses them.
+
+### Changed
+- `atm_density` on planets and moons is kg/m³, `atm_molar_density` kg/mol, `asteroid_fields.formed_at` a Unix time and `comets.parabolic_mean_anomaly` a plain number (DB.86); the `unspecified` marker is removed from the column registry and a test fails if a column goes without a unit. No stored value changes.
+
+## [8.0.2091] - 2026-10-24
+
+**Headline:** Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores, and any body can be asked whether it can have satellites.
+
+### Added
+- **`planetgen.physics.hosting_gate` (GEN.579).** `can_host(host)` runs the three parts of the hosting gate in order (a 10 m
+  satellite must fit under the mass-ratio limit; a stable orbit must exist between the host's radius or fluid Roche limit and
+  0.4895 of its Hill radius, with the hierarchical stability screen for a comparable satellite; the body must reach the 1 km
+  size cut and its population and size must have a satellite share), names the first part that fails, and carries the gated
+  `satellite-share` table with every row's source state. A moon holds nothing until a sourced row exists, and
+  `tidal_survival_radius_m` is the submoon tidal gate of Kollmeier and Raymond 2019. Nothing calls it yet.
+- **`planetgen.physics.giant_interior` (GEN.642).** Places the layers of a gas giant (molecular and metallic hydrogen
+  envelope, a helium-enriched zone and shell where helium has rained out of a cold giant, a dilute core, a compact core
+  of rock and iron), an ice giant (molecular envelope over an ionic or superionic water, ammonia and methane mantle over a
+  rock and iron core) and a brown dwarf (no solid core), each with its pressures, mass, state and the mass of every material
+  in it, and describes them in words. The layers hold exactly the heavy elements and natal helium the caller fixed. Nothing
+  calls it yet: the planet draw wires it in with GEN.428 and the layers are stored by DB.89.
+- **Three research notes.** `docs/design/composition/giant-interiors.md` (GEN.641: layers, metallization, helium rain, dilute and compact
+  cores, ice giants and brown dwarfs, with each source's state); `docs/design/composition/giant-heavy-element-law.md` (the heavy-element
+  mass law of Chachan et al. 2025, now read: GEN.460's input); `docs/design/composition/small-body-size-laws.md` (GEN.566 and GEN.580:
+  size-frequency laws of belts, comets, Kuiper belt objects and interstellar objects, and binary and satellite fractions by
+  size, with the numbers read in each paper). The size-law note corrects the interstellar object density in
+  `unified-star-like-objects.md`: 0.1 to 0.2 per au3 is 7e14 to 1.8e15 per pc3, not 1e12.
+- **The unit docs describe the registry (DOC.70).** `docs/design/units-and-number-formatting.md` now says where the units live
+  (the unit registry, `Quantity`, the relations, the field declarations, the column registry, the display ladders, the
+  browser copy) and that the registry is the only unit table; `docs/database-schema.md` has a "Units of a column" section.
+
+## [8.0.2090] - 2026-10-24
+
+**Headline:** Rogue planets, comets, black holes, neutron stars and asteroid fields are now drawn from their own stored data instead of one fixed look each.
+
+### Changed
+- **Rogue planets use the planet painters (MAP.278).** A rogue planet's View is painted from a look record built from its stored row (`bodylook.rogue_planet_look`): a rocky one by the solid-world painter (ice where its surface is cold, ice over an ocean when it is stored as liquid under an ice shell, no sea otherwise), a giant as bands of its temperature colour. It replaces the fixed blue-grey.
+- **Comet nuclei take a colour from activity.** An active comet's nucleus is grey-white, an inactive one dark red-brown, and its lumpy shape is the same on every visit.
+- **Black hole disks and neutron star surfaces take their temperature colour.** The accretion disk's hot colour and the neutron star's surface are the blackbody colour of the stored temperature, in place of one blue-white or yellow-white for each class.
+- **Asteroid field grains follow the composition.** On the Sector Map an asteroid field's cloud and glow are tinted by its composition family (carbonaceous dark, stony tan, metallic grey, icy pale, basaltic brown), from the field's class letter.
+- **Each phenomenon View has its own stars.** The background starfield is seeded from the object, not one fixed seed for every View.
+
+Nebula tints by type already existed; supernova remnant shells by age are not in this change (they need the remnant's age on the sector scene).
+
 ## [8.0.2089] - 2026-10-24
 
 **Headline:** `update.sh` no longer looks hung on a big or slow data set download: each file shows a progress bar, and a stalled download is retried from where it stopped.

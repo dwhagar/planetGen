@@ -5,7 +5,7 @@ TEST.155: the words and the habitability index say the same thing. For random wo
 the bodies of generated systems as the Document describes them:
 
 - a category's colour, its score and the band its sentence names agree;
-- the overall gear a visitor needs and the equipment label are the same kit;
+- the headline gear and the equipment line are the same list;
 - an airless body is never better than Red in Air;
 - a body whose text claims life has life in the index;
 - no quantity in the describer is written with a raw `:.Nf`.
@@ -21,18 +21,13 @@ from planetgen import describe
 from planetgen.describe import model
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from planetgen.physics import equipment
 from planetgen.physics import habitability as hab
 from planetgen.physics import protection
 from planetgen.util import draw
 
 from tests.test_habitability import EXAMPLES
 from tests.test_protection import _worlds
-
-GEAR_OF_LABEL = {"ideal": {"none", "garment"}, "breathing mask": {"mask", "garment"},
-                 "mask with scrubber": {"scrubber", "garment"}, "environment suit": {"suit"},
-                 "full life support with radiation hardening": {"hardened"}}
-"""dict: Each kit `habitability.equipment` names, to the classes of gear `protection` may ask for with it (garments, cooling
-or a shielded shelter, are not a kit of their own)."""
 
 BAND = re.compile(r"inside the (Blue|Green|Yellow|Red) band")
 
@@ -41,13 +36,6 @@ def _all_worlds():
     yield from _worlds(300)
     for world, *_rest in EXAMPLES.values():
         yield world
-
-
-def _gear_class(world):
-    needs = protection.requirements(world)
-    body = [need for name, need in needs.items() if name in ("Pressure", "Temperature", "Air", "Radiation")]
-    top = max(protection.SUIT_RANK[need[0]] for need in body)
-    return next(name for name, value in protection.SUIT_RANK.items() if value == top)
 
 
 def test_a_colour_a_score_and_the_band_a_sentence_names_agree():
@@ -63,12 +51,15 @@ def test_a_colour_a_score_and_the_band_a_sentence_names_agree():
                 assert named.group(1) == row["tier"], row
 
 
-def test_the_gear_and_the_equipment_label_are_the_same_kit():
-    """The stored kit follows the words (Boss, 10-18): an environment suit past the Green heat or cold edge or with too much
-    oxygen, as the description says."""
+def test_the_gear_clause_and_the_equipment_line_name_the_same_items():
+    """The headline's gear and the stored equipment line are one list (Boss, 10-18): they come from the same levels."""
     for world in _all_worlds():
-        gear = _gear_class(world)
-        assert gear in GEAR_OF_LABEL[hab.equipment(world)], (hab.equipment(world), gear, protection.kit_sentence(world), world)
+        levels = equipment.compute(world)
+        clause = protection.rating(world)["gear"]
+        line = equipment.line(levels)
+        assert bool(clause) == bool(line)
+        for name in equipment.required_names(levels) + equipment.recommended_names(levels):
+            assert name in clause and name in line, (name, clause, line)
 
 
 def test_an_airless_body_is_never_better_than_red_in_air():
