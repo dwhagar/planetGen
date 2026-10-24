@@ -1343,3 +1343,5 @@ Baseline: PR #1817.
 | TEST.334 | 8.1 | Bugs and flaky tests |
 | TEST.303 | 8.1 | Bugs and flaky tests |
 | PERF.99 | 8.1 | Queue, caches and performance |
+| PERF.181 | 8.1 | Queue, caches and performance |
+| GEN.710 | 8.1 | Bugs and flaky tests |
