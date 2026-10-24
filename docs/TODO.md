@@ -3332,84 +3332,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   API.13) uses the derived seeds and keeps TEST.77 green.
   Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
 
-  - [ ] **GEN.57 A sector's contents depend only on the seed, the version and its address**
-    Seeding every draw (GEN.56) isn't enough when the result depends on
-    what ran first, at what worker count or how fast. Known order
-    dependencies: name-collision decorations are resolved by how many
-    names already exist (`resolve_greek_roman_collision(base_name,
-    existing_count)` in `nameUniqueness.py` and the reservation in
-    `_db.py`), so the sector that reserves first gets the plain name
-    (GEN.46, done in PR #370); population seeds key on database ids
-    (`random.Random(planet_id)` and `random.Random(species_id * 7919)` in
-    `population.py`), and ids come from per-worker id blocks; the
-    backfill depends on which sectors are already filled and where the
-    run started (with GEN.44); and nearest-system links depend on which
-    neighbours exist yet. Done: a sector's contents (as docs/design/generation/reproducible-galaxies.md defines
-    them; ids and timestamps excluded) come out the same whichever
-    sectors were generated before it, at any worker count; names, seeds
-    and skips key on addresses and the galaxy seed, not on ids or arrival order;
-    nearest-system links are rebuilt from content, so they are left out
-    of the comparison; and a test generates the same sectors at 1 and 4
-    workers and in two orders and compares fingerprints (GEN.58).
-    GEN.44's per-sector luminosity levels (Boss, 2026-10-02 03:25Z) let
-    a sector be filled in steps (down to 1000 L_sun, later down to 500);
-    the stars drawn between two floors must not depend on which steps
-    ran, so draws key on the sector and the luminosity range, not on the
-    order of runs.
-    Since GEN.64 (done, PR #406), interstellar objects and bright-sweep
-    systems are named by a position ID and drop out of the name-collision
-    rule, which now covers named star systems. The ID's collision counter
-    (`_db._claim_object_ids`) checks rows already stored, so when one ID
-    cell holds objects from two sectors, the counter depends on which
-    sector saved first; this item keys it on the lower address too.
-    GEN.44 (done, PR #425) made per-sector backfill draws exact: a sector
-    taken down to 500 L_sun in two steps gets the same stars as in one.
-    The galaxy-wide layer scatter is not split by band, because that was
-    5x slower (8.8 s against 1.7 s a layer), so a galaxy-wide
-    `--bright-stars-down-to` band is statistically equal to one deep
-    scatter but not star for star. Boss decided that statistically
-    equal is good enough; the layer scatter need not be star-identical.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-    Plan (2026-10-07): Name collisions disappear with GEN.67 (names come
-    from IDs), so the name part of this item is dropped, and GEN.63 with
-    it.
-    Note (2026-10-09): order: it must land before TEST.77 (open order
-    dependencies: the ID-cell counter,
-    population seeds keyed on database ids, nearest links). Research
-    Lane 1 also notes the admin regenerate paths for planets, moons and
-    belts (`admin/edits.py`) draw from the ambient process stream, so an
-    admin-edited sector is not rebuildable from the seed alone; DB.17's
-    repair therefore replays the edit log rather than the seed.
-    Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-    chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: GEN.306, GEN.307, TEST.181, GEN.633. Two independent
-    code changes in different modules (population seeds in
-    population/model.py; the object-ID collision counter in db/store.py)
-    and the test that proves both, all under one blocker of TEST.77,
-    DB.17, ADM.61 and API.17.
-    For a sector made under a directive the rule is seed, version,
-    address, the directive digest and the attempt number
-    (`generation/directives.py` seeds attempt a >= 1 from the
-    directives' digest).
-    Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT
-    2026-10-21 "Apply all 29", as the coordinator reported it): name
-    collisions are dropped from this item (names come from IDs, GEN.67):
-    the lower-address rename rule is removed from the Done text and name
-    collisions from the list of open order dependencies. What stays is
-    covered by the subitems GEN.306 (population seeds), GEN.307 (the
-    ID-cell counter) and TEST.181.
-    Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-    is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-    earlier owner line).
-    Backfill case (Core 1, relayed 3:07 AM EDT 2026-10-23 as the lane reported): the rule "a sector's contents come out the same whichever sectors were generated before it" still fails for the backfill, which adds its dimmer bright stars only to sectors not yet generated; filed as GEN.633, a subitem and a prerequisite; Boss decided at 8:29 AM EDT 2026-10-23 that it is fixed before 8.1 (the first fill goes deeper).
-  Progress (Core 1, OPS.57 and TEST.181 merged together as #2628,
-  relayed 4:52 AM EDT 2026-10-23 as the lane reported; releases 8.0.2003
-  and 8.0.2004): TEST.181 is done and covers the cases that hold
-  (sectors reached by an earlier run's backfill in either order, 1
-  against 4 workers, the shared ID cell). GEN.633 is the only subitem
-  left, and this item stays open on it; Boss chose at 8:29 AM EDT 2026-10-23 to fix it before 8.1.
-  Prerequisites: GEN.633.
-
   - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
     Boss (2026-10-02 02:28Z): "We're going to have to build a
     maintenance script for powershell and bash that will run the
@@ -3506,7 +3428,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     output changes, the test fails until the PR updates the pinned
     fingerprint and its `changes/` note says generation output changed
     (`bump_version.py --check` checks the two go together). It runs on
-    every CI Python leg. Prerequisite: GEN.57. [generation, infra]
+    every CI Python leg. Prerequisite: none (GEN.57 done). [generation, infra]
     Research (2026-10-09, reproducible-galaxies.md): replace "pinned per
     release with the version it was made on" with "pinned per
     `generator_epoch`, one golden for all legs". Add tier A (the
@@ -3539,7 +3461,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
-    Prerequisites: GEN.57.
+    Prerequisites: none.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -12182,41 +12104,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regenerates the region.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
-
-- [ ] **GEN.633 The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug)**
-  Found by Core 1 (relayed 3:07 AM EDT 2026-10-23 as the lane reported)
-  while building TEST.181. Kind: order dependence. Fails on main: yes,
-  every time (not a flake). Reproducer: plan a wide toy galaxy
-  (tests.test_galaxy_gen._plan_wide_galaxy with seed
-  0123456789ABCDEF0011223344556677), then run `planetgen galaxy --shells
-  S --bands B --wedges W --num-systems 4 --workers 1` once per sector
-  (default `--backfill-from edge`) for (1,0,0), (1,0,5), (1,0,11),
-  (1,1,0) in that order, and again in the reverse order. Result: sector
-  (1,0,0) holds 4 systems when generated first and 8 when generated
-  last, (1,0,5) holds 6 and 11, (1,1,0) holds 6 and 4, and (1,0,11) is
-  the same in both orders. Cause: the backfill after a run places the
-  dimmer bright stars only in cells that are not yet generated, so a
-  sector generated before the backfill reaches its cell never gets those
-  stars, while a sector the backfill reached first is built around them
-  (4 bright stars plus the 4 requested). So GEN.57's sentence that a
-  sector's contents come out the same whichever sectors were generated
-  before it still fails for the backfill, and GEN.306, GEN.307 and
-  TEST.181 do not close it. This is a design question and TEST.181 does
-  not decide it. Candidates (Core 1's): (a) fill an already-generated
-  sector with the stars when the backfill reaches it; (b) make the first
-  fill take the deeper floor, so no later pass adds stars. Boss decides
-  whether it is needed before 8.1 (the TODO thread put a card to him); it is a prerequisite
-  of GEN.57 and so of TEST.77.
-  Decided (Boss, card tap, 8:29 AM EDT 2026-10-23, option A "Yes, before
-  8.1; first fill goes deeper"): candidate (b). The first fill takes the
-  deeper floor, so no later pass adds stars to a sector. Do: build (b)
-  with a test that the four sectors above hold the same systems in both
-  orders. Done: that test passes and TEST.181 gains the backfill case.
-  Owner: Core 1 (it found the bug, owns GEN.57 and GEN.55, and the item is
-  in 8.1; 8.1 queue, Boss's card answer 8:29 AM EDT 2026-10-23).
-  Prerequisites: none. Related: GEN.57, GEN.44, GEN.42, GEN.309,
-  TEST.181.
-  Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
 
 - [ ] **GEN.634 The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline)**
   Left over from GEN.627 (merged in #2638 with GEN.369, GEN.624 and

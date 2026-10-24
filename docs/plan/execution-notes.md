@@ -289,3 +289,5 @@ Update 2:48 PM EDT 2026-10-24: filed TEST.347 (two test_admin_edits system page 
 Update 2:49 PM EDT 2026-10-24: GEN.675 (#3037), UX.152 and UX.153 (#3038) retired; filed TEST.348 (test_class_pages failures on main, Bug Hunt) and GEN.723 (optional refresh of hot-Jupiter recipe rows h1 to h3, pool). 943 of 1319 8.1 items finished (71.5 percent), 376 open.
 
 Update 2:55 PM EDT 2026-10-24: GEN.452 (#3041, epoch 88) and PERF.185 (#3040) retired. Lane I took epoch 88 first, so the next free epoch is 89 and migration 0153 is still free. Provisional order for the claimed numbers, renumbered at merge by merge order: GEN.686 epoch 89; Lane I step 4b (DB.71 and GEN.424) migration 0153; DB.100 migration 0154 and the next epoch; GEN.701 the one after. 945 of 1319 8.1 items finished (71.6 percent), 374 open.
+
+Update 3:04 PM EDT 2026-10-24: GEN.633 (#3043, epoch 89) and its parent GEN.57 retired; TEST.77 is unblocked. Core 1 merged with epoch 89 first, so the class lane's GEN.686 moves to epoch 90 and the next free epoch is 91 (migration 0153 still free, Lane I step 4b next). 947 of 1319 8.1 items finished (71.8 percent), 372 open.

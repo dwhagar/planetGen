@@ -784,7 +784,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
 | GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | none | done, PR #3043 |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | done, PR #809 |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | dropped (Boss, 2026-10-09 20:42Z) |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
@@ -1360,7 +1360,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.630 | GEN.316 part (a): the N-star StarSystem host and the stars.role 'member' migration, still building only the pairs, with readers and loaders updated | none | done, PR #2689 |
 | GEN.631 | GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted | none | done, PR #2915 |
 | GEN.632 | Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function | none | done, PR #2938 |
-| GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) | none | open |
+| GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) | none | done, PR #3043 |
 | GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) | none | open |
 | GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) | none | open |
 | GEN.636 | StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug) | none | done, PR #2653 |
