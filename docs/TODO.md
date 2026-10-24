@@ -983,32 +983,6 @@ with `clamp()`.
   at an existing heading id. Owner: Aux 11, after UX.195.
   Prerequisites: UX.195. Related: UX.195, UX.172, UX.188.
 
-- [ ] **UX.197 The habitability icons link to the habitability section of the planet information page, not to the help page (bug)**
-  Boss, 7:41 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
-  coordinator): "info pages, system pages, planet pages, star pages, all
-  pages need to get a TOC build based on headings, all sections and
-  tables should carry headings from 1 (title / main) and descending.
-  Also change the habitability icon links to go to the habitability
-  section of of the planet information page." Today every habitability
-  symbol, life score and equipment or Habitable chip links straight to
-  its section of the habitability help page (UX.181). Change the
-  destination: an icon in a list, search row, sector or system table,
-  map infobox or a page's own basics line goes to that planet's own
-  information page at its habitability section
-  (/object/<ref>#habitability, the section anchor of the planet page,
-  which the owner adds with a heading id if the section has none), and
-  on the planet's own page the icon scrolls to that section. The help
-  page stays one click away: the section's heading carries a help link
-  (the existing help-link markup) to the matching part of the
-  habitability help page. Done: a browser test clicks a habitability
-  icon in a sector list and in a search row and lands on the planet page
-  at the habitability section, and clicks the help link there and lands
-  on the help page; the help-link coverage test (TEST.331, DOC.6) is
-  updated to the new rule. Owner: Aux 11 (UX.181 was the lane's
-  help-link work).
-  Prerequisites: none. Related: UX.181, UX.195, TEST.331, DOC.6, UX.189.
-
 - [ ] **UX.198 The Atmosphere section of the planet property sheet shows 14 empty rows (bug)**
   Boss, 7:45 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
