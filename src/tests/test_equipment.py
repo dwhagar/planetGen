@@ -15,8 +15,8 @@ from planetgen.physics.protection_limits import RADIATION_STEPS
 AIR = {"O2": 0.21}
 
 
-def _world(pressure=101.3, temperature=15.0, gases=None, dose=0.0024, gravity=1.0, parts=None, uv=0.0, ph=None):
-    extra = {}
+def _world(pressure=101.3, temperature=15.0, gases=None, dose=0.0024, gravity=1.0, parts=None, uv=0.0, ph=None, dust=None):
+    extra = {"dust_mg_m3": dust}
     if parts:
         extra = dict(dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2])
     return World(pressure_kpa=pressure, temperature_c=temperature, gases=AIR if gases is None else gases,
@@ -146,3 +146,28 @@ def test_the_required_and_recommended_lines_leave_an_empty_list_off():
     mars = equipment.summary(equipment.compute(_world(**NAMED["Mars"][0])))
     assert mars["required_line"] == "Required: hardened pressure suit + dust-tight seals."
     assert mars["recommended_line"] == "Recommended: hardened habitat."
+
+
+# --- dust (GEN.658) ----------------------------------------------------------------------
+
+def test_dust_loading_follows_the_optical_depth_and_the_scale_height():
+    from planetgen.physics import aerosols
+    assert aerosols.dust_loading_mg_m3(0.0, 10.0) == 0.0 and aerosols.dust_loading_mg_m3(None, 10.0) == 0.0
+    assert aerosols.dust_loading_mg_m3(1.0, None) is None
+    # Mars: tau 0.5 to 1 over an 11 km scale height is about the 0.1 mg/m3 of its dust limit
+    assert 0.05 < aerosols.dust_loading_mg_m3(0.5, 11.1) < 0.2 and 0.1 < aerosols.dust_loading_mg_m3(1.0, 11.1) < 0.4
+    assert aerosols.dust_loading_mg_m3(2.0, 10.0) == pytest.approx(2.0 * aerosols.dust_loading_mg_m3(1.0, 10.0))
+    assert aerosols.dust_loading_mg_m3(1.0, 5.0) == pytest.approx(2.0 * aerosols.dust_loading_mg_m3(1.0, 10.0))
+
+
+def test_airborne_dust_makes_a_dust_filter_recommended_then_required():
+    assert _code(dust=0.01) == "" and _code(dust=None) == ""
+    assert _code(dust=0.5) == "[F100]" and _line(dust=0.5) == "Recommended: dust filter."
+    assert _code(dust=50.0) == "F100" and _line(dust=50.0) == "Required: dust filter."
+
+
+def test_a_sealed_suit_reads_dust_as_seals_and_a_thin_world_keeps_its_regolith_rule():
+    thin = equipment.compute(_world(pressure=0.6, temperature=-60.0, gases={"CO2": 0.95}, dust=0.0))
+    assert thin["eq_dust"] == 2 and "dust-tight seals" in equipment.required_names(thin)
+    sealed = equipment.compute(_world(pressure=40.0, temperature=-120.0, dust=0.5))
+    assert sealed["eq_dust"] == 1 and "dust-tight seals" in equipment.recommended_names(sealed)

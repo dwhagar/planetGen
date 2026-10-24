@@ -177,7 +177,10 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
                                                            "suitability"))}
         planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_chemical": None,
                     "radius_km": 6371.0, "star_system_id": 7, "system_name": "Kepler-42", "sector_id": None,
-                    "equipment": "Required: gas-mix mask.", "phi4": 0.5, **tiers} for i in range(120)]
+                    "equipment": "Required: gas-mix mask. Recommended: hardened habitat.", "phi4": 0.5,
+                    "equipment_items": [{"item": "gas-mix mask", "severity": "required", "domain": "Air"},
+                                        {"item": "hardened habitat", "severity": "recommended", "domain": "Radiation"}],
+                    **tiers} for i in range(120)]
         results = {name: None for name in results}
         results["planets"] = {"rows": planets[offsets.get("planets", 0):][:limit], "total": 120, "total_capped": False,
                               "limit": limit, "offset": offsets.get("planets", 0), "truncated": False}
@@ -651,7 +654,7 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
     first = page.locator("#search-planets tbody tr", has_text="World 000").first
     assert first.locator("svg.hab-symbol").count() == 7
-    first_links = first.locator("a.help-link[href*='/help/habitability#']")      # read now: scrolling drops the row
+    first_links = first.locator(".hab-symbols a.help-link[href*='/help/habitability#']")      # read now: scrolling drops the row
     assert first_links.count() == 7
     first_hrefs = first_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")
     page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
@@ -663,11 +666,33 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
     assert last.locator("svg.hab-symbol.tier-red").count() >= 1
     # UX.181: each symbol, drawn by the page or by datatable.js, is a link to its section of the habitability page.
-    last_links = last.locator("a.help-link[href*='/help/habitability#']")
+    last_links = last.locator(".hab-symbols a.help-link[href*='/help/habitability#']")
     assert last_links.count() == 7
     for hrefs in (first_hrefs, last_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")):
         assert hrefs[0].endswith("/help/habitability#overall")
         assert hrefs[1].endswith("/help/habitability#domain-pressure")
+
+
+def test_search_planet_rows_draw_one_equipment_chip_per_item_with_and_without_scripts(page, table_site):
+    """TEST.300, UX.154: a required item is a solid chip and a recommended one an outlined chip in its domain's colour,
+    drawn the same by the page (the first rows) and by `datatable.js` (the rest)."""
+    assert page.goto(f"{table_site}/search?planet_q=World", wait_until="load").status == 200
+    page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+
+    def chips(row):
+        return row.locator(".eq-chips .flag-eq").evaluate_all(
+            "els => els.map(e => [e.className, e.textContent.trim()])")
+
+    first = chips(page.locator("#search-planets tbody tr", has_text="World 000").first)
+    page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    last_row = page.locator("#search-planets tbody tr[data-index]", has_text="World 119")
+    last_row.wait_for(state="attached", timeout=10000)
+    last = chips(last_row)
+    for drawn in (first, last):
+        assert [text for _, text in drawn] == ["Gas-mix mask", "Hardened habitat (recommended)"]
+        assert "flag-eq-required" in drawn[0][0] and "flag-eq-recommended" in drawn[1][0]
+        assert "flag-tier-" in drawn[0][0] and "flag-tier-" in drawn[1][0]
+    assert last_row.locator(".eq-chips .flag-eq-recommended .sr-only").inner_text() == "(recommended)"
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------

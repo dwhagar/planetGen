@@ -511,3 +511,11 @@ def test_a_range_gives_both_ends_the_one_style():
     assert classref.number_range(5000, 1e4, "km") == "5 × 10³ to 1 × 10⁴ km"
     assert classref.number_range(100, 900) == "100 to 900"
     assert classref.number_range(0.5, 20000) == "0.5 to 2 × 10⁴"
+
+
+def test_the_habitability_page_explains_the_map_views_the_temperatures_and_the_chips(client):
+    """DOC.75: the Galaxy Map's habitable-world colouring and marker, the regional temperatures and the chips."""
+    html = _html(client, "/help/habitability")
+    for text in ("On the Galaxy Map", "Color by: Habitable worlds", "show=marker-habitable", "Temperatures across a world",
+                 "terminator ring", "solid for a required item, outlined for a recommended one", "0.1 mg/m3"):
+        assert text in html, text
