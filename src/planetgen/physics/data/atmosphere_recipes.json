@@ -361,6 +361,7 @@
    ],
    "conditions": [],
    "sets": "redox_diw",
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "mu": -1.26,
@@ -416,6 +417,7 @@
     }
    ],
    "sets": "redox_diw",
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "mu": -1.25,

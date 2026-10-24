@@ -65,6 +65,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
+from planetgen.generation import tuning_harness
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -349,6 +350,8 @@ class Entry:
         lets (dict): Named intermediate expressions, evaluated in order before the weight.
         constants (dict): The design constants of this row: name -> (low, high, shape).
         notes (str): The part's notes with the corrections.
+        tunable (bool): The row's knobs are tuned to a published statistic: `physics/data/tuning_targets.json` must hold a
+            target for it (GEN.503).
         spec (dict): The rest of the row as the file has it (`dist`, `dists`, `bins`, `values`, `windows`, `options`, `table`, `of`, `sets`).
     """
 
@@ -373,6 +376,7 @@ class Entry:
     lets: dict
     constants: dict
     notes: str
+    tunable: bool = False
     spec: dict = field(default_factory=dict)
 
     def supports(self, subject):
@@ -529,7 +533,8 @@ class Recipes:
             labels=tuple(raw.get("labels", [])), status=raw["status"], state=raw["state"], limit=raw.get("limit", ""),
             replacement=raw.get("replacement", ""), research=tuple(raw.get("research", [])),
             items=tuple(raw.get("items", [])), classes=tuple(raw["classes"]), conditions=tuple(conditions),
-            weight=expression, lets=lets, constants=constants, notes=raw.get("notes", ""), spec=spec)
+            weight=expression, lets=lets, constants=constants, notes=raw.get("notes", ""),
+            tunable=bool(raw.get("tunable", False)), spec=spec)
 
     @staticmethod
     def _constant_spec(owner, name, spec):
@@ -659,7 +664,9 @@ class Recipes:
         return tuple(tables)
 
     def _register(self):
-        return tuple(pt.REGISTRY.register(table) for table in self._build_tables())
+        tables = self._build_tables()
+        tuning_harness.TARGETS.require(tables)
+        return tuple(pt.REGISTRY.register(table) for table in tables)
 
     def _pt_row(self, entry):
         if entry.state == pt.OPEN_STATE:
@@ -668,7 +675,8 @@ class Recipes:
             weight = _PtWeight(self, entry) if entry.kind in ("option", "binary", "flag") else 1.0
             source, notes = entry.source, f"{entry.option}. {entry.notes}".strip()
         return pt.Row(name=entry.id, classes=entry.classes, weight=weight, source=source, state=entry.state,
-                      conditions=entry.conditions, limit=entry.limit, replacement=entry.replacement, notes=notes)
+                      conditions=entry.conditions, limit=entry.limit, replacement=entry.replacement, notes=notes,
+                      tunable=entry.tunable)
 
     # -- access ----------------------------------------------------------------------------------------------------
 
