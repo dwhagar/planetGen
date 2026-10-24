@@ -84,3 +84,25 @@ test("the layer writes names as text, fades labels in, and takes dropped ones aw
   assert.equal(container.children.length, 0, "gone at once with reduced motion");
   assert.deepEqual(layer.shown(), []);
 });
+
+test("placeBoxes keeps a box that clears, shifts one that clashes, slides one back in and hides one that cannot clear", () => {
+  const box = (x, y) => ({ x, y, w: 40, h: 10 });
+  const first = M.placeBoxes([
+    { id: "a", box: box(10, 10) },
+    { id: "b", box: box(12, 12), shifts: [0, 14] },
+    { id: "c", box: box(12, 12) },
+    { id: "edge", box: box(-5, 60) },
+  ], { bounds: { x: 0, y: 0, w: 100, h: 100 } });
+  assert.deepEqual(first.map((p) => [p.id, p.hidden]), [["a", false], ["b", false], ["c", true], ["edge", false]]);
+  assert.equal(first[0].dy, 0);
+  assert.equal(first[1].dy, 14, "b moved down a line to clear a");
+  assert.equal(first[3].dx, 7, "slid back in by the margin (2) and the overhang (5)");
+});
+
+test("placeBoxes keeps clear of marker circles but not of the label's own", () => {
+  const items = [{ id: "n", box: { x: 10, y: 10, w: 30, h: 10 }, own: ["mine"] }];
+  const mine = { id: "mine", x: 20, y: 15, r: 6 };
+  const other = { id: "other", x: 20, y: 15, r: 6 };
+  assert.equal(M.placeBoxes(items, { obstacles: [mine] })[0].hidden, false);
+  assert.equal(M.placeBoxes(items, { obstacles: [other] })[0].hidden, true);
+});

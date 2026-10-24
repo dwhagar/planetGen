@@ -939,13 +939,18 @@ export function createStageView(host) {
   }
 
   // The registry follows the URL, then the stage follows the registry.
-  function takeLayersFromLocation() {
+  // The registry takes the address again (for layers the map registered since), with nothing echoed back to it.
+  function readLayersFromLocation() {
     layersFollowing = true;
     try {
       layers.readUrl(location.search);
     } finally {
       layersFollowing = false;
     }
+  }
+
+  function takeLayersFromLocation() {
+    readLayersFromLocation();
     sectorStage.setHiddenKinds(KINDS.map(function (pair) { return pair[0]; }).filter(function (kind) { return !layers.isOn(kind); }));
   }
 
@@ -3446,6 +3451,7 @@ export function createStageView(host) {
     setKindHidden: setKindHidden,
     // MAP.217: the layer registry (the Menu draws its buttons from it).
     layers: layers,
+    readLayersFromLocation: readLayersFromLocation,
     kindMarked: sectorStage.kindMarked,
     setKindMarked: setKindMarked,
     // MAP.123: star classes and the luminosity floor.

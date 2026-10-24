@@ -4516,30 +4516,30 @@ body.app {
   overflow: hidden;
 }
 
-.sysview-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 0.75rem;
-  line-height: 1;
+.sysview-labels .map-label {
   color: #d8e0f0;
   text-shadow: 0 0 3px #000, 0 0 3px #000;
-  white-space: nowrap;
 }
 
-.sysview-label-star {
+.sysview-labels .map-label[data-kind="star"] {
   font-weight: 700;
   color: #ffe9b0;
 }
 
-.sysview-label-moon,
-.sysview-label-comet {
+.sysview-labels .map-label[data-kind="moon"],
+.sysview-labels .map-label[data-kind="comet"] {
   color: #aab6cf;
 }
 
-.sysview-label-selected {
+.sysview-labels .map-label[data-selected] {
   color: #fff;
   text-decoration: underline;
+}
+
+/* The Labels switch of the System Map (Body names, MAP.231) hides the diagram's names and the 3D view's. */
+.sysmap-hide-labels text.sysmap-label,
+.sysmap-hide-labels .sysview-labels {
+  display: none;
 }
 
 .sysview-controls {

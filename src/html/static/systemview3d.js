@@ -18,8 +18,8 @@
 // createSystemView() adds the camera: drag to turn, shift-drag or right-drag
 // to pan, wheel and pinch to zoom, W/A/S/D and the arrow keys to fly, a click
 // to select, a double click to fly to a body, "follow" to ride along with
-// one, and reset. Labels are plain elements laid over the canvas, the
-// nearest bodies first and none over another.
+// one, and reset. Names are the label engine's (maplabels.js, MAP.231): laid over the canvas, the nearest
+// bodies first and none over another.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
@@ -32,6 +32,7 @@ const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositio
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+const { createLabelLayer } = await import(`./maplabels.js${VERSION_QUERY}`);
 
 const AU_KM = convert(1, "au", "km");
 const SPHERE_SEGMENTS = [28, 20];
@@ -311,7 +312,22 @@ export function createSystemView(options) {
   const picker = createPicker(camera, canvasEl);
   const tooltip = createTooltip(options.tooltipEl);
   const info = infoPanelOf(options.infoEl);
-  const labels = new Map();
+  // MAP.231: the names are the label engine's (maplabels.js), the same as the Galaxy Map's.
+  const labelPoint = new THREE.Vector3();
+  const labelLayer = createLabelLayer({
+    container: options.labelsEl, budget: 400,
+    viewport: () => ({ width: canvasEl.clientWidth || 1, height: canvasEl.clientHeight || 1 }),
+    project: (x, y, z) => {
+      labelPoint.set(x, y, z).applyMatrix4(camera.matrixWorldInverse);
+      if (labelPoint.z >= 0) return null;
+      const depth = -labelPoint.z;
+      labelPoint.set(x, y, z).project(camera);
+      const width = canvasEl.clientWidth || 1;
+      const height = canvasEl.clientHeight || 1;
+      return { x: (labelPoint.x + 1) / 2 * width, y: (1 - labelPoint.y) / 2 * height, depth };
+    },
+    reducedMotion: () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches,
+  });
 
   function sceneRadius() {
     let far = 1;
@@ -339,15 +355,7 @@ export function createSystemView(options) {
     layout = createLayout(sceneData, state.mode);
     built = buildSystemScene(sceneData, layout, { years: years });
     stage.add(built.group);
-    labels.forEach((el) => el.remove());
-    labels.clear();
-    built.entries.forEach((entry) => {
-      const el = document.createElement("span");
-      el.className = "sysview-label sysview-label-" + entry.kind;
-      el.textContent = entry.name;
-      options.labelsEl.appendChild(el);
-      labels.set(entry.ref, el);
-    });
+    labelLayer.clear();
     if (selected) {
       selected = built.byRef[selected.ref] || null;
       built.highlight(selected ? selected.ref : null);
@@ -515,30 +523,14 @@ export function createSystemView(options) {
     }
   });
 
+  // The nearest bodies first (the selected one before any), each name placed by the engine so none lies over another.
   function layoutLabels() {
-    const rect = canvasEl.getBoundingClientRect();
-    const taken = [];
-    const order = built.entries.slice().sort((a, b) => {
-      const da = camera.position.distanceToSquared(new THREE.Vector3(a.x, a.y, a.z));
-      const db = camera.position.distanceToSquared(new THREE.Vector3(b.x, b.y, b.z));
-      return da - db;
-    });
-    order.forEach((entry) => {
-      const el = labels.get(entry.ref);
-      const point = new THREE.Vector3(entry.x, entry.y, entry.z).project(camera);
-      const x = ((point.x + 1) / 2) * rect.width;
-      const y = ((1 - point.y) / 2) * rect.height;
-      const behind = point.z > 1 || point.z < -1;
-      const box = { x: x + 8, y: y - 8, w: entry.name.length * 7 + 6, h: 16 };
-      const clash = taken.some((t) => box.x < t.x + t.w && t.x < box.x + box.w && box.y < t.y + t.h && t.y < box.y + box.h);
-      const show = !behind && !clash && x > -50 && x < rect.width + 50 && y > -20 && y < rect.height + 20;
-      el.hidden = !show;
-      if (show) {
-        el.style.transform = "translate(" + Math.round(box.x) + "px," + Math.round(box.y) + "px)";
-        taken.push(box);
-        el.classList.toggle("sysview-label-selected", entry === selected);
-      }
-    });
+    const candidates = built.entries.map((entry) => ({
+      id: entry.ref, kind: entry.kind, text: entry.name, x: entry.x, y: entry.y, z: entry.z,
+      priority: (entry === selected ? 1e9 : 0) - camera.position.distanceTo(labelPoint.set(entry.x, entry.y, entry.z)),
+      selected: entry === selected,
+    }));
+    labelLayer.update(candidates);
   }
 
   let frame = 0;
