@@ -972,26 +972,6 @@ with `clamp()`.
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: none.
 
-- [ ] **UX.160 The search icon button opens a box over the page: it should go straight to the search page (bug)**
-  Boss's live observation, 10:35 PM EDT 2026-10-23. The search icon
-  button in the header pulls up a search box instead of going to the
-  search page. Do: the button is a plain link to the search page, with
-  no pop-up box, on every page and theme, and the page's search field
-  takes focus on arrival. Owner: Bug Hunt.
-  Prerequisites: none.
-
-- [ ] **UX.161 After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug)**
-  Boss's live observation, 11:08 PM EDT 2026-10-23: after a galaxy reset
-  the numbers on the main page (counts of stars, systems and so on) are
-  unchanged although the database was wiped. Do: find where the main
-  page counts come from (a cache, a stored summary or a stale API
-  response), reproduce with a reset on a populated database, and make
-  the counts follow the database: the reset clears or recomputes
-  whatever holds them, and the page shows zero or the new totals. Done:
-  a test that resets and then reads the main page counts. Owner: Bug
-  Hunt.
-  Prerequisites: none.
-
 - [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -4456,6 +4436,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   update of this item follows that and replaces `cli.orbits`, which
   advanced planets, moons, stars and binaries in one command. OPS.16's
   nightly run is a step list of that wrapper.
+    Update (2026-10-09): physics/closest_approach.py and
+    collision_outcome.py are imported only by tests today; the collision
+    products here use their result. Finding TEST.306 (Bug Hunt, 12:40 AM
+    EDT 2026-10-24 as the lane reported),
+    reports/test-306-test-only-modules-2026-10-24.md.
     Prerequisites: GEN.346.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
@@ -4900,6 +4885,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): the 80-bit figure is
   the birth-location part of the 96-bit object ID, not a separate ID; the
   object ID is 96 bits.
+  Update (2026-10-09): physics/closest_approach.py (GEN.334) and
+  physics/collision_outcome.py (GEN.345) are imported only by tests
+  today; this item wires them (the broad phase and record_event taking
+  the Outcome). Finding TEST.306, Bug Hunt, 12:40 AM EDT 2026-10-24 (as
+  the lane reported), reports/test-306-test-only-modules-2026-10-24.md.
+  Do not delete them.
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -8152,6 +8143,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.675 and Al 2.38 percent; pass rock_mass_fraction and
   rock_al2o3_fraction/0.045 into radiogenic.generate_content. Owner:
   lane I.
+  Update (2026-10-09): physics/materials.py is used by
+  surface_composition.py, but generation does not call that chain yet;
+  this item wires it. Finding TEST.306 (Bug Hunt, 12:40 AM EDT
+  2026-10-24 as the lane reported),
+  reports/test-306-test-only-modules-2026-10-24.md.
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -9795,6 +9791,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane I's PR 4 (GEN.411), which replaces CLASS_MIXES; the wiring takes
   the next epoch at that merge. Open here: the wiring and the class-mix
   contradictions listed above.
+  Update (2026-10-09): physics/oxygen_fugacity.py is used by
+  mixture_rocky.py and mixture_lava.py, but the mixture chain
+  (mixture_draw, surface_composition) is still imported only by physics
+  modules and tests, never by generation. Connecting draw_mixture to
+  generation is part of this item. Finding TEST.306 (Bug Hunt, 12:40 AM
+  EDT 2026-10-24 as the lane reported),
+  reports/test-306-test-only-modules-2026-10-24.md.
 
 - [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -19599,19 +19602,6 @@ clears each one.
   the box difference named; if it fails, the cause is found and fixed
   without loosening a test. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126.
-
-- [ ] **TEST.306 Five physics modules are imported only by tests and no item names them**
-  Found by the regression test review thread (2026-10-23, dead-code
-  pass): src/planetgen/physics/closest_approach.py,
-  collision_outcome.py, oxygen_fugacity.py and materials.py, and
-  src/planetgen/db/precision.py, are imported only by tests. Done: each
-  module is either named by an open item that will wire it
-  (closest_approach and collision_outcome by the collisions design,
-  oxygen_fugacity by the composition suite, materials by GEN.427 and
-  GEN.428, precision by GEN.372) with the item's Related line updated,
-  or deleted with Boss's OK together with its tests. Owner: Bug Hunt
-  (proposed).
-  Prerequisites: none. Related: GEN.372, GEN.427, GEN.428.
 
 - [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
   Found by Habitability lane F (relayed 2026-10-23, 9:25 PM EDT): this
