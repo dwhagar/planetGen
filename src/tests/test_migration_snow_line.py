@@ -13,6 +13,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, equipment, formation, regional_temperature
 from planetgen.util import draw
+from tests.test_migration_parent_link import undo_parent_link
 
 pytestmark = pytest.mark.fresh_database
 
@@ -63,6 +64,7 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        undo_parent_link(conn)  # v140 (DB.73)
         conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
         conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
         for table in ("planets", "moons"):

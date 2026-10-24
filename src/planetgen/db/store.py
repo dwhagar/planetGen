@@ -1544,6 +1544,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (140, _column_marker("interstellar_comets", "parent_id")),
     (139, _column_marker("sector_stats", "habitable_worlds")),
     (138, _column_marker("planets", "tau_cloud")),
     (137, _column_marker("planets", "temp_swing_k")),
@@ -2900,6 +2901,20 @@ def _whole_number(value):
     return int(value) if value is not None and float(value).is_integer() else value
 
 
+FREE_PARENT = ("free", None)
+"""tuple: The `(parent_type, parent_id)` of an object that orbits nothing (DB.73)."""
+
+
+def star_parent(parent_node_id, star_system_id):
+    """`(parent_type, parent_id)` of a star: the orbit node it hangs on, or the system for the head of one."""
+    return ("node", parent_node_id) if parent_node_id is not None else ("system", star_system_id)
+
+
+def anchored_parent(star_id):
+    """`(parent_type, parent_id)` of a remnant: the star it is anchored to, else free."""
+    return ("star", star_id) if star_id is not None else FREE_PARENT
+
+
 STAR_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("role"),
     object_rows.attr("name"), object_rows.attr("star_type", "type"), object_rows.attr("yerkes_class"),
@@ -2923,6 +2938,8 @@ STAR_FIELDS = (
     object_rows.scaled("snow_line_km", "snow_line_au", _AU_KM),
     object_rows.each(pre_main_sequence.DISK_FIELDS),
     object_rows.context("parent_node_id"), object_rows.context("slot"),
+    object_rows.computed(("parent_type", "parent_id"),
+                         lambda star, context: star_parent(context["parent_node_id"], context["star_system_id"])),
     object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
     object_rows.computed("flags", lambda star, context: context["flags"]),
 )
@@ -3045,10 +3062,18 @@ PLANET_FIELDS = (
 )
 """tuple: The `Field`s of a `planets` row."""
 
+def moon_parent(context):
+    """`(parent_type, parent_id)` of a moon: its planet, or the rogue planet it orbits when it has no planet."""
+    if context.get("rogue_planet_id") is not None:
+        return ("rogue_planet", context["rogue_planet_id"])
+    return ("planet", context["planet_id"])
+
+
 MOON_FIELDS = (
     object_rows.context("planet_id"), object_rows.context("star_system_id"), object_rows.context("star_id"),
     object_rows.context("orbital_index"),
-    object_rows.computed(("parent_type", "parent_id"), lambda moon, context: ("planet", context["planet_id"])),
+    object_rows.Field(("rogue_planet_id",), lambda moon, context: context.get("rogue_planet_id")),
+    object_rows.computed(("parent_type", "parent_id"), lambda moon, context: moon_parent(context)),
     *BODY_FIELDS,
 )
 """tuple: The `Field`s of a `moons` row."""
@@ -3109,15 +3134,110 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
         int: The new `moons.id`.
     """
     moon_id = object_rows.insert_row(conn, "moons", MOON_FIELDS, moon, {
-        "planet_id": planet_id, "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index})
+        "planet_id": planet_id, "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index,
+        "rogue_planet_id": None})
 
     body_child_rows(conn, moon, moon_id)
 
     return moon_id
 
 
+PARENT_TYPES = ("star", "planet", "system", "node", "rogue_planet", "free")
+"""tuple: What a `parent_type` can name (DB.73): the table of its `parent_id` is `star` -> `stars`, `planet` -> `planets`,
+`system` -> `star_systems`, `rogue_planet` -> `rogue_planets`; a `node` parent is an `orbit_nodes.node_no` of the row's own
+system, and a `free` one has no `parent_id`."""
+
+PARENT_LINK_TABLES = ("stars", "planets", "moons", "asteroid_belts", "comets", "black_holes", "neutron_stars",
+                      "rogue_planets", "interstellar_comets")
+"""tuple: The kind tables that say what they orbit in `parent_type` and `parent_id`."""
+
+_PARENT_ROW_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems", "rogue_planet": "rogue_planets"}
+
+
+def set_parent(conn, table, row_id, parent_type, parent_id=None):
+    """
+    Changes what one object orbits (DB.73): its row keeps its `id` and its `uid`, and so does everything else about it,
+    so a planet ejected from its star is the same planet, now `free`.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        table (str): One of `PARENT_LINK_TABLES`.
+        row_id (int): The row.
+        parent_type (str): One of `PARENT_TYPES`.
+        parent_id (int, optional): The parent's row id (a `node`'s `node_no`); `None` exactly for `free`.
+
+    Raises:
+        ValueError: An unknown table, row or type, a parent that is not there, a `free` parent with an id or any other
+            without one, or an object made its own parent.
+    """
+    if table not in PARENT_LINK_TABLES:
+        raise ValueError(f"{table} has no parent link")
+    if parent_type not in PARENT_TYPES:
+        raise ValueError(f"no parent type {parent_type!r}; one of {', '.join(PARENT_TYPES)}")
+    if (parent_type == "free") != (parent_id is None):
+        raise ValueError("a free object has no parent id and every other parent has one")
+    row = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no {table} row with id {row_id}")
+    if parent_type in _PARENT_ROW_TABLES:
+        parent_table = _PARENT_ROW_TABLES[parent_type]
+        if parent_table == table and parent_id == row_id:
+            raise ValueError("an object cannot orbit itself")
+        if conn.execute(f"SELECT 1 FROM {parent_table} WHERE id = ?", (parent_id,)).fetchone() is None:
+            raise ValueError(f"no {parent_table} row with id {parent_id}")
+    elif parent_type == "node":
+        system_id = row["star_system_id"] if "star_system_id" in row.keys() else None
+        if system_id is None or conn.execute("SELECT 1 FROM orbit_nodes WHERE star_system_id = ? AND node_no = ?",
+                                             (system_id, parent_id)).fetchone() is None:
+            raise ValueError(f"no orbit node {parent_id} in this object's system")
+    extra, params = "", [parent_type, parent_id]
+    if table == "moons":
+        extra = ", rogue_planet_id = ?"
+        params.append(parent_id if parent_type == "rogue_planet" else None)
+    conn.execute(f"UPDATE {table} SET parent_type = ?, parent_id = ?{extra} WHERE id = ?", (*params, row_id))
+
+
+def insert_moon_of_rogue_planet(conn, moon, rogue_planet_id, orbital_index) -> int:
+    """
+    Inserts a `moons` row for a moon of a free planet (DB.73): one with no star, system or planet, whose parent is the
+    `rogue_planets` row `rogue_planet_id`. Deleting that rogue planet, or its sector, deletes the moon.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        moon (Planet): The moon to persist (a `Planet` with `is_moon=True`).
+        rogue_planet_id (int): The `rogue_planets.id` it orbits.
+        orbital_index (int): Its position in the rogue planet's moons.
+
+    Returns:
+        int: The new `moons.id`.
+    """
+    moon_id = object_rows.insert_row(conn, "moons", MOON_FIELDS, moon, {
+        "planet_id": None, "star_system_id": None, "star_id": None, "orbital_index": orbital_index,
+        "rogue_planet_id": rogue_planet_id})
+    body_child_rows(conn, moon, moon_id)
+    return moon_id
+
+
+def load_moons_of_rogue_planet(conn, rogue_planet_id, system_config=None):
+    """
+    The moons of the rogue planet `rogue_planet_id`, in orbital order, rebuilt as `insert_moon_of_rogue_planet` stored
+    them, each with its row id as `db_id`. A moon has no star to draw light from, so none is threaded in.
+    """
+    rows = conn.execute("SELECT * FROM moons WHERE rogue_planet_id = ? ORDER BY orbital_index, id",
+                        (rogue_planet_id,)).fetchall()
+    config = system_config if system_config is not None else SystemConfig()
+    moons = []
+    for row in rows:
+        moon = Planet.from_dict(_planet_or_moon_row_to_dict(conn, row, is_moon=True), None, config)
+        moon.db_id = row["id"]
+        moons.append(moon)
+    return moons
+
+
 BELT_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
+    object_rows.computed(("parent_type", "parent_id"),
+                         lambda belt, context: planet_parent(context["star_id"], context["star_system_id"])),
     object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
     object_rows.attr("density"),
@@ -3171,6 +3291,8 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
 
 COMET_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"),
+    object_rows.computed(("parent_type", "parent_id"),
+                         lambda comet, context: planet_parent(context["star_id"], context["star_system_id"])),
     object_rows.attr("name"), object_rows.attr("orbit_type"), object_rows.attr("period_class"),
     object_rows.attr("nucleus_diameter_km"),
     object_rows.computed("composition_summary", lambda comet, context: comet.get_composition_summary()),
@@ -3246,6 +3368,7 @@ _REMNANT_SPIN_FIELD = object_rows.computed(spin.SPIN_FIELDS, _remnant_spin)
 
 BLACK_HOLE_FIELDS = (
     object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
+    object_rows.computed(("parent_type", "parent_id"), lambda remnant, context: anchored_parent(context["star_id"])),
     object_rows.attr("mass_class"), object_rows.attr("mass_solar"), object_rows.attr("event_horizon_radius_km"),
     object_rows.attr("spin"), _flag("has_accretion_disk"),
     object_rows.attr("temperature_k", "temperature"), object_rows.attr("luminosity_w", "luminosity"),
@@ -3255,6 +3378,7 @@ BLACK_HOLE_FIELDS = (
 
 NEUTRON_STAR_FIELDS = (
     object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
+    object_rows.computed(("parent_type", "parent_id"), lambda remnant, context: anchored_parent(context["star_id"])),
     object_rows.attr("mass_solar"), object_rows.attr("radius_km", "radius"), object_rows.attr("spin_period_ms"),
     object_rows.attr("magnetic_field_gauss"), object_rows.attr("pulsar_type"),
     object_rows.attr("surface_temperature_k"), object_rows.attr("luminosity_w", "luminosity"),
@@ -8134,6 +8258,7 @@ class _UidIssuer:
         self.given_nebula_uid = None
         """bytes or `None`: The next nebula's own ID, when it is a field cloud born in another sector (GEN.176)."""
         self._system_uid = {}
+        self._rogue_uid = {}
         self._body_count = {}
 
     def _top_level(self):
@@ -8159,9 +8284,15 @@ class _UidIssuer:
                 return None
             if table == "star_systems":
                 self._system_uid[row["id"]] = value
+            elif table == "rogue_planets":
+                self._rogue_uid[row["id"]] = value
             return objectUid.to_bytes(value)
         system_id = row.get("star_system_id")
         parent = self._system_uid.get(system_id)
+        if system_id is None and row.get("rogue_planet_id") is not None:
+            # DB.73: a moon of a free planet numbers its bodies under the rogue planet's own ID.
+            system_id = ("rogue_planets", row["rogue_planet_id"])
+            parent = self._rogue_uid.get(row["rogue_planet_id"])
         number = self._body_count.get(system_id, 0) + 1
         if parent is None or number > objectUid.max_body(objectUid.LAYOUT):
             self.complete = False
@@ -8268,6 +8399,8 @@ def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):
     if phenomenon is not None:
         table, row_id = phenomenon
         _assign_top_level_uids(conn, table, "id", [row_id])
+        if table == "rogue_planets":
+            _assign_rogue_moon_uids(conn, [row_id])
 
 
 def _assign_sector_uids(conn, sector_id):
@@ -8278,9 +8411,37 @@ def _assign_sector_uids(conn, sector_id):
         _assign_system_uids(conn, ids[first:first + _UID_SYSTEM_BATCH])
     for table in PHENOMENON_UID_TABLES:
         _assign_top_level_uids(conn, table, "sector_id", [sector_id])
+    rogues = [row["id"] for row in conn.execute("SELECT id FROM rogue_planets WHERE sector_id = ? ORDER BY id",
+                                                (sector_id,)).fetchall()]
+    for first in range(0, len(rogues), _UID_SYSTEM_BATCH):
+        _assign_rogue_moon_uids(conn, rogues[first:first + _UID_SYSTEM_BATCH])
 
 
 _UID_SYSTEM_BATCH = 200
+
+
+def _assign_rogue_moon_uids(conn, rogue_planet_ids):
+    """Fills the NULL `uid`s of the moons of these rogue planets (DB.73) with the next body numbers under each rogue
+    planet's own ID, as a system's bodies are numbered under the system's."""
+    for rogue_id in rogue_planet_ids:
+        rogue = conn.execute("SELECT uid FROM rogue_planets WHERE id = ?", (rogue_id,)).fetchone()
+        if rogue is None or rogue["uid"] is None:
+            continue
+        rows = conn.execute("SELECT id FROM moons WHERE rogue_planet_id = ? AND uid IS NULL ORDER BY id",
+                            (rogue_id,)).fetchall()
+        if not rows:
+            continue
+        highest = 0
+        for taken in conn.execute("SELECT uid FROM moons WHERE rogue_planet_id = ? AND uid IS NOT NULL",
+                                  (rogue_id,)).fetchall():
+            highest = max(highest, objectUid.body_of(objectUid.from_bytes(taken["uid"])))
+        first = _reserve_counter(conn._config, BODY_COUNTER, bytes(rogue["uid"]), len(rows), highest + 1)
+        if first + len(rows) - 1 > objectUid.max_body(objectUid.LAYOUT):
+            raise ValueError("a rogue planet has used all of its body numbers")
+        parent = objectUid.from_bytes(rogue["uid"])
+        _update_by_id(conn, "moons", ("uid",),
+                      [(row["id"], objectUid.to_bytes(objectUid.with_body(parent, first + n)))
+                       for n, row in enumerate(rows)], touch=True)
 
 
 def _assign_top_level_uids(conn, table, column, values):
