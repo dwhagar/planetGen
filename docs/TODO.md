@@ -2501,29 +2501,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same sizing.
   Prerequisites: none. Related: MAP.290.
 
-- [ ] **MAP.292 Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug)**
-  Boss live observation (1:52 PM EDT 2026-10-24). Zooming in with the
-  scroll wheel on the Galaxy Map gets stuck: it will not go in far
-  enough to see an individual sector, find a star system, or even find a
-  star. Do: reproduce first on a freshly generated galaxy (the zoom
-  limit, the zoom step per wheel tick, and the hand-over from the
-  sector-block nodes to individual sectors and then to stars are the
-  suspects), then fix so the wheel zooms continuously from the whole
-  galaxy down to a single star, with each level showing what lives
-  there. Done: on a generated galaxy the wheel alone takes you from the
-  galaxy view to one sector, one system and one star, and a browser test
-  drives the wheel to the deepest level. Higher priority than MAP.291.
-  Owner: Core 2 (MAP.258 to MAP.262 in the same files belong to the map
-  nodes lane, so check with it).
-  Check (2026-10-09): Update 4:19 PM EDT 2026-10-24: the Map nodes lane
-  found
-  test_web_browser_fixture_maps.py::test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop
-  red on clean main (the zoom stalls at ticks 20 and 21 in a row, as the
-  lane reported 4:17 PM EDT). That is the same symptom as this bug, so
-  the test is the reproduction: Core 2 fixes both together and the test
-  must pass before the item closes.
-  Prerequisites: none. Related: MAP.291, MAP.258, MAP.261, MAP.262.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
