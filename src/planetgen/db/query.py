@@ -264,8 +264,13 @@ def _estimated_rows(conn, table):
 
 
 def _counted(conn, key, compute, fallback, stamp=None):
-    """`countcache.cached` under the galaxy's content stamp (PERF.64), or the `stamp` given."""
-    return countcache.cached(conn, key, compute, fallback, stamp or galaxy_content_stamp)
+    """
+    `countcache.cached` under the galaxy's content stamp (PERF.64), or the `stamp` given. The key carries the sector
+    deletion epoch (`store.note_sector_deleted`), so a count made before a reset or a deletion is never served after it
+    (UX.161): a stale answer served while the next is made is fine while the galaxy grows, but the page cache keeps
+    what it was given, and after a wipe nothing moves the stamp again to replace it.
+    """
+    return countcache.cached(conn, [sector_deletions(conn), key], compute, fallback, stamp or galaxy_content_stamp)
 
 
 def count_sectors(conn, quadrants=()):

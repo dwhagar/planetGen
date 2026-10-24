@@ -1,9 +1,9 @@
 """
 UX.146: the top menu bar in a real browser.
 
-Lists is under the gear, the search is one icon-only button that drops the search box down, Nearby is under Nav,
-which opens Plot Course then Nearby Search, and Help (UX.180), left of the search button, opens Classes then Habitability. Loaded in headless Chromium at five window sizes in both themes: the header
-shows no Lists or Nearby link, every control lies inside the window with nothing wider than it, the search button has
+Lists is under the gear, the search is one icon-only link to the Search page (UX.160), Nearby is under Nav,
+which opens Plot Course then Nearby Search, and Help (UX.180), left of the search icon, opens Classes then Habitability. Loaded in headless Chromium at five window sizes in both themes: the header
+shows no Lists or Nearby link, every control lies inside the window with nothing wider than it, the search icon has
 an accessible name and no text, the gear lists Lists, and the Nav menu (or, where the sections are folded into the
 Menu, the Menu's Nav group) opens its two entries in order and works from the keyboard. Menus open under their button
 and inside the window (UX.145).
@@ -59,7 +59,7 @@ def _load(page, url):
     """Opens `url` and waits until the header's dropdowns are Shoelace elements (a key pressed before is lost)."""
     page.goto(url, wait_until="load")
     page.locator("header sl-dropdown.site-gear:defined").wait_for()
-    page.locator("header sl-dropdown.site-search-menu:defined").wait_for()
+    page.locator("header sl-icon-button.site-search-link:defined").wait_for()
 
 
 def _close(page, dropdown):
@@ -95,23 +95,19 @@ def test_the_top_bar_menus(browser, base_url, size, scheme):
         if state["overflow"] > 0 or state["pageOverflow"] > 0:
             problems.append(f"the bar is wider than the window: {state}")
 
-        # The search button: icon only, with a name.
-        search = page.locator("header sl-dropdown.site-search-menu > [slot=trigger]")
-        if search.inner_text().strip() or page.locator("header sl-dropdown.site-search-menu > [slot=trigger]").get_attribute("label") != "Search":
-            problems.append("the search button is not an icon with the name Search")
-        if page.locator("header").get_by_role("button", name="Search", exact=True).count() != 1:
-            problems.append("no single button named Search in the bar")
-        if page.locator("header input[type=search]").first.is_visible():
-            problems.append("the search box is showing before the button is used")
-        box = _open(page, search, page.locator("header .site-search input[type=search]"))
-        panel = page.locator("header sl-dropdown.site-search-menu .dropdown__panel").bounding_box()
-        if _inside(panel, width, height) or not _attached(panel, box):
-            problems.append(f"the search panel {panel} is not at its button {box} inside the window")
-        if not page.evaluate("document.activeElement && document.activeElement.type === 'search'"):
-            problems.append("the cursor is not in the search box after opening it")
-        page.keyboard.type("Sol")
-        page.keyboard.press("Enter")
-        page.wait_for_url("**/search?q=Sol*")
+        # The search icon (UX.160): icon only, with a name, and a plain link to the Search page; no box drops down.
+        search = page.locator("header sl-icon-button.site-search-link")
+        if search.inner_text().strip() or search.get_attribute("label") != "Search":
+            problems.append("the search icon is not an icon with the name Search")
+        if page.locator("header").get_by_role("link", name="Search", exact=True).count() != 1:
+            problems.append("no single link named Search in the bar")
+        if page.locator("header input[type=search]").count():
+            problems.append("the bar holds a search box")
+        box = search.bounding_box()
+        if _inside(box, width, height):
+            problems.append(f"the search icon {box} lies outside the window")
+        search.click()
+        page.wait_for_url("**/search")
         _load(page, base_url + "/")
 
         # The gear: Lists is its first entry.

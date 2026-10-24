@@ -443,7 +443,7 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
     assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
         ("/classes", "Classes"), ("/help/habitability", "Habitability")]
-    assert bar.index("site-help-menu") < bar.index("site-search-menu") < bar.index("site-gear")
+    assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
     assert "Habitability levels" not in html
     page = _html(client, "/help/habitability")
     assert 'class="site-help-trigger" aria-haspopup="menu" aria-current="page"><span class="site-help-text">Help</span>' in page

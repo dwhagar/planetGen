@@ -3228,44 +3228,6 @@ body.app {
   display: none;
 }
 
-/* The search control (UX.146): an icon button in the bar that drops this
-   form down. */
-.app .site-search {
-  display: flex;
-  align-items: stretch;
-  margin: 0;
-}
-
-.app .site-search input {
-  flex: 1;
-  min-width: 12rem;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-right: none;
-  border-radius: 8px 0 0 8px;
-  padding: 0.4rem 0.65rem;
-}
-
-.app .site-search input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
-}
-
-.app .site-search button {
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-contrast);
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-}
-
 /* The Nav section's button (UX.146) and the Help button (UX.180) look like the other
    section links, with a caret to show they open a menu. */
 .app .site-nav-trigger,
@@ -3367,8 +3329,7 @@ body.app {
 .app .site-menu,
 .app .site-gear,
 .app .site-nav-menu,
-.app .site-help-menu,
-.app .site-search-menu {
+.app .site-help-menu {
   position: static;
 }
 
@@ -3380,8 +3341,7 @@ body.app {
 }
 
 .app .site-menu-panel,
-.app .site-gear-panel,
-.app .site-search-panel {
+.app .site-gear-panel {
   padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
@@ -3389,10 +3349,6 @@ body.app {
   width: max-content;
   min-width: 10rem;
   max-width: min(22rem, calc(100vw - 1rem));
-}
-
-.app .site-search-panel {
-  padding: 0.75rem;
 }
 
 .app .site-menu-panel ul,
