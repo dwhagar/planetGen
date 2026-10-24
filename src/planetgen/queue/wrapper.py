@@ -23,6 +23,8 @@ PERF.128 give it units.
 """
 
 import json
+import logging
+import os
 import time
 
 import redis
@@ -31,6 +33,11 @@ from planetgen.datasets import fetch
 from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, units, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
+
+
+JOB_ENV = "PLANETGEN_JOB_ID"
+"""str: The variable a Generate page job's runner sets for its steps (`web.job_runner.JOB_ENV`): the run records the
+job it belongs to, so the page finds the job's runs (PERF.99)."""
 
 
 def database_args(mysql_config):
@@ -173,8 +180,10 @@ def advance(conn, run_id, index):
     """
     Queues stage `index` of the run, and each stage after it that has no units to wait for, or finishes the run
     when the last stage is one of them. Called by the unit that completes the stage before (the barrier), and by
-    the starter for the first.
+    the starter for the first. A run that is no longer running (cancelling, cancelled, failed) queues nothing.
     """
+    if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
+        return
     count = len(json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages"))))
     while index < count:
         if _expand(conn, run_id, index):
@@ -280,7 +289,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     debug = (log.areas_spec() or "all") if log.console_debug() else ""     # a debug run: the workers relay their lines
     start = lambda: runrecord.start_run(       # noqa: E731
         conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
-        kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug)
+        kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
+        job=os.environ.get(JOB_ENV) or None)
     if kind == runrecord.GENERATION:
         run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
     else:
@@ -291,6 +301,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
               f"{workers_count or 'the default number of'} worker(s), kind {kind}, database {database}"
               + (f", debug areas {debug}" if debug else ""), area="queue")
+    events = runrecord.EventHandler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
+    logging.getLogger("planetgen").addHandler(events)
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
@@ -325,4 +337,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         if full:
             raise RuntimeError(message) from None
         raise
+    finally:
+        logging.getLogger("planetgen").removeHandler(events)
+        from planetgen.queue import runcontrol      # it imports this file
+        runcontrol.write_log(conn, run_id)
     return run_id

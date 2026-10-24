@@ -23,6 +23,8 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
 * `<PREFIX>:run:<id>:alive`      string: set with a time to live of `ALIVE_SECONDS` by the process that follows the run
                                   (`touch`, at every poll), so a run whose process was killed can be told from a live one.
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
+* `<PREFIX>:job:<job id>:runs`   list: the ids of the runs a Generate page job started, in order (PERF.99), so the
+                                  page that shows the job finds its runs; expires with them.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
 * `<PREFIX>:run:active:<kind>`   string: the same for a run of `MAINTENANCE` kind (the cache warm-up, PERF.127) or
                                   `CHECK` kind (the database check, PERF.126): it does not own the machine, so it
@@ -40,7 +42,9 @@ function of what `read_run` returns: `planetgen.queue.runeta`.
 """
 
 import json
+import logging
 import os
+import re
 import secrets
 import socket
 import time
@@ -110,6 +114,10 @@ class Stage:
     row: dict = None
 
 
+RUN_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}$")
+"""re.Pattern: A run's id (`new_run_id`), checked before an id from a URL is used."""
+
+
 def _k(*parts):
     return ":".join([PREFIX, *map(str, parts)])
 
@@ -153,6 +161,11 @@ def debug_key(run_id):
 
 def banner_key(run_id):
     return _k("run", run_id, "banner")
+
+
+def job_runs_key(job_id):
+    """The list of the runs the Generate page job `job_id` started (PERF.99)."""
+    return _k("job", job_id, "runs")
 
 
 def alive_key(run_id):
@@ -244,7 +257,7 @@ def active_run(conn, kind=GENERATION):
 
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
-              steps=None, kind=GENERATION, disregard_missing_data=False, debug=""):
+              steps=None, kind=GENERATION, disregard_missing_data=False, debug="", job=None):
     """
     Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
     generation run and one of those may be live together).
@@ -259,6 +272,8 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         debug (str): `""` for an ordinary run; for a debug run, the areas it shows (`planetgen.util.log.parse_areas`,
             `"all"` for every one). Every unit's worker then relays the debug lines it writes to the stream
             `debug_key(run_id)`, and the process that started the run prints them (`planetgen.util.log.RelayReader`).
+        job (str, optional): The Generate page job that started the run (PERF.99): kept in the record and appended to
+            `job_runs_key(job)`.
 
     Returns:
         str: The run id.
@@ -286,7 +301,10 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
         "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "",
         "debug": debug or "", "current": 0, "created": now, "started": now, "updated": now,
-        "finished": "", "error": "", "owner": _owner()})
+        "finished": "", "error": "", "owner": _owner(), "job": job or ""})
+    if job:
+        pipe.rpush(job_runs_key(job), run_id)
+        pipe.expire(job_runs_key(job), KEEP_SECONDS)
     for index, stage in enumerate(declared):
         pipe.hset(stage_key(run_id, index), mapping={"units": stage["units"], "cost_total": stage["cost"], "done": 0,
                                                      "cost_done": 0, "seconds": 0})
@@ -443,15 +461,37 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
     conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[run_id])
     log(conn, run_id, error or f"run {state}", kind=f"run.{state}", level="error" if state == "failed" else "info",
         now=now)
-    stages = len(json.loads(conn.hget(run_key(run_id), "stages")))
+    pipe = conn.pipeline()
+    for key in _keys_of(conn, run_id):
+        pipe.expire(key, KEEP_SECONDS)
+    pipe.execute()
+    return True
+
+
+def _keys_of(conn, run_id, every=False):
+    """The keys the run keeps for `KEEP_SECONDS` once it is over (the stage count comes from the record), and with
+    `every` the ones that expire by themselves too (the banner figure, the sign of life, the debug stream)."""
+    stages = len(json.loads(conn.hget(run_key(run_id), "stages") or "[]"))
     keys = [run_key(run_id), events_key(run_id)]
+    if every:
+        keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
         keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
                  results_key(run_id, index), progress_key(run_id, index), plan_key(run_id, index)]
-    pipe = conn.pipeline()
-    for key in keys:
-        pipe.expire(key, KEEP_SECONDS)
-    pipe.execute()
+    return keys
+
+
+def delete_run(conn, run_id):
+    """
+    Removes a finished run's record, counters and events (the Queue page's delete). A run still live is left alone.
+
+    Returns:
+        bool: Whether it was deleted.
+    """
+    state = _s(conn.hget(run_key(run_id), "state"))
+    if state is None or state in LIVE_STATES:
+        return False
+    conn.delete(*_keys_of(conn, run_id, every=True))
     return True
 
 
@@ -503,7 +543,7 @@ _STAGE_NUMBERS = ("units", "done", "cost_total", "cost_done", "seconds", "starte
 def read_run(conn, run_id):
     """
     The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `kind`, `who`, `database`,
-    `state`, `current`, `created`, `started`, `updated`, `finished`, `error`) and `stages`, each the declared
+    `job`, `argv`, `state`, `current`, `created`, `started`, `updated`, `finished`, `error`) and `stages`, each the declared
     stage with its counters merged in (numbers, `None` where not set yet). `None` for an unknown run.
     """
     pipe = conn.pipeline()
@@ -516,7 +556,7 @@ def read_run(conn, run_id):
     for index in range(len(declared)):
         pipe.hgetall(stage_key(run_id, index))
     run = {"id": run_id, "title": record["title"], "kind": record.get("kind") or GENERATION, "who": record["who"],
-           "database": record["database"],
+           "database": record["database"], "job": record.get("job") or None, "argv": json.loads(record.get("argv") or "[]"),
            "state": record["state"], "error": record["error"] or None, "current": int(float(record["current"])),
            "stages": []}
     for name in ("created", "started", "updated", "finished"):
@@ -544,6 +584,29 @@ def is_stale(run, now=None):
     return now - (run["updated"] or run["started"] or now) > max(STALE_FLOOR_SECONDS, 3.0 * longest)
 
 
+class EventHandler(logging.Handler):
+    """
+    Writes what the process that follows a run logs at the normal level or above to the run's event stream, so the
+    stream is the run's whole live log (PERF.99): the lines the console shows and the stage and unit events beside
+    them. A Redis that does not answer costs the line, never the run.
+    """
+
+    def __init__(self, conn, run_id):
+        super().__init__(level=logging.INFO)
+        self.conn, self.run_id = conn, run_id
+
+    def emit(self, record):
+        try:
+            log(self.conn, self.run_id, record.getMessage(), level=record.levelname.lower())
+        except Exception:  # noqa: BLE001 -- the line is lost, the run goes on
+            pass
+
+
+def job_runs(conn, job_id):
+    """The ids of the runs the Generate page job `job_id` started, oldest first."""
+    return [_s(run_id) for run_id in conn.lrange(job_runs_key(job_id), 0, -1)]
+
+
 def recent_runs(conn, limit=20):
     """Ids of the runs whose records exist, newest first (the ids sort by start time)."""
     prefix = _k("run") + ":"
@@ -556,5 +619,5 @@ def recent_runs(conn, limit=20):
 
 
 __all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
-           "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
+           "EventHandler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
            "set_stage_plan", "start_run", "unit_done", "write_log_file"]

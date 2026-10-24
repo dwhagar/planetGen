@@ -27,7 +27,7 @@ from tests.test_web_browser_maps import (  # noqa: E402,F401 -- fixtures
     base_url,
     gl_browser,
     sample_job,
-    sample_job_tree,
+    sample_run,
     sample_params,
     site_app,
     site_db,

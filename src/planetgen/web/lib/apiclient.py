@@ -1217,8 +1217,7 @@ def admin_reset_generation_stats(cookie_header):
 
 
 def admin_work(cookie_header, limit=None, offset=None):
-    """`GET /api/admin/work?limit=&offset=` -- the work queue's state and
-    one page of job trees (ADM.10)."""
+    """`GET /api/admin/work?limit=&offset=` -- the work queue's state and one page of runs (ADM.10, PERF.99)."""
     query = _build_query({"limit": limit, "offset": offset})
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work?{query}", cookie_header=cookie_header)
     return body
@@ -1231,30 +1230,37 @@ def admin_work_warm(cookie_header, database):
     return body
 
 
-def admin_work_tree(cookie_header, node_id):
-    """`GET /api/admin/work/<id>` -- the whole job tree holding a node."""
-    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}",
+def admin_work_run(cookie_header, run_id):
+    """`GET /api/admin/work/<id>` -- one run with its stages and the last events of its log (PERF.99)."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}",
                                               cookie_header=cookie_header)
     return body
 
 
-def admin_work_control(cookie_header, node_id, action):
-    """`POST /api/admin/work/<id>/control` -- pause, resume or cancel a
-    node and its subtree. Returns whether it took."""
-    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}/control",
+def admin_work_run_log(cookie_header, run_id):
+    """`GET /api/admin/work/<id>/log` -- the run's whole log as text."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/log",
+                                              cookie_header=cookie_header)
+    return body["text"]
+
+
+def admin_work_control(cookie_header, run_id, action):
+    """`POST /api/admin/work/<id>/control` -- cancels a live run or clears one that stopped answering. Returns whether it
+    took."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/control",
                                               cookie_header=cookie_header, json_body={"action": action})
     return body["ok"]
 
 
-def admin_work_delete(cookie_header, node_id):
-    """`POST /api/admin/work/<id>/delete` -- deletes a finished tree."""
-    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}/delete",
+def admin_work_delete(cookie_header, run_id):
+    """`POST /api/admin/work/<id>/delete` -- deletes a finished run's record."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/delete",
                                               cookie_header=cookie_header)
     return body["ok"]
 
 
 def admin_work_clear_finished(cookie_header):
-    """`POST /api/admin/work/clear-finished` -- deletes every finished tree; returns how many."""
+    """`POST /api/admin/work/clear-finished` -- deletes every finished run's record; returns how many."""
     body, _set_cookie_headers = _auth_request("POST", "/admin/work/clear-finished", cookie_header=cookie_header)
     return body["cleared"]
 
@@ -1275,13 +1281,6 @@ def admin_work_workers(cookie_header, count=None, ludicrous=False):
         body, _set_cookie_headers = _auth_request("POST", "/admin/work/workers", cookie_header=cookie_header,
                                                   json_body={"ludicrous": True} if ludicrous else {"count": count})
     return body
-
-
-def admin_work_clear_lease(cookie_header):
-    """`POST /api/admin/work/lease/clear` -- frees a stale lease; returns
-    the holder it cleared, or `None`."""
-    body, _set_cookie_headers = _auth_request("POST", "/admin/work/lease/clear", cookie_header=cookie_header)
-    return body["cleared"]
 
 
 def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):

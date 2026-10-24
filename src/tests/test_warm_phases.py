@@ -12,7 +12,7 @@ from planetgen.cli import warm as warm_cli
 from planetgen.queue import redisclient, warmphases, warmstart
 from planetgen.web import warmup
 from tests.test_cache_warmup import _args, script, state_file  # noqa: F401 -- the fixtures
-from tests.test_work_queue_admin import admin_client, control_config, web_app  # noqa: F401 -- the fixtures
+from tests.test_queue_page import admin_client, control_config, web_app  # noqa: F401 -- the fixtures
 
 
 @pytest.fixture

@@ -12,5 +12,19 @@
   {{ job_status(job, output, link=False) }}
   </div>
 </section>
+{%- if runs %}
+<section class="panel" id="job-runs" aria-labelledby="job-runs-heading">
+  <h2 id="job-runs-heading">Runs</h2>
+  <p class="hint">Each run is a stage of work the queue's workers did for this job; open one for its stages and its own log. The page shows them as they were when it loaded.</p>
+  <ul>
+    {%- for run in runs %}
+    <li><span class="badge job-{{ run.state }}">{{ run.state_label }}</span>
+      <a href="{{ run.url }}">{{ run.title }}</a>
+      <span class="hint">{{ run.duration }}{% if run.progress %}, {{ run.progress }}{% endif %}</span>
+      <a href="{{ run.log_url }}" download>Download its log</a></li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}
 <p><a href="{{ url_for('web.generate') }}">Back to Generate</a></p>
 {% endblock %}

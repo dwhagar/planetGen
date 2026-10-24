@@ -60,6 +60,9 @@ os.environ["PLANETGEN_STATE_DIR"] = tempfile.mkdtemp(prefix="planetgen-test-stat
 os.environ["PLANETGEN_MAINTENANCE_FILE"] = os.path.join(tempfile.mkdtemp(prefix="planetgen-test-maintenance-"),
                                                         "maintenance.json")
 
+# A run's log is written to the jobs directory when it ends (PERF.99); the tests' go to a throwaway folder too.
+os.environ.setdefault("PLANETGEN_JOBS_DIR", tempfile.mkdtemp(prefix="planetgen-test-jobs-"))
+
 # Generation runs one sector at a time, in-process, unless a test asks for
 # workers itself (tests/test_work_queue.py) or the run sets
 # PLANETGEN_WORKERS: CI's worker legs (TEST.74) run the `generation` tests
@@ -551,9 +554,11 @@ def _run_queue_inline(monkeypatch, request):
     here, in this process, so a patch the test made reaches them and no worker process is left running when the
     test's database goes. The workers read the MySQL server's credentials from the settings, so the environment
     carries the test server's. Nothing is patched, and nothing is touched on Redis, without a Redis server.
-    A test that starts real workers or reads the shared queues' names is marked `real_queue` and gets none of this.
+    A test that starts real workers or reads the shared queues' names is marked `real_queue` and gets none of this, and
+    neither does a page test that visits the sample run (`test_web_a11y.sample_run`): the run is written once for the
+    module, under the key prefix in force when the module's fixtures are made, and the page must find it under the same.
     """
-    if request.node.get_closest_marker("real_queue"):
+    if request.node.get_closest_marker("real_queue") or "sample_run" in request.fixturenames:
         yield
         return
     with inline_queue.inline_queue(monkeypatch):

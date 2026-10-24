@@ -189,6 +189,10 @@ def _run_line(job):
     return version_key.run_line(seed, run)
 
 
+JOB_ENV = "PLANETGEN_JOB_ID"
+"""str: The variable naming the job a step belongs to, so a run it starts records the job (PERF.99;
+`planetgen.queue.wrapper.JOB_ENV`)."""
+
 STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
 STAGE_TOTAL_ENV = "PLANETGEN_STAGE_TOTAL"
 """str: The variables a step's process reads to number its stages across the whole job
@@ -387,6 +391,7 @@ def run(job_dir):
     env.update(job.get("env") or {})
     env["PYTHONUNBUFFERED"] = "1"
     env["PLANETGEN_PROGRESS_FILE"] = progress_path
+    env[JOB_ENV] = job["id"]
 
     steps = job["steps"]
     tree = _JobTree(job)

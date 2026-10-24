@@ -1,26 +1,24 @@
 # planetgen/web/queue_page.py
 
 """
-The admin work queue page (ADM.10): `/admin/queue` lists the job trees
-(ADM.12) newest first, under the number of workers active and the
-server's load ("x / x / x" over 1, 5 and 15 minutes); `/admin/queue/<id>` shows one tree, expandable from the master
-job down to single tasks. Every control (pause, resume, cancel, retry,
-delete, pause the whole queue, clear a stale lease) first shows a
-confirmation page (`/admin/queue/confirm/<action>`), then posts to
-`/admin/queue/action`, and is written to the activity log.
+The admin work queue page (ADM.10, PERF.99): `/admin/queue` lists the runs in Redis (`planetgen/queue/runrecord.py`)
+newest first, under the number of workers active and the server's load ("x / x / x" over 1, 5 and 15 minutes), the run
+that owns the machine and the whole-queue pause; `/admin/queue/<id>` shows one run, its stages with their counters and
+the last lines of its log. Every control (cancel, clear a run that stopped answering, retry, delete, pause the whole
+queue) first shows a confirmation page (`/admin/queue/confirm/<action>`), then posts to `/admin/queue/action`, and is
+written to the activity log.
 
-Reads and controls go through the API (`api/workqueue.py`); Retry starts
-a Generate page job (`web/jobs.py`), like the Generate page's own forms.
+Reads and controls go through the API (`api/workqueue.py`); Retry starts a Generate page job (`web/jobs.py`), like the
+Generate page's own forms.
 """
 
-import re
 import time
 
-from flask import abort, current_app, request, url_for
+from flask import Response, abort, current_app, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, time_text
-from planetgen.queue import progress_rate, warmphases, work as workQueue
+from planetgen.queue import progress_rate, runrecord, warmphases
 from planetgen.admin import activity_log
 from planetgen.util import log
 
@@ -28,64 +26,39 @@ from . import bp, jobs, tables
 from .admin_pages import format_bytes, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb, db_name
 
-KIND_LABELS = {
-    "web-job": "Generate page job",
-    "step": "Step",
-    "queue": "Work queue",
-    "skeleton": "Skeleton",
-    "mass-stars": "Massive stars",
-    "bright-stars": "Bright stars",
-    "phenomena": "Phenomena",
-    "population": "Population",
-    "plan": "Plan",
-    "scatter": "Scatter",
-    "clear-scatter": "Scatter clear",
-    "fill-map-luminosity": "Map luminosity fill",
-    "rescore-habitability": "Habitability re-score",
-    "clean-nebula-field": "Nebula field clean-up",
-    "galaxy": "Galaxy",
-    "sector": "Sector",
-    "system": "System",
-    "phenomenon": "Phenomenon",
-    "warm": "Cache warm-up",
-    "warm-line": "Warm-up result",
-    "slow-page": "Slow page answer",
-    "slow-page-line": "Slow page result",
-}
+KIND_LABELS = {"generation": "Generation", "maintenance": "Maintenance", "check": "Database check"}
 
-STATUS_LABELS = {
-    "waiting": "Waiting",
+STATE_LABELS = {
     "running": "Running",
-    "paused": "Paused",
+    "cancelling": "Cancelling",
     "done": "Done",
     "failed": "Failed",
     "cancelled": "Cancelled",
-    "interrupted": "Interrupted",
 }
 
-SECTOR_KEY_RE = re.compile(r"^(-?\d+),(-?\d+),(-?\d+)$")
-"""re.Pattern: A sector task's key, `shell,band,wedge`."""
+STAGE_STATE_LABELS = {"waiting": "Waiting", "running": "Running", "done": "Done"}
 
 ACTION_TEXT = {
-    "pause": ("Pause", "Its running tasks finish, then it waits in standby without holding up other jobs, "
-                       "until you resume it."),
-    "resume": ("Resume", "It takes its place in line again and carries on."),
-    "cancel": ("Cancel", "Its running tasks finish and nothing more is started. Cancelling a whole run, "
-                         "a step or a Generate page job ends that run."),
+    "cancel": ("Cancel", "Its running units are stopped and nothing more is started; the units that finished keep "
+                         "what they saved. The machine is free for the next run at once."),
+    "clear": ("Clear", "It has stopped answering: its process is gone or it has not been heard from for too long. It is "
+                       "ended as failed and the machine is freed so the next run can start."),
     "retry": ("Retry", None),
-    "delete": ("Delete", "The job's record and timings are deleted. Nothing it generated is touched."),
-    "clear-finished": ("Clear finished jobs", "Every finished job's record and timings are deleted, "
-                                              "leaving the ones still running. Nothing they generated is touched."),
-    "queue-pause": ("Pause the queue", "No job starts or takes another task until you resume the queue. "
-                                       "Running tasks finish first."),
-    "queue-resume": ("Resume the queue", "Jobs waiting for the queue start again, one at a time."),
-    "clear-lease": ("Clear the stale lease", "The run holding it has stopped answering. Its unfinished "
-                                             "work is marked cancelled so the next job can start."),
+    "delete": ("Delete", "The run's record and log are deleted. Nothing it generated is touched."),
+    "clear-finished": ("Clear finished runs", "Every finished run's record is deleted, leaving the ones still running. "
+                                              "Nothing they generated is touched."),
+    "queue-pause": ("Pause the queue", "No run starts or takes another unit until you resume the queue. "
+                                       "Running units finish first."),
+    "queue-resume": ("Resume the queue", "Runs waiting for the queue start again, one at a time."),
 }
 
 
-QUEUE_WIDE_ACTIONS = ("clear-lease", "clear-finished")
-"""tuple[str]: The controls that act on the whole queue, not one job."""
+QUEUE_WIDE_ACTIONS = ("clear-finished",)
+"""tuple[str]: The controls that act on the whole queue, not one run."""
+
+RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "clean-nebula-field",
+             "galaxy", "sectors", "link", "backfill", "settle", "sector", "population")
+"""tuple[str]: The `planetgen` commands whose run Retry starts again (the command line the run recorded)."""
 
 
 def _duration(seconds):
@@ -103,99 +76,92 @@ def _duration(seconds):
     return f"{minutes} m {secs:02d} s"
 
 
-def _actions(node, root):
-    """The controls an admin can use on `node` now."""
-    actions = []
-    if node["live"]:
-        if node["control"] == "pause" or node["state"] == "paused":
-            actions.append("resume")
-        elif node["control"] != "cancel":
-            actions.append("pause")
-        if node["control"] != "cancel":
-            actions.append("cancel")
-    elif node["status"] in ("failed", "cancelled", "interrupted") and _retry_plan(root, node) is not None:
-        actions.append("retry")
-    if node is root and not node["live"]:
-        actions.append("delete")
-    return actions
-
-
-def _node_view(node, root):
-    totals = node["totals"]
-    seconds = node["seconds"] if node["seconds"] is not None else (node["age_seconds"] if node["live"] else None)
-    view = {
-        "id": node["id"],
-        "kind": KIND_LABELS.get(node["kind"], node["kind"]),
-        "title": node["title"],
-        "status": node["status"],
-        "status_label": STATUS_LABELS.get(node["status"], node["status"]),
-        "asked": {"pause": "pause asked", "cancel": "cancel asked"}.get(node["control"]) if node["live"] else None,
-        "started_at": node["started_at"] or node["created_at"],
-        "finished_at": node["finished_at"],
-        "duration": _duration(seconds),
-        "work": _duration(totals["work_seconds"]) if totals["work_seconds"] else "",
-        "tasks": totals["tasks"],
-        "queued": totals["queued"],
-        "running": totals["running"],
-        "done": totals["done"],
-        "failed": totals["failed"],
-        "cancelled": totals["cancelled"],
-        "eta": _eta_text(totals["eta_seconds"], node["live"]),
-        "workers": node["workers"],
-        "holder": node["holder"],
-        "web_job_url": url_for("web.generate_job", job_id=node["web_job_id"])
-        if node["web_job_id"] and node["kind"] == "web-job" and jobs.JOB_ID_RE.match(node["web_job_id"]) else None,
-        "url": url_for("web.admin_queue_tree", node_id=root["id"], _anchor=f"node-{node['id']}"),
-        "actions": [(action, ACTION_TEXT[action][0]) for action in _actions(node, root)],
-        "live": node["live"],
-        "children": [_node_view(child, root) for child in node["children"]],
-        "task_rows": [{
-            "id": task["id"],
-            "key": task["task_key"],
-            "kind": task["kind"],
-            "status": task["state"],
-            "status_label": STATUS_LABELS.get(task["state"], task["state"]),
-            "started_at": task["started_at"],
-            "seconds": _duration(task["seconds"]),
-            "error": task["error"],
-            "retry": task["state"] in ("failed", "cancelled") and _task_retry_argv(task) is not None
-            and not root["live"],
-        } for task in node["tasks"]],
-    }
-    return view
-
-
-def _eta_text(seconds, live):
-    """The time left as a range around the estimate, "estimating" while a running job has none (PERF.33, never
-    dashes), `""` for a job that isn't running."""
-    if seconds is None:
-        return "estimating" if live else ""
-    low, high = progress_rate.eta_range(seconds)
+def _eta_text(eta, live):
+    """The time left as a range around the estimate, "estimating" while a running run has none (PERF.33, never dashes),
+    `""` for a run that isn't running."""
+    if not live:
+        return ""
+    if eta is None or eta.get("seconds") is None:
+        return "estimating"
+    if eta.get("stalled"):
+        return "waiting on progress"
+    low, high = progress_rate.eta_range(eta["seconds"])
     low_text, high_text = _duration(low), _duration(high)
     return high_text if low_text == high_text else f"{low_text} to {high_text}"
 
 
-def _remaining_seconds(root):
+def _actions(run):
+    """The controls an admin can use on `run` now."""
+    if run["live"]:
+        return ["cancel", "clear"] if run["stale"] else ["cancel"]
+    actions = []
+    if run["state"] in ("failed", "cancelled") and _retry_plan(run) is not None:
+        actions.append("retry")
+    actions.append("delete")
+    return actions
+
+
+def _progress_text(run):
+    stage = run["stage"]
+    if stage is None:
+        return ""
+    where = f"stage {stage['index'] + 1} of {stage['count']}: {stage['label']}" if run["live"] else \
+        f"{stage['count']} stage{'s' if stage['count'] != 1 else ''}"
+    units = f", {run['units_done']} of {run['units']} units" if run["units"] else ""
+    return where + units
+
+
+def run_view(run):
+    """A run (the API's `runview.summary`) as the pages show it."""
+    return {
+        "id": run["id"],
+        "title": run["title"],
+        "kind": KIND_LABELS.get(run["kind"], run["kind"]),
+        "who": run["who"],
+        "state": run["state"],
+        "state_label": STATE_LABELS.get(run["state"], run["state"]),
+        "error": run["error"],
+        "started_at": _iso(run["started"]),
+        "finished_at": _iso(run["finished"]),
+        "duration": _duration(run["seconds"]),
+        "progress": _progress_text(run),
+        "percent": run["percent"],
+        "eta": _eta_text(run["eta"], run["live"]),
+        "stale": run["stale"],
+        "live": run["live"],
+        "job_url": url_for("web.generate_job", job_id=run["job"]) if run["job"] and jobs.JOB_ID_RE.match(run["job"]) else None,
+        "url": url_for("web.admin_queue_run", run_id=run["id"]),
+        "log_url": url_for("web.admin_queue_log", run_id=run["id"]),
+        "actions": [(action, ACTION_TEXT[action][0]) for action in _actions(run)],
+    }
+
+
+def _retry_plan(run):
     """
-    Seconds a running job has left, or `None` when it can't be told (ADM.39):
-    the job tree's own estimate from its finished tasks' pace, else the
-    estimate a Generate page job's runner publishes (PERF.7), counted down
-    from when it was written. A job that isn't running has none.
+    What Retry on `run` runs again, as `{"kind", "title", "steps", "database", "describe"}`, or `None`: for a run a
+    Generate page job started, that job's steps from the one that didn't finish; for a run started anywhere else, the
+    same `planetgen` command line. Either way the whole command is retried, not the one run: generation skips what is
+    already there, so only the missing work is done again.
     """
-    if not root["live"]:
+    if run["kind"] != "generation":
         return None
-    eta = root["totals"]["eta_seconds"]
-    if eta is not None:
-        return eta
-    web_job_id = root.get("web_job_id")
-    if root["kind"] != "web-job" or not web_job_id or not jobs.JOB_ID_RE.match(web_job_id):
-        return None
-    job = jobs.get_job(web_job_id)
-    progress = (job or {}).get("progress") or {}
-    if job is None or job.get("finished_at") or progress.get("eta_s") is None:
-        return None
-    updated_at = progress.get("updated_at") or time.time()
-    return max(0.0, float(progress["eta_s"]) - max(0.0, time.time() - float(updated_at)))
+    if run.get("job") and jobs.JOB_ID_RE.match(run["job"]):
+        try:
+            found = jobs.remaining_steps(run["job"])
+        except OSError:
+            found = None
+        if found is not None:
+            job, steps = found
+            return {"kind": job.get("kind") or "galaxy", "title": f"Retry: {job.get('title') or run['title']}",
+                    "steps": steps, "database": job.get("database"),
+                    "describe": ", then ".join(step["label"] for step in steps)}
+    argv = [str(arg) for arg in run.get("argv") or []]
+    if argv and argv[0] in RETRYABLE:
+        label = " ".join(["planetgen", *argv])
+        return {"kind": argv[0], "title": f"Retry: {label}"[:200],
+                "steps": [{"label": label, "argv": [jobs.python_executable(), *jobs.GENERATE_COMMAND, *argv]}],
+                "database": run.get("database"), "describe": label}
+    return None
 
 
 def _status_view(status):
@@ -207,119 +173,63 @@ def _status_view(status):
         "load_label": "Load average, 1 / 5 / 15 minutes",
         "paused": status.get("paused", False),
         "paused_by": status.get("paused_by"),
-        "paused_at": status.get("paused_at"),
+        "paused_at": _iso(status.get("paused_at")),
         "holder": status.get("holder"),
-        "job_id": status.get("job_id"),
+        "holder_title": status.get("holder_title"),
         "heartbeat": _duration(status.get("heartbeat_age_s")),
         "stale": status.get("stale", False),
+        "holder_url": url_for("web.admin_queue_run", run_id=status["holder"]) if status.get("holder") else None,
     }
 
 
-def _task_retry_argv(task):
-    """`planetgen` arguments that fill one failed sector again, or
-    `None` for a task that can't be rerun alone."""
-    match = SECTOR_KEY_RE.match(task.get("task_key") or "")
-    if task.get("kind") != "sector" or not match:
-        return None
-    shell, band, wedge = match.groups()
-    return ["sectors", "--shell", shell, "--band", band, "--wedge", wedge]
-
-
-def _retry_plan(root, node=None):
-    """
-    What Retry on `node` runs again, as `{"kind", "title", "steps",
-    "database", "describe"}`, or `None`: for a Generate page job, its
-    steps from the one that didn't finish; for a run started anywhere
-    else, the same `planetgen` command line. Either way the whole job
-    is retried, not one node of it: generation skips what is already
-    there, so only the missing work is done again.
-    """
-    if root["kind"] == "web-job" and root["web_job_id"]:
-        try:
-            found = jobs.remaining_steps(root["web_job_id"])
-        except OSError:
-            found = None
-        if found is None:
-            return None
-        job, steps = found
-        return {"kind": job.get("kind") or "galaxy", "title": f"Retry: {job.get('title') or root['title']}",
-                "steps": steps, "database": job.get("database"),
-                "describe": ", then ".join(step["label"] for step in steps)}
-    if root["argv"] and root["kind"] in ("plan", "scatter", "clear-scatter", "fill-map-luminosity",
-                                                   "rescore-habitability", "clean-nebula-field", "galaxy", "sectors", "link",
-                                                   "backfill", "settle", "sector", "population"):
-        argv = [str(arg) for arg in root["argv"]]
-        label = " ".join(["planetgen", *argv])
-        return {"kind": root["kind"], "title": f"Retry: {label}"[:200],
-                "steps": [{"label": label, "argv": [jobs.python_executable(), *jobs.GENERATE_COMMAND, *argv]}],
-                "database": root["database_name"], "describe": label}
-    return None
-
-
-def _find(tree, node_id):
-    if tree["id"] == node_id:
-        return tree
-    for child in tree["children"]:
-        found = _find(child, node_id)
-        if found is not None:
-            return found
-    return None
-
-
-def _load(cookie_header, node_id):
-    """`(tree, node)` from the API, or `(None, None)`."""
+def _load(cookie_header, run_id):
+    """`(detail, run)` from the API -- the whole answer and the run in it -- or `(None, None)`."""
     try:
-        body = apiclient.admin_work_tree(cookie_header, node_id)
+        body = apiclient.admin_work_run(cookie_header, run_id)
     except apiclient.NotFoundError:
         return None, None
-    tree = body["tree"]
-    return tree, _find(tree, node_id)
+    return body, body["run"]
 
 
-def _job_cells(root):
-    """One job (a tree's root) as the Jobs table's cells."""
-    node = _node_view(root, root)
+def _job_cells(run):
+    """One run as the Runs table's cells."""
+    view = run_view(run)
     links = []
-    for action, label in node["actions"]:
+    for action, label in view["actions"]:
         links += [" "] if links else []
-        links.append({"text": label, "href": url_for("web.admin_queue_confirm", action=action, node=node["id"])})
-    if node["web_job_url"]:
+        links.append({"text": label, "href": url_for("web.admin_queue_confirm", action=action, run=view["id"])})
+    if view["job_url"]:
         links += [" "] if links else []
-        links.append({"text": "Log", "href": node["web_job_url"]})
-    started = time_text(node["started_at"]) or "not yet"
-    asked = f" ({node['asked']})" if node["asked"] else ""
+        links.append({"text": "Job", "href": view["job_url"]})
+    started = time_text(view["started_at"]) or "not yet"
+    stale = " (not answering)" if view["stale"] else ""
     return [
-        {"text": node["title"], "href": node["url"]},
-        {"text": node["status_label"] + asked},
+        {"text": view["title"], "href": view["url"]},
+        {"text": view["state_label"] + stale},
         {"text": started},
-        {"text": node["duration"] or ""},
-        {"text": _eta_text(_remaining_seconds(root), root["live"])},
-        {"text": f"{node['done']} of {node['tasks']}" if node["tasks"] else ""},
+        {"text": view["duration"] or ""},
+        {"text": view["eta"]},
+        {"text": view["progress"]},
         {"text": "", "parts": links} if links else {"text": ""},
     ]
 
 
 def _jobs_load(state, limit, offset, want_facets):
-    """The job trees, newest first, `limit` from `offset`."""
+    """The runs, newest first, `limit` from `offset`."""
     _identity, bounce = _require_admin()
     if bounce is not None:
         abort(403)
     body = apiclient.admin_work(_cookie_header(), limit=limit, offset=offset)
-    rows = []
-    for root in body["items"]:
-        root.setdefault("children", [])
-        root.setdefault("tasks", [])
-        rows.append(_job_cells(root))
-    return Result(rows, body["total"], None)
+    return Result([_job_cells(run) for run in body["items"]], body["total"], None)
 
 
 JOBS_TABLE = tables.register(Table(
-    "queue-jobs", "Jobs",
-    [Column("job", "Job", sortable=False), Column("status", "Status", sortable=False), Column("started", "Started", sortable=False),
+    "queue-jobs", "Runs",
+    [Column("job", "Run", sortable=False), Column("status", "Status", sortable=False), Column("started", "Started", sortable=False),
      Column("duration", "Duration", sortable=False), Column("left", "Time left", sortable=False),
      Column("progress", "Progress", sortable=False),
      Column("actions", "Actions", sortable=False)],
-    _jobs_load, prefix="jobs_", noun=("job", "jobs"),
+    _jobs_load, prefix="jobs_", noun=("run", "runs"),
 ))
 
 
@@ -355,7 +265,7 @@ def _iso(seconds):
 
 @bp.route("/admin/queue")
 def admin_queue():
-    """The queue's state and the job trees, newest first (a data table)."""
+    """The queue's state and the runs, newest first (a data table)."""
     admin, bounce = _require_admin()
     if bounce is not None:
         return bounce
@@ -367,7 +277,7 @@ def admin_queue():
         try:
             workers = apiclient.admin_work_workers(cookie_header)
         except apiclient.ApiError:
-            workers = None                      # Redis down: the page says so elsewhere; the rest still loads
+            workers = None                      # Redis down: the page says so below; the rest still loads
         try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
@@ -381,90 +291,118 @@ def admin_queue():
     return _render(
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
-        description="The generation jobs on this server, and the controls to pause, resume, cancel or retry them.",
+        description="The generation runs on this server, and the controls to cancel, clear, retry or delete them.",
         admin=admin, available=body["available"], queue=_status_view(body["status"]), jobs_table=jobs_table, workers=workers,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
 
 
-@bp.route("/admin/queue/<node_id>")
-def admin_queue_tree(node_id):
-    """One job tree, every node with its timing and controls."""
+def _event_view(event):
+    return {"time": _iso(event["t"]), "level": event["level"], "message": event["message"]}
+
+
+def _stage_rows(run):
+    return [{
+        "number": number,
+        "label": stage["label"],
+        "state": stage["state"],
+        "state_label": STAGE_STATE_LABELS[stage["state"]],
+        "units": f"{stage['done']} of {stage['units']}" if stage["units"] else "",
+        "started": _iso(stage["started"]),
+        "duration": _duration(stage["seconds"]),
+        "longest": _duration(stage["longest_unit"]) if stage.get("longest_unit") else "",
+    } for number, stage in enumerate(run["stages"], 1)]
+
+
+@bp.route("/admin/queue/<run_id>")
+def admin_queue_run(run_id):
+    """One run: its facts, its stages and the last lines of its log."""
     admin, bounce = _require_admin()
     if bounce is not None:
         return bounce
-    tree, _node = _load(_cookie_header(), node_id)
-    if tree is None:
-        abort(404, description="No such job.")
+    if not runrecord.RUN_ID_RE.match(run_id):
+        abort(404, description="No such run.")
+    body, run = _load(_cookie_header(), run_id)
+    if run is None:
+        abort(404, description="No such run.")
     flashed = _take_flash()
     return _render(
-        "admin_queue_tree.html", flashed=True, title=tree["title"][:80] or "Job", section="admin_queue",
-        breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Job")],
-        admin=admin, root=_node_view(tree, tree), error=flashed.get("error"), message=flashed.get("message"),
+        "admin_queue_run.html", flashed=True, title=run["title"][:80] or "Run", section="admin_queue",
+        breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run")],
+        admin=admin, run=run_view(run), stages=_stage_rows(run), events=[_event_view(event) for event in body["events"]],
+        error=flashed.get("error"), message=flashed.get("message"),
     )
 
 
-def _confirm_text(action, tree, node, task):
+@bp.route("/admin/queue/<run_id>/log")
+def admin_queue_log(run_id):
+    """A run's whole log as a plain-text download."""
+    _admin, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    if not runrecord.RUN_ID_RE.match(run_id):
+        abort(404, description="No such run.")
+    try:
+        text = apiclient.admin_work_run_log(_cookie_header(), run_id)
+    except apiclient.NotFoundError:
+        abort(404, description="No such run.")
+    response = Response(text, mimetype="text/plain")
+    response.headers["Content-Disposition"] = f'attachment; filename="run-{run_id}.log"'
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+admin_queue_log.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+def _confirm_text(action, run):
     """`(heading, explanation)` for the confirmation page."""
     label, explanation = ACTION_TEXT[action]
     if action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS:
         return f"{label}?", explanation
-    if task is not None:
-        argv = _task_retry_argv(task)
-        return (f"Retry sector {task['task_key']}?",
-                f"Starts a Generate page job that runs planetgen {' '.join(argv[:1] + argv[1:])} on "
-                f"{db_name()}.")
     if action == "retry":
-        plan = _retry_plan(tree, node)
-        return (f"Retry “{tree['title']}”?",
+        plan = _retry_plan(run)
+        return (f"Retry “{run['title']}”?",
                 f"Starts a Generate page job that runs {plan['describe']} on {db_name()}. Work that is "
                 f"already done is skipped.")
-    return f"{label} “{node['title']}” and everything under it?", explanation
+    return f"{label} “{run['title']}”?", explanation
 
 
 @bp.route("/admin/queue/confirm/<action>")
 def admin_queue_confirm(action):
-    """The confirmation page every control goes through first
-    (`?node=<id>`, and `&task=<id>` to retry one sector)."""
+    """The confirmation page every control goes through first (`?run=<id>`)."""
     admin, bounce = _require_admin()
     if bounce is not None:
         return bounce
-    node_id = request.args.get("node") or ""
+    run_id = request.args.get("run") or ""
     if action not in ACTION_TEXT:
         abort(404, description="No such action.")
-    tree = node = task = None
+    run = None
     if not (action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS):
-        if not workQueue.NODE_ID_RE.match(node_id):
-            abort(404, description="No such job.")
-        tree, node = _load(_cookie_header(), node_id)
-        if node is None:
-            abort(404, description="That job is no longer there.")
-        task_id = request.args.get("task")
-        if task_id:
-            task = next((row for row in node["tasks"] if str(row["id"]) == task_id), None)
-            if task is None or _task_retry_argv(task) is None:
-                return _flash(_see_other(url_for("web.admin_queue_tree", node_id=tree["id"])),
-                              error="That task can't be retried on its own.")
-        elif action == "retry" and _retry_plan(tree, node) is None:
-            return _flash(_see_other(url_for("web.admin_queue_tree", node_id=tree["id"])),
-                          error="That job can't be retried from here.")
-    heading, explanation = _confirm_text(action, tree, node, task)
-    back = url_for("web.admin_queue_tree", node_id=tree["id"]) if tree else url_for("web.admin_queue")
+        if not runrecord.RUN_ID_RE.match(run_id):
+            abort(404, description="No such run.")
+        _body, run = _load(_cookie_header(), run_id)
+        if run is None:
+            abort(404, description="That run is no longer there.")
+        if action == "retry" and _retry_plan(run) is None:
+            return _flash(_see_other(url_for("web.admin_queue_run", run_id=run_id)),
+                          error="That run can't be retried from here.")
+    heading, explanation = _confirm_text(action, run)
+    back = url_for("web.admin_queue_run", run_id=run_id) if run else url_for("web.admin_queue")
     return _render(
         "admin_queue_confirm.html", title="Confirm", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Confirm")],
-        admin=admin, heading=heading, explanation=explanation, action=action, node_id=node_id,
-        task_id=task["id"] if task else None, button=ACTION_TEXT[action][0], back=back,
+        admin=admin, heading=heading, explanation=explanation, action=action, run_id=run_id,
+        button=ACTION_TEXT[action][0], back=back,
     )
 
 
 def _start_retry(admin, plan, retry_of):
-    """Starts `plan` (`_retry_plan`, or a task's) as a Generate page job.
-    Returns `(message, error)`."""
+    """Starts `plan` (`_retry_plan`) as a Generate page job. Returns `(message, error)`."""
     database = db_name()
     if plan["database"] and plan["database"] != database:
-        return None, (f"That job wrote {plan['database']}, but this site shows {database}. "
+        return None, (f"That run wrote {plan['database']}, but this site shows {database}. "
                       f"Run it again from the command line instead.")
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
     try:
@@ -483,13 +421,13 @@ def _start_retry(admin, plan, retry_of):
 
 @bp.route("/admin/queue/action", methods=["POST"])
 def admin_queue_action():
-    """Runs a confirmed control, then back to the tree (or the list)."""
+    """Runs a confirmed control, then back to the run (or the list)."""
     admin, bounce = _require_admin()
     if bounce is not None:
         return bounce
     cookie_header = _cookie_header()
     action = request.form.get("action") or ""
-    node_id = request.form.get("node") or ""
+    run_id = request.form.get("run") or ""
     target = url_for("web.admin_queue")
     message = error = None
     try:
@@ -501,8 +439,8 @@ def admin_queue_action():
             message = "The queue is running again." if ok else "The queue wasn't paused."
         elif action == "clear-finished":
             cleared = apiclient.admin_work_clear_finished(cookie_header)
-            message = f"Cleared {cleared} finished {'job' if cleared == 1 else 'jobs'}." if cleared \
-                else "There were no finished jobs to clear."
+            message = f"Cleared {cleared} finished {'run' if cleared == 1 else 'runs'}." if cleared \
+                else "There were no finished runs to clear."
         elif action in ("workers-set", "workers-ludicrous"):
             try:
                 count = int(request.form.get("count") or "") if action == "workers-set" else None
@@ -513,57 +451,34 @@ def admin_queue_action():
             else:
                 state = apiclient.admin_work_workers(cookie_header, count=count, ludicrous=action == "workers-ludicrous")
                 message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
-        elif action == "clear-lease":
-            holder = apiclient.admin_work_clear_lease(cookie_header)
-            message = f"Cleared the lease held by {holder}." if holder else "The lease wasn't stale."
-        elif action in ("pause", "resume", "cancel", "retry", "delete"):
-            tree, node = _load(cookie_header, node_id)
-            if node is None:
-                return _flash(_see_other(target), error="That job is no longer there.")
-            target = url_for("web.admin_queue_tree", node_id=tree["id"])
+        elif action in ("cancel", "clear", "retry", "delete"):
+            _body, run = _load(cookie_header, run_id) if runrecord.RUN_ID_RE.match(run_id) else (None, None)
+            if run is None:
+                return _flash(_see_other(target), error="That run is no longer there.")
+            target = url_for("web.admin_queue_run", run_id=run_id)
             if action == "delete":
-                if apiclient.admin_work_delete(cookie_header, tree["id"]):
-                    return _flash(_see_other(url_for("web.admin_queue")), message="Deleted the job's record.")
-                error = "Only a finished job can be deleted."
+                if apiclient.admin_work_delete(cookie_header, run_id):
+                    return _flash(_see_other(url_for("web.admin_queue")), message="Deleted the run's record.")
+                error = "Only a finished run can be deleted."
             elif action == "retry":
-                task_id = request.form.get("task")
-                if task_id:
-                    task = next((row for row in node["tasks"] if str(row["id"]) == task_id), None)
-                    argv = _task_retry_argv(task) if task else None
-                    if argv is None:
-                        error = "That task can't be retried on its own."
-                    else:
-                        label = " ".join(["planetgen", *argv])
-                        python = jobs.python_executable()
-                        plan = {"kind": "galaxy", "title": f"Retry: {label}", "database": tree["database_name"],
-                                "steps": [{"label": label, "argv": [python, *jobs.GENERATE_COMMAND, *argv]},
-                                          *({"label": f"planetgen {after}", "argv": [python, *jobs.GENERATE_COMMAND, after]}
-                                            for after in ("link", "backfill", "settle"))]}
-                        message, error = _start_retry(admin, plan, f"{node_id}/{task_id}")
+                plan = _retry_plan(run)
+                if plan is None:
+                    error = "That run can't be retried from here."
                 else:
-                    plan = _retry_plan(tree, node)
-                    if plan is None:
-                        error = "That job can't be retried from here."
-                    else:
-                        message, error = _start_retry(admin, plan, node_id)
-                if message:
-                    target = url_for("web.generate", _anchor="current-job")
+                    message, error = _start_retry(admin, plan, run_id)
+                    if message:
+                        target = url_for("web.generate", _anchor="current-job")
             else:
-                ok = apiclient.admin_work_control(cookie_header, node_id, action)
-                if action == "cancel" and node["kind"] in ("web-job", "step") and node["web_job_id"]:
-                    # A step that isn't a planetgen run (a reset) only
-                    # stops through the Generate page's own cancel.
-                    try:
-                        ok = jobs.cancel_job(node["web_job_id"]) or ok
-                    except OSError as exc:
-                        log.error(f"Could not cancel job {node['web_job_id']}: {exc}")
-                past = {"pause": "pause", "resume": "resume", "cancel": "cancel"}[action]
-                message = (f"Asked “{node['title']}” to {past}." if ok
-                           else f"“{node['title']}” has finished or already does that.")
+                ok = apiclient.admin_work_control(cookie_header, run_id, action)
+                if ok:
+                    message = f"{'Cancelled' if action == 'cancel' else 'Cleared'} “{run['title']}”."
+                elif action == "clear":
+                    error = f"“{run['title']}” is still answering, or has finished. Cancel it instead."
+                else:
+                    message = f"“{run['title']}” has finished already."
         else:
             error = "Unknown action."
     except apiclient.ApiError as exc:
         error = _api_message(exc)
-    # The API wrote each change to the audit and activity logs; a retry
-    # is logged as the job it starts (`_start_retry`).
+    # The API wrote each change to the audit and activity logs; a retry is logged as the job it starts (`_start_retry`).
     return _flash(_see_other(target), **({"error": error} if error else {"message": message}))
