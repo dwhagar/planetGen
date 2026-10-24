@@ -1,5 +1,5 @@
 # tests/test_planet_survival.py -- GEN.325: the orbit beyond which passing systems have stripped a planet
-# (docs/design/realistic-galactic-core.md section 7, docs/design/globular-clusters.md section 7).
+# (docs/design/galaxy/realistic-galactic-core.md section 7, docs/design/galaxy/globular-clusters.md section 7).
 
 import math
 from types import SimpleNamespace

@@ -2,7 +2,7 @@
 
 """
 Builds the site's caches ahead of the first visitor (MAP.134, PERF.104; design in
-docs/design/cache-warm-up.md), so the first visit after a release, or after a cache was
+docs/design/operations/cache-warm-up.md), so the first visit after a release, or after a cache was
 cleared, finds the Galaxy Map, any sector, any system, the lists and the search already
 there instead of waiting for the database.
 

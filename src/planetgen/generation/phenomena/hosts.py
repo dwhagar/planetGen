@@ -1,7 +1,7 @@
 # planetgen/generation/phenomena/hosts.py
 
 """
-Host classes and what can orbit them (GEN.552; docs/design/unified-star-like-objects.md section 3.3)
+Host classes and what can orbit them (GEN.552; docs/design/architecture/unified-star-like-objects.md section 3.3)
 ===================================================================================================
 
 The registry used to say what a kind holds with `system_model`, one of five fixed values, and the odds of the two things
@@ -123,7 +123,7 @@ def _star_count_row(count):
     return pt.Row(
         name=f"{count} star{'s' if count > 1 else ''}", classes=tuple(by_class),
         weight=ClassWeight(by_class, _prevalence_for_five_or_more if count >= FIVE_OR_MORE else None),
-        source="docs/design/multistar-and-compact-systems.md 3.3; B-mid and B-early from Moe & Di Stefano 2017 "
+        source="docs/design/systems/multistar-and-compact-systems.md 3.3; B-mid and B-early from Moe & Di Stefano 2017 "
                "(ApJS 230:15) Table 13 (the B-mid and B-early rows)",
         state=pt.PARTLY_VERIFIED,
         limit="the A to M rows are the design note's and were moved here unchanged; they were not rechecked against "
@@ -171,17 +171,17 @@ REMNANT_SATELLITES = pt.REGISTRY.register(pt.Table(
 PLANET_SATELLITES = pt.REGISTRY.register(pt.Table(
     "planet-satellites", 1, [
         pt.Row("captured moon", ("rogue-planet",), ROGUE_PLANET_MOON,
-               source="design default (docs/design/phenomena-catalogue-and-fill.md section 5)", state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/unified-star-like-objects.md 3.5)",
+               source="design default (docs/design/systems/phenomena-catalogue-and-fill.md section 5)", state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/architecture/unified-star-like-objects.md 3.5)",
                notes="Zone rule: Roche limit to 0.4895 of the Hill radius, prograde; for a free planet its history "
                      "sets the limit (derived from ejection survival). Today the moon is a flag (`has_moons`)."),
         pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), _no_satellites_weight("planet-satellites"),
-               source="the rest of the row above (1 minus the chance of a moon)", state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/unified-star-like-objects.md 3.5)")],
+               source="the rest of the row above (1 minus the chance of a moon)", state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/architecture/unified-star-like-objects.md 3.5)")],
     description="Whether a planet holds a moon, by the planet's object key."))
 
 MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
     "moon-satellites", 1, [
         pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), 1.0,
-               source="no row yet: the tidal-survival gate row of the System design (docs/design/unified-system-barycentre.md) will add the moon of a moon", state=pt.STAND_IN, replacement="the tidal-survival gate row (docs/design/unified-system-barycentre.md)",
+               source="no row yet: the tidal-survival gate row of the System design (docs/design/architecture/unified-system-barycentre.md) will add the moon of a moon", state=pt.STAND_IN, replacement="the tidal-survival gate row (docs/design/architecture/unified-system-barycentre.md)",
                notes="A moon may host through the same gate as any body (Boss's cards S5 and S6); until a sourced "
                      "row passes it, no moon holds anything.")],
     description="Whether a moon holds anything: empty until the tidal-survival row is added."))

@@ -1,7 +1,7 @@
 """
 Stellar activity (GEN.86): each star's X-ray and XUV output, whether its
 corona is still saturated, how often it flares, and the XUV it has put out
-over its life. The design is docs/design/activity-magnetism-radiation-hydrosphere.md
+over its life. The design is docs/design/habitability/activity-magnetism-radiation-hydrosphere.md
 sections 2.1 to 2.4; every rate here is a design default good to about
 +/-0.5 dex.
 

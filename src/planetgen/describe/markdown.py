@@ -1,6 +1,6 @@
 # planetgen/describe/markdown.py
 
-"""A Document as Markdown, on request (docs/design/system-description.md, section 4)."""
+"""A Document as Markdown, on request (docs/design/architecture/system-description.md, section 4)."""
 
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.render import rating_lines, render_document, share_text

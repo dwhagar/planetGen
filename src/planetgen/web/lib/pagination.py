@@ -90,7 +90,7 @@ def fetch_page(fetch, page, page_size=PAGE_SIZE):
 
     Args:
         fetch (callable): `fetch(limit, offset)` returning a paginated
-            envelope (`items`/`total`, see `docs/api.md`'s "Pagination").
+            envelope (`items`/`total`, see `docs/reference/api.md`'s "Pagination").
         page (int): The requested 1-based page.
 
     Returns:

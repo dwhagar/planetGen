@@ -17,7 +17,7 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
   CH3OH-1 fits above their switch are not used.
 * **Below 50 K the answer is `cold-unverified`** where only a Fray and Schmitt polynomial serves. Those fits are fits to
   laboratory data that stop short of the coldest ices, and the cold sublimation is wrong by model error, not by a sign
-  (docs/design/atmosphere-composition.md, finding 11).
+  (docs/design/composition/atmosphere-composition.md, finding 11).
 * **The laboratory-corrected cold end (GEN.497)** replaces the polynomial for nitrogen (alpha, 20 to 35 K), carbon
   monoxide (25 to 54 K), methane (30 to 51 K), oxygen (beta, 30 to 43 K) and ammonia (80 to 162 K) with the quartz crystal
   microbalance fits of Grundy et al. 2024 and Blakley et al. 2024, `ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`
@@ -38,7 +38,7 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
 * **Below its `floor_k` a polynomial turns downwards** and its value means nothing (`below-fit`); the pressure returned
   is the polynomial's at the floor, which is below 1e-30 bar for every species and cannot overflow.
 * **Above the triple point the liquid curve takes over** (`phase` is `liquid`): the Wagner fits to the NIST saturation
-  tables of docs/design/atmosphere-composition-parts/01-gas-table-thermodynamics.md section 6.2 (hydrogen cyanide by the
+  tables of docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md section 6.2 (hydrogen cyanide by the
   Perry correlation), good to 0.3 percent of the table. The solid and liquid curves do not meet exactly at the triple
   point: the step is the "Err at Tt" of that part (SO2 +3.8 percent, benzene +7 percent, N2 -2.8 percent), accepted as
   the published spread, so a pressure inverted across the triple point can have two answers within it. Acetylene has no

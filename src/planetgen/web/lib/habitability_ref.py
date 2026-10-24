@@ -12,6 +12,7 @@ their sources (`domains`), so the tables cannot disagree with the score.
 from planetgen.physics import atmosphere, habitability
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
+from planetgen.web.lib import habitability_symbols
 
 EQUIPMENT_MEANINGS = (
     "Ordinary weather clothing is enough: the air has the right pressure and oxygen, no harmful gas, "
@@ -148,9 +149,35 @@ CHIPS = (
 """tuple: The chips a planet or moon row can show beside its equipment level."""
 
 
+SYMBOL_INTRO = (
+    "Lists show a rating as a small shape drawn in its colour. The shape says which domain it is, and its tooltip "
+    "and its screen-reader text give the domain and the colour in words, so the colour is never the only sign."
+)
+
+LIFE_INTRO = (
+    "Four life scores sit beside the six symbols. Each is a whole number from 0 (none) to 9 (abundant), set by the "
+    "surface conditions and the stage life has reached on that world, and is drawn as a shape with the number next to it."
+)
+
+LIFE_ROWS = tuple((habitability_symbols.LIFE_NAMES[index], habitability_symbols.LIFE_LABELS[name],
+                   habitability_symbols.LIFE_SHAPES[name])
+                  for index, name in enumerate(habitability_symbols.LIFE_NAMES))
+"""tuple: `(name, words, what the shape looks like)` of each life score."""
+
+SYMBOL_ROWS = tuple((name, habitability_symbols.LABELS[name], habitability_symbols.SHAPES[name])
+                    for name in habitability_symbols.SYMBOL_NAMES)
+"""tuple: `(name, words, what the shape looks like)` of each symbol, the six domains and then the overall one."""
+
+
 def page():
     """Everything the page shows."""
     return {
+        "symbol_intro": SYMBOL_INTRO,
+        "symbol_rows": SYMBOL_ROWS,
+        "life_intro": LIFE_INTRO,
+        "life_rows": LIFE_ROWS,
+        "life_scores": (0, 3, 9),
+        "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
         "equipment": list(zip(EQUIPMENT_LABELS, EQUIPMENT_MEANINGS)),
         "domain_tiers": DOMAIN_TIERS,
         "domains": domains(),

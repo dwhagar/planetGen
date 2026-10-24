@@ -21,7 +21,7 @@ Two panels are always rendered:
 - **Face-on** (top-down, the x/y plane at `z=0`): a `relative_density`
   heatmap over a grid -- the same "how does the spiral look from directly
   above" view a real galaxy photograph shows, and the most direct way to
-  confirm the spiral-arm math (`docs/design/galaxy-disk-density.md`)
+  confirm the spiral-arm math (`docs/design/galaxy/galaxy-disk-density.md`)
   actually produces a recognizable spiral for a given set of parameters.
 - **Edge-on** (the `r_cyl`/`z` plane, azimuthally averaged -- `arm_factor`
   averages to exactly `1` over a full revolution, see
@@ -84,7 +84,7 @@ EDGE_ON_Z_EXTENT_SCALE_HEIGHTS = 8.0
 vertical axis needs far more scale-height multiples than the radial axis
 needs scale-length multiples to show the disk's own thin/thick-disk
 falloff clearly, since a real disk's height is a small fraction of its
-radius (see `docs/design/galaxy-coordinate-system.md`'s own "disk
+radius (see `docs/design/galaxy/galaxy-coordinate-system.md`'s own "disk
 scale height is meaningfully smaller than disk scale length" framing)."""
 
 

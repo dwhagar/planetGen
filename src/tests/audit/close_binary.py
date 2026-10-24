@@ -1,7 +1,7 @@
 # tests/audit/close_binary.py
 
 """
-The close-binary check (TEST.196; docs/design/placement-by-population.md, section 3.1, "the check"):
+The close-binary check (TEST.196; docs/design/generation/placement-by-population.md, section 3.1, "the check"):
 the share of primaries with a companion inside 10 AU, by primary-mass bin and [Fe/H] bin, drawn the way the generator
 draws it, against the published ranges, with every out-of-range bin flagged.
 

@@ -23,7 +23,7 @@ tile fetches as the camera moves) never passes through this module at
 all.
 
 One solid of blocks shows everything (`static/galaxyprisms.js`): each
-block is a cell of the block ladder (`docs/design/spherical-block-ladder.md`,
+block is a cell of the block ladder (`docs/design/galaxy/spherical-block-ladder.md`,
 `planetgen.galaxy.drill`): a part of 243, 81, 27, 9 or 3 shells of whole
 sectors, sized to the stage and shaded by the galaxy's predicted density,
 which the browser computes itself from the shape parameters the panel

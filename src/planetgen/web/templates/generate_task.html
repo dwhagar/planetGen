@@ -151,6 +151,18 @@
     <div class="search-fields">
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
+    {%- elif task.key == "plan-only" %}
+    <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code> and plans a new galaxy, then stops: no
+    sectors are generated and nothing is scattered. The Galaxy Map shows the sector layout, and the "Add sectors" task
+    fills it in later. Admin logins and API keys are kept.</p>
+    <fieldset class="generate-mode">
+      <legend>Galaxy shape</legend>
+      <p class="hint">Blank boxes are drawn from the galaxy seed.</p>
+      {{ plan_inputs() }}
+    </fieldset>
+    <div class="search-fields">
+      {{ confirm_field("plan-only-confirm") }}
+    </div>
     {%- elif task.key == "scatters" %}
     {%- set chosen = form.get("action", "plan") if form else "plan" %}
     {%- if summary.bright and summary.bright.limits %}

@@ -5,7 +5,7 @@ Stellar Object
 ==============
 
 The family class of everything that shines, or once shone, as a star or was made by one's collapse (GEN.565d; the
-`StellarObject` of docs/design/mass-object-class.md, section 10): what a main-sequence star, a giant, a white dwarf,
+`StellarObject` of docs/design/architecture/mass-object-class.md, section 10): what a main-sequence star, a giant, a white dwarf,
 a binary's merged proxy, a neutron star and a black hole share. It holds the persisted field list, the class-level
 defaults a reloaded object needs, the save and load of its two non-JSON fields, the age rules that keep a star's
 class true to its planets, and the system perimeter and galactic orbit every one of them has. `Star` adds the
@@ -312,7 +312,7 @@ class StellarObject(LazySaladName, MassObject):
                 distance from the galactic center, in light-years -- derived
                 from its owning sector's `galactic_radius_pc` once sectors
                 are placed in galaxy-space (see
-                `docs/design/galaxy-coordinate-system.md` section 5). `None`
+                `docs/design/galaxy/galaxy-coordinate-system.md` section 5). `None`
                 (the default) falls back to the radius that holds half of the galaxy's disc stars (`galaxy.scales`) --
                 the correct behavior for a system generated outside any
                 galaxy context (e.g. `generation/run_sector.py`'s own standalone CLI,

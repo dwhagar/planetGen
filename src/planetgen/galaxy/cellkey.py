@@ -7,7 +7,7 @@ The galaxy is cut into cubes of `CELL_PC` (0.25 pc) over a box of plus or minus 
 (262,144 pc, the grid's 262 kpc reach with room to spare), and the three cube numbers (21 bits each) are woven into one
 63-bit number, x in the highest bit of each triple (a Morton, or Z-order, key). Cubes that sit inside one bigger aligned
 cube have keys that form one unbroken run, so a sphere becomes a short list of key runs
-(docs/design/spherical-region-queries.md).
+(docs/design/galaxy/spherical-region-queries.md).
 
 It is not the object ID. The ID is the permanent birth address and never changes; the cell key is derived from the
 position and changes when the object moves into another cube. MySQL computes it itself, as a stored generated column

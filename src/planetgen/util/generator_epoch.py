@@ -1,7 +1,7 @@
 # planetgen/util/generator_epoch.py
 
 """
-The generator epoch (OPS.56; design in `docs/design/generation-determinism.md` section 5).
+The generator epoch (OPS.56; design in `docs/design/generation/generation-determinism.md` section 5).
 
 An integer that goes up by one in a change that alters what the generator produces for a seed, and only then. Two
 checkouts with the same epoch (and the same lock) build the same galaxy; a stored galaxy made under an older epoch

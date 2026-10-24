@@ -539,7 +539,7 @@ def _keyset_condition(columns, values, descending, id_column, after_id):
     holds the id as its last part) serves the page and the sort needs no filesort.
 
     Written with `OR` and `AND`, never as a row constructor: `(a, b, id) > (?, ?, ?)` took 5.0 s on MariaDB 10.11
-    with no index range, the same condition spelled out 2 ms (docs/design/slow-reads-and-timeouts.md).
+    with no index range, the same condition spelled out 2 ms (docs/design/operations/slow-reads-and-timeouts.md).
 
     Args:
         columns (list[str]): The sort columns, in order, all sorted the same way.
@@ -1171,7 +1171,7 @@ def _hop_course(hop, places, galaxy_frame, local_positions):
     """
     NAV.42: the course from one stop of a route to the next, in the frame NAV uses for that pair -- the Sector
     Local Frame when both stops are systems of one sector, the Galactic Frame otherwise
-    (docs/design/navigation-frames.md).
+    (docs/design/orbits/navigation-frames.md).
 
     Returns:
         dict: `bearing_deg`, `mark_deg`, `elevation_deg` and `frame`.
@@ -1216,7 +1216,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     via adjacent systems (`planetgen.galaxy.nav_graph`), or raises if NAV
     doesn't apply to this pair.
 
-    NAV availability rules (see docs/api.md's NAV section for the
+    NAV availability rules (see docs/reference/api.md's NAV section for the
     user-facing statement of these):
         - Both endpoints are systems in the SAME sector -> available,
           scoped to that sector's own systems (sector-local positions) --
@@ -1419,7 +1419,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
 
 NAV_DEFAULT_HELIOPAUSE_AU = 120.0
 """float: The heliopause used for a system that stores none (Boss's text
-in `docs/design/navigation-frames.md`)."""
+in `docs/design/orbits/navigation-frames.md`)."""
 
 NAV_IN_SYSTEM_NOTE = (
     "Travel times use the same warp and fold tables as courses between systems; "
@@ -3364,9 +3364,7 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     row dict: `habitable` (its class is one of
     `tuning.HABITABLE_PLANET_CLASSES`, the same test
     `StarSystem.count_habitable` uses), `life_stage` (the most advanced
-    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only),
-    `hab_note` (what limits its rating, worked out from the stored tiers and `compact_host`, the pulsar, neutron
-    star or black hole it orbits) and
+    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only) and
     `inhabited` (habitable and reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
@@ -3376,7 +3374,6 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["life_stage"] = body["life_stage"] if body["habitable"] else None
     body["compact_host"] = compact_host
-    body["hab_note"] = habitability_world.note(body, compact_host) if body.get("equipment_tier") is not None else None
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
     return body
 
@@ -4477,6 +4474,20 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     return _top_by_key(picks, int(count), even=False)
 
 
+def _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
+    """
+    Whether `galaxy_bright_stars_in_box` reads the box's stars by walking the luminosity index (else by address) -- the
+    two answer the same, so this only chooses the cheaper (PERF.157). The address path reads the box's share of the
+    stars; the walk reads, down each of its `2 x populations` arms, until `limit x EVEN_DROP_POOL` stars of the
+    arm are inside the box, so about that many over the box's share. The share is the box's share of the outline's
+    cells and longitudes, which counts its height above the plane, where the share of the disc's area (which sets
+    whether the box is answered from the sample) does not: a 1 kpc box a kiloparsec up holds a sliver of the stars.
+    """
+    share = max((1.0 if cell_share is None else cell_share) * angle_share, 1e-12)
+    walks = 2 * len(BRIGHT_STAR_POPULATIONS)
+    return limit * EVEN_DROP_POOL * walks / share < share * total
+
+
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=False,
                                brightest=None):
     """
@@ -4565,7 +4576,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
     # sort every star in the box first, millions in a zoomed-out tile.
     order = "luminosity_w DESC, id DESC"
-    if by_luminosity < by_address:
+    if _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
         # One walk per population and height down (population, off_plane,
         # luminosity), each stopping at `limit`: a single walk down the
         # luminosity index would meet only young stars (the weights of
@@ -4910,13 +4921,20 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 """int: Most scattered points one coarse tile lists."""
 
 
+SCATTERED_MAX_SHELL_RANGES = 1000
+"""int: Most `(shell, bands)` index ranges one tile's scattered-point query lists before it reads the whole run of shells
+in one range instead (PERF.157). The one range reads every row of those shells, bands and wedges the box does not reach
+included, and the optimizer then often scans the table (3.6 million rows for a 256 pc tile at the centre); a range per
+shell, with the bands the box reaches there, reads only those. It was 64."""
+
+
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse tile lists those too), so "Charted only" dims the others (MAP.111)."""
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
         return []
-    if len(bands) > 64:
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
         where_address = "shell_index BETWEEN ? AND ?"
         address_params = [bands[0][0], bands[-1][0]]
     else:
@@ -5087,7 +5105,7 @@ def galaxy_edge_pc(conn):
 def galaxy_stage(conn, at=None):
     """
     One drill-down stage's generated counts (the Galaxy Map drill-down,
-    docs/design/spherical-block-ladder.md section 4): how many generated
+    docs/design/galaxy/spherical-block-ladder.md section 4): how many generated
     sectors each child block of `at` holds. Totals (allowed sectors) are the
     page's own math, so only generated counts come from here, and children
     with none are left out.
@@ -6310,6 +6328,13 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
 
 
+def _tiers(alias):
+    """The select list of a planet's or moon's habitability (UX.100): `phi4` and the six `tier_<domain>` columns of
+    table alias `alias`."""
+    columns = ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
+    return ", ".join(f"{alias}.{column}" for column in columns)
+
+
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
                            equipment_tags=()):
     clauses, params = [], []
@@ -6331,8 +6356,8 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        """
-        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
+        f"""
+        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, {_tiers("p")}, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -6363,9 +6388,9 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        """
-        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, m.planet_id, p.name AS planet_name,
-               m.star_system_id, ss.name AS system_name, ss.sector_id
+        f"""
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, {_tiers("m")}, m.radius_km,
+               m.planet_id, p.name AS planet_name, m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
         FROM moons m

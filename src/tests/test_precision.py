@@ -65,7 +65,7 @@ EXPECTED_FLOOR_M = {
     "galaxy_containers": 9.0e6,
 }
 """dict: The smallest body each table places well, metres, to two figures: a change of a column's unit or a reach moves
-one of these, and the table in docs/design/unified-unit-quantity.md (section 6.1) is updated with it."""
+one of these, and the table in docs/design/architecture/unified-unit-quantity.md (section 6.1) is updated with it."""
 
 
 def test_the_floor_of_every_table_with_a_position_is_the_documented_one():

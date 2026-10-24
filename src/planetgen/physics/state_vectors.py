@@ -26,7 +26,7 @@ Degenerate cases follow the usual conventions: an orbit with no tilt
 argument of periapsis at 0 and its true anomaly measured from the ascending
 node (or +x with no tilt).
 
-The orbital update (`docs/design/orbital-updates.md`, section 10) refreshes
+The orbital update (`docs/design/orbits/orbital-updates.md`, section 10) refreshes
 a body's elements from its state vector with `elements_from_state`, and
 `closed_orbit_points` samples the ellipse for drawing.
 """

@@ -9,6 +9,8 @@
   --text: #1b1e28;
   --text-muted: #5b6072;
   --border: #dde1eb;
+  /* The edge of a form field: 3:1 or more against the panel in each theme (WCAG 1.4.11; UX.124). */
+  --line: #858aa0;
   --accent: #4f5fe8;
   --accent-contrast: #ffffff;
   --link: #3a4bd6;
@@ -46,6 +48,7 @@
     --text: #e7e9f3;
     --text-muted: #9a9fb5;
     --border: #333650;
+    --line: #6a6f8c;
     --accent: #8891f5;
     --accent-contrast: #12132b;
     --link: #9aa3ff;
@@ -67,6 +70,7 @@
   --text: #e7e9f3;
   --text-muted: #9a9fb5;
   --border: #333650;
+  --line: #6a6f8c;
   --accent: #8891f5;
   --accent-contrast: #12132b;
   --link: #9aa3ff;
@@ -1708,7 +1712,7 @@ a:focus-visible .navmap-point circle {
   font-weight: 400;
   color: var(--text);
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.45rem 0.65rem;
 }
@@ -2042,6 +2046,46 @@ a.btn.btn-secondary.btn-active:visited {
   height: 1.1em;
   vertical-align: -0.15em;
   flex: none;
+}
+
+/* UX.101: a PHI-6 symbol (`habitability_symbol(name, tier)`), drawn in the tier-blue .. tier-red color of its
+   rating; the rating is also in its words, so the color is never the only sign. */
+.hab-symbol {
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -0.25em;
+}
+
+.hab-symbols {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2em;
+}
+
+/* UX.101: a life score, its shape and a small number 0 to 9 beside it (`habitability_life`); 0 is muted. */
+.hab-life-cluster {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35em;
+  margin-left: 0.4em;
+}
+
+.hab-life {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1em;
+}
+
+.hab-life-score {
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hab-life-none {
+  color: var(--text-muted);
 }
 
 /* A button that is only an icon; its words are its aria-label and title

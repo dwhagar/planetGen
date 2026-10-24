@@ -353,7 +353,7 @@ def tiles_intersecting_sphere(level, center_pc, radius_pc):
 DISTANCE_CUT_EDGES = 3.0
 """float: A tile of the distance cut is split while its edge is more than
 this many times its distance from the camera (MAP.152,
-docs/design/fly-through-view-distance.md section 4.5). A tile is never
+docs/design/interface/fly-through-view-distance.md section 4.5). A tile is never
 more than about half an edge from the camera before it is replaced by its
 eight halves, so near space is fine and far space coarse. 2 until MAP.249, which
 made the cut coarser (3) to halve the tiles a view needs."""

@@ -1,7 +1,7 @@
 # planetgen/generation/clusters.py
 
 """
-A generated galaxy's globular clusters (GEN.159; docs/design/globular-clusters.md sections 8 and 9, slice 4).
+A generated galaxy's globular clusters (GEN.159; docs/design/galaxy/globular-clusters.md sections 8 and 9, slice 4).
 
 `generate_clusters` draws the whole cluster system from the galaxy seed alone: each cluster's mass (lognormal about
 2e5 solar masses), half-mass radius and King concentration, whether its core has collapsed, its [Fe/H] (two groups, the

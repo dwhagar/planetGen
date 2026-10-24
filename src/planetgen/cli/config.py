@@ -15,7 +15,7 @@ Checks, documents and edits the settings.
 `config.json` is the one file that holds all program configuration: your own copy of
 `config.json.example`, which nothing ever overwrites. `check` reads it the way the app does, with unknown keys as
 errors, and exits 1 naming every field that doesn't fit.
-`docs` rewrites the option table in `docs/config.md` (between its
+`docs` rewrites the option table in `docs/reference/config.md` (between its
 GENERATED markers), `config.json.example` and `config.schema.json` from
 `planetgen.util.settings.Settings`; a test fails when they differ from
 what it would write.
@@ -40,7 +40,7 @@ import sys
 from planetgen.admin import activity_log, auth
 from planetgen.util import logpaths, settings, settings_writer
 
-DOCS_PATH = os.path.join(logpaths.PROJECT_ROOT, "docs", "config.md")
+DOCS_PATH = os.path.join(logpaths.PROJECT_ROOT, "docs", "reference", "config.md")
 EXAMPLE_PATH = os.path.join(logpaths.PROJECT_ROOT, "config.json.example")
 SCHEMA_PATH = os.path.join(logpaths.PROJECT_ROOT, "config.schema.json")
 BEGIN = "<!-- BEGIN GENERATED OPTIONS (python -m planetgen.cli.config docs) -->"
@@ -48,11 +48,11 @@ END = "<!-- END GENERATED OPTIONS -->"
 
 
 def render_docs(current):
-    """`docs/config.md` with the generated table between its markers
+    """`docs/reference/config.md` with the generated table between its markers
     replaced; raises `ValueError` when the markers are missing."""
     start, end = current.find(BEGIN), current.find(END)
     if start < 0 or end < start:
-        raise ValueError(f"docs/config.md needs the {BEGIN!r} and {END!r} lines")
+        raise ValueError(f"docs/reference/config.md needs the {BEGIN!r} and {END!r} lines")
     return current[:start + len(BEGIN)] + "\n\n" + settings.docs_table() + "\n" + current[end:]
 
 

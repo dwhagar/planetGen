@@ -37,8 +37,9 @@ DESCRIPTION_RE = re.compile(r'<meta\s+name="description"\s+content="([^"]*)"', r
 BACK_LINK = '<a href="{}index.html">Docs index</a>'.format
 
 SECTIONS = (
-    ("plan", "Plans and the TODO", "The order the work is meant to be built in and every item behind it."),
-    ("design", "Architecture and design", "How the program fits together."),
+    ("generated", "Generated pages: plans, the TODO and the code map",
+     "Rebuilt by scripts from docs/TODO.md, the plan notes and the code; never edited by hand."),
+    ("design", "Architecture overview", "Written by hand: how the program fits together."),
 )
 """tuple: `(folder under docs/, heading, lead)`: how the HTML pages are grouped; a folder not named here is listed
 last under its own name."""
@@ -112,8 +113,9 @@ def build():
         heading, lead = headings.get(key, (key or "Pages", ""))
         body.append(f"<h2>{html.escape(heading)}</h2>" + (f'<p class="lead">{html.escape(lead)}</p>' if lead else ""))
         body.append("<ul>" + "".join(_entry(path, title, description) for path, title, description in grouped[key]) + "</ul>")
-    reference = "<ul>" + "".join(_entry(f, h, t) for f, h, t in markdown_notes("")) + "</ul>"
-    design = ("<ul>" + _entry("design/README.md", "Design notes", "The index of every design note, with its status.") +
+    reference = "<ul>" + "".join(_entry(f, h, t) for f, h, t in markdown_notes("reference")) + "</ul>"
+    design = ("<ul>" + _entry("README.md", "Docs overview", "One line for every folder and key file under docs/.") +
+              _entry("design/README.md", "Design notes", "The index of every design note, with its status.") +
               _entry("plan/issue-groups.md", "Goal issues",
                      "The GitHub issues that group the TODO items into goals, and the items each covers.") +
               _entry("TODO.md", "TODO", "Every open item, in full.") + "</ul>")

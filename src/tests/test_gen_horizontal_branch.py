@@ -1,6 +1,6 @@
 """
 GEN.286 and GEN.287: the stellar evolution model has a horizontal branch and an asymptotic giant branch, and its red
-giant branch spends its time at each luminosity as the real branch does (docs/design/realistic-galactic-core.md 5.3).
+giant branch spends its time at each luminosity as the real branch does (docs/design/galaxy/realistic-galactic-core.md 5.3).
 
 A star lighter than `HELIUM_FLASH_MASS_SOL` goes main sequence, subgiant, red giant, horizontal branch (core helium
 burning; red, RR Lyrae, blue or extreme by [Fe/H] and age), asymptotic giant, white dwarf. The red giant branch rises

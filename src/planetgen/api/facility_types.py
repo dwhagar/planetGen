@@ -1,7 +1,7 @@
 """
 Facility types and their typed fields (POP.10, schema v89): anyone may read
 them, an admin defines them. See `planetgen.population.facility_types` for
-the rules and `docs/design/population-and-politics.md`.
+the rules and `docs/design/habitability/population-and-politics.md`.
 
 Kept in its own blueprint, like `population.py`, so this work doesn't touch
 `routes.py`.

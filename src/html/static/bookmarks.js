@@ -1,6 +1,6 @@
 // html/static/bookmarks.js
 //
-// Bookmarks (MAP.23, docs/design/galaxy-drilldown-navigation.md section
+// Bookmarks (MAP.23, docs/design/interface/galaxy-drilldown-navigation.md section
 // 8.2): places saved per browser, in localStorage, one list per database
 // ("planetgen.bookmarks.<db name>"), up to MAX_BOOKMARKS, through the
 // saved-list store (savedlist.js, UX.129) with its local backend. The

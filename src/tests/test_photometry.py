@@ -1,6 +1,6 @@
 # tests/test_photometry.py
 
-"""GEN.416: a star's colour from its temperature, against the table of docs/design/atmosphere-composition-parts/02-gas-optics-uv-visible.md section 2.9."""
+"""GEN.416: a star's colour from its temperature, against the table of docs/design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md section 2.9."""
 
 import math
 

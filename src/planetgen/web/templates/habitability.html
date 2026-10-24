@@ -15,6 +15,38 @@
   <p>{{ equipment_rule }}</p>
 </section>
 
+<section class="panel" aria-labelledby="symbols-heading">
+  <div class="panel-header"><h2 id="symbols-heading">The symbols</h2></div>
+  <p>{{ symbol_intro }}</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Symbol</th><th scope="col">Rating</th><th scope="col">Shape</th></tr></thead>
+    <tbody>
+      {%- for name, words, shape in symbol_rows %}
+      <tr><th scope="row">{{ words }}</th>
+        <td>{% for tier in tier_numbers %}{{ habitability_symbol(name, tier) }} {% endfor %}</td>
+        <td>{{ shape }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <p>Left to right: Blue, Green, Yellow and Red. The overall symbol takes the colour of the planet's PHI-6 score.</p>
+</section>
+
+<section class="panel" aria-labelledby="life-heading">
+  <div class="panel-header"><h2 id="life-heading">The life scores</h2></div>
+  <p>{{ life_intro }}</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Score</th><th scope="col">None, some, abundant</th><th scope="col">Shape</th></tr></thead>
+    <tbody>
+      {%- for name, words, shape in life_rows %}
+      <tr><th scope="row">{{ words }}</th>
+        <td>{% for score in life_scores %}{{ habitability_life(name, score) }} {% endfor %}</td>
+        <td>{{ shape }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <p>Left to right: a score of 0, 3 and 9. A 0 is drawn muted.</p>
+</section>
+
 <section class="panel" aria-labelledby="domains-heading">
   <div class="panel-header"><h2 id="domains-heading">The six PHI-6 domains</h2></div>
   <p>The chip's colour comes from six domains: pressure, temperature, air, water, radiation and suitability, held under

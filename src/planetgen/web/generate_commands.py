@@ -24,11 +24,11 @@ from planetgen.physics.units import ly_to_pc
 VERBS = (
     ("add sectors", "add-sectors"), ("add", "add-sectors"), ("sectors", "add-sectors"),
     ("scatters", "scatters"), ("scatter", "scatters"),
-    ("new galaxy", "new-galaxy"), ("wipe", "wipe"), ("check", "check"),
+    ("new galaxy", "new-galaxy"), ("plan only", "plan-only"), ("plan", "plan-only"), ("wipe", "wipe"), ("check", "check"),
 )
 """tuple: The words that start a command, longest first, and the task each opens."""
 
-OPEN_ONLY = frozenset({"scatters", "new-galaxy", "wipe"})
+OPEN_ONLY = frozenset({"scatters", "new-galaxy", "plan-only", "wipe"})
 """frozenset: Tasks a command only opens the form of: they need choices or a typed confirmation a line cannot carry."""
 
 VALUE_WORDS = {

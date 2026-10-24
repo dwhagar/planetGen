@@ -104,6 +104,11 @@ def _kinds(args):
     return list(dict.fromkeys(wanted))
 
 
+def _error_field(message):
+    """The form field a `/near` refusal is about (UX.124): "distance", else None (the page's own alert)."""
+    return "distance" if "distance" in message else None
+
+
 @bp.route("/nearby")
 def nearby():
     """The What's nearby page; see the module docstring for its URL scheme."""
@@ -148,7 +153,7 @@ def nearby():
             raise
         message = str(exc).split("): ", 1)[-1]
         return render_page("nearby.html", title="What's nearby", place_name=place_param, asking=True,
-                           error=message, **context, **page)
+                           error=message, error_field=_error_field(message), **context, **page)
 
     place = result["place"]
     rows = [{**row, "label": KIND_NAMES[row["kind"]], "url": _row_url(row), "parent_link": _parent_link(row),

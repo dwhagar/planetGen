@@ -242,6 +242,50 @@ def test_install_checkout_installs_another_checkout_editable(tmp_path):
     assert "--break-system-packages" not in calls[0]
 
 
+def test_a_venv_whose_python_is_gone_is_made_again(tmp_path):
+    """After a release upgrade (Ubuntu 24.04 to 26.04) the venv's python is a dangling link to the Python the
+    upgrade removed, and `python3 -m venv` leaves a dangling link as it is. The venv is removed and made again;
+    a directory that is not a venv is left alone."""
+    script = _read("scripts", "install-python-deps.sh")
+    pip_calls = tmp_path / "pip-calls"
+    made = tmp_path / "made"
+    # A stand-in $PYTHON: `-m venv DIR` writes a venv whose python records `-m pip` calls; the rest is this Python.
+    fake = tmp_path / "python3"
+    fake.write_text(
+        '#!/bin/sh\n'
+        'if [ "$1" = -m ] && [ "$2" = venv ]; then\n'
+        f'  echo "$3" >> "{made}"; mkdir -p "$3/bin"; echo "home = /usr/bin" > "$3/pyvenv.cfg"\n'
+        f'  printf \'#!/bin/sh\\necho "$*" >> "{pip_calls}"\\n\' > "$3/bin/python"; chmod +x "$3/bin/python"; exit 0\n'
+        'fi\n'
+        f'exec "{sys.executable}" "$@"\n')
+    fake.chmod(0o755)
+
+    def run(venv):
+        harness = "\n".join([
+            "set -euo pipefail", f'PYTHON="{fake}"', f'VENV="{venv}"', f'SERVER_LOCK="{tmp_path / "lock"}"',
+            _function(script, "make_venv") + "\n}\n", _function(script, "install_venv") + "\n}\n", "install_venv",
+        ])
+        done = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)
+        assert done.returncode == 0, done.stderr
+        return done.stdout
+
+    stale = tmp_path / "stale"
+    (stale / "bin").mkdir(parents=True)
+    (stale / "pyvenv.cfg").write_text("home = /usr/bin\n")
+    (stale / "old-marker").write_text("")
+    os.symlink("/usr/bin/python3.99", stale / "bin" / "python")
+    assert "making it again" in run(stale)
+    assert not (stale / "old-marker").exists()
+    assert os.access(stale / "bin" / "python", os.X_OK)
+    assert made.read_text().splitlines() == [str(stale)]
+
+    not_a_venv = tmp_path / "not-a-venv"
+    not_a_venv.mkdir()
+    (not_a_venv / "keep-me").write_text("")
+    run(not_a_venv)
+    assert (not_a_venv / "keep-me").exists()
+
+
 def test_the_web_app_never_imports_numba():
     """OPS.42: numba's default cache needs a writable code tree or home folder, which Apache's web user has neither
     of, so importing a compiled function there fails ("cannot cache function: no locator available"). The web app

@@ -5,7 +5,7 @@ The fill's system pass (GEN.251, stage C)
 =========================================
 
 A scatter row is a point, a seed and a kind: no planet or moon exists around it until its sector is filled
-(docs/design/phenomena-catalogue-and-fill.md rules 1, 3 and 4). When a fill has built its scattered objects (stage B),
+(docs/design/systems/phenomena-catalogue-and-fill.md rules 1, 3 and 4). When a fill has built its scattered objects (stage B),
 and the neutron stars and black holes below the scatter's mass cut (stage G), this pass gives each one that can hold
 planets its roll. The stellar companions of those objects are not drawn here: they are stored with the row at scatter
 time (`scatter_companions`) and built from the stored members by the fill (GEN.264).

@@ -1,7 +1,7 @@
 # planetgen/galaxy/core_gas.py
 
 """
-The gas of a galaxy's centre and the young stars it forms (GEN.282; docs/design/realistic-galactic-core.md 3.4 and 6).
+The gas of a galaxy's centre and the young stars it forms (GEN.282; docs/design/galaxy/realistic-galactic-core.md 3.4 and 6).
 
 A bar carries the gas of its gap inward and piles it into a ring near the centre, the central molecular zone, which forms
 stars at a small share of what comes in. Nothing here is typed in for a galaxy:

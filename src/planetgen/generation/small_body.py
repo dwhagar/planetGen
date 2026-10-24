@@ -5,7 +5,7 @@ Small Body
 ==========
 
 The family class of the small bodies that have no atmosphere to speak of and are described by a size and a
-composition list (GEN.565e; the `SmallBody` of docs/design/mass-object-class.md, section 10): a comet bound to a star,
+composition list (GEN.565e; the `SmallBody` of docs/design/architecture/mass-object-class.md, section 10): a comet bound to a star,
 a comet passing through on an unbound path, and a field of asteroids. What the three share is the preamble of their
 constructors (the shared configuration, a name drawn on first read, whether the name was given) and the save and load of
 a composition kept as a list of strings. A subclass keeps its own draw and its own fields.

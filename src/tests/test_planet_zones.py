@@ -125,7 +125,7 @@ def test_a_planet_meeting_the_host_at_a_group_node_has_no_flux_sum():
         pz.flux_at(host, 1.0, {0: 1.0, 1: 1.0}, nodes, members)
 
 
-# The table of docs/design/multistar-and-compact-systems.md 5.6, on a seeded draw of the generator's own trees.
+# The table of docs/design/systems/multistar-and-compact-systems.md 5.6, on a seeded draw of the generator's own trees.
 TABLE_S_TYPE = {2: 0.77, 3: 0.40, 4: 0.28, 5: 0.20, 6: 0.15, 7: 0.13}
 """dict: Stars with an S-type window above 0.3 AU, by number of stars, as the design page prints them."""
 
@@ -149,7 +149,7 @@ def test_the_share_of_stars_with_an_s_type_window_falls_as_the_design_table_says
 
 
 # GEN.543: "usable" is a width above 0.3 AU, as for the S-type row; the design table's own row (34% falling to 18%) was
-# an earlier estimate that neither of two candidate definitions reproduced (docs/design/multistar-and-compact-systems.md 5.6).
+# an earlier estimate that neither of two candidate definitions reproduced (docs/design/systems/multistar-and-compact-systems.md 5.6).
 MEASURED_P_TYPE = {2: 0.45, 3: 0.48, 4: 0.43, 5: 0.37, 6: 0.35, 7: 0.30}
 """dict: Pair nodes with a P-type window above 0.3 AU, by number of stars, on the same seeded draw."""
 

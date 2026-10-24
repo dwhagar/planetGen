@@ -817,7 +817,7 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     for a binary system, the `BinaryStarProxy` standing in for the system's
     combined center) for a planet, the parent planet for a moon -- the same
     "each body positioned relative to its immediate primary, not some
-    absolute frame" convention `docs/design/galaxy-coordinate-system.md`
+    absolute frame" convention `docs/design/galaxy/galaxy-coordinate-system.md`
     already uses one level up for sectors/systems relative to the galactic
     center.
 

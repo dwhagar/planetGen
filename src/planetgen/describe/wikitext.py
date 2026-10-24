@@ -1,6 +1,6 @@
 # planetgen/describe/wikitext.py
 
-"""A Document as MediaWiki text, on request (docs/design/system-description.md, section 4)."""
+"""A Document as MediaWiki text, on request (docs/design/architecture/system-description.md, section 4)."""
 
 from planetgen.describe.render import rating_lines, render_document, share_text
 

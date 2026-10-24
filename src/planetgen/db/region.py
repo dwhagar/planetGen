@@ -5,7 +5,7 @@ Everything inside a sphere, read by the cell key (NAV.60)
 =========================================================
 
 `region_rows` answers "which rows of this table lie within `radius` parsecs of a point?" from the table's `cell_key`
-column and its covering index `(cell_key, x, y, z)` (design note `docs/design/spherical-region-queries.md`, sections 6.3
+column and its covering index `(cell_key, x, y, z)` (design note `docs/design/galaxy/spherical-region-queries.md`, sections 6.3
 and 6.4), for any table with a position, whether or not the row has a sector:
 
     SELECT p.id, ..., d2

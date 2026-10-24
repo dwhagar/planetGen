@@ -5,7 +5,7 @@
 <section aria-labelledby="tasks-heading">
   <h2 id="tasks-heading">What do you want to do?</h2>
   <ul class="generate-cards">
-    {%- for task in tasks if task.danger != 'destroys' or task.key == 'new-galaxy' %}
+    {%- for task in tasks if task.danger != 'destroys' or task.key in ('new-galaxy', 'plan-only') %}
     <li class="generate-card generate-card-{{ task.danger }}">
       <a href="{{ page_url(task.endpoint, **task.params) }}"><strong>{{ task.label }}</strong></a>
       <span class="hint">{{ task.summary }}</span>

@@ -212,6 +212,13 @@ install_venv() {
         return 1
     }
     if [[ ! -x "$VENV/bin/python" ]]; then
+        if [[ -f "$VENV/pyvenv.cfg" ]]; then
+            # A release upgrade (Ubuntu 24.04 to 26.04, Python 3.12 to 3.14) removes the
+            # Python the venv was made from and leaves its python a dangling link, which
+            # `python3 -m venv` keeps rather than replaces.
+            echo "The virtual environment $VENV has no working Python (the one it was made from is gone): making it again."
+            rm -rf "$VENV"
+        fi
         echo "Creating the virtual environment $VENV with $PYTHON."
         make_venv
         "$VENV/bin/python" -m pip install --quiet --upgrade pip

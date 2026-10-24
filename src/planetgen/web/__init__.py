@@ -7,7 +7,7 @@ The HTML pages of the site, served by the same Flask app as the JSON API
 Every page has a real GET route here (`/`, `/sectors`, `/sector/<id>`,
 ...) and a Jinja2 template in `web/templates/` extending `base.html`.
 The old CGI URLs (`/<name>.py`) 301 to their replacements
-(`old_urls.py`). See `docs/html-interface.md` ("Flask pages") for the
+(`old_urls.py`). See `docs/reference/html-interface.md` ("Flask pages") for the
 full guide; in short, a new page is:
 
     # web/views.py
@@ -44,6 +44,7 @@ _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 from planetgen.admin import maintenance  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
+from planetgen.web.lib import habitability_symbols  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import pagetags  # noqa: E402
 from planetgen.web.lib.slowpages import take_notice as slow_notice  # noqa: E402
@@ -133,6 +134,33 @@ def icon(name):
                   f'<use href="{escape(static_url("icons.svg"))}#{name}"></use></svg>')
 
 
+def habitability_symbol(name, tier, detail=None):
+    """
+    One PHI-6 symbol (UX.101) as markup: `name` is a pressure, temperature, air, water, radiation, suitability or
+    overall symbol (`habitability_symbols.SYMBOL_NAMES`), `tier` the stored rating (0 Blue to 3 Red) that colours it
+    and names it in its words, and `detail` the figure that follows the rating in them ("Pressure: Blue, 101 kPa").
+
+    Raises:
+        ValueError: `name` or `tier` is not one the symbols have.
+    """
+    return Markup(habitability_symbols.symbol_html(name, tier, static_url("icons.svg"), detail))
+
+
+def habitability_symbol_row(body, with_overall=True, with_life=True):
+    """The symbols of one body's row (`habitability_symbols.symbol_row`), overall first and the life cluster last;
+    empty for an unscored body."""
+    return Markup(habitability_symbols.symbol_row(body, static_url("icons.svg"), with_overall, with_life))
+
+
+def habitability_life(name, score):
+    """One life score (UX.101) as markup: `name` is microbial, flora, fauna or sentient, `score` a whole number 0 to 9.
+
+    Raises:
+        ValueError: `name` or `score` is not one the life symbols have.
+    """
+    return Markup(habitability_symbols.life_html(name, score, static_url("icons.svg")))
+
+
 def math_check_failures():
     """The names of the math checks that failed when this process started
     (`init_app`), shown to admins on every page; empty when all passed."""
@@ -166,6 +194,9 @@ def _template_globals():
         "static_url": static_url,
         "module_graph": module_graph,
         "icon": icon,
+        "habitability_symbol": habitability_symbol,
+        "habitability_symbol_row": habitability_symbol_row,
+        "habitability_life": habitability_life,
         "page_url": page_url,
         "current_admin": current_admin,
         "admin_shell": lambda section: adminregistry.shell(section, page_url, current_admin()),

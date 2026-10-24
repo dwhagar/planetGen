@@ -100,7 +100,7 @@ SNOW_LINE_TEMPERATURE_K = 170.0
 # dark-matter evidence in the first place. At the Milky Way's 8.128 kpc (`mathcheck.SUN_REFERENCE_RADIUS_PC`, a test
 # reference only) it gives 206 km/s and a 242 million-year orbit: slower and longer than the measured ~230 km/s and
 # ~203 to 220 million years (the Sun's angular speed from the Sgr A* proper motion, and the circular period of the
-# potential model, docs/design/galactic-potential.md section 2). A stand-in that the potential's circular speed replaces
+# potential model, docs/design/galaxy/galactic-potential.md section 2). A stand-in that the potential's circular speed replaces
 # (GEN.115), not a calibration to the real Sun.
 GALACTIC_ROTATION_FLAT_VELOCITY_KMS = 220.0  # Asymptotic circular velocity, km/s -- the IAU (1985) standard local-standard-of-rest value, still within the range of modern estimates (~220-236 km/s)
 GALACTIC_ROTATION_CORE_RADIUS_PC = 3000  # Turnover radius of the rotation curve (rise -> plateau), in parsecs -- approximates the real Milky Way's bulge/inner-disk transition

@@ -1,7 +1,7 @@
 # planetgen/physics/gases.py
 
 """
-The gases and compounds that can be in an atmosphere (GEN.410, docs/design/atmosphere-composition.md section 4)
+The gases and compounds that can be in an atmosphere (GEN.410, docs/design/composition/atmosphere-composition.md section 4)
 ================================================================================================================
 
 The one constants table of the gases and volatile compounds the atmosphere chain reads: formula, name, CAS number, molar
@@ -15,7 +15,7 @@ comes from (`source`) and how far it is checked (`state`:
 GEN.454 to GEN.456) and the class gate belong to them, and cite these rows by `formula`.
 
 The data are `physics/data/gases.json`, built by `scripts/build_gas_table.py` from the tables of the research parts
-(`docs/design/atmosphere-composition-parts/`, parts 01, 02 and 03) and checked in with the values read from them. The loader
+(`docs/design/composition/atmosphere-composition-parts/`, parts 01, 02 and 03) and checked in with the values read from them. The loader
 refuses a file or a row without the fields above (`DataError`), a duplicate formula, a formula it cannot read, and a molar
 mass of the research part that is more than 0.01 g/mol from the sum of the element table (`physics.elements`, GEN.438).
 

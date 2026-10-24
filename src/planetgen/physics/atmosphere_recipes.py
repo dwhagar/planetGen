@@ -1,7 +1,7 @@
 # planetgen/physics/atmosphere_recipes.py
 
 """
-The atmosphere possibility tables (GEN.478, docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md)
+The atmosphere possibility tables (GEN.478, docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md)
 ========================================================================================================================
 
 The recipes of every atmosphere, cloud, trace gas, ground radioisotope and host-star UV regime as gated rows in the format of
@@ -65,6 +65,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
+from planetgen.generation import tuning_harness
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -80,7 +81,7 @@ OBJECT_CLASSES = ("asteroid", "comet", "brown-dwarf")
 """tuple: The classes besides the planet letters a row's gate may name."""
 
 PLANNED_CLASSES = ("R", "U", "W", "X", "Y", "Z")
-"""tuple: The letters part 09 gates on that are planned and not yet in `tuning.PLANET_CLASSES` (docs/design/atmospheres-retention-and-classes.md)."""
+"""tuple: The letters part 09 gates on that are planned and not yet in `tuning.PLANET_CLASSES` (docs/design/habitability/atmospheres-retention-and-classes.md)."""
 
 KINDS = ("option", "binary", "param", "bins", "derived", "flag", "windows", "choice")
 
@@ -90,8 +91,10 @@ INPUTS = {
     "core_radius_earth": "radius of the rocky core (Earth radii)",
     "radius_km": "radius of the body (km)",
     "v_esc_kms": "escape speed (km/s)",
+    "rotation_percentile": "initial rotation percentile of the host star (0.02 to 0.98), drawn by row p6",
     "teq_k": "equilibrium temperature (K)",
     "ts_k": "surface temperature (K)",
+    "photosphere_bar": "pressure of the layer a giant planet's regime is read at (bar); about 0.1 for the dayside emission",
     "tday_k": "dayside temperature (K)",
     "tp_k": "dayside surface temperature of a lava world (K)",
     "t_layer_k": "temperature in the 0.1 to 1 bar layer (K)",
@@ -340,7 +343,7 @@ class Entry:
         status (str): SOURCED, DERIVED or DESIGN as the part has it.
         state (str): The source state in the loader's words (`possibility_table.STATES`).
         limit (str): For a partly verified row, its limit.
-        replacement (str): For a stand-in, the research item that replaces it.
+        replacement (str): For a stand-in, the builder item (GEN.509 to GEN.525, GEN.595) that replaces it.
         research (tuple): For an open row, its research ids (R1 to R15).
         items (tuple): The TODO items that replace it (GEN.480 to GEN.494 for an open row).
         classes (tuple): The class gate.
@@ -349,6 +352,8 @@ class Entry:
         lets (dict): Named intermediate expressions, evaluated in order before the weight.
         constants (dict): The design constants of this row: name -> (low, high, shape).
         notes (str): The part's notes with the corrections.
+        tunable (bool): The row's knobs are tuned to a published statistic: `physics/data/tuning_targets.json` must hold a
+            target for it (GEN.503).
         spec (dict): The rest of the row as the file has it (`dist`, `dists`, `bins`, `values`, `windows`, `options`, `table`, `of`, `sets`).
     """
 
@@ -373,6 +378,7 @@ class Entry:
     lets: dict
     constants: dict
     notes: str
+    tunable: bool = False
     spec: dict = field(default_factory=dict)
 
     def supports(self, subject):
@@ -529,7 +535,8 @@ class Recipes:
             labels=tuple(raw.get("labels", [])), status=raw["status"], state=raw["state"], limit=raw.get("limit", ""),
             replacement=raw.get("replacement", ""), research=tuple(raw.get("research", [])),
             items=tuple(raw.get("items", [])), classes=tuple(raw["classes"]), conditions=tuple(conditions),
-            weight=expression, lets=lets, constants=constants, notes=raw.get("notes", ""), spec=spec)
+            weight=expression, lets=lets, constants=constants, notes=raw.get("notes", ""),
+            tunable=bool(raw.get("tunable", False)), spec=spec)
 
     @staticmethod
     def _constant_spec(owner, name, spec):
@@ -659,7 +666,9 @@ class Recipes:
         return tuple(tables)
 
     def _register(self):
-        return tuple(pt.REGISTRY.register(table) for table in self._build_tables())
+        tables = self._build_tables()
+        tuning_harness.TARGETS.require(tables)
+        return tuple(pt.REGISTRY.register(table) for table in tables)
 
     def _pt_row(self, entry):
         if entry.state == pt.OPEN_STATE:
@@ -668,7 +677,8 @@ class Recipes:
             weight = _PtWeight(self, entry) if entry.kind in ("option", "binary", "flag") else 1.0
             source, notes = entry.source, f"{entry.option}. {entry.notes}".strip()
         return pt.Row(name=entry.id, classes=entry.classes, weight=weight, source=source, state=entry.state,
-                      conditions=entry.conditions, limit=entry.limit, replacement=entry.replacement, notes=notes)
+                      conditions=entry.conditions, limit=entry.limit, replacement=entry.replacement, notes=notes,
+                      tunable=entry.tunable)
 
     # -- access ----------------------------------------------------------------------------------------------------
 

@@ -16,5 +16,5 @@ massive-star scatter). `work.py` is the generation work queue (units of work run
 workers), `api_jobs.py` queues the API's long operations, `load.py` reads
 the server's load for the queue page and `redishealth.py` what the admin
 Stats page shows about Redis. The design is
-`docs/design/redis-and-the-work-queue.md` (PERF.86).
+`docs/design/operations/redis-and-the-work-queue.md` (PERF.86).
 """

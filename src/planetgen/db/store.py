@@ -6,7 +6,7 @@ Database Persistence (private)
 
 Writes already-generated `StarSystem`/`SpaceSector` objects into the
 MySQL database described by `planetgen/db/schema.sql` and
-`docs/database-schema.md`. Leading underscore -- this module is an internal
+`docs/reference/database-schema.md`. Leading underscore -- this module is an internal
 implementation detail of the persistence boundary, not part of the
 package's public generation API (`StarSystem`, `SpaceSector`, `Planet`,
 etc. remain the public surface).
@@ -14,7 +14,7 @@ etc. remain the public surface).
 This module owns every unit conversion at the point of writing a value
 into the database -- generation/physics code elsewhere in the package
 keeps its own native units (km/AU/ly) throughout and never imports this
-module. See `docs/database-schema.md` for the two-tier distance-unit convention
+module. See `docs/reference/database-schema.md` for the two-tier distance-unit convention
 (milliparsecs for sector-scale placement, kilometers for everything else)
 and the full column reference.
 
@@ -1543,6 +1543,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (135, _column_marker("planets", "ozone_column_du")),
     (134, _column_marker("system_configs", "max_stars")),
     (133, _column_marker("stars", "slot")),
     (132, _column_marker("stars", "snow_line_km")),

@@ -2,6 +2,7 @@
     filter is a GET parameter; tags and chip "x"s are plain links. -#}
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/ui_fields.html" import ui_input with context %}
 {% block head %}
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
@@ -13,10 +14,10 @@
     <input type="hidden" name="{{ facet }}" value="{{ value }}">
     {%- endfor %}{% endfor %}
     <div class="search-main">
-      <label class="search-field search-field-main">Name
-        <input type="search" name="q" value="{{ state.q }}" autocomplete="off" enterkeyhint="search"
-               placeholder="Any sector, system, star, planet, moon">
-      </label>
+      <div class="search-field search-field-main">
+        {{ ui_input("q", "Name", state.q, type="search", autocomplete="off", enterkeyhint="search",
+                    placeholder="Any sector, system, star, planet, moon") }}
+      </div>
       <button type="submit" class="btn">Search</button>
     </div>
     <details class="search-more"{% if state.advanced_open() %} open{% endif %}>
@@ -32,9 +33,9 @@
         {%- for entity, label, placeholder in size_entities %}
         <div class="search-field search-field-size" role="group" aria-label="{{ label }} radius, km">
           <span>{{ label }} radius (km)</span>
-          <input type="number" name="{{ entity }}_min_radius_km" value="{{ state.texts[entity ~ '_min_radius_km'] }}" min="0" step="any" placeholder="e.g. 0" aria-label="Minimum {{ label|lower }} radius, km">
+          {{ ui_input(entity ~ "_min_radius_km", "Minimum " ~ label|lower ~ " radius, km", state.texts[entity ~ '_min_radius_km'], type="number", bare=True, min="0", step="any", placeholder="e.g. 0") }}
           <span aria-hidden="true">&ndash;</span>
-          <input type="number" name="{{ entity }}_max_radius_km" value="{{ state.texts[entity ~ '_max_radius_km'] }}" min="0" step="any" placeholder="{{ placeholder }}" aria-label="Maximum {{ label|lower }} radius, km">
+          {{ ui_input(entity ~ "_max_radius_km", "Maximum " ~ label|lower ~ " radius, km", state.texts[entity ~ '_max_radius_km'], type="number", bare=True, min="0", step="any", placeholder=placeholder) }}
         </div>
         {%- endfor %}
       </div>

@@ -6,7 +6,7 @@ The order a neighbourhood or radial fill generates its sectors in (GEN.101)
 
 Boss (2026-10-07): fill the sectors nearest the original sector first, circling outward, along a geometric
 space-filling curve through a pruned Hilbert octree. A pruned ball is not always walkable with face-adjacent steps
-(docs/design/fill-order-curves-and-core.md: 16 of 1,335 balls pass the parity test), so the order is deterministic and
+(docs/design/galaxy/fill-order-curves-and-core.md: 16 of 1,335 balls pass the parity test), so the order is deterministic and
 mostly adjacent, and every step that is not adjacent is counted and reported. The decided variant (the default of the
 open question, 2026-10-10) is the 4-voxel-block one, so the first sector is the centre:
 

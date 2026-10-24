@@ -1,6 +1,6 @@
 """
 The planets of a white dwarf and the disk of a planetary nebula's close pair (GEN.318,
-docs/design/exotic-environments-planets-and-compact-binaries.md 1.2 and 1.3): the engulfment radius by the progenitor's
+docs/design/systems/exotic-environments-planets-and-compact-binaries.md 1.2 and 1.3): the engulfment radius by the progenitor's
 mass, the widening of the survivors' orbits by the mass the star lost, and no planets inside a post-AGB pair's disk.
 """
 

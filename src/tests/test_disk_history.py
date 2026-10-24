@@ -188,6 +188,6 @@ def test_the_local_b_share_is_what_the_derived_history_and_the_mass_function_giv
 
 
 def test_the_local_b_share_reaches_the_observed_one():
-    """Mamajek's census (docs/design/star-types-by-galactic-radius.md) is a test target, never an input (GEN.547)."""
+    """Mamajek's census (docs/design/galaxy/star-types-by-galactic-radius.md) is a test target, never an input (GEN.547)."""
     for seed in (469, 1, 2):
         assert _b_share_between_arms_at_the_sun(seed=seed) <= 1.5 * 0.0004

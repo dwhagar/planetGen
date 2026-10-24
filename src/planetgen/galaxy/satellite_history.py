@@ -2,7 +2,7 @@
 
 """
 The star formation history of a satellite galaxy, and the young and intermediate stars it holds (GEN.526;
-docs/design/intergalactic-and-halo-contents.md 5.5).
+docs/design/galaxy/intergalactic-and-halo-contents.md 5.5).
 
 A satellite's row (`galaxy.components.Component`) holds its stellar mass, its half-mass radius and the mean age of its
 stars. That is enough to say how much of it formed recently, with no share typed in:

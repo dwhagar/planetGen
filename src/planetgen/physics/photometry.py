@@ -10,9 +10,9 @@ chain is what the atmosphere colour work (GEN.418, GEN.419) and the view from a 
 through, so every step takes a spectrum and a wavelength grid, not only a blackbody.
 
 * **The CIE curves** are the Wyman, Sloan and Shirley (2013, J. Computer Graphics Techniques 2(2)) multi-lobe fit of
-  the 1931 two-degree observer (docs/design/sky-view.md section 4). Against the tabulated curves the fit is within
+  the 1931 two-degree observer (docs/design/orbits/sky-view.md section 4). Against the tabulated curves the fit is within
   0.015, 0.007 and 0.024 of peaks 1.06, 1.00 and 1.78, and the chromaticity of a blackbody is within 0.001 of the
-  table of docs/design/atmosphere-composition-parts/02-gas-optics-uv-visible.md section 2.9 from 3000 K up (0.0025 at
+  table of docs/design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md section 2.9 from 3000 K up (0.0025 at
   2000 K), the 8-bit colour within 2 of it.
 * **Hotter than 4500 K the star is a blackbody.** Cooler stars are not: TiO and VO bands cut the red-optical flux.
   Section 2.9 gives the offset of the BT-Settl atmosphere's chromaticity from the blackbody's at nine temperatures

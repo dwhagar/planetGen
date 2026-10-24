@@ -9,7 +9,7 @@ This is the concrete result of moving the interim web browser onto the
 API: every page here used to open its own read-only MySQL connection
 (`html/lib/dbutil.py`'s previous `open_readonly`/`resolve_db_name`) and
 run its own bespoke SQL; now every page is a thin HTTP client over
-`GET /api/...` (see `docs/api.md`), and the database-querying logic those
+`GET /api/...` (see `docs/reference/api.md`), and the database-querying logic those
 pages used to duplicate lives once, in `planetgen.db.query`, shared with the API
 itself. `planetgen/web/lib/fmt.py` still holds the formatting-only helpers
 (`esc`, `linkify_location`, `format_density`) that have nothing to do
@@ -17,7 +17,7 @@ with fetching data.
 
 Stdlib only (`urllib.request`) -- same "nothing beyond a system Python 3"
 deployment story this project's docs already describe for `html/`
-(see `docs/html-interface.md`), now extended to reach the API process
+(see `docs/reference/html-interface.md`), now extended to reach the API process
 over HTTP rather than a database socket.
 
 The API must be reachable for this browser to work at all now -- see
@@ -43,7 +43,7 @@ the same host (see `examples/apache/planetgen.conf.example`) -- only used
 by the HTTP transport, not by the Flask pages' in-process one --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
 for local testing), or `config.json`'s `api_base_url` (see
-`docs/config.md`), when the API is deployed at a different host/port,
+`docs/reference/config.md`), when the API is deployed at a different host/port,
 e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own dev
 server."""
 
@@ -508,7 +508,7 @@ def get_near(db, params):
 
 
 def get_nav(db, from_ref, to_ref, stay=None):
-    """Returns `GET /api/nav`'s course/route dict -- see `docs/api.md`'s
+    """Returns `GET /api/nav`'s course/route dict -- see `docs/reference/api.md`'s
     "NAV" section for the full shape. `from_ref`/`to_ref` are object
     references (`planetgen.galaxy.objectref`): a system, a body in one, or
     a standalone phenomenon. `stay` is the minutes spent at each stop of
@@ -894,7 +894,7 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
 
 
 # ---------------------------------------------------------------------
-# Admin auth -- see `docs/api.md`'s "Authentication" section. Every
+# Admin auth -- see `docs/reference/api.md`'s "Authentication" section. Every
 # function below takes/returns the incoming/outgoing `Cookie`/`Set-Cookie`
 # headers verbatim (see `_auth_request`'s docstring) -- the admin pages
 # (`web/admin_pages.py`) are the only callers, and relay them to/from the
@@ -1349,7 +1349,7 @@ def admin_set_sector_wiki_url(cookie_header, db, sector_id, wiki_url):
 
 
 # ---------------------------------------------------------------------
-# Facilities (schema v42) -- see `docs/api.md`'s "Facilities" section.
+# Facilities (schema v42) -- see `docs/reference/api.md`'s "Facilities" section.
 # ---------------------------------------------------------------------
 
 def get_system_facilities(db, system_id):

@@ -235,8 +235,8 @@ def test_real_pending_notes_are_valid():
 # -- BUILD counts releases; the TODO counters only allocate IDs ------------------------------
 
 def _todo_map(root, next_free, todo_ids=()):
-    """A stand-in docs/design/todo-number-map.md (and docs/TODO.md)."""
-    os.makedirs(os.path.join(root, "docs", "design"), exist_ok=True)
+    """A stand-in docs/plan/todo-number-map.md (and docs/TODO.md)."""
+    os.makedirs(os.path.join(root, "docs", "plan"), exist_ok=True)
     rows = "".join(f"| {cat} | {cat}.{n} |\n" for cat, n in next_free.items())
     with open(os.path.join(root, bump_version.TODO_MAP_FILE), "w") as f:
         f.write("# Map\n\n## Next free IDs\n\n| Category | Next free ID |\n|---|---|\n" + rows)

@@ -2,7 +2,7 @@
 
 """GEN.554: which massive stars leave a black hole and which a neutron star. The failure windows of initial mass hold the
 failed share of the 8 to 150 solar mass stars, nest as the share grows, keep the verified islands, and every progenitor the
-generator draws lies in its kind's windows (docs/design/explosion-islands.md)."""
+generator draws lies in its kind's windows (docs/design/systems/explosion-islands.md)."""
 
 from types import SimpleNamespace
 

@@ -1140,3 +1140,32 @@ Baseline: PR #1817.
 | GEN.638 | 8.1 | The headline closes |
 | PERF.170 | 8.1 | The headline closes |
 | GEN.267 | 8.1 | Multi-star and compact systems |
+| UX.124 | 8.1 | Admin control suite |
+| OPS.63 | 8.1 | Bugs and flaky tests |
+| GEN.417 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.453 | 8.1 | Radiation chain for habitability (GEN.445) |
+| UX.147 | 8.1 | Generate page and directives |
+| PERF.160 | 8.1 | The headline closes |
+| PERF.158 | 8.1 | The headline closes |
+| PERF.157 | 8.1 | The headline closes |
+| PERF.156 | 8.1 | The headline closes |
+| UX.101 | 8.1 | Habitability system |
+| GEN.622 | 8.1 | Bulk composition |
+| GEN.629 | 8.1 | Surface and small bodies |
+| PERF.159 | 8.1 | The headline closes |
+| GEN.503 | 8.1 | Tuned draws and selection models |
+| GEN.504 | 8.1 | Tuned draws and selection models |
+| GEN.505 | 8.1 | Tuned draws and selection models |
+| GEN.506 | 8.1 | Tuned draws and selection models |
+| GEN.507 | 8.1 | Tuned draws and selection models |
+| GEN.508 | 8.1 | Tuned draws and selection models |
+| GEN.511 | 8.1 | Tuned draws and selection models |
+| GEN.513 | 8.1 | Tuned draws and selection models |
+| GEN.514 | 8.1 | Tuned draws and selection models |
+| GEN.516 | 8.1 | Tuned draws and selection models |
+| GEN.517 | 8.1 | Tuned draws and selection models |
+| GEN.525 | 8.1 | Tuned draws and selection models |
+| GEN.413 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.161 | 8.1 | The headline closes |
+| PERF.171 | 8.1 | The headline closes |
+| UX.151 | 8.1 | Habitability system |

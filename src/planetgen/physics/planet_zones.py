@@ -6,7 +6,7 @@ Where a planet can stay in a hierarchy of stars, and the light it gets there (GE
 One pure function over a member tree (`OrbitNode` and `TreeMember` of `physics/system_tree.py`, or the generator's
 `multistar.Node` and `multistar.Member`: any objects with the same fields), the one place the zones are worked out.
 GEN.264 stage C, GEN.130 and GEN.275 call it and compute no zones of their own. The rules are
-docs/design/multistar-and-compact-systems.md 5.6 and 6.5:
+docs/design/systems/multistar-and-compact-systems.md 5.6 and 6.5:
 
 - **S-type**, round one star X: the window runs from X's floor (the engulfment or Roche floor the caller gives, 0
   when it gives none) out to the Holman and Wiegert S-type limit of X against its sibling subtree, taken as a point

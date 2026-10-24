@@ -1,7 +1,7 @@
 """The per-species environment limits: one row per limit a species does not share with the human visitor (DB.30).
 
 Schema v119. A species' environment limits are the human table (`planetgen.physics.protection_limits.LIMIT_ROWS`) with some
-rows replaced (docs/design/habitability-index.md section 10). `species_limit_values` holds the replaced rows: the species,
+rows replaced (docs/design/habitability/habitability-index.md section 10). `species_limit_values` holds the replaced rows: the species,
 the name of the limit and its value in the limit's own unit. A limit with no row is the human value, so a species with the
 human limits has no rows, and a limit added to `LIMIT_ROWS` later needs no migration. The name is checked in code
 (`species_limits.validate`), not by a constraint that would have to change with the table of limits.

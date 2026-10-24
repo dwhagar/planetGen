@@ -4,7 +4,7 @@
 The numbers typed in for the materials table (GEN.427), read by `build_materials_table.py`.
 
 Everything here was read from a named source on 2026-10-22 (the Handbook of Mineralogy pages, PubChem annotations, Seager et
-al. 2007 Tables 1 to 3) or is taken from a research part that read it (`docs/design/body-composition-parts/`). The
+al. 2007 Tables 1 to 3) or is taken from a research part that read it (`docs/design/composition/body-composition-parts/`). The
 raw pages and papers are not kept in the repository; the values and the place they were read are.
 """
 

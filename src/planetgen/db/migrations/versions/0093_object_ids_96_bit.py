@@ -10,18 +10,18 @@ Schema v93. Three changes that renumber or reshape the same rows, so they share 
   moves the same way (a sector with no grid address counts up from `1 << 56` instead of `1 << 40`), and the scopes of
   `id_counters` follow (a sector's is 7 bytes, a system's 12).
 * GEN.233. `galaxy_shape.reach_shell_index`, 65,535 for a galaxy planned before it.
-* The companions of a scattered system (docs/design/multi-star-systems.md section 5): `member_count` and
+* The companions of a scattered system (docs/design/systems/multi-star-systems.md section 5): `member_count` and
   `system_mass_solar` on both scatters and the tables `scatter_members` and `scatter_nodes`, empty until the
   member-tree generator writes them.
 * GEN.223. `bright_stars` and `phenomenon_scatter` keep their point in space the way every other object does: position
   (milliparsecs, now DOUBLE so a slow drift is not rounded away), velocity vector, `epoch_unix` and an indexed
   `next_update_due`. A row without a velocity is on the rotation curve until the orbit update gives it one.
 
-* Region queries (docs/design/spherical-region-queries.md). Every table that holds a point in the galaxy frame gets
+* Region queries (docs/design/galaxy/spherical-region-queries.md). Every table that holds a point in the galaxy frame gets
   `cell_key`, a stored generated column with the Morton key of its 0.25 pc cube, and the covering index
   `(cell_key, x, y, z)`. A star system keeps its position relative to its sector, so it also gets `galaxy_x/y/z_pc`
   (its point in the galaxy frame), written here for the systems already stored and by every save and move after.
-* The stored form of the member trees also carries what the multi-star catalogue needs (docs/design/multi-star-systems.md
+* The stored form of the member trees also carries what the multi-star catalogue needs (docs/design/systems/multi-star-systems.md
   sections 13 and 14): a member's `state`, `flags`, and, for a young group, its offset, velocity and `decay_age_yr`; a
   node's `interaction`; and a SMALLINT `slot` for a group of up to 12.
 

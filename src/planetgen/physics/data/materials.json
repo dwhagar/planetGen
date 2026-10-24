@@ -3,7 +3,7 @@
  "title": "The shared materials and components table: every element, mineral, ice, organic and alloy a body can contain, with the properties and equation-of-state constants of each (GEN.427)",
  "notes": "Properties: a number, its unit, the source key and the code of part E's label column (R read, C computed, H second-hand, S snippet, N not reached); a value with no source is null with the code N. Equations of state: the model and its constants as the source gives them (pressures in GPa, densities in kg/m3 unless the name says otherwise), the range they are valid over, the source and the code. Gate groups: `any` (every planet and moon class and every small-body kind) and `planetary` (planet and moon classes only: the high-pressure phases and the envelopes). A group row lists member rows and carries no number. The molar mass is computed from the formula with `physics.elements`.",
  "sources": {
-  "research-e": "Part E of the body composition research, section 2.10 (docs/design/body-composition-parts/E-ground-radiogenic-shielding.md): the values its label column marks R (read), H (second-hand) or C (computed); a value marked Q (recalled) is not kept",
+  "research-e": "Part E of the body composition research, section 2.10 (docs/design/composition/body-composition-parts/E-ground-radiogenic-shielding.md): the values its label column marks R (read), H (second-hand) or C (computed); a value marked Q (recalled) is not kept",
   "nist-webbook": "NIST Chemistry WebBook phase-change and critical data, as read in part E (label R)",
   "crc-chemicals": "CRC Handbook tables as carried in the chemicals 1.5.2 package, as read in part E (label H, second-hand)",
   "pdg-nuclear": "Particle Data Group atomic and nuclear properties, nuclear interaction length, as read in part E (label R)",
@@ -16,7 +16,7 @@
   "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
   "seager2007": "Seager, Kuchner, Hier-Majumder and Militzer 2007, Mass-radius relationships for solid exoplanets, ApJ 669, 1279 (arXiv:0707.2895), Tables 1, 2 and 3 (read)",
   "hakim2018": "Hakim et al. 2018, Icarus 313, 61 (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
-  "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/body-composition-parts/B-rocky.md section 2.1b)",
+  "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
   "slb2024-burnman": "Stixrude and Lithgow-Bertelloni 2024, Thermodynamics of mantle minerals III, GJI 237, 1699 (doi:10.1093/gji/ggae126), as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
   "exoplex": "ExoPlex 1.0.1a1 source distribution (Anderson and Ahrens 1994 liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
   "hp2011-burnman": "Holland and Powell 2011 data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",

@@ -1,5 +1,5 @@
 // tests/js/sectorreach.test.mjs -- static/sectorreach.js (MAP.152): which sector's scene the camera
-// wants up, and how much of it shows. The spec is docs/design/fly-through-view-distance.md 4.7: a
+// wants up, and how much of it shows. The spec is docs/design/interface/fly-through-view-distance.md 4.7: a
 // sector's own scene fades in within 1.5 edges of its centre, is whole by 1 edge and is dropped past 3.
 
 import { test } from "node:test";

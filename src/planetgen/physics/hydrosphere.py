@@ -3,7 +3,7 @@
 """
 Water on planets, moons and rogue planets (GEN.88).
 
-The design is docs/design/activity-magnetism-radiation-hydrosphere.md
+The design is docs/design/habitability/activity-magnetism-radiation-hydrosphere.md
 section 5. Both star-system bodies (`generate_hydrosphere`) and rogue
 planets (`physics.rogue_surface`) use the functions here.
 

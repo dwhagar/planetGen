@@ -14,34 +14,95 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, radiation as rad
+from planetgen import tuning
+from planetgen.physics import activity, constants, proton_range, radiation as rad
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
 from tests.test_db_persistence import _placed_nebula, _system_point_pc
 
 
-@pytest.mark.parametrize("column, expected", [(0.0, 500.0), (16.4, 237.0), (100.0, 110.0), (1033.0, 0.37)])
-def test_the_cosmic_ray_curve_passes_through_its_anchors(column, expected):
-    assert rad.gcr_dose_msv_yr(column) == pytest.approx(expected, rel=0.02)
+@pytest.mark.parametrize("column, expected", [
+    (0.0, 500.0), (21.0, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
+def test_the_no_field_curve_passes_through_the_read_points(column, expected):
+    """The Moon (Chang'E-4), Mars (Hassler 2014) and the proton-primary showers of Atri 2013, as read."""
+    assert rad.no_field_dose_msv_yr(column) == pytest.approx(expected, rel=1e-9)
 
 
-def test_an_earth_dipole_cuts_cosmic_rays_to_six_tenths():
-    cutoff = rad.cutoff_rigidity_gv(rad.EARTH_DIPOLE_A_M2, constants.EARTH_RADIUS_KM)
-    assert cutoff == pytest.approx(14.9)
-    assert rad.magnetic_factor(cutoff) == pytest.approx(0.6, abs=0.01)
-    assert rad.magnetic_factor(0.0) == 1.0
-    assert rad.gcr_dose_msv_yr(rad.column_g_cm2(5066.0, 1.0), cutoff) == pytest.approx(88, rel=0.1)
+def test_the_curve_reproduces_the_aviation_point_and_sea_level_and_keeps_mars_in_its_range():
+    earth = rad.EARTH_CUTOFF_GV
+    assert rad.gcr_dose_msv_yr(265.0, earth) == pytest.approx(47.9, rel=0.1)  # Roy 2021, 10 km: 5.46 uSv/h
+    assert rad.gcr_dose_msv_yr(1033.0, earth) == pytest.approx(0.32, rel=0.1)  # UNSCEAR 2008 sea level
+    assert 128.0 <= rad.gcr_dose_msv_yr(22.5) <= 420.0  # Guo 2015, Mars at 22.5 g/cm2
+    assert rad.gcr_dose_msv_yr(122.7) == pytest.approx(444.0, rel=0.01)  # the Pfotzer maximum, log interpolation
+
+
+def test_below_the_runs_the_curve_is_the_moon_to_mars_stand_in_and_above_them_it_keeps_falling_to_a_muon_floor():
+    assert 232.0 < rad.no_field_dose_msv_yr(10.0) < 500.0 and 232.0 < rad.no_field_dose_msv_yr(60.0) < 553.0
+    assert rad.no_field_dose_msv_yr(3000.0) < rad.no_field_dose_msv_yr(1036.0)
+    assert rad.no_field_dose_msv_yr(10850.0) == pytest.approx(3.4e-7 * 1e3, rel=0.1)  # Crouch at Titan's column, mSv/yr
+    assert rad.no_field_dose_msv_yr(1e6) == pytest.approx(rad._muon_dose_msv_yr(1e6))
+
+
+def test_the_cutoff_scales_with_moment_over_radius_squared():
+    earth = constants.EARTH_RADIUS_KM
+    assert rad.cutoff_rigidity_gv(rad.EARTH_DIPOLE_A_M2, earth) == pytest.approx(14.34, abs=0.01)  # Stormer, computed
+    assert rad.cutoff_rigidity_gv(2 * rad.EARTH_DIPOLE_A_M2, earth) == pytest.approx(2 * rad.EARTH_CUTOFF_GV)
+    assert rad.cutoff_rigidity_gv(rad.EARTH_DIPOLE_A_M2, earth / 2) == pytest.approx(4 * rad.EARTH_CUTOFF_GV)
+    assert rad.cutoff_rigidity_gv(rad.EARTH_DIPOLE_A_M2, 2 * earth) == pytest.approx(rad.EARTH_CUTOFF_GV / 4)
+    assert rad.cutoff_rigidity_gv(0.0, earth) == 0.0 and rad.cutoff_rigidity_gv(1e22, 0.0) == 0.0
+
+
+@pytest.mark.parametrize("column, ratio", [(100.0, 0.31), (200.0, 0.37), (500.0, 0.51), (700.0, 0.61), (1036.0, 0.52)])
+def test_an_earth_strength_field_cuts_the_dose_by_the_ratio_of_the_runs_at_each_column(column, ratio):
+    assert rad.magnetic_factor(rad.EARTH_CUTOFF_GV, column) == pytest.approx(ratio, abs=0.01)
+    assert rad.magnetic_factor(0.0, column) == 1.0
+
+
+def test_the_field_factor_follows_the_griessmeier_runs_at_100_and_1036_and_never_adds_dose():
+    unit = rad.EARTH_CUTOFF_GV
+    for moment, dose100, dose1036 in zip(rad.FIELD_FULL_MOMENTS, rad.FIELD_DOSE_100, rad.FIELD_DOSE_1036):
+        assert rad.magnetic_factor(moment * unit, 100.0) == pytest.approx(dose100 / 553.0, rel=1e-9)
+        assert rad.magnetic_factor(moment * unit, 1036.0) == pytest.approx(dose1036 / 0.65, rel=1e-9)
+    for column in rad.FIELD_COLUMNS_G_CM2 + (30.0, 150.0, 4000.0):
+        factors = [rad.magnetic_factor(moment * unit, column) for moment in (0.0, 0.05, 0.15, 0.3, 0.5, 1.0, 2.0, 5.0, 10.0)]
+        assert all(0.0 < f <= 1.0 for f in factors)
+        assert factors == sorted(factors, reverse=True)
+    # a thinner column takes the ratio at 100 g/cm2, a stronger field than the runs reach the ratio at 10 moments
+    assert rad.magnetic_factor(unit, 5.0) == rad.magnetic_factor(unit, 100.0)
+    assert rad.magnetic_factor(1000 * unit, 500.0) == rad.magnetic_factor(10 * unit, 500.0)
+
+
+def test_the_dose_follows_the_field_in_earth_moments_of_an_earth_sized_body():
+    """A smaller body of the same moment has a stronger cutoff and so a higher cut, as the radius sets M/r^2."""
+    earth = constants.EARTH_RADIUS_KM
+    column = rad.column_g_cm2(5066.0, 1.0)
+    big = rad.gcr_dose_msv_yr(column, rad.cutoff_rigidity_gv(rad.EARTH_DIPOLE_A_M2, earth))
+    small = rad.gcr_dose_msv_yr(column, rad.cutoff_rigidity_gv(rad.EARTH_DIPOLE_A_M2, earth / 2))
+    assert small < big
+    assert big == pytest.approx(rad.no_field_dose_msv_yr(column) * rad.magnetic_factor(rad.EARTH_CUTOFF_GV, column))
+
+
+def test_the_modulation_scales_the_dose():
+    assert rad.gcr_dose_msv_yr(50.0, 0.0, 1.64) == pytest.approx(1.64 * rad.gcr_dose_msv_yr(50.0))
+    assert tuning.GCR_SOLAR_MODULATION_RANGE == (0.5, 1.64)
 
 
 def test_proxima_bs_thin_air_breaks_the_flare_shield():
     free = rad.free_sep_msv_yr(2100.0 * 0.0485 ** 2, 0.0485)
     column = rad.column_g_cm2(10132.5, 1.07)
-    assert rad.gcr_dose_msv_yr(column) == pytest.approx(108, rel=0.1)
+    assert rad.gcr_dose_msv_yr(column) == pytest.approx(540, rel=0.1)
     assert rad.sep_dose_msv_yr(free, column, 0.0) == pytest.approx(2300, rel=0.5)
     dense = rad.column_g_cm2(101325.0, 1.07)
     assert rad.sep_dose_msv_yr(free, dense, 0.0) < 10.0
     assert rad.sep_dose_msv_yr(free, dense, 2.2) < rad.sep_dose_msv_yr(free, dense, 0.0)
+
+
+def test_the_stellar_particle_cutoff_is_the_pstar_proton_energy():
+    assert rad.proton_cutoff_gv(0.0) == 0.0
+    assert rad.proton_cutoff_gv(22.5) == pytest.approx(proton_range.rigidity_gv(171.0), rel=0.01)
+    assert rad.proton_cutoff_gv(1033.0) == pytest.approx(proton_range.rigidity_gv(2241.0), rel=0.01)
+    assert rad.proton_cutoff_gv(22.5, "H") > rad.proton_cutoff_gv(22.5, "air")
 
 
 def test_the_heliosphere_only_matters_for_thin_air_and_a_squeezed_star():
@@ -67,10 +128,11 @@ def test_uv_follows_the_star_and_the_ozone_layer():
     assert rad.uv_ratio(7200.0) == pytest.approx(2.8, rel=0.5)
     assert rad.uv_ratio(2800.0) == rad.UV_FLOOR
     sun = types.SimpleNamespace(temperature=5772.0, luminosity=constants.SOLAR_LUMINOSITY)
-    assert rad.uv_index(sun, 1.0, 21.2) == pytest.approx(1.0, rel=0.05)
+    assert rad.uv_index(sun, 1.0, rad.EARTH_OZONE_DU) == pytest.approx(1.0, rel=0.05)
     assert rad.uv_index(sun, 1.0, 0.0) == pytest.approx(rad.UV_MAX)
-    assert rad.uv_index(sun, 1.0, 5.0) > rad.uv_index(sun, 1.0, 21.2)
-    assert rad.uv_index(types.SimpleNamespace(temperature=None, luminosity=None), 1.0, 21.2) is None
+    assert rad.uv_index(sun, 1.0, 100.0) > rad.uv_index(sun, 1.0, 300.0) > rad.uv_index(sun, 1.0, 428.0)
+    assert rad.uv_index(types.SimpleNamespace(temperature=None, luminosity=None), 1.0, 300.0) is None
+    assert rad.ozone_ratio(150.0) == 0.5 and rad.ozone_ratio(None) == 0.0 and rad.ozone_ratio(-1.0) == 0.0
 
 
 def test_supernova_hazard_rises_toward_the_galactic_centre():
@@ -139,6 +201,7 @@ def test_every_generated_body_has_a_consistent_dose():
                 body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr)
             assert body.dose_gcr_msv_yr > 0 and body.dose_ground_msv_yr > 0
             assert isinstance(body.ozone_loss_flag, bool)
+            assert (body.ozone_column_du > 0.0) == ((body.p_o2_kpa or 0.0) > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
             assert body.uv_surface_index is None or body.uv_surface_index > 0
     assert seen["rocky"] > 10 and seen["giant"] > 0
@@ -151,7 +214,7 @@ def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
     star = system.stars[0] if hasattr(system, "stars") else system.primary_star
     assert star.lethal_event_rate_per_gyr > activity.SN_RATE_AT_SUN_PER_GYR * 50
     for body in _bodies(system):
-        if body.body_type == "t" and (body.p_o2_kpa or 0.0) >= rad.O3_MIN_PO2_KPA:
+        if body.body_type == "t" and (body.ozone_column_du or 0.0) > 0.0:
             assert body.ozone_loss_flag
 
 

@@ -8,7 +8,7 @@ Every composition category (the gases of an atmosphere, the materials of a body,
 origin of a moon) is a table of possibilities. A row names one possibility, the classes it supports, a weight, where the
 weight comes from. A body's composition is drawn by taking the rows whose gate passes the
 body, evaluating their weights, normalising to 100 percent and picking one. The format and the draw are written up in
-docs/design/composition-model.md section 4b; this module is the one loader every table uses.
+docs/design/composition/composition-model.md section 4b; this module is the one loader every table uses.
 
 The draw, in order:
 
@@ -167,6 +167,9 @@ class Row:
         concentration (float or None): `None` takes `fractions` directly (a sourced kernel); a number draws them from a
             Dirichlet distribution around them.
         notes (str): The ranges the row's drawn fractions take, the validity range, the check.
+        tunable (bool): The row's weight or draw has knobs that are tuned to a published statistic (GEN.503): the
+            tuning-target table must hold at least one target for it (`Registry.validate(targets=...)`). It does not decide
+            a draw, so it is not part of `Table.digest`.
     """
 
     name: str
@@ -180,6 +183,7 @@ class Row:
     fractions: dict = field(default_factory=dict)
     concentration: float | None = None
     notes: str = ""
+    tunable: bool = False
 
     def __post_init__(self):
         object.__setattr__(self, "classes", tuple(sorted(set(self.classes))))
@@ -434,11 +438,15 @@ class Registry:
     def __len__(self):
         return len(self._tables)
 
-    def validate(self, shared=SHARED_COMPONENTS):
+    def validate(self, shared=SHARED_COMPONENTS, targets=None):
         """
         Checks what needs the whole registry: every component named in a row's fractions is a row of the shared components
         table, and every table with fractions names that table. Raises `TableError` listing the unknown components.
+
+        With `targets` (a `generation.tuning_harness.TargetTable`) it also refuses a tunable row that has no target in it.
         """
+        if targets is not None:
+            targets.require(self._tables.values())
         for table in self._tables.values():
             if table.components is None:
                 continue

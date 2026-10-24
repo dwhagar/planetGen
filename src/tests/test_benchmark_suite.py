@@ -3,7 +3,7 @@
 """
 `planetgen benchmark --suite`: the steps and sizes, the commands each step runs, the report's layout, and one
 real run of the first step on the smallest size that checks the JSON's shape. The numbers of a real run live in
-docs/design/generation-performance.md.
+docs/design/generation/generation-performance.md.
 """
 
 import argparse

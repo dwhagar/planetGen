@@ -1,7 +1,7 @@
 // html/static/sectorreach.js
 //
 // Which sector's own scene the Galaxy Map has up while the camera is still in a window of
-// sectors, and how much of it shows (MAP.152, docs/design/fly-through-view-distance.md
+// sectors, and how much of it shows (MAP.152, docs/design/interface/fly-through-view-distance.md
 // section 4.7): a sector's scene (every star, phenomenon and body of it, galaxysector.js)
 // fades in as the camera comes within `FADE_IN_EDGES` sector edges of the sector's centre,
 // is whole by `FULL_EDGES`, and is dropped past `UNLOAD_EDGES`. The gap between the two

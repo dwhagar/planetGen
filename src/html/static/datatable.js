@@ -63,7 +63,28 @@ function mapButton(cell, iconUrl) {
   return button;
 }
 
-// One table cell from a served cell: `{text, href?, muted?, swatch?, parts?, map_target?, form?}`.
+// The PHI-6 symbols of a `symbols` cell: `[{name, tier, label}]`, tier 0 to 3 (Blue to Red), each an `icons.svg`
+// symbol with the rating's colour class, the same markup `web/lib/habitability_symbols.py` draws.
+const TIER_CLASSES = ["tier-blue", "tier-green", "tier-yellow", "tier-red"];
+
+function symbolRow(symbols, iconUrl) {
+  const row = el("span", "hab-symbols");
+  symbols.forEach((symbol) => {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", `icon hab-symbol ${TIER_CLASSES[symbol.tier]}`);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", symbol.label);
+    const title = document.createElementNS(SVG_NS, "title");
+    title.textContent = symbol.label;
+    const use = document.createElementNS(SVG_NS, "use");
+    use.setAttribute("href", `${iconUrl}#hab-${symbol.name}`);
+    svg.append(title, use);
+    row.append(svg);
+  });
+  return row;
+}
+
+// One table cell from a served cell: `{text, href?, muted?, swatch?, symbols?, parts?, map_target?, form?}`.
 function cellNode(cell, iconUrl) {
   const td = el("td");
   if (!cell) {
@@ -102,6 +123,9 @@ function cellNode(cell, iconUrl) {
     button.setAttribute("aria-label", cell.form.label);
     form.append(button);
     td.append(form);
+  } else if (cell.symbols) {
+    // The habitability symbols (UX.100), drawn from the icon sprite as the page draws them with no scripts.
+    td.append(symbolRow(cell.symbols, iconUrl));
   } else if (cell.parts) {
     // Text and links, as a Location cell lists its nearest systems.
     cell.parts.forEach((part) => {
@@ -194,7 +218,9 @@ function enhance(root) {
   }));
 
   function checkedValues(node) {
-    return Array.from(node.querySelectorAll("input[type=checkbox]:checked")).map((input) => input.value);
+    // A box the page has not upgraded yet has no `checked` property: its attribute is what the server drew.
+    return Array.from(node.querySelectorAll("sl-checkbox"))
+      .filter((box) => box.checked ?? box.hasAttribute("checked")).map((box) => box.getAttribute("value") ?? box.value);
   }
 
   // The jump-by-value box (PERF.75): where the list begins, in the sort it was typed under; another sort drops it.
@@ -344,7 +370,7 @@ function enhance(root) {
     }
     const hint = jumpHints[state.sort];
     jumpForm.hidden = !hint;
-    const input = jumpForm.querySelector("input[type=text]");
+    const input = jumpForm.querySelector("sl-input");
     input.placeholder = hint || "";
     input.value = state.start;
     jumpForm.querySelector(".datatable-jump-clear").hidden = !state.start;
@@ -366,19 +392,17 @@ function enhance(root) {
     facetNodes.forEach((node) => {
       const options = (facets && facets[node.dataset.param]) || [];
       const list = node.querySelector(".datatable-options");
-      const items = new Map(Array.from(list.children).map((li) => [li.querySelector("input").value, li]));
+      const items = new Map(Array.from(list.children).map((li) => [li.querySelector("sl-checkbox").value, li]));
       options.forEach((option) => {
         let li = items.get(option.value);
         if (!li) {
           li = el("li");
-          const label = el("label");
-          const input = el("input");
-          input.type = "checkbox";
-          input.name = node.dataset.param;
-          input.value = option.value;
-          label.append(input, el("span", "datatable-option-label", option.label), document.createTextNode(" "),
+          const box = el("sl-checkbox");
+          box.name = node.dataset.param;
+          box.value = option.value;
+          box.append(el("span", "datatable-option-label", option.label), document.createTextNode(" "),
             el("span", "datatable-count", ""));
-          li.append(label);
+          li.append(box);
           const after = Array.from(list.children).find((other) =>
             other.querySelector(".datatable-option-label").textContent.localeCompare(option.label) > 0);
           list.insertBefore(li, after || null);
@@ -391,7 +415,7 @@ function enhance(root) {
       items.forEach((li, value) => {
         if (!present.has(value)) {
           li.querySelector(".datatable-count").textContent = "(0)";
-          li.hidden = !li.querySelector("input").checked;
+          li.hidden = !li.querySelector("sl-checkbox").checked;
         }
       });
       const chosen = checkedValues(node).length;
@@ -500,7 +524,7 @@ function enhance(root) {
         return;
       }
       event.preventDefault();
-      startAt(jumpForm.querySelector("input[type=text]").value.trim());
+      startAt(jumpForm.querySelector("sl-input").value.trim());
     });
     jumpForm.querySelector(".datatable-jump-clear").addEventListener("click", (event) => {
       event.preventDefault();
@@ -514,7 +538,7 @@ function enhance(root) {
   }
 
   if (filterForm) {
-    filterForm.addEventListener("change", filtersFromForm);
+    filterForm.addEventListener("sl-change", filtersFromForm);
     // Apply filters: before the table has its own rows (still loading, or the load failed) the form goes to the
     // server as it always did; once it is live the button applies the filters here, and asks again if the last
     // fetch failed.
@@ -531,8 +555,8 @@ function enhance(root) {
     if (clearLink) {
       clearLink.addEventListener("click", (event) => {
         event.preventDefault();
-        filterForm.querySelectorAll("input[type=checkbox]").forEach((input) => {
-          input.checked = false;
+        filterForm.querySelectorAll("sl-checkbox").forEach((box) => {
+          box.checked = false;
         });
         filtersFromForm();
       });

@@ -4,7 +4,7 @@ what `/galaxy/tiles` sends.
 
 A tile's stars are most of its bytes, and as JSON each costs about 150 bytes
 (28 gzipped). Packed, a star is 19 bytes in columns (about 12 gzipped), which
-is what the 78% cut in docs/design/galaxy-map-wire-format.md measures. Clouds,
+is what the 78% cut in docs/design/interface/galaxy-map-wire-format.md measures. Clouds,
 points and the `incomplete` list stay JSON: they are few and carry text.
 
 One tile (all numbers little-endian)::

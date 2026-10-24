@@ -1,7 +1,7 @@
 # planetgen/physics/unit_registry.py
 
 """
-One registry of every unit the project uses (GEN.568; docs/design/unified-unit-quantity.md)
+One registry of every unit the project uses (GEN.568; docs/design/architecture/unified-unit-quantity.md)
 ============================================================================================
 
 Every unit the code, the database, the display ladders and the browser use is one row here, with its kind (what it

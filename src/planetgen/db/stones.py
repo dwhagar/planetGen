@@ -8,7 +8,7 @@ A route goes from system to system. Where one of its hops crosses space
 that has not been generated, the hop is a jump through unknown space, and
 this module looks for stepping stones to break it up: the scattered bright
 stars, black holes, neutron stars, quasars and hypervelocity stars that sit in
-the uncharted cells (docs/design/course-routing.md, section 7). A chain of
+the uncharted cells (docs/design/orbits/course-routing.md, section 7). A chain of
 them replaces the jump when one exists that is not much longer; otherwise the
 single jump stays.
 

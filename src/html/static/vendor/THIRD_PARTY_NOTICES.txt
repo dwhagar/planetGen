@@ -29,7 +29,7 @@ MIT License -- full text in shoelace/LICENSE.md (copied unmodified from the
 npm package).
 
 shoelace/ holds only what the shared component set (components.js) uses:
-the cdn/ build's component modules and the chunks they import, the light
+the cdn/ build's component modules (buttons, menus, dialog, and the form fields input, select, option and checkbox) and the chunks they import, the light
 theme's non-colour tokens (themes/light.css; shoelace-theme.css points its
 colours at the site's own), the "gear" Bootstrap icon, and the few icons
 Shoelace draws itself (assets/system/), saved as files because its own

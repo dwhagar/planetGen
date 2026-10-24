@@ -13,8 +13,8 @@ axes (AU), eccentricities and angles (radians, except where a name says
   (`"eq4"`, for star-only triples inside its fitted range). `"auto"` picks
   Equation 4 inside its range and Mardling and Aarseth outside it. The
   forms and their unit-test values are in
-  docs/design/exotic-environments-planets-and-compact-binaries.md 2.3 and
-  docs/design/multistar-and-compact-systems.md 5.1.
+  docs/design/systems/exotic-environments-planets-and-compact-binaries.md 2.3 and
+  docs/design/systems/multistar-and-compact-systems.md 5.1.
 - **Kozai-Lidov screen** -- `kozai_verdict`: the quadrupole maximum
   eccentricity, the Kozai time against the age, the octupole widening for
   eccentric outer orbits, and the relativistic quench (a cycle slower than the

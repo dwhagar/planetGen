@@ -2,7 +2,7 @@
 
 """
 The one place a Redis client is made (PERF.94, finding F9 of
-docs/design/redis-and-the-work-queue.md).
+docs/design/operations/redis-and-the-work-queue.md).
 
 Every caller asks `client` for its connection and gets a shared, cached one
 for that server and those settings, so the web process, the API jobs, the

@@ -41,7 +41,7 @@ def test_rebuilding_runs_every_generator_to_write():
 def test_checking_names_every_stale_document_and_runs_them_all():
     calls = []
     failed = build.run(check=True, load=_load(calls, stale={"build_architecture_map", "build_docs_index"}))
-    assert failed == ["docs/design/architecture-map.html", "docs/index.html"]
+    assert failed == ["docs/generated/architecture-map.html", "docs/index.html"]
     assert [name for name, _argv in calls] == [name for _written, name in build.GENERATORS]
     assert all(argv == ["--check"] for _name, argv in calls)
 

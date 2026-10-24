@@ -12,8 +12,11 @@ scatter and its per-sector bands.
 """
 
 import collections
+import concurrent.futures
 import dataclasses
 import math
+import multiprocessing
+import os
 import threading
 import time
 import types
@@ -875,6 +878,49 @@ def _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, 
     return fractions, shares[scatter_limits.BASELINE] or max(shares)
 
 
+SHELL_WEIGHT_PARALLEL_MIN = 64
+"""int: Fewer shells than this are weighed in the process itself (a pool costs more than it saves)."""
+
+SHELL_WEIGHT_PROCESSES = 8
+"""int: Most processes that weigh a pass's shells (`_shell_weights`)."""
+
+_weighing = None
+"""tuple or None: What a forked weighing process reads (`_shell_weights` sets it before the fork)."""
+
+
+def _weigh(shells, start, stop):
+    skeleton, e_value, fractions, estimates = _weighing
+    return [brightStars.shell_weight(skeleton.shape, shell_index, high_band, skeleton.edge_pc, e_value, fractions,
+                                     beyond=None if estimates is None else estimates[shell_index])
+            for shell_index, high_band in shells[start:stop]]
+
+
+def _shell_weights(skeleton, shells, e_value, fractions, estimates):
+    """
+    `brightStars.shell_weight` of each `(shell, high_band)` of `shells`, in order: `(weight, expected stars)`. Each shell
+    samples the density at a few dozen places, 10 ms a shell, and the passes weigh 2,600 shells before any unit can start
+    (26 s at the default size, per pass, with the workers idle), so the shells go to forked processes in runs. Each shell
+    is worked out by the same call on the same numbers wherever it runs, so the weights are those of a loop (PERF.159).
+    """
+    global _weighing
+    count = min(os.cpu_count() or 1, SHELL_WEIGHT_PROCESSES)
+    if count < 2 or len(shells) < SHELL_WEIGHT_PARALLEL_MIN or "fork" not in multiprocessing.get_all_start_methods():
+        _weighing = (skeleton, e_value, fractions, estimates)
+        try:
+            return _weigh(shells, 0, len(shells))
+        finally:
+            _weighing = None
+    runs = max(1, len(shells) // (count * 8))
+    cuts = [(start, min(start + runs, len(shells))) for start in range(0, len(shells), runs)]
+    _weighing = (skeleton, e_value, fractions, estimates)
+    try:
+        with concurrent.futures.ProcessPoolExecutor(count, mp_context=multiprocessing.get_context("fork")) as pool:
+            parts = list(pool.map(_weigh, [shells] * len(cuts), [cut[0] for cut in cuts], [cut[1] for cut in cuts]))
+    finally:
+        _weighing = None
+    return [weighed for part in parts for weighed in part]
+
+
 def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
     """
     Cuts a shell scatter into tasks (`_ScatterShape`): the outline's shells and the shells past it (GEN.322: the
@@ -895,10 +941,9 @@ def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
     beyond_shells = [(shell, -1) for shell in range(first_beyond, first_far)]
     estimates = brightStars.reach_estimates(
         skeleton.shape, list(extents) + beyond_shells, skeleton.edge_pc, e_value, fractions) if reach_on else {}
-    for shell_index, high_band in list(extents) + beyond_shells:
-        weight, expected[shell_index] = brightStars.shell_weight(
-            skeleton.shape, shell_index, high_band, skeleton.edge_pc, e_value, fractions,
-            beyond=estimates[shell_index] if reach_on else None)
+    shells = list(extents) + beyond_shells
+    for (shell_index, high_band), (weight, expected[shell_index]) in zip(
+            shells, _shell_weights(skeleton, shells, e_value, fractions, estimates if reach_on else None)):
         rows.append((shell_index, high_band, weight))
     tasks = dict(enumerate(static_shell_chunks(rows)))
     weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}

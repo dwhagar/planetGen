@@ -1,4 +1,4 @@
-"""Spherical shell sectors (DB.32, docs/design/spherical-sector-coordinates.md).
+"""Spherical shell sectors (DB.32, docs/design/galaxy/spherical-sector-coordinates.md).
 
 Schema v91. A sector's address `(ring_index, layer_index, ring_slot_index)` becomes `(shell_index, band_index,
 wedge_index)` in `sectors`, `bright_stars`, `sector_stats` and `phenomenon_scatter`; `galaxy_shape.outer_ring_index`

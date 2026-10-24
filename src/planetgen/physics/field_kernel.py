@@ -4,7 +4,7 @@
 The compiled gravity kernel (PERF.88)
 =====================================
 
-Everything here is compiled by numba (`docs/design/math-and-library-efficiency.md`), so a sector path that took a
+Everything here is compiled by numba (`docs/design/architecture/math-and-library-efficiency.md`), so a sector path that took a
 millisecond of Python takes about forty microseconds. There is no fallback without numba (OPS.42).
 
 The module is **kept out of the web app's import path**: numba's default cache needs a writable code tree or home

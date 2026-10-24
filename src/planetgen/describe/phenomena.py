@@ -1,7 +1,7 @@
 # planetgen/describe/phenomena.py
 
 """
-The Document of a phenomenon (docs/design/system-description.md, UX.108): a nebula, a quasar, a rogue planet, an
+The Document of a phenomenon (docs/design/architecture/system-description.md, UX.108): a nebula, a quasar, a rogue planet, an
 interstellar comet, an asteroid field, a supernova remnant, or a black hole or neutron star on its own. One section
 holds a facts table and a few short sentences; a supernova remnant's compact remnant is its child section.
 

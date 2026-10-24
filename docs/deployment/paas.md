@@ -48,7 +48,7 @@ If you use one anyway:
   --workers 1 --worker-class gthread --threads 5 --bind 0.0.0.0:$PORT
   wsgi:application`.
 - Configure through `PLANETGEN_*` environment variables
-  ([`config.md`](../config.md)) rather than a committed `config.json`.
+  ([`config.md`](../reference/config.md)) rather than a committed `config.json`.
   Set `PLANETGEN_SECRET_KEY`, the `PLANETGEN_MYSQL_*` variables, and
   `PLANETGEN_JOBS_DIR` and `PLANETGEN_TILE_CACHE_DIR` on the persistent
   disk.

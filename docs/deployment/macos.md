@@ -155,7 +155,7 @@ installs the monthly orbit update (and update.sh, unless
    LAN-only Mac, `mkcert` makes a locally trusted one.
 
 9. Log in at `https://<your site>/login` and change the admin username
-   and password. Then run the [server checklist](../server-checklist.md).
+   and password. Then run the [server checklist](server-checklist.md).
 
 The nginx rules are those of the [nginx guide](nginx.md): `/static/` from
 disk with nosniff and the `?v=` caching, gzip, a 1 MB body limit, 60 s
@@ -194,7 +194,7 @@ proxy timeouts, and everything else to gunicorn. gunicorn listens on
       /var/log/planetgen.log  _www:_www  660  7  102400  *  Z
 
 - **Activity log:** always on, in `/Library/Logs/planetgen/planetgen.log`
-  (see [the activity log](../config.md#the-activity-log)). `install.sh`
+  (see [the activity log](../reference/config.md#the-activity-log)). `install.sh`
   creates the folder (root:_www, mode 2770) and writes this rule to
   `/etc/newsyslog.d/planetgen-log.conf` (daily or past 100 MB, 30 copies,
   bzip2):
@@ -211,7 +211,7 @@ proxy timeouts, and everything else to gunicorn. gunicorn listens on
 
 ## Checks
 
-The [server checklist](../server-checklist.md) applies, with the launchd
+The [server checklist](server-checklist.md) applies, with the launchd
 commands it lists, plus:
 
     curl -sI "https://HOST/static/style.css?v=1" | grep -i -e cache-control -e nosniff

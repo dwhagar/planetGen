@@ -81,7 +81,7 @@ this page.
    `sudo a2dissite planetgen && sudo systemctl disable --now apache2`.
 
 6. Log in at `https://<your site>/login` and change the admin username
-   and password. Then run the [server checklist](../server-checklist.md).
+   and password. Then run the [server checklist](server-checklist.md).
 
 ## What the nginx site does
 
@@ -136,11 +136,11 @@ address with `proxy_fix` on.
   log as before.
 - **More workers:** the rate limits and login lockouts count on Redis by
   default (`ratelimit.storage_uri` empty), so every worker shares them. With
-  `memory://` each worker counts on its own ([`api.md`](../api.md#rate-limiting)).
+  `memory://` each worker counts on its own ([`api.md`](../reference/api.md#rate-limiting)).
 
 ## Checks
 
-The [server checklist](../server-checklist.md) applies, with the gunicorn
+The [server checklist](server-checklist.md) applies, with the gunicorn
 commands it lists. And these, specific to the proxy:
 
     curl -sI "https://HOST/static/style.css?v=1" | grep -i -e cache-control -e nosniff

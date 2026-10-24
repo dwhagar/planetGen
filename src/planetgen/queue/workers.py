@@ -2,7 +2,7 @@
 
 """
 The workers of the shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how
-many there are, and how a running job is stopped. Section 5.4 of docs/design/redis-and-the-work-queue.md.
+many there are, and how a running job is stopped. Section 5.4 of docs/design/operations/redis-and-the-work-queue.md.
 
 * Lanes (PERF.151): `redisqueue.BULK_QUEUE` (a run's units), `redisqueue.INTERACTIVE_QUEUE` (short API jobs) and
   `redisqueue.LONG_QUEUE` (API jobs expected to run long); a worker serves one of them, so a long run never holds up

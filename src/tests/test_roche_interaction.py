@@ -3,7 +3,7 @@
 """
 GEN.269: Roche geometry (`planetgen/physics/roche.py`) and the interaction
 classifier of the member tree (`planetgen/generation/multistar.py`), with the
-audit of docs/design/multi-star-systems.md section 15 (13, interaction
+audit of docs/design/systems/multi-star-systems.md section 15 (13, interaction
 consistency).
 """
 

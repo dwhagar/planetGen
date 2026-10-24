@@ -88,7 +88,7 @@ export function isUncharted(entry) {
 }
 
 // How much of its light an uncharted object keeps under "Charted only" (MAP.252), 0 to 1, by the order objects
-// are cut in (MAP.251, docs/design/zoom-star-visibility.md section 10): a star of a satellite galaxy (`tier` 2) is
+// are cut in (MAP.251, docs/design/interface/zoom-star-visibility.md section 10): a star of a satellite galaxy (`tier` 2) is
 // dimmed hardest, then a halo star (`tier` 1), then two ramps at the same time, a star from small and dim to large
 // and bright and a phenomenon from small to large by mass (`rampShare`, 0 to 1: `luminosityShare` of a star,
 // `massRampShare` of a phenomenon), the most massive and the brightest keeping the most. A charted object keeps all.

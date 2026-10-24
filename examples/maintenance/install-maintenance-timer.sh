@@ -4,7 +4,7 @@
 #
 # Sets up planetGen's periodic maintenance as systemd timers -- the
 # "once a month or so" orbit update planetgen.cli.orbits's own header comment
-# and docs/database-schema.md's cron example call for, plus (by default)
+# and docs/reference/database-schema.md's cron example call for, plus (by default)
 # the same `sudo ./update.sh` a human would otherwise have to remember to
 # run -- packaged the Ubuntu/Debian-native way (systemd units + journald
 # logging) instead of hand-added crontab lines and logfiles.
@@ -14,7 +14,7 @@
 #
 # Each remaining argument is a database name to enable a monthly orbit
 # update timer for (a deployment with more than one game database -- see
-# `PLANETGEN_MYSQL_DATABASE_PREFIX` in docs/database-schema.md -- gets one
+# `PLANETGEN_MYSQL_DATABASE_PREFIX` in docs/reference/database-schema.md -- gets one
 # timer instance per database). Defaults to $PLANETGEN_MYSQL_DATABASE, or
 # "planetgen" if that's unset too, matching planetgen.cli.orbits's own default.
 #
@@ -68,7 +68,7 @@ fi
 
 if [[ "$(uname -s)" != Darwin ]] && ! command -v systemctl >/dev/null 2>&1; then
     echo "error: systemctl not found -- this script is for systemd-based" >&2
-    echo "  systems (Ubuntu/Debian's default). Use docs/database-schema.md's" >&2
+    echo "  systems (Ubuntu/Debian's default). Use docs/reference/database-schema.md's" >&2
     echo "  plain crontab example instead if this host has no systemd." >&2
     exit 1
 fi

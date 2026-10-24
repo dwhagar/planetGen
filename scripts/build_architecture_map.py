@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Builds the architecture map, `docs/design/architecture-map.html` (DOC.67).
+Builds the architecture map, `docs/generated/architecture-map.html` (DOC.67).
 
 Why this exists
 ===============
 Boss (2026-10-17, 12:23 PM EDT): "I want a more detailed architecture HTML document that I can drill down and see
 the flow through modules and even functions if possible, I want a map of the project and its distinct areas."
-`docs/design/architecture.html` is the overview, written by hand from `architecture.md`; this page is the code map
+`docs/design/architecture/architecture.html` is the overview, written by hand from `architecture.md`; this page is the code map
 under it, and it is generated from the code so it cannot drift from it.
 
 What it reads
@@ -48,7 +48,7 @@ module list is what a lane's change must keep right, and the rest follows from r
 
 Usage
 =====
-    python scripts/build_architecture_map.py            # write docs/design/architecture-map.html
+    python scripts/build_architecture_map.py            # write docs/generated/architecture-map.html
     python scripts/build_architecture_map.py --check    # fail if the module list is out of date
     python scripts/build_architecture_map.py --check --full   # fail if anything differs
 """
@@ -66,7 +66,7 @@ import zlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src")
 PACKAGE = "planetgen"
-PAGE = os.path.join(ROOT, "docs", "design", "architecture-map.html")
+PAGE = os.path.join(ROOT, "docs", "generated", "architecture-map.html")
 
 AREA_ORDER = ("web", "api", "queue", "generation", "galaxy", "population", "physics", "describe", "db", "admin",
               "backup", "wiki", "cli", "datasets", "names", "util", "tuning", "package", "tests")
@@ -519,7 +519,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.check:
         if not os.path.exists(PAGE):
-            print("docs/design/architecture-map.html is missing; run python scripts/build_architecture_map.py")
+            print("docs/generated/architecture-map.html is missing; run python scripts/build_architecture_map.py")
             return 1
         with open(PAGE, encoding="utf-8") as handle:
             current = handle.read()
@@ -529,7 +529,7 @@ def main(argv=None):
         for problem in problems:
             print(problem)
         if problems:
-            print("docs/design/architecture-map.html is out of date: run python scripts/build_architecture_map.py")
+            print("docs/generated/architecture-map.html is out of date: run python scripts/build_architecture_map.py")
             return 1
         print("architecture map is up to date")
         return 0

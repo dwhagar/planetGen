@@ -610,7 +610,7 @@ check_math() {
 }
 
 # Optionally runs the population pass (`planetgen population`: species,
-# civilizations and territories, docs/design/population-and-politics.md)
+# civilizations and territories, docs/design/habitability/population-and-politics.md)
 # over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only
 # when POPULATION=1 (or yes) is set, or when someone answers y to the
 # prompt (y/N, 30 seconds, default N). With no terminal it is skipped.

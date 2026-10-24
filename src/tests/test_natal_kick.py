@@ -1,7 +1,7 @@
 # tests/test_natal_kick.py
 
 """GEN.554: the share of a galaxy's neutron stars its natal kicks send out of it follows from the kick law and the galaxy's
-escape speed (`planetgen.galaxy.natal_kick`, docs/design/natal-kick.md), and the old 20% to 40% draw is a test target."""
+escape speed (`planetgen.galaxy.natal_kick`, docs/design/systems/natal-kick.md), and the old 20% to 40% draw is a test target."""
 
 import math
 

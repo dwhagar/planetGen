@@ -31,7 +31,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(o
 CONFIG_PATH = os.path.join(PROJECT_ROOT, "config.json")
 """str: Absolute path to the real config file, at the repo root -- a
 sibling of `html/`, `db/`, and `src/`, deliberately outside `html/`'s
-Apache `DocumentRoot`. See `docs/config.md` for why the location
+Apache `DocumentRoot`. See `docs/reference/config.md` for why the location
 matters."""
 
 DEFAULT_LOG_FILE = "/var/log/planetgen.log"
