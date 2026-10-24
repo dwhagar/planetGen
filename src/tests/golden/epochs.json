@@ -388,8 +388,7 @@
     },
     {
       "epoch": 79,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2177",
       "reason": "Belts, comets and interstellar comets are drawn from their materials: a belt's taxa follow its distance in units of its star's snow line, a comet's nucleus has its ices, refractories and porosity and a stored mass in place of the fixed 533 kg/m3, so every belt's composition text and every comet's composition, mass and later draws change (GEN.442)"
     }
   ]
