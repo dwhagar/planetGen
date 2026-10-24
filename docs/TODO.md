@@ -10555,38 +10555,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
-- [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
-  Body composition research lane reconciliation of the NH3 photolysis
-  lifetime (3:00 AM EDT as the lane reported; section 15.1 of
-  docs/design/composition/body-composition-research.md), filed by the TODO thread at
-  the coordinator's relay. The lifetime is 6.7e3 s by Heays 2017 (published range 5.4e3 to 7.7e3 s), so the generator keeps a quiet-Sun rate and an activity factor (GEN.496). Update (Atmosphere lane about 3:25 AM EDT as the lane reported, part 10E): the factor is bracketed at 1.05 to 1.10 by the lane's own recomputation, but the Huebner 1992 and Huebner and Mukherjee 2015 NH3 rates were not read, so the bracket stays flagged until they are. Do: read the quiet-Sun and
-  active-Sun NH3 photolysis rates in Huebner and Mukherjee 2015 (and
-  Huebner 1992), cross-check them against the Heays 2017 cross sections
-  times the solar field, and record the activity factor with its source,
-  label and licence (no licence audit now, Boss 2:35 PM EDT). Done:
-  the NH3 activity factor of the lifetime table (GEN.496) is a sourced
-  value or a flagged seeded bracket, and the research is dated and
-  labelled READ or NOT REACHED on the goal issue. Owner: unowned
-  (research; Boss or a read-only research lane).
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): AD8 photochemistry rates:
-  JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
-  stay meanwhile.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
-  al. 2020) is on Boss's list.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD8: still open. JPL Evaluation 19
-  was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
-  numbers; it prints 2019 for the evaluation the plan calls 2020, so
-  check the year on the item's citation.
-  Prerequisites: none. Related: GEN.496, GEN.455, GEN.410.
-
 - [ ] **GEN.509 Tuned draw builder B1: the radius valley and the envelope**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -14377,17 +14345,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
-- [ ] **GEN.663 A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr**
-  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): the
-  tuned draw for the thorium and uranium abundance (row o4) draws the
-  star's formation time T uniformly between 3 and 13 Gyr, which is a
-  stand-in. Done: the birth epoch comes from a chemical-evolution model
-  of the disc (star formation history and r-process enrichment), the o4
-  row reads it, its target is checked by the GEN.503 harness, and the
-  uniform draw is gone. Label the draw a stand-in in the gap plan
-  registry until then. Owner: Composition lane M (after its builders).
-  Prerequisites: none. Related: GEN.514, GEN.553.
-
 - [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
   Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
   page paragraph 1 said melanin life 'would evolve at a normal pace' and
@@ -14521,6 +14478,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   validity range and falsifier test, so none is silent. Done: every
   constant above has a registry row. Owner: lane L (it knows the
   values).
+  Prerequisites: none.
+
+- [ ] **GEN.676 Check the NH3 photolysis activity factor (1.078) against the published Huebner photodissociation table and replace the Boss-supplied value**
+  Follow-up of GEN.501 (merged as #2824, 11:49 PM EDT 2026-10-23 as the
+  lane reported). The NH3 active-Sun factor in photolysis_lifetimes.json
+  is 1.078, taken from Boss's supplied rates (1.80e-4 per s quiet,
+  1.94e-4 per s active) and labelled Boss-supplied and unchecked; the
+  quiet lifetime 6.7e3 s is Heays 2017. The Huebner tables were not
+  reachable on three tries (phidrates returned 503, no search hit). Do:
+  obtain the published table (or a mirror), recompute the factor, and
+  replace the flagged value with the checked one, or record that the two
+  agree. Done: the factor is labelled verified, or the registry row says
+  why it stays a stand-in. Owner: Source and tune atmosphere draws lane
+  (it holds the rest of the GEN.5xx sourcing).
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
