@@ -14964,6 +14964,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   OOM, after the progress output item.
   Prerequisites: PERF.189. Related: PERF.187, MAP.259.
 
+- [ ] **PERF.191 The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug)**
+  Boss's live observation (5:38 PM EDT 2026-10-24, relayed by the
+  coordinator): 'The last warm-up: Failed, started 2026-10-24 21:32 UTC,
+  ended 2026-10-24 21:36 UTC (after: epoch). unit 0 of stage 3 failed:
+  ValueError: a stage queues at most 4000 units, not 4051.' The unit
+  splitter in queue/units.py (MAX_UNITS = 4000, the check near line 131)
+  is given 4051 units for stage 3 of the warm-up, so the stage cannot be
+  queued. Find which call builds the 4051 units (the cache-warm family
+  stage over the sectors) and make it split into at most MAX_UNITS
+  (larger chunks per unit, or two stages), keeping the stored result the
+  same; add a test with a galaxy size that produces more than 4000
+  units. Owner: Core 5 (work queue and Generate; the coordinator told
+  Core 5).
+  Prerequisites: none. Related: PERF.180, PERF.184.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
