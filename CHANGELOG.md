@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2052] - 2026-10-24
+
+**Headline:** The pulsar share no longer divides by zero at a galactic radius beyond about 580 kpc.
+
+### Fixed
+- **`pulsar_radial_factor` raised `ZeroDivisionError` beyond about 580 kpc (GEN.622).** The pulsar profile and the disk's own exponential are now divided in logarithms, so the factor reaches its cap of 2 (or its asymptote) instead of dividing by an underflowed zero. A test covers 579 kpc, 581 kpc and 10,000 kpc.
+
 ## [8.0.2051] - 2026-10-24
 
 **Headline:** Planet and moon lists now show the habitability symbols instead of the long notes.
