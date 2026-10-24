@@ -4348,18 +4348,18 @@
    "option": "Th/U",
    "gate_text": "ROCKY",
    "weight_text": "U[3.8, 4.5]",
-   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), F(T) = [(1 - exp(-l232 T))/l232] / [(1 - exp(-l238 T))/l238] with half-lives 14.05 and 4.468 Gyr; F(3 Gyr) = 1.16254 and F(13 Gyr) = 1.71724 bound the birth epoch (COMPUTED, tunable-gaps 2.6)",
+   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation (galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr (physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
    "status": "DESIGN",
    "research": [
     "R13"
    ],
-   "notes": "Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's age (x1.17 over 1.5 Gyr). At 4.5 Gyr the formula gives 3.04 to 5.39.",
+   "notes": "Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's age (x1.17 over 1.5 Gyr). Replaced again 2026-10-24 (GEN.663): the birth epoch T drawn between 3 and 13 Gyr is gone, F is the quantity `th_u_f` that the star's galaxy supplies.",
    "labels": [
     "READ",
     "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the effective r-process duration T of the gas (3 to 13 Gyr, the widest bracket) is calibrated on one Solar System datum and waits for a chemical-evolution model (GEN.514)",
+   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disc's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disc began is left out, so F is a lower bound for old stars (GEN.663)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -4387,8 +4387,8 @@
    "conditions": [],
    "dist": {
     "kind": "uniform",
-    "lo": "0.97483*1.667*1.16254*exp(0.105802*age_gy)",
-    "hi": "0.97483*2.0*1.71724*exp(0.105802*age_gy)"
+    "lo": "0.97483*1.667*th_u_f*exp(0.105802*age_gy)",
+    "hi": "0.97483*2.0*th_u_f*exp(0.105802*age_gy)"
    }
   },
   {
