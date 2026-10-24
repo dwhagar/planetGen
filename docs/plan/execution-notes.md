@@ -311,3 +311,5 @@ Update 3:47 PM EDT 2026-10-24: the physics gaps report (reports/physics-gaps-202
 Update 3:53 PM EDT 2026-10-24: UX.183 (#3060) and TEST.351 (#3059) retired. Boss held 4c until the surface pressure supply law is done (3:50 PM EDT): GEN.726 is now a prerequisite of GEN.411 and GEN.422 and is Lane I's next item after 4b. The Math lane is cleared for the unstarted derivable-now gaps (reports/math-lane-clearance-2026-10-24.md). Lane 3's two reported reds are TEST.351 (merged) and TEST.350 (already filed). 959 of 1328 8.1 items finished (72.2 percent), 369 open.
 
 Update 3:54 PM EDT 2026-10-24: GEN.672 (#3061, no epoch) retired; GEN.723 is unblocked. 960 of 1328 8.1 items finished (72.3 percent), 368 open.
+
+Update 4:03 PM EDT 2026-10-24: Boss answered the decision cards (4:01 PM EDT, option 1 on all): GEN.750 timeline is modelled from physics (no Earth preset); GEN.727 to GEN.750 stay in 8.4; GEN.724 keeps the 0.2 percent pulsar companion share; GEN.715 uses HITRAN and ExoMol line lists reduced to k-tables, downloaded at setup, licence note only in DATA-LICENSE.md (free for the Math lane); GEN.725 tweak scale is five steps L0 to L4.
