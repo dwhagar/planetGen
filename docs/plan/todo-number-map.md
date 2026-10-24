@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.161 |
-| MAP | MAP.286 |
+| MAP | MAP.288 |
 | NAV | NAV.63 |
 | GEN | GEN.671 |
 | PERF | PERF.176 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.311 |
+| TEST | TEST.312 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -1673,7 +1673,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | none | open |
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | done, PR #2793 |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | open |
-| MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | none | open |
+| MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | none | done, PR #2798 |
 | MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape | none | open |
 | MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface | none | open |
 | MAP.281 | Giant chemistry bands once the band strengths exist | none | open |
@@ -1681,6 +1681,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.283 | Comet colour from the coma species | none | open |
 | MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | none | open |
 | MAP.285 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | none | open |
+| MAP.286 | Supernova remnant shells drawn by age on the maps | none | open |
+| MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2642,6 +2644,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | none | dropped (Boss, 10:26 PM EDT 2026-10-23: tests ride with each body-rendering item) |
 | TEST.309 | Delete the dead, duplicate and tombstone regression tests, the unused test imports and variables, and the unused galaxy_shape_visualizer_cli.py tool | none | done, PR #2771 |
 | TEST.310 | Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report | none | open |
+| TEST.311 | test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

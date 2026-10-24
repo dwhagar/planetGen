@@ -29,7 +29,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | GEN.414, GEN.418, GEN.419 | Body rendering R2; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality |  | Body rendering R12; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | MAP.280 | Body rendering R15; Boss's plan of 10:26 PM EDT 2026-10-23. |
-| MAP.283 | Comet colour from the coma species | MAP.278, GEN.488 | Body rendering R9b; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.283 | Comet colour from the coma species | GEN.488 | Body rendering R9b; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.282 | Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry | GEN.670, MAP.280, GEN.649 | Body rendering R14; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.281 | Giant chemistry bands once the band strengths exist | GEN.422, MAP.275 | Body rendering R6b; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface | DB.96, GEN.414 | Body rendering R4b; Boss's plan of 10:26 PM EDT 2026-10-23. |

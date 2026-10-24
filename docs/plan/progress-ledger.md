@@ -1183,3 +1183,4 @@ Baseline: PR #1817.
 | PERF.117 | 8.1 | Queue, caches and performance |
 | MAP.276 | 8.1 | Fly-through map |
 | OPS.68 | 8.1 | Bugs and flaky tests |
+| MAP.278 | 8.1 | Fly-through map |
