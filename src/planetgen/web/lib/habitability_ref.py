@@ -266,6 +266,27 @@ TEMPERATURE_TEXT = (
 )
 
 
+def radiation_text():
+    """
+    Where the Radiation rating comes from and what sets each term, with the limits read from `protection_limits` so the page
+    cannot drift from the score (GEN.445, DOC.75).
+    """
+    return (
+        "The Radiation rating is the worse of two scores: the yearly dose and the ground ultraviolet. The dose adds four terms, "
+        "each set by the world's make-up. Cosmic rays are cut by the air above the ground (its column, the pressure over the "
+        "gravity, in grams per square centimetre) and by the dipole magnetic field; a body with no air takes them whole. "
+        "Stellar particles come from the star's flares, fall with the square of the distance, and are cut by the same air and "
+        "field. The ground gives the gamma rays and the radon of the potassium, thorium and uranium in its rock: the same "
+        "stored content that heats the interior, so a world rich in them is hotter inside and carries a larger ground dose. "
+        "The ultraviolet is the DNA-damaging dose at the ground as a multiple of Earth's: the star's own light through the "
+        "world's air, its ozone (made from its oxygen), haze, dust and cloud, and the unfiltered light for a world with no air. "
+        f"The dose is Blue under {limit('dose_blue_sv_yr') * 1000:g} mSv a year, Green to {limit('dose_green_sv_yr') * 1000:g}, "
+        f"Yellow to {limit('dose_yellow_sv_yr') * 1000:g} mSv, and the ultraviolet is Blue under {limit('uv_cover_index'):g} times "
+        f"Earth's, Green to {limit('uv_suit_index'):g} times and Yellow to {limit('uv_lethal_index'):g} times. A planet's page lists "
+        "each term with the air, the field, the ozone and the rock that set it, and says which of the two sets the rating."
+    )
+
+
 def zone_text():
     """
     What the habitable zone is and where its edges lie, with the numbers read from `physics/orbits` (GEN.146) so the
@@ -300,6 +321,7 @@ def page():
         "map_intro": MAP_INTRO,
         "map_rows": MAP_ROWS,
         "temperature_text": TEMPERATURE_TEXT,
+        "radiation_text": radiation_text(),
         "zone_text": zone_text(),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
         "equipment": EQUIPMENT_ITEMS,

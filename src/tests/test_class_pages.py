@@ -426,6 +426,19 @@ def test_habitability_levels_page_states_the_habitable_zone_from_the_generators_
     assert 'id="zone-heading"' in html and "runaway greenhouse" in html
 
 
+def test_habitability_levels_page_says_what_sets_each_radiation_term_with_the_scores_limits(client):
+    from planetgen.physics.protection_limits import limit
+    from planetgen.web.lib import habitability_ref
+
+    text = habitability_ref.radiation_text()
+    for word in ("cosmic rays", "Stellar particles", "potassium, thorium and uranium", "ozone"):
+        assert word.lower() in text.lower()
+    assert f"Blue under {limit('dose_blue_sv_yr') * 1000:g} mSv" in text
+    assert f"Yellow to {limit('uv_lethal_index'):g} times" in text
+    html = _html(client, "/help/habitability")
+    assert 'id="radiation-heading"' in html and "Where the radiation comes from" in html
+
+
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):
     """GEN.219: no number on the page is typed in; it is the limit the score reads."""
     from planetgen.physics import habitability
