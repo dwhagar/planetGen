@@ -44,13 +44,15 @@ def refused(match, **overrides):
 # --- the shipped table ------------------------------------------------------------------------------------------------
 
 
-def test_the_shipped_table_holds_the_white_dwarf_redox_targets_and_each_names_its_fill_and_falsifier():
+def test_the_shipped_table_holds_the_redox_targets_and_each_names_its_fill_and_falsifier():
     targets = th.TARGETS
-    assert {t.id for t in targets} == {"a3-mean", "a3-sd", "a4-mean", "a4-sd"}
+    assert {"a3-mean", "a3-sd", "a4-mean", "a4-sd"} <= {t.id for t in targets}
     for t in targets:
         assert t.tunes and t.label in th.USABLE_LABELS and t.fill_id.startswith("GEN.") and t.falsifier
-        assert t.outside({"host_type": "WD"}) == []
-        assert t.outside({"host_type": "G"}) == ["host_type"]
+    for t in targets:
+        if t.row_id in ("a3", "a4"):
+            assert t.outside({"host_type": "WD"}) == []
+            assert t.outside({"host_type": "G"}) == ["host_type"]
 
 
 def test_the_shipped_digest_is_stable_and_changes_with_a_value():
@@ -175,7 +177,8 @@ def test_the_recipes_loader_refuses_a_tunable_row_with_no_target():
     recipes = Recipes(document, register=False)
     with pytest.raises(TargetError, match="atmosphere-a:a5"):
         th.TARGETS.require(recipes.tables)
-    assert {e.id for e in RECIPES.entries if e.tunable} == {"a3", "a4"}
+    assert {"a3", "a4"} <= {e.id for e in RECIPES.entries if e.tunable}
+    assert {e.id for e in RECIPES.entries if e.tunable} == {t.row_id for t in th.TARGETS}
 
 
 # --- the comparison --------------------------------------------------------------------------------------------------
@@ -252,7 +255,9 @@ def test_a_numeric_validity_range_has_open_ends():
 # --- the selection model ---------------------------------------------------------------------------------------------
 
 
-def test_a_target_that_names_a_selection_model_nobody_built_refuses_to_simulate():
+def test_a_target_that_names_a_selection_model_nobody_built_refuses_to_simulate(monkeypatch):
+    monkeypatch.delitem(th.SELECTION_MODEL_MODULES, "kepler-recovery")
+    monkeypatch.delitem(th.SELECTION_MODELS, "kepler-recovery", raising=False)
     t = one(selection_model="kepler-recovery")
     with pytest.raises(TargetError, match="not registered"):
         th.simulate(t, lambda i: 1.0, 5)
@@ -298,12 +303,30 @@ def test_simulate_skips_a_draw_whose_gate_did_not_pass():
 # --- the worked example ----------------------------------------------------------------------------------------------
 
 
+BOUNDED = None
+
+
+def bounded_model():
+    """The abundance-error model fitted to the stars with both bounds: the one the redox spread is tuned with (GEN.513)."""
+    global BOUNDED
+    if BOUNDED is None:
+        from planetgen.physics import wd_pollution
+        BOUNDED = wd_pollution.fit_error_model(flagged=False)
+    return BOUNDED
+
+
+def wd_sampler(row_id, subject, recipes=None, model=None):
+    from planetgen.physics import wd_pollution
+    return wd_pollution.observed_sampler(th.recipe_sampler(row_id, subject, recipes), model or bounded_model())
+
+
 @pytest.mark.parametrize("target_id, body_class", [("a3-mean", "C"), ("a3-sd", "C"), ("a4-mean", "E"), ("a4-sd", "E")])
 def test_the_tunable_redox_rows_drawn_at_many_seeds_match_their_published_statistics(target_id, body_class):
     t = th.TARGETS.get(target_id)
+    assert t.selection_model == "wd-pollution-detection" and t.field == "diw"
     subject = Subject(body_class, {"host_type": "WD"})
-    result = th.simulate_and_compare(t, th.recipe_sampler(t.row_id, subject), n=2000, quantities=subject)
-    assert result.draws == 2000 and result.extrapolated == ()
+    result = th.simulate_and_compare(t, wd_sampler(t.row_id, subject), n=3000, quantities=subject)
+    assert result.draws > 2000 and result.extrapolated == ()
     assert result.passed, (target_id, result.simulated, result.z)
 
 
@@ -314,7 +337,7 @@ def test_a_knob_retuned_away_from_the_target_fails_the_comparison():
     recipes = Recipes(document, register=False)
     t = th.TARGETS.get("a4-mean")
     subject = Subject("E", {"host_type": "WD"})
-    result = th.simulate_and_compare(t, th.recipe_sampler("a4", subject, recipes), n=2000)
+    result = th.simulate_and_compare(t, wd_sampler("a4", subject, recipes), n=2000)
     assert not result.passed and result.z > 2
 
 

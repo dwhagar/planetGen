@@ -74,6 +74,60 @@ The keys are the source keys of the file. Only values computed or read from the 
 | `coch15` | Cochran et al. 2015, Space Science Reviews 197, 9 (arXiv:1507.00761) | Published paper; values only |
 | `cor25` | Cordiner et al. 2025 (arXiv:2508.18209) | Preprint; two measured ratios only |
 
+## The polluted white dwarfs (`src/planetgen/physics/data/wd_pollution_sample.json`, GEN.508)
+
+The keys are the source keys of the file. Values read from the tables of the papers (the median oxygen fugacity with its bounds, the type and the effective temperature of each star); the papers' text is not in the repository.
+
+| Source key | Source | Terms known |
+|---|---|---|
+| `doyle20` | Doyle, Klein, Schlichting and Young 2020, ApJ (arXiv:2008.05992), Table 1 | Published paper; values only |
+| `doyle23` | Doyle, Klein, Dufour et al. 2023 (arXiv:2303.00063), Tables 2 and 4 | Published paper; values only |
+
+## The precisely measured planets (`src/planetgen/physics/data/mass_radius_sample.json`, GEN.505)
+
+Fitted numbers only (two regression lines and their scatter per sub-sample, and counts); the archive's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| NASA Exoplanet Archive, table `pscomppars` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
+| Luque and Palle 2022, Science 377, 1211 | Published paper; the two cuts (mass better than 25 percent, radius better than 8 percent) only |
+
+## The planets with a JWST spectrum (`src/planetgen/physics/data/jwst_selection.json`, GEN.506)
+
+Fitted numbers only (logistic coefficients, the host magnitude model and per-class counts); the archive's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| NASA Exoplanet Archive, tables `pscomppars` and `spectra` (https://exoplanetarchive.ipac.caltech.edu), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
+| Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671) | Published paper; the two formulas and the scale factors of its Table 1 only |
+
+## The Kepler recovery curve (`src/planetgen/physics/data/kepler_recovery.json`, GEN.504)
+
+Fitted numbers only (the recovery curve, the effective-depth law, the noise lines, the quantiles of the Kepler magnitude and a table of observed against predicted recovery); the injection and stellar rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| NASA Exoplanet Archive, Kepler DR25 flux-level transit injections, group INJ1 (https://exoplanetarchive.ipac.caltech.edu/docs/KeplerSimulated.html), retrieved 2026-10-23 | Public data of the archive, operated by the California Institute of Technology under contract with NASA; the archive asks that its use be acknowledged, as done here |
+| NASA Exoplanet Archive, table `keplerstellar` (delivery q1_q17_dr25_stellar), retrieved 2026-10-23 | Same |
+| Burke and Catanzarite 2017, Kepler Science Document KSCI-19083 | Published document; the form of the recovery curve only |
+
+## The thorium of thick-disc stars (`src/planetgen/physics/data/tuning_targets.json` targets o2-mean and o2-sd, GEN.514)
+
+Two summary statistics only (the mean and the standard deviation of [Th/Mg] of 32 stars); the catalogue's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| Hypatia Catalog (Hinkel et al. 2014, AJ 148, 54, arXiv:1405.6719), open web API, queried 2026-10 | The site states no open licence; the two statistics are computed from it and no rows are kept |
+
+## The comets with a measured composition (`src/planetgen/physics/data/comet_admission.json`, GEN.507)
+
+Fitted numbers only (counts of known and measured comets by group and perihelion bin, and two regression lines and their scatter); the database's rows are not kept.
+
+| Source | Terms known |
+|---|---|
+| Robinson, Malamud, Opitom, Perets and Blum 2024, A&A (arXiv:2403.15644), database doi 10.7488/ds/7723 | CC BY 4.0; attribution given here |
+| JPL Small-Body Database query API (https://ssd-api.jpl.nasa.gov/sbdb_query.api), retrieved 2026-10-23 | Public data of NASA/JPL; orbit class and perihelion distance only |
+
 ## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and

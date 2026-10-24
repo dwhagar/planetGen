@@ -1,0 +1,193 @@
+{
+ "title": "Whether the Kepler pipeline would have recovered a transiting planet (GEN.504)",
+ "source": "NASA Exoplanet Archive: Kepler DR25 flux-level injections (INJ1, kplr_dr25_inj1_plti.txt) joined to the DR25 stellar table (keplerstellar, delivery q1_q17_dr25_stellar); queries in scripts/fit_kepler_recovery.py",
+ "retrieved": "2026-10-23",
+ "label": "DATA, COMPUTED",
+ "injections": {
+  "rows": 146257,
+  "joined": 146257,
+  "used": 146202,
+  "recovered": 44772
+ },
+ "validity": {
+  "period_d": [
+   0.5027,
+   499.9976
+  ],
+  "radius_ratio": [
+   0.0054,
+   0.0684
+  ]
+ },
+ "span_days": 1458.931,
+ "transit_count_factor": 0.961616,
+ "limb": {
+  "c0": 1.170406,
+  "c2": -0.089094,
+  "c4": -0.514124
+ },
+ "recovery": {
+  "c0": 0.943135,
+  "a": 26.724358,
+  "b": 0.312442,
+  "n0": 2.883339,
+  "wn": 0.256521,
+  "ln_t_max": 3.434773,
+  "wd": 0.362922,
+  "log_likelihood": -41819.032117
+ },
+ "noise": {
+  "stars": 197864,
+  "durations": [
+   {
+    "duration_h": 1.5,
+    "intercept": 8.552207,
+    "slope_kepmag": -1.005619,
+    "slope_kepmag2": 0.053431,
+    "slope_ln_radius": 0.12079,
+    "scatter": 0.361633
+   },
+   {
+    "duration_h": 3.0,
+    "intercept": 9.014466,
+    "slope_kepmag": -1.081974,
+    "slope_kepmag2": 0.055304,
+    "slope_ln_radius": 0.199283,
+    "scatter": 0.402564
+   },
+   {
+    "duration_h": 6.0,
+    "intercept": 9.488773,
+    "slope_kepmag": -1.14961,
+    "slope_kepmag2": 0.056625,
+    "slope_ln_radius": 0.265869,
+    "scatter": 0.447384
+   },
+   {
+    "duration_h": 12.0,
+    "intercept": 9.649348,
+    "slope_kepmag": -1.159559,
+    "slope_kepmag2": 0.055664,
+    "slope_ln_radius": 0.312063,
+    "scatter": 0.497427
+   },
+   {
+    "duration_h": 15.0,
+    "intercept": 9.733565,
+    "slope_kepmag": -1.162124,
+    "slope_kepmag2": 0.055203,
+    "slope_ln_radius": 0.325419,
+    "scatter": 0.521731
+   }
+  ],
+  "shared_draw_correlation": 0.786426,
+  "kepmag_quantiles": [
+   5.034,
+   11.582,
+   12.385,
+   12.87545,
+   13.225,
+   13.502,
+   13.726,
+   13.923,
+   14.155,
+   14.414,
+   14.635,
+   14.825,
+   14.991,
+   15.143,
+   15.28,
+   15.41,
+   15.538,
+   15.662,
+   15.792,
+   15.938,
+   17.999
+  ]
+ },
+ "calibration": [
+  {
+   "mes_min": 0,
+   "mes_max": 5,
+   "n": 37854,
+   "observed": 0.000951,
+   "predicted": 0.000909
+  },
+  {
+   "mes_min": 5,
+   "mes_max": 6,
+   "n": 15836,
+   "observed": 0.019386,
+   "predicted": 0.019152
+  },
+  {
+   "mes_min": 6,
+   "mes_max": 7,
+   "n": 14580,
+   "observed": 0.080864,
+   "predicted": 0.0846
+  },
+  {
+   "mes_min": 7,
+   "mes_max": 8,
+   "n": 12874,
+   "observed": 0.226425,
+   "predicted": 0.221288
+  },
+  {
+   "mes_min": 8,
+   "mes_max": 9,
+   "n": 11432,
+   "observed": 0.396256,
+   "predicted": 0.393004
+  },
+  {
+   "mes_min": 9,
+   "mes_max": 10,
+   "n": 10551,
+   "observed": 0.540517,
+   "predicted": 0.551628
+  },
+  {
+   "mes_min": 10,
+   "mes_max": 12,
+   "n": 17769,
+   "observed": 0.664641,
+   "predicted": 0.673538
+  },
+  {
+   "mes_min": 12,
+   "mes_max": 15,
+   "n": 16509,
+   "observed": 0.730511,
+   "predicted": 0.719356
+  },
+  {
+   "mes_min": 15,
+   "mes_max": 20,
+   "n": 5427,
+   "observed": 0.669246,
+   "predicted": 0.666937
+  },
+  {
+   "mes_min": 20,
+   "mes_max": 50,
+   "n": 2500,
+   "observed": 0.7652,
+   "predicted": 0.767108
+  },
+  {
+   "mes_min": 50,
+   "mes_max": 1000,
+   "n": 780,
+   "observed": 0.880769,
+   "predicted": 0.834596
+  }
+ ],
+ "predicted_recovered": 44765.226971,
+ "generated_host": {
+  "rows": 146181,
+  "observed": 44764,
+  "predicted": 42327.539513
+ }
+}

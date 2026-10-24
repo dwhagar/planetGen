@@ -1,12 +1,12 @@
 {
  "title": "The tuning-target table (GEN.503): the published statistics the tunable draws are tuned to",
  "version": 1,
- "note": "One entry per published statistic. A tunable row of the possibility tables must have a target here (TargetTable.require). A value measured only in the Solar System is a test-point with the solar_system flag, never a target. Labels: READ, DATA, COMPUTED, 2ND-HAND may be tuned to; SNIPPET, RECALLED and NOT REACHED are listed and never tuned to. Source: docs/design/tunable-gaps.md.",
+ "note": "One entry per published statistic. A tunable row of the possibility tables must have a target here (TargetTable.require). A value measured only in the Solar System is a test-point with the solar_system flag, never a target. Labels: READ, DATA, COMPUTED, 2ND-HAND may be tuned to; SNIPPET, RECALLED and NOT REACHED are listed and never tuned to. Source: docs/design/composition/tunable-gaps.md.",
  "targets": [
   {
    "id": "a3-mean",
    "row": "atmosphere-a:a3",
-   "statistic": "mean of log10 fO2 above the iron-wuestite buffer (dIW) of the rocky material that polluted white dwarfs, 22 values",
+   "statistic": "mean of the reported median of log10 fO2 above the iron-wuestite buffer (dIW) of the rocky material that polluted white dwarfs, 22 values",
    "kind": "mean",
    "value": -1.25,
    "sigma": 0.1,
@@ -16,13 +16,21 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.482",
-   "falsifier": "a mean of the drawn dIW more than 2 sigma from -1.25 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a mean of the reported dIW (the draw through the white-dwarf detection model, error model fitted to the whole sample or to the stars with both bounds) more than 2 sigma from -1.25 over 3000 seeds",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw",
+   "subject": {
+    "body_class": "C",
+    "quantities": {
+     "host_type": "WD"
+    }
+   }
   },
   {
    "id": "a3-sd",
    "row": "atmosphere-a:a3",
-   "statistic": "sample standard deviation of dIW over the same 22 polluted white dwarfs",
+   "statistic": "sample standard deviation of the reported median dIW over the same 22 polluted white dwarfs",
    "kind": "sd",
    "value": 0.45,
    "sigma": 0.069,
@@ -32,13 +40,21 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.482",
-   "falsifier": "a sample sd of the drawn dIW more than 2 sigma from 0.45 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/composition/wd-pollution-detection.md)",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw",
+   "subject": {
+    "body_class": "C",
+    "quantities": {
+     "host_type": "WD"
+    }
+   }
   },
   {
    "id": "a4-mean",
    "row": "atmosphere-a:a4",
-   "statistic": "mean of dIW of the debris of polluted white dwarfs, 22 values",
+   "statistic": "mean of the reported median of dIW of the debris of polluted white dwarfs, 22 values",
    "kind": "mean",
    "value": -1.25,
    "sigma": 0.1,
@@ -48,13 +64,21 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.489",
-   "falsifier": "a mean of the drawn dIW more than 2 sigma from -1.25 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a mean of the reported dIW (the draw through the white-dwarf detection model, error model fitted to the whole sample or to the stars with both bounds) more than 2 sigma from -1.25 over 3000 seeds",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw",
+   "subject": {
+    "body_class": "E",
+    "quantities": {
+     "host_type": "WD"
+    }
+   }
   },
   {
    "id": "a4-sd",
    "row": "atmosphere-a:a4",
-   "statistic": "sample standard deviation of dIW over the same 22 polluted white dwarfs",
+   "statistic": "sample standard deviation of the reported median dIW over the same 22 polluted white dwarfs",
    "kind": "sd",
    "value": 0.45,
    "sigma": 0.069,
@@ -64,8 +88,278 @@
    "validity": {
     "host_type": "WD"
    },
-   "fill_id": "GEN.489",
-   "falsifier": "a sample sd of the drawn dIW more than 2 sigma from 0.45 over 2000 seeds; until GEN.508 builds the white-dwarf pollution detection model the comparison has no cut, so a tuned width is an upper bound"
+   "fill_id": "GEN.513",
+   "falsifier": "a sample sd of the reported dIW (the draw through the white-dwarf detection model with the error fitted to the stars with both bounds) more than 2 sigma from 0.45 over 3000 seeds; the error fitted to the whole sample over-disperses and fails at every width (3.3 sigma at 0.05), so it is not the model this target is tuned with (docs/design/composition/wd-pollution-detection.md)",
+   "selection_model": "wd-pollution-detection",
+   "field": "diw",
+   "subject": {
+    "body_class": "E",
+    "quantities": {
+     "host_type": "WD"
+    }
+   }
+  },
+  {
+   "id": "f5-z-0p1",
+   "row": "atmosphere-f:f5",
+   "statistic": "median of the heavy-element enrichment Zp/Z* of warm giants at 0.1 M_J",
+   "kind": "median",
+   "value": 29.3,
+   "sigma": 3.04,
+   "n": 147,
+   "source": "Chachan 2025 (arXiv 2509.20428): Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 0.1 MJ, error from a and b added in quadrature",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     12.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 0.1
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a median of the drawn Zp/Z* more than 2 sigma from the 147-giant fit over 2000 seeds",
+   "role": "target"
+  },
+  {
+   "id": "f5-z-1p0",
+   "row": "atmosphere-f:f5",
+   "statistic": "median of the heavy-element enrichment Zp/Z* of warm giants at 1.0 M_J",
+   "kind": "median",
+   "value": 5.9,
+   "sigma": 0.58,
+   "n": 147,
+   "source": "Chachan 2025 (arXiv 2509.20428): Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 1.0 MJ, error from a and b added in quadrature",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     12.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 1.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a median of the drawn Zp/Z* more than 2 sigma from the 147-giant fit over 2000 seeds",
+   "role": "target"
+  },
+  {
+   "id": "f5-z-10p0",
+   "row": "atmosphere-f:f5",
+   "statistic": "median of the heavy-element enrichment Zp/Z* of warm giants at 10.0 M_J",
+   "kind": "median",
+   "value": 3.56,
+   "sigma": 0.5,
+   "n": 147,
+   "source": "Chachan 2025 (arXiv 2509.20428): Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 10.0 MJ, error from a and b added in quadrature",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     12.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 10.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a median of the drawn Zp/Z* more than 2 sigma from the 147-giant fit over 2000 seeds",
+   "role": "target"
+  },
+  {
+   "id": "f5-width",
+   "row": "atmosphere-f:f5",
+   "statistic": "sample standard deviation of log10 of the heavy-element enrichment of giants at one mass (intrinsic scatter of the heavy-element mass)",
+   "kind": "sd",
+   "scale": "log10",
+   "value": 0.26,
+   "sigma": 0.022,
+   "n": 47,
+   "source": "Thorngren 2016 (arXiv 1511.07854): intrinsic spread factor 1.82 +/- 0.09 of the heavy-element mass, 47 giants; log10 band 0.238 to 0.281 (COMPUTED); Chachan 2025 agrees (0.22 to 0.29 dex)",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     12.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 1.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a sample sd of the drawn log10 Zp/Z* more than 2 sigma from 0.26 over 2000 seeds",
+   "role": "target"
+  },
+  {
+   "id": "f7-median",
+   "row": "atmosphere-f:f7",
+   "statistic": "median C/O of the giant planets with a retrieved C/O",
+   "kind": "median",
+   "value": 0.57,
+   "sigma": 0.04,
+   "n": 69,
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: median 0.57 (0.42 transit, 0.69 eclipse, 0.58 direct imaging); sigma = 1.25 x 0.27 / sqrt(69)",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     15.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 1.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a median of the drawn C/O more than 2 sigma from 0.57 over 2000 seeds; the median carries a method systematic of 0.2 to 0.3",
+   "role": "target"
+  },
+  {
+   "id": "f7-low",
+   "row": "atmosphere-f:f7",
+   "statistic": "share of the giant planets with a retrieved C/O below 0.35",
+   "kind": "proportion",
+   "counts": [
+    12,
+    69
+   ],
+   "threshold": 0.35,
+   "below": true,
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: 12 of 69 below 0.35",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     15.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 1.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a share below 0.35 more than 2 sigma from 12/69 over 2000 seeds",
+   "role": "target"
+  },
+  {
+   "id": "f7-tail",
+   "row": "atmosphere-f:f7",
+   "statistic": "share of the giant planets with a retrieved C/O above 0.8",
+   "kind": "proportion",
+   "counts": [
+    6,
+    69
+   ],
+   "threshold": 0.8,
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: 6 of 69 above 0.8 (Wilson 95 percent 0.040 to 0.177); 3 of 69 if the 1-sigma lower bound must exceed 0.8",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     15.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 1.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a share above 0.8 more than 2 sigma from 6/69 over 2000 seeds; the planets above 0.8 are hot and ultra-hot, so chemistry, retrieval systematics and formation are mixed",
+   "role": "target"
+  },
+  {
+   "id": "f7-sd",
+   "row": "atmosphere-f:f7",
+   "statistic": "sample standard deviation of the C/O of the giant planets with a retrieved C/O",
+   "kind": "sd",
+   "value": 0.27,
+   "sigma": 0.03,
+   "n": 69,
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: sd 0.27 (transit 0.38, eclipse 0.18, direct imaging 0.12); sigma = 0.27 / sqrt(2 x 68) plus a method allowance",
+   "label": "COMPUTED",
+   "validity": {
+    "mass_jupiter": [
+     0.03,
+     15.0
+    ]
+   },
+   "subject": {
+    "body_class": "I",
+    "quantities": {
+     "mass_jupiter": 1.0
+    }
+   },
+   "fill_id": "GEN.516",
+   "falsifier": "a sample sd of the drawn C/O more than 2 sigma from 0.27 over 2000 seeds",
+   "role": "target"
+  },
+  {
+   "id": "o2-mean",
+   "row": "atmosphere-o:o2",
+   "statistic": "mean of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
+   "kind": "mean",
+   "scale": "log10",
+   "value": -0.063,
+   "sigma": 0.034,
+   "n": 32,
+   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; sigma = 0.193 / sqrt(32); thin disc -0.044 (N=215), so no offset",
+   "label": "COMPUTED",
+   "validity": {
+    "thin_disc_fgk": false
+   },
+   "subject": {
+    "body_class": "A",
+    "quantities": {
+     "thin_disc_fgk": false
+    }
+   },
+   "fill_id": "GEN.514",
+   "falsifier": "a mean of the drawn log10 Th/Mg more than 2 sigma from -0.063 over 2000 seeds; the catalogue mixes many papers, so the scale is not the solar-twin scale of row o1 (0.14 dex apart)",
+   "role": "target"
+  },
+  {
+   "id": "o2-sd",
+   "row": "atmosphere-o:o2",
+   "statistic": "sample standard deviation of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
+   "kind": "sd",
+   "scale": "log10",
+   "value": 0.193,
+   "sigma": 0.025,
+   "n": 32,
+   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: sd 0.193 (thin disc 0.153, N=215; intrinsic 0.056 in 53 solar twins, Botelho 2019); sigma = 0.193 / sqrt(2 x 31)",
+   "label": "COMPUTED",
+   "validity": {
+    "thin_disc_fgk": false
+   },
+   "subject": {
+    "body_class": "A",
+    "quantities": {
+     "thin_disc_fgk": false
+    }
+   },
+   "fill_id": "GEN.514",
+   "falsifier": "a sample sd of the drawn log10 Th/Mg more than 2 sigma from 0.193 over 2000 seeds; the catalogue spread includes measurement and catalogue scatter, so 0.193 is an upper bound on the intrinsic width",
+   "role": "target"
   }
  ]
 }

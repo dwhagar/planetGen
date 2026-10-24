@@ -1,0 +1,259 @@
+{
+ "title": "The 24 polluted white dwarfs with a measured oxygen fugacity of their parent body (GEN.508)",
+ "basis": "dIW = 2 log10(x_FeO(rock)/x_Fe(metal)) with x_Fe(metal) = 0.85; median and 1-sigma bounds of the Monte Carlo draws of the abundances. median_diw is null when 50 percent or more of the draws gave a negative FeO mole fraction (an upper limit only: the plus is that limit); minus is null when 16.5 to 50 percent did (a median and an upper bound, no lower bound).",
+ "x_metal": 0.85,
+ "negative_fraction_median_and_upper": 0.165,
+ "negative_fraction_limit_only": 0.5,
+ "sources": {
+  "doyle20": {
+   "citation": "Doyle, Klein, Schlichting and Young 2020, 'Where are the extrasolar Mercuries?' (arXiv:2008.05992), Table 1; the negative-draw rule is section 2.3",
+   "label": "READ"
+  },
+  "doyle23": {
+   "citation": "Doyle, Klein, Dufour et al. 2023, 'New chondritic bodies identified in eight oxygen-bearing white dwarfs' (arXiv:2303.00063), Table 4; effective temperatures are Table 2 (typical error 500 K)",
+   "label": "READ"
+  }
+ },
+ "stars": [
+  {
+   "name": "SDSS J1043+0855",
+   "type": "DAZ",
+   "teff_k": 18330,
+   "median_diw": -2.132,
+   "plus": 1.169,
+   "minus": null,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1536+520",
+   "type": "DBAZ",
+   "teff_k": 20800,
+   "median_diw": -1.374,
+   "plus": 0.284,
+   "minus": 0.317,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "GD 40",
+   "type": "DBZA",
+   "teff_k": 15300,
+   "median_diw": -1.262,
+   "plus": 0.309,
+   "minus": null,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "SDSS J0738+1835",
+   "type": "DBZ",
+   "teff_k": 13950,
+   "median_diw": -1.137,
+   "plus": 0.167,
+   "minus": 0.182,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1226+110",
+   "type": "DAZ",
+   "teff_k": 20900,
+   "median_diw": -0.63,
+   "plus": 0.307,
+   "minus": 0.432,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1145+017",
+   "type": "DBZ",
+   "teff_k": 14500,
+   "median_diw": -0.7,
+   "plus": 0.346,
+   "minus": null,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1929+012",
+   "type": "DAZ",
+   "teff_k": 21200,
+   "median_diw": -0.493,
+   "plus": 0.255,
+   "minus": 0.411,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "Ton 345",
+   "type": "DBZA",
+   "teff_k": 19780,
+   "median_diw": -2.098,
+   "plus": 1.544,
+   "minus": null,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "G 29-38",
+   "type": "DAZ",
+   "teff_k": 11820,
+   "median_diw": null,
+   "plus": 0.947,
+   "minus": null,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "HS 2253+8023",
+   "type": "DBAZ",
+   "teff_k": 14400,
+   "median_diw": -0.936,
+   "plus": 0.068,
+   "minus": 0.085,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1350-162",
+   "type": "DZAB",
+   "teff_k": 11640,
+   "median_diw": -1.012,
+   "plus": 0.182,
+   "minus": 0.205,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1232+563",
+   "type": "DZBA",
+   "teff_k": 11787,
+   "median_diw": -1.209,
+   "plus": 0.182,
+   "minus": 0.194,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 2207+121",
+   "type": "DBZA",
+   "teff_k": 14752,
+   "median_diw": -1.332,
+   "plus": 0.229,
+   "minus": 0.249,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 0446-255",
+   "type": "DZAB",
+   "teff_k": 10120,
+   "median_diw": -1.473,
+   "plus": 0.198,
+   "minus": 0.223,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "G 241-6",
+   "type": "DBZ",
+   "teff_k": 15300,
+   "median_diw": -1.536,
+   "plus": 0.266,
+   "minus": 0.289,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "WD 1551+175",
+   "type": "DBZA",
+   "teff_k": 14756,
+   "median_diw": -1.397,
+   "plus": 0.178,
+   "minus": 0.195,
+   "source": "doyle20",
+   "table": "1"
+  },
+  {
+   "name": "GaiaJ0218+3625",
+   "type": "DBZA",
+   "teff_k": 14700,
+   "median_diw": -1.29,
+   "plus": 0.27,
+   "minus": 0.37,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "WD 1244+498",
+   "type": "DBAZ",
+   "teff_k": 15150,
+   "median_diw": -0.54,
+   "plus": 0.17,
+   "minus": 0.26,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "SDSS J1248+1005",
+   "type": "DBAZ",
+   "teff_k": 15180,
+   "median_diw": -1.09,
+   "plus": 0.24,
+   "minus": 0.34,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "WD 1415+234",
+   "type": "DBAZ",
+   "teff_k": 17300,
+   "median_diw": null,
+   "plus": 0.87,
+   "minus": null,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "SDSS J1734+6052",
+   "type": "DBAZ",
+   "teff_k": 16340,
+   "median_diw": -1.04,
+   "plus": 0.26,
+   "minus": 0.43,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "GaiaJ1922+4709",
+   "type": "DBZA",
+   "teff_k": 15500,
+   "median_diw": -1.78,
+   "plus": 1.17,
+   "minus": null,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "EC22211-2525",
+   "type": "DBAZ",
+   "teff_k": 14740,
+   "median_diw": -1.25,
+   "plus": 0.28,
+   "minus": 0.44,
+   "source": "doyle23",
+   "table": "4"
+  },
+  {
+   "name": "SDSS J2248+2632",
+   "type": "DBAZ",
+   "teff_k": 17370,
+   "median_diw": -1.74,
+   "plus": 0.49,
+   "minus": null,
+   "source": "doyle23",
+   "table": "4"
+  }
+ ]
+}

@@ -1,0 +1,79 @@
+{
+ "title": "Which transiting planets have a published JWST spectrum (GEN.506)",
+ "source": "NASA Exoplanet Archive, tables pscomppars and spectra; queries in scripts/fit_jwst_selection.py",
+ "retrieved": "2026-10-23",
+ "label": "DATA, COMPUTED",
+ "metrics": "Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671): transmission metric equation 1 with the scale factors of Table 1, emission metric equation 4 with Tday = 1.10 Teq",
+ "planets": 4618,
+ "observed": 78,
+ "log_likelihood": -246.473,
+ "auc_logistic": 0.9365,
+ "coefficients": {
+  "intercept": -6.3877,
+  "log10_tsm": 3.8786,
+  "log10_esm": 0.3072,
+  "class_offsets": [
+   0.0,
+   -4.3228,
+   -5.16,
+   -5.439
+  ]
+ },
+ "radius_classes_earth": [
+  [
+   0.0,
+   1.5
+  ],
+  [
+   1.5,
+   4.0
+  ],
+  [
+   4.0,
+   10.0
+  ],
+  [
+   10.0,
+   null
+  ]
+ ],
+ "host_magnitudes": {
+  "mean_j": 11.8979,
+  "sd_j": 1.9407,
+  "min_j": 3.981,
+  "max_j": 16.211,
+  "colour_intercept": 9.1269,
+  "colour_slope_per_log10_teff": -2.3197,
+  "colour_scatter": 0.0652
+ },
+ "calibration": [
+  {
+   "radius_min_earth": 0.0,
+   "radius_max_earth": 1.5,
+   "planets": 906,
+   "observed": 22,
+   "predicted": 22.0
+  },
+  {
+   "radius_min_earth": 1.5,
+   "radius_max_earth": 4.0,
+   "planets": 2525,
+   "observed": 19,
+   "predicted": 19.0
+  },
+  {
+   "radius_min_earth": 4.0,
+   "radius_max_earth": 10.0,
+   "planets": 442,
+   "observed": 10,
+   "predicted": 10.0
+  },
+  {
+   "radius_min_earth": 10.0,
+   "radius_max_earth": null,
+   "planets": 745,
+   "observed": 27,
+   "predicted": 27.0
+  }
+ ]
+}
