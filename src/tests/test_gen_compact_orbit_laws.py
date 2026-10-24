@@ -44,7 +44,9 @@ def _flat(values, decades, tolerance):
 @pytest.mark.parametrize("placed", [multistar.Placed("black-hole", 10.0, 45.0), multistar.Placed("neutron-star", 1.4, 10.0)])
 def test_a_compact_object_with_a_star_draws_its_period_log_uniformly_from_0_3_to_1e4_days(monkeypatch, placed):
     _force(monkeypatch, "star")
-    periods = [node.period_years * 365.25 for _tree, node in _pairs(placed, OLD, 2500, n_stars=1)]
+    nodes = [node for _tree, node in _pairs(placed, OLD, 2500, n_stars=1)]
+    # an accreting X-ray binary (GEN.272) is the one pair drawn on its own period range, hours to a day
+    periods = [node.period_years * 365.25 for node in nodes if node.interaction != "accreting"]
     assert len(periods) > 1000
     assert min(periods) >= multistar.INTERACTED_PERIOD_DAYS[0] * (1 - 1e-9)
     assert max(periods) <= multistar.INTERACTED_PERIOD_DAYS[1] * (1 + 1e-9)

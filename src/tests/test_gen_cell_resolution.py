@@ -169,14 +169,15 @@ def test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further(mysql
         found = resolution.cell_resolution(sector_profile(address, skeleton), 100.0, cap)
         assert found.capped and found.expected_systems == pytest.approx(expected, rel=0.01)
         stars = conn.execute(
-            "SELECT s.luminosity_w AS w FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
-            " WHERE ss.sector_id = ? AND s.role IN ('primary', 'single')", (result["sector_id"],)).fetchall()
+            "SELECT MAX(s.luminosity_w) AS w FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
+            " WHERE ss.sector_id = ? GROUP BY ss.id", (result["sector_id"],)).fetchall()
         stats = conn.execute(
             "SELECT bright_level_sol, level_before_fill_sol, expected_systems, actual_systems FROM sector_stats"
             " WHERE shell_index = ? AND band_index = ? AND wedge_index = ?", address).fetchone()
     finally:
         conn.close()
-    # Only the stars at or above the cap were made: far fewer systems than the cell expects, none dimmer.
+    # Only the stars at or above the cap were made: far fewer systems than the cell expects, none whose brightest star is
+    # dimmer (the primary, the heaviest member, can be a dimmer dwarf beside a brighter giant).
     assert 0 < len(stars) < expected / 4
     assert min(row["w"] for row in stars) >= cap * constants.SOLAR_LUMINOSITY * (1 - 1e-9)
     # The cell is taken to the cap, and what it was aimed at is what it resolves.
