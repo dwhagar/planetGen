@@ -75,6 +75,10 @@ class FakeData:
         self.dbs.add(db)
         return []
 
+    def get_containers(self, db, kind=None):
+        self.dbs.add(db)
+        return []
+
     def get_galaxy_sectors(self, db):
         self.dbs.add(db)
         return self.sectors
@@ -123,8 +127,8 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     data = FakeData()
-    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "auth_me",
-                 "get_galaxy_nebula_cover"):
+    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers",
+                 "auth_me", "get_galaxy_nebula_cover"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_nodes", data.get_galaxy_nodes)

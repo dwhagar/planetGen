@@ -101,6 +101,18 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 </sl-dialog>
 {%- endif %}
 {{ map_html }}
+{%- if glance %}
+<section class="panel" id="sector-glance" aria-labelledby="sector-glance-heading">
+  <div class="panel-header"><h2 id="sector-glance-heading">At a glance</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      {%- for row in glance %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.html }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if debris %}
 <p class="hint sector-details"><strong>Details:</strong> {{ debris }}</p>
 {%- endif %}

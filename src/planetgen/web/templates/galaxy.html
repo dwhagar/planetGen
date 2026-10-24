@@ -26,6 +26,16 @@
   </div>
   {{ datatable(sector_table) }}
   {%- else %}
+  {%- if glance %}
+  <h2 id="galaxy-glance-heading">At a glance</h2>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table" id="galaxy-glance">
+    <tbody>
+      {%- for row in glance %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.html }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
   <h2 id="galaxy-table-heading">Quadrants</h2>
   <div class="table-scroll"><table class="table-stack">
     <thead><tr><th scope="col">Quadrant</th><th scope="col">Sectors</th><th scope="col">Systems</th><th scope="col">Extent</th></tr></thead>

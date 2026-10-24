@@ -1330,6 +1330,12 @@ def get_sector_facilities(db, sector_id):
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
 
 
+def get_containers(db, kind=None):
+    """Returns `GET /api/containers`'s `containers`: every stored globular cluster and superbubble (or those of `kind`)."""
+    _require_db(db)
+    return _request("/containers", {"db": db, "kind": kind})["containers"]
+
+
 def get_container(db, printed_id):
     """Returns `GET /api/containers/<ID>`'s dict -- one globular cluster or superbubble (`db.containers.get`'s shape)."""
     _require_db(db)

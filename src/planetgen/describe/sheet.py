@@ -69,6 +69,22 @@ GLANCE = {
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
+    "black_hole": ("mass_class", "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk", "luminosity_w"),
+    "neutron_star": ("pulsar_type", "mass_solar", "radius_km", "magnetic_field_gauss", "spin_period_ms"),
+    "nebula": ("nebula_class", "nebula_type", "radius_ly", "mass_kg", "temperature_k", "density_cm3"),
+    "supernova_remnant": ("remnant_class", "age_years", "radius_ly", "compact_remnant_kind", "temperature_k"),
+    "rogue_planet": ("planet_class", "mass_kg", "radius_km", "surface_temperature_k", "surface_pressure_pa",
+                     "has_liquid_water"),
+    "asteroid_field": ("field_class", "radius_ly", "density", "mass_kg", "composition_summary"),
+    "interstellar_comet": ("is_active", "nucleus_diameter_km", "velocity_kms", "composition_summary"),
+    "quasar": ("luminosity_w", "black_hole_mass_solar", "jet_length_ly", "is_radio_loud", "event_horizon_radius_km"),
+    "belt": ("distance_km", "density", "mass_kg", "composition_summary"),
+    "comet": ("orbit_type", "is_active", "nucleus_diameter_km", "perihelion_distance_km", "orbital_period_years",
+              "composition_summary"),
+    "facility": ("kind", "placement", "host_type", "affiliation_name", "rating_crime", "rating_housing",
+                 "rating_resources", "rating_maintenance", "rating_health"),
+    "globular_cluster": ("extent_pc",),
+    "superbubble": ("extent_pc",),
 }
 """dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
 survive there, how long is a day and how far is it. Each is a row of the same sheet."""

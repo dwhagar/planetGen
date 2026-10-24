@@ -40,7 +40,7 @@ from planetgen.api.limiter import page_limit
 
 from planetgen.admin import maintenance
 
-from . import bp, tables
+from . import bp, glance, tables
 from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
 
 _ID_PLACEHOLDER = 987654321987
@@ -225,6 +225,7 @@ def galaxy():
         breadcrumbs = [crumb("Galaxy", "galaxy"), crumb(f"Quadrant {quadrant}")]
     else:
         context["summary_rows"] = _quadrant_summary_rows(sectors)
+        context["glance"] = glance.galaxy_rows(sectors, apiclient.get_containers(db))
         title = "Galaxy Map"
         breadcrumbs = [crumb("Galaxy")]
 
