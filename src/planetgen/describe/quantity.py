@@ -10,7 +10,7 @@ how a power of ten and emphasis are marked.
 import re
 
 from planetgen.physics.quantity import Quantity
-from planetgen.util import ladders
+from planetgen.util import chem, ladders
 from planetgen.util.format import format_number, format_quantity, scientific_text
 
 LADDER_BY_KIND = {ladder.quantity: ladder for ladder in ladders.LADDERS}
@@ -72,6 +72,9 @@ def inline_text(items, fmt="text"):
             out.append(_powers(quantity_text(item["qty"]), fmt))
         elif "strong" in item:
             out.append({"text": "{}", "markdown": "**{}**", "wikitext": "'''{}'''"}[fmt].format(item["strong"]))
+        elif "chem" in item:
+            # Markdown and MediaWiki both take <sub> and <sup>; a terminal gets Unicode.
+            out.append(chem.text(item["chem"]) if fmt == "text" else chem.html(item["chem"]))
         else:
             out.append(item["name"])
     return "".join(out)

@@ -30,12 +30,15 @@ Sequence Star" -> ("G", "V")).
 import functools
 import math
 
+from markupsafe import Markup, escape
+
 from planetgen.physics import brown_dwarf, constants as phys
 from planetgen import tuning as pc
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
+from planetgen.util import chem
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class
@@ -112,6 +115,11 @@ def _sentence(text):
     """`text` with its first letter capitalized (the tables store
     mid-sentence phrases)."""
     return text[:1].upper() + text[1:] if text else text
+
+
+def _contents(text):
+    """A cloud's contents (`"H+, e-, O2+, N+ and S+"`) as HTML, its formulas written out (UX.149)."""
+    return Markup(chem.mark_html(text))
 
 
 def _label(key):
@@ -232,13 +240,14 @@ def _nebula():
         facts = [
             ("Name", data["name"]),
             ("Family", _sentence(data["family"])),
-            ("Contents", _sentence(data["species"])),
+            ("Contents", _contents(_sentence(data["species"]))),
             ("Radius", number_range(*data["radius_range_ly"], "ly")),
             *_cloud_facts(data),
         ]
         if data.get("center"):
             facts.append(("At the center", _sentence(data["center"])))
-        classes[code] = _entry(code, data["name"], f"{_sentence(data['family'])} nebula: {data['species']}.", facts)
+        classes[code] = _entry(code, data["name"], escape(f"{_sentence(data['family'])} nebula: ") + _contents(data["species"]) + ".",
+                               facts)
     return {
         "name": "Nebula Classes",
         "label": "Nebula class",
@@ -258,14 +267,14 @@ def _supernova_remnant():
         facts = [
             ("Name", data["name"]),
             ("Morphology", _sentence(data["morphology"])),
-            ("Contents", _sentence(data["species"])),
+            ("Contents", _contents(_sentence(data["species"]))),
             ("Age", number_range(*data["age_range_years"], "years")),
             ("Compact remnant allowed", ", ".join(_COMPACT_LABELS.get(kind, str(kind)) for kind in data["compact"])),
             *_cloud_facts(data),
         ]
         if data.get("center"):
             facts.append(("At the center", _sentence(data["center"])))
-        summary = f"{_sentence(data['morphology'])} remnant: {data['species']}."
+        summary = escape(f"{_sentence(data['morphology'])} remnant: ") + _contents(data["species"]) + "."
         classes[code] = _entry(code, data["name"], summary, facts)
     return {
         "name": "Supernova Remnant Classes",

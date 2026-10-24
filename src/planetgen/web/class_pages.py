@@ -13,6 +13,7 @@ phenomenon and other pages use to link a class label here.
 """
 
 from flask import abort
+from markupsafe import Markup
 
 from planetgen.web.lib import habitability_ref
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
@@ -31,6 +32,11 @@ def class_url(type_slug, code):
     if parts is None:
         return None
     return page_url("class_page", type_slug=parts[0], code=parts[1])
+
+
+def _plain(summary):
+    """A class summary as the page's plain-text description: one with formulas written out (UX.149) loses its tags."""
+    return summary.striptags() if isinstance(summary, Markup) else summary
 
 
 @bp.route("/classes")
@@ -97,7 +103,7 @@ def class_type_page(type_slug):
         title=entry["name"],
         section="classes",
         breadcrumbs=[crumb("Classes", "classes"), crumb(entry["name"])],
-        description=entry["summary"],
+        description=_plain(entry["summary"]),
         class_type=entry,
         rows=rows,
     )
@@ -119,7 +125,7 @@ def class_page(type_slug, code):
         section="classes",
         breadcrumbs=[crumb("Classes", "classes"), crumb(entry["name"], "class_type_page", type_slug=type_slug),
                      crumb(title)],
-        description=item["summary"],
+        description=_plain(item["summary"]),
         class_type=entry,
         type_url=page_url("class_type_page", type_slug=type_slug),
         item=item,
