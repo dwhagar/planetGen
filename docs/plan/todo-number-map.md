@@ -786,7 +786,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | done, PR #502 |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
-| GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) | none | open |
+| GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) | none | done, PR #3152 |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | done, PR #3043 |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | done, PR #809 |
@@ -2597,7 +2597,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.74 | Generation tests at more than one worker | none | done, PR #371 |
 | TEST.75 | Tests for forcing and prevalence | none | done, PR #502 |
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | done, PR #371 |
-| TEST.77 | A golden-seed regression test | none | open |
+| TEST.77 | A golden-seed regression test | none | done, PR #3152 |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | done, PR #484 |
 | TEST.79 | Route edge cases, written before NAV.12 | none | done, PR #427 |
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | done, PR #442 |
