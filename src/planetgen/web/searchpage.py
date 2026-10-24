@@ -328,7 +328,7 @@ def _rows(panel, rows):
         else:
             item["system_url"] = page_url("system", system_id=row["star_system_id"])
             # NAV.8: the body itself opens its row on the system page.
-            item["url"] = object_url(_PANEL_NOUNS[panel][0].split()[-1], row["id"], row["star_system_id"])
+            item["url"] = object_url(_PANEL_NOUNS[panel][0].split()[-1], row["id"])
             item["sector_url"] = _sector_cell(row["sector_id"])
         if "radius_km" in row:
             item["radius"] = _km(row["radius_km"]) if row["radius_km"] is not None else None

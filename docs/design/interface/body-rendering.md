@@ -207,3 +207,12 @@ City lights wait for 9.2.
 ## 12. First 8.1 groundwork to start
 
 R0 and R3 start first and in parallel (no blockers). R1 starts with them (it only needs the data attribute change). R7 and R9a follow as soon as R1 and R3 merge; R4a and R10 can start in parallel from the first day. R11 tests ride with each item.
+
+
+## 13. First on-page use: the object page (UX.171)
+
+The object page of a star, planet or moon (see [object-pages.md](object-pages.md)) paints a body with the System Map's own
+painters, so what the page shows and what the map shows agree: `web/lib/bodyview.py` makes the look record from the body's
+row, `static/bodyview.js` paints it (`solidpaint.js`, `starpaint.js`) and shades it as a sphere lit from the upper left on a
+2D canvas (no WebGL needed), with the atmosphere's limb glow or a star's corona around it. Giants, small bodies and phenomena
+arrive on the page as their painters merge. The caption is the look note; the colour account (UX.158) replaces it.

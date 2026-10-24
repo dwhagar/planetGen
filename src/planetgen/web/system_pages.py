@@ -21,6 +21,7 @@ import math
 
 from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
+from planetgen.describe.html import blocks_html
 from planetgen.describe.model import split_by_body
 from planetgen.galaxy import objectref
 from planetgen.physics.quantity import Quantity
@@ -37,7 +38,6 @@ from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
-from planetgen.web.lib.systempage import body_anchor, star_notes_html, stars_html, system_list_html
 from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
 
 from planetgen.web.lib.classref import ROGUE_MASS_CLASS_NAMES
@@ -224,24 +224,6 @@ def _code_buttons(system_id, code_fmt):
     return buttons
 
 
-def _species_by_planet(db, system):
-    """`{planet_id: {"name", "url"}}`: each life world's dominant species
-    (only planets with life can have one), or `{}` before population has
-    made any species."""
-    if not population_status()["species"]:
-        return {}
-    found = {}
-    for planet in system["planets"]:
-        if not planet.get("life_chemical"):
-            continue
-        try:
-            species = apiclient.get_planet_species(db, planet["id"])
-        except (apiclient.ApiError, apiclient.NotFoundError):
-            species = None
-        if species:
-            found[planet["id"]] = {"name": species["name"],
-                                   "url": page_url("species_page", species_id=species["id"])}
-    return found
 
 
 def _territory(db, system_id):
@@ -300,7 +282,6 @@ def system(system_id):
     code_content = apiclient.get_system_text(db, system_id, code_fmt)["content"] if code_fmt else None
 
     admin = current_admin()
-    edit_rows = _edit_rows(detail, edit_actions.class_options(system_id)) if edit_actions.can_edit(admin) else []
 
     section, breadcrumbs = _system_crumbs(detail)
     inside = detail.get("inside")
@@ -341,14 +322,9 @@ def system(system_id):
         code_content=code_content,
         code_rows=min(code_content.count("\n") + 3, 30) if code_content else 0,
         code_buttons=_code_buttons(system_id, code_fmt),
-        system_list_html=trusted_html(system_list_html(detail, sections, class_url, facilities,
-                                                       species=_species_by_planet(db, detail),
-                                                       admin_rows={row["target"]: row for row in edit_rows},
-                                                       habitability_url=page_url("habitability_levels"),
-                                                       sprite_url=static_url("icons.svg"))),
+        overview=trusted_html(blocks_html(sections["overview"], item_pages._ref_link) if sections["overview"] else ""),
+        tree=item_pages.system_tree(db, system_id, detail["name"]),
         territory=_territory(db, system_id),
-        stars_html=trusted_html(stars_html(detail["stars"], class_url,
-                                           star_notes_html(detail, sections, class_url, facilities))),
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),
         habitable_species=system_species.panel_rows(db, system_id),
@@ -363,56 +339,16 @@ def system(system_id):
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
         facility_orbit_default=system_facilities.ORBIT_STEP_DEFAULT,
         can_edit=edit_actions.can_edit(admin),
-        edit_rows=edit_rows,
         star_editable=not detail.get("is_binary") and len(detail["stars"]) == 1,
         star_type=detail["stars"][0]["star_type"] if detail["stars"] else "",
     )
 
 
-def _edit_rows(system, class_options=None):
-    """The admin "Edit" panel's rows (ADM.8): every planet with its moons
-    right after it, then every asteroid belt, as `{"target", "label",
-    "kind", "indent"}`; planets and moons also carry `recommended` (the
-    classes it can take without moving any other planet) and `forced` (every other
-    class) for the Change class menu (ADM.6), from `class_options`
-    (`edit_actions.class_options`)."""
-    rows = []
-    for planet in system["planets"]:
-        rows.append({"target": f"planet:{planet['id']}", "label": planet["name"], "kind": "planet",
-                     "detail": f"Class {planet.get('planet_class') or '?'} planet", "indent": False})
-        for moon in planet.get("moons") or []:
-            rows.append({"target": f"moon:{moon['id']}", "label": moon["name"], "kind": "moon",
-                         "detail": f"Class {moon.get('planet_class') or '?'} moon of {planet['name']}",
-                         "indent": True})
-    for belt in system["belts"]:
-        rows.append({"target": f"belt:{belt['id']}", "label": "this asteroid belt", "kind": "belt",
-                     "detail": f"Asteroid belt from {format_distance_km(belt['lower_limit_km'])} to "
-                               f"{format_distance_km(belt['upper_limit_km'])}",
-                     "indent": False})
-    if class_options:
-        every = class_options.get("all") or []
-        for row in rows:
-            if row["kind"] != "belt":
-                recommended = class_options.get("recommended", {}).get(row["target"], [])
-                row["recommended"] = recommended
-                row["forced"] = [c for c in every if c not in recommended]
-    # The Admin menu of each row (UX.68): "body-N" names the dialogs
-    # system.html draws for the N-th row, one per item.
-    for number, row in enumerate(rows, 1):
-        row["id"] = f"body-{number}"
-        row["items"] = ([("regenerate", "Regenerate")] + ([("class", "Change class")] if "recommended" in row else [])
-                        + [("delete", "Delete")])
-    return rows
-
-
 def _edit_post(system_id):
-    """An admin Delete or Regenerate POST (`web/edit_actions.py`) for the
-    system itself or one of its planets, moons or belts."""
+    """An admin Delete or Regenerate POST (`web/edit_actions.py`) for the system itself; a body's own are posted to its
+    page (`web/item_pages.py`)."""
     detail = apiclient.get_system(db_name(), system_id)
     allowed = {("system", system_id)}
-    for row in _edit_rows(detail):
-        kind, _sep, raw_id = row["target"].partition(":")
-        allowed.add((kind, raw_id))
     gone = (page_url("sector", sector_id=detail["sector_id"]) if detail["sector_id"] is not None
             else page_url("systems"))
     return edit_actions.handle_post(allowed, page_url("system", system_id=system_id, _anchor="admin-menu"),
@@ -845,21 +781,17 @@ BODY_REF_KINDS = ("star", "planet", "moon", "belt", "comet")
 """tuple: The reference kinds `/object/<ref>` sends to a row on the system page (NAV.8)."""
 
 
-def object_url(kind, object_id, system_id=None):
+def object_url(kind, object_id):
     """
-    Where an object reference opens (NAV.8): a system or sector on its own
-    page, a phenomenon on its page, and a star, planet, moon, belt or comet
-    on its system's page at that body's row (`/system/<id>#planet-12`),
-    which `static/bodyanchor.js` opens, highlights and selects on the
-    System Map. Only stars (as their system's page) get a page; planets,
-    moons, belts and comets are anchors. `system_id` is needed for a body.
+    Where an object reference opens (NAV.8): a sector, system or phenomenon on its own page, and a star, planet, moon,
+    belt or comet on the page of its own (`/object/planet:<ID>`, `web/item_pages.py`).
     """
     if kind == "sector":
         return page_url("sector", sector_id=object_id)
     if kind == "system":
         return page_url("system", system_id=object_id)
     if kind in BODY_REF_KINDS:
-        return page_url("system", _anchor=body_anchor(kind, object_id), system_id=system_id)
+        return item_pages.item_url(f"{kind}:{object_id}")
     return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=object_id)
 
 

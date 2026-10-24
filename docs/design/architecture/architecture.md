@@ -562,7 +562,8 @@ The map panels and their data.
 | `theme.js` | Light/dark/system theme switch and header menu closing. |
 | `copycode.js` | The system page's Copy button. |
 | `style.css`, `favicon.svg` | Site styles (CSS tokens for both themes) and icon. |
-| `bodyanchor.js` | A link to `/system/<id>#planet-12` (or `#star-`, `#moon-`, `#belt-`, `#comet-`) opens that body's row and selects it on the System Map (NAV.8). |
+| `objecttree.js` | The summary tree (UX.172): toggle buttons, lazy loading of a level from `/object/<ref>/tree`, "Show more", the WAI-ARIA tree keys; `embedTree` places one in a data table's cell (UX.174). |
+| `bodyview.js` | The rendered example on an object page (UX.171): the look record painted by `solidpaint.js` and `starpaint.js` and shaded as a lit sphere on a 2D canvas. |
 | `bookmarks.js` | Bookmarks on the Galaxy Map (MAP.23): saved views kept in the browser, their button, menu and NAV select over `savedlist.js`. |
 | `savedcourse.js` | A saved course (NAV.17): the record with both forms (the direct line and the route) as an entry of the `course` kind of the saved-list store, and the sentences that say what changed when it is opened again. |
 | `savedlist.js` | The saved-list store (UX.129): one list of one kind of saved entry (bookmarks; saved courses next) behind a backend that may answer later, with the browser's `localStorage` as the local backend and a hook for the galaxy instance stamp. |

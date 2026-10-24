@@ -6,7 +6,7 @@
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {#- ADM.34, UX.68: the groups of admin actions are built here, outside the blocks, so the
-    action bar (subhead) and the dialogs (content) share them. -#}
+    action bar (subhead) and the dialogs (content) share them. A body's own Admin menu is on its page (UX.170). -#}
 {%- set here = page_url('system', system_id=system.id) %}
 {%- set groups = [] %}
 {%- if can_edit %}
@@ -26,34 +26,6 @@
      'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place. The rest of the system is then checked and re-spaced until it is stable.',
      'Deletes the system and everything in it.', regenerate_facilities=True, extra=star_actions) %}
 {%- set _ = groups.append({'id': 'system', 'target': 'system:' ~ system.id, 'actions': system_actions}) %}
-{%- for row in edit_rows %}
-{%- set body_actions = [] %}
-{%- set class_actions = [] %}
-{%- if row.recommended is defined %}
-{%- set class_fields %}
-    <label>New class <select name="planet_class" required>
-      {%- if row.recommended %}
-      <optgroup label="Recommended (fits where it is)">
-        {%- for code in row.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-      </optgroup>
-      {%- endif %}
-      <optgroup label="Needs confirming (may break it)">
-        {%- for code in row.forced %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-      </optgroup>
-    </select></label>
-    <label class="edit-drop"><input type="checkbox" name="confirm_class" value="1"> Set it anyway, even if the class doesn't suit its size, mass or zone</label>
-{%- endset %}
-{%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ row.label ~ "'s class",
-    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet. Any other class says what it would break and is only set when you tick “Set it anyway”.',
-    'fields': class_fields, 'button': 'Change ' ~ row.label ~ "'s class"}] %}
-{%- endif %}
-{%- set _ = add_edit_actions(body_actions, row.label,
-     'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
-     'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
-     regenerate_facilities=(row.kind == 'planet'), extra=class_actions) %}
-{%- set _ = groups.append({'id': 'body-' ~ loop.index, 'label': (row.label if row.kind != 'belt' else 'Asteroid belt') ~ (' (' ~ row.detail ~ ')' if row.detail else ''),
-    'target': row.target, 'actions': body_actions, 'dialog_only': True}) %}
-{%- endfor %}
 {%- endif %}
 {#- POP.10: the affiliation and the five ratings, shared by the placement form and a facility's edit form. `values`
     holds what to show (the submitted form, or the facility's own); `owner` is the system's polity. #}
@@ -224,7 +196,7 @@
 <script type="module" src="{{ static_url('systempage3d.js') }}"></script>
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 <script type="module" src="{{ static_url('copycode.js') }}"></script>
-<script type="module" src="{{ static_url('bodyanchor.js') }}"></script>
+<script type="module" src="{{ static_url('objecttree.js') }}"></script>
 <script type="module" src="{{ static_url('facilityform.js') }}"></script>
 {% endblock %}
 {% block subhead %}
@@ -243,7 +215,6 @@
 {% block content %}
 {{ pick_banner(pick, bookmark, 'system') }}
 {{ map_html }}
-{{ stars_html }}
 {#- ADM.34: every admin action of this page sits behind the one Admin menu
     (partials/admin_menu.html): the whole system's (regenerate, change the
     star, delete), a submenu per body (regenerate, change
@@ -271,8 +242,14 @@
     <textarea readonly rows="{{ code_rows }}" id="system-code" class="content-box" aria-label="{{ code_label }} source">{{ code_content }}</textarea>
   </div>
   {%- endif %}
-  {{ system_list_html }}
+  {%- if overview %}<div class="prose system-overview">{{ overview }}</div>{% endif %}
 </section>
+{%- if tree %}
+<section class="panel" id="system-members" aria-labelledby="system-members-heading">
+  <div class="panel-header"><h2 id="system-members-heading">Stars and bodies</h2></div>
+  {{ tree }}
+</section>
+{%- endif %}
 {%- if facilities or facility_status %}
 <section class="panel" id="facilities" aria-labelledby="facilities-heading">
   <h2 id="facilities-heading">Facilities</h2>

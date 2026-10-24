@@ -26,7 +26,7 @@ from planetgen.util import chem
 from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
-from planetgen.web.lib.systempage import star_notes_html, stars_html, system_list_html  # noqa: E402
+from planetgen.web.lib import objecttree  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -229,24 +229,33 @@ def _system():
     return {"stars": [star], "planets": [_planet()], "belts": [], "comets": [comet], "binary_configuration": None}
 
 
-def test_system_list_links_classes(app):
+def _tree_context(class_url=None, **more):
+    return objecttree.TreeContext(item_url=lambda ref: "/object/" + ref, tree_url=lambda ref: "/object/" + ref + "/tree",
+                                  class_url=class_url, **more)
+
+
+def _items(system):
+    """The tree rows (`GET /api/objects/<ref>/children`'s items) of a `_system()`'s star, planets and comets."""
+    star = system["stars"][0]
+    items = [{"ref": f"star:{star['id']}", "kind": "star", "name": star["name"], "child_count": 0, "counts": {},
+              "summary": {"star_type": star["star_type"], "role": star["role"]}}]
+    items += [{"ref": f"planet:{p['id']}", "kind": "planet", "name": p["name"], "child_count": 0, "counts": {},
+               "summary": {"planet_class": p["planet_class"]}} for p in system["planets"]]
+    items += [{"ref": f"comet:{c['id']}", "kind": "comet", "name": c["name"], "child_count": 0, "counts": {},
+               "summary": {"orbit_type": c["orbit_type"], "period_class": c["period_class"]}} for c in system["comets"]]
+    return items
+
+
+def test_the_tree_links_classes(app):
     from planetgen.web.class_pages import class_url
     with app.test_request_context("/system/1"):
-        html = system_list_html(_system(), _SECTIONS, class_url)
-        table = stars_html(_system()["stars"], class_url)
-        notes = star_notes_html(_system(), _SECTIONS, class_url)
-    # UX.53: a single star is in the Stars table, not the list; its notes follow the table.
-    assert "Spectral class G" not in html + notes
+        html = objecttree.nodes_html(_items(_system()), _tree_context(class_url))
     # UX.182: the class letter or name is the link, with no separate line of class links.
-    assert "Planet class M" not in html and "Spectral class" not in notes + table and "Luminosity class" not in notes
+    assert "Planet class M" not in html and "Spectral class" not in html and 'class="class-links"' not in html
     assert 'Class <a href="/classes/planet/M">M</a>' in html
     assert '<a href="/classes/comet/halley_type">Halley-type comet</a>' in html
     assert ('<a href="/classes/star-spectral/G">G2</a><a href="/classes/star-luminosity/V">V</a>'
-            " Yellow Main Sequence Star") in table
-    # The links are in the row's <summary>, where the class is read.
-    summaries = [part.split("</summary>")[0] for part in html.split("<summary>")[1:]]
-    assert any('<a href="/classes/planet/M">M</a>' in summary for summary in summaries)
-    assert 'class="class-links"' not in html
+            " Yellow Main Sequence Star") in html
 
 
 @pytest.mark.parametrize("orbit_type, period_class", [
@@ -259,24 +268,23 @@ def test_every_comet_links_its_class(app, client, orbit_type, period_class):
     system = _system()
     system["comets"][0].update(orbit_type=orbit_type, period_class=period_class)
     with app.test_request_context("/system/1"):
-        html = system_list_html(system, _SECTIONS, class_url)
+        html = objecttree.nodes_html(_items(system), _tree_context(class_url))
     code = period_class or classref.PARABOLIC_COMET_CLASS
     name = classref.class_entry("comet", code)["name"]
     assert f'<a href="/classes/comet/{code}">{escape(name)}</a>' in html
     assert name in _html(client, f"/classes/comet/{code}")
 
 
-def test_system_list_without_hook_or_known_class_stays_text(app):
-    html = system_list_html(_system(), _SECTIONS)
+def test_the_tree_without_hook_or_known_class_stays_text(app):
+    html = objecttree.nodes_html(_items(_system()), _tree_context())
     assert "/classes/" not in html and "Class M" in html
     from planetgen.web.class_pages import class_url
     system = _system()
     system["planets"] = [_planet("Z")]
     system["stars"][0]["star_type"] = "Unknown"
     with app.test_request_context("/system/1"):
-        html = system_list_html(system, _SECTIONS, class_url)
-        table = stars_html(system["stars"], class_url)
-    assert "/classes/planet" not in html and "/classes/star-" not in html + table
+        html = objecttree.nodes_html(_items(system), _tree_context(class_url))
+    assert "/classes/planet" not in html and "/classes/star-" not in html
 
 
 class _Fake:
@@ -297,6 +305,18 @@ class _Fake:
     def get_system_facilities(self, db, system_id):
         return []
 
+    def get_object_children(self, db, ref, limit=None, after=None):
+        star = "star:FE81000A2B-0000005-000"
+        rows = {
+            "system:5": [{"ref": star, "kind": "star", "name": "Sol", "child_count": 2, "counts": {"planet": 1, "comet": 1},
+                          "summary": {"star_type": "G2V Yellow Main Sequence Star", "role": "single"}}],
+            star: [{"ref": "planet:FE81000A2B-0000005-001", "kind": "planet", "name": "Terra", "child_count": 0, "counts": {},
+                    "summary": {"planet_class": "M"}},
+                   {"ref": "comet:FE81000A2B-0000005-002", "kind": "comet", "name": "Kohoutek", "child_count": 0,
+                    "counts": {}, "summary": {"orbit_type": "elliptical", "period_class": "halley_type"}}],
+        }.get(ref, [])
+        return {"ref": ref, "kind": ref.partition(":")[0], "total": len(rows), "items": rows, "next": None}
+
     def get_phenomenon(self, db, phenomenon_type, phenomenon_id):
         return self.phenomenon
 
@@ -310,7 +330,7 @@ class _Fake:
 @pytest.fixture
 def fake(monkeypatch):
     data = _Fake()
-    for name in ("get_system", "get_system_description", "get_system_facilities", "get_phenomenon", "get_phenomenon_contents", "auth_me"):
+    for name in ("get_system", "get_system_description", "get_system_facilities", "get_object_children", "get_phenomenon", "get_phenomenon_contents", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 
@@ -319,6 +339,7 @@ def test_system_page_links_classes(client, fake):
     html = _html(client, "/system/5")
     assert '<a href="/classes/star-spectral/G">G2</a><a href="/classes/star-luminosity/V">V</a>' in html
     assert 'Class <a href="/classes/planet/M">M</a>' in html
+    assert '<a href="/classes/comet/halley_type">Halley-type comet</a>' in html
 
 
 @pytest.mark.parametrize("kind, detail, label, url", [
@@ -339,16 +360,6 @@ def test_phenomenon_unknown_class_stays_text(client, fake):
     fake.phenomenon = {"id": 4, "name": "Thing", "sector_id": None, "nebula_class": "Z"}
     html = _html(client, "/phenomenon/nebula/4")
     assert "<td>Z</td>" in html and "/classes/" not in html.split("</header>", 1)[1]
-
-
-def test_stars_table_hides_role_for_a_single_star(app):
-    """UX.53: the Role column is for binaries and multiples."""
-    from planetgen.web.class_pages import class_url
-    single = _system()["stars"]
-    with app.test_request_context("/system/1"):
-        assert "<th>Role</th>" not in stars_html(single, class_url)
-        pair = [dict(single[0], role="primary"), dict(single[0], role="secondary", name="B")]
-        assert "<th>Role</th>" in stars_html(pair, class_url)
 
 
 # --- UX.90: the habitability levels page --------------------------------------------
@@ -462,20 +473,24 @@ def _scored_system():
     return system
 
 
-def test_the_system_list_symbols_and_chips_link_to_their_sections_of_the_habitability_page(app, client):
-    """UX.181: no separate "Habitability levels" line; each symbol, life score and chip is the link."""
+def test_the_tree_symbols_and_the_page_chips_link_to_their_sections_of_the_habitability_page(app, client):
+    """UX.181: no separate "Habitability levels" line; each symbol and chip is the link."""
+    from planetgen.web.lib.habitability_chips import chips_html
+
     url = "/help/habitability"
-    html = system_list_html(_scored_system(), _SECTIONS, habitability_url=url, sprite_url="/static/icons.svg")
+    planet = _scored_system()["planets"][0]
+    item = {"ref": "planet:FE81000A2B-0000005-001", "kind": "planet", "name": "Terra", "child_count": 0, "counts": {},
+            "summary": planet}
+    html = objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg", help_url=url)) + chips_html(planet, url)
     assert "Habitability levels" not in html
     for anchor in ("overall", "domain-pressure", "domain-temperature", "domain-air", "domain-water",
-                   "domain-radiation", "domain-suitability", "life-microbial", "life-flora", "life-fauna",
-                   "life-sentient", "chip-habitable-class", "equipment-gas-mix-mask"):
+                   "domain-radiation", "domain-suitability", "chip-habitable-class", "equipment-gas-mix-mask"):
         assert f'<a class="help-link" href="{url}#{anchor}">' in html, anchor
     page = _html(client, url)
     for anchor in re.findall(r'href="/help/habitability#([^"]+)"', html):
         assert f'id="{anchor}"' in page, anchor
-    # A list built with no page to link to (and the page's own legend) shows the shapes alone.
-    assert "help-link" not in system_list_html(_scored_system(), _SECTIONS, sprite_url="/static/icons.svg")
+    # A tree built with no page to link to (and the page's own legend) shows the shapes alone.
+    assert "help-link" not in objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg"))
     assert "help-link" not in page
 
 

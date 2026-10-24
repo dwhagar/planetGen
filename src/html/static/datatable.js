@@ -26,6 +26,7 @@ const { Virtualizer, elementScroll, observeElementOffset, observeElementRect } =
 const { PAGE_SIZE, createPageStore, dataQuery, fetchWhileBusy, pageAddress, pagesFor } =
   await import(`./datatablestate.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { embedTree } = await import(`./objecttree.js${VERSION_QUERY}`);
 
 const ROW_HEIGHT_ESTIMATE = 37;
 const OVERSCAN = 8;
@@ -107,7 +108,56 @@ function chipRow(chips, helpUrl) {
   return row;
 }
 
-// One table cell from a served cell: `{text, href?, muted?, swatch?, symbols?, parts?, map_target?, form?}`.
+// The summary trees opened in a table's cells (a cell with `expand: {ref, url, label}`, the sector page's systems): kept by
+// reference across redraws, because drawing replaces the rows, so an opened row stays opened as it scrolls out and in.
+const embedded = new Map();
+
+function expandToggle(td, expand) {
+  const state = embedded.get(expand.ref) || { open: false, host: null, busy: false };
+  embedded.set(expand.ref, state);
+  const button = el("button", "tree-toggle");
+  button.type = "button";
+  button.setAttribute("aria-label", expand.label);
+  button.setAttribute("aria-expanded", state.open ? "true" : "false");
+  button.addEventListener("click", () => {
+    if (state.busy) {
+      return;
+    }
+    if (state.open) {
+      state.open = false;
+      state.host.remove();
+      button.setAttribute("aria-expanded", "false");
+      return;
+    }
+    const show = () => {
+      state.open = true;
+      td.append(state.host);
+      button.setAttribute("aria-expanded", "true");
+    };
+    if (state.host) {
+      show();
+      return;
+    }
+    state.busy = true;
+    embedTree(expand.url, expand.label).then((root) => {
+      state.host = el("div", "tree-embed");
+      state.host.append(root);
+      show();
+    }, () => {
+      const note = el("p", "tree-error", "Could not load this level. Press the arrow again to retry.");
+      td.append(note);
+      setTimeout(() => note.remove(), 4000);
+    }).then(() => {
+      state.busy = false;
+    });
+  });
+  td.prepend(button, " ");
+  if (state.open) {
+    td.append(state.host);
+  }
+}
+
+// One table cell from a served cell: `{text, href?, muted?, swatch?, symbols?, parts?, map_target?, expand?, form?}`.
 function cellNode(cell, iconUrl, helpUrl) {
   const td = el("td");
   if (!cell) {
@@ -179,6 +229,9 @@ function cellNode(cell, iconUrl, helpUrl) {
   }
   if (cell.map_target) {
     td.append(" ", mapButton(cell, iconUrl));
+  }
+  if (cell.expand) {
+    expandToggle(td, cell.expand);
   }
   return td;
 }

@@ -270,6 +270,10 @@ function keydown(root, event) {
 }
 
 function setup(root) {
+  if (root.dataset.treeReady) {
+    return;
+  }
+  root.dataset.treeReady = "1";
   enhance(root);
   root.setAttribute("role", "tree");
   root.addEventListener("click", function (event) {
@@ -294,6 +298,20 @@ function setup(root) {
       }
       row.tabIndex = 0;
     }
+  });
+}
+
+// A tree for a page's script to place (the sector page's table rows): the first level of the route's children, as a
+// ready tree list, or a rejected promise when it could not be read.
+export function embedTree(url, label) {
+  const root = document.createElement("ul");
+  root.className = "object-tree";
+  root.setAttribute("data-tree-root", "");
+  root.setAttribute("aria-label", label);
+  root.dataset.treeUrl = url;
+  setup(root);
+  return loadInto(root, root, url, null, null).then(function () {
+    return root;
   });
 }
 

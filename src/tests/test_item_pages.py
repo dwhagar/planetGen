@@ -88,6 +88,7 @@ def client(monkeypatch):
     monkeypatch.setattr(apiclient, "get_object", get_object)
     monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: _document())
     monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: _detail())
+    monkeypatch.setattr(apiclient, "get_system_facilities", lambda db, system_id: [])
     monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: _sheet(ref))
     monkeypatch.setattr(apiclient, "get_object_children", lambda db, ref, limit=None, after=None: _children(ref))
     app = create_app(_FakeConfig)
@@ -175,3 +176,28 @@ def test_a_moon_of_a_free_planet_has_a_page_that_links_to_its_planet(client):
     assert "Open the free planet Drifter" in page and "/phenomenon/rogue_planet/" in page
     assert 'id="item-properties"' in page
     assert "system</span>" not in page
+
+
+def test_a_planets_page_lists_the_facilities_it_hosts_and_its_chips(client, monkeypatch):
+    facility = {"host_type": "planet", "host_id": "FE81000A2B-0000005-001", "name": "Outpost <9>", "kind": "mining-colony",
+                "placement": "terrestrial", "orbit_distance_km": None}
+    other = dict(facility, host_id="FE81000A2B-0000005-003", name="Elsewhere")
+    monkeypatch.setattr(apiclient, "get_system_facilities", lambda db, system_id: [facility, other])
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert "Outpost &lt;9&gt;" in page and "Mining colony" in page and "Elsewhere" not in page
+    star = client.get(f"/object/{STAR}").get_data(as_text=True)
+    assert "Outpost" not in star and 'class="item-chips"' not in star
+
+
+def test_no_link_to_a_body_goes_to_an_anchor_on_the_systems_page():
+    """UX.176: a body has a page of its own; the system page's row anchors, their script and their helper are gone."""
+    import pathlib
+    import re
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    sources = [path for folder in ("planetgen/web", "html/static") for path in (root / folder).rglob("*")
+               if path.suffix in (".py", ".js", ".html", ".css") and "__pycache__" not in path.parts]
+    anchor = re.compile(r"body_anchor|bodyanchor|body-targeted|[\"'/]system/[^\"'\s]*#(?:star|planet|moon|belt|comet)-")
+    found = [f"{path.relative_to(root)}: {match.group(0)}" for path in sources
+             for match in [anchor.search(path.read_text(encoding="utf-8"))] if match]
+    assert not found, found

@@ -188,6 +188,16 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
             "facet_labels": {}, "results": results}
 
 
+def _fake_children(db, ref, limit=None, after=None):
+    """What `apiclient.get_object_children` answers: a system's one star, which holds two planets."""
+    star = {"ref": "star:FE81000A2B-0000005-000", "kind": "star", "name": "Hearth", "child_count": 2, "counts": {"planet": 2},
+            "summary": {"star_type": "G2V", "role": "single"}}
+    planets = [{"ref": f"planet:FE81000A2B-0000005-00{n}", "kind": "planet", "name": f"Hearth {n}", "child_count": 0,
+                "counts": {}, "summary": {"planet_class": "M"}} for n in (1, 2)]
+    items = [star] if ref.startswith("system:") else planets
+    return {"ref": ref, "kind": ref.partition(":")[0], "total": len(items), "items": items, "next": None}
+
+
 class _SiteConfig(Config):
     WEB_DATABASE = DB
     SESSION_COOKIE_SECURE = False
@@ -211,6 +221,7 @@ def table_site():
         patch.setattr(apiclient, "get_search", _fake_search)
         patch.setattr(apiclient, "get_sector", _fake_sector)
         patch.setattr(apiclient, "get_sector_facilities", lambda db, sector_id: [])
+        patch.setattr(apiclient, "get_object_children", _fake_children)
         patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
         patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
             "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
@@ -308,7 +319,7 @@ def _open(page, base_url, query=""):
 def _first_names(page, count=3):
     rows = page.locator("tbody tr[data-index]")
     rows.first.wait_for(state="attached")
-    return [rows.nth(i).locator("td").first.inner_text() for i in range(min(count, rows.count()))]
+    return [rows.nth(i).locator("td").first.inner_text().strip() for i in range(min(count, rows.count()))]
 
 
 def _count_line(page):
@@ -607,6 +618,30 @@ def test_a_sectors_contents_scroll_filter_and_keep_their_map_buttons(page, table
     assert buttons.count() == 2 and buttons.first.get_attribute("data-map-target") == "rogue_planet:21"
     assert parse_qs(urlparse(page.url).query) == {"contents_type": ["Rogue Planet"]}
 
+
+
+def test_a_systems_row_opens_onto_its_tree_and_keeps_it_across_scrolling(page, table_site):
+    """UX.174: the arrow before a system's name opens its stars and bodies under it, and an opened row stays opened when
+    the table redraws as it scrolls out of the window and back."""
+    page.route("**/galaxymap3d.js*", lambda route: route.abort())
+    assert page.goto(f"{table_site}/sector/5", wait_until="load").status == 200
+    page.locator("#sector-contents [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    first = page.locator("#sector-contents tbody tr[data-index='0']")
+    first.locator("button.tree-toggle").click()
+    first.locator("a.tree-name", has_text="Hearth").wait_for()
+    # The table's header and the page's map overlap a row that has grown, so the press is sent to the button itself.
+    first.locator(".tree-embed button.tree-toggle").dispatch_event("click")
+    first.locator("a.tree-name", has_text="Hearth 2").wait_for()
+    assert first.locator("a.tree-name").first.get_attribute("href") == "/object/star:FE81000A2B-0000005-000"
+    scroll = page.locator("#sector-contents .datatable-scroll")
+    scroll.evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    page.locator("#sector-contents tbody tr[data-index]", has_text="2 rogue planets").wait_for(state="attached", timeout=10000)
+    scroll.evaluate("el => { el.scrollTop = 0; }")
+    again = page.locator("#sector-contents tbody tr[data-index='0']")
+    again.locator("a.tree-name", has_text="Hearth 2").wait_for()
+    assert again.locator("button.tree-toggle").first.get_attribute("aria-expanded") == "true"
+    again.locator("button.tree-toggle").first.dispatch_event("click")
+    assert again.locator(".tree-embed").count() == 0
 
 
 def _sign_in(page, base):
