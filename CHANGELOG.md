@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2252] - 2026-10-24
+
+**Headline:** The example cloud setup script now leaves a fresh machine with Firefox and the static datasets, so the browser and generation tests run.
+
+### Changed
+- **`examples/cloud-environment/setup-planetgen-env.sh` installs Firefox and fetches the datasets (OPS.62).** The lock install, the NLTK variable, the test Redis URL and the MySQL grant option were already there. It now also runs `playwright install firefox` (and its system libraries) so the Firefox half of the icon browser test no longer skips, and runs `planetgen.cli.datasets fetch` so generation tests no longer raise `DataMissing`. A failure of either download only warns; the snapshot is still kept. The README table and the note the script writes into Claude's `CLAUDE.md` say the same. Only the example changes: a copy pasted into the environment settings is the owner's own and needs the same two additions by hand.
+
 ## [8.0.2251] - 2026-10-24
 
 **Headline:** The old queue executor is removed; nothing in a run used it any more.
