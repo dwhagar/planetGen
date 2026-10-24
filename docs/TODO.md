@@ -5125,6 +5125,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
   whose files it shares (the Generate page, cli/generate.py,
   run_plan.py). This replaces any earlier owner line on this item.
+  Research (2026-10-09, Update): Update 1:27 AM EDT 2026-10-24 (as Core
+  1 reported): Core 1 has not started it and releases it to the pool;
+  Core 5 may take it, but the repair or re-roll needs Boss's word before
+  anything is changed.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
@@ -14647,6 +14651,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator)): answers 1 and 2 are GEN.694 (oxygen caps) and the class
   B hydrogen and helium item (the second new item above, GEN.695).
   Prerequisites: none. Related: GEN.411, GEN.415.
+
+- [ ] **GEN.699 Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9**
+  Boss, 1:28 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiV55YkdN6zTGyh2YTDgXkjU, answer 1 to the
+  coordinator's question), found by lane H in GEN.459 (#2868): the
+  interior heat today takes the radiogenic heat and divides it by a
+  drawn Urey ratio (0.1 to 0.9) to get the total, which hides the
+  formation heat. Do: model the primordial heat separately (accretion,
+  core formation and differentiation energy, then secular cooling by
+  mass, age and composition), so total heat is radiogenic plus
+  primordial and no Urey ratio is drawn; the Urey ratio becomes an
+  output; label stand-ins in the gap plan registry and read sources
+  before taking numbers. Done: a test that Earth-like bulk composition
+  and age give a total heat and Urey ratio inside the published range
+  without drawing the ratio, that heat falls with age, and that the
+  stored columns of GEN.459 stay consistent (a new column takes the next
+  migration). Owner: lane H, after GEN.461; check nobody started it
+  first.
+  Prerequisites: GEN.461. Related: GEN.459, GEN.461.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
