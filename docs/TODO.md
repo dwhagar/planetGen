@@ -1015,24 +1015,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.151 Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Extends the icon library of UX.101: four vector shapes (one per
-  kind) and the cluster layout: each icon with a small digit 0 to 9
-  beside the PHI-6 symbols, readable at the list size, both themes, with
-  an accessible text label and a 0 state that reads as none. Owner:
-  the Composition-first stars lane. Done: the shapes in the library, the cluster
-  component with a visual test at three sizes, and the colour rule for
-  the digit (or none) written down.
-  Prerequisites: none. Related: UX.101, UX.100.
-
 - [ ] **UX.152 Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
   'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
@@ -1048,7 +1030,7 @@ with `clamp()`.
   shim. Owner: Habitability lane B. Done: every page shows the cluster,
   no page shows human operability, and a browser test (TEST.300) checks
   the cluster on a list and a page.
-  Prerequisites: UX.151, DB.91, GEN.649. Related: UX.151, UX.100,
+  Prerequisites: DB.91, GEN.649. Related: UX.151, UX.100,
   TEST.300.
 
 - [ ] **UX.153 Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none**
@@ -5060,6 +5042,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
+  Update (2026-10-09): Habitability lane F (2026-10-23, GEN.413 merged
+  as #2761): the ozone code carries a helio_multiplier (the star-wind
+  scaling of the ozone destruction) that has no source; this item
+  decides its law, or a labelled stand-in stays.
   Prerequisites: none. Related: GEN.113, GEN.436, GEN.444.
   Design: [docs/design/systems/phenomena-catalogue-and-fill.md](design/systems/phenomena-catalogue-and-fill.md)
 
@@ -7511,134 +7497,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane D (model).
-- [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "Build the ozone figures into the
-  system, using real world research, let me know if you need web access
-  or for me to research. If we don't have it, build it to generate it."
-  Today only a proxy exists (`physics/radiation.py` `ozone_ratio` from
-  the O2 partial) and activity events that strip it (GEN.189). Do: put
-  ozone in the gas table and compute its column and partial pressure
-  from the oxygen, the star's UV at the planet and the photochemical
-  balance (Chapman, with the real cross sections of the sources check) so it joins
-  the mixture and the other gases keep summing to the pressure; the
-  ozone-loss events of GEN.189 reduce it. Where the research is missing,
-  the item says what Boss should look up and builds a generator from the
-  oxygen and UV instead. Done: Earth's oxygen and the Sun's UV give an
-  ozone column near the measured 300 Dobson units within a stated
-  tolerance, a world with no oxygen has none, and the habitability UV
-  index reads the same number.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Sources check (GEN.408, section 4 of the report): the column does not
-  follow a power of the oxygen (the Chapman balance gives a local density
-  of the square-root form, the column flattens or peaks for hot stars), so
-  use the checked polynomial fit of Kozakis et al. 2022 (Table 3: column
-  from the log of the oxygen mixing ratio, one row each for G0V, the Sun,
-  K2V, K5V and M5V, valid for 0.01 to 150 percent of today's oxygen,
-  clamped outside), interpolate between the hosts in T_eff, and draw a
-  seeded spread of about 30 percent (the models differ by a factor of
-  about 2 at low oxygen). The ozone is a Beer-Lambert absorber of the
-  Chappuis band (410 to 760 nm) along the sun path, with the Hartley band
-  kept for the UV index; the cross sections ship as a small fitted table,
-  because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
-  files was not found (Boss to settle). The Earth figure is a test value,
-  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411,
-  GEN.478.
-  Merged research (2026-10-17): part 04 section 3 gives the ozone column
-  against oxygen and host star (the Kozakis fit stays, valid only for
-  0.01 to 150 percent of the present level), the Chapman layer depth and
-  peak pressure against O2, the abiotic O2 and O3 channels and the
-  shielding by other gases on anoxic worlds; part 02 gives the cross
-  sections.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Ozone reads the host-star UV regime of part 09
-  category p and the trace-gas rows of m through GEN.478.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the JPL 19-5 Troe falloff
-  form, the chlorine catalytic cycles and the phosphine photolysis cross
-  sections.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): Troe falloff with Fc 0.6 and
-  N 1 (JPL; the note's exponent gives -0.238); JPL 19-5 did not update
-  the ClO reactions; no new PH3 cross sections; Harman 2015, Zahnle 2006
-  and Hunten 1973 are not shown to be updated by new cross sections.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): AD3 correlated-k tables
-  (HITRAN, ExoMol). Data from HITRAN, ExoMol, Brewer 2016 or Hypatia is
-  downloaded at build time and no derived table is stored in the
-  repository, so builds need the network; the design states how tests
-  run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
-  forcing law, GRL 25, 2715) is on list B.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD3 filled: Myhre 1998 Table 3, dF in
-  W m^-2: CO2 5.35 ln(C/C0) (C in ppmv), CH4 0.036 (sqrt M - sqrt M0) -
-  (f(M,N0) - f(M0,N0)), N2O 0.12 (sqrt N - sqrt N0) - (f(M0,N) -
-  f(M0,N0)), CFC-11 0.25 (X - X0), CFC-12 0.33 (X - X0), f(M,N) = 0.47
-  ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]; assumed
-  uncertainties 1 percent CO2, 10 CH4, 5 N2O and CFC-11, 3 CFC-12; a CO2
-  doubling gives 3.71 W m^-2 [V, R]. Label correction for the lane that
-  owns the parts file: the values 5.35 and 0.12 are Myhre 1998 and not
-  'IPCC 1990' (IPCC 1990 had 6.3 and 0.14, printed in the same table).
-  The paper states no validity range; its Table 2 total 2.247 does not
-  equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
-  stay a build-time download job from the line lists.
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
-  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
-  only, GEN.590): the shared download catalogue now treats every dataset
-  as required, so this item's design should say whether a missing file
-  refuses to start or falls back to a labelled stand-in, and why.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  licence reason "(Boss to settle)" for shipping a fitted table is
-  closed by Boss's 2026-10-17, 2:35 PM EDT answer (GEN.410): every paper
-  and dataset he acquired is usable and no licence audit gates the
-  table; the fitted table may stand only for another stated reason
-  (size, fit quality).
-  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
-  and "Fetch at setup only", as the coordinator reported it): line-list
-  grids are fetched at setup (update.sh) and nothing from them is stored
-  in the repository; Boss's 2:35 PM EDT 2026-10-17 "fine to publish" is
-  about licence only, not about committing the grids.
-  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
-  this replaces the download policy note above): a missing file refuses
-  the run by default, naming the file, its URL and the setup command;
-  with the explicit disregard option (GEN.599) the run uses this
-  dataset's best possible fallback and prints it in the run header;
-  never a silent fallback. See GEN.594.
-  Related: GEN.87, GEN.189, DB.68.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane F (radiation constants and ozone).
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "I also want you to build into
@@ -7795,7 +7653,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.413. Related: GEN.208,
+  Prerequisites: GEN.411. Related: GEN.208,
   GEN.218,
   TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -7826,10 +7684,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-cyan with an orange sun, a 9 MPa CO2 world is white;
   deterministic and free of NaN for every class; the label says when
   aerosols dominate the answer.
-  Prerequisites: GEN.413, GEN.414, DB.67, DB.68,
+  Prerequisites: GEN.414, DB.67, DB.68,
   GEN.441, GEN.462.
   The ground's bounce reads the surface composition of GEN.441 (the
   ground's colour and reflectance) where it is stored.
+  Update (2026-10-09): Habitability lane F (2026-10-23, GEN.413 merged
+  as #2761): the Chappuis ozone cross-section table (the visible band
+  that colours the sky) is left for this item; the UV cross sections are
+  in AD9 (GEN.443).
   Related: GEN.419, GEN.420.
 
 - [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
@@ -8763,7 +8625,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.413, GEN.414. Related: GEN.444,
+  Prerequisites: GEN.414. Related: GEN.444,
   GEN.445, GEN.423, GEN.412, GEN.418.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
@@ -15122,6 +14984,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Habitability text consistency thread (2026-10-23).
   Prerequisites: none. Related: GEN.649, GEN.653.
 
+- [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
+  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
+  GEN.413 merged as #2761): the ozone column is computed from an oxygen
+  pressure the lane derives itself. Done: the ozone kernel takes O2 from
+  mixture.partial_pressures_pa (lane I's accessor) once the atmosphere
+  child table is stored, the local p_o2_kpa derivation is deleted, and a
+  test shows the two agree on the reference worlds before the swap.
+  Owner: lane I's PR 4 successor or the lane that finishes GEN.411.
+  Prerequisites: GEN.411. Related: GEN.413, GEN.411.
+
+- [ ] **GEN.668 Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column**
+  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
+  GEN.413 merged as #2761): the loss events of GEN.189 set a flag only;
+  the stored ozone_column_du is not reduced by a stripping or loss
+  event. Done: a loss event scales the stored ozone column (and the UV
+  index that reads it) by the retained fraction, with a test of a planet
+  that loses half its air. Owner: none yet (pool).
+  Prerequisites: none. Related: GEN.413, GEN.189.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15998,19 +15879,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
-- [ ] **PERF.161 bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. The component pass is batched in PERF.146; _reach_spots
-  in bright_stars still calls tier_at once per candidate. Do: batch it
-  the same way. Done: identical output and a time drop on the benchmark.
-  Owner: Performance (proposed by the TODO thread, because the lane
-  found it and PERF.146 lives there; the coordinator can move it).
-  Prerequisites: none. Related: PERF.146.
-
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -16057,23 +15925,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the version 'later' page, phase 3, and is built only if a later
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
-
-- [ ] **PERF.171 The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter**
-  Candidate follow-up from the Performance lane (relayed 12:54 PM EDT
-  2026-10-23 as the lane reported, PERF.167 merged as #2679, not
-  measured); filed by the TODO thread, low rank. PERF.167 found that the
-  phenomenon scatter dropped only the address and class indexes, so with
-  the cell and due-time indexes on every insert read pages once the
-  table passed the 128 MB buffer pool; dropping and rebuilding them took
-  4.2M rows from 266 s to 145 s (+22 s rebuild) and the large galaxy
-  from over 90 minutes to 72.7. The bright-star scatter may do the same.
-  Do: measure the bright-star scatter's insert rate with and without its
-  cell and due-time indexes, and if the saving is worth it add them to
-  its drop-and-rebuild list. Value-neutral (no epoch). Done: the
-  measured times are on this item and the indexes are dropped and
-  rebuilt where it pays, or the item records that it does not. Owner:
-  none (pool, Performance if it has room).
-  Prerequisites: none. Related: PERF.167, PERF.164.
 
 - [ ] **PERF.172 The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123)**
   Split from PERF.123 (Core 5's suggestion, relayed 2:50 PM EDT
@@ -16498,7 +16349,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
+  Prerequisites: GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -19314,7 +19165,7 @@ clears each one.
   mixture. Runs in the `changed` gate for the files involved. Done: it
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
-  Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
+  Prerequisites: GEN.411, GEN.412, GEN.414, GEN.415, DB.67,
   DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
@@ -20551,6 +20402,17 @@ clears each one.
   or deleted with Boss's OK together with its tests. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.372, GEN.427, GEN.428.
+
+- [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
+  Found by Habitability lane F (relayed 2026-10-23, 9:25 PM EDT): this
+  test fails about 1 run in 5 to 8 when run alone, unrelated to
+  radiation or ozone. Done: the cause is found by reproducing it with
+  the seed printed (the forced belt and the forced habitable world
+  competing for the same slot or a draw that sometimes cannot place
+  both), fixed in the generator or the test's expectation with the
+  reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: GEN.413.
 
 ## USR: User accounts
 

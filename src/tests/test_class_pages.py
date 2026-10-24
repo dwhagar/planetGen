@@ -372,6 +372,14 @@ def test_habitability_levels_page_draws_each_symbol_in_every_rating_colour(clien
             assert f'#hab-{name}"' in html
 
 
+def test_habitability_levels_page_draws_the_four_life_scores(client):
+    html = _html(client, "/classes/habitability")
+    for label in ("Microbial life", "Flora", "Fauna", "Sentient life"):
+        assert f'aria-label="{label}: none"' in html and f'aria-label="{label}: 9 of 9"' in html
+    for name in ("microbial", "flora", "fauna", "sentient"):
+        assert f'#life-{name}"' in html
+
+
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):
     """GEN.219: no number on the page is typed in; it is the limit the score reads."""
     from planetgen.physics import habitability

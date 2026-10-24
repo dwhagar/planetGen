@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.158 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.667 |
+| GEN | GEN.669 |
 | PERF | PERF.176 |
 | DB | DB.96 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.307 |
+| TEST | TEST.308 |
 | USR | USR.32 |
 | OPS | OPS.68 |
 | DOC | DOC.79 |
@@ -1134,7 +1134,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | done, PR #2508 |
 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
-| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | open |
+| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | done, PR #2761 |
 | GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | open |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
 | GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library | none | done, PR #2566 |
@@ -1388,6 +1388,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | open |
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | open |
 | GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | open |
+| GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
+| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1945,7 +1947,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.158 | scatter --band writes 348,743 single-row UPDATE statements and 2.4 million rows in 5.2 minutes | none | done, PR #2731 |
 | PERF.159 | scatter --mass and --luminosity expand 65,536 shells serially in the supervisor, so the machine runs at 1.3 to 1.7 of 4 cores | none | done, PR #2745 |
 | PERF.160 | fill-map-luminosity issues 3.1 million single-row updates: 162 s server CPU against 45 s client | none | closed, no change (the fill is already one statement per id block; Performance lane, 7:34 PM EDT 2026-10-23) |
-| PERF.161 | bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass | none | open |
+| PERF.161 | bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass | none | done, PR #2763 |
 | PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word | none | open |
 | PERF.163 | The Stage 4 plan takes 264 s against a 3.71 s skeleton: find where the other time goes (bug) | none | done, PR #2576 |
 | PERF.164 | The generation performance report holds only the small size: measure medium and large after PERF.163 and re-rank | none | done, PR #2623 |
@@ -1955,7 +1957,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.168 | test_sql_portability fails on main: benchmark_suite.py runs SHOW DATABASES, a reserved word on MySQL 8.0 and 8.4 (bug) | none | done, PR #2632 |
 | PERF.169 | The plan stage spends 3.5 s of a 12.4 s unit on its report lines | none | done, PR #2648 |
 | PERF.170 | The math check (the TEST.68 gate) runs at every update and from the admin suite, and no longer before every generation | none | done, PR #2696 |
-| PERF.171 | The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter | none | open |
+| PERF.171 | The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter | none | done, PR #2763 |
 | PERF.172 | The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123) | none | open |
 | PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) | none | open |
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current | none | open |
@@ -2190,7 +2192,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.148 | Log output from Generate is no longer in a fixed-width font (bug) | none | open |
 | UX.149 | Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug) | none | open |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | none | open |
-| UX.151 | Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes | none | open |
+| UX.151 | Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes | none | done, PR #2733 |
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | open |
 | UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | open |
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
@@ -2609,6 +2611,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | open |
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | open |
 | TEST.306 | Five physics modules are imported only by tests and no item names them | none | open |
+| TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

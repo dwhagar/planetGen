@@ -1165,3 +1165,7 @@ Baseline: PR #1817.
 | GEN.516 | 8.1 | Tuned draws and selection models |
 | GEN.517 | 8.1 | Tuned draws and selection models |
 | GEN.525 | 8.1 | Tuned draws and selection models |
+| GEN.413 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.161 | 8.1 | The headline closes |
+| PERF.171 | 8.1 | The headline closes |
+| UX.151 | 8.1 | Habitability system |
