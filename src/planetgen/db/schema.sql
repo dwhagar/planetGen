@@ -1460,6 +1460,8 @@
 --   with its count and position, so the Galaxy Map's marker layer finds the systems with one in a box. (`star_systems` has a FULLTEXT key,
 --   so a column could only be added by copying the whole table.)
 -- v149 (OPS.69): `sectors.wiki_url`, `star_systems.wikijs_url` and `star_systems.mediawiki_url` are gone with the wiki upload.
+-- v151 (GEN.461): `planets` and `moons` also keep `water_base_pressure_pa`, the pressure under the water over the covered area, Pa (liquid, ice or both; the compressed column of
+--   `physics/water_layer.py`). NULL for a gas giant, a body with no water layer and a row made before v151, whose `ocean_depth_km`, `ice_shell_km` and `hp_ice_km` are water-equivalent km.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2354,6 +2356,7 @@ CREATE TABLE IF NOT EXISTS planets (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2586,6 +2589,7 @@ CREATE TABLE IF NOT EXISTS moons (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

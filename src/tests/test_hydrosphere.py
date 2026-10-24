@@ -10,7 +10,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, hydrosphere as hy
+from planetgen.physics import constants, hydrosphere as hy, water_layer as wl
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -19,11 +19,18 @@ from tests.fuzz_support import deterministic_entropy
 EARTH = constants.EARTH_MASS_TO_KG
 
 
-@pytest.mark.parametrize("gravity, bottom_k, depth_km", [
-    (9.8, 280.0, 73.0), (9.8, 300.0, 111.0), (9.8, 350.0, 204.0), (1.3, 280.0, 553.0), (20.0, 300.0, 54.0),
+@pytest.mark.parametrize("bottom_k, pressure_mpa", [
+    (251.2, 210.0), (256.2, 350.0), (272.1, 620.0), (286.8, 800.0), (300.4, 1000.0), (327.0, 1500.0), (353.8, 2200.0),
 ])
-def test_the_deepest_liquid_matches_the_design_table(gravity, bottom_k, depth_km):
-    assert hy.max_liquid_depth_km(bottom_k, gravity) == pytest.approx(depth_km, rel=0.03)
+def test_the_liquidus_follows_the_recomputed_melting_curves(bottom_k, pressure_mpa):
+    assert wl.liquidus_pressure_pa(bottom_k) == pytest.approx(pressure_mpa * 1e6, rel=1e-9)
+
+
+def test_the_deepest_liquid_at_earth_gravity_is_about_seventy_kilometres():
+    """The design doc 5.2 had 73 km at a fixed 1050 kg/m3; the water is lighter than that over the first 700 MPa."""
+    deepest = wl.column(EARTH, 6371.0, 0.02 * EARTH, bottom_temperature_k=280.0)
+    assert deepest.liquid_km == pytest.approx(65.5, rel=0.03)
+    assert deepest.hp_ice_km > 0 and deepest.base_pressure_pa > wl.liquidus_pressure_pa(280.0)
 
 
 def test_earths_water_covers_seven_tenths():
@@ -40,14 +47,15 @@ def test_europas_lid_and_tides():
     assert europa == pytest.approx(1.4e11, rel=0.15)
 
 
-def test_the_lid_counts_as_water_and_high_pressure_ice_seals_the_ocean():
-    # 10 km of ice is 9.17 km of water: a 9 km column freezes solid.
-    assert hy.split_column(9.0, 10.0, 273.15, 9.8) == (pytest.approx(9.0 * hy.ICE_TO_WATER), None, 0.0)
-    shell, liquid, hp = hy.split_column(20.0, 10.0, 273.15, 9.8)
-    assert liquid == pytest.approx(20.0 - 10.0 / hy.ICE_TO_WATER) and hp == 0.0
-    shell, liquid, hp = hy.split_column(500.0, 0.0, 300.0, 9.8)
-    assert liquid == pytest.approx(111.0, rel=0.03)
-    assert hp == pytest.approx((500.0 - liquid) / 1.3, rel=1e-6)
+def test_the_lid_counts_by_mass_and_high_pressure_ice_seals_the_ocean():
+    # A lid of 10 km of ice is 9.17e6 kg/m2: a column lighter than that freezes solid.
+    area = 4 * 3.141592653589793 * (6371.0e3) ** 2
+    light = wl.column(EARTH, 6371.0, 9.0e6 * area, shell_km=10.0, bottom_temperature_k=273.15)
+    assert light.liquid_km == 0.0 and light.hp_ice_km == 0.0 and light.ice_shell_km == pytest.approx(9.0e6 / 917.0 / 1000.0)
+    open_ocean = wl.column(EARTH, 6371.0, 2.0e7 * area, shell_km=10.0, bottom_temperature_k=273.15)
+    assert open_ocean.ice_shell_km == 10.0 and open_ocean.liquid_km == pytest.approx(10.34, rel=0.02) and open_ocean.hp_ice_km == 0.0
+    deep = wl.column(EARTH, 6371.0, 0.05 * EARTH, bottom_temperature_k=300.0)
+    assert deep.liquid_km == pytest.approx(88.1, rel=0.03) and deep.hp_ice_km > 0
 
 
 def _ocean(**gases):

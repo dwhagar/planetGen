@@ -497,10 +497,16 @@ and a third exceed 1 percent.
 
 ### 5.2 Ocean depth before high-pressure ice
 
-Wagner 2011 triple points, confirmed [S] to 1 to 2 percent: Ih-L-III 251 K at
-207.5 MPa; III-L-V 256 K at 346 MPa; V-L-VI 273.3 K at 626 MPa; VI-L-VII 355 K
-at 2.2 GPa. With effective water density 1,050 kg/m3 the deepest liquid ocean
-(bottom at the liquidus) is [C]:
+**Replaced by GEN.461 (2026-10-24).** The depth of a water layer is not its mass over 1,000 kg/m3: at a tenth of an Earth mass of water
+the layer is 746 km deep at 11 GPa, not 1,047 km, and the table below (a fixed 1,050 kg/m3 and Wagner 2011's linear liquidus) is
+5 to 25 percent too deep. `physics/water_layer.py` integrates the column from the surface down with the density of the 300 K isotherm
+of water (IAPWS-95 liquid, then the ice VI, VII and X reference points of the materials table), the gravity of the mass below the
+level, and the area that grows toward the centre; it reproduces design part C 2.4's integrated table within 1 percent for 0.0001 to 0.5
+of an Earth or 5 Earth masses (its two x = 0.2 rows are inconsistent with the table's own radii and are not a test target). The liquid
+stops at the liquidus of the bottom temperature, the melting curves of ice III, V and VI recomputed from the Journaux splines (part C
+2.3: 210 MPa at 251.2 K, 350 at 256.2, 620 at 272.1, 800 at 286.8, 1000 at 300.4, 1500 at 327, 2000 at 347, 2200 at 353.8); below it
+the water is `hp_ice_km`. At Earth gravity the deepest liquid at 280 K is 65 km and at 300 K 88 km (the old table said 73 and 111);
+a column is sealed from about 5e-3 of the mass. The old table, for the record:
 
 | g (m/s2) | bottom at 280 K | 300 K | 350 K |
 |---|---|---|---|
@@ -510,8 +516,8 @@ at 2.2 GPa. With effective water density 1,050 kg/m3 the deepest liquid ocean
 | 15 | 48 | 72 | 134 |
 | 20 | 36 | 54 | 100 |
 
-An Earth-size ocean of 100 km needs a water mass fraction of 0.85 percent.
-Noack et al. 2016: high-pressure ice forms at about 170 km depth on an
+The pressure at the bottom of the water is stored (`water_base_pressure_pa`). An Earth-size ocean of 100 km needs a water mass
+fraction of about 1 percent. Noack et al. 2016: high-pressure ice forms at about 170 km depth on an
 Earth-mass planet, but rock heat can melt it from below and layers of nearly
 1,000 km are possible if the seafloor is hot [S]. "Deep ocean with rock
 contact" and "ice-sealed" are therefore separate outcomes; ice-sealed applies

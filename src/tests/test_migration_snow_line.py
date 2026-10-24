@@ -65,6 +65,8 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN water_base_pressure_pa, ALGORITHM=COPY")  # v151 (GEN.461)
         conn.execute("DROP TABLE habitable_systems")  # v148 (MAP.220)
         conn.execute("DELETE FROM galaxy_block_stats WHERE m > 65535")      # v146 (MAP.258)
         conn.execute("ALTER TABLE galaxy_block_stats MODIFY COLUMN m SMALLINT UNSIGNED NOT NULL")

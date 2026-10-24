@@ -23,13 +23,18 @@ planets (`physics.rogue_surface`) use the functions here.
    boiling curve it is in the air (`vapour`). Below freezing, an ice lid grows to
    `ice_shell_thickness_km` from the body's internal heat; it seals the
    whole column (`ice`) or floats on an ocean (`ice-covered ocean`). The
-   lid is ice (917 kg/m3) and the column water-equivalent, so the lid is
-   divided by 1.09 when compared; its base melts at 273.15 K less 0.0074 K
-   per bar of ice above it.
-4. **High-pressure ice.** No liquid lies deeper than the liquidus
-   (`max_liquid_depth_km`, Wagner 2011's triple points); the rest of the
-   column is ice VI or VII (`hp_ice_km`), and the ocean is ice-sealed: no
-   contact with rock.
+   lid is ice (917 kg/m3) and is compared with the column by mass; its base
+   melts at 273.15 K less 0.0074 K per bar of ice above it.
+4. **The compressed column and high-pressure ice (GEN.461).** The water over
+   the covered area is integrated from the surface down with its density
+   rising with the pressure (`water_layer.column`: 746 km deep at 11 GPa for
+   a tenth of an Earth mass of water, not the 1047 km of a fixed 1000 kg/m3),
+   and the pressure at its bottom is stored (`water_base_pressure_pa`). No
+   liquid lies deeper than the liquidus of the bottom temperature (the melting
+   curves of ice III, V and VI, recomputed from the Journaux splines); the
+   rest of the column is ice VI or VII (`hp_ice_km`), and the ocean is
+   ice-sealed: no contact with rock. The depths are the real, compressed
+   kilometres, not water-equivalent.
 5. **Ocean class** (section 5.4), by rule, first match: ice-sealed;
    chloride brine (surface water under 2e-5 of the mass); acid sulfate
    (oxidized mantle and SO2 over 1 percent of SO2 + CO2); soda (reduced
@@ -44,7 +49,7 @@ The ranges are design defaults, not fits.
 
 import math
 
-from planetgen.physics import constants, gases, saturation
+from planetgen.physics import constants, gases, saturation, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -53,7 +58,7 @@ _au_to_m = units.converter("au", "m")
 
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
-    "ocean_depth_km", "ice_shell_km", "hp_ice_km",
+    "ocean_depth_km", "ice_shell_km", "hp_ice_km", "water_base_pressure_pa",
     "ocean_class", "ocean_ph", "water_activity", "phosphorus",
 )
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
@@ -64,13 +69,7 @@ OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutra
 
 WATER_MELTING_K = 273.15
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
-DEEP_WATER_DENSITY_KG_M3 = 1050.0
-"""float: The compressed column's mean density, for its bottom pressure."""
-ICE_DENSITY_KG_M3 = 917.0
-HP_ICE_DENSITY_KG_M3 = 1300.0
-"""float: Ice VI (1.31 g/cm3); `hp_ice_km` is that thickness."""
-ICE_TO_WATER = LIQUID_WATER_DENSITY_KG_M3 / ICE_DENSITY_KG_M3
-"""float: 1.09, a km of ice lid in km of water."""
+ICE_DENSITY_KG_M3 = water_layer.ICE_LID_DENSITY_KG_M3
 ICE_CONDUCTIVITY_A_W_M = 567.0
 """float: Water ice conducts heat as k = A / T (Turcotte and Schubert)."""
 VACUUM_ICE_MAX_K = 220.0
@@ -80,10 +79,6 @@ traps; Mars's caps survive at 150 to 210 K): such a body is `dry`. A
 planetGen default."""
 MELTING_SLOPE_K_PER_BAR = 0.0074
 """float: Ice Ih's melting point falls this much per bar."""
-
-LIQUIDUS_K_MPA = ((251.0, 207.5), (256.0, 346.0), (273.3, 626.0), (355.0, 2200.0))
-"""tuple: Wagner 2011's triple points, `(K, MPa)`: Ih-L-III, III-L-V,
-V-L-VI and VI-L-VII. Liquid is stable only below the line through them."""
 
 EARTH_OCEAN_FRACTION = 2.34e-4
 MANTLE_MAX_WATER_FRACTION = 10 * EARTH_OCEAN_FRACTION
@@ -167,30 +162,11 @@ def pressure_melted_shell_km(flux_w_m2, top_temperature_k, gravity_m_s2):
 
 def water_layer_depth_km(mass_kg, radius_km, water_mass_fraction):
     """How deep `water_mass_fraction` of the body's mass would lie spread
-    over its surface, at liquid water's density (ignores compression)."""
+    over its surface, at liquid water's density (ignores compression): the
+    volume the hypsometry of `ocean_fraction` is about. The depth of the
+    column itself, compressed, is `water_layer.column`'s."""
     area_m2 = 4 * math.pi * (radius_km * 1000.0) ** 2
     return water_mass_fraction * mass_kg / (LIQUID_WATER_DENSITY_KG_M3 * area_m2) / 1000.0
-
-
-def liquidus_pressure_pa(bottom_temperature_k):
-    """The pressure where water at `bottom_temperature_k` freezes to a
-    high-pressure ice: linear between Wagner's triple points, extended past
-    both ends."""
-    points = LIQUIDUS_K_MPA
-    if bottom_temperature_k <= points[1][0]:
-        (t0, p0), (t1, p1) = points[0], points[1]
-    elif bottom_temperature_k >= points[-2][0]:
-        (t0, p0), (t1, p1) = points[-2], points[-1]
-    else:
-        (t0, p0), (t1, p1) = next((a, b) for a, b in zip(points, points[1:]) if bottom_temperature_k <= b[0])
-    mpa = p0 + (bottom_temperature_k - t0) * (p1 - p0) / (t1 - t0)
-    return max(mpa, points[0][1]) * 1e6
-
-
-def max_liquid_depth_km(bottom_temperature_k, gravity_m_s2):
-    """The deepest liquid column, km of water, before its bottom reaches the
-    liquidus (section 5.2: 73 km at Earth gravity and 280 K)."""
-    return liquidus_pressure_pa(bottom_temperature_k) / (DEEP_WATER_DENSITY_KG_M3 * gravity_m_s2) / 1000.0
 
 
 def ocean_fraction(layer_km, gravity_m_s2):
@@ -199,21 +175,6 @@ def ocean_fraction(layer_km, gravity_m_s2):
         return 0.0
     relief_km = EARTH_RELIEF_KM * constants.EARTH_GRAVITY / gravity_m_s2
     return min(1.0, math.sqrt(2 * layer_km / relief_km))
-
-
-def split_column(column_km, shell_km, bottom_temperature_k, gravity_m_s2):
-    """A water column (km of water) under an ice lid (km of ice): `(ice
-    shell km, liquid km, high-pressure ice km)`, liquid `None` when the lid
-    or the high-pressure ice takes it all."""
-    lid_km = shell_km / ICE_TO_WATER
-    if lid_km >= column_km:
-        return column_km * ICE_TO_WATER, None, 0.0
-    deepest = max_liquid_depth_km(bottom_temperature_k, gravity_m_s2)
-    if column_km <= deepest:
-        return shell_km, column_km - lid_km, 0.0
-    hp_km = (column_km - deepest) * LIQUID_WATER_DENSITY_KG_M3 / HP_ICE_DENSITY_KG_M3
-    liquid = deepest - lid_km
-    return shell_km, (liquid if liquid > 0 else None), hp_km
 
 
 def tidal_heating_w(k2_over_q, primary_mass_kg, radius_km, semi_major_axis_m, eccentricity):
@@ -270,7 +231,6 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     covered = ocean_fraction(layer_km, gravity)
     body.ocean_fraction = covered
     body.land_fraction = 1.0 - covered
-    column_km = layer_km / covered if covered else 0.0
     temperature = body.surface_temperature or 0.0
     pressure = body.atmospheric_pressure or 0.0
     if not covered:
@@ -281,23 +241,28 @@ def generate_hydrosphere(body, internal_flux_w_m2):
         body.hydrosphere = "dry"
         body.ocean_fraction, body.land_fraction = 0.0, 1.0
         return
+    water_kg = surface_w * body.mass
     if temperature >= WATER_MELTING_K:
         if temperature >= water_boiling_k(pressure):
             body.hydrosphere = "vapour"
             body.ocean_fraction, body.land_fraction = 0.0, 1.0
             return
-        shell_km, liquid_km, hp_km = split_column(column_km, 0.0, temperature, gravity)
+        column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, bottom_temperature_k=temperature,
+                                    pressure_pa=pressure)
         h2 = getattr(body, "p_h2_kpa", None) or 0.0
         state = "hycean" if h2 > HYCEAN_MIN_H2_SHARE * pressure / 1000.0 else "surface ocean"
     else:
         flux = internal_flux_w_m2 + moon_tidal_flux_w_m2(body, getattr(body, "primary_mass_kg", None), w)
         shell = pressure_melted_shell_km(max(flux, 1e-6), max(temperature, 1.0), gravity)
-        shell_km, liquid_km, hp_km = split_column(column_km, shell, WATER_MELTING_K, gravity)
-        state = "ice-covered ocean" if liquid_km else "ice"
+        column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, shell_km=shell,
+                                    bottom_temperature_k=WATER_MELTING_K, pressure_pa=pressure)
+        state = "ice-covered ocean" if column.liquid_km else "ice"
+    shell_km, liquid_km, hp_km = column.ice_shell_km, column.liquid_km or None, column.hp_ice_km
     body.hydrosphere = state
     body.ice_shell_km = shell_km or None
     body.hp_ice_km = hp_km or None
     body.ocean_depth_km = liquid_km
+    body.water_base_pressure_pa = column.base_pressure_pa
     if not liquid_km:
         return
     kind = ocean_class(body, hp_km, surface_w, covered)
