@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2123] - 2026-10-24
+
+**Headline:** The Galaxy Map can colour sectors and blocks by how many habitable worlds they hold (Color by, Habitable worlds), in five steps of one green with a legend; a cell with none is drawn as unfilled space.
+
+### Changed
+- **Color by Habitable worlds (MAP.143).** A new choice in the Galaxy Map's Color by switch colours each sector and block by the planets and moons it holds that are Blue or Green overall (PHI-6), per charted sector so sectors and blocks of any size share one scale (log, five steps of one hue that rises in light, so it still reads in greyscale). A cell with no habitable world has no fill, like space no one has charted; the legend shows the five steps and the range, and the choice rides in the address (`color=habitable`).
+- **A habitable-world count per sector and block (migration 0139, schema v139).** `sector_stats.habitable_worlds` and `galaxy_block_stats.habitable_worlds` hold the count (set when a sector is filled, cleared when its fill is forgotten, added up the block ladder), and the stage and window APIs report it in `stats.habitable_worlds`. The migration counts the planets and moons already stored and rebuilds the block totals. No generator epoch: no generated value changes.
+
 ## [8.0.2122] - 2026-10-24
 
 **Headline:** Every planet and moon with air now has a cloud, haze and dust depth drawn from its own air and temperature, stored for the radiation model.
