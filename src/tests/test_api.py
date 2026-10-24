@@ -1638,6 +1638,10 @@ def test_galaxy_locate_and_search_give_planet_and_moon_hits_a_reference_and_pare
     assert planet_row["ref"] == planet_ref
     assert [p["ref"] for p in planet_row["parents"]] == [sector_ref, system_ref]
     moon_row = results["moons"]["rows"][0]
+    # UX.100: a planet or moon result carries the stored PHI-6 score and domain tiers for its symbols.
+    for row in (planet_row, moon_row):
+        assert {"phi4", "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_radiation",
+                "tier_suitability"} <= set(row)
     assert moon_row["ref"] == f"moon:{pid('moon', moon_id)}"
     assert [(p["kind"], p["name"]) for p in moon_row["parents"]] == [
         ("sector", "Zorbulon Field"), ("system", "Zorbulon"), ("planet", "Zorbulon Prime")]

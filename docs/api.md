@@ -593,7 +593,8 @@ connectivity to that specific schema rather than the default one.
   `null` for an object type with no active reason to query it — see
   `queryDb.search`'s docstring for the exact inclusion rule; a size range
   alone is reason enough, same as a tag or name term). `stars`/`planets`/
-  `moons` result rows each include their own `radius_km`. Each result
+  `moons` result rows each include their own `radius_km`, and a planet or moon row also `equipment_tier`, `phi4` and the six
+  `tier_<domain>` ratings (0 Blue to 3 Red; `null` for a body that was not scored), which the page draws as symbols (UX.100). Each result
   panel is paged on its own: `limit` sets the rows per panel (default
   300, clamped to 500 like "Pagination" below), and `sectors_offset`/
   `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/

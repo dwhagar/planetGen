@@ -370,3 +370,24 @@ def test_a_star_result_links_to_its_row_on_the_system_page(client, fake):
     """NAV.8: a body result opens its system page at that body's row."""
     html = client.get("/search?star_q=Kepler").get_data(as_text=True)
     assert 'href="/system/7#star-3"' in html
+
+
+def _body_row(id_, name, **extra):
+    return {"id": id_, "name": name, "planet_class": "M", "body_type": "t", "life_chemical": None, "radius_km": 6371.0,
+            "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5, "equipment_tier": None, "phi4": None,
+            **{f"tier_{d}": None for d in ("pressure", "temperature", "air", "water", "radiation", "suitability")}, **extra}
+
+
+def test_planet_results_show_habitability_symbols_not_notes(client, fake):
+    """UX.100: a scored planet's row carries the overall symbol and the six domains; an unscored one a dash."""
+    scored = _body_row(11, "Scored", equipment_tier=1, phi4=0.8, tier_pressure=0, tier_temperature=1, tier_air=2,
+                       tier_water=0, tier_radiation=3, tier_suitability=1)
+    fake.results = {"planets": _result([scored, _body_row(12, "Unscored", body_type="g")]),
+                    **{p: None for p in ("sectors", "systems", "stars", "moons", "belts", "phenomena")}}
+    html = client.get("/search?planet_q=Sc").get_data(as_text=True)
+    panel = _panel(html, "planets")
+    assert "<th scope=\"col\" data-col=\"habitability\">Habitability</th>" in panel
+    for label in ("Overall habitability: Green", "Pressure: Blue", "Air chemistry: Yellow", "Radiation: Red"):
+        assert f'aria-label="{label}"' in panel, label
+    assert panel.count("hab-symbol ") == 7
+    assert "<em>—</em>" in panel[panel.index("Unscored"):]
