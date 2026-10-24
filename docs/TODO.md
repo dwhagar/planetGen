@@ -969,30 +969,13 @@ with `clamp()`.
   Generate job log, the Queue page log and the admin log pages show
   fixed-width text, and a test pins it. Owner: Bug Hunt (Boss, 5:14 PM
   EDT 2026-10-23).
+  Update (2026-10-09): Bug Hunt (2026-10-23, 9:52 PM EDT as the lane
+  reported): not reproduced in Chromium on main; the terminal and the
+  plain log both use the monospace stack, running and finished. Needs
+  Boss's browser and OS or a screenshot. One hypothesis: his Apache adds
+  its own Content-Security-Policy header, which would block Xterm's
+  injected style and drop the font (the same cause as UX.157).
   Prerequisites: none. Related: UX.102, UX.123, UX.125.
-
-- [ ] **UX.149 Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug)**
-  Boss's live observation (relayed 5:30 PM EDT 2026-10-23, typed in the
-  project chat): chemical names in HTML such as water (H2O) should
-  properly use subscripts and superscripts in the output. Kind:
-  formatting bug. Wanted: a formula in any page prints its counts as
-  subscripts (H2O with a subscript 2), its ion charges as superscripts
-  (the plus of Na+ and the 2- of sulfate raised) and its isotope mass
-  numbers as superscripts before the symbol (the 14 in 14C). Do: one
-  shared formatter, a Jinja filter and its plain-text twin for the
-  command line, that turns a formula string into marked-up HTML
-  (escaping everything else), and use it in every template and generated
-  text that prints a species, an atmosphere or ocean composition, a
-  mineral or ice, or a gas, plus the help and design pages that quote
-  formulas; do not edit page by page with hand-typed tags. The formatter
-  takes the formula (never free text, so a word such as CO2 in a
-  sentence is handled by the caller, not guessed). Add tests for counts,
-  charges, isotopes, hydrates and brackets, and a test that no template
-  prints a bare formula. Done: the formatter and its tests exist, every
-  page that prints a chemical formula goes through it, and a browser or
-  HTML test shows the water entry with a subscript 2. Owner: Bug Hunt
-  (Boss, 5:30 PM EDT 2026-10-23).
-  Prerequisites: none. Related: UX.148, DOC.13.
 
 - [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -2833,6 +2816,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage, and a browser test covers both. Owner: Core 2 (maps).
   Prerequisites: MAP.263, MAP.264, MAP.265. Related: MAP.257, MAP.146,
   MAP.249.
+
+- [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
+  Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
+  coordinator, found by Bug Hunt): stars on the map should glow, with
+  brightness and colour from the star's own luminosity and temperature,
+  but they do not. Cause found: since MAP.208 a star further than about
+  3 sectors is drawn as a 1.5 px point with no halo and a mostly white
+  core. Done: every star on the Galaxy Map and the sector map shows a
+  glow whose size and brightness follow its luminosity and whose colour
+  follows its temperature, a browser test checks a hot blue star and a
+  cool red star differ in colour and a luminous star glows larger than a
+  dim one, and the glow can be switched off (MAP.266 owns the soft
+  switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
+  galaxymap3d.js and sectorscene.js).
+  Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
