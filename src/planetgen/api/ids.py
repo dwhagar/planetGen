@@ -38,6 +38,11 @@ OBJECT_TABLES = kind_tables.kind_tables("uid", order="ids")
 PHENOMENON_KINDS = tuple(kind_tables.kind_tables("phenomenon", order="phenomenon_kinds"))
 """tuple: The kinds a generic `phenomenon` rule can resolve to (the row's `type`)."""
 
+CONTAINER_KINDS = ("globular_cluster", "superbubble")
+"""tuple: The kinds of container (UX.184): both are rows of `galaxy_containers`, told apart by its `kind` column."""
+
+CONTAINER_TABLE = "galaxy_containers"
+
 PRINTED_PATTERN = r"[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}"
 """str: What a printed ID looks like in a URL (the exact digit counts are checked by `parse`)."""
 
@@ -53,6 +58,8 @@ class IdError(ValueError):
 def _table(kind):
     if kind == SECTOR:
         return "sectors"
+    if kind in CONTAINER_KINDS:
+        return CONTAINER_TABLE
     try:
         return OBJECT_TABLES[kind]
     except KeyError:
@@ -107,7 +114,10 @@ def row_ids(conn, kind, printed_ids):
     for start in range(0, len(values), CHUNK):
         chunk = values[start:start + CHUNK]
         marks = ", ".join("?" for _ in chunk)
-        for row in conn.execute(f"SELECT id, uid FROM {table} WHERE uid IN ({marks})", chunk).fetchall():
+        # A cluster's ID must not name a superbubble: both kinds share one table.
+        only = " AND kind = ?" if kind in CONTAINER_KINDS else ""
+        args = [*chunk, kind] if only else chunk
+        for row in conn.execute(f"SELECT id, uid FROM {table} WHERE uid IN ({marks}){only}", args).fetchall():
             stored = int(row["uid"]) if kind == SECTOR else bytes(row["uid"])
             found[wanted[stored]] = row["id"]
     if kind == SECTOR:
@@ -266,7 +276,7 @@ def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, b
 
 
 ACTIVE_KINDS = frozenset(("sector", "system", "star", "planet", "moon", "belt", "comet", "facility",
-                          *PHENOMENON_KINDS))
+                          *CONTAINER_KINDS, *PHENOMENON_KINDS))
 """frozenset: The kinds whose IDs the API speaks."""
 
 KEY_KINDS = {

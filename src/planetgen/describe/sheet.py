@@ -30,8 +30,10 @@ from planetgen.util.format import format_number
 TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets",
           "nebula": "nebulae", "asteroid_field": "asteroid_fields", "black_hole": "black_holes",
           "neutron_star": "neutron_stars", "supernova_remnant": "supernova_remnants", "rogue_planet": "rogue_planets",
-          "interstellar_comet": "interstellar_comets", "quasar": "quasars", "facility": "facilities"}
-"""dict: The table each kind of the sheet is stored in: a body of a system, a phenomenon (UX.175) or a facility (UX.183)."""
+          "interstellar_comet": "interstellar_comets", "quasar": "quasars", "facility": "facilities",
+          "globular_cluster": "galaxy_containers", "superbubble": "galaxy_containers"}
+"""dict: The table each kind of the sheet is stored in: a body of a system, a phenomenon (UX.175), a facility (UX.183)
+or a galaxy container (UX.184; a cluster and a superbubble share a table)."""
 
 GROUPS = {
     "identity": "Identity", "orbit": "Orbit", "physical": "Physical", "rotation": "Rotation",
@@ -305,7 +307,12 @@ _FACILITY = (
     *_DISTANCE,
 )
 
-SPECS = {"facility": _FACILITY, "star": _STAR, "planet": _PLANET, "moon": _MOON, "belt": _BELT, "comet": _COMET, "nebula": _NEBULA,
+_CONTAINER = (
+    *_rows("physical", ("extent_pc", "Radius of its sphere")),
+    *_rows("identity", ("shell_index", "Birth shell"), ("band_index", "Birth band"), ("wedge_index", "Birth wedge")),
+)
+
+SPECS = {"globular_cluster": _CONTAINER, "superbubble": _CONTAINER, "facility": _FACILITY, "star": _STAR, "planet": _PLANET, "moon": _MOON, "belt": _BELT, "comet": _COMET, "nebula": _NEBULA,
          "asteroid_field": _ASTEROID_FIELD, "black_hole": _BLACK_HOLE, "neutron_star": _NEUTRON_STAR,
          "supernova_remnant": _SUPERNOVA_REMNANT, "rogue_planet": _ROGUE_PLANET,
          "interstellar_comet": _INTERSTELLAR_COMET, "quasar": _QUASAR}
@@ -383,6 +390,20 @@ _BODY_NOT_SHOWN = {
               _EQUIPMENT),
 }
 
+def _container_not_shown():
+    """The columns of `galaxy_containers` a cluster's or a superbubble's sheet leaves out."""
+    return {
+        **_excuse(("id", "uid", "name")),
+        "kind": "the kind of the page; the header and the About text name it",
+        "component_id": "the cluster's galaxy component; the About text gives its mass, age and metallicity",
+        "bubble_col": "the superbubble's cell in the bubble grid; bookkeeping",
+        "bubble_row": "the superbubble's cell in the bubble grid; bookkeeping",
+        "bubble_n": "the superbubble's number in its cell; bookkeeping",
+        "created_at": "when the row was written; bookkeeping",
+        **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block shows it" for axis in "xyz"},
+    }
+
+
 NOT_SHOWN = {
     "star": {
         **_excuse(("id", "uid", "star_system_id", "parent_type", "parent_id", "epoch_unix",
@@ -427,6 +448,8 @@ NOT_SHOWN = {
     "rogue_planet": _phenomenon_not_shown("rogue_planet"),
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
+    "globular_cluster": _container_not_shown(),
+    "superbubble": _container_not_shown(),
     "facility": {
         **_excuse(("id", "uid", "name", "star_system_id", "star_id", "epoch_unix", "next_update_due")),
         "planet_id": "the planet it stands on, a link in the Location chain",
