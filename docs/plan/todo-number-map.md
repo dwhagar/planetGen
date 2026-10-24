@@ -1367,7 +1367,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.636 | StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug) | none | done, PR #2653 |
 | GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | open |
 | GEN.638 | Planets and belts can sit past the survival ceiling because the age is raised after they are placed, so test_wide_binary_system_generates_and_stays_within_bounds[G2V] fails in about 0.4 percent of draws (bug) | none | done, PR #2695 |
-| GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) | none | open |
+| GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) | none | done, PR #3020 |
 | GEN.640 | GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree | none | open |
 | GEN.641 | Research: the interior of a giant planet, ice giant and brown dwarf: the layers (molecular, liquid and metallic hydrogen and helium, helium rain, a dilute core), whether there is a rocky or icy core, and what the core is made of | none | done, PR #2800 |
 | GEN.642 | Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described | none | done, PR #2912 |
