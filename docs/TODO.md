@@ -18765,6 +18765,17 @@ clears each one.
   Hunt (main-green rule). Related: TEST.350.
   Prerequisites: none. Related: TEST.350.
 
+- [ ] **TEST.353 test_interior_heat::test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_an_output is red on main: a generated body has urey_ratio 2.09 and the test caps it at 1.5 (bug)**
+  Found by Lane I (relayed 4:10 PM EDT 2026-10-24 as the lane reported;
+  filed by the TODO thread). Not Lane I's change. Do: find out whether
+  the generated Urey ratio of 2.09 is a plausible output of the interior
+  heat model (then the cap in the test is wrong, with the physics reason
+  written down) or a model fault (then fix the model); do not loosen the
+  test without that reason. Done: the test passes on main for a stated
+  reason. Owner: Lane H (owns the interior heat model, GEN.721 and
+  GEN.735).
+  Prerequisites: none. Related: GEN.721, GEN.735.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
