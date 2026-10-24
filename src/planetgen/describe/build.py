@@ -417,7 +417,7 @@ def _equipment_block(planet):
         made = "no tech level makes it" if tech >= 99 else f"made at tech level {tech:g}"
         rows.append(fact(f"equipment-{index}", SLOT_LABELS[item.slot],
                          model.chem_text(item.name[:1].upper() + item.name[1:]),
-                         f": {item.severity}; {item.domain.lower()}; {made}"))
+                         f": {item.severity}; {' and '.join(domain.lower() for domain in item.domains)}; {made}"))
     if levels.get("shelter_column_g_cm2"):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
     if levels.get("outside_hours") is not None:

@@ -294,7 +294,7 @@ def _habitability_chip(body, help_url=None):
         return ""
     chips = []
     for item in levels["items"]:
-        tier = body.get(f"tier_{item['domain'].lower()}") or 0
+        tier = max(body.get(f"tier_{domain.lower()}") or 0 for domain in item.get("domains") or [item["domain"]])
         text = item["item"][:1].upper() + item["item"][1:]
         hidden = ' <span class="sr-only">(recommended)</span>' if item["severity"] == "recommended" else ""
         chip = f'<span class="flag flag-eq flag-eq-{item["severity"]} flag-tier flag-tier-{tier}">{esc(text)}{hidden}</span>'
