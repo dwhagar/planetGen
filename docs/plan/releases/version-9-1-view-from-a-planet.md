@@ -28,6 +28,7 @@ The view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT): the photometry
 | VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | VIEW.11, VIEW.12, VIEW.13 | Split from VIEW.3. |
 | VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | VIEW.4, VIEW.12 | Split from VIEW.3. |
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | VIEW.15, VIEW.16 | Split from VIEW.3. |
+| MAP.285 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | MAP.272, VIEW.14 | Body rendering R16; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | VIEW.3 | Render the view as a PNG, with constellations | VIEW.15, VIEW.16, VIEW.17 |  |
 | VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | VIEW.2, VIEW.3 | Headline of 9.1 (Boss, 11:42 PM EDT). |
 

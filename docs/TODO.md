@@ -1093,8 +1093,7 @@ with `clamp()`.
   A short line in the info panel naming the inputs. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   10), filed by the body-rendering design thread, 10:30 PM EDT
-  2026-10-23 as the thread reported. Version placement is a proposal
-  until Boss answers the choices in section 11 of the draft.
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271.
 
 - [ ] **UX.159 Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests**
@@ -2875,70 +2874,113 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   3), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
-  Prerequisites: none.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Decision (2026-10-09): Boss answered the body-rendering choices (10:26
+  PM EDT 2026-10-23) and approved the design (10:28 PM EDT): 1 split the
+  plan across versions with the first groundwork in 8.1; 2 canvas
+  textures cached per body; 3 the server computes and stores the colour;
+  4 wait for the composition spine for the finished feature, but at
+  least one task starts before it (R4a); 5 the vegetation tint, with the
+  change that a world whose life is not green mixes in the colour of its
+  own evolutionary life chemistry; 6 lumpy meshes under the size
+  threshold; 7 thermal glow on hot worlds only, no city lights until
+  9.2. The R items were placed by version from section 11 of the draft;
+  TEST.308 (R11) was dropped because tests ride with each item.
 
 - [ ] **MAP.272 Shared body painter module: seeded noise, texture cache, paint queue and size tiers**
   One module for the seeded noise, the LRU texture cache, the paint
   queue and the size tiers the painters share. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   3, 9), filed by the body-rendering design thread, 10:30 PM EDT
-  2026-10-23 as the thread reported. Version placement is a proposal
-  until Boss answers the choices in section 11 of the draft.
-  Prerequisites: none.
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
 
-- [ ] **MAP.273 Solid world painter: ocean, land, ice and cloud from the stored fractions and the atmosphere colour**
+- [ ] **MAP.273 Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel**
   Paints from stored water fractions, the ocean class and the atmosphere
   colour; exact fractions need the ground items. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
-  Prerequisites: MAP.271, MAP.272, GEN.441, GEN.461, GEN.462.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272.
 
 - [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
   Land colour follows the bulk fractions instead of the temperature and
   class estimate. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.411, GEN.428, GEN.429, MAP.273.
 
-- [ ] **MAP.275 Gas and ice giant painter: bands, storms, chemistry tint, thermal glow and rings with gaps**
+- [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
   Bands, storms, a chemistry tint, thermal glow, and rings with
   resonance gaps. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   5), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
-  Prerequisites: MAP.271, MAP.272, GEN.422.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272, GEN.670, GEN.419.
 
 - [ ] **MAP.276 Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow**
   Class texture, spots by activity, luminosity glow, white dwarf and
   brown dwarf variants. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   6), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, MAP.272.
 
 - [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
   Thin air, none and thick air each draw their own glow. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, DB.96.
 
-- [ ] **MAP.278 Phenomena painters: rogue planet, comet, nebula, remnant, asteroid field and black hole disc**
+- [ ] **MAP.278 Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data**
   Drawn from stored data and classes; comet species need GEN.488. Design
   draft design-drafts/body-rendering-from-composition-2026-10-24.md
   (section 7), filed by the body-rendering design thread, 10:30 PM EDT
-  2026-10-23 as the thread reported. Version placement is a proposal
-  until Boss answers the choices in section 11 of the draft.
-  Prerequisites: MAP.271, MAP.272, GEN.488.
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: MAP.271, MAP.272.
+
+- [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
+  Spheres above the threshold. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.272.
+
+- [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: DB.96, GEN.414.
+
+- [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: GEN.422, MAP.275.
+
+- [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
+  Stand-in until sourced by GEN.670. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: GEN.670, MAP.280, GEN.649.
+
+- [ ] **MAP.283 Comet colour from the coma species**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.278, GEN.488.
+
+- [ ] **MAP.284 Night-side thermal glow on hot worlds, with no city lights until 9.2**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.280.
+
+- [ ] **MAP.285 Close-up tier: fragment-shader detail over about 500 px, shared with the sky view**
+   Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.272, VIEW.14.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -14991,9 +15033,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins are registered in the gap plan until sourced. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   5, 10), filed by the body-rendering design thread, 10:30 PM EDT
-  2026-10-23 as the thread reported. Version placement is a proposal
-  until Boss answers the choices in section 11 of the draft.
-  Prerequisites: none.
+  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17000,9 +17040,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   MAP.244 then reads it. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
-  as the thread reported. Version placement is a proposal until Boss
-  answers the choices in section 11 of the draft.
-  Prerequisites: GEN.414.
+  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Prerequisites: GEN.414, GEN.418, GEN.419.
 
 - [ ] **DB.97 Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message**
   Follows the DB.4 marker detection. Next in the regression-test cleanup
@@ -17018,6 +17057,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   C1, D1, E1), relayed by the regression-test cleanup lane at 10:30 PM
   EDT 2026-10-23 as the lane reported.
   Prerequisites: DB.97.
+
+- [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
+  One migration, one generator epoch and the column_units.py entries.
+  Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Prerequisites: MAP.274.
 
 ## API: The JSON API
 
@@ -20430,14 +20476,6 @@ clears each one.
   reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.413.
-
-- [ ] **TEST.308 Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling**
-  Each lands with its own item. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  10), filed by the body-rendering design thread, 10:30 PM EDT
-  2026-10-23 as the thread reported. Version placement is a proposal
-  until Boss answers the choices in section 11 of the draft.
-  Prerequisites: MAP.272.
 
 ## USR: User accounts
 
