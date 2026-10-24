@@ -18543,13 +18543,23 @@ clears each one.
   chromium_headless_shell-1194 but 1243 was installed; the lane linked
   it locally.
   Research (2026-10-09, 10-24 Core 1): Core 1 (12:43 PM EDT 2026-10-24
-  as the lane reported): the browser fixture in
-  src/tests/test_web_a11y.py (line 408) raises KeyError: planets because
-  /api/systems/<id> no longer returns planets (worlds replaced it, the
-  unified objects change), so every test in the browser phase errors at
-  setup (409 errors in its gate) and the web.system variants fail. A
-  test that was not updated, not a product bug; this is the biggest of
-  the causes listed here. Fix by reading worlds in the fixture.
+  as the lane reported) saw the browser fixture in
+  src/tests/test_web_a11y.py line 408 raise KeyError: planets, so every
+  test in the browser phase errored at setup (409 errors) on its
+  machine. Bug Hunt (12:53 PM EDT as the lane reported) could not
+  reproduce this on main 80976d96a on a fresh box: /api/systems/<id>
+  still returns planets, and the web.system variants fail only on the
+  known axe findings (class links 1.06:1, links inside a summary), which
+  UX.173 removes. So the setup error looks machine-specific (a lost
+  Redis run record, or MySQL dead after a container restart with stale
+  /var/run/mysqld/*.lock files: remove them and run service mysql
+  start). Bug Hunt makes the fixture assert status 200 and show the
+  response text before reading planets; ask Core 1 for that first error
+  line if it recurs.
+  Research (2026-10-09, 10-24 Bug Hunt): Bug Hunt takes the fixture
+  diagnosis (12:53 PM EDT 2026-10-24); the axe findings are fixed for
+  real by UX.173 (detail pages lane), so the variants are not to be
+  skipped.
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
@@ -18692,6 +18702,9 @@ clears each one.
   Research (2026-10-09, 10-24 Core 1): Core 1 (12:43 PM EDT 2026-10-24
   as the lane reported) sees it fail every time on main 8.0.2205 with
   the lane test env and the datasets fetched.
+  Research (2026-10-09, 10-24 Bug Hunt): Bug Hunt takes this (12:53 PM
+  EDT 2026-10-24 as the lane reported): a one-line key-set fix (the tile
+  now carries worlds, MAP.220), fixed and green, in its next PR.
   Prerequisites: none. Related: TEST.337, TEST.338, TEST.340.
 
 ## USR: User accounts
