@@ -245,14 +245,14 @@ UNCHARTED_CELL = (1, 0, 0)
 hole and a nebula (MAP.162)."""
 
 SECTOR_STATS = {
-    SECTOR_ID: (900, 1200, 4.5, 3000.0),
-    8: (40, 60, 0.5, 900.0),
-    9: (0, 0, None, 0.0),
-    10: (6, 8, 11.0, 4.0),
+    SECTOR_ID: (900, 1200, 4.5, 3000.0, 14),
+    8: (40, 60, 0.5, 900.0, 3),
+    9: (0, 0, None, 0.0, 0),
+    10: (6, 8, 11.0, 4.0, 1),
 }
-"""Each fixture sector's stored systems, stars, mean star age (Gy) and summed
-luminosity (DB.14): a dense average one, a young bright one, one with no
-stars and a sparse old one."""
+"""Each fixture sector's stored systems, stars, mean star age (Gy), summed
+luminosity (DB.14) and habitable worlds (MAP.143): a dense average one, a young
+bright one, one with no stars and a sparse old one."""
 
 
 def galaxy_stage(at=None):
@@ -284,7 +284,7 @@ def _stats(ids):
     stars = sum(r[1] for r in rows)
     return {"systems": sum(r[0] for r in rows), "expected_systems": 0.0, "stars": stars,
             "mean_age_gy": sum(r[2] * r[1] for r in rows if r[1]) / stars if stars else None,
-            "luminosity_sol": sum(r[3] for r in rows)}
+            "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows)}
 
 
 def _children(counts):
@@ -357,6 +357,10 @@ class FixtureApi:
 
     def auth_me(self, cookie_header):
         return None
+
+    def get_galaxy_nebula_cover(self, db, at=None, g=None):
+        """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""
+        return {"at": at, "child_m": 1, "cells": []}
 
     def get_galaxy_changes(self, db, since=None):
         return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "tiles": []}
@@ -450,7 +454,8 @@ class FixtureApi:
 
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_nebula_shape", "get_system_scene", "get_uncharted_sector")
+              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
+              "get_uncharted_sector")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage", "get_galaxy_window")
 
 

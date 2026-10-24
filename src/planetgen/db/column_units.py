@@ -236,7 +236,7 @@ TABLES = {
     },
     "galaxy_block_stats": {
         "index": ("m", "shell_index", "band_index", "wedge_index"),
-        "count": ("sector_count", "systems", "expected_systems", "stars"),
+        "count": ("sector_count", "systems", "expected_systems", "stars", "habitable_worlds"),
         "Gyr": ("age_sum",),
         "Lsun": ("luminosity_sol",),
     },
@@ -686,7 +686,7 @@ TABLES = {
         "Lsun": ("bright_level_sol", "level_before_fill_sol", "mean_luminosity_sol", "total_luminosity_sol"),
         "Msun": ("bright_mass_sol",),
         "ratio": ("relative_density",),
-        "count": ("expected_systems", "actual_systems", "actual_stars"),
+        "count": ("expected_systems", "actual_systems", "actual_stars", "habitable_worlds"),
         "K": ("mean_temperature_k",),
         "Gyr": ("mean_age_gy",),
     },

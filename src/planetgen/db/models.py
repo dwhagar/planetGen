@@ -544,6 +544,7 @@ galaxy_block_stats = sa.Table(
     sa.Column('stars', mysql.BIGINT(unsigned=True), nullable=False),
     sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
     sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('habitable_worlds', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -2032,6 +2033,7 @@ sector_stats = sa.Table(
     sa.Column('mean_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('mean_age_gy', mysql.DOUBLE(), nullable=True),
     sa.Column('total_luminosity_sol', mysql.DOUBLE(), nullable=True),
+    sa.Column('habitable_worlds', mysql.INTEGER(), nullable=True),
     sa.Column('filled_at', mysql.TIMESTAMP(fsp=3), nullable=True),
     sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_sector_stats_level', 'bright_level_sol'),

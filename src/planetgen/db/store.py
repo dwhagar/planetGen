@@ -74,6 +74,7 @@ from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.physics import activity, aerosols, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -1543,6 +1544,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (139, _column_marker("sector_stats", "habitable_worlds")),
     (138, _column_marker("planets", "tau_cloud")),
     (137, _column_marker("planets", "temp_swing_k")),
     (136, _column_marker("planets", "eq_body")),
@@ -4648,6 +4650,9 @@ def _refresh_cloud_doses(conn, system_changes):
                     _update_by_id(conn, table, columns, updates, touch=True)
                 if scored_updates:
                     _update_by_id(conn, table, columns + habitability_world.SCORE_FIELDS, scored_updates, touch=True)
+    from planetgen.db import block_stats    # MAP.143: a new score can move a sector's habitable count
+
+    block_stats.refresh_sectors(conn, recount_habitable_worlds(conn, [change[0] for change in system_changes]))
 
 
 def refresh_habitability(conn, system_id):
@@ -6556,12 +6561,57 @@ is a plain mean over the first fills, then weighs each new fill 1 in
 this many, so it follows a galaxy whose model drifts."""
 
 
+def sector_habitable_worlds(conn, sector_id):
+    """
+    MAP.143: how many planets and moons the systems of one sector hold that are potentially habitable: an overall PHI-6
+    score that is Blue or Green (`habitability.POTENTIALLY_HABITABLE_MIN_SCORE`, the stored `phi4`; a body with no score
+    is not counted).
+    """
+    floor = habitability.POTENTIALLY_HABITABLE_MIN_SCORE
+    planets = conn.execute(
+        "SELECT COUNT(*) AS n FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id"
+        " WHERE ss.sector_id = ? AND p.phi4 >= ?", (sector_id, floor)).fetchone()["n"]
+    moons = conn.execute(
+        "SELECT COUNT(*) AS n FROM moons m JOIN star_systems ss ON ss.id = m.star_system_id"
+        " WHERE ss.sector_id = ? AND m.phi4 >= ?", (sector_id, floor)).fetchone()["n"]
+    return int(planets) + int(moons)
+
+
+def recount_habitable_worlds(conn, system_ids):
+    """
+    MAP.143: puts `sector_stats.habitable_worlds` right again for the sectors of `system_ids` after their scores
+    were worked out again (a re-score, a dose refresh). Only a filled sector's row is touched. Returns the
+    `(shell, band, wedge)` of each sector whose count changed, for `block_stats.refresh_sectors`.
+    """
+    sector_ids = set()
+    for system_id in system_ids:
+        row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+        if row is not None and row["sector_id"] is not None:
+            sector_ids.add(row["sector_id"])
+    changed = []
+    for sector_id in sorted(sector_ids):
+        stats = conn.execute(
+            "SELECT s.shell_index, s.band_index, s.wedge_index, st.habitable_worlds FROM sectors s"
+            " JOIN sector_stats st ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
+            " AND st.wedge_index = s.wedge_index WHERE s.id = ? AND st.bright_level_sol = 0", (sector_id,)).fetchone()
+        if stats is None:
+            continue
+        count = sector_habitable_worlds(conn, sector_id)
+        if count != stats["habitable_worlds"]:
+            address = (stats["shell_index"], stats["band_index"], stats["wedge_index"])
+            conn.execute("UPDATE sector_stats SET habitable_worlds = ? WHERE shell_index = ? AND band_index = ?"
+                         " AND wedge_index = ?", (count, *address))
+            changed.append(address)
+    return changed
+
+
 def record_sector_stats(conn, sector_id, address, center_pc):
     """
     Writes a sector's stats once it is generated (PERF.11, GEN.44): its
     expected density from the galaxy model, the systems and stars it got,
     the mean temperature, mean luminosity and age of those stars and
-    their summed luminosity (DB.14; the map colors from these), and
+    their summed luminosity (DB.14; the map colors from these), the habitable
+    worlds they hold (MAP.143, `sector_habitable_worlds`), and
     level 0 (filled), keeping the level it had in
     `level_before_fill_sol`; then folds its actual-to-expected systems
     into `galaxy_shape`'s decaying average. Inside the sector's own save,
@@ -6603,13 +6653,14 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
-        " mean_age_gy, total_luminosity_sol, filled_at)"
-        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
+        " mean_age_gy, total_luminosity_sol, habitable_worlds, filled_at)"
+        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
         " ON DUPLICATE KEY UPDATE level_before_fill_sol = IF(bright_level_sol = 0, level_before_fill_sol,"
         " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
         " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, mean_age_gy = ?,"
-        " total_luminosity_sol = ?, filled_at = CURRENT_TIMESTAMP(3)",
-        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, age, total_luminosity))),
+        " total_luminosity_sol = ?, habitable_worlds = ?, filled_at = CURRENT_TIMESTAMP(3)",
+        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, age, total_luminosity,
+                          sector_habitable_worlds(conn, sector_id)))),
     )
     if expected:
         ratio = systems / expected
@@ -6633,7 +6684,7 @@ def forget_sector_fill(conn, address):
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
-        " mean_age_gy = NULL, total_luminosity_sol = NULL,"
+        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL,"
         " filled_at = NULL WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0",
         tuple(address),
     )

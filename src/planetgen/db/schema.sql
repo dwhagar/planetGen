@@ -1427,12 +1427,13 @@
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
 --   `physics/equipment.py`, required and recommended) and `shelter_column_g_cm2` and `outside_hours` (DOUBLE); all NULL for a gas giant and an unscored body.
---
 -- v137 (GEN.656): `planets` and `moons` also keep where the mean surface temperature is higher or lower (`physics/regional_temperature.py`, kelvin, NULL for a gas giant and an unscored body):
 --   a world that turns on its own has the annual means of its latitude bands `temp_polar_k`, `temp_north_k`, `temp_equator_k` and `temp_south_k` and the day and night swing
 --   `temp_swing_k`; a tidally locked world has `temp_day_side_k`, `temp_terminator_k` and `temp_night_side_k` instead. A pure function of stored columns, so no epoch.
 -- v138 (GEN.414, DB.68): `planets` and `moons` also keep the haze, dust and cloud optical depths at 550 nm (`tau_haze`, `tau_dust`, `tau_cloud`), the cloud cover and the number that picks
 --   the aerosol optics inside their brackets (`aerosol_draw`). A row saved before v138 has NULL: the regenerated galaxy draws them.
+-- v139 (MAP.143): `sector_stats.habitable_worlds` (the planets and moons of a generated sector's systems that are Blue or Green overall, NULL before a fill) and
+--   `galaxy_block_stats.habitable_worlds` (their sum over a block's generated sectors), so the Galaxy Map can colour a sector or block by how many it holds.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1774,6 +1775,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
     stars             BIGINT UNSIGNED NOT NULL,
     age_sum           DOUBLE NOT NULL,
     luminosity_sol    DOUBLE NOT NULL,
+    habitable_worlds  BIGINT UNSIGNED NOT NULL DEFAULT 0,   -- v139 (MAP.143)
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -3613,6 +3615,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     mean_luminosity_sol    DOUBLE,
     mean_age_gy            DOUBLE,
     total_luminosity_sol   DOUBLE,
+    habitable_worlds       INT,   -- v139 (MAP.143): planets and moons in the sector's systems that are Blue or Green overall (PHI-6)
     filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

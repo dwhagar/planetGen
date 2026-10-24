@@ -2475,7 +2475,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
     page.locator("#galaxymap3d-menu > summary").click()
-    for mode in ("density", "age", "luminosity", "stars"):
+    for mode in ("density", "age", "luminosity", "stars", "habitable"):
         page.select_option("#galaxymap3d-color-by", mode)
         _settle(page)
         assert f"color={mode}" in _query(page)
@@ -2485,7 +2485,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     # Reload on the address: the select and the mode follow it.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
-    assert page.input_value("#galaxymap3d-color-by") == "stars"
+    assert page.input_value("#galaxymap3d-color-by") == "habitable"
     legend.wait_for(state="visible", timeout=15000)  # drawn once the tiles are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()

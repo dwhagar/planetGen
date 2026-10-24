@@ -1874,6 +1874,7 @@ row per sector address a backfill reached or a fill generated. See
 | `mean_temperature_k`, `mean_luminosity_sol` | DOUBLE | nullable | The mean temperature and luminosity (L_sun) of its systems' stars. |
 | `mean_age_gy` | DOUBLE | nullable | The mean age (Gy) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's hue comes from it. |
 | `total_luminosity_sol` | DOUBLE | nullable | The summed luminosity (L_sun) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's brightness comes from it. No color is stored: the page works it out (MAP.128). |
+| `habitable_worlds` | INT | nullable | The planets and moons in its systems that are potentially habitable (overall PHI-6 Blue or Green); NULL before a fill (v135, MAP.143). The Galaxy Map's Habitable worlds color comes from it. |
 | `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
@@ -2173,6 +2174,10 @@ Migration 0136 adds the `eq_*` TINYINT columns, `shelter_column_g_cm2` and `outs
 ### v135 (GEN.413): `planets.ozone_column_du` and `moons.ozone_column_du`
 
 Migration 0135 adds `ozone_column_du` (DOUBLE, nullable) at the end of `planets` and `moons`: the ozone column in Dobson units (1 DU = 2.687e16 molecules/cm2), drawn with the body's surface dose from its oxygen partial pressure, gravity and its star's temperature (`planetgen/physics/ozone.py`: the Kozakis et al. 2022 fit by oxygen level and host, a structure factor of 0.85 to 1.71, the abiotic branch below 0.01 percent of the present oxygen; docs/design/atmosphere-colour.md section 9). 0 for a world with no oxygen, NULL for a gas giant and for a row made before the revision (nothing was drawn for it; no backfill, the regenerated galaxy has them). `uv_surface_index` and `ozone_loss_flag` read it. The version is detected from `planets.ozone_column_du`.
+
+### v139 (MAP.143): `habitable_worlds` on `sector_stats` and `galaxy_block_stats`
+
+Migration 0139 adds `sector_stats.habitable_worlds` (INT, nullable: the planets and moons in the sector's systems that are potentially habitable: an overall PHI-6 score that is Blue or Green, `habitability.POTENTIALLY_HABITABLE_MIN_SCORE`, read from the stored `phi4`) and `galaxy_block_stats.habitable_worlds` (BIGINT UNSIGNED, not null, default 0: their sum over the block's generated sectors). `store.record_sector_stats` writes the sector's count when it is filled (`store.sector_habitable_worlds`), `forget_sector_fill` clears it, and `db/block_stats.py` adds it up the ladder like the other sums; the stage API (`query.galaxy_stage`, `galaxy_block_stats`) reports it as `stats.habitable_worlds`, which the Galaxy Map's Color by Habitable worlds reads. The migration counts every filled sector from the scores already stored, a shell at a time, and rebuilds the block totals. The version is detected from `sector_stats.habitable_worlds`.
 
 ### v134 (GEN.267): the star count, its cap and the multi-star prevalence on a stored config
 

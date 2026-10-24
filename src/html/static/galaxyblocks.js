@@ -117,7 +117,7 @@ export function blockOpacity(cell) {
 // ranks a cell against these (`rangeShare`).
 export function statsRanges(cells) {
   const fresh = function () { return { min: Infinity, max: -Infinity, mean: 0, count: 0 }; };
-  const ranges = { density: fresh(), luminosity: fresh(), age: fresh(), stars: fresh() };
+  const ranges = { density: fresh(), luminosity: fresh(), age: fresh(), stars: fresh(), habitable: fresh() };
   cells.forEach(function (cell) {
     const stats = cell.stats;
     if (!stats || !(stats.stars > 0) || !(cell.filled > 0)) {
@@ -135,6 +135,9 @@ export function statsRanges(cells) {
     add(ranges.luminosity, luminosity);
     add(ranges.age, stats.mean_age_gy || 0);
     add(ranges.stars, stats.stars / cell.filled);
+    if (stats.habitable_worlds > 0) {
+      add(ranges.habitable, COLOR_MODES.habitable.value(stats, cell.filled));
+    }
   });
   Object.keys(ranges).forEach(function (name) {
     const range = ranges[name];
@@ -142,6 +145,11 @@ export function statsRanges(cells) {
   });
   return ranges;
 }
+
+// MAP.143: the steps of the Habitable worlds colour and their hue (sRGB, one hue, light rising with the count so
+// it still reads in greyscale and against the dark map).
+const HABITABLE_BINS = 5;
+const HABITABLE_RAMP = [[0.10, 0.30, 0.18], [0.18, 0.49, 0.29], [0.31, 0.68, 0.37], [0.56, 0.83, 0.42], [0.83, 0.96, 0.54]];
 
 // MAP.131: what the Galaxy Map's fill can show. "default" is the age hue,
 // density opacity and luminosity brightness above; the others color every
@@ -170,6 +178,15 @@ export const COLOR_MODES = {
     value: function (stats, filled) { return stats.stars / filled; },
     text: function (v) { return formatLegend(v); },
   },
+  // MAP.143: the habitable planets and moons (overall PHI-6 Blue or Green) a cell's sectors hold, per charted sector so
+  // sectors and blocks of any size compare, on a log scale in HABITABLE_BINS steps of one hue. A cell holding none
+  // is drawn as unfilled space (`empty`), and the range runs over the cells that do hold some.
+  habitable: {
+    label: "Habitable worlds", range: "habitable", unit: "habitable worlds per charted sector", bins: HABITABLE_BINS,
+    value: function (stats, filled) { return Math.log10(stats.habitable_worlds / filled); },
+    text: function (v) { return formatLegend(Math.pow(10, v)); },
+    empty: function (stats) { return !(stats.habitable_worlds > 0); },
+  },
 };
 
 function formatLegend(value) {
@@ -184,6 +201,15 @@ function formatLegend(value) {
 
 // The ramp of a single statistic, low to high (sRGB).
 const STAT_RAMP = [[0.18, 0.10, 0.45], [0.10, 0.55, 0.60], [0.95, 0.85, 0.25]];
+
+// The step (0 to HABITABLE_BINS - 1) a share of a binned scale falls in.
+export function binOf(share, bins) {
+  return Math.max(0, Math.min(bins - 1, Math.floor(share * bins)));
+}
+
+export function habitableBinColor(bin) {
+  return HABITABLE_RAMP[Math.max(0, Math.min(HABITABLE_BINS - 1, bin))];
+}
 
 export function statRampColor(share) {
   const t = Math.max(0, Math.min(1, share));
@@ -205,10 +231,14 @@ export function legendFor(mode, ranges) {
   // The scale's own ends (padded around the mean for a few cells); a count
   // or an age never reads below 0.
   const ends = scaleEnds(range, info.range);
-  const low = info.range === "luminosity" ? ends[0] : Math.max(0, ends[0]);
-  const stops = [0, 0.25, 0.5, 0.75, 1].map(function (t) {
-    return "#" + statRampColor(t).map(function (v) { return ("0" + Math.round(v * 255).toString(16)).slice(-2); }).join("");
-  });
+  const low = info.range === "luminosity" || info.range === "habitable" ? ends[0] : Math.max(0, ends[0]);
+  const hex = function (color) {
+    return "#" + color.map(function (v) { return ("0" + Math.round(v * 255).toString(16)).slice(-2); }).join("");
+  };
+  // A binned mode's legend is its steps side by side (hard stops), a continuous one's the ramp.
+  const stops = info.bins ? [].concat.apply([], HABITABLE_RAMP.map(function (color, n) {
+    return [hex(color) + " " + (100 * n / info.bins) + "%", hex(color) + " " + (100 * (n + 1) / info.bins) + "%"];
+  })) : [0, 0.25, 0.5, 0.75, 1].map(function (t) { return hex(statRampColor(t)); });
   return { mode: mode, label: info.label, unit: info.unit, lowText: info.text(low), highText: info.text(ends[1]), stops: stops };
 }
 
@@ -219,7 +249,7 @@ export function legendFor(mode, ranges) {
 // statistic's own units: logs for density and luminosity), so each item
 // sits about where it belongs around the average.
 export const FEW_ITEMS = 3;
-export const SCALE_MIN_HALF_SPAN = { density: 1, luminosity: 1, age: 3, stars: 2 };
+export const SCALE_MIN_HALF_SPAN = { density: 1, luminosity: 1, age: 3, stars: 2, habitable: 1 };
 
 // The two ends of a statistic's scale, [low, high], from `range` (the
 // statsRanges entry called `name`).
@@ -251,8 +281,12 @@ function rangeShare(value, range, name) {
 // FILLED_FULL_SYSTEMS, on a log scale), not a rank among the cells in
 // view. A filled block with no stars only lifts the unfilled opacity by
 // FILLED_EMPTY_STEP.
+export function unfilledOpacity(cell) {
+  return BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
+}
+
 export function statsOpacity(cell) {
-  const base = BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
+  const base = unfilledOpacity(cell);
   if (!(cell.filled > 0)) {
     return base;
   }
@@ -301,8 +335,11 @@ export function statsColor(cell, unfilled, ranges, mode) {
   }
   const single = mode && COLOR_MODES[mode] && COLOR_MODES[mode].range ? COLOR_MODES[mode] : null;
   if (single) {
+    if (single.empty && single.empty(stats)) {
+      return unfilled;
+    }
     const share = rangeShare(single.value(stats, cell.filled), ranges[single.range], single.range);
-    return statRampColor(share).map(srgbToLinear);
+    return (single.bins ? habitableBinColor(binOf(share, single.bins)) : statRampColor(share)).map(srgbToLinear);
   }
   const luminosity = rangeShare(Math.log10(Math.max(stats.luminosity_sol, 1e-9)), ranges.luminosity, "luminosity");
   const brightness = BRIGHTNESS_FLOOR + (1 - BRIGHTNESS_FLOOR) * luminosity;
@@ -368,7 +405,7 @@ export function createBlockScene(config) {
       const ramp = function () { return prismColor(shape ? prismShade(cell, armAmplitude) : 0.5); };
       colorOf.push(statsColor(cell, ramp(), ranges, colorBy));
       alphaOf.push(Math.round(cell.opacity * 255));
-      fillOf.push(Math.round(blockFillStep(cell) * 255));
+      fillOf.push(cell.noFill ? 0 : Math.round(blockFillStep(cell) * 255));
     });
     for (let v = 0; v < count; v++) {
       const owner = built.owners[v];
@@ -415,6 +452,11 @@ export function createBlockScene(config) {
         cell.meanDensity = sampled.mean;
       }
       cell.opacity = statsOpacity(cell);
+      const mode = COLOR_MODES[colorBy];
+      cell.noFill = !!(mode.empty && cell.filled > 0 && cell.stats && mode.empty(cell.stats));
+      if (cell.noFill) {
+        cell.opacity = unfilledOpacity(cell);
+      }
       if (dim && dim(cell)) {
         cell.opacity *= 0.2;
       }

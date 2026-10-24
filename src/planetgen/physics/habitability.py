@@ -65,6 +65,10 @@ POTENTIALLY_HABITABLE_TIERS = ("Blue", "Green")
 """tuple: The overall PHI-6 colours a world can have and still count as "potentially habitable" in a system's overview
 (GEN.220; Decided default, Boss can move the line)."""
 
+POTENTIALLY_HABITABLE_MIN_SCORE = 0.75
+"""float: The lowest overall PHI-6 score that is still Green (`tier`), so the lowest that counts as potentially habitable
+(Boss, 2026-10-23: "habitable" is an overall Blue or Green); the stored `phi4` of a planet or moon is compared with it."""
+
 PRESSURE_BAND = (limit("pressure_low_outer_kpa"), ARMSTRONG_KPA, limit("mask_min_kpa"), limit("pressure_no_gear_kpa"),
                  limit("pressure_blue_max_kpa"), limit("pressure_narcosis_kpa"), limit("pressure_hyperbaric_max_kpa"),
                  limit("pressure_outer_kpa"))

@@ -22,7 +22,7 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import containers as containersDb, nebula_blocks, query, store
+from planetgen.db import block_stats, containers as containersDb, nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import containers as generationContainers
@@ -2141,9 +2141,11 @@ def rescore_habitability_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         updated = 0
-        for row in conn.execute("SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id",
-                                (params["low"], params["high"])).fetchall():
-            updated += store.refresh_habitability(conn, row["id"])
+        system_ids = [row["id"] for row in conn.execute(
+            "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+        for system_id in system_ids:
+            updated += store.refresh_habitability(conn, system_id)
+        store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
         conn.commit()
         return {"updated": updated, "ids": params["high"] - params["low"] + 1}
     finally:
@@ -2162,6 +2164,12 @@ def fill_habitability(args):
         args, "habitability", "Habitability", {}, "Re-scoring habitability",
         lambda detail: f"Habitability: {detail['total']:,} systems to re-score.", "updated")
     log.normal(f"Re-scored the habitability of {updated:,} bodies.")
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        block_stats.rebuild(conn)    # MAP.143: the blocks' habitable-world totals follow the sectors' counts
+        conn.commit()
+    finally:
+        conn.close()
     return updated
 
 
