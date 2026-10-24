@@ -13029,7 +13029,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-   Owner: Habitability lane E (radiation link, help, tests), moved from lane I at 9:10 PM EDT 2026-10-23 on Boss's word that this blocker starts now: it has no open prerequisites and lane J's object-model chain waits behind it from about Saturday evening; lane I keeps GEN.557 (lane I was asked to reply only if it already has a branch).
+  Owner: Blocker 5 lane (build lane for the top blockers, 2026-10-24), moved from lane E at 10:05 PM EDT 2026-10-23: lane E had only read it, had not started it, and handed it over; it has no open prerequisites and 22 items wait behind it. Warning from lane E: lane I's #2751 edits generation/planet.py SERIALIZABLE_FIELDS and planets.py, so the Planet slice rebases on it.
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
