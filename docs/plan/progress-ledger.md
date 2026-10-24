@@ -1422,3 +1422,5 @@ Baseline: PR #1817.
 | SEC.35 | 8.1 | The headline closes |
 | SEC.34 | 8.1 | The headline closes |
 | TEST.335 | 8.1 | Bugs and flaky tests |
+| TEST.365 | 8.1 | The headline closes |
+| TEST.366 | 8.1 | The headline closes |

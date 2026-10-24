@@ -2863,8 +2863,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.362 | test_object_rows read-back fails on main with KeyError partial_pa (bug) | none | open |
 | TEST.363 | test_protection describer disagrees with habitability_explain on main (bug) | none | open |
 | TEST.364 | Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits) | none | open |
-| TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | open |
-| TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | open |
+| TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | done, PR #3142 |
+| TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Bug 1, 7:20 PM EDT 2026-10-24 as the lane reported) |
 | TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
