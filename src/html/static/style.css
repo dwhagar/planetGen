@@ -2323,15 +2323,6 @@ code {
 .sysmap-nebula-dark { --nebula-wash: rgba(0, 0, 0, 0.3); }
 .sysmap-nebula-other { --nebula-wash: rgba(201, 168, 224, 0.14); }
 
-/* UX.15: the info panel sits beside the map when the panel has room for
-   both a usable map (about 26rem) and a readable text column (18-26rem,
-   roughly 45-65 characters); otherwise it stays below. A container query
-   on the layout, not the window, decides; the viewport keeps its square
-   aspect ratio either way, so nothing moves while the render loads. */
-.sysmap-layout {
-  container: sysmap-layout / inline-size;
-}
-
 /* The map and, under it, its button row (UX.61). */
 .sysmap-map-col {
   display: flex;
@@ -2341,16 +2332,8 @@ code {
   min-width: 0;
 }
 
-@container sysmap-layout (min-width: 46rem) {
-  .sysmap-layout > .sysmap-map-col {
-    flex: 1 1 0;
-    width: auto;
-    min-width: 0;
-  }
-
-  .sysmap-layout > .starmap-side {
-    flex: 0 0 clamp(18rem, 36%, 26rem);
-  }
+.sysmap-layout > .starmap-side {
+  flex: 1 1 100%;
 }
 
 .sysmap-svg {
@@ -2702,8 +2685,7 @@ code {
 
 /* MAP.30: the map is 4:3 (wider than tall) and no taller than the window
    under the header; 1:1 on a phone. MAP.55: the info panel (a picked
-   sector's address and designation) sits beside the map when the row has
-   room for it, and wraps below the map when it hasn't. */
+   sector's address and designation) is a popup over the map (MAP.256, MAP.288). */
 .galaxymap3d-panel .galaxy-map-row {
   display: flex;
   flex-wrap: wrap;
@@ -2714,9 +2696,7 @@ code {
 }
 
 .galaxymap3d-panel .galaxy-map-main {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  position: relative;
   min-width: 0;
   flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3));
 }
@@ -2728,9 +2708,8 @@ code {
 }
 
 .galaxymap3d-panel .starmap-viewport {
-  flex: 1 1 auto;
   min-width: 0;
-  width: auto;
+  width: 100%;
   aspect-ratio: 4 / 3;
 }
 
@@ -2758,11 +2737,6 @@ code {
 .galaxymap3d-panel .starmap-controls > details > summary.starmap-btn {
   padding: 0.25rem 0.55rem;
   font-size: 0.9rem;
-}
-
-.galaxymap3d-panel .starmap-info {
-  flex: 1 1 16rem;
-  min-width: 0;
 }
 
 /* MAP.60: the Galaxy Map's one scale line wraps on a phone instead of
@@ -2889,132 +2863,54 @@ code {
   color: var(--text-muted);
 }
 
-/* The maps' hover tooltip (static/mappick.js, MAP.65). */
-/* MAP.139: the one info box over a map (mappick.js), shown when the map has room: the selection's basics and its
-   View, Details and Close buttons, in the corner of the map farthest from where it was last pressed (the upper right to start with). */
-.map-infobox {
+/* MAP.256, MAP.288: the Galaxy Map's selection panel is a popup inside the map's window (static/mappick.js,
+   `data-overlay`), at every width: drawn over the map, in the corner farthest from where the reader pressed, with a Close
+   button, and not at all until something is picked. The map under it stays pickable: only its buttons and links take
+   the pointer. */
+.starmap-info[data-overlay] {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  z-index: 3;
+  z-index: 10;
   width: min(18rem, calc(100% - 1.5rem));
   max-height: calc(100% - 1.5rem);
   overflow: auto;
   padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-subtle);
   font-size: 0.85rem;
-  /* The map under it stays pickable: only its buttons and links take the pointer. */
   pointer-events: none;
 }
-.map-infobox a,
-.map-infobox button {
+
+.starmap-info[data-overlay] a,
+.starmap-info[data-overlay] button,
+.starmap-info[data-overlay] summary,
+.starmap-info[data-overlay] input,
+.starmap-info[data-overlay] select {
   pointer-events: auto;
 }
-.map-infobox[data-corner="top-left"] {
+
+.starmap-info[data-corner="top-left"] {
   right: auto;
   left: 0.75rem;
 }
-.map-infobox[data-corner="bottom-left"] {
+
+.starmap-info[data-corner="bottom-left"] {
   top: auto;
   right: auto;
   bottom: 0.75rem;
   left: 0.75rem;
 }
-.map-infobox[data-corner="bottom-right"] {
+
+.starmap-info[data-corner="bottom-right"] {
   top: auto;
   bottom: 0.75rem;
 }
-.map-infobox[hidden] {
-  display: none;
-}
-.map-infobox h3 {
-  margin: 0 0 0.4rem;
-  font-size: 0.95rem;
-}
-.map-infobox dl {
-  margin: 0 0 0.5rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.15rem 0.5rem;
-}
-.map-infobox dt {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.map-infobox dd {
-  margin: 0;
-}
-.map-infobox .map-info-actions {
-  margin: 0;
-}
 
-/* MAP.256: the Galaxy Map's selection panel sits inside the map's window (static/mappick.js, `data-overlay`). Where the
-   window is 600px wide or more it is drawn over the map, in the corner farthest from where the reader pressed, and not
-   at all until something is picked; under that it is a block under the map, as before. The map under it stays pickable:
-   only its buttons and links take the pointer. */
-.galaxymap3d-panel .galaxy-map-main {
-  display: block;
-}
-
-.galaxymap3d-panel .galaxy-map-main > .starmap-viewport {
-  width: 100%;
-}
-
-.galaxymap3d-panel .galaxy-map-main > .starmap-info {
-  margin-top: 0.75rem;
-  min-width: 0;
-}
-
-.starmap-info .map-info-close {
+.starmap-info[data-state="rest"],
+.starmap-info[data-state="closed"] {
   display: none;
 }
 
-@media (min-width: 600px) {
-  .galaxy-map-main > .starmap-info[data-overlay] {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    z-index: 3;
-    margin-top: 0;
-    width: min(18rem, calc(100% - 1.5rem));
-    max-height: calc(100% - 1.5rem);
-    overflow: auto;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.85rem;
-    pointer-events: none;
-  }
-  .galaxy-map-main > .starmap-info[data-overlay] a,
-  .galaxy-map-main > .starmap-info[data-overlay] button,
-  .galaxy-map-main > .starmap-info[data-overlay] summary,
-  .galaxy-map-main > .starmap-info[data-overlay] input,
-  .galaxy-map-main > .starmap-info[data-overlay] select {
-    pointer-events: auto;
-  }
-  .galaxy-map-main > .starmap-info[data-corner="top-left"] {
-    right: auto;
-    left: 0.75rem;
-  }
-  .galaxy-map-main > .starmap-info[data-corner="bottom-left"] {
-    top: auto;
-    right: auto;
-    bottom: 0.75rem;
-    left: 0.75rem;
-  }
-  .galaxy-map-main > .starmap-info[data-corner="bottom-right"] {
-    top: auto;
-    bottom: 0.75rem;
-  }
-  .galaxy-map-main > .starmap-info[data-state="rest"],
-  .galaxy-map-main > .starmap-info[data-state="closed"] {
-    display: none;
-  }
-  .galaxy-map-main > .starmap-info .map-info-close {
-    display: inline-flex;
-  }
-}
-
+/* The maps' hover tooltip (static/mappick.js, MAP.65). */
 .map-tooltip {
   position: absolute;
   z-index: 3;
@@ -4094,10 +3990,6 @@ body.app {
 .crumb-menu button[aria-current] {
   font-weight: 600;
   color: var(--text);
-}
-
-.galaxymap3d-panel .galaxy-map-main {
-  position: relative;
 }
 
 /* The Galaxy Map's address bar (drill-down section 9.3). */

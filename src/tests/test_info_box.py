@@ -1,8 +1,9 @@
 # tests/test_info_box.py
 
 """
-MAP.139, MAP.254: every map's selection panel is the one shared component (static/mappick.js), and each names the
-info box over its map that shows the same spec; no map builds a panel or a box of its own.
+MAP.139, MAP.254, MAP.288: every map's selection panel is the one shared component (static/mappick.js), drawn as a popup
+inside the map's window (`data-overlay`), never a column beside the map or a second box over it; no map builds a panel
+or a box of its own.
 """
 
 import re
@@ -20,14 +21,16 @@ def _panels():
             yield path, text, match.group(1)
 
 
-def test_every_map_panel_names_its_info_boxes():
+def test_every_map_panel_is_a_popup_in_the_map_window():
     found = list(_panels())
     assert {path.name for path, _, _ in found} >= {"galaxymap3d.py", "systemmap.py"}
     for path, text, attributes in found:
-        named = re.search(r'data-infobox="([^"]+)"', attributes)
-        assert named, f"{path.name}: a starmap-info panel with no data-infobox"
-        for box_id in named.group(1).split():
-            assert f'class="map-infobox" id="{box_id}"' in text, f"{path.name}: no info box {box_id}"
+        assert "data-overlay" in attributes, f"{path.name}: a starmap-info panel that is not a popup (data-overlay)"
+        assert "data-infobox" not in attributes, f"{path.name}: a second info box (MAP.288 removed them)"
+        named = re.search(r'data-overlay="([^"]*)"', attributes)   # bare: the map window the panel is written in
+        for host_id in (named.group(1).split() if named else []):
+            assert f'id="{host_id}"' in text, f"{path.name}: no map window {host_id}"
+    assert not any("map-infobox" in path.read_text(encoding="utf-8") for path in sorted(MAPS.glob("*.py")))
 
 
 def test_only_the_shared_component_builds_the_info_box():
