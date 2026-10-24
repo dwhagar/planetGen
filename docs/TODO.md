@@ -7690,6 +7690,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane H (surface dose).
+  Research (2026-10-09, Update): Lane L (9:48 AM EDT 2026-10-24, as the
+  lane reported): merged #2966: the pure module
+  physics/atmosphere_state.py works out the air's mean molar mass,
+  density, scale height and greenhouse warming from the stored gases;
+  design note docs/design/composition/atmosphere-state.md. It is not
+  wired in (that rides lane I's GEN.411, which takes the epoch), so no
+  generated value moves. Opacities are labelled stand-ins until GEN.703
+  (lane E). The item stays open for the wiring step.
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
   10:29 PM EDT; code read on main, line numbers as that thread gave
