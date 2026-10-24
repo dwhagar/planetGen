@@ -33,8 +33,16 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
 from planetgen.util import draw
+
+_au_to_m = units.converter("au", "m")
+_ly_to_m = units.converter("ly", "m")
+_m_to_pc = units.converter("m", "pc")
+_ms_to_s = units.converter("ms", "s")
+_gyr_to_yr = units.converter("Gyr", "yr")
+_yr_to_s = units.converter("yr", "s")
+_gyr_to_s = units.converter("Gyr", "s")
 
 STAR_ACTIVITY_UNITS = {
     "log_lx_lbol": "dex", "l_xuv_w": "W", "xuv_saturated": "flag", "flare_n33_per_yr": "1/yr", "flare_alpha": "ratio",
@@ -201,7 +209,7 @@ def _fluence_j(luminosity_w, temperature_k, mass_sol, age_gy, t_sat_gy, decay, o
     piece, the decay on log-spaced steps (midpoint rule)."""
     photosphere = luminosity_w * blackbody_fraction_above(XUV_EDGE_EV, temperature_k)
     saturated = saturated_lx_lbol(mass_sol)
-    gy_s = 1e9 * constants.SECONDS_PER_YEAR
+    gy_s = _gyr_to_s(1.0)
     sat_end = min(age_gy, t_sat_gy)
     total = (coronal_xuv_w(saturated * luminosity_w) + photosphere) * sat_end * gy_s
     if age_gy > t_sat_gy:
@@ -227,7 +235,7 @@ REFERENCE_FLUENCE_J = reference_fluence_j()
 
 
 def _galactic_radius_pc(galactic_distance_ly):
-    return galactic_distance_ly * constants.LY_TO_M / constants.PARSEC_M
+    return _m_to_pc(_ly_to_m(galactic_distance_ly))
 
 
 def supernova_rate_per_gyr(galactic_distance_ly):
@@ -297,7 +305,7 @@ def generate_activity(star):
         ratio = GIANT_LX_LBOL
         star.xuv_saturated = False
         star.flare_n33_per_yr = 0.0
-        star.xuv_fluence_j = (coronal_xuv_w(ratio * luminosity) + photosphere) * age * 1e9 * constants.SECONDS_PER_YEAR
+        star.xuv_fluence_j = _yr_to_s(_gyr_to_yr((coronal_xuv_w(ratio * luminosity) + photosphere) * age))
     star.log_lx_lbol = math.log10(ratio)
     star.l_xuv_w = coronal_xuv_w(ratio * luminosity) + photosphere
 
@@ -310,13 +318,13 @@ def _set_remnant(star, l_xuv_w, age_gy):
     star.flare_n33_per_yr = 0.0
     star.flare_alpha = None
     star.l_xuv_w = l_xuv_w
-    star.xuv_fluence_j = l_xuv_w * age_gy * 1e9 * constants.SECONDS_PER_YEAR
+    star.xuv_fluence_j = _yr_to_s(_gyr_to_yr(l_xuv_w * age_gy))
 
 
 def neutron_star_spin_down_w(neutron_star):
     """A neutron star's magnetic-dipole spin-down power, W (`B^2 R^6 Omega^4 / 6 c^3`, cgs)."""
     radius_cm = neutron_star.radius * 1e5
-    omega = 2 * math.pi / (neutron_star.spin_period_ms / 1000.0)
+    omega = 2 * math.pi / _ms_to_s(neutron_star.spin_period_ms)
     c_cm = constants.SPEED_OF_LIGHT_M_S * 100.0
     edot_erg = neutron_star.magnetic_field_gauss ** 2 * radius_cm ** 6 * omega ** 4 / (6 * c_cm ** 3)
     return edot_erg / ERG_PER_J
@@ -340,7 +348,7 @@ def xuv_flux_earth(star, distance_au):
     l_xuv = getattr(star, "l_xuv_w", None)
     if l_xuv is None or not distance_au:
         return None
-    d_m = distance_au * constants.AU_TO_M
+    d_m = _au_to_m(distance_au)
     return l_xuv / (4 * math.pi * d_m ** 2) / constants.EARTH_XUV_FLUX_W_M2
 
 

@@ -22,7 +22,14 @@ that orbit is its positive root, in closed form.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+
+_kms_to_ms = units.converter("km_s", "m_s")
+_gyr_to_yr = units.converter("Gyr", "yr")
+_yr_to_s = units.converter("yr", "s")
+_au_to_m = units.converter("au", "m")
+_m_to_au = units.converter("m", "au")
 
 VELOCITY_FACTOR = math.sqrt(6.0)
 """float: The relative speed of a passing system in units of the field's one-dimensional dispersion (the cluster note)."""
@@ -33,8 +40,8 @@ def _terms(systems_per_pc3, dispersion_kms, age_gy, host_mass_solar):
     if systems_per_pc3 <= 0.0 or age_gy <= 0.0 or dispersion_kms <= 0.0:
         return 0.0, 0.0
     density = systems_per_pc3 / constants.PARSEC_M ** 3
-    speed = VELOCITY_FACTOR * dispersion_kms * 1000.0
-    seconds = age_gy * 1.0e9 * constants.SECONDS_PER_YEAR
+    speed = _kms_to_ms(VELOCITY_FACTOR * dispersion_kms)
+    seconds = _yr_to_s(_gyr_to_yr(age_gy))
     cross = math.pi * density * speed * seconds
     focus = 2.0 * math.pi * density * constants.G * host_mass_solar * constants.SOLAR_MASS_TO_KG * seconds / speed
     return cross, focus
@@ -57,7 +64,7 @@ def expected_passes(systems_per_pc3, dispersion_kms, semi_major_axis_au, age_gy=
     age_gy = tuning.PLANET_SURVIVAL_AGE_GY if age_gy is None else age_gy
     host = tuning.PLANET_SURVIVAL_HOST_MASS_SOLAR if host_mass_solar is None else host_mass_solar
     cross, focus = _terms(systems_per_pc3, dispersion_kms, age_gy, host)
-    metres = semi_major_axis_au * constants.AU_M
+    metres = _au_to_m(semi_major_axis_au)
     return cross * metres ** 2 + focus * metres
 
 
@@ -81,4 +88,4 @@ def planet_survival_limit_au(systems_per_pc3, dispersion_kms, age_gy=None, host_
     if cross <= 0.0:
         return math.inf
     metres = 2.0 / (focus + math.sqrt(focus * focus + 4.0 * cross))
-    return metres / constants.AU_M
+    return _m_to_au(metres)

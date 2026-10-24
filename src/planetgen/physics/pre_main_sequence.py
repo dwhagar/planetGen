@@ -22,7 +22,7 @@ table's 1.4 solar masses they are extended by the same power laws.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, stellar_evolution as evolution
+from planetgen.physics import constants, stellar_evolution as evolution, unit_registry as units
 from planetgen.util import draw
 
 PROTOSTAR = "protostar"
@@ -35,7 +35,9 @@ DISK_UNITS = {"disk_kind": "text", "disk_mass_solar": "Msun", "disk_inner_au": "
 """dict: The disk descriptor's columns on `stars`, in `draw_disk`'s key order, with each attribute's native unit."""
 DISK_FIELDS = tuple(DISK_UNITS)
 """tuple: The names of `DISK_UNITS`."""
-YEAR_S = constants.SECONDS_PER_YEAR
+_yr_to_s = units.converter("yr", "s")
+_s_to_yr = units.converter("s", "yr")
+_m_to_au = units.converter("m", "au")
 
 
 def hayashi_temperature_k(mass_sol):
@@ -80,7 +82,7 @@ def _track(mass_sol):
 def contraction_time_yr(mass_sol):
     """The age at which a star of this mass reaches the main sequence, years (the Kelvin-Helmholtz time of the model)."""
     track = _track(mass_sol)
-    return (track["t1"] + track["t2"]) / YEAR_S
+    return _s_to_yr(track["t1"] + track["t2"])
 
 
 def stage(mass_sol, age_yr):
@@ -102,7 +104,7 @@ def _track_state(mass_sol, age_yr):
     """The luminosity (solar), temperature and radius (solar) of a star on the track at this age, any age up to its
     contraction time, with no regard to the stage limits of `stage`."""
     track = _track(mass_sol)
-    t = age_yr * YEAR_S
+    t = _yr_to_s(age_yr)
     if t <= track["t1"]:
         radius = (track["r0"] ** -3 + 3.0 * track["k4"] * t) ** (-1.0 / 3.0)
         temperature = track["t_h"]
@@ -148,7 +150,7 @@ def sublimation_radius_au(luminosity_sol):
     """Where a blackbody grain reaches `DISK_DUST_SUBLIMATION_K` in the star's light, AU: the disk's inner edge."""
     metres = math.sqrt(luminosity_sol * constants.SOLAR_LUMINOSITY
                        / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT * tuning.DISK_DUST_SUBLIMATION_K ** 4))
-    return metres / constants.AU_M
+    return _m_to_au(metres)
 
 
 def _log_uniform(low, high, rng):

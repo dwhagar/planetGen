@@ -572,6 +572,37 @@ def convert(value, from_key, to_key):
     return (value * source.factor + source.offset - target.offset) / target.factor
 
 
+def converter(from_key, to_key):
+    """
+    A function that turns a number of the unit `from_key` into the unit `to_key`, for a module-level name a kernel calls
+    (`km_to_m = converter("km", "m")`, then `km_to_m(radius_km)`). The two units are looked up once, so a unit of
+    another kind raises `ValueError` when the module loads, not when the kernel runs. The factor between them is
+    worked out once and applied in one step, as the hand-written sites did: a multiply by the ratio of the larger
+    unit to the smaller (`AU_TO_KM`, 1000.0) or a divide by the ratio of the smaller to the larger (`/ AU_TO_KM`,
+    `/ 1000.0`), a power of ten taken as the exact power. Two units of equal factor return the value unchanged.
+    """
+    source, target = unit(from_key), unit(to_key)
+    if source.kind != target.kind:
+        raise ValueError(f"cannot convert {source.symbol} ({source.kind}) to {target.symbol} ({target.kind})")
+    if source.offset != target.offset:
+        return lambda value: (value * source.factor + source.offset - target.offset) / target.factor
+    if source.factor == target.factor:
+        return lambda value: value
+    if source.factor > target.factor:
+        factor = _step(source.factor / target.factor)
+        return lambda value: value * factor
+    factor = _step(target.factor / source.factor)
+    return lambda value: value / factor
+
+
+def _step(ratio):
+    """`ratio`, or the power of ten it is within rounding of."""
+    exponent = round(math.log10(ratio))
+    if -22 <= exponent <= 22 and abs(ratio - float(f"1e{exponent}")) <= 1e-14 * ratio:
+        return _TEN_POWERS[exponent]
+    return ratio
+
+
 def check(value, key):
     """`value` of the unit `key`, returned when it is finite and inside the kind's bounds; `ValueError` otherwise."""
     row = unit(key)

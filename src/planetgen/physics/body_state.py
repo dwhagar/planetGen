@@ -17,13 +17,16 @@ The browser twin is `static/orbitpositions.js`; `tests/test_js_unit.py` holds th
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
 from planetgen.physics.kepler import universal_step
+
+
+_yr_to_s = units.converter("yr", "s")
 
 
 def mu_km3_s2(distance_km, period_years):
     """`G M` of what a body goes round, km^3/s^2, from its orbit's semi-major axis and period (Kepler's third law)."""
-    omega = 2.0 * math.pi / (period_years * constants.SECONDS_PER_YEAR)
+    omega = 2.0 * math.pi / _yr_to_s(period_years)
     return omega * omega * distance_km ** 3
 
 

@@ -11,7 +11,8 @@ from planetgen.generation import multistar
 from planetgen.physics import planet_zones as pz
 from planetgen.physics.orbits import (
     hill_radius_in_pair_au, holman_wiegert_circumbinary_a_crit_au, holman_wiegert_critical_semimajor_axis)
-from planetgen.physics.system_tree import AU_KM, OrbitNode, TreeMember
+from planetgen.physics.constants import AU_TO_KM as AU_KM
+from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.util import draw
 
 
