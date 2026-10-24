@@ -224,3 +224,5 @@ The unit registry lane merged #2975 (GEN.571 third group; the item stays open) a
 Update 10:07 AM EDT 2026-10-24: OPS.62 (setup verify step imports markdown; Boss decided to add it to the requirements) is assigned to the Debug mode lane, after OPS.66, on the coordinator's word.
 
 Update 10:21 AM EDT 2026-10-24: Core 2 merged #2980 (MAP.229, MAP.230, MAP.233, MAP.268, as the lane reported). MAP.231 and MAP.232 stay open (MAP.231 lost its retired prerequisite MAP.229; MAP.232 still needs MAP.207). Env note from Core 2: main needs the ozone_uv dataset (python3 -m planetgen.cli.datasets fetch ozone_uv) or 700+ tests error on a lane machine. Numbering unchanged: next free epoch 83, migration 0152.
+
+Update 10:23 AM EDT 2026-10-24: Core 3 merged #2981 (GEN.332 slice 1, epoch 81, no migration, as the lane reported); GEN.332 stays open and the 2D System Map gap is filed as MAP.290. Core 3 started GEN.709. Lane K's GEN.712 had epoch 81 and now takes epoch 83; epoch 82 stays held for DB.100 (migration 0151 held, 0150 is lane D's #2930). Next free epoch 84, migration 0152.
