@@ -12,6 +12,7 @@ loads fails). The exceptions below each say why.
 
 import pytest
 
+from planetgen import tuning
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
@@ -88,7 +89,7 @@ NULL_IN_THIS_GALAXY = {
     # A life-bearing moon (rare) and its paragraphs and spectrum.
     **{("moons", column): CHANCE for column in
        ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical",
-        "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
+        "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS)},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # A giant moon (rare) and its interior (DB.89).

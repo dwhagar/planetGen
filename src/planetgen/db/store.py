@@ -2920,6 +2920,7 @@ BODY_FIELDS = (
     object_rows.attr("life_chemical"),
     object_rows.attr("life_stage"), object_rows.attr("evolutionary_pace"),
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
+    *(object_rows.attr(field) for field in tuning.LIFE_SCHEDULE_FIELDS),
     object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
     object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"),
     *(object_rows.scaled(column, f"position_{axis}", _AU_KM) for axis, column in zip("xyz", _POSITION_COLUMNS)),
