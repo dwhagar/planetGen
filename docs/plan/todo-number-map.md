@@ -2297,11 +2297,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
 | UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | done, PR #2890 |
 | UX.167 | Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording | none | done, PR #2902 |
-| UX.168 | Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py | none | open |
-| UX.169 | Children API GET /api/objects/<ref>/children and the sector-level tree feed | none | open |
-| UX.170 | Rebuild item.html: header, Location chain with the Inside remainder, siblings, property sheet, description and children | none | open |
-| UX.171 | bodyview.js: the page rendered example from data-look, with the colour note and a browser test | none | open |
-| UX.172 | Tree component: partial, script, keyboard and screen-reader behaviour, no-script fallback and narrow-screen layout | none | open |
+| UX.168 | Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py | none | done, PR #3003 |
+| UX.169 | Children API GET /api/objects/<ref>/children and the sector-level tree feed | none | done, PR #3003 |
+| UX.170 | Rebuild item.html: header, Location chain with the Inside remainder, siblings, property sheet, description and children | none | done, PR #3003 |
+| UX.171 | bodyview.js: the page rendered example from data-look, with the colour note and a browser test | none | done, PR #3003 |
+| UX.172 | Tree component: partial, script, keyboard and screen-reader behaviour, no-script fallback and narrow-screen layout | none | done, PR #3003 |
 | UX.173 | System page: stars table and body list become the tree; remove the dropdown rows and move species, facilities and the admin menu to the object page | none | open |
 | UX.174 | Sector page: Contents rows expand into the tree, keeping facets, sort, jump and paging at the top level | none | open |
 | UX.175 | The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder) | none | open |

@@ -1321,3 +1321,8 @@ Baseline: PR #1817.
 | PERF.41 | 8.1 | Queue, caches and performance |
 | GEN.461 | 8.1 | Radiation chain for habitability (GEN.445) |
 | MAP.231 | 8.1 | Fly-through map |
+| UX.172 | 8.1 | Habitability system |
+| UX.171 | 8.1 | Habitability system |
+| UX.170 | 8.1 | Habitability system |
+| UX.169 | 8.1 | Habitability system |
+| UX.168 | 8.1 | Habitability system |
