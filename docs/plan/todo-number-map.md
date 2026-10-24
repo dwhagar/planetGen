@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.167 |
+| UX | UX.168 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.694 |
+| GEN | GEN.696 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
@@ -1419,6 +1419,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) | none | open |
 | GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | open |
 | GEN.693 | Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas | none | open |
+| GEN.694 | Oxygen caps in the atmosphere draw: biotic oxygen at most 35 percent, abiotic at most 95 percent with a nitrogen and argon floor, and no mixture shown as 100 percent | none | open |
+| GEN.695 | Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2262,6 +2264,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
 | UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
 | UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | open |
+| UX.167 | Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

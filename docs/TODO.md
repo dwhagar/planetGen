@@ -1023,10 +1023,7 @@ with `clamp()`.
   on every run (every planet and moon page and every description
   output). Do: the planet and moon pages, the description document and
   the lists show a Required line and a Recommended line from the needs
-  list of GEN.655, even when a line is empty it reads None (this reads
-  Boss's 'every run' literally and sits beside his earlier rule that a
-  world that needs nothing lists nothing; confirm with him if the empty
-  case matters), in the same wording on every page. Done: a test over the page, the description and
+  list of GEN.655, an empty line is left off and never reads None (Decided, Boss, 12:39 AM EDT 2026-10-24, card option 2: when nothing is required or recommended the line is not shown), in the same wording on every page. Done: a test over the page, the description and
   the API that every planet and moon has both lines, with the hardened
   suit and habitat case of the item above. Owner: Survival equipment
   lane (follow-up; the lane stays open until it merges).
@@ -1064,6 +1061,24 @@ with `clamp()`.
   Sectors view icons match Chrome. Owner: the Composition-first stars
   lane (lane A), with UX.157.
   Prerequisites: none. Related: UX.157, UX.148, UX.151.
+
+- [ ] **UX.167 Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording**
+  Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
+  coordinator)), option 2 of the category sentence question: rewrite the
+  category row sentences (Body Protection, Air Filter or Scrubber, Air
+  Supply) from the stored needs list of GEN.655. Background: UX.153 left
+  the category row sentences alone because test_protection pins Boss's
+  10-15 wording. Do: build each category sentence from the needs list so
+  it only names items that are needed, update the wording test in
+  test_protection to the new rule (a sentence names exactly the needed
+  items of that category and never an item that is not needed), and keep
+  the same wording on every page. Done: no category sentence mentions an
+  item the body does not need, the test agrees with the generated
+  sentences, and the pages, descriptions and API read the same. Owner:
+  Survival equipment lane (follow-up) or the Habitable rule and life
+  scores lane, whichever has UX.153's rest; ask the TODO thread first.
+  Prerequisites: none. Related: UX.153, UX.163, GEN.655.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2893,6 +2908,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   panel sits under the map; system maps unchanged). Remaining for
   MAP.288: delete the dead side-panel code and cover the sector view.
   Owner: Core 2.
+  Research (2026-10-09, Decided): Update (Boss, 12:39 AM EDT 2026-10-24
+  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
+  relayed by the coordinator)): answer 6, option 1: system maps follow
+  the same rule, no side info panel, the popup alone; and the popup (the
+  little info box on the map) must carry a button that jumps to the
+  matching item in the list. Owner: Core 2. Added to scope: system maps
+  and the jump button.
+  Research (2026-10-09, Decided): Update 12:41 AM EDT 2026-10-24 (Boss,
+  message cmsg_01RuNTFUNB92A8cm5CbojQAi15aEAgwC9hSYKAw7e4zGHq, 'Jump =
+  View Button'): the jump button in the map popup is the View button, so
+  the popup's View button jumps to the matching item in the list. Owner:
+  Core 2.
   Prerequisites: none.
 ## NAV: Navigation and courses
 
@@ -10448,6 +10475,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tuning target; o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value to derive
   from the production ratio, birth epoch and decay; o6 Al-26 is a
   mixture, not log-uniform. Builder GEN.514.
+  Research (2026-10-09, Decided): Decided (Boss, 12:39 AM EDT 2026-10-24
+  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
+  relayed by the coordinator)), answer 7, option 1: the o3 potassium and
+  uranium depletion row keeps its stand-in (no sodium proxy from white
+  dwarfs, Harrison 2021, for now); the stand-in stays labelled in the
+  gap plan registry until a verified source exists.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -13885,6 +13918,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-23 on the merge commit clock, no epoch). The class lane confirms
   whether the replaced-items list is complete before this item is
   retired.
+  Research (2026-10-09, Decided): Decided (Boss, 12:39 AM EDT 2026-10-24
+  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
+  relayed by the coordinator)), answer 8, option 1: keep all 20 class
+  letters (A to V), redefined from the stored conditions; no letter is
+  retired. The core letters H P O J M I C D N stay core. Never retire a
+  letter without asking Boss.
 
 - [ ] **GEN.646 Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14552,6 +14591,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   without the Water row's treatment note. Done: the class B page reads
   consistently and the test passes. Owner: Habitability lane D
   (habitability model).
+  Research (2026-10-09, Decided): Decided (Boss, 12:39 AM EDT 2026-10-24
+  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
+  relayed by the coordinator)), answer 3, option 1: a Green Water or
+  Suitability row that says a mask is needed is allowed (a Green rating
+  may still need a mask). The wording must not contradict the rows, but
+  the combination Green with a mask is valid. Owner: Habitability text
+  lane / lane D.
   Prerequisites: none.
 
 - [ ] **GEN.692 The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug)**
@@ -14568,6 +14614,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sodium and oxygen shares that sum to 100% of the total, and a test
   covers a class with an unstored balance. Details:
   reports/pure-oxygen-atmosphere-2026-10-24.md.
+  Research (2026-10-09, Decided): Related decision (Boss, 12:39 AM EDT
+  2026-10-24 (his message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
+  coordinator)): answers 1 and 2 are GEN.694 (oxygen caps) and the class
+  B hydrogen and helium item (the second new item above, GEN.695).
   Prerequisites: none. Related: GEN.411, GEN.415.
 
 - [ ] **GEN.693 Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas**
@@ -14582,6 +14633,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Titan keeps methane, and tests cover each. Belongs with the retention
   rows of GEN.422.
   Prerequisites: GEN.479. Related: GEN.422, GEN.479.
+
+- [ ] **GEN.694 Oxygen caps in the atmosphere draw: biotic oxygen at most 35 percent, abiotic at most 95 percent with a nitrogen and argon floor, and no mixture shown as 100 percent**
+  Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
+  coordinator)), option 1 of the oxygen question: the rule of lane L's
+  report reports/pure-oxygen-atmosphere-2026-10-24.md section 3. Do: in
+  draw_mixture, biotic oxygen is at most 35 percent by mole, drawn
+  mostly between 15 and 30 percent, and above 25 percent the description
+  says the air is fire-prone; abiotic oxygen (water-loss worlds only,
+  today class Z around an M dwarf in the habitable zone) is at most 95
+  percent, the rest nitrogen, argon and carbon dioxide with a floor of
+  0.5 percent for argon and nitrogen together; other worlds get oxygen
+  only from chemistry; the abiotic row is a minority of eligible worlds
+  and the description says 'oxygen without life'; a mixture with more
+  than one source gas always has a named trace. Done: a test over many
+  draws that no mixture exceeds the caps, that the floor holds, and that
+  the abiotic row is a minority; stand-in weights are labelled in the
+  gap plan registry. Owner: lane L (atmosphere mixture).
+  Prerequisites: GEN.479. Related: GEN.692, GEN.693, GEN.411.
+
+- [ ] **GEN.695 Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world**
+  Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
+  coordinator)), option 2 of the class B question: keep some hydrogen
+  and helium in class B. Background: lane L's report
+  reports/pure-oxygen-atmosphere-2026-10-24.md found that class B (hot,
+  molten) chemistry gives sodium, potassium, SiO and oxygen and no
+  hydrogen or helium, while Boss expected hydrogen and helium. Do: give
+  the hot-zone small-body family an outgassed or retained primordial
+  hydrogen and helium share, drawn from the formation environment and
+  then thinned by the light-gas escape filter of GEN.693 so a small hot
+  body keeps only what its escape speed and temperature allow (so the
+  share can be small), keep the sodium and oxygen of the lava family,
+  and make the class B text and the stored mixture agree. Done: class B
+  draws sometimes show hydrogen and helium in the stored mixture, in the
+  table and in the sentence, none above what escape allows, and a test
+  covers the agreement. Owner: lane L with the class lane (the class
+  text).
+  Research (2026-10-09, Update): Update 12:41 AM EDT 2026-10-24 (as the
+  class lane reported, its design note
+  docs/design/habitability/condition-based-planet-classes.md, #2855):
+  class B is a stripped giant core that keeps some hydrogen and helium.
+  At the class cut-over (class step C13) the class B text in
+  tuning.PLANET_CLASSES ("a thin mix of helium, sodium, and oxygen")
+  gains hydrogen, and "occasionally the stripped core of a former gas
+  giant" becomes a retained hydrogen and helium share in the mixture and
+  not a fixed string; class I's note about hot-Neptune stripping points
+  at the same origin. B's classifier rule is unchanged. Lane L owns the
+  mixture, the class lane owns the text.
+  Prerequisites: GEN.693, GEN.479. Related: GEN.692, GEN.693, GEN.647.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20703,8 +20804,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   all three: the database schema version (the Alembic head,
   SCHEMA_VERSION in db/store.py), the generator epoch
   (src/tests/golden/epochs.json) and the API version (API_VERSION in
-  api/version.py). Proposed default, pending Boss's word on the format
-  (a card is with Boss): the one version string gains a PEP 440 local
+  api/version.py). Decided (Boss, 12:39 AM EDT 2026-10-24, card option 1, the format is the PEP 440 local suffix): the one version string gains a PEP 440 local
   suffix that the stamping step writes, for example
   8.2.2100+db134.gen62.api5; the three numbers are read from their own
   sources at stamp time, never typed. This touches the version scheme:
