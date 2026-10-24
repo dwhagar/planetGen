@@ -80,6 +80,12 @@ Inline     a string, or one of
   {"swatch": {"hex": "#99bfff", "word": "pale blue"}}   a colour (GEN.420): the word, with a chip where the format has one
 ```
 
+The **Atmosphere Colour** row (GEN.420, key `atmosphere_colour`) of a planet or moon is a facts row whose value is one `swatch`: the
+colour of the body's air worked out by `physics/atmosphere_colour.py` from its stored mixture, ozone column and star ([how it is worked
+out](../../reference/atmosphere-colour.md)). Text, Markdown and wikitext write the word (with the hex colour, or a coloured span in
+wikitext); the web page writes a `swatch` span that `static/units.js` paints from `data-colour`, because the site policy forbids style
+attributes. The row is absent for an airless body and for a giant.
+
 Rules:
 
 1. **No format in the model.** No `#`, `**`, `<sup>`, wikitext templates or `'''`, and no Unicode superscripts. Emphasis and
