@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2080] - 2026-10-24
+
+**Headline:** Delete regression tests that guard nothing and the unused galaxy shape visualizer.
+
+### Removed
+- A skipped test module for a function that no longer exists, and the 18 tests that only check what the first two already show.
+- About 20 tombstone tests that assert a retired constant, option or page is gone, and trimmed four that also checked a live behaviour.
+- A duplicate test, five unused test helpers, and the unused imports and variables across the test suite.
+- The `galaxy_shape_visualizer_cli.py` test tool and the matplotlib test extra it needed.
+
 ## [8.0.2079] - 2026-10-24
 
 **Headline:** The disc's recent star formation now falls faster in its thin outer gas, as the observations of molecular and atomic gas say, instead of at one fixed index.
