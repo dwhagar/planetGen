@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2231] - 2026-10-24
+
+**Headline:** A planet's or moon's page now shows the heat flowing out of its interior and the two draws behind it.
+
+### Fixed
+- **`test_property_sheet` failed on main (TEST.351).** GEN.699 added `internal_heat_flux_w_m2`, `mantle_eta0_pa_s` and `mantle_activation_kj_mol` to planets and moons without a row on the property sheet or an entry in `NOT_SHOWN`. They now have rows in the radiogenic group, after the Urey ratio.
+TODO items resolved: TEST.351. Added: none.
+
 ## [8.0.2230] - 2026-10-24
 
 **Headline:** Neutron stars and black holes now have the accreting companions astronomers see: high-mass and low-mass X-ray binaries, microquasars, spider millisecond pulsars and compact triples, each with an X-ray luminosity under its Eddington limit.
