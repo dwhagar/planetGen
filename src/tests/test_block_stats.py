@@ -1,17 +1,15 @@
 """
 DB.25, MAP.205: the stored block totals (`galaxy_block_stats`) on the block ladder of shells. Every stored row equals
 the sums of the generated sectors inside its block, a refresh puts right the blocks above a sector and only those, a
-deletion takes the sector out, the migration and `rebuild` give the same rows, and a window reads its cells in one
+deletion takes the sector out, `rebuild` gives the same rows a refresh kept, and a window reads its cells in one
 statement.
 """
 
-import importlib
 import random
 
 import pytest
-import sqlalchemy
 
-from planetgen.db import alembic_runner, block_stats, edits, query, store
+from planetgen.db import block_stats, edits, query, store
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import DRILL_TOP, STAGE_TOP, drill_chain_of, format_drill_key
 
@@ -231,20 +229,3 @@ def test_a_window_of_blocks_lists_the_cells_around_a_block_and_the_ones_that_hol
         conn.close()
 
 
-def test_the_migration_fills_the_table_from_the_sectors_already_there(galaxy, monkeypatch):
-    conn = store.get_connection(galaxy)
-    try:
-        kept = _stored(conn)
-    finally:
-        conn.close()
-    monkeypatch.setattr(alembic_runner, "report_progress", lambda *args: None)     # no Alembic context here
-    migration = importlib.import_module("planetgen.db.migrations.versions.0092_block_stats_shells")
-    engine = alembic_runner._engine(galaxy)
-    with engine.begin() as connection:
-        connection.execute(sqlalchemy.text("DELETE FROM galaxy_block_stats"))
-        migration._fill(connection)
-    conn = store.get_connection(galaxy)
-    try:
-        assert _stored(conn) == kept
-    finally:
-        conn.close()

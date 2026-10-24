@@ -2,7 +2,7 @@
 
 """
 TEST.8: every checked-in old galaxy schema (`fixtures/old_schemas/`, the
-Alembic baseline v61 and later) migrates to the current version and ends up
+Alembic baseline v130 and later) migrates to the current version and ends up
 exactly the shape `schema.sql` gives a new database: the same tables,
 columns (type, nullability, default), indexes, foreign keys and CHECKs.
 Starting from the real old schema, not a new database with columns

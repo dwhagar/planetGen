@@ -832,7 +832,7 @@ database is moved forward by `store.migrate_database`, which runs every
 Alembic revision (`planetgen/db/migrations/versions/`, run through
 `planetgen.db.alembic_runner`) above the stored version, in order. A revision's
 id is its schema version, so `SCHEMA_VERSION` is the head revision's number.
-Databases older than v61 (the baseline) are refused with `SchemaTooOldError`
+Databases older than v130 (the baseline) are refused with `SchemaTooOldError`
 rather than migrated, and so is a database with tables but no recorded version
 (`SchemaVersionMissingError`). `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A schema change therefore touches `schema.sql`, a new revision file, the

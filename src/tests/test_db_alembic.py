@@ -1,9 +1,9 @@
 # tests/test_db_alembic.py
 
 """
-DB.11: Alembic carries the schema forward from the v61 baseline. Revision
-ids are schema versions, `migrate_database` runs the revisions after the
-legacy steps and mirrors each into `schema_migrations`, and the baseline
+DB.11: Alembic carries the schema forward from the baseline (v130 since
+DB.98). Revision ids are schema versions, `migrate_database` runs the
+revisions after it and mirrors each into `schema_migrations`, and the baseline
 leaves an existing database alone.
 """
 
@@ -52,7 +52,7 @@ def scripts(tmp_path):
 
 def test_schema_version_is_the_head_revision():
     versions = alembic_runner.revisions()
-    assert versions[0] == (61, "0061")  # the baseline
+    assert versions[0] == (alembic_runner.BASELINE_VERSION, alembic_runner.revision_id(alembic_runner.BASELINE_VERSION))
     assert store.SCHEMA_VERSION == versions[-1][0]
 
 

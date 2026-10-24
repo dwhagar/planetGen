@@ -5,12 +5,12 @@ DB.97: a database that has the galaxy tables but no recorded schema version
 (`schema_migrations` emptied or dropped) is refused with a clear message, not
 guessed at from the shape of its tables. A new, empty database is created at
 the current version, and a recorded version older than the Alembic baseline
-(v61) is still refused.
+(v130) is still refused.
 """
 
 import pytest
 
-from planetgen.db import store
+from planetgen.db import alembic_runner, store
 from tests.db_schema_support import load_old_schema
 
 # A fresh database with no schema, which these tests build themselves (TEST.139 stage 3).
@@ -59,7 +59,7 @@ def test_a_database_without_its_version_is_refused_untouched(mysql_config, drop)
 
 
 def test_a_recorded_old_version_is_refused(mysql_config):
-    load_old_schema(mysql_config, 61)
+    load_old_schema(mysql_config, alembic_runner.BASELINE_VERSION)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM schema_migrations")

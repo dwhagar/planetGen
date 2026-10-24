@@ -47,7 +47,6 @@ VALUES_FUNCTION_ALLOWED = {
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
         "outer_shell_index",
     },
-    "planetgen/db/migrations/versions/0091_spherical_sectors.py": {"container"},
     "planetgen/population/model.py": {"scanned_planet_id"},
     "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }
