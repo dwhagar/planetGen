@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2063] - 2026-10-24
+
+**Headline:** The redox of rocky debris (rows a3 and a4) is now tuned through the white-dwarf detection model: the width is 0.22 and not the 0.45 that counted the measurement error twice.
+
+### Changed
+- Atmosphere recipe rows a3 and a4 draw dIW from a normal with centre -1.25 and width 0.22 (was -1.26 or -1.25 and 0.45). Their four tuning targets compare the reported medians through the `wd-pollution-detection` selection model. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2062] - 2026-10-24
 
 **Headline:** The retention rows of the atmosphere recipes now allow a bare planet and a molten dayside that keeps volatiles at the published interval.
