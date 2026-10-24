@@ -353,8 +353,7 @@
     },
     {
       "epoch": 72,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2154",
       "reason": "A system draws its stars as a tree at the odds of the star-count table in place of one companion at a per-class chance, so triples and larger systems exist and the companion stream moves (GEN.631)"
     }
   ]
