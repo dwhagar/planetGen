@@ -961,6 +961,18 @@ with `clamp()`.
   first (what is stored and where). Owner: none (pool).
   Prerequisites: none. Related: UX.175, MAP.258.
 
+- [ ] **UX.186 Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary**
+  Residual of GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
+  reported; filed by the TODO thread). Kind: display. GEN.272 gives
+  neutron stars and black holes accreting companions (X-ray binaries,
+  microquasars, spider pulsars, Gaia-kind dormant pairs) and derives an
+  X-ray luminosity under the Eddington limit, but no page shows them.
+  Do: show the accreting-pair kind, X-ray luminosity, microquasar flag
+  and spider kind (black widow or redback) on the star page and in the
+  API, with units from the registry. Done: a page test for each kind.
+  Owner: pool (display lane). Prerequisites: none.
+  Prerequisites: none. Related: GEN.272, GEN.247.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2546,22 +2558,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and test it with a warm run over several sectors. Owner: the map nodes
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
-
-- [ ] **MAP.290 The System Map draws only the close pair of a triple or larger system, not a scene for each extra star**
-  Found by Core 3 (10:21 AM EDT 2026-10-24 as the lane reported, GEN.332
-  slice 1, #2981). The extra stars of a triple or larger system now have
-  planets of their own in the stable zone round them (named after the
-  star, for example Voranthis C I), and the table, text and 3D scene
-  show them, but the 2D System Map still draws the pair only. Add a
-  scene per extra star to the 2D System Map (orbits, planets, labels
-  through the MAP.268 label engine). Done: a triple system opened on the
-  2D System Map shows each extra star with its planets, and a browser
-  test covers it. Owner: not assigned (map lane; Core 2 is the nearest
-  owner after its queue).
-  Research (2026-10-09, 10-24 Core 2): Core 2 starts this next (12:30 PM
-  EDT 2026-10-24 as the lane reported), now that MAP.231 is merged
-  (#3001).
-  Prerequisites: none. Related: GEN.332, MAP.231.
 
 - [ ] **MAP.291 Galaxy view map window does not use the full page width or the page height (bug)**
   Boss live observation (1:50 PM EDT 2026-10-24). The Galaxy view map
@@ -4637,7 +4633,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites become the cataclysmic and symbiotic rows (GEN.271,
   GEN.272): the Type Ia progenitor share is read from them, and if it
   can be read without a new field this item closes (2026-10-16 review).
-  Prerequisites: GEN.272. Related: GEN.241.
+  Prerequisites: none. Related: GEN.241.
   Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.248 Tidal streams as placed components of the halo (later)**
@@ -4799,41 +4795,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator relayed;
   docs/design/architecture/unified-system-barycentre.md): see the note on GEN.315
   (heaviest first at every node, no new copy of the swap).
-  Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
-
-- [ ] **GEN.272 Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples**
-  Step 16 (design note section 13.4); extends slice (c) of GEN.130.
-  High-mass X-ray binaries (the 0.3% compact companion of a living
-  massive star, 40% of them accreting, Be/X-ray 60% of those); low-mass
-  X-ray binaries (5e-5 of neutron stars and 1e-3 of black holes, 1%
-  accreting); the microquasar flag with jets along the spin axis
-  (GEN.255); millisecond-pulsar companion classes (white dwarf 80%,
-  black widow 8%, redback 4%, neutron star 5%, other 3%) with the
-  ablation flag; pulsars with main-sequence or Be companions; accretion
-  luminosity L = eta Mdot c^2 capped at the Eddington limit; dormant
-  black hole and neutron star companions (the Gaia kind); compact
-  triples (30% of compact binaries, at most three compact members);
-  magnetar binaries at 0 by default. Done: an accreting pair shows an
-  X-ray luminosity at or under Eddington, counts are within four Poisson
-  sigma of the defaults, and no Be/X-ray binary appears in the halo.
-  Owner: Core (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the
-  multi-star plan to "every observed and theoretical type of
-  multi-star/star-like-object system", built "into our generator
-  throughout to match as close as possible to observed and theoretical
-  probabilities (observed are best, theoretical are good too)".
-  Prerequisites: none. Related: GEN.130, GEN.255, GEN.263,
-  GEN.268.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481). Core 4 asks Core 3
-  before touching stellar evolution constants in tuning.py. A line here
-  that named Core 3 or Core 4 earlier is replaced by this one.
-  Research (2026-10-09, 10-24 Core 4): Started by Core 4 at about 12:22
-  PM EDT 2026-10-24 (as the lane reported, after GEN.678); nobody else
-  had started it.
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -13079,6 +13040,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   atmosphere lane takes it). Prerequisites: GEN.672.
   Prerequisites: GEN.672. Related: GEN.672, GEN.674.
 
+- [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
+  Found by Core 4 in GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
+  reported; report reports/core4-gen272-report-2026-10-24.md; filed by
+  the TODO thread). Kind: documentation of stand-ins. Do: add registry
+  rows (what each rests on, validity range, checking test, replacing
+  item) for the tuning.py stand-ins SUPERGIANT_XRAY_PERIOD_DAYS,
+  BE_XRAY_PERIOD_DAYS, LOW_MASS_XRAY_PERIOD_DAYS,
+  LOW_MASS_XRAY_DONOR_MASS_RANGE_SOL, XRAY_SPAN_ROOM,
+  SPIDER_PERIOD_DAYS, MICROQUASAR_SHARE_OF_XRAY_BINARIES and the
+  accretion efficiency for black holes; correct the registry row
+  millisecond-pulsar-companion from neutron star 5 percent to 0.2
+  percent of recycled pulsars (the gravitational-wave rate allows about
+  0.04 percent of neutron stars; 5 percent would be about ten times too
+  many). Default decision recorded by the TODO thread: keep 0.2 percent,
+  as TODO.md open-question defaults are decided. Done: every stand-in
+  listed, a test that no tuning constant of the item is missing from the
+  registry. Owner: pool (first free lane with gap-registry experience,
+  Lane L did GEN.675).
+  Prerequisites: none. Related: GEN.272, GEN.675.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16397,7 +16378,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.272, GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -18983,6 +18964,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   also needs GRANT OPTION or
   test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version
   fails (TEST.303, dropped).
+  Research (2026-10-09, DatabaseLoginError on lanes): Update 3:38 PM EDT
+  2026-10-24 (Core 2 and Core 4, as the lanes reported):
+  test_web_pages::test_in_process_transport_skips_http_inside_a_request
+  fails with DatabaseLoginError on lane machines, the same missing-GRANT
+  cause as test_update_database_step. The setup script should give the
+  lane user the grants the tests need.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
