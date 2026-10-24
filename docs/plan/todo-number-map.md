@@ -13,11 +13,11 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.164 |
+| UX | UX.165 |
 | MAP | MAP.288 |
 | NAV | NAV.63 |
-| GEN | GEN.677 |
-| PERF | PERF.177 |
+| GEN | GEN.679 |
+| PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
@@ -1402,6 +1402,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) | none | open |
 | GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | open |
 | GEN.676 | Check the NH3 photolysis activity factor (1.078) against the published Huebner photodissociation table and replace the Boss-supplied value | none | dropped (Boss, 11:53 PM EDT 2026-10-23: the gap cannot be filled, no source is reachable; the factor 1.078 stays as a labelled stand-in) |
+| GEN.677 | The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug) | none | open |
+| GEN.678 | The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1995,6 +1997,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current | none | open |
 | PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) | none | open |
 | PERF.176 | Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up | none | open |
+| PERF.177 | A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug) | none | open |
+| PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) | none | open |
+| PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2238,6 +2243,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) | none | open |
 | UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) | none | open |
 | UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | open |
+| UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
