@@ -13269,31 +13269,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   food of the Suitability domain (GEN.653): Flora is always good food,
   both are better, Fauna includes all animal life.
 
-- [ ] **GEN.651 Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag**
-  Gap found by the pipeline report
-  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
-  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
-  2026-10-23). Section 1.1 and conflict G of the report: evolve_star
-  runs without [Fe/H], so ms_lifetime (GEN.467) and giant_branch
-  (GEN.502), which take an [Fe/H] argument, run at solar; star_makeup
-  (GEN.440) is read only by the white dwarf flag; GEN.553 would reorder
-  the draw ([Fe/H] at birth, before the state) but has no owner. Do:
-  draw [Fe/H] at birth (GEN.553 order), pass it to evolve_star and so to
-  GEN.467 and GEN.502, and let the planets and disc read the composition
-  (GEN.464). Changes stored values: a generator epoch and a refill
-  (testing mode, Boss 5:42 PM EDT). Boss's question 1 (GEN.553 order,
-  one main-sequence source) is with him via the coordinator; option 1 is
-  the recommended full reorder, option 2 only passes [Fe/H] to the
-  existing laws. Owner: none (pool) until Boss answers; then Core 4
-  proposed with GEN.553. Done: stars of different [Fe/H] have different
-  lifetimes and giant branches, a determinism test, and the epoch.
-  Prerequisites: GEN.553. Related: GEN.553, GEN.467, GEN.502, GEN.440,
-  GEN.464.
-  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1:
-  composition-first stars). Owner: the Composition-first stars lane (moved from
-  Core 4 at 7:53 PM EDT 2026-10-23), built with GEN.553 in one epoch (a
-  rescatter of every star).
-
 - [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
   Gap found by the pipeline report
   /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
@@ -13314,6 +13289,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MIST is the single main-sequence table and the piecewise laws are
   removed, no shim. Owner: the Composition-first stars lane (moved from Core 4 at
   7:53 PM EDT 2026-10-23), with GEN.553 and GEN.651 in one epoch.
+  Research (2026-10-09, Update): Lane A (7:55 AM EDT 2026-10-24, as the
+  lane reported): GEN.651 merged (#2952). The Hurley-Pols-Tout lifetime
+  formulae are fitted for Z 1e-4 to 0.03, so ms_lifetime.zeta now clamps
+  to that range (tuning.MS_LIFETIME_Z_RANGE); stars outside it use the
+  edge value. Label it a stand-in in the gap plan registry when GEN.652
+  settles the one main-sequence source.
 
 - [ ] **GEN.653 Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life**
   Boss, 6:54 PM EDT 2026-10-23: 'Now as an error condition for the
@@ -13409,7 +13390,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   labelled a stand-in in the gap plan registry
   (docs/design/research/gap-filling-plan.md). Owner: Habitability lane
   A, after GEN.553, GEN.651 and GEN.652.
-  Prerequisites: GEN.651. Related: GEN.553, GEN.652.
+  Prerequisites: none. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.662 Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug)**
   Found by the Composition-first stars lane (relayed 2026-10-23, 8:34 PM EDT): stars
@@ -13419,7 +13400,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distribution to the composition-first star draw, and the halo value is
   gone from those paths. Label the halo draw a stand-in in the gap plan
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
-  Prerequisites: GEN.651. Related: GEN.553, GEN.652.
+  Prerequisites: none. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
   Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
@@ -19105,6 +19086,32 @@ clears each one.
   with the reason recorded. Done: the test passes on main. Owner: Bug
   Hunt (proposed).
   Prerequisites: none. Related: GEN.309, GEN.631.
+
+- [ ] **TEST.338 test_bright_star_scatter::test_plan_scatter_stores_stars_and_fill_builds_their_systems fails on main: the built primary differs from the stored row in 2 of 7 systems (bug)**
+  Reported by the Composition-first stars lane (Lane A, 7:55 AM EDT
+  2026-10-24, as the lane reported): fails on plain main since the
+  GEN.631 tree draw. The built primary's luminosity differs from the
+  stored row's in 2 of 7 systems (for example stored 1.1e30 W, built
+  9.6e28 W). Do: reproduce on current main; find why the fill rebuilds a
+  primary that is not the stored star (the stored star is not carried
+  into the build through the tree path, or a draw order differs); fix
+  the product, not the bound. Done: the built primary equals the stored
+  row in every system and the test passes. Related to TEST.337 (same
+  GEN.631 draw change); check whether one cause covers both. Owner: Bug
+  Hunt (proposed).
+  Prerequisites: none. Related: GEN.631, TEST.337.
+
+- [ ] **TEST.339 test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug)**
+  Reported by the Composition-first stars lane (Lane A, 7:55 AM EDT
+  2026-10-24, as the lane reported): the test fails about 1 run in 4,
+  with 2 of 60 trials ending without a belt. The trials are not seeded,
+  so each run differs. Do: find which systems cannot hold a forced belt
+  (no room between the planets, or the draw is capped) and either make
+  the forcing reliable or make the forcing report that the system cannot
+  take one; seed the trials so the test is repeatable. Done: 100
+  consecutive runs pass, and a system that cannot hold a belt says so.
+  Related: TEST.333 (forced belt). Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.333.
 
 ## USR: User accounts
 
