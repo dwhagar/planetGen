@@ -2824,6 +2824,20 @@ def test_galaxy_map_wheel_carries_the_zoom_down_through_the_windows_and_back_up(
     assert parse_qs(_query(page))["win"][0].startswith("243."), "back out on the parent window, the 243-shell blocks"
 
 
+def test_nothing_is_clipped_when_you_zoom_into_a_window_or_a_sector(page, map_site):
+    """MAP.264: the surroundings stay in view: in a window of sectors, and with a sector opened in place, the galaxy's
+    stars are all still drawn but those inside the opened sector's own cell (which that sector draws itself)."""
+    _open_window(page, map_site, 1, 1, 0, 1, g=3)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyHiddenStars().total > 0")
+    stars = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyHiddenStars()")
+    assert stars["hidden"] == 0, f"a window hid {stars['hidden']} of its {stars['total']} stars"
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyHiddenStars().total > 0")
+    stars = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyHiddenStars()")
+    assert 0 < stars["total"] - stars["hidden"], f"the neighbours are gone: {stars}"
+
+
 def test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop(page, map_site):
     """MAP.263: the camera is the only state. From the whole galaxy, turned to an angle of the reader's own, one
     unbroken wheel scroll carries the view down through every window to the sectors: the camera is never flown to a

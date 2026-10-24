@@ -637,20 +637,9 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   applyCamera();
 
-  // The part of the galaxy the drill-down shows ({cells}: the bounds {r0,
-  // r1, c0, c1, t0, t1} of the blocks in view, radii in pc, colatitudes
-  // and longitudes in radians), or null for the whole galaxy. Zoomed in,
-  // only that part shows (Boss, 2026-10-01): the stars and clouds are kept
-  // to its blocks (MAP.44).
-  // There are no wedge lines: the galaxy shows its stars and spiral
-  // structure with no grid drawn over it (MAP.85).
-  var wedgeClip = null;
-
-  function setWedgeClip(clip) {
-    wedgeClip = clip;
-    markClippedStars();
-    updateClouds();
-  }
+  // Nothing of the galaxy is clipped to the window the drill-down shows (MAP.264): the stars and clouds all stay
+  // when you zoom, and the visibility law decides what is drawn. There are no wedge lines: the galaxy shows its stars
+  // and spiral structure with no grid drawn over it (MAP.85).
 
   // A sector opened in place (galaxysector.js) draws its own stars and
   // phenomena, so the galaxy's are left out of its cell (bounds as a
@@ -659,7 +648,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   function hideCell(bounds) {
     hiddenCell = bounds;
-    markClippedStars();
+    markHiddenStars();
     updateClouds();
   }
 
@@ -668,11 +657,10 @@ function initGalaxyMap3d(canvasEl, data) {
     return (((angle - a0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
   }
 
-  // Whether a point is inside the part shown (always, for the whole
-  // galaxy): inside one of its blocks.
-  function inWedgeClip(x, y, z) {
-    var c = wedgeClip;
-    if (!c && !hiddenCell) {
+  // Whether a point is drawn by the galaxy's own layers: not inside the cell of the sector opened in place, which
+  // draws its own.
+  function drawnByTheGalaxy(x, y, z) {
+    if (!hiddenCell) {
       return true;
     }
     var plane = Math.hypot(x, y);
@@ -685,13 +673,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       return isFullTurn(b) || plane === 0 || bearingFrom(angle, b.t0) <= b.t1 - b.t0;
     };
-    if (hiddenCell && inside(hiddenCell)) {
-      return false;
-    }
-    if (!c) {
-      return true;
-    }
-    return c.cells.some(inside);
+    return !inside(hiddenCell);
   }
 
   // --- The block solid -------------------------------------------------------
@@ -1460,7 +1442,7 @@ function initGalaxyMap3d(canvasEl, data) {
     cloudSprites.forEach(function (sprite, key) {
       var cloud = sprite.userData.cloud;
       var distance = camera.position.distanceTo(sprite.position);
-      var clipped = !inWedgeClip(sprite.position.x, sprite.position.y, sprite.position.z);
+      var clipped = !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z);
       var pixels = cloudPixels(cloud, distance);
       var mesh = cloudMeshes.get(key);
       if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX) {
@@ -1657,7 +1639,7 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vGlow = mix(starGlow.y, starGlow.x, grow);",
       "  vWhiten = mix(" + POINT_WHITEN.toFixed(3) + ", " + GROWN_WHITEN.toFixed(3) + ", grow);",
       "  vBright = mix(starPointBright, starBright, grow) * mix(1.0, fluxGain(appMag, magLimit), magOn);",
-      // Outside the wedge shown (setWedgeClip): dropped.
+      // Inside the cell of the sector opened in place: dropped (it draws its own).
       "  if (starClipped > 0.5) {",
       "    gl_PointSize = 0.0;",
       "    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);",
@@ -1810,7 +1792,7 @@ function initGalaxyMap3d(canvasEl, data) {
     starPoints.geometry = geometry;
     starPoints.position.set(frame[0], frame[1], frame[2]);
     starPoints.updateMatrixWorld();
-    markClippedStars();
+    markHiddenStars();
   }
 
   // --- The limiting magnitude (MAP.148, static/starmagnitude.js) ----------------
@@ -1994,14 +1976,27 @@ function initGalaxyMap3d(canvasEl, data) {
     return { frame: starFrame.slice(), far: far, count: starList.length, at: starPoints.position.toArray() };
   };
 
-  // Marks the stars outside the wedge shown, which the shader drops.
-  function markClippedStars() {
+  // For tests (MAP.264): how many stars the galaxy has, and how many it leaves out of its own drawing (those in the
+  // opened sector's cell, which that sector draws).
+  canvasEl.galaxyHiddenStars = function () {
+    var attribute = starPoints.geometry.getAttribute("starClipped");
+    var hidden = 0;
+    if (attribute) {
+      for (var i = 0; i < starList.length; i++) {
+        if (attribute.array[i] > 0.5) hidden++;
+      }
+    }
+    return { total: starList.length, hidden: hidden };
+  };
+
+  // Marks the stars inside the opened sector's cell, which the shader drops.
+  function markHiddenStars() {
     var attribute = starPoints.geometry.getAttribute("starClipped");
     if (!attribute) {
       return;
     }
     starList.forEach(function (star, i) {
-      attribute.array[i] = inWedgeClip(star.x, star.y, star.z) ? 0 : 1;
+      attribute.array[i] = drawnByTheGalaxy(star.x, star.y, star.z) ? 0 : 1;
     });
     attribute.needsUpdate = true;
   }
@@ -3088,7 +3083,6 @@ function initGalaxyMap3d(canvasEl, data) {
     picker: picker,
     clearSelection: function () { selectionRing.hide(); },
     restingHint: restingHint,
-    setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {shell, band,
     // wedge}; another sector's click goes to that sector's page.
@@ -3210,7 +3204,7 @@ function initGalaxyMap3d(canvasEl, data) {
       isOn: function (id) { return stageView.layers.isOn(id); },
       tiles: tiles,
       inView: function (item) {
-        return markerFrustum.containsPoint(markerPoint.set(item.x, item.y, item.z)) && inWedgeClip(item.x, item.y, item.z);
+        return markerFrustum.containsPoint(markerPoint.set(item.x, item.y, item.z)) && drawnByTheGalaxy(item.x, item.y, item.z);
       },
     }));
   }
@@ -3271,7 +3265,7 @@ function initGalaxyMap3d(canvasEl, data) {
     enabled: function () { return stageView.inContainer(); },
     points: function () { return starList; },
     reach: function () { return POINT_PICK_PX; },
-    accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
+    accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
     hover: phenomenonHover,
