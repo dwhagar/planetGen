@@ -1224,3 +1224,4 @@ Baseline: PR #1817.
 | GEN.520 | 8.1 | Tuned draws and selection models |
 | PERF.113 | 8.1 | Queue, caches and performance |
 | PERF.114 | 8.1 | Queue, caches and performance |
+| PERF.177 | 8.1 | The headline closes |

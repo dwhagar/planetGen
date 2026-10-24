@@ -15440,19 +15440,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unchanged. Owner: Performance lane.
   Prerequisites: none.
 
-- [ ] **PERF.177 A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P1.
-  Do: find what fills Redis during the phenomena stage, make the run
-  survive it or stop with one plain line that says Redis is full and
-  what to raise (the maxmemory setting in the setup script and the
-  update check), and show one traceback at most. Done: a test or a
-  measured run where Redis near its limit gives the plain message and
-  the run ends cleanly or finishes. Owner: Generation-log analysis lane
-  (proposed by the lane).
-  Prerequisites: none.
-
 - [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -15462,6 +15449,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the time estimate closer to the measured one (or say how wide it is).
   Done: the line reads the same as what happens, with a test on the
   wording. Owner: Generation-log analysis lane (proposed by the lane).
+  Research (2026-10-09, Update): Update 12:27 AM EDT 2026-10-24 (as the
+  coordinator reported): the wording part (the line no longer says
+  Refused and Going ahead) merged in #2831; the estimate accuracy part
+  remains. Owner: Generation-log analysis lane (not Performance).
   Prerequisites: none.
 
 - [ ] **PERF.179 Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug)**
