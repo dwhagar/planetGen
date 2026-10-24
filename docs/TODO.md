@@ -19167,19 +19167,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.358 test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug)**
-  Found by Aux 11 while merging UX.188 and UX.189 (#3116, 6:05 PM EDT
-  2026-10-24 as the lane reported): the planet and moon property-sheet
-  tests that require every stored column to be shown or excused fail on
-  main for interior_kind, core_mass_earth, dilute_core_mass_earth,
-  has_helium_shell, helium_depletion and metallization_pressure_gpa, the
-  giant interior columns that DB.89 (#3089, schema 154) stored. Fix: add
-  them to describe/sheet.py as shown rows (with units from
-  db/column_units.py) or excuse them with a reason; the page shows them
-  with the interior description of GEN.642. Owner: Aux 6 (Lane J, owns
-  GEN.642 and DB.89).
-  Prerequisites: none. Related: DB.89, GEN.642, UX.187.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
