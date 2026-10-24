@@ -102,6 +102,14 @@ def shared_key(db, target):
     return f"planetgen:page:{db}:{hashlib.sha256(target.encode('utf-8')).hexdigest()[:32]}"
 
 
+REDIS_ROOM_FRACTION = 0.7
+"""float: The page cache stops adding answers to Redis once Redis uses this share of its `maxmemory`, so the cache
+    never takes the memory the job queue and the run records need (a full Redis stopped a galaxy run)."""
+
+REDIS_ROOM_SECONDS = 5.0
+"""float: How long a look at Redis's memory is trusted."""
+
+
 class ResponseCache:
     """
     The cache itself: raw response bodies keyed by request target, least
@@ -173,6 +181,22 @@ class ResponseCache:
 
     def _redis(self):
         return redisclient.client(timeout=SOCKET_SECONDS, retries=1)
+
+    def _redis_has_room(self):
+        """Whether Redis is under `REDIS_ROOM_FRACTION` of its `maxmemory` (always, when it has no limit); looked up at
+        most every `REDIS_ROOM_SECONDS`, and a failed look counts as room (the write that follows copes with errors)."""
+        now = self._clock()
+        checked, room = getattr(self, "_room", (float("-inf"), True))
+        if now - checked < REDIS_ROOM_SECONDS:
+            return room
+        try:
+            memory = self._redis().info("memory")
+            limit = int(memory.get("maxmemory") or 0)
+            room = limit <= 0 or int(memory.get("used_memory") or 0) < limit * REDIS_ROOM_FRACTION
+        except (redis.RedisError, OSError, ValueError, TypeError):
+            room = True
+        self._room = (now, room)
+        return room
 
     def _bump_from(self, db, changes, previous_state):
         """Turns what `changes` says into tag bumps, once across the web processes."""
@@ -321,6 +345,8 @@ class ResponseCache:
             while len(self._entries) > self._max_entries:
                 self._entries.popitem()
         try:
+            if not self._redis_has_room():
+                return
             key = shared_key(db, target)
             pipe = self._redis().pipeline(transaction=False)
             pipe.hset(key, mapping={"i": now_id, "v": json.dumps(found, sort_keys=True), "b": body, "c": cost})

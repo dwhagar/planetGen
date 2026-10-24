@@ -28,6 +28,9 @@ def listens_beyond_loopback(bind):
     addresses = [a.lstrip("-") for a in bind.split()]
     return not addresses or any(a not in LOOPBACK and not a.startswith("127.") for a in addresses)
 
+MIN_MAXMEMORY = 2 * 1024 ** 3
+"""int: Below this, the Redis memory limit is called too small."""
+
 
 def problems(config):
     """`[(what is wrong, line to add)]` for a dict of CONFIG GET values."""
@@ -40,7 +43,10 @@ def problems(config):
                       "appendfsync everysec"))
     if str(config.get("maxmemory", "0")) in ("0", ""):
         found.append(("maxmemory is 0 (no limit): a runaway queue could fill the host's memory",
-                      "maxmemory 512mb"))
+                      "maxmemory 4gb"))
+    elif int(config.get("maxmemory") or 0) < MIN_MAXMEMORY:
+        found.append((f"maxmemory is {config.get('maxmemory')} bytes: the page cache and the run records share it, "
+                      "and a full Redis stops a galaxy run", "maxmemory 4gb"))
     if listens_beyond_loopback(config.get("bind", "")):
         found.append((f"bind is {config.get('bind', '')!r}, so it listens beyond this machine; only planetGen should "
                       "reach it", "bind 127.0.0.1 -::1\nprotected-mode yes"))
