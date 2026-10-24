@@ -309,10 +309,14 @@ def _atmosphere_composition(planet):
     pressures = {gas: getattr(planet, f"p_{gas}_kpa", None) for gas in atmosphere_physics.SPECIES}
     total = sum(value for value in pressures.values() if value)
     parts = []
+    balance = atmosphere_physics.balance_kpa(planet)
+    balance_names = atmosphere_physics.balance_names(planet.planet_class) if balance > 0 else ()
+    total += balance
     if total > 0:
-        for gas, value in sorted(pressures.items(), key=lambda item: -(item[1] or 0.0)):
-            if value:
-                parts.append({"name": atmosphere_physics.SPECIES_NAMES[gas], "share": value / total})
+        shares = [(atmosphere_physics.SPECIES_NAMES[gas], value) for gas, value in pressures.items() if value]
+        shares += [(name, balance / len(balance_names)) for name in balance_names]
+        for name, value in sorted(shares, key=lambda item: -item[1]):
+            parts.append({"name": name, "share": value / total})
     return model.composition("Atmosphere", parts, planet.atmosphere.lower())
 
 
