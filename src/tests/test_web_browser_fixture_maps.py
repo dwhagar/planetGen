@@ -121,7 +121,12 @@ def _bright_spots(page, selector, limit=40, white=False):
     canvas, brightest first: where its points of light are drawn (with
     `white`, only near-white ones: a star's whitened core, not the Galaxy
     Map's lit blocks)."""
-    image = Image.open(io.BytesIO(_shot(page, selector))).convert("RGB")
+    # The map's names (MAP.268) are text over the canvas, not points of light: leave them out of the picture.
+    page.evaluate("() => document.querySelectorAll('.map-labels').forEach((e) => { e.style.visibility = 'hidden'; })")
+    try:
+        image = Image.open(io.BytesIO(_shot(page, selector))).convert("RGB")
+    finally:
+        page.evaluate("() => document.querySelectorAll('.map-labels').forEach((e) => { e.style.visibility = ''; })")
     box = page.locator(selector).bounding_box()  # after the shot, which may scroll
     width, height = image.size
     pixels = image.load()

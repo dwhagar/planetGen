@@ -15,7 +15,9 @@
 // The kinds are ranked so the big things win the room: a nebula over a body over a sector over a system, and a system by
 // its apparent brightness (luminosity over distance squared). No DOM at import; three.js comes in as a parameter.
 
-const { createLabelLayer } = await import(`./maplabels.js${(new URL(import.meta.url)).search}`);
+const VERSION_QUERY = new URL(import.meta.url).search;
+
+const { createLabelLayer } = await import(`./maplabels.js${VERSION_QUERY}`);
 
 export const LABEL_KINDS = [
   { id: "label-sector", kind: "sector", label: "Sector names", title: "Show or hide the names of generated sectors" },
