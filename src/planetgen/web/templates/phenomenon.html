@@ -71,6 +71,18 @@
   {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
 </nav>
 {%- endif %}
+{%- if glance %}
+<section class="panel" id="item-glance" aria-labelledby="item-glance-heading">
+  <div class="panel-header"><h2 id="item-glance-heading">At a glance</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      {%- for row in glance %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.html }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if facts %}
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>

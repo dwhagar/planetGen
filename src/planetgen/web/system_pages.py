@@ -242,6 +242,16 @@ def _territory(db, system_id):
             "url": page_url("polity_page", polity_id=owner["polity_id"])}
 
 
+def _with_keep_out(context, ref):
+    """A page's sheet context with the object's keep-out row first in its At a glance panel (UX.192). The page opens
+    without the row when the object cannot be read, as it does without its contents list."""
+    try:
+        row = glance.keep_out_row(apiclient.get_object(db_name(), ref))
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        row = None
+    return {**context, "glance": ([row] if row else []) + context["glance"]}
+
+
 @bp.route("/system/<uid:system_id>/scene")
 def system_scene(system_id):
     """The 3D system view's scene JSON (`GET /api/systems/<id>/scene`,
@@ -893,7 +903,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
         facts=trusted_html(_phenomenon_facts(phenomenon_type, detail)),
         previous=_phenomenon_peer(phenomenon_type, detail.get("previous")),
         following=_phenomenon_peer(phenomenon_type, detail.get("next")),
-        **item_pages.sheet_context(apiclient.get_object_sheet(db_name(), f"{phenomenon_type}:{phenomenon_id}")),
+        **_with_keep_out(item_pages.sheet_context(apiclient.get_object_sheet(db_name(), f"{phenomenon_type}:{phenomenon_id}")),
+                         f"{phenomenon_type}:{phenomenon_id}"),
         # A system's own black hole or neutron star is edited with its system.
         can_edit=edit_actions.can_edit(current_admin()) and detail.get("star_id") is None,
         edit_target=f"{phenomenon_type}:{detail['id']}",

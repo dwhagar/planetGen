@@ -59,7 +59,7 @@ from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 
-from . import bp, edit_actions, generate_page, jobs, tables
+from . import bp, edit_actions, generate_page, glance, jobs, tables
 from .profile_view import FAR_RUN_SECTORS, profile_view
 from .helpers import (
     bookmark, crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html,
@@ -696,6 +696,7 @@ def sector(sector_id):
         galaxy_url=galaxy_map_url(detail),
         bookmark=sector_bookmark(detail, sector_id),
         map_html=trusted_html(map_html),
+        glance=glance.sector_rows(detail, facilities, PHENOMENON_TYPE_LABELS),
         contents=contents,
         admin=admin,
         can_generate=admin is not None and not admin["must_change_credentials"],
