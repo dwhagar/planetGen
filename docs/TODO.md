@@ -2184,6 +2184,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parsecs, stated in the test) at a camera 262 kpc from the origin.
   Owner: Core 2. Related: the superbubble look (MAP.236) and the key
   (MAP.234) touch the same buffers.
+  Research (2026-10-09, Progress): Progress (TODO, 2026-10-24 5:58 PM
+  EDT): the star layer is done by MAP.267 (#3114, Aux 10, about 5:57 PM
+  EDT as the lane reported): stars arrive node by node in one buffer
+  without rebuilding the rest, and star positions are exact far from the
+  galaxy centre (relative-to-eye float pairs). Still open here: the
+  other browser buffers (territory dots, superbubbles, rings, prisms,
+  system view). Not built: the glow's density-model fallback (design
+  section 3); TODO files it only if Boss wants it.
   Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
 
 - [ ] **MAP.241 Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug)**
@@ -2474,7 +2482,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.266, MAP.267. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.266. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2509,23 +2517,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it before each PR).
   Prerequisites: none. Related: MAP.257, MAP.146,
   MAP.249.
-
-- [ ] **MAP.267 S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in)**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Replace
-  setStars rebuilds with node-by-node fills and the relative-to-eye
-  shader (each position as a high and a low float32); the other buffers
-  follow, which is MAP.240 (retire it when this is done). Test on the
-  devices Boss uses; the fallback is a per-chunk origin. Size M. Done:
-  no hitch when a node lands and precision to about 0.2 AU, measured on
-  the item. Owner: lane Map nodes (the coordinator's new lane, 5:53 PM
-  EDT as the lane reported), with Core 2 as owner of galaxymap3d.js and
-  galaxystageview.js (rebase on its merges and tell it before each PR).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
   Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
