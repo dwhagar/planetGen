@@ -358,8 +358,7 @@
     },
     {
       "epoch": 73,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2162",
       "reason": "White dwarf binary types: close double white dwarfs, post-common-envelope pairs with hot subdwarfs, cataclysmic variables, AM CVn binaries, double white dwarf merger products, and barium and symbiotic giants are drawn inside the member tree, and a white dwarf's companion odds are 20.5% star and 9.5% white dwarf, so star systems and their companions change (GEN.271)"
     }
   ]
