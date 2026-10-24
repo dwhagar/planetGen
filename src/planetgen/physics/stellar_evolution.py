@@ -31,6 +31,10 @@ from planetgen.galaxy import scales
 from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, remnant_mass, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_km_to_m = units.converter("km", "m")
+_m_to_km = units.converter("m", "km")
 
 
 YERKES_CLASS_NAMES = {
@@ -554,7 +558,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         luminosity = pc.WD_COOLING_L0_SOL * (final_mass / 0.6) * cooling_age ** pc.WD_COOLING_EXPONENT
         luminosity = min(max(luminosity, pc.WD_LUMINOSITY_RANGE_SOL[0]), pc.WD_LUMINOSITY_RANGE_SOL[1])
         radius_km = white_dwarf_radius_km(final_mass)
-        radius_sol = radius_km * constants.KM_TO_M_FACTOR / constants.SOLAR_RADIUS_M
+        radius_sol = _km_to_m(radius_km) / constants.SOLAR_RADIUS_M
         state.update(yerkes_class="VII", mass_sol=final_mass, luminosity_sol=luminosity,
                      temperature_k=effective_temperature_k(luminosity, radius_sol), radius_km=radius_km,
                      lifespan_gy=float("inf"), phase_end_gy=float("inf"))
@@ -653,7 +657,8 @@ def star_params(initial_mass_sol, age_gy, state):
         radius_km = state["radius_km"]
     else:
         radius_km = math.sqrt(luminosity_w / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT
-                                              * temperature ** 4)) / constants.KM_TO_M_FACTOR
+                                              * temperature ** 4))
+        radius_km = _m_to_km(radius_km)
     yerkes = state["yerkes_class"]
     color = constants.SPECTRAL_CLASS_COLORS[spectral_class]
     if yerkes == wolf_rayet.CLASS:

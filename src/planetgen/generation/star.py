@@ -32,6 +32,12 @@ from planetgen.galaxy import scales
 from planetgen.generation.stellar_object import StellarObject
 from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.util.checks import finite_domain
+from planetgen.physics import unit_registry as units
+
+_percm3_to_perm3 = units.converter("cm-3", "m-3")
+_km_to_m = units.converter("km", "m")
+_m_to_au = units.converter("m", "au")
+_m_to_km = units.converter("m", "km")
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -132,7 +138,7 @@ def cloud_pressure_pa(density_cm3, temperature_k):
     Returns:
         float: The pressure in pascals.
     """
-    n_m3 = max(density_cm3 or 0.0, 0.0) * constants.CM3_TO_M3
+    n_m3 = _percm3_to_perm3(max(density_cm3 or 0.0, 0.0))
     rho = n_m3 * constants.ISM_MASS_PER_HYDROGEN * constants.HYDROGEN_ATOM_MASS_KG
     ram = rho * constants.STAR_CLOUD_RELATIVE_SPEED_MS ** 2
     thermal = n_m3 * constants.BOLTZMANN * max(temperature_k or 0.0, 0.0)
@@ -416,7 +422,7 @@ class Star(StellarObject):
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
         # --- 1. Get Fundamental Stellar Properties (from arguments) ---
-        radius_m = radius_km * constants.KM_TO_M_FACTOR  # Convert radius from km to meters
+        radius_m = _km_to_m(radius_km)
         lum_sol = luminosity / constants.SOLAR_LUMINOSITY
         mass_sol = mass / constants.SOLAR_MASS_TO_KG
         radius_sol = radius_m / constants.SOLAR_RADIUS_M
@@ -498,7 +504,7 @@ class Star(StellarObject):
             heliopause_radius_m = constants.HELIOPAUSE_RADIUS_DEFAULT_M
 
         # Convert the final radius from meters to Astronomical Units (AU) for output.
-        return heliopause_radius_m / constants.AU_TO_M
+        return _m_to_au(heliopause_radius_m)
 
     def calculate_heliosphere(self):
         """
@@ -942,7 +948,7 @@ class Star(StellarObject):
             # For all other stars, radius is calculated from luminosity and temperature
             # using the Stefan-Boltzmann law.
             luminosity_watts = luminosity * constants.SOLAR_LUMINOSITY
-            radius = math.sqrt(luminosity_watts / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / constants.KM_TO_M_FACTOR
+            radius = _m_to_km(math.sqrt(luminosity_watts / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)))
 
         # 7. Set final star properties.
         color_descriptions = constants.SPECTRAL_CLASS_COLORS

@@ -53,6 +53,12 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import aerosols, atmosphere, constants, equipment, habitability, magnetism, radiation, regional_temperature
+from planetgen.physics import unit_registry as units
+
+_pa_to_kpa = units.converter("Pa", "kPa")
+_kpa_to_pa = units.converter("kPa", "Pa")
+_km_to_m = units.converter("km", "m")
+_au_to_m = units.converter("au", "m")
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
 TIER_NAMES = tuple(TIER_INDEX)
@@ -234,16 +240,16 @@ def water_source(values):
 def air_inventories_kg(values):
     """`(carbon_kg, nitrogen_kg)` in the air, from the species' partial
     pressures; the balance gas is taken as 28 g/mol and carries neither."""
-    pressure_kpa = (values.get("atmospheric_pressure_pa") or 0.0) / 1000.0
+    pressure_kpa = _pa_to_kpa(values.get("atmospheric_pressure_pa") or 0.0)
     gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
-    radius_m = (values.get("radius_km") or 0.0) * 1000.0
+    radius_m = _km_to_m(values.get("radius_km") or 0.0)
     if pressure_kpa <= 0.0 or gravity <= 0.0 or radius_m <= 0.0:
         return 0.0, 0.0
     partials = {gas: values.get(f"p_{gas}_kpa") or 0.0 for gas in atmosphere.SPECIES}
     balance = max(0.0, pressure_kpa - sum(partials.values()))
     mean_molar = (sum(partials[gas] * MOLAR_KG[gas] for gas in partials) + balance * BALANCE_MOLAR_KG) / (
         sum(partials.values()) + balance)
-    moles = pressure_kpa * 1000.0 * 4.0 * math.pi * radius_m ** 2 / (gravity * mean_molar)
+    moles = _kpa_to_pa(pressure_kpa) * 4.0 * math.pi * radius_m ** 2 / (gravity * mean_molar)
     share = {gas: partials[gas] / pressure_kpa for gas in partials}
     carbon = moles * (share["co2"] + share["co"] + share["ch4"]) * CARBON_KG_MOL
     nitrogen = moles * 2.0 * share["n2"] * NITROGEN_KG_MOL
@@ -265,7 +271,7 @@ def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
     if values.get("hydrosphere") == "ice-covered ocean" or not luminosity_w or not distance_au:
         return chemical
-    light = LIGHT_SHARE * luminosity_w / (4.0 * math.pi * (distance_au * constants.AU_TO_M) ** 2)
+    light = LIGHT_SHARE * luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2)
     return max(light, chemical)
 
 

@@ -22,10 +22,12 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import scales
-from planetgen.physics import constants
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
 
-_KPC_IN_LY = constants.KILOPARSEC_M / constants.LY_TO_M
+_kpc_to_ly = units.converter("kpc", "ly")
+
+_KPC_IN_LY = _kpc_to_ly(1.0)
 
 
 def disc_gradient_fe_h(galactic_center_dist_ly):

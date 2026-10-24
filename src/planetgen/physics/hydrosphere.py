@@ -47,6 +47,9 @@ import math
 from planetgen.physics import constants, gases, saturation
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+from planetgen.physics import unit_registry as units
+
+_au_to_m = units.converter("au", "m")
 
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
@@ -312,7 +315,7 @@ def moon_tidal_flux_w_m2(moon, primary_mass_kg, water_mass_fraction):
     if not moon.is_moon or not primary_mass_kg or water_mass_fraction < ICY_MIN_WATER_FRACTION:
         return 0.0
     eccentricity = log_uniform(*ICY_MOON_ECCENTRICITY_RANGE)
-    power = tidal_heating_w(ICY_MOON_K2_Q, primary_mass_kg, moon.radius, moon.distance * constants.AU_TO_M,
+    power = tidal_heating_w(ICY_MOON_K2_Q, primary_mass_kg, moon.radius, _au_to_m(moon.distance),
                             eccentricity)
     if moon.mass / constants.EARTH_MASS_TO_KG < SMALL_MOON_MASS_EARTH:
         power *= log_uniform(*RESONANCE_BOOST_RANGE)

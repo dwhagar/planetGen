@@ -28,8 +28,10 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import stellar_evolution
-from planetgen.physics.constants import LIGHTYEAR_M, PARSEC_M
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_pc_to_ly = units.converter("pc", "ly")
 
 ALPHA_B_CM3_S = 2.6e-13
 """float: Case B recombination coefficient of hydrogen at 1e4 K."""
@@ -38,7 +40,7 @@ SOUND_SPEED_PC_MYR = 10.0 * 1.0227
 """float: The ionized gas's sound speed, 10 km/s, in pc per Myr (1 km/s is 1.0227 pc/Myr)."""
 
 PC_CM = 3.0857e18
-LY_PER_PC = PARSEC_M / LIGHTYEAR_M
+LY_PER_PC = _pc_to_ly(1.0)
 """float: Light-years in one parsec, exact from the two definitions in `physics/constants.py` (GEN.572)."""
 
 MIN_IONIZING_MASS_SOL = 5.5

@@ -44,6 +44,9 @@ from planetgen.physics.formation import (
 )
 from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
 from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.physics import unit_registry as units
+
+_km_to_au = units.converter("km", "au")
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
 """float: The system text mentions the surrounding cloud's squeeze only when
@@ -862,7 +865,7 @@ class StarSystem:
         # A P-type pair is tracked on a circle (`BinaryStarProxy`).
         pair_node = nodes[pair_no]
         if kind is None:
-            kind = "close" if pair_node.separation_km / constants.AU_TO_KM < tuning.WIDE_BINARY_SEPARATION_MIN_AU else "wide"
+            kind = "close" if _km_to_au(pair_node.separation_km) < tuning.WIDE_BINARY_SEPARATION_MIN_AU else "wide"
         if kind == "close":
             pair_node = dataclasses.replace(pair_node, kind="close", eccentricity=0.0)
         else:
@@ -902,7 +905,7 @@ class StarSystem:
             total[node.node_no] = sum(children[node.node_no]) + sum(
                 total[child.node_no] for child in plan.nodes if child.parent_node_no == node.node_no)
         return [dataclasses.replace(node, mass_solar=total[node.node_no],
-                                    period_years=math.sqrt((node.separation_km / constants.AU_TO_KM) ** 3
+                                    period_years=math.sqrt(_km_to_au(node.separation_km) ** 3
                                                            / total[node.node_no])) for node in plan.nodes]
 
     @staticmethod
@@ -1253,8 +1256,8 @@ class StarSystem:
                                                                member.initial_mass_sol)
                 radius_au = max(radius_au, mass_loss.engulfment_radius_au(progenitor_sol))
             elif yerkes not in (None, "V", "VI", "PMS", "protostar"):
-                radius_au = max(radius_au, tuning.GIANT_ENGULFMENT_RADIUS_FACTOR
-                                * member.radius / constants.AU_TO_KM)
+                radius_au = max(radius_au, _km_to_au(tuning.GIANT_ENGULFMENT_RADIUS_FACTOR
+                                          * member.radius))
         return radius_au
 
     def _explicit_request(self):

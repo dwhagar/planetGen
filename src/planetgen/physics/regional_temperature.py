@@ -28,6 +28,10 @@ the model will gain.
 import math
 
 from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_yr_to_s = units.converter("yr", "s")
+_s_to_h = units.converter("s", "h")
 
 FIELDS = (
     "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k",
@@ -144,7 +148,7 @@ def is_locked(rotation_period_hours, period_years):
     """Whether the body turns once an orbit (the generator's lock): its rotation period is its orbital period."""
     if not rotation_period_hours or not period_years:
         return False
-    orbital_hours = period_years * constants.SECONDS_PER_YEAR / 3600.0
+    orbital_hours = _s_to_h(_yr_to_s(period_years))
     return abs(rotation_period_hours - orbital_hours) <= LOCK_TOLERANCE * orbital_hours
 
 

@@ -10,10 +10,13 @@ that fills part of its sphere; GEN.295 refines it when a nebula becomes a group 
 """
 
 from planetgen.physics import constants, relations
+from planetgen.physics import unit_registry as units
+
+_ly_to_m = units.converter("ly", "m")
 
 
 def gas_cloud_mass_kg(density_cm3, radius_ly):
     """kg: a sphere of `radius_ly` holding `density_cm3` hydrogen nuclei per cm^3, with the helium and the rest of the
     interstellar gas counted by `constants.ISM_MASS_PER_HYDROGEN`."""
-    volume_m3 = relations.sphere_volume(radius_ly * constants.LY_TO_M)
+    volume_m3 = relations.sphere_volume(_ly_to_m(radius_ly))
     return volume_m3 * density_cm3 * constants.CM3_TO_M3 * constants.HYDROGEN_ATOM_MASS_KG * constants.ISM_MASS_PER_HYDROGEN

@@ -30,6 +30,19 @@ from planetgen.physics.orbits import (
 )
 from planetgen.util.checks import finite_domain
 from planetgen.util.random import sample_bounded_bell, sample_power_law
+from planetgen.physics import unit_registry as units
+
+_km_to_m = units.converter("km", "m")
+_m_to_km = units.converter("m", "km")
+_au_to_m = units.converter("au", "m")
+_au_to_km = units.converter("au", "km")
+_km_to_au = units.converter("km", "au")
+_gcm3_to_kgm3 = units.converter("g_cm3", "kg_m3")
+_h_to_s = units.converter("h", "s")
+_yr_to_s = units.converter("yr", "s")
+_gyr_to_yr = units.converter("Gyr", "yr")
+_yr_to_h = units.converter("yr", "h")
+_au_yr_to_kms = units.converter("au_yr", "km_s")
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -154,8 +167,8 @@ def get_planet_mass_ranges():
         # M's 5000-10000 matches Earth's ~6371 km radius); convert to meters
         # to match the kg/m^3 densities used below.
         min_radius, max_radius = data["radius_range"]
-        min_radius *= constants.KM_TO_M_FACTOR
-        max_radius *= constants.KM_TO_M_FACTOR
+        min_radius = _km_to_m(min_radius)
+        max_radius = _km_to_m(max_radius)
         planet_type = data["type"]
 
         # Class-specific density range if declared (e.g. a brown-dwarf-like
@@ -562,11 +575,11 @@ def update_hill_sphere(planet):
     star for a planet, the parent planet for a moon). Call again whenever
     either changes, e.g. after `StarSystem.validate_system` moves the planet.
     """
-    distance_m = planet.distance * constants.AU_TO_M
+    distance_m = _au_to_m(planet.distance)
     # A moon's Hill sphere is within its planet's pull, not the star's (GEN.138).
     primary_mass_kg = getattr(planet, "primary_mass_kg", None) or planet.star.mass
-    planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, primary_mass_kg) / 1000  # Convert to km
-    planet.min_orbit_distance = (5 * planet.hill_radius) / constants.AU_TO_KM
+    planet.hill_radius = _m_to_km(calculate_hill_sphere(distance_m, planet.mass, primary_mass_kg))
+    planet.min_orbit_distance = _km_to_au(5 * planet.hill_radius)
 
 
 def calculate_surface_gravity(planet):
@@ -644,7 +657,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
                                              like moons.
     """
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
-    orbital_radius_km = distance * constants.AU_TO_KM
+    orbital_radius_km = _au_to_km(distance)
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
     class_data = tuning.PLANET_CLASSES.get(planet.planet_class, {})
@@ -668,7 +681,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # planet.radius (and everything derived from it below) is in km, so
         # convert the scale height -- dimensionally meters, per the R*T/(M*g)
         # formula -- to km to match before it's combined with radius.
-        scale_height = scale_height_m / constants.KM_TO_M_FACTOR
+        scale_height = _m_to_km(scale_height_m)
         planet.scale_height = scale_height
         # Closed-form barometric formula for an isothermal, hydrostatic
         # atmosphere: integrating dP/dz = -rho*g from the surface to
@@ -789,9 +802,9 @@ def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_per
     Returns:
         float: Estimated locking timescale, in seconds.
     """
-    omega0 = 2 * math.pi / (initial_rotation_period_hours * 3600)
-    distance_m = moon.distance * constants.AU_TO_M
-    radius_m = moon.radius * 1000
+    omega0 = 2 * math.pi / _h_to_s(initial_rotation_period_hours)
+    distance_m = _au_to_m(moon.distance)
+    radius_m = _km_to_m(moon.radius)
     q_over_k2 = constants.MOON_TIDAL_DISSIPATION_Q / constants.MOON_TIDAL_LOVE_NUMBER_K2
     numerator = omega0 * (distance_m ** 6) * moon.mass
     denominator = constants.G * (primary_mass_kg ** 2) * (radius_m ** 3)
@@ -879,11 +892,11 @@ def generate_spin(planet, primary_mass_kg):
     lock_timescale_s = _tidal_locking_timescale_seconds(
         planet, primary_mass_kg, candidate_rotation_period_hours
     )
-    system_age_s = planet.star.age * 1e9 * constants.SECONDS_PER_YEAR
+    system_age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
     is_locked = lock_timescale_s < system_age_s
 
     if is_locked:
-        planet.rotation_period_hours = planet.period * (constants.SECONDS_PER_YEAR / 3600)
+        planet.rotation_period_hours = planet.period * _yr_to_h(1.0)
     else:
         planet.rotation_period_hours = candidate_rotation_period_hours
 
@@ -956,7 +969,7 @@ def update_orbital_position(planet, phase_deg=None):
         planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, phase_deg,
     ))
     planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
-    to_kms = constants.AU_TO_KM / constants.SECONDS_PER_YEAR
+    to_kms = _au_yr_to_kms(1.0)
     planet.set_velocity_kms(*(v * to_kms for v in circular_orbital_velocity_au_per_year(
         planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, phase_deg,
         planet.period)))
@@ -1100,7 +1113,7 @@ def drop_unstable_moons(planet):
     low_km, high_km = moon_orbit_bounds_km(planet)
     max_moon_radius, max_moon_mass = moon_size_limits(planet)
     kept = [moon for moon in planet.moons
-            if low_km <= moon.distance * constants.AU_TO_KM <= high_km
+            if low_km <= _au_to_km(moon.distance) <= high_km
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
@@ -1132,8 +1145,8 @@ def moon_class_options(parent, zone):
         if (not data[zone] or data["type"] != 't' or cls in tuning.MOON_BLACKLIST
                 or (barred and cls in tuning.HABITABLE_PLANET_CLASSES)):
             continue
-        max_density_kg_m3 = data.get("density_range", constants.PLANET_DENSITY['t'])[1] * 1000
-        mass_radius_km = (max_mass_kg / ((4 / 3) * math.pi * max_density_kg_m3)) ** (1 / 3) / constants.KM_TO_M_FACTOR
+        max_density_kg_m3 = _gcm3_to_kgm3(data.get("density_range", constants.PLANET_DENSITY['t'])[1])
+        mass_radius_km = _m_to_km((max_mass_kg / ((4 / 3) * math.pi * max_density_kg_m3)) ** (1 / 3))
         ceiling_km = min(data["radius_range"][1], max_radius_km, mass_radius_km)
         if data["radius_range"][0] <= ceiling_km:
             options[cls] = ceiling_km
@@ -1190,7 +1203,7 @@ def generate_moons(planet, moon_count=None):
     # can't be imported here at module level without a circular import.
     from planetgen.generation.planet import Planet
 
-    while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * constants.AU_TO_KM):
+    while total_orbit_distance < high_orbit and total_orbit_distance < _au_to_km(planet.distance):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
@@ -1214,12 +1227,12 @@ def generate_moons(planet, moon_count=None):
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
-        moon_distance = moon_distance_km / constants.AU_TO_KM
+        moon_distance = _km_to_au(moon_distance_km)
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
         planet.moons.append(new_moon)
-        total_orbit_distance = (new_moon.distance * constants.AU_TO_KM) + (new_moon.min_orbit_distance * constants.AU_TO_KM)
+        total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the
