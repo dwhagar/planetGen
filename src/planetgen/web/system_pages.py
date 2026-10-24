@@ -863,11 +863,21 @@ def object_url(kind, object_id, system_id=None):
     return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=object_id)
 
 
-@bp.route("/object/<ref>")
+@bp.route("/object/<ref>", methods=["GET", "POST"])
 def object_page(ref):
     """Any object reference (`planet:12`, `nebula:3`, `system:` and a printed ID): the page the site has for the kind, or,
-    for a star, planet, moon, belt or comet, its own page (UX.143, `web/item_pages.py`)."""
+    for a star, planet, moon, belt or comet, its own page (UX.143, `web/item_pages.py`). A POST is an admin Regenerate,
+    Change class or Delete of that body."""
     return item_pages.object_page_response(ref)
+
+
+@bp.route("/object/<ref>/tree")
+def object_tree(ref):
+    """One page of an object's children as the rows of a summary tree level (UX.172, `static/objecttree.js`)."""
+    return item_pages.tree_response(ref)
+
+
+object_tree.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 

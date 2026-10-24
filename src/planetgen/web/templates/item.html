@@ -1,38 +1,103 @@
-{#- One star, planet, moon, belt or comet (/object/<ref>, web/item_pages.py, UX.143). -#}
+{#- One star, planet, moon, belt or comet (/object/<ref>, web/item_pages.py, UX.143, UX.170): where it is, its property
+    sheet, what the description says about it and the tree of what belongs to it. -#}
 {% extends "base.html" %}
+{% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
+{% from "partials/action_bar.html" import action_bar %}
+{#- The Admin menu of this one body (Regenerate, Change class, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
+{%- set groups = [] %}
+{%- if edit %}
+{%- set body_actions = [] %}
+{%- set class_actions = [] %}
+{%- if edit.class_options %}
+{%- set class_fields %}
+    <label>New class <select name="planet_class" required>
+      {%- if edit.class_options.recommended %}
+      <optgroup label="Recommended (fits where it is)">
+        {%- for code in edit.class_options.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
+      </optgroup>
+      {%- endif %}
+      <optgroup label="Needs confirming (may break it)">
+        {%- for code in edit.class_options.forced %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
+      </optgroup>
+    </select></label>
+    <label class="edit-drop"><input type="checkbox" name="confirm_class" value="1"> Set it anyway, even if the class doesn't suit its size, mass or zone</label>
+{%- endset %}
+{%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ title ~ "'s class",
+    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet. Any other class says what it would break and is only set when you tick “Set it anyway”.',
+    'fields': class_fields, 'button': 'Change ' ~ title ~ "'s class"}] %}
+{%- endif %}
+{%- set _ = add_edit_actions(body_actions, title,
+     'Rolls it again at the same orbit.' if kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
+     'Removes it from the system.' if kind != 'planet' else 'Removes it and its moons from the system.',
+     facilities=kind != 'star' and kind != 'comet', regenerate_facilities=(kind == 'planet'), extra=class_actions) %}
+{%- set _ = groups.append({'id': 'body', 'target': edit.target, 'actions': body_actions}) %}
+{%- endif %}
+{%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, title) }}{% endif %}{% endset %}
+{% block head %}
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
+<script type="module" src="{{ static_url('objecttree.js') }}"></script>
+{% if example %}<script type="module" src="{{ static_url('bodyview.js') }}"></script>{% endif %}
+{% endblock %}
 {% block subhead %}
-<p class="badges">
-  <span class="badge">{{ kind_label }}</span>
-  <span class="badge">Object ID {{ object_id }}</span>
-  {%- if system_name %}
-  <span class="badge">{{ system_name }} system</span>
-  {%- elif owner_name %}
-  <span class="badge">Orbits the free planet {{ owner_name }}</span>
-  {%- endif %}
-</p>
-{%- if habitability %}{% set symbols = habitability_symbol_row(habitability) %}{% if symbols %}
-<p class="item-habitability">{{ symbols }}</p>
-{%- endif %}{% endif %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">{{ kind_label }}</span>
+    <span class="badge">Object ID {{ object_id }}</span>
+    {%- if system_name %}<span class="badge">{{ system_name }} system</span>
+    {%- elif owner_name %}<span class="badge">Orbits the free planet {{ owner_name }}</span>{% endif %}
+  </p>
+  {%- if habitability %}{% set symbols = habitability_symbol_row(habitability) %}{% if symbols %}
+  <p class="item-habitability">{{ symbols }}</p>
+  {%- endif %}{% endif %}
+  {{ action_bar(bookmark, nav_links, none, none, admin_button, nearby_url) }}
+</div>
 {% endblock %}
 {% block content %}
+{{ admin_dialogs(groups, page_url('object_page', ref=object_ref)) }}
+{% include "partials/location.html" %}
+{%- if previous or following %}
+<nav class="item-neighbours" aria-label="Neighbouring {{ kind_label|lower }}s">
+  {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
+  {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
+</nav>
+{%- endif %}
+{%- if example %}
+<section class="panel" id="item-example" aria-labelledby="item-example-heading">
+  <div class="panel-header"><h2 id="item-example-heading">Rendered example</h2></div>
+  <figure class="body-view" hidden>
+    <canvas class="body-view-canvas" width="320" height="320" role="img" aria-label="{{ title }}, drawn from its stored properties" data-look='{{ example.look }}'></canvas>
+    {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
+  </figure>
+</section>
+{%- endif %}
+<section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
+  <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
+  {%- for group in sheet %}
+  <details class="sheet-group" id="sheet-{{ group.key }}" open>
+    <summary><h3>{{ group.label }}</h3></summary>
+    <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+      <tbody>
+        {%- for row in group.rows %}
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+  </details>
+  {%- endfor %}
+</section>
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
-  {% if facts %}{{ facts }}{% else %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
+  {% if facts %}<div class="prose">{{ facts }}</div>{% else %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
   {%- if system_url %}
-  <p><a href="{{ row_url }}">Show it in the system's list</a> or <a href="{{ system_url }}">open the {{ system_name }} system</a>.</p>
+  <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
   {%- else %}
   <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
   {%- endif %}
 </section>
-{% include "partials/location.html" %}
-{% if children %}
+{%- if tree %}
 <section class="panel" id="item-members" aria-labelledby="item-members-heading">
   <div class="panel-header"><h2 id="item-members-heading">Belonging to it</h2></div>
-  <ul>
-    {%- for child in children %}
-    <li><a href="{{ child.url }}">{{ child.title }}</a> ({{ child.kind|lower }})</li>
-    {%- endfor %}
-  </ul>
+  {{ tree }}
 </section>
-{% endif %}
+{%- endif %}
 {% endblock %}

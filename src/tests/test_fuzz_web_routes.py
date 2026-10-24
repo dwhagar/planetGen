@@ -436,6 +436,7 @@ def real_values(rule, seed):
             "job_id": "20260101-000000-abcdef", "star_id": 1, "planet_id": 1, "moon_id": 1, "facility_id": 1,
             "type_id": 1, "field_id": 1, "recipe_id": 1,
             "type_slug": "nebula", "code": "D", "body_id": 1, "bright_star_id": 1, "key": "add-sectors",
+            "ref": "system:" + pid("system", seed["system_ids"][0], seed["config"]),
         }.get(name, "x")
     return values
 
@@ -984,7 +985,7 @@ def test_anonymous_page_posts_with_garbage_bodies(app, fuzz_db, rule, body):
             assert response.status_code in (302, 403), f"{method} {path} -> {response.status_code}"
             if response.status_code == 302:
                 assert urlsplit(response.headers["Location"]).path == "/login"
-        else:  # /sector/<id>, /system/<id>: admin-only actions on a public page
+        else:  # /sector/<id>, /system/<id>, /object/<ref>: admin-only actions on a public page
             assert response.status_code in (302, 303, 400, 403), f"{method} {path} -> {response.status_code}"
 
 

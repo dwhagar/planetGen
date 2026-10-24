@@ -860,6 +860,20 @@ def get_object(db, ref):
     return _request(f"/objects/{ref}", {"db": db})
 
 
+def get_object_sheet(db, ref):
+    """Returns `GET /api/objects/<ref>/sheet`'s dict (`kind`, `groups` of `{key, label, rows}`), the stored properties of
+    a star, planet, moon, belt or comet -- see `describe/sheet.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/sheet", {"db": db})
+
+
+def get_object_children(db, ref, limit=None, after=None):
+    """Returns `GET /api/objects/<ref>/children`'s dict (`ref`, `kind`, `total`, `items`, `next`), one keyset page of what
+    belongs to an object -- see `db/children.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
+
+
 def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
     """
     Runs `GET /api/search` and returns its response dict -- see

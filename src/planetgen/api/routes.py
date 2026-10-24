@@ -32,6 +32,8 @@ import math
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request, url_for
 
+from planetgen.db import children as children_db
+from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -1557,6 +1559,54 @@ def object_ref_route(ref):
             raise ValueError(f"nothing has the ID {ref}")
         kind, object_id = object_ref.parse(resolved)
         return jsonify(resolve_object(get_db(), kind, object_id))
+    except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+def _body_of(ref):
+    """`(kind, row id)` of the star, planet, moon, belt or comet a public reference names (the sheet and the children
+    of a page's object); `ValueError` for anything else, with the message the 404 carries."""
+    resolved = ids.resolve_ref(get_db(), ref)
+    if resolved is None:
+        raise ValueError(f"nothing has the ID {ref}")
+    return object_ref.parse(resolved)
+
+
+@bp.route("/objects/<ref>/sheet")
+def object_sheet_route(ref):
+    """
+    `GET /api/objects/<ref>/sheet` (UX.168) -- every stored property of a star, planet, moon, belt or comet, grouped
+    for its page (`describe/sheet.py`): `kind` and `groups`, each `{key, label, rows}` with a row
+    `{key, label, value (the Document's inline list: quantities with their units), text, stored}`. A property the row
+    holds no value for is `stored: false` and says "not stored". 404 for a reference that names nothing or a kind with
+    no sheet.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        return jsonify(object_sheet(get_db(), kind, object_id))
+    except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/children")
+def object_children_route(ref):
+    """
+    `GET /api/objects/<ref>/children[?limit=&after=]` (UX.169) -- what belongs to an object, one keyset page at a time
+    (`db/children.py`): a sector's systems then its phenomena, a system's stars then its circumbinary bodies, a star's
+    planets and belts then its comets, a planet's moons. `ref`, `kind`, `total`, `items` (each `ref`, `kind`, `id`,
+    `name`, `summary`, `counts` of everything below it by kind, `child_count`) and `next`, the `after` of the page
+    after (`null` at the end). `limit` is 1 to 200 (default 50). A moon, belt, comet or phenomenon holds nothing.
+    404 for a reference that names nothing, 400 for a bad `limit` or `after`.
+    """
+    try:
+        resolved = ids.resolve_ref(get_db(), ref)
+        if resolved is None:
+            raise ValueError(f"nothing has the ID {ref}")
+        kind, object_id = object_ref.parse(resolved)
+        limit = _int_arg(request.args, "limit", children_db.DEFAULT_LIMIT)
+        return jsonify(children_db.children(get_db(), kind, object_id, limit, request.args.get("after") or None))
+    except children_db.PageError as exc:
+        return jsonify({"error": str(exc)}), 400
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
 

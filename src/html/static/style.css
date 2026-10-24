@@ -3016,7 +3016,7 @@ code {
 }
 
 
-/* ==================================================================
+/* ===========================================================
    Flask-served pages (planetgen/web/templates/base.html)
    ------------------------------------------------------------------
    Every page has `<body class="app">` and a top header. Everything
@@ -5187,4 +5187,177 @@ p.hint a {
 .map-label[data-kind="sector"] { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .map-label { transition: none; }
+=======
+/* UX.172: the summary tree (web/lib/objecttree.py, static/objecttree.js): a row is the toggle (a button, drawn once the
+   script runs), the kind's mark, the name (a link to the object's page) and its summary line; the list of a row's
+   children is indented under it. */
+.object-tree,
+.tree-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree-children {
+  padding-left: 1.25rem;
+}
+
+.tree-children[hidden] {
+  display: none;
+}
+
+.tree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tree-node[data-open] > .tree-row {
+  background: var(--bg-subtle);
+}
+
+.tree-toggle {
+  flex: none;
+  align-self: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+/* Without script the toggle is not drawn but keeps its place, so branches and leaves line up. */
+.tree-toggle[hidden] {
+  display: inline-block;
+  visibility: hidden;
+}
+
+.tree-toggle::before {
+  content: "\25B8"; /* ▸, closed */
+}
+
+.tree-toggle[aria-expanded="true"]::before {
+  content: "\25BE"; /* ▾, open */
+}
+
+.tree-leaf > .tree-row::before {
+  content: "";
+  flex: none;
+  width: 1.1rem;
+}
+
+.tree-row:hover {
+  background: var(--bg-subtle);
+}
+
+.tree-name {
+  font-weight: 600;
+  min-width: 10rem;
+}
+
+.tree-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.tree-stats a {
+  text-decoration: underline;
+}
+
+.tree-stats .stat:empty {
+  display: none;
+}
+
+/* The kind's mark: a small disc, a ring for a body that is not a whole world, drawn by CSS. */
+.tree-kind {
+  display: inline-block;
+  align-self: center;
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.tree-kind-star { background: #f2b035; box-shadow: 0 0 0.35rem #f2b035; }
+.tree-kind-planet { background: #5b86d6; }
+.tree-kind-moon { width: 0.5rem; height: 0.5rem; background: #a3a8b8; }
+.tree-kind-system { background: transparent; border: 2px solid var(--text-muted); }
+.tree-kind-belt { background: transparent; border: 2px dotted var(--text-muted); }
+.tree-kind-comet { width: 0.45rem; height: 0.45rem; background: #6cc2c9; }
+
+.tree-more,
+.tree-pending {
+  padding: 0.4rem 0.5rem 0.4rem 1.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.tree-error {
+  color: var(--danger, #b3261e);
+}
+
+/* UX.170: the property sheet and the neighbours of an object's page. */
+.sheet-group {
+  margin: 0 0 0.75rem;
+}
+
+.sheet-group > summary {
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-group > summary h3 {
+  display: inline;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.sheet-table {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.sheet-missing {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.item-neighbours {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.item-neighbours .item-next {
+  margin-left: auto;
+}
+
+.body-view {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.body-view[hidden] { display: none; }
+.body-view-canvas {
+  width: min(320px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+}
+.body-view figcaption {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
 }
