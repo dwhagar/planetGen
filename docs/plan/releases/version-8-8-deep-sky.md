@@ -21,7 +21,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
-| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173, MAP.219 | Phase 2. Foundations lane 2. |
+| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map |  | Phase 2. Foundations lane 2. |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
