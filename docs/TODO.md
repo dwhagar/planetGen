@@ -6947,6 +6947,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Held for GEN.726): Update 3:51 PM EDT
   2026-10-24: held until GEN.726 (the surface pressure supply law)
   merges (Boss, 3:50 PM EDT). Now lists GEN.726 as a prerequisite.
+  Research (2026-10-09, Pieces): Pieces split out for parallel work
+  (coordinator, about 5:26 PM EDT 10-24; TODO, 2026-10-24 5:28 PM EDT):
+  GEN.756 body-to-mixture-subject builder (Lane L), GEN.757 ocean
+  water-vapour cap and sulfur uptake (Lane L), GEN.758 mechanical test
+  fixes for the deleted class ranges (Blocker I, after step 4b merges).
+  This item finishes when the three have merged and its own Done test
+  passes. Boss's hold stands: the merge of the 4c core itself waits for
+  GEN.726.
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
@@ -6976,6 +6984,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
   filed by the TODO thread: the atmosphere and crust text read the
   stored mixture through the one text writer of GEN.430.
+  Research (2026-10-09, Owner): Owner reconciled: Lane L (in its queue
+  behind Lane I PR 4). The 'returned to the pool' line above is
+  superseded. (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan
+  thread's reconcile ask.)
 
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
@@ -7292,6 +7304,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
   as three separate PRs, each when its own gate is green: (1) GEN.452,
   (2) GEN.411, (3) GEN.424 with DB.71.
+  Research (2026-10-09, Owner): Owner reconciled: Lane I, inside PR 4
+  with GEN.411, GEN.452 and DB.71 (held until the supply law GEN.726
+  merges). The 'returned to the pool' line above is superseded. (TODO,
+  2026-10-24 5:27 PM EDT, from the physics fix plan thread's reconcile
+  ask.)
   Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
@@ -7335,6 +7352,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Research (2026-10-09, Owner): Owner reconciled: Lane J (in its queue
+  after DB.89). The 'returned to the pool' line above is superseded.
+  (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan thread's
+  reconcile ask.)
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -7824,6 +7845,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-24 (Boss asked for every blocker to have an owner): Lane K
   (ground albedo feeds GEN.684 and DB.70 in its chain); Core 4 and the
   pool lines are stale. Not started.
+  Research (2026-10-09, Owner): Owner reconciled: Lane K (set 2:08 PM
+  EDT, in its queue after GEN.714 in docs/plan/lanes.md; it blocks
+  GEN.684 and DB.70). The 'returned to the pool' line above is
+  superseded for this item. (TODO, 2026-10-24 5:27 PM EDT, from the
+  physics fix plan thread's reconcile ask.)
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -7995,6 +8021,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   report; record both in the registry (GEN.725) in the same PR that uses
   the value. Nothing changes a generated world until the owning item
   uses it.
+  Research (2026-10-09, Owner): Owner reconciled: Lane K (wiring, in its
+  queue after GEN.714 and GEN.462). The 'returned to the pool' line
+  above is superseded for this item. (TODO, 2026-10-24 5:27 PM EDT, from
+  the physics fix plan thread's reconcile ask.)
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -12618,6 +12648,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reported), to feed GEN.646. GEN.556 (populate(host), unowned, outside
   8.1) is not needed to replace the class draw (class lane, 2:10 PM EDT
   2026-10-24 as the lane reported), so it is dropped as a prerequisite.
+  Research (2026-10-09, Order): Order rule (physics fix plan thread):
+  GEN.711 (register the mass-law stand-ins with their source tier and
+  tweak level) merges before or with GEN.681, so the registry is
+  complete before the class cut-over switches the mass law on. The class
+  lane puts GEN.711 first in its queue.
   Prerequisites: none. Related: GEN.556.
 
 - [ ] **GEN.682 Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range**
@@ -12860,6 +12895,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   records a source tier (Verified down to Educated guess based on needed
   output) and a tweak level; see GEN.725. Record both here when
   registering.
+  Research (2026-10-09, Order): Order rule: merges before or with
+  GEN.681 (class cut-over); see the note on GEN.681. Owner stays the
+  class lane.
 
 - [ ] **GEN.715 Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703**
   Lane E (9:58 AM EDT 2026-10-24, as the lane reported): GEN.703 builds
@@ -13183,6 +13221,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss already ordered it first (3:50 PM EDT): it is built on Lane I's
   branch gen726 and merges right after step 4b, before 4c. Owner: Lane
   I.
+  Research (2026-10-09, Physics fix plan): Degassing reads the heat flow
+  and tectonic mode (physics fix plan thread, 2026-10-24 about 5:30 PM
+  EDT, as the lane reported its clock): outgassing rate must read the
+  interior heat output of GEN.699 and the tectonic mode of GEN.721 (Lane
+  H, started 4:14 PM EDT), not a fixed rate. Lane I: if GEN.726 does not
+  read them yet, say so and TODO files the wiring.
 
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -13696,6 +13740,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the presets option is dropped. Tier T7 as a model; tweak L3, since the
   means are tunable to target odds. Emergent chance of civilisation is
   about 0.7 percent of 5.4 Gyr windows; Boss can retune the means.
+  Research (2026-10-09, Physics fix plan): Civilisation ramp folded in
+  (physics fix plan thread, gap row L2): the timeline also models the
+  civilisation ramp and its overlap with the Sentient score, from
+  physics-based steps like the others, with its source tier and tweak
+  level in the registry. No separate item. Suggested owner Lane 3 (items
+  nobody has started), 8.4, pending Boss's answer on early 8.4 starts.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.751 Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list**
@@ -13711,6 +13761,110 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sources and a lava-world test. Owner: pool (first free atmosphere
   lane).
   Prerequisites: none. Related: GEN.674, GEN.703.
+
+- [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
+  The GEN.422 fixed point of surface temperature and pressure has no
+  climate feedback. Add the three feedbacks that move it: ice-albedo
+  (ice cover grows as the planet cools and raises the albedo), water
+  vapour (a warmer ocean world holds more vapour and warms further, with
+  the runaway limit of GEN.639) and cloud albedo (cloud cover changes
+  the reflected share). Each is a physical law with a published source;
+  each stand-in it touches records its source tier and tweak level in
+  the gap plan registry (GEN.725). The test runs the fixed point on a
+  cooling and a warming sweep of a planet and checks it converges, stays
+  inside the published range of Earth's climate sensitivity, and gives
+  the snowball and runaway thresholds the literature gives. Found by the
+  physics fix plan thread (reports/physics-fix-plan-2026-10-24.md
+  section 12). Owner: pool (first free lane after 8.1 closes, unless
+  Boss lets 8.4 start earlier).
+  Prerequisites: GEN.422, GEN.462. Related: GEN.639, GEN.684, GEN.725,
+  GEN.726.
+
+- [ ] **GEN.753 Validation sweep for each physics area: compare generated populations with published statistics**
+  Generate large populations and compare each with the published
+  statistic: stars (mass function, age spread, luminosity function),
+  planets (mass-radius and period-radius relations, eccentricity
+  distribution, count and spacing), atmospheres (surface pressure
+  distribution), radiation (dose by body class) and heat. The report
+  lists, per area, the statistic, the source, the tolerance and whether
+  the generator passes. This is the acceptance test for every area the
+  physics fix plan rates 'high'; it extends the Kepler harness of
+  GEN.503 and GEN.504. A failing area files a tuning item whose tweak
+  level (L0 to L4) is recorded in the registry (GEN.725). Found by the
+  physics fix plan thread. Owner: pool (first free lane after 8.1
+  closes, unless Boss lets 8.4 start earlier).
+  Prerequisites: GEN.503, GEN.504. Related: GEN.725, GEN.711.
+
+- [ ] **GEN.754 Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads**
+  Add a 'read by the generator' column to the stand-in and table
+  registry (GEN.725) and a test that fails when a registered table, law
+  or module has no caller in the generation path and no open wiring item
+  named in the registry. The physics grounding assessment found built
+  tables and modules that main does not read (for example the 161-row
+  materials table, the 104 atmosphere recipes, the interior heat
+  output); this keeps that from recurring. No shim: an unread module is
+  either wired, filed, or deleted. Found by the physics fix plan thread.
+  Owner: the registry owner (Lane L, with GEN.725).
+  Prerequisites: GEN.725. Related: GEN.711, GEN.699, GEN.428, GEN.478.
+
+- [ ] **GEN.755 Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741**
+  GEN.652 makes the MIST grid the one source for main-sequence stars.
+  Check whether the table the setup step downloads (update.sh) contains
+  the post-main-sequence phases (subgiant, red giant branch, horizontal
+  branch, asymptotic giant branch) with luminosity, radius and
+  temperature by age. If it does, GEN.741 reads them. If not, add the
+  setup download of those tracks (raw data never in the repo, licence
+  note only in DATA-LICENSE.md) and reduce them to the table GEN.741
+  needs. Found by the physics fix plan thread. Owner: Lane A (after
+  GEN.652, with GEN.741).
+  Prerequisites: GEN.652. Related: GEN.741, GEN.553.
+
+- [ ] **GEN.756 Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py)**
+  Piece of GEN.411 (4c), split out so Lane L builds it in parallel with
+  Lane I. One function turns a planet or moon record (mass, radius,
+  gravity, equilibrium temperature, star and formation distance, class
+  if known, bulk composition when stored) into the subject the mixture
+  draw reads, so the mixture, the pressure and the molar density are
+  drawn from one description of the body. Pure function in a new module
+  physics/mixture_subject.py, planets and moons both, no random draw
+  inside it, unit test per body kind. GEN.411 reads it and is not
+  finished until this and the two sibling pieces have merged. Requested
+  by the coordinator for Boss (about 5:26 PM EDT 10-24, as the
+  coordinator relayed). Owner: Lane L (nobody else has started it; TODO
+  checked the TODO file and physics/ for any existing item or module).
+  Prerequisites: none. Related: GEN.411, GEN.726.
+
+- [ ] **GEN.757 Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py)**
+  Piece of GEN.411 (4c), split out so Lane L builds it in parallel. Two
+  pure functions in a new module physics/mixture_sinks.py: (1) the most
+  water vapour an atmosphere over an ocean can hold at the surface
+  temperature and pressure (saturation, from published vapour-pressure
+  data), so the drawn mixture never exceeds it; (2) the sulfur uptake,
+  how much sulfur gas the surface and any ocean remove from the mixture.
+  The sources and stand-ins are recorded with their tier and tweak level
+  in the registry (GEN.725). Boundary with the supply law: GEN.726 (Lane
+  I) owns how much is outgassed and the ocean and carbonate sinks of the
+  inventory; this piece only limits what the drawn mixture can show;
+  Lane L and Lane I confirm the boundary before writing so nothing is
+  built twice. GEN.411 is not finished until it and its sibling pieces
+  merge. Requested by the coordinator for Boss (about 5:26 PM EDT
+  10-24). Owner: Lane L (nobody else has started it).
+  Prerequisites: none. Related: GEN.411, GEN.726, GEN.674, GEN.725.
+
+- [ ] **GEN.758 Piece of GEN.411: mechanical test fixes for the deleted class ranges**
+  Piece of GEN.411 (4c). When Lane I step 4b merges and the class ranges
+  for pressure and molar density are deleted, many tests that assert a
+  value inside a class range fail for that reason alone. Fix them
+  mechanically: each test asserts the physical relation that replaces
+  the range (partial pressures sum to the surface pressure, the molar
+  density equals pressure over R T) or is deleted if it only tested the
+  removed range; no shim, no skipping, no loosening of a physical check.
+  Starts the moment 4b merges and takes only tests that fail from the
+  deleted ranges; any other failure goes to TODO. Requested by Blocker I
+  through the coordinator (about 5:26 PM EDT 10-24). Owner: Blocker I's
+  lane picks it up (nobody else has started it; unstarted until 4b
+  merges).
+  Prerequisites: none. Related: GEN.411, GEN.452.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14503,6 +14657,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   down, and a test pins the output. Owner: Performance lane (pool
   otherwise).
   Prerequisites: none. Related: TEST.344, GEN.394.
+
+- [ ] **PERF.189 The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug)**
+  Boss's run goes quiet after 'Stamping the hypervelocity stars' epoch'
+  because the next call, refresh_block_lights (MAP.259,
+  db/block_lights.rebuild), has no output and scans every pre-placed
+  star and phenomenon again (research report
+  /mnt/project-files/reports/phenomena-stall-2026-10-24.md, section
+  'Smallest fix'). In scatter_phenomena, scatter_bright_stars and
+  fill_block_totals run refresh_block_lights inside the same progress
+  block as the stamp step, wrapped in a Step 'Making the block light
+  totals'; give rebuild an on_phase(label) callback called before the
+  shell scan and before the unit sums; log one line before it starts;
+  set the bar total to the number of units and advance per unit through
+  the existing on_progress callback. Small: one file plus a test that
+  the Step and the phase lines appear. Owner: Lane OOM (it holds the
+  phenomena scatter; the 6.4 GB memory hold stays with PERF.187).
+  Prerequisites: none. Related: PERF.187, MAP.259.
+
+- [ ] **PERF.190 Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates**
+  After the progress output of the block light rebuild exists, measure
+  how long the two phases take (the shell scan and the unit sums) on a
+  New galaxy with the scatter on (commands in
+  /mnt/project-files/reports/phenomena-stall-2026-10-24.md). If the scan
+  dominates, give bright_stars and phenomenon_scatter an index that lets
+  the shell scan and the shell sums run from the index alone, or build
+  the distinct shell list from the plan's own outline (the extents
+  scatter_phenomena already holds) instead of a DISTINCT scan of the
+  tables. Record the before and after times in the item. Owner: Lane
+  OOM, after the progress output item.
+  Prerequisites: PERF.189. Related: PERF.187, MAP.259.
 
 ## DB: Database and schema
 
@@ -20169,6 +20353,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   rounding, and a test or script check pins the numbers. Owner: none
   (pool); lane H wrote the document.
   Prerequisites: none. Related: GEN.461, DOC.77.
+
+- [ ] **DOC.80 Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step**
+  Add to the progress and log output docs (the standard of DOC.19) the
+  rule that no work after a 'with progress' block may run longer than
+  the bar display threshold without its own Step; the cases found are
+  refresh_block_lights and record_phenomenon_scatter*, which ran outside
+  the display. Add a short checklist for new post-scatter work. From
+  research report
+  /mnt/project-files/reports/phenomena-stall-2026-10-24.md. Owner:
+  whoever merges the progress output item, in the same PR.
+  Prerequisites: PERF.189. Related: DOC.19.
 
 ## VIEW: The view from a planet
 
