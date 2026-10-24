@@ -2039,6 +2039,17 @@ MARKERS = """() => {
 }"""
 
 
+def _markers_until(page, done, seconds=20):
+    """The marker layer's entries once `done(entries)` holds: the layer redraws on the next frame, which a busy machine
+    renders late."""
+    deadline = time.monotonic() + seconds
+    while True:
+        found = page.evaluate(MARKERS)
+        if done(found) or time.monotonic() > deadline:
+            return found
+        page.wait_for_timeout(100)
+
+
 def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):
     """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
     address, a legend line while on, and a click on the glyph shows the black hole's card."""
@@ -2074,8 +2085,7 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     _open_menu(page)
     button.click()
     assert "hide=marker-black-hole" in page.url
-    page.wait_for_timeout(300)
-    assert page.evaluate(MARKERS) == []
+    assert _markers_until(page, lambda found: not found) == []
     assert "Black holes" not in legend.inner_text()
     # A reload keeps it off; on again brings them back.
     page.reload()
@@ -2085,8 +2095,7 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     assert page.evaluate(MARKERS) == []
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
-    page.wait_for_timeout(300)
-    assert {e["name"] for e in page.evaluate(MARKERS)} >= set(holes)
+    assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
     assert "hide" not in page.url
 
 
@@ -2850,8 +2859,9 @@ def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_
 
 def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(page, halo_site):
     """MAP.243: a star of a loose group beyond the outline is picked (its position and brightness shown), and the
-    wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before."""
-    _open_galaxy(page, halo_site)
+    wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before.
+    (The black hole markers, MAP.219, are off: on this view a marker's reach covers the star beside it.)"""
+    _open_galaxy(page, halo_site, "?hide=marker-black-hole")
     star = HALO_STARS[0]
     point = (star["x"], star["y"], star["z"])
     assert page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyOutsideOutline(...p)", list(point))
