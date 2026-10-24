@@ -1199,3 +1199,6 @@ Baseline: PR #1817.
 | UX.155 | 8.1 | Habitability system |
 | UX.156 | 8.1 | Habitability system |
 | DOC.78 | 8.1 | Habitability system |
+| GEN.655 | 8.1 | Habitability system |
+| DB.93 | 8.1 | Habitability system |
+| POP.15 | 8.1 | Habitability system |
