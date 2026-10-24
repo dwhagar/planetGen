@@ -204,7 +204,7 @@ def test_settings():
     assert settings_model.build({}, environ={"PLANETGEN_PAGE_CACHE": "off"}).page_cache.enabled is False
     assert pagecache.is_cacheable("/sectors/5")
     assert not pagecache.is_cacheable("/galaxy/changes")
-    assert not pagecache.is_cacheable("/galaxy/tiles")
+    assert not pagecache.is_cacheable("/galaxy/nodes")
 
 
 # --- The pages --------------------------------------------------------------------------

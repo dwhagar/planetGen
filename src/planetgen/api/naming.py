@@ -8,7 +8,7 @@ The objects the phoneme codec names (`names/naming_key.py`) keep their
 `NamingJSONProvider`, which swaps such a `name` for the codec name under
 the galaxy's naming key (control database, `galaxy_naming`); the pages
 call the API in-process, so they show the same names. Nothing is
-rewritten in the database, so changing the key renames at once (the tile
+rewritten in the database, so changing the key renames at once (the node
 cache follows because `query.galaxy_content_state` mixes the key into its
 `base`).
 """

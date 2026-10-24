@@ -1,5 +1,7 @@
 # Galaxy Map wire format: what the browser downloads and what could be smaller (MAP.147)
 
+**Superseded in part by MAP.258 to MAP.262 (2026-10-24):** the map is no longer cut into cube tiles. `/galaxy/tiles`, `viewport.distance_cut_tiles` and `galaxytilecut.js` are gone; the map fetches sector-block nodes (`/galaxy/nodes`, keys `m.shell.band.wedge`) chosen by projected size (`planetgen.galaxy.nodecut`, `static/galaxynodecut.js`), and a star's fade is its node's weight (`weightCalculator`). Read "tile" below as the cube tile the map had before; the wire format, packing and cache carry over to nodes unchanged.
+
 **Status (2026-10-15):** built: MAP.157 (#1112), MAP.158 (#1123) and MAP.159 (#1305); section 0 records what differs from the sketch. Open: leaving parent stars out of child tiles (MAP.195).
 
 Research only, 2026-10-09 (Research Lane 3). No code, TODO.md or PR changes. Boss decides.

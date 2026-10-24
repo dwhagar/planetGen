@@ -100,9 +100,9 @@ FLOWS = [
      "text": "A request that starts work is queued and run by a worker, which calls the same generation code the "
              "command line does.",
      "entries": ["planetgen.api.routes:create_system_job", "planetgen.queue.api_jobs:submit"]},
-    {"key": "tile", "title": "A map tile read",
-     "text": "A Galaxy Map tile request reads the stored tile or builds it from the database.",
-     "entries": ["planetgen.api.routes:galaxy_tiles_route"]},
+    {"key": "node", "title": "A map node read",
+     "text": "A Galaxy Map node request reads the stored node or builds it from the database.",
+     "entries": ["planetgen.api.routes:galaxy_nodes_route"]},
     {"key": "backup", "title": "A backup",
      "text": "The command line and the admin page start a database backup, write it and list it.",
      "entries": ["planetgen.cli.backup:run_take", "planetgen.backup.core:take"]},

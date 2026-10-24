@@ -2,7 +2,7 @@
 
 """
 A private directory in a shared place (the system temp directory), for the
-tile cache's and the Generate jobs' fallback when their configured
+node cache's and the Generate jobs' fallback when their configured
 directory can't be created.
 
 `/tmp` is shared with every local user, so a directory found there under

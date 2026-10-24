@@ -1,43 +1,45 @@
 # planetgen/web/lib/tilecache.py
 
 """
-On-disk cache of the 3D Galaxy Map's cube tiles, kept by the web layer so
+On-disk cache of the 3D Galaxy Map's sector-block nodes (and its drill-down stages), kept by the web layer so
 the map doesn't hit the API (and through it, the database) every time the
 camera moves.
 
-A tile's contents (see `planetgen.galaxy.viewport`'s "Cube tiles"
-section and `planetgen.db.query.galaxy_tiles`) depend only on its key and on the
+A node's contents (see `planetgen.db.nodes.galaxy_nodes`) depend only on its key and on the
 database's contents, which `planetgen.db.query.galaxy_tile_stamp` summarizes as a
 short "stamp" (it leaves the release number out: a release that changes neither `query.TILE_FORMAT` nor the generator
-epoch keeps every stored tile, PERF.133). Tiles are cached as `<cache dir>/<db>/<generation>/
-<tile>.bin` (the finished, trimmed and packed bytes, see `trim_tile` and `tilepack`), where the generation is the stamp at the last time every
-tile went stale. `fetch_tiles` asks the API only for the tiles it doesn't
-already have, and when every tile is cached it doesn't call the API for
-tiles at all.
+epoch keeps every stored node, PERF.133). Nodes are cached as `<cache dir>/<db>/<generation>/
+n<m>_<shell>_<band>_<wedge>.bin` (the finished, trimmed and packed bytes, see `trim_node` and `tilepack`), where the
+generation is the stamp at the last time every node went stale. `fetch_nodes` asks the API only for the nodes it doesn't
+already have, and when every node is cached it doesn't call the API for
+nodes at all.
 
 Freshness is checked at most once per `STAMP_TTL_SECONDS` per database,
 with one cheap API call (`GET /api/galaxy/changes`, see
 `planetgen.db.query.galaxy_changes`), which reads the schema-v27 `modified_at`
-columns and answers which tiles changed since the last check. Only those
-tile files are deleted, so renaming a sector refetches the dozen tiles
-holding it rather than the whole map. A change that can't be pinned to
-tiles (a deleted sector, a re-planned galaxy, a new tile format or generator epoch)
+columns and answers which nodes changed since the last check. Only those
+node files are deleted, so renaming a sector refetches the few dozen nodes
+over it rather than the whole map. A change that can't be pinned to
+nodes (a deleted sector, a re-planned galaxy, a new format or generator epoch)
 answers `full`, and a new generation starts with nothing cached.
 
 A request is answered by joining those stored bytes, never by unpacking and
-packing the tiles again (`fetch_tiles_wire`, MAP.159); Apache compresses the
+packing the nodes again (`fetch_nodes_wire`, MAP.159); Apache compresses the
 response (`mod_brotli`, else `mod_deflate`, see `examples/apache`). Sending
-the tiles' own gzip copies as the members of one gzip stream was tried and
+the nodes' own gzip copies as the members of one gzip stream was tried and
 dropped: Chromium decodes only the first member.
 
-The browser keeps its own copy of every tile too (`static/galaxymap3d.js`,
+The browser keeps its own copy of every node too (`static/galaxymap3d.js`,
 in IndexedDB, keyed by the generation, MAP.158). `stamp.json` remembers the
-last few checks' changed tiles (`history`), and `fetch_tiles` hands them
+last few checks' changed nodes (`history`), and `fetch_nodes` hands them
 to the browser whenever its stamp is out of date, so the browser drops
-only those tiles too.
+only those nodes too.
+
+The name `tilecache` is the module's from when the map was cut into cube tiles (MAP.262 retired them); the cache
+directory and the `tile_cache` settings keep it, since a running site's folder and settings carry it.
 
 Everything here fails open: an unwritable or missing cache directory, a
-corrupt file, or a race with another request just means the tile is
+corrupt file, or a race with another request just means the node is
 fetched from the API again, never an error page.
 """
 
@@ -52,13 +54,11 @@ import time
 
 from planetgen.util import log
 from planetgen.web.lib import apiclient, singleflight, tilepack
-from planetgen.web.lib.apiclient import (
-    get_galaxy_changes, get_galaxy_nodes, get_galaxy_stage, get_galaxy_tiles, get_galaxy_window)
+from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_nodes, get_galaxy_stage, get_galaxy_window
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.drill import format_drill_key, parse_node_key, parse_stage_key
 from planetgen.galaxy.window import DEFAULT_WINDOW, check_width, crop_stages, parse_window_key, window_cells, window_parents
-from planetgen.galaxy.viewport import parse_tile_key, tile_key
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
 """str: Used when neither `PLANETGEN_TILE_CACHE_DIR` nor `config.json`'s
@@ -71,10 +71,10 @@ STAMP_TTL_SECONDS = 60
 an open map."""
 
 BUSY_KEEP_SECONDS = 600
-"""int: While the galaxy changes faster than tiles can be refetched (a fill
+"""int: While the galaxy changes faster than nodes can be refetched (a fill
 adds sectors and stars every second, PERF.34), a cached generation is kept
 and served at most this long past its start, instead of being thrown away at
-every check, which made every map request recompute its tiles on a database
+every check, which made every map request recompute its nodes on a database
 already under load. Then one full refresh brings it up to date."""
 
 FAILED_CHECK_RETRY_SECONDS = 15
@@ -86,39 +86,35 @@ _failed_checks = {}
 """dict: `db -> time.monotonic()` of that database's last failed check."""
 
 HISTORY_MAX_KEYS = 1500
-"""int: Most changed-tile keys `stamp.json`'s `history` keeps, across all
+"""int: Most changed-node keys `stamp.json`'s `history` keeps, across all
 its entries. Oldest entries go first; a browser whose stamp is older than
-what's left just drops all its tiles."""
+what's left just drops all its nodes."""
 
 HISTORY_MAX_ENTRIES = 32
 """int: Most checks `history` remembers."""
 
 PRUNE_PROBABILITY = 0.05
-"""float: Chance that a request which wrote new tiles also checks the
+"""float: Chance that a request which wrote new nodes also checks the
 cache's total size (a directory walk, so not on every request)."""
 
-MAX_TILES_PER_REQUEST = 128
 MAX_NODES_PER_REQUEST = 128
-"""int: Mirrors `planetgen.db.query.MAX_TILES_PER_REQUEST` -- rejected here before
-anything is read or fetched."""
+"""int: Mirrors `planetgen.db.nodes.MAX_NODES_PER_REQUEST` -- rejected here before anything is read or fetched."""
 
 _STAMP_RE = re.compile(r"^[0-9a-f]{16}$")
 _ROUND_DIGITS = 4
 
-_TILE_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radius_sol", "star_type", "system_id")
-"""tuple: The only fields of a tile's star the page's script reads (MAP.157;
-`tileStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
+_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radius_sol", "star_type", "system_id")
+"""tuple: The only fields of a node's star the page's script reads (MAP.157;
+`nodeStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
 
-_TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points", "worlds", "incomplete")
-_NODE_KEEP_SECTIONS = ("aggregate", "clouds", "stars", "generated", "points", "placed", "incomplete")
-"""tuple: The sections of a tile the page reads; `placed`, `planned` and
-`sector_count` (9 to 35% of every tile) are not served. `incomplete` (PERF.76) names the pieces the database was too busy
-to give; such a tile is served but never stored."""
+_KEEP_SECTIONS = ("aggregate", "clouds", "stars", "generated", "points", "worlds", "placed", "incomplete")
+"""tuple: The sections of a node the page reads. `incomplete` (PERF.76) names the pieces the database was too busy
+to give; such a node is served but never stored."""
 
 
 
 class TileRequestError(ValueError):
-    """A malformed tile request from the map's own client-side JS (bad key,
+    """A malformed node request from the map's own client-side JS (bad key,
     too many keys) -- reported as a 400, not an API failure."""
 
 
@@ -132,8 +128,8 @@ def budget_bytes():
 
 
 def max_cache_bytes():
-    """The tile cache's size budget, bytes: the budget less what the object index takes, which is kept first
-    (PERF.140; at least one byte, so a budget the index fills leaves the tile cache full, not off). `0` disables the
+    """The map cache's size budget, bytes: the budget less what the object index takes, which is kept first
+    (PERF.140; at least one byte, so a budget the index fills leaves the cache full, not off). `0` disables the
     disk cache."""
     budget = budget_bytes()
     if budget == 0:
@@ -165,7 +161,7 @@ def cache_dir():
     candidates = [configured]
     if configured == DEFAULT_CACHE_DIR:
         # Private: one another local user created or can write to is
-        # refused (they could plant tiles, or read the cache).
+        # refused (they could plant nodes, or read the cache).
         candidates.append(os.path.join(tempfile.gettempdir(), "planetgen-tiles"))
     for index, candidate in enumerate(candidates):
         try:
@@ -248,22 +244,6 @@ def _read_remembered(db_dir):
     return remembered
 
 
-def _delete_tiles(generation_dir, tile_keys):
-    """Deletes the stored files of `tile_keys`; returns the keys that were stored (and are gone now)."""
-    removed = []
-    for key in tile_keys:
-        try:
-            path = os.path.join(generation_dir, _tile_filename("t", key))
-        except ValueError:
-            continue
-        try:
-            os.unlink(path)
-            removed.append(key)
-        except OSError:
-            pass
-    return removed
-
-
 def _delete_nodes(generation_dir, node_keys):
     """Deletes the stored files of `node_keys`; returns the keys that were stored (and are gone now)."""
     removed = []
@@ -281,36 +261,26 @@ def _delete_nodes(generation_dir, node_keys):
 
 
 _owed = {}
-_owed_nodes = {}
 _owed_lock = threading.Lock()
 
 
-def _owe_rebuild(db, generation, keys, owed=None):
-    """Remembers the stored tiles (or, with `owed=_owed_nodes`, nodes) a change deleted, for `take_rebuilds` (PERF.133)."""
-    owed = _owed if owed is None else owed
+def _owe_rebuild(db, generation, keys):
+    """Remembers the stored nodes a change deleted, for `take_rebuilds` (PERF.133)."""
     with _owed_lock:
-        had_generation, had = owed.get(db, (generation, []))
-        owed[db] = (generation, (had if had_generation == generation else []) + list(keys))
+        had_generation, had = _owed.get(db, (generation, []))
+        _owed[db] = (generation, (had if had_generation == generation else []) + list(keys))
 
 
 def take_rebuilds(db):
     """
-    The stored tiles of `db` that changes deleted since the last call, so they can be built again at once, in the
+    The stored nodes of `db` that changes deleted since the last call, so they can be built again at once, in the
     background (PERF.133, `tileprefetch.rebuild`), not on the next visit that wants them.
 
     Returns:
-        tuple: `(generation, keys)`, or `(None, [])` when no stored tile was deleted.
+        tuple: `(generation, keys)`, or `(None, [])` when no stored node was deleted.
     """
     with _owed_lock:
         generation, keys = _owed.pop(db, (None, []))
-    return generation, list(dict.fromkeys(keys))
-
-
-def take_node_rebuilds(db):
-    """`take_rebuilds` for nodes: the stored nodes of `db` that changes deleted since the last call (MAP.260), as
-    `(generation, keys)`, or `(None, [])` when no stored node was deleted."""
-    with _owed_lock:
-        generation, keys = _owed_nodes.pop(db, (None, []))
     return generation, list(dict.fromkeys(keys))
 
 
@@ -336,7 +306,7 @@ def _trim_history(history):
     kept = []
     total = 0
     for entry in reversed(history[-HISTORY_MAX_ENTRIES:]):
-        total += len(entry["tiles"]) + len(entry.get("nodes") or [])
+        total += len(entry["nodes"])
         if total > HISTORY_MAX_KEYS:
             break
         kept.append(entry)
@@ -348,13 +318,13 @@ def current_stamp(db, root=None):
     The database's current stamp, generation and change history: from
     `<db dir>/stamp.json` when that's younger than `STAMP_TTL_SECONDS`,
     else from `GET /api/galaxy/changes` (and then remembered). A check
-    that finds changes deletes just the changed tiles, or on a `full`
+    that finds changes deletes just the changed nodes, or on a `full`
     answer starts a new generation and deletes every other one.
 
     Returns:
         dict: `stamp`, `generation` (`None` when there's no disk cache),
-            and `history` (a list of `{"from", "to", "tiles", "nodes"}`, oldest
-            first: each check that found changes, and the tile and node keys it
+            and `history` (a list of `{"from", "to", "nodes"}`, oldest
+            first: each check that found changes, and the node keys it
             found).
     """
     if root is None:
@@ -395,7 +365,6 @@ def current_stamp(db, root=None):
     if not _STAMP_RE.match(str(stamp)):
         return {"stamp": stamp, "generation": None, "history": []}
 
-    stale = []
     stale_stages = []
     stale_nodes = []
     started = time.time()
@@ -404,11 +373,10 @@ def current_stamp(db, root=None):
         started = remembered.get("started") or started
         history = remembered["history"]
         if stamp != remembered["stamp"]:
-            stale = [str(key) for key in changes.get("tiles") or []]
             stale_stages = [str(key) for key in changes.get("stages") or []]
             stale_nodes = [str(key) for key in changes.get("nodes") or []]
             history = _trim_history(history + [
-                {"from": remembered["stamp"], "to": stamp, "tiles": stale, "nodes": stale_nodes}])
+                {"from": remembered["stamp"], "to": stamp, "nodes": stale_nodes}])
     else:
         generation = stamp
         history = []
@@ -417,20 +385,16 @@ def current_stamp(db, root=None):
             "started": started}
     generation_dir = os.path.join(db_dir, generation)
     # Deleted both before and after the new stamp is written: a request
-    # still working under the old stamp checks it before writing a tile
-    # (see `fetch_tiles`), so whichever side of the write it lands on, a
-    # tile fetched before the change doesn't survive it.
-    removed = _delete_tiles(generation_dir, stale)
+    # still working under the old stamp checks it before writing a node
+    # (see `fetch_nodes`), so whichever side of the write it lands on, a
+    # node fetched before the change doesn't survive it.
     removed_nodes = _delete_nodes(generation_dir, stale_nodes)
     _delete_stages(generation_dir, stale_stages)
     _write_json(stamp_path, info)
-    removed = list(dict.fromkeys(removed + _delete_tiles(generation_dir, stale)))
     removed_nodes = list(dict.fromkeys(removed_nodes + _delete_nodes(generation_dir, stale_nodes)))
     _delete_stages(generation_dir, stale_stages)
-    if removed:
-        _owe_rebuild(db, generation, removed)
     if removed_nodes:
-        _owe_rebuild(db, generation, removed_nodes, _owed_nodes)
+        _owe_rebuild(db, generation, removed_nodes)
     try:
         for entry in os.scandir(db_dir):
             if entry.is_dir() and entry.name != generation:
@@ -443,7 +407,7 @@ def current_stamp(db, root=None):
 def _stale_since(known_stamp, info):
     """
     The `history` entries a browser holding `known_stamp` hasn't seen yet,
-    so it drops just their tiles: `None` when its stamp is current
+    so it drops just their nodes: `None` when its stamp is current
     (nothing to send), all of `history` when its stamp isn't known (the
     first page render, before the browser's own storage is read), and
     `[]` when its stamp is older than the history, which the browser
@@ -461,7 +425,7 @@ def _stale_since(known_stamp, info):
 
 
 def _round_floats(value):
-    """Rounds every float in a JSON-able structure -- tiles are mostly
+    """Rounds every float in a JSON-able structure -- nodes are mostly
     coordinates, and full double precision roughly doubles their size for
     no visible difference."""
     if isinstance(value, float):
@@ -481,8 +445,8 @@ def _significant(value, digits):
 
 
 def _trim_star(star):
-    """One star of a tile as the page reads it (MAP.157): the fields in
-    `_TILE_STAR_KEYS`, `star_type` as its class letter, positions to 3
+    """One star of a node as the page reads it (MAP.157): the fields in
+    `_STAR_KEYS`, `star_type` as its class letter, positions to 3
     decimals, luminosity to 4 and radius to 3 significant digits and
     temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disc, the bulge and the rest."""
     trimmed = {
@@ -506,37 +470,13 @@ def _trim_star(star):
     return trimmed
 
 
-def trim_tile(tile):
-    """
-    A tile as the page's script reads it (MAP.157): without `placed`,
-    `planned` and `sector_count`, its stars cut to `_TILE_STAR_KEYS` and rounded
-    (`_trim_star`), every other float rounded to `_ROUND_DIGITS` decimals.
-    Measured on 400 real tiles this is 48% fewer gzipped bytes.
-    """
-    trimmed = {}
-    for section in _TILE_KEEP_SECTIONS:
-        value = tile.get(section)
-        if value is None:
-            continue
-        if section in ("stars", "generated"):
-            trimmed[section] = [_trim_star(star) for star in value]
-        else:
-            trimmed[section] = _round_floats(value)
-    return trimmed
-
-
-def _tile_bytes(tile):
-    """A tile's finished packed bytes (`tilepack.pack_tile` of `trim_tile`)."""
-    return tilepack.pack_tile(trim_tile(tile))
-
-
 def trim_node(node):
     """
-    A node as the page's script reads it (MAP.260): its stars cut to `_TILE_STAR_KEYS` and rounded (`_trim_star`), every
-    other float rounded to `_ROUND_DIGITS` decimals; what is kept is `_NODE_KEEP_SECTIONS`.
+    A node as the page's script reads it (MAP.260): its stars cut to `_STAR_KEYS` and rounded (`_trim_star`), every
+    other float rounded to `_ROUND_DIGITS` decimals; what is kept is `_KEEP_SECTIONS`.
     """
     trimmed = {}
-    for section in _NODE_KEEP_SECTIONS:
+    for section in _KEEP_SECTIONS:
         value = node.get(section)
         if value is None:
             continue
@@ -548,25 +488,20 @@ def trim_node(node):
 
 
 def _node_bytes(node):
-    """A node's finished packed bytes (`tilepack.pack_tile` of `trim_node`)."""
-    return tilepack.pack_tile(trim_node(node))
+    """A node's finished packed bytes (`tilepack.pack_node` of `trim_node`)."""
+    return tilepack.pack_node(trim_node(node))
 
 
 def _incomplete(raw):
-    """Whether a tile's bytes say some piece of it is missing (PERF.76): it is served but not kept, so the next
+    """Whether a node's bytes say some piece of it is missing (PERF.76): it is served but not kept, so the next
     request builds it again."""
     return tilepack.is_incomplete(raw)
 
 
-def _whole_tile(raw):
-    """Whether stored bytes are a whole packed tile (a torn or foreign file is refetched,
+def _whole_node(raw):
+    """Whether stored bytes are a whole packed node (a torn or foreign file is refetched,
     never sent)."""
     return tilepack.is_whole(raw)
-
-
-def _tile_filename(prefix, key):
-    level, ix, iy, iz = parse_tile_key(key)
-    return f"{prefix}{level}_{ix}_{iy}_{iz}.bin"
 
 
 def _node_filename(key):
@@ -575,7 +510,7 @@ def _node_filename(key):
 
 
 def _flight_name(root, db, generation, kind, key):
-    """The name a tile or stage of `generation` goes by in `singleflight`
+    """The name a node or stage of `generation` goes by in `singleflight`
     (the cache directory is in it: two caches don't wait for each other)."""
     return f"{root}:{db}:{generation}:{kind}:{key}"
 
@@ -589,8 +524,8 @@ def _read_bytes(path):
 
 
 AHEAD_MODE = 0o640
-"""int: The mode of a tile built ahead of any visit (the warm-up, the background build). The group-read bit is what
-marks it: `prune` never deletes such a tile, only the files a visit asked for (mode 0o600), least recently visited
+"""int: The mode of a node built ahead of any visit (the warm-up, the background build). The group-read bit is what
+marks it: `prune` never deletes such a node, only the files a visit asked for (mode 0o600), least recently visited
 first (PERF.133)."""
 
 
@@ -626,7 +561,7 @@ def _visited(path):
         pass
 
 
-def validate_node_request(node_keys):
+def validate_request(node_keys):
     """
     Canonicalizes and validates a node request.
 
@@ -645,63 +580,21 @@ def validate_node_request(node_keys):
     return keys
 
 
-def validate_request(tile_keys):
+def _collect(db, keys, known_stamp, ahead=False):
     """
-    Canonicalizes and validates a tile request.
-
-    Returns:
-        list[str]: The tile keys with duplicates removed, in canonical
-            form.
-
-    Raises:
-        TileRequestError: On a malformed key or too many keys.
-    """
-    try:
-        keys = list(dict.fromkeys(tile_key(*parse_tile_key(key)) for key in tile_keys))
-    except ValueError as exc:
-        raise TileRequestError(str(exc))
-    if len(keys) > MAX_TILES_PER_REQUEST:
-        raise TileRequestError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
-    return keys
-
-
-class _Kind:
-    """What `_collect` needs to know about a kind of cached thing: the letter it goes by in `singleflight`, how its
-    keys are checked and named on disk, where the API gives it (and under which key of the answer), and how it is
-    packed. The functions are looked up when called, so a test can replace them in this module."""
-
-    def __init__(self, flight, section, validate, filename, fetch, pack):
-        self.flight, self.section = flight, section
-        self.validate, self.filename, self.fetch, self.pack = validate, filename, fetch, pack
-
-
-_TILES = _Kind("t", "tiles", lambda keys: validate_request(keys), lambda key: _tile_filename("t", key),
-               lambda db, keys: get_galaxy_tiles(db, keys), lambda tile: _tile_bytes(tile))
-_NODES = _Kind("n", "nodes", lambda keys: validate_node_request(keys), lambda key: _node_filename(key),
-               lambda db, keys: get_galaxy_nodes(db, keys), lambda node: _node_bytes(node))
-
-
-def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
-    """`_collect` for tiles."""
-    return _collect(_TILES, db, tile_keys, known_stamp, ahead)
-
-
-def _collect(kind, db, keys, known_stamp, ahead=False):
-    """
-    What `fetch_tiles`, `fetch_tiles_wire` and `fetch_nodes_wire` share: the requested tiles' (or nodes', by `kind`)
-    stored bytes, from the disk cache where possible and from
-    `GET /api/galaxy/tiles` (or `/nodes`; trimmed, then cached) for the rest.
+    What `fetch_nodes` and `fetch_nodes_wire` share: the requested nodes' stored bytes, from the disk cache where
+    possible and from `GET /api/galaxy/nodes` (trimmed, then cached) for the rest.
 
     Returns:
         tuple: `(header, parts)`. `header` is the response without its
-            tiles (`stamp`, `generation`, `edge_pc`, `has_shape`, `cached`
+            nodes (`stamp`, `generation`, `edge_pc`, `has_shape`, `cached`
             and, only when `known_stamp` isn't current, `history`);
             `parts` is `[(key, packed bytes), ...]` in request order.
 
-    `ahead` says the tiles are built for no visitor yet (the warm-up, the background build): what is built is marked
-    to stay when the cache is full (`AHEAD_MODE`) and a tile found stored is not counted as visited.
+    `ahead` says the nodes are built for no visitor yet (the warm-up, the background build): what is built is marked
+    to stay when the cache is full (`AHEAD_MODE`) and a node found stored is not counted as visited.
     """
-    tile_keys = kind.validate(keys)
+    node_keys = validate_request(keys)
     root = cache_dir()
     info = current_stamp(db, root)
     stamp = info["stamp"]
@@ -712,35 +605,35 @@ def _collect(kind, db, keys, known_stamp, ahead=False):
     meta = None
     if generation_dir:
         meta = _read_json(os.path.join(generation_dir, "meta.json"))
-        for key in tile_keys:
-            path = os.path.join(generation_dir, kind.filename(key))
+        for key in node_keys:
+            path = os.path.join(generation_dir, _node_filename(key))
             raw = _read_bytes(path)
             # A torn or foreign file is refetched, never sent.
-            if _whole_tile(raw):
+            if _whole_node(raw):
                 stored[key] = raw
                 if not ahead:
                     _visited(path)
 
     cached_count = len(stored)
-    missing = [key for key in tile_keys if key not in stored]
+    missing = [key for key in node_keys if key not in stored]
     if log.debug_log_active():
-        log.trace(f"tile cache: {cached_count} of {len(tile_keys)} tile(s) found stored in database {db} "
+        log.trace(f"node cache: {cached_count} of {len(node_keys)} node(s) found stored in database {db} "
                   f"(generation {generation}); {len(missing)} to build" + (" (ahead of any visitor)" if ahead else ""),
                   area="cache")
 
     if missing or not isinstance(meta, dict):
-        # One build of each tile at a time (PERF.38): what another request
+        # One build of each node at a time (PERF.38): what another request
         # is already fetching is waited for, not fetched again.
         owned, held = singleflight.claim(
-            [_flight_name(root, db, generation, kind.flight, key) for key in missing]) if generation_dir else (None, [])
-        by_name = {_flight_name(root, db, generation, kind.flight, key): key for key in missing}
+            [_flight_name(root, db, generation, "n", key) for key in missing]) if generation_dir else (None, [])
+        by_name = {_flight_name(root, db, generation, "n", key): key for key in missing}
         to_fetch = missing if owned is None else [by_name[name] for name in owned]
         made = {}
         try:
             if to_fetch or (not held and not isinstance(meta, dict)):
-                fetched = kind.fetch(db, to_fetch)
+                fetched = get_galaxy_nodes(db, to_fetch)
                 meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
-                made = {key: kind.pack(value) for key, value in (fetched.get(kind.section) or {}).items()}
+                made = {key: _node_bytes(value) for key, value in (fetched.get("nodes") or {}).items()}
 
                 # Another request may have found changes while this one was
                 # fetching; what it fetched could be from before them.
@@ -748,7 +641,7 @@ def _collect(kind, db, keys, known_stamp, ahead=False):
                     _write_json(os.path.join(generation_dir, "meta.json"), meta)
                     for key, raw in made.items():
                         if key in missing and not _incomplete(raw):
-                            _write_bytes(os.path.join(generation_dir, kind.filename(key)), raw, ahead=ahead)
+                            _write_bytes(os.path.join(generation_dir, _node_filename(key)), raw, ahead=ahead)
                     if random.random() < PRUNE_PROBABILITY:
                         prune(root)
         finally:
@@ -757,26 +650,26 @@ def _collect(kind, db, keys, known_stamp, ahead=False):
 
         stored.update(made)
         if held:
-            def read_tile(name):
-                raw = _read_bytes(os.path.join(generation_dir, kind.filename(by_name[name])))
-                return raw if _whole_tile(raw) else None
+            def read_node(name):
+                raw = _read_bytes(os.path.join(generation_dir, _node_filename(by_name[name])))
+                return raw if _whole_node(raw) else None
 
-            for name, raw in singleflight.wait(held, read_tile).items():
+            for name, raw in singleflight.wait(held, read_node).items():
                 stored[by_name[name]] = raw
                 cached_count += 1
             late = [by_name[name] for name in held if by_name[name] not in stored]
             if late:
-                # The other request never delivered (or its tile belongs to
+                # The other request never delivered (or its node belongs to
                 # a generation that has moved on): build them after all.
-                fetched = kind.fetch(db, late)
-                for key, value in (fetched.get(kind.section) or {}).items():
-                    stored[key] = kind.pack(value)
+                fetched = get_galaxy_nodes(db, late)
+                for key, value in (fetched.get("nodes") or {}).items():
+                    stored[key] = _node_bytes(value)
                 if not isinstance(meta, dict):
                     meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
             if not isinstance(meta, dict):
                 meta = _read_json(os.path.join(generation_dir, "meta.json"))
                 if not isinstance(meta, dict):
-                    fetched = kind.fetch(db, [])
+                    fetched = get_galaxy_nodes(db, [])
                     meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
 
     header = {
@@ -789,46 +682,7 @@ def _collect(kind, db, keys, known_stamp, ahead=False):
     history = _stale_since(known_stamp, info)
     if history is not None:
         header["history"] = history
-    return header, [(key, stored[key]) for key in tile_keys if key in stored]
-
-
-def fetch_tiles(db, tile_keys, known_stamp=None, ahead=False):
-    """
-    The requested tiles, from the disk cache
-    where possible and from `GET /api/galaxy/tiles` for the rest, caching
-    whatever the API returns (trimmed, see `trim_tile`).
-
-    Args:
-        db (str): The `?db=` value.
-        tile_keys (list[str]): `level/ix/iy/iz` keys.
-        known_stamp (str or None): The stamp the browser's own cache is
-            at, when it has one.
-        ahead (bool): The tiles are built for no visitor yet (see `_collect_tiles`).
-
-    Returns:
-        dict: `stamp` and `generation` (see `current_stamp` -- the browser
-            keys its own cache by the generation), `history` (only when
-            `known_stamp` isn't current: the changed tiles the browser
-            hasn't seen, see `_stale_since`), `tiles` (`{key: {"clouds",
-            "stars", "generated", "points", "worlds"}}`, a star's `system_id` as `charted`), `edge_pc`, `has_shape`, and `cached` (how many of the
-            requested parts came from disk -- for diagnostics).
-
-    Raises:
-        TileRequestError: On a malformed request.
-        apiclient.ApiError / NotFoundError: If the API is needed and fails.
-    """
-    header, parts = _collect_tiles(db, tile_keys, known_stamp, ahead)
-    return {**header, "tiles": {key: tilepack.unpack_tile(raw) for key, raw in parts}}
-
-
-def fetch_tiles_wire(db, tile_keys, known_stamp=None):
-    """
-    `fetch_tiles`' payload as the bytes to send (`/galaxy/tiles`, MAP.159): the
-    header as JSON and the stored packed tiles one after the other
-    (`tilepack.pack_response`), without unpacking any of them.
-    """
-    header, parts = _collect_tiles(db, tile_keys, known_stamp)
-    return tilepack.pack_response(header, parts)
+    return header, [(key, stored[key]) for key in node_keys if key in stored]
 
 
 def fetch_nodes_wire(db, node_keys, known_stamp=None, ahead=False):
@@ -836,7 +690,7 @@ def fetch_nodes_wire(db, node_keys, known_stamp=None, ahead=False):
     The requested nodes (MAP.260) as the bytes to send (`/galaxy/nodes`): the header as JSON and the stored packed nodes
     one after the other (`tilepack.pack_response`), from the disk cache where possible and from `GET /api/galaxy/nodes`
     for the rest, caching whatever the API returns (trimmed, see `trim_node`). The header and the stamp are the
-    tiles' (`current_stamp`), and `history` lists the changed node keys in `nodes`.
+    nodes' (`current_stamp`), and `history` lists the changed node keys in `nodes`.
 
     Args:
         db (str): The `?db=` value.
@@ -848,14 +702,14 @@ def fetch_nodes_wire(db, node_keys, known_stamp=None, ahead=False):
         TileRequestError: On a malformed request.
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
-    header, parts = _collect(_NODES, db, node_keys, known_stamp, ahead)
+    header, parts = _collect(db, node_keys, known_stamp, ahead)
     return tilepack.pack_response(header, parts)
 
 
 def fetch_nodes(db, node_keys, known_stamp=None, ahead=False):
     """`fetch_nodes_wire`'s payload with every node unpacked: `nodes` (`{key: {...}}`) beside the header."""
-    header, parts = _collect(_NODES, db, node_keys, known_stamp, ahead)
-    return {**header, "nodes": {key: tilepack.unpack_tile(raw) for key, raw in parts}}
+    header, parts = _collect(db, node_keys, known_stamp, ahead)
+    return {**header, "nodes": {key: tilepack.unpack_node(raw) for key, raw in parts}}
 
 
 def fetch_stage(db, at=None):
@@ -863,7 +717,7 @@ def fetch_stage(db, at=None):
     One Galaxy Map drill-down stage (`planetgen.db.query.galaxy_stage`), from the disk
     cache when it's there, else from `GET /api/galaxy/stage` (and then
     cached). A sector change deletes just its chain's stages (`stages` in
-    `/api/galaxy/changes`), the same way tiles are refreshed.
+    `/api/galaxy/changes`), the same way nodes are refreshed.
 
     Args:
         db (str): The `?db=` value.
@@ -988,7 +842,7 @@ def prune(root, max_bytes=None):
     """
     Brings the cache under 80% of `max_bytes` (default `max_cache_bytes()`) when it is over `max_bytes`, and then
     removes any directories that left empty (PERF.133): only the files a visit asked for are deleted, the
-    least recently visited first (a visit sets a file's modification time); the tiles built ahead
+    least recently visited first (a visit sets a file's modification time); the nodes built ahead
     (`AHEAD_MODE`) stay, so a cache that holds nothing but those stays over the budget and the warm-up stops
     (`cache_is_full`). The stamp files are skipped.
     """

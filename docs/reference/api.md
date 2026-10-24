@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
+- **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).
 - **7** (API.26): every sector address in a request or an answer is `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers), where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`). The switch to shells, bands and wedges was made on 2026-10-15 without raising the version, so 4, 5 and 6 were taken by later changes and this one carries it. No route that takes the old names is kept.
 - **6** (PERF.99): `GET /api/admin/work` and `GET /api/admin/work/<id>` return the runs in Redis (`items` are runs with their stage, units and time left, not job tree roots; `<id>` is a run id and answers the run with its stages and log), `POST /api/admin/work/<id>/control` takes `cancel` or `clear` (`pause` and `resume` of a node are gone), `POST /api/admin/work/<id>/delete` and `clear-finished` delete runs, `GET /api/admin/work/<id>/log` is new, and `POST /api/admin/work/lease/clear` is gone (clear the run instead).
 - **5** (DB.51): `GET /api/systems/<uid>/sections` is gone: the description is a document built from stored data, not a table of paragraphs.
@@ -437,56 +438,6 @@ connectivity to that specific schema rather than the default one.
   the brightest objects inside the block, nested down the ladder: a block lists every object of its parent that lies
   inside it. `placed` is only on a level-3 block and a sector. The nebula cover is not in a node (it changes without a
   sector changing; read `/api/galaxy/nebula-cover`). `400` for a malformed key or too many keys.
-- `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
-  Galaxy Map's data, one fixed cube of space ("tile") at a time
-  (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
-  524,288 pc on a side centered on the galactic origin (the grid's whole 262 kpc reach either side, MAP.239), each level halves
-  the edge down to 16 pc at level 15, and a key is `level/ix/iy/iz`
-  (`ix` counts cubes along x from the root cube's −x face). A part that took
-  too long is left empty and named in the tile's `incomplete` list. Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "sector_count": n,
-  "clouds": [...], "stars": [...], "generated": [...], "points": [...]}},
-  "edge_pc": ...,
-  "has_shape": ...}`:
-  `placed` is every placed sector whose center is in the tile's half-open
-  box (the `/api/galaxy/sectors` shape plus `wedge_index`,
-  `designation` and `edge_ly`, this sector's real edge length, `null` if it
-  predates per-sector edge tracking), lowest id first,
-  at most 250; `planned` lists the tile's qualifying not-yet-generated
-  slots, only for 16 pc tiles (empty otherwise); `sector_count` is how many
-  placed sectors have their center in the tile, nothing left out
-  (`queryDb.galaxy_sector_count_in_box`), which the tile's share of the
-  generated-star budget goes by. The Galaxy Map's blocks come from the stored
-  block totals (`/api/galaxy/stage` and `/api/galaxy/window`), not from the
-  tiles. `clouds` lists the placed
-  nebulae and supernova remnants whose sphere reaches into the tile
-  (`queryDb.galaxy_clouds_in_box`), largest first, at most 200:
-  `{type, id, name, descriptor, class, radius_pc, x, y, z}`. `stars`
-  lists the tile's pre-placed bright stars (`bright_stars`, filled or
-  not; `queryDb.galaxy_bright_stars_in_box`), most luminous first, at
-  most 400: `{id, x, y, z, luminosity_sol, temperature_k, radius_sol,
-  star_type, yerkes_class, shell_index, band_index, wedge_index,
-  system_id}` (`system_id` is `null` until the star's sector is filled).
-  `generated` lists the stars of the tile's generated systems (by their
-  sector's center; `queryDb.galaxy_generated_stars_in_box`) at or above
-  the tile level's luminosity floor (`queryDb.generated_star_floor_sol`:
-  every star at level 12, four times brighter per coarser level, none
-  past 1,000 L☉), most luminous first, at most 1,000 (4,000 at level 12,
-  so the Galaxy Map zoomed to a sector shows all of its stars, MAP.80),
-  read from at most
-  1,500 of its sectors (a hashed sample past that); a star already in
-  `stars` isn't repeated: `{id, name, x, y, z, luminosity_sol,
-  temperature_k, radius_sol, star_type, shell_index, band_index,
-  wedge_index, system_id}` (`id` is the `stars` row). `points` lists
-  the placed black holes, neutron stars and quasars centered in the tile
-  (`queryDb.galaxy_point_phenomena_in_box`), only at level 10 (64 pc) and
-  finer, most luminous first, at most 200: `{type, id, name, descriptor,
-  luminosity_sol, x, y, z}` (`type` is `black_hole`, `neutron_star` or
-  `quasar`). Predicted density isn't
-  served: the page evaluates the galaxy's shape itself
-  (`static/galaxyprisms.js`). At most 128 keys per request; a
-  malformed key is a 400. Every part depends only on its key and the
-  database's contents, so callers cache it by key and `/api/galaxy/stamp`.
 - `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
   or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
   (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
@@ -531,24 +482,25 @@ connectivity to that specific schema rather than the default one.
   `parents`.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
   "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
-  tile contents could: sectors placed, edited or removed (their
+  node contents could: sectors placed, edited or removed (their
   `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
   or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
-  `tile_stamp` (in `/api/galaxy/changes`) is the same without the release, for the stored tiles (PERF.133).
+  `tile_stamp` (in `/api/galaxy/changes`) is the same without the release, for the stored nodes (PERF.133).
 - `GET /api/galaxy/changes?since=<state>` — `{"stamp", "tile_stamp", "state", "full",
-  "tile_full", "tiles", "stages"}` (`queryDb.galaxy_changes`): the keys of the tiles
+  "tile_full", "stages", "nodes"}` (`queryDb.galaxy_changes`): the keys of the nodes
   that changed since that `state`, found from `sectors.modified_at`, new
-  sector ids and new star-system ids, and the drill-down stages holding
-  those sectors (`stages`, the keys `queryDb.galaxy_stage_keys` gives for each changed
-  sector: `galaxy` and every block above the sector). `tile_full` is `true` (and both lists empty) when that can't
-  be pinned to tiles: a deleted sector, a new shape, tile format or generator epoch, more than
+  sector ids and new star-system ids (`nodes`, the keys `queryDb.galaxy_node_keys` gives for each changed
+  sector: every block of the ladder over it, from the root down, and the sector's own), and the drill-down stages
+  holding those sectors (`stages`, the keys `queryDb.galaxy_stage_keys` gives for each changed
+  sector: `galaxy` and every block above the sector up to level 243). `tile_full` is `true` (and both lists empty) when that can't
+  be pinned to nodes: a deleted sector, a new shape, node format or generator epoch, more than
   1,000 changed sectors, new bright stars (a backfill), or a missing or
-  unreadable `since`; `full` is `true` for all of those and also for a new release alone, which stales the pages and counts cached by `stamp` but no stored tile (PERF.133). When `tile_full` is only because so much changed at once
+  unreadable `since`; `full` is `true` for all of those and also for a new release alone, which stales the pages and counts cached by `stamp` but no stored node (PERF.133). When `tile_full` is only because so much changed at once
   (more than 1,000 sectors, or new bright stars), the answer also has
-  `"busy": true`, and the web layer keeps its cached tiles for up to ten
+  `"busy": true`, and the web layer keeps its cached nodes for up to ten
   minutes instead of refetching them all under that load (PERF.34).
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
-  about once a minute and deletes only the listed tiles, and passes the
+  about once a minute and deletes only the listed nodes, and passes the
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
   row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400;

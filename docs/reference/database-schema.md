@@ -2197,7 +2197,7 @@ Migration 0149 drops `sectors.wiki_url`, `star_systems.wikijs_url` and `star_sys
 
 ### v148 (MAP.220): the `habitable_systems` table
 
-Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading FK, `habitable_worlds` SMALLINT UNSIGNED, the system's `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` and a key on the three) and fills it from the planets and moons already stored. It is a table of its own because `star_systems` has a FULLTEXT key, so adding a column there would copy the whole table. The Galaxy Map's tiles list its rows inside each tile from the finest levels (`worlds`, see the wire format).
+Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading FK, `habitable_worlds` SMALLINT UNSIGNED, the system's `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` and a key on the three) and fills it from the planets and moons already stored. It is a table of its own because `star_systems` has a FULLTEXT key, so adding a column there would copy the whole table. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`worlds`, see the wire format).
 
 ### v147 (MAP.259): `galaxy_block_lights`, the light of the pre-placed objects in each block
 

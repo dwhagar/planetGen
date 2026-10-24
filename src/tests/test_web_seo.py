@@ -81,7 +81,7 @@ def test_every_web_page_is_classified_on_purpose():
 
 @pytest.mark.parametrize("endpoint, klass", [
     ("web.index", "top"), ("web.classes", "top"), ("web.sectors", "list"), ("web.system", "detail"),
-    ("web.sector", "detail"), ("web.search", "utility"), ("web.galaxy_tiles", "utility"), ("web.login", "private"),
+    ("web.sector", "detail"), ("web.search", "utility"), ("web.galaxy_nodes", "utility"), ("web.login", "private"),
     ("web.admin_settings", "private"), ("web.generate_job_log", "private"), ("web.not_a_page_yet", "utility"),
 ])
 def test_the_classes(endpoint, klass):
@@ -191,7 +191,7 @@ def test_robots_txt_disallows_the_tools_and_names_the_sitemap(site, config):
     assert response.mimetype == "text/plain"
     lines = text.splitlines()
     assert lines[0] == "User-agent: *"
-    for path in ("/admin", "/search", "/nav", "/api/", "/galaxy/tiles", "/login", "/*?*page=", "/system/*/scene"):
+    for path in ("/admin", "/search", "/nav", "/api/", "/galaxy/nodes", "/login", "/*?*page=", "/system/*/scene"):
         assert f"Disallow: {path}" in lines, path
     assert "Disallow: /system/" not in lines and "Disallow: /system" not in lines and "Disallow: /classes" not in text
     assert lines[-1] == "Sitemap: https://galaxy.example.org/sitemap.xml"

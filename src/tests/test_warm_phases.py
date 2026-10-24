@@ -36,7 +36,7 @@ def test_a_database_nothing_has_warmed_has_no_phase_run_yet(database):
 
 def test_a_run_moves_each_phase_from_waiting_to_running_to_its_result(database):
     warmphases.begin(database, ["opening", "search"], reason="orbits")
-    assert _states(database) == {"opening": "waiting", "built-levels": None, "deep-tiles": None, "objects": None,
+    assert _states(database) == {"opening": "waiting", "built-levels": None, "deep-nodes": None, "objects": None,
                                  "search": "waiting"}
     warmphases.start_phase(database, "opening")
     assert _states(database)["opening"] == "running"
@@ -59,11 +59,11 @@ def test_a_phase_the_run_did_not_ask_for_keeps_what_an_earlier_run_wrote(databas
 
 
 def test_a_failed_run_marks_the_running_phase_and_clears_the_ones_it_never_reached(database):
-    warmphases.begin(database, ["opening", "built-levels", "deep-tiles"])
+    warmphases.begin(database, ["opening", "built-levels", "deep-nodes"])
     warmphases.start_phase(database, "opening")
     warmphases.end(database, error="2 of 9 pages did not answer")
     states = _states(database)
-    assert states["opening"] == "failed" and states["built-levels"] is None and states["deep-tiles"] is None
+    assert states["opening"] == "failed" and states["built-levels"] is None and states["deep-nodes"] is None
     run = warmphases.read(database, warmup.PHASES)["run"]
     assert run["state"] == "failed" and run["error"] == "2 of 9 pages did not answer"
 
@@ -78,16 +78,16 @@ def test_a_run_whose_process_is_gone_reads_as_interrupted(database, monkeypatch)
 
 
 def test_the_tally_says_what_each_phase_did():
-    tally = warmup.PhaseTally(["galaxy-tiles", "galaxy-deep-tiles", "sectors", "search"])
-    tally.add("galaxy-tiles", {"built": 3, "cached": 5, "warmed": 8, "left_out": 0, "seconds": 1.0})
-    tally.add("galaxy-deep-tiles", {"built": 0, "cached": 0, "warmed": 10, "left_out": 40, "seconds": 2.0})
+    tally = warmup.PhaseTally(["galaxy-nodes", "galaxy-deep-nodes", "sectors", "search"])
+    tally.add("galaxy-nodes", {"built": 3, "cached": 5, "warmed": 8, "left_out": 0, "seconds": 1.0})
+    tally.add("galaxy-deep-nodes", {"built": 0, "cached": 0, "warmed": 10, "left_out": 40, "seconds": 2.0})
     tally.add("sectors", {"built": 0, "cached": 7, "warmed": 7, "left_out": 0, "seconds": 0.5})
     tally.add("search", {"built": 0, "cached": 0, "warmed": 0, "left_out": 0, "seconds": 0.1})
     tally.finish()
-    assert [name for name in tally.ended] == ["built-levels", "deep-tiles", "objects", "search"]
+    assert [name for name in tally.ended] == ["built-levels", "deep-nodes", "objects", "search"]
     assert [tally.result(name)["state"] for name in tally.ended] == ["built", "stopped", "unchanged", "nothing"]
     assert tally.result("opening") is None and tally.result("built-levels")["built"] == 3
-    assert tally.result("deep-tiles")["line"].endswith("stopped at the cache budget.")
+    assert tally.result("deep-nodes")["line"].endswith("stopped at the cache budget.")
 
 
 def test_the_warm_up_records_its_phases_as_it_goes(script, database, monkeypatch):

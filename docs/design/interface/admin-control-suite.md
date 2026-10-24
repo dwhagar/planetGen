@@ -146,7 +146,7 @@ Of the 58 in class A, 13 need a web server restart to apply (the rate limits, th
 | Search engines | `seo.indexing`, `detail_pages`, `description`, `keywords`, `json_ld`, `block_ai_crawlers`, `sitemap_enabled`, `sitemap_max_urls`, `sitemap_cache_hours` | segmented choices, switches, chips for keywords, number with unit |
 | Search engines, advanced (collapsed) | `seo.robots_extra`, `robots_override`, `security_txt`, `humans_txt`, `privacy_note` | text areas, with a warning on `robots_override` |
 | Link previews | `og.enabled`, `site_name`, `image_alt`, `default_image`, `twitter_card`, `twitter_site`, `generated_cards`, `card_cache_mb` | switch, text, choice, slider with MB |
-| Speed and disk | `cache.max_mb`, `cache.warm_on_change`, `cache.warm_settle_seconds`, `tile_cache.warm_levels`, `tile_cache.warm_zoom_levels`, the three `prefetch_*`, `page_cache.enabled`, `page_cache.warm_max_objects`, `page_cache.stored_counts` | slider with the disk size in GB, switches, steppers with the tile size shown ("level 14: 32 pc tiles") |
+| Speed and disk | `cache.max_mb`, `cache.warm_on_change`, `cache.warm_settle_seconds`, `tile_cache.warm_zoom_floor` (MAP.261: it replaced `warm_levels` and `warm_zoom_levels`), the three `prefetch_*`, `page_cache.enabled`, `page_cache.warm_max_objects`, `page_cache.stored_counts` | slider with the disk size in GB, switches, steppers with the block size shown |
 | Speed and disk, advanced (collapsed) | `page_cache.max_entries`, `max_mb`, `stamp_seconds`, `max_age_seconds`, `shared_seconds` | numbers with unit, "needs restart" mark |
 | Abuse protection | `ratelimit.default`, `storage_uri`, and the five `ratelimit.pages.*` | a rate control: a number, a unit (minute, hour, day) and an "unlimited" switch per row; storage URI behind Advanced |
 | Housekeeping | `jobs.keep`, `settings.backups_kept`, `mysql.statement_timeout_seconds` | steppers with plain sentences ("keep the last 50 finished jobs") |
@@ -187,7 +187,7 @@ Wording example, today versus proposed:
 
 | Today | Proposed |
 |---|---|
-| `tile cache > warm zoom levels (levels)`, then "Finest tile level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc across and the finest the map's cut uses; at most 15; 0 builds no run)." then `tile_cache.warm_zoom_levels  Default: 14` | **How close the map is prepared in advance** "Zoom in to this level when pre-building the map" [stepper 14] "Level 14 shows tiles 32 pc wide, the closest the map goes. 0 skips the zoom run." Details: default 14, up to 15, key `tile_cache.warm_zoom_levels` |
+| `tile cache > closest map block built ahead (shells)`, then "Finest block level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; 243 or more builds no run)." then `tile_cache.warm_zoom_floor  Default: 9` | **How close the map is prepared in advance** "Zoom in to this block size when pre-building the map" [stepper 9] "Blocks of 9 shells are about 36 pc wide. 243 or more skips the zoom run." Details: default 9, key `tile_cache.warm_zoom_floor` (MAP.261; before it, `warm_zoom_levels`, a cube-tile level) |
 | `ratelimit.pages.galaxy_tiles`, text box "600 per minute" | **Map loading limit** [600] per [minute] per visitor, "Stops one visitor from flooding the server; applies after a restart." |
 
 ## 4. The proposed Generate page

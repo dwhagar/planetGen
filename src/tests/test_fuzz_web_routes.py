@@ -121,7 +121,7 @@ SIZE_PARAMS = {f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bou
 # route ignores can't crash another.
 PARAM_NAMES = sorted({
     *PAGE_PARAMS, *OFFSET_PARAMS, *SIZE_PARAMS,
-    "limit", "db", "next", "format", "code", "quadrant", "tiles", "density", "stamp", "since",
+    "limit", "db", "next", "format", "code", "quadrant", "keys", "density", "stamp", "since",
     "from", "to", "from_kind", "to_kind", "from_type", "to_type", "from_id", "to_id", "from_sector",
     "to_sector", "radius", "star_type", "sector_id", "shell", "band", "wedge", "x", "y", "z", "q",
     "sector_q", "system_q", "star_q", "planet_q", "moon_q", "type", "spectral", "luminosity", "class",
@@ -509,7 +509,7 @@ def test_is_local_redirect_helper():
 @example(pairs=[("from", "nebula:1"), ("to", "system:1")])
 @example(pairs=[("from_id", "1"), ("to_id", "2"), ("from_kind", "phenomenon")])
 @example(pairs=[("ring", "0"), ("layer", str(-2 ** 63)), ("slot", str(2 ** 63))])
-@example(pairs=[("tiles", "0/0/0/0,99/99/99/99,-1/-1/-1/-1,a/b/c/d")])
+@example(pairs=[("keys", "243.0.0.0,99.9.9.9,-1.-1.-1.-1,a.b.c.d")])
 @example(pairs=[("q", XSS_MARKER), ("next", XSS_MARKER), ("code", XSS_MARKER)])
 @example(pairs=[("offset", str(2 ** 64)), ("sectors_offset", "9" * 40)])  # B2
 @example(pairs=[("page", str(2 ** 63)), ("sectors_page", "9" * 40), ("standalone_page", "9" * 40)])  # B2
@@ -697,8 +697,8 @@ _API_BAD_INPUT = [
     ("/api/search", {"moon_max_radius_km": "-inf"}),
     ("/api/search", {"star_min_radius_km": "5", "star_max_radius_km": "1"}), ("/api/search", {"limit": "0"}),
     ("/api/search", {"sectors_offset": "-1"}), ("/api/search", {"belts_offset": "x"}),
-    ("/api/galaxy/tiles", {"tiles": ",".join(["0/0/0/0"] * 500)}), ("/api/galaxy/tiles", {"tiles": "garbage"}),
-    ("/api/galaxy/tiles", {"tiles": "1/2/0/0"}), ("/api/sectors", {"db": "not_a_real_db"}),
+    ("/api/galaxy/nodes", {"keys": ",".join(["243.0.0.0"] * 500)}), ("/api/galaxy/nodes", {"keys": "garbage"}),
+    ("/api/galaxy/nodes", {"keys": "2.0.0.0"}), ("/api/sectors", {"db": "not_a_real_db"}),
     ("/api/sectors", {"db": "../../etc"}), ("/api/sectors", {"db": "planetgen`; DROP DATABASE x; --"}),
     ("/api/sectors", {"db": ""}), ("/api/sectors", {"db": "information_schema"}), ("/api/sectors", {"db": "mysql"}),
     ("/api/sectors", {"db": "planetgen_control"}), ("/api/sectors", {"db": "planetgen%"}),  # security #47

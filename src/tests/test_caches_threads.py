@@ -9,13 +9,13 @@ a threaded WSGI server (or several Apache threads) does.
   one target's body for another (a torn or mixed entry), keep its size
   bookkeeping right, and a `clear()` really empties it -- including of
   answers fetched before the clear and stored after it.
-- The tile cache (`planetgen/web/lib/tilecache.py`): two writers of the same tile file
+- The node cache (`planetgen/web/lib/tilecache.py`): two writers of the same node file
   at once both finish, and the file always ends as one complete, valid
-  tile -- never a mix of the two or a truncated file -- whether they
-  meet in `_write_json` itself or in two `fetch_tiles` requests for the
-  same tile. A reader running alongside only ever sees a whole tile.
+  node -- never a mix of the two or a truncated file -- whether they
+  meet in `_write_json` itself or in two `fetch_nodes` requests for the
+  same node. A reader running alongside only ever sees a whole node.
 
-No database or API: the page cache gets a stamp function, and the tile
+No database or API: the page cache gets a stamp function, and the node
 cache's API calls are fakes, as in `test_tilecache.py`.
 """
 
@@ -184,10 +184,10 @@ def test_page_cache_clear_beats_fills_in_flight_from_many_threads(_switch_often,
     assert len(cache) == 0 and cache._entries.currsize == 0
 
 
-# --- The tile cache ---------------------------------------------------------------------
+# --- The node cache ---------------------------------------------------------------------
 
-def _tile(label, count=1500):
-    """A big tile (about 100 KB) whose every entry says who wrote it,
+def _node(label, count=1500):
+    """A big node (about 100 KB) whose every entry says who wrote it,
     so half of one and half of another can't pass for either."""
     return {
         "clouds": [{"id": n, "name": f"{label}-{n}", "x": n * 0.5, "y": -n * 0.25, "z": 1.0} for n in range(count)],
@@ -195,13 +195,13 @@ def _tile(label, count=1500):
     }
 
 
-def _whole_tile(value, tiles):
-    return any(value == tile for tile in tiles)
+def _whole_node(value, nodes):
+    return any(value == node for node in nodes)
 
 
-def test_two_writers_of_one_tile_file_leave_one_whole_tile(tmp_path, _switch_often):
-    path = os.path.join(str(tmp_path), "db", "gen", "t12_1_2_3.bin")
-    tiles = [_tile("first"), _tile("second")]
+def test_two_writers_of_one_node_file_leave_one_whole_node(tmp_path, _switch_often):
+    path = os.path.join(str(tmp_path), "db", "gen", "n243_4_1_2.bin")
+    nodes = [_node("first"), _node("second")]
     results = {0: [], 1: []}
     torn = []
     stop = threading.Event()
@@ -209,13 +209,13 @@ def test_two_writers_of_one_tile_file_leave_one_whole_tile(tmp_path, _switch_oft
     def writer(index):
         def run():
             for _ in range(WRITES):
-                results[index].append(tilecache._write_json(path, tiles[index]))
+                results[index].append(tilecache._write_json(path, nodes[index]))
         return run
 
     def reader():
         while not stop.is_set():
             seen = tilecache._read_json(path)
-            if seen is not None and not _whole_tile(seen, tiles):
+            if seen is not None and not _whole_node(seen, nodes):
                 torn.append(seen)
 
     reader_thread = threading.Thread(target=reader, daemon=True)
@@ -229,15 +229,15 @@ def test_two_writers_of_one_tile_file_leave_one_whole_tile(tmp_path, _switch_oft
     assert torn == []
     assert len(results[0]) == len(results[1]) == WRITES
     assert all(results[0]) and all(results[1])
-    assert _whole_tile(tilecache._read_json(path), tiles)  # None for a torn file
+    assert _whole_node(tilecache._read_json(path), nodes)  # None for a torn file
     leftovers = [name for name in os.listdir(os.path.dirname(path)) if name != os.path.basename(path)]
     assert leftovers == []  # no temp file left behind
 
 
 class _RacingApi:
-    """Two `fetch_tiles` requests for the same tile: each one's
-    `get_galaxy_tiles` waits until both are fetching, then answers with
-    its own version of the tile."""
+    """Two `fetch_nodes` requests for the same node: each one's
+    `get_galaxy_nodes` waits until both are fetching, then answers with
+    its own version of the node."""
 
     def __init__(self):
         self.stamp = "00000000000000aa"
@@ -246,50 +246,50 @@ class _RacingApi:
         self.answered = []
 
     def get_galaxy_changes(self, db, since=None):
-        return {"stamp": self.stamp, "state": "state", "full": since is None, "tiles": [], "stages": []}
+        return {"stamp": self.stamp, "state": "state", "full": since is None, "nodes": [], "stages": []}
 
-    def get_galaxy_tiles(self, db, tile_keys):
+    def get_galaxy_nodes(self, db, node_keys):
         self.both_fetching.wait(JOIN_TIMEOUT)
         with self.lock:
             label = f"request{len(self.answered)}"
             self.answered.append(label)
-        return {"tiles": {key: _tile(label) for key in tile_keys}, "edge_pc": 3.526, "has_shape": True}
+        return {"nodes": {key: _node(label) for key in node_keys}, "edge_pc": 3.526, "has_shape": True}
 
 
-def test_two_requests_writing_one_tile_leave_one_whole_tile(monkeypatch, tmp_path):
+def test_two_requests_writing_one_node_leave_one_whole_node(monkeypatch, tmp_path):
     api = _RacingApi()
     monkeypatch.setattr(tilecache, "get_galaxy_changes", api.get_galaxy_changes)
-    monkeypatch.setattr(tilecache, "get_galaxy_tiles", api.get_galaxy_tiles)
+    monkeypatch.setattr(tilecache, "get_galaxy_nodes", api.get_galaxy_nodes)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     # With no lock service both requests build (the single flight, PERF.38, fails open).
     monkeypatch.setattr(tilecache.singleflight, "claim", lambda names: (list(names), []))
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
     monkeypatch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
-    key = "12/1/2/3"
+    key = "243.4.1.2"
     tilecache.current_stamp("mydb", tilecache.cache_dir())  # stamp.json first, as a warm cache has
     results = []
 
     def request():
-        results.append(tilecache.fetch_tiles("mydb", [key]))
+        results.append(tilecache.fetch_nodes("mydb", [key]))
 
     errors = _run_threads([request, request])
     assert errors == []
     assert sorted(api.answered) == ["request0", "request1"]
-    versions = [_tilecache_rounded(_tile(label)) for label in api.answered]
+    versions = [_nodecache_rounded(_node(label)) for label in api.answered]
     assert len(results) == 2
     for result in results:
-        assert result["cached"] == 0 and _whole_tile(result["tiles"][key], versions)
+        assert result["cached"] == 0 and _whole_node(result["nodes"][key], versions)
 
     # The file both wrote is one of the two, whole; the next request is
     # served from it.
     root = tilecache.cache_dir()
-    path = os.path.join(tilecache._db_dir(root, "mydb"), api.stamp, tilecache._tile_filename("t", key))
+    path = os.path.join(tilecache._db_dir(root, "mydb"), api.stamp, tilecache._node_filename(key))
     with open(path, "rb") as f:
-        assert _whole_tile(tilepack.unpack_tile(f.read()), versions)
-    again = tilecache.fetch_tiles("mydb", [key])
-    assert again["cached"] == 1 and _whole_tile(again["tiles"][key], versions)
+        assert _whole_node(tilepack.unpack_node(f.read()), versions)
+    again = tilecache.fetch_nodes("mydb", [key])
+    assert again["cached"] == 1 and _whole_node(again["nodes"][key], versions)
     assert len(api.answered) == 2
 
 
-def _tilecache_rounded(tile):
-    return tilepack.unpack_tile(tilepack.pack_tile(tilecache.trim_tile(tile)))
+def _nodecache_rounded(node):
+    return tilepack.unpack_node(tilepack.pack_node(tilecache.trim_node(node)))

@@ -107,8 +107,7 @@
   },
   "tile_cache": {
     "dir": "",
-    "warm_levels": 8,
-    "warm_zoom_levels": 14,
+    "warm_zoom_floor": 9,
     "prefetch_per_visit": 128,
     "prefetch_per_minute": 600,
     "prefetch_max_queued": 8

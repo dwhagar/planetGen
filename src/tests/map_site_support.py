@@ -1,7 +1,7 @@
 """
 The map pages served with no database (TEST.70): the Flask site with the
 `apiclient` functions the Galaxy Map and Sector Map pages call (and
-`tilecache`'s reads behind the Galaxy Map's tiles and drill-down stages)
+`tilecache`'s reads behind the Galaxy Map's nodes and drill-down stages)
 answered from fixture data held here, on a local server for headless
 Chromium. `tests/test_web_map_behaviour.py` drives it; any browser test
 that needs a map without MySQL can use `map_site` the same way.
@@ -87,7 +87,7 @@ away from the generated sectors near the core."""
 
 
 def _star_field():
-    """The Galaxy Map's fixture stars (a tile's `stars`, the
+    """The Galaxy Map's fixture stars (a node's `stars`, the
     `galaxy_bright_stars_in_box` shape), luminosities 1e-4 to 1e5 L_sun."""
     import random
 
@@ -151,7 +151,7 @@ def nebula_shape_payload(nebula_id, lod):
 
 
 def _point(kind, mass_solar, **fields):
-    """A fixture point as a tile lists it: its mass and the luminosity of a star of it (MAP.208), and its
+    """A fixture point as a node lists it: its mass and the luminosity of a star of it (MAP.208), and its
     own light as a small number."""
     from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 
@@ -167,7 +167,7 @@ POINT_FIELD = [
     _point("quasar", 4.0e6, id=71, name="Fixture Beacon", descriptor="radio-loud",
            x=STAR_FIELD_CENTER_PC[0] + 4.0, y=14.0, z=0.0),
 ]
-"""The Galaxy Map's fixture point phenomena (a tile's `points`, MAP.80),
+"""The Galaxy Map's fixture point phenomena (a node's `points`, MAP.80),
 among the fixture stars."""
 
 
@@ -345,6 +345,8 @@ class FixtureApi:
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else [])
         self.points = POINT_FIELD + (HALO_POINTS if halo else [])
+        self._addresses = {}
+        self._memo = {}
 
     def get_galaxy_sectors(self, db):
         out = []
@@ -372,29 +374,39 @@ class FixtureApi:
         return {"at": at, "child_m": 1, "cells": []}
 
     def get_galaxy_changes(self, db, since=None):
-        return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "tiles": []}
+        return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "nodes": []}
 
-    def get_galaxy_tiles(self, db, tile_keys):
-        from planetgen.galaxy.viewport import parse_tile_key, tile_bounds_pc
+    def _address(self, item):
+        """The grid address of a fixture star or point (worked out once)."""
+        found = self._addresses.get(id(item))
+        if found is None:
+            from planetgen.galaxy.spherical import sector_address_at
+            found = self._addresses[id(item)] = sector_address_at((item["x"], item["y"], item["z"]), EDGE_PC)
+        return found
 
-        tiles = {}
-        for key in tile_keys:
-            lo, hi = tile_bounds_pc(*parse_tile_key(key))
-            stars = [star for star in self.stars
-                     if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
-            points = [point for point in self.points
-                      if all(lo[i] <= point[axis] < hi[i] for i, axis in enumerate("xyz"))]
+    def get_galaxy_nodes(self, db, node_keys):
+        from planetgen.db.nodes import address_in_block
+        from planetgen.galaxy.drill import parse_node_key
+        from planetgen.galaxy.nodecut import block_box
+
+        nodes = {}
+        for key in node_keys:
+            block = parse_node_key(key)
+            lo, hi = block_box(block, EDGE_PC)
+            stars = [star for star in self.stars if address_in_block(self._address(star), block, self._memo)]
+            points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
             worlds = [system for system in WORLD_FIELD
-                      if all(lo[i] <= system[axis] < hi[i] for i, axis in enumerate("xyz"))]
-            # Like the real tile: every cloud whose sphere reaches into the box.
+                      if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
             for cloud in NEBULAE:
                 nearest = [min(max(cloud[axis], lo[i]), hi[i]) for i, axis in enumerate("xyz")]
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
-            tiles[key] = {"placed": [], "planned": [], "sector_count": 0, "clouds": clouds, "stars": stars,
-                          "generated": None, "points": points, "worlds": worlds}
-        return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
+            lights = {"stars": len(stars), "star_luminosity_sol": sum(star["luminosity_sol"] for star in stars)}
+            nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
+                          "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
+        return {"nodes": nodes, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):
         return dict(galaxy_stage(at), edge_pc=EDGE_PC)
@@ -467,7 +479,7 @@ _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_sup
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
               "get_uncharted_sector")
-_TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage", "get_galaxy_window")
+_TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 
 
 class _SiteConfig(Config):

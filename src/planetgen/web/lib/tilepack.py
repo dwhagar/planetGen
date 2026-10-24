@@ -1,13 +1,13 @@
 """
-The packed form of a Galaxy Map tile (MAP.159): what the tile cache stores and
-what `/galaxy/tiles` sends.
+The packed form of a Galaxy Map node (MAP.159): what the node cache stores and
+what `/galaxy/nodes` sends.
 
-A tile's stars are most of its bytes, and as JSON each costs about 150 bytes
+A node's stars are most of its bytes, and as JSON each costs about 150 bytes
 (28 gzipped). Packed, a star is 19 bytes in columns (about 12 gzipped), which
 is what the 78% cut in docs/design/interface/galaxy-map-wire-format.md measures. Clouds,
 points, habitable-world systems and the `incomplete` list stay JSON: they are few and carry text.
 
-One tile (all numbers little-endian)::
+One node (all numbers little-endian)::
 
     "PGT1"                        4 bytes, the format
     meta_length                   u32
@@ -41,7 +41,7 @@ One tile (all numbers little-endian)::
         kind 2                    u32 length, then a JSON list of the ids
 
 A star keeps its place in the list (the list order is its rank, MAP.154). Many
-tiles in one response are joined by `pack_response`.
+nodes in one response are joined by `pack_response`.
 """
 
 import json
@@ -49,7 +49,7 @@ import math
 import struct
 
 MIMETYPE = "application/vnd.planetgen.tiles"
-"""str: What `/galaxy/tiles` is sent as (the web server's compression lists name it)."""
+"""str: What `/galaxy/nodes` is sent as (the web server's compression lists name it)."""
 
 MAGIC = b"PGT1"
 RESPONSE_MAGIC = b"PGTB"
@@ -71,7 +71,7 @@ _U32 = 0xFFFFFFFF
 
 
 class TilePackError(ValueError):
-    """Bytes that are not a packed tile."""
+    """Bytes that are not a packed node."""
 
 
 def _encode_log(value, lo, hi, top):
@@ -142,29 +142,29 @@ def _pack_ids(ids):
     return [b"\x02", struct.pack("<I", len(text)), text]
 
 
-def pack_tile(tile):
+def pack_node(node):
     """
-    A trimmed tile (`tilecache.trim_tile`'s dict) as bytes.
+    A trimmed node (`tilecache.trim_node`'s dict) as bytes.
 
     Args:
-        tile (dict): `stars` and `generated` (lists of star dicts with
+        node (dict): `stars` and `generated` (lists of star dicts with
             `id`, `x`, `y`, `z`, `luminosity_sol` and optionally
             `temperature_k`, `radius_sol`, `star_type`, `system_id`, `tier`) and the
             JSON sections `clouds`, `points`, `worlds` and `incomplete`.
 
     Returns:
-        bytes: The packed tile.
+        bytes: The packed node.
     """
-    meta = {name: tile[name] for name in _META_SECTIONS if tile.get(name) is not None}
+    meta = {name: node[name] for name in _META_SECTIONS if node.get(name) is not None}
     meta_bytes = json.dumps(meta, separators=(",", ":")).encode("utf-8")
     out = [MAGIC, struct.pack("<I", len(meta_bytes)), meta_bytes]
     for section in _STAR_SECTIONS:
-        out.extend(_pack_stars(tile.get(section) or []))
+        out.extend(_pack_stars(node.get(section) or []))
     return b"".join(out)
 
 
 def is_incomplete(packed):
-    """Whether a packed tile says some piece of it is missing (PERF.76): it is served but
+    """Whether a packed node says some piece of it is missing (PERF.76): it is served but
     not kept."""
     try:
         length = struct.unpack_from("<I", packed, 4)[0]
@@ -197,7 +197,7 @@ def _stars_end(raw, offset):
 
 
 def is_whole(raw):
-    """Whether `raw` is exactly one packed tile, found from its lengths alone (a torn or
+    """Whether `raw` is exactly one packed node, found from its lengths alone (a torn or
     foreign file is not), without decoding a star."""
     if raw is None or raw[:4] != MAGIC or len(raw) < 8:
         return False
@@ -253,9 +253,9 @@ def _unpack_stars(buffer, offset):
         ids = json.loads(buffer[offset:offset + length].decode("utf-8"))
         offset += length
     else:
-        raise TilePackError("a packed tile has an unknown id kind")
+        raise TilePackError("a packed node has an unknown id kind")
     if offset > len(buffer) or len(ids) != count:
-        raise TilePackError("a packed tile ends early")
+        raise TilePackError("a packed node ends early")
 
     stars = []
     for i in range(count):
@@ -279,59 +279,59 @@ def _unpack_stars(buffer, offset):
     return stars, offset
 
 
-def unpack_tile(packed):
+def unpack_node(packed):
     """
-    The tile dict a packed tile stands for (the page's script builds the same
+    The node dict a packed node stands for (the page's script builds the same
     one): `stars` and `generated` as lists of dicts with `charted` (a bool)
     where the JSON form had `system_id`, and the JSON sections as stored.
 
     Raises:
-        TilePackError: On bytes that are not a whole packed tile.
+        TilePackError: On bytes that are not a whole packed node.
     """
     if packed[:4] != MAGIC:
-        raise TilePackError("not a packed tile")
+        raise TilePackError("not a packed node")
     try:
         (meta_length,) = struct.unpack_from("<I", packed, 4)
         meta = json.loads(packed[8:8 + meta_length].decode("utf-8"))
         offset = 8 + meta_length
-        tile = dict(meta)
+        node = dict(meta)
         for section in _STAR_SECTIONS:
-            tile[section], offset = _unpack_stars(packed, offset)
+            node[section], offset = _unpack_stars(packed, offset)
     except (struct.error, ValueError) as exc:
-        raise TilePackError(f"a packed tile is damaged: {exc}")
+        raise TilePackError(f"a packed node is damaged: {exc}")
     if offset != len(packed):
-        raise TilePackError("a packed tile has bytes left over")
-    return tile
+        raise TilePackError("a packed node has bytes left over")
+    return node
 
 
 def pack_response(header, parts):
     """
-    A `/galaxy/tiles` answer: `"PGTB"`, the header's JSON length (u32), the header (its
-    own fields and `tiles`, a list of `[key, byte length]` in order) and
-    then every tile's packed bytes one after the other.
+    A `/galaxy/nodes` answer: `"PGTB"`, the header's JSON length (u32), the header (its
+    own fields and `nodes`, a list of `[key, byte length]` in order) and
+    then every node's packed bytes one after the other.
 
     Args:
         header (dict): `stamp`, `generation`, ... as `tilecache` builds it.
-        parts (list): `[(tile key, packed bytes), ...]`.
+        parts (list): `[(node key, packed bytes), ...]`.
     """
     head = dict(header)
-    head["tiles"] = [[key, len(raw)] for key, raw in parts]
+    head["nodes"] = [[key, len(raw)] for key, raw in parts]
     head_bytes = json.dumps(head, separators=(",", ":")).encode("utf-8")
     return b"".join([RESPONSE_MAGIC, struct.pack("<I", len(head_bytes)), head_bytes] + [raw for _, raw in parts])
 
 
 def unpack_response(body):
     """
-    `pack_response`'s inverse: `(header, {key: tile dict})` with the header's
-    `tiles` list removed.
+    `pack_response`'s inverse: `(header, {key: node dict})` with the header's
+    `nodes` list removed.
     """
     if body[:4] != RESPONSE_MAGIC:
-        raise TilePackError("not a packed tile response")
+        raise TilePackError("not a packed node response")
     (head_length,) = struct.unpack_from("<I", body, 4)
     header = json.loads(body[8:8 + head_length].decode("utf-8"))
     offset = 8 + head_length
-    tiles = {}
-    for key, length in header.pop("tiles"):
-        tiles[key] = unpack_tile(body[offset:offset + length])
+    nodes = {}
+    for key, length in header.pop("nodes"):
+        nodes[key] = unpack_node(body[offset:offset + length])
         offset += length
-    return header, tiles
+    return header, nodes

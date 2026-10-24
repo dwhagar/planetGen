@@ -20,7 +20,7 @@
 // - showInfo(spec): the info panel (mappick.js's spec);
 // - closeness(): how near the view is to the sector's fit (1 at the fit,
 //   2.5 at the closest), which grows the points a little (default 1);
-// - hideCell(bounds or null): the galaxy's own tile stars and clouds are
+// - hideCell(bounds or null): the galaxy's own node stars and clouds are
 //   left out of this cell (the sector's scene draws them), null to show
 //   them again;
 // - viewport (optional): the map's viewport element, where the
@@ -257,7 +257,7 @@ export function createSectorStage(host) {
   // left something in it, and carries an "Uncharted" badge in its frame.
   //
   // `ambient` (MAP.152) loads the scene for the camera coming near it, without the sector
-  // being opened: it starts at no strength (`setFade` brings it in), its tile stars stay until
+  // being opened: it starts at no strength (`setFade` brings it in), its node stars stay until
   // it is whole, and neither `opened` nor `closed` is called. Opening the sector that is up
   // this way takes it over as it is (no second fetch).
   function openSector(id, bounds, at, ambient) {
@@ -318,7 +318,7 @@ export function createSectorStage(host) {
     });
   }
 
-  // MAP.152: how much of the open sector's scene shows (0 to 1). The galaxy's own tile stars in
+  // MAP.152: how much of the open sector's scene shows (0 to 1). The galaxy's own node stars in
   // its cell stay while it is coming in and go once it is whole (they are the same stars), so
   // there is never a gap, only for a moment the same star drawn twice.
   function setFade(share) {

@@ -106,7 +106,7 @@ def test_a_method_call_on_an_unknown_value_is_only_resolved_when_the_name_is_uni
 def test_the_flows_trace_the_five_paths_of_the_notes(data):
     _light, heavy = data
     keys = {flow["key"] for flow in heavy["flows"]}
-    assert {"generate", "scatter", "page", "api-job", "tile", "backup"} <= keys
+    assert {"generate", "scatter", "page", "api-job", "node", "backup"} <= keys
     for flow in heavy["flows"]:
         assert flow["entries"], flow["key"]
         assert any(heavy["functions"][e][6] for e in flow["entries"]), f"flow {flow['key']} traces no call"

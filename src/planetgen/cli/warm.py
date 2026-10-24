@@ -15,7 +15,7 @@ an update (it warms at its end) or with `cache.warm_on_change` off.
 
 The warm-up runs in five phases (`planetgen.web.warmup.PHASES`, PERF.141), each stopping at the cache budget
 (`cache.max_mb`): (1) `opening`: the opening views and the first page of each list, (2) `built-levels`: the Galaxy
-Map's tiles to the built levels, (3) `deep-tiles`: the deep tiles along the zoom run, (4) `objects`: the sector, system
+Map's nodes to the built levels, (3) `deep-nodes`: the deep nodes along the zoom run, (4) `objects`: the sector, system
 and phenomenon pages, (5) `search`: the search page. After each phase it prints one line: what it built, what was
 already stored, what the budget or a cap left out, or `unchanged, nothing built`. A phase name stands for all of its
 families.

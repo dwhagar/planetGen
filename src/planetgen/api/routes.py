@@ -64,7 +64,6 @@ from planetgen.db.query import (
     count_sectors,
     is_capped,
     count_systems,
-    MAX_TILES_PER_REQUEST,
     galaxy_changes,
     galaxy_density_shape,
     galaxy_placed_phenomena,
@@ -75,7 +74,6 @@ from planetgen.db.query import (
     galaxy_edge_pc,
     galaxy_nebula_cover,
     galaxy_window,
-    galaxy_tiles,
     list_phenomena,
     phenomena_facets,
     sectors_facets,
@@ -1108,26 +1106,6 @@ def galaxy_profile():
     return jsonify(body)
 
 
-@bp.route("/galaxy/tiles")
-def galaxy_tiles_route():
-    """
-    The 3D Galaxy Map's cube tiles -- `tiles` is a comma-separated list of
-    `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`). See
-    `db.query.galaxy_tiles` and `planetgen.galaxy.viewport`'s "Cube
-    tiles" section. Each tile's work is bounded, so no request can scan an
-    unbounded region (the removed `/galaxy/view` route could). Called by
-    `/galaxy/tiles` (`planetgen/web/galaxy_views.py`), which caches every tile on disk and only forwards
-    the ones it doesn't already have.
-    """
-    tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
-    if len(tile_keys) > MAX_TILES_PER_REQUEST:
-        raise ApiError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
-    try:
-        return jsonify(galaxy_tiles(get_db(), tile_keys))
-    except ValueError as exc:
-        raise ApiError(str(exc))
-
-
 @bp.route("/galaxy/nodes")
 def galaxy_nodes_route():
     """
@@ -1209,9 +1187,9 @@ def galaxy_nebula_cover_route():
 def galaxy_stamp_route():
     """
     `{"stamp": "<16 hex>", "state": "<token>"}` -- `stamp` changes whenever
-    the galaxy's tile contents could change (see
+    the galaxy's node contents could change (see
     `db.query.galaxy_content_stamp`), and `state` is what
-    `/galaxy/changes?since=` takes to say which tiles did.
+    `/galaxy/changes?since=` takes to say which nodes did.
     """
     changes = galaxy_changes(get_db())
     return jsonify({"stamp": changes["stamp"], "state": changes["state"]})
@@ -1220,11 +1198,11 @@ def galaxy_stamp_route():
 @bp.route("/galaxy/changes")
 def galaxy_changes_route():
     """
-    `?since=<state>` -- which cube tiles changed since that state (see
-    `db.query.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`, and, unless `full`, `sectors` (the printed IDs of the sectors changed) and
+    `?since=<state>` -- which nodes and stages changed since that state (see
+    `db.query.galaxy_changes`): `{"stamp", "tile_stamp", "state", "full", "tile_full", "stages", "nodes"}`, and, unless `full`, `sectors` (the printed IDs of the sectors changed) and
     `grew` (a sector or a system was added), which the page cache (PERF.104) reads.
     `planetgen/web/lib/tilecache.py` calls this about once a minute and deletes
-    only the listed tiles, or all of them when `full`. A missing or
+    only the listed nodes, or all of them when `tile_full`. A missing or
     unreadable `since` just answers `full`.
     """
     conn = get_db()

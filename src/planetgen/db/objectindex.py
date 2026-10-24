@@ -345,7 +345,7 @@ def recorded_size(database):
 def reserved_bytes():
     """
     The disk the object index takes of the cache budget (`cache.max_mb`), all databases together: the index is kept
-    first, so the tile cache's budget is what is left (`tilecache.max_cache_bytes`, PERF.140).
+    first, so the node cache's budget is what is left (`tilecache.max_cache_bytes`, PERF.140).
     """
     try:
         client = _client()
@@ -355,7 +355,7 @@ def reserved_bytes():
 
 
 def _remember(conn, database, kind, mode, since, rows, outcome):
-    """Keeps the record of a kind's run, and the table's size (which the tile cache's budget leaves out)."""
+    """Keeps the record of a kind's run, and the table's size (which the node cache's budget leaves out)."""
     if database is None:
         return
     record = {"mode": mode, "since": since, "built_at": time.time(), "rows": rows,

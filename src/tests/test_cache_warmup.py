@@ -20,9 +20,11 @@ from planetgen.admin import maintenance
 from planetgen.api.config import Config
 from planetgen.cli import generate as generate_cli
 from planetgen.cli import warm as warm_cli
-from planetgen.db import dataversion, store
-from planetgen.galaxy import viewport
+from planetgen.db import block_stats, dataversion, store
+from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
+from planetgen.physics.units import ly_to_pc
+from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
 from planetgen.queue import commands, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
@@ -34,7 +36,7 @@ from tests.test_api import _place_sector, seeded_sector  # noqa: F401 -- the fix
 
 @pytest.fixture
 def galaxy(seeded_sector, redis_server, tmp_path, monkeypatch):  # noqa: F811
-    """The seeded sector (two systems) and an empty one, a nebula in the first, and a tile cache of its own."""
+    """The seeded sector (two systems) and an empty one, a nebula in the first, and a node cache of its own."""
     config, sector_id, system_ids = seeded_sector
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
@@ -99,6 +101,7 @@ def _warm(galaxy, family, **options):
 
 # --- The families ------------------------------------------------------------------------------
 
+
 def test_the_first_visit_to_a_sector_and_a_system_is_answered_from_the_cache(galaxy, spy):
     sectors = _warm(galaxy, "sectors")
     systems = _warm(galaxy, "systems")
@@ -140,7 +143,7 @@ def test_the_first_visit_to_a_phenomenon_is_answered_from_the_cache(galaxy, spy)
 
 def test_the_galaxy_map_family_builds_the_opening_view_and_the_page(galaxy, spy):
     result = _warm(galaxy, "galaxy-map")
-    assert result["noun"] == "tiles" and result["warmed"] > 0
+    assert result["noun"] == "nodes" and result["warmed"] > 0
     web = _web_worker(galaxy.config)
     del spy[:]
     assert web.get("/galaxy").status_code == 200
@@ -189,6 +192,7 @@ def test_changing_one_sector_after_the_warm_up_rebuilds_only_it(galaxy, spy):
 
 # --- The commands ----------------------------------------------------------------------------------
 
+
 def test_a_family_command_runs_alone_and_warms_only_its_family(galaxy, monkeypatch):
     real = warmup.build_app
     monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
@@ -202,49 +206,65 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
-        if family in ("galaxy-tiles", "galaxy-deep-tiles", "galaxy-nodes"):
-            continue   # many units, one a chunk of tiles or nodes: its own tests below
+        if family in ("galaxy-nodes", "galaxy-deep-nodes"):
+            continue   # many units, one a chunk of nodes: its own tests below
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
     assert commands.spec(commands.END_MAP_REBUILD).summary
 
 
-# --- The Galaxy Map's tiles (PERF.130) -----------------------------------------------------------
+# --- The Galaxy Map's nodes (PERF.130, MAP.260) --------------------------------------------------
+
+DEEP_SLICE = 40
+"""int: How many of the zoom run's nodes a test builds (the real run is some thousands)."""
+
 
 @pytest.fixture
-def tile_levels(galaxy, monkeypatch):
-    """`warm-galaxy-tiles` on the seeded galaxy with a small octree (levels 0 to 3 in full, a zoom run to level 5)."""
+def node_levels(galaxy, monkeypatch):
+    """`warm-galaxy-nodes` and `warm-galaxy-deep-nodes` on the seeded galaxy: a zoom run to blocks of 81 shells, cut to
+    its first `DEEP_SLICE` nodes."""
     real = warmup.build_app
     monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
-    levels = types.SimpleNamespace(warm_levels=3, warm_zoom_levels=5)
+    levels = types.SimpleNamespace(warm_zoom_floor=81)
     monkeypatch.setattr(warmup, "get_settings", lambda: types.SimpleNamespace(tile_cache=levels))
+    whole = warmup.zoom_run_nodes
+    monkeypatch.setattr(warmup, "zoom_run_nodes", lambda *args: whole(*args)[:DEEP_SLICE])
     return levels
 
 
-def _run_tile_units(galaxy):
-    expansion = commands.expand_function("warm-galaxy-tiles")({"database": galaxy.config.database, "cap": None})
-    return expansion, [commands.run_alone("warm-galaxy-tiles", args) for args, _cost in expansion.units]
+def _run_deep_units(galaxy):
+    expansion = commands.expand_function("warm-galaxy-deep-nodes")({"database": galaxy.config.database, "cap": None})
+    return expansion, [commands.run_alone("warm-galaxy-deep-nodes", args) for args, _cost in expansion.units]
 
 
-def test_the_first_levels_are_every_tile_coarsest_level_first_and_the_zoom_run_adds_finer_ones():
-    bounds = ((-20000.0, -20000.0, -20000.0), (20000.0, 20000.0, 20000.0))
-    keys = warmup.octree_tiles(bounds, 3)
-    levels = [viewport.parse_tile_key(key)[0] for key in keys]
-    assert levels == sorted(levels) and [levels.count(level) for level in range(4)] == [1, 8, 8, 8]
-    assert len(set(keys)) == len(keys)
-    run = warmup.zoom_run_tiles(bounds, 30000.0, 8)
-    assert run and all(viewport.parse_tile_key(key)[0] <= 8 for key in run) and len(set(run)) == len(run)
-    assert max(viewport.parse_tile_key(key)[0] for key in run) == 8, "the run goes in to the finest level asked for"
-    shape = None
-    every = warmup.tiles_to_warm(shape, 3, 8)
-    assert every[:len(keys)] == warmup.octree_tiles(warmup.tile_bounds_pc(warmup.ly_to_pc(
-        warmup.DEFAULT_SECTOR_EDGE_LY), shape), 3)
-    assert warmup.tiles_to_warm(shape, 3, 3) == warmup.tiles_to_warm(shape, 3, 0), "a run no finer adds nothing"
+def test_the_zoom_run_is_the_nodes_between_the_floor_and_the_built_levels_coarsest_first():
+    keys = warmup.deep_nodes_to_warm(None, 81)
+    levels = [int(key.split(".")[0]) for key in keys]
+    assert keys and len(set(keys)) == len(keys)
+    assert levels == sorted(levels, reverse=True) and max(levels) < warmup.NODE_WARM_FLOOR and min(levels) >= 81
+    finer = warmup.deep_nodes_to_warm(None, 27)
+    assert {int(key.split(".")[0]) for key in finer} >= {81, 27} and set(keys) <= set(finer)
+    assert warmup.deep_nodes_to_warm(None, warmup.NODE_WARM_FLOOR) == [], "no zoom run below the built levels"
 
 
-def test_levels_that_would_build_too_many_tiles_are_refused_with_the_count():
-    with pytest.raises(warmup.WarmupFailed, match=r"warm_levels \d+ would build \d+ tiles.*lower it"):
-        warmup.tiles_to_warm(None, viewport.TILE_MAX_LEVEL, 0)
+def test_a_floor_that_would_build_too_many_nodes_is_refused_with_the_count(monkeypatch):
+    monkeypatch.setattr(warmup, "MAX_WARM_NODES", 10)
+    with pytest.raises(warmup.WarmupFailed, match=r"blocks of 27 shells would build \d+ nodes.*raise tile_cache.warm_zoom_floor"):
+        warmup.deep_nodes_to_warm(None, 27)
+
+
+def _place_addressed(config, name, center_pc):
+    """A sector with the grid address its position falls in, as the generation commands save it (the nodes over it are
+    named by the address)."""
+    edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    sector_id = _place_sector(config, name, center_pc, address=spherical.sector_address_at(center_pc, edge_pc))
+    conn = store.get_connection(config)
+    try:
+        block_stats.rebuild(conn)           # the blocks over the sector, which `warm-galaxy-nodes` lists
+        conn.commit()
+    finally:
+        conn.close()
+    return sector_id
 
 
 def _rename_sector(galaxy, sector_id):
@@ -256,14 +276,13 @@ def _rename_sector(galaxy, sector_id):
         conn.close()
 
 
-def test_the_warm_up_stops_when_the_cache_is_full_and_what_it_built_stays(galaxy, tile_levels, monkeypatch):
+def test_the_warm_up_stops_when_the_cache_is_full_and_what_it_built_stays(galaxy, node_levels, monkeypatch):
     """PERF.139 / PERF.133 (Boss, 2026-10-18, 5:56 PM EDT): at the `cache.max_mb` budget the warm-up builds nothing
-    more, says how many tiles it left out, and `prune` keeps the tiles it built."""
-    monkeypatch.setattr(warmup, "TILE_CHUNK", 4)
+    more, says how many nodes it left out, and `prune` keeps the nodes it built."""
+    monkeypatch.setattr(warmup, "NODE_CHUNK", 4)
     monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0.0004")               # about 400 bytes: the first chunk fills it
-    expansion = commands.expand_function("warm-galaxy-tiles")({"database": galaxy.config.database, "cap": None})
+    expansion, results = _run_deep_units(galaxy)
     assert len(expansion.units) > 3
-    results = [commands.run_alone("warm-galaxy-tiles", args) for args, _cost in expansion.units]
     built = [result for result in results if result["built"]]
     left_out = [result for result in results if result["left_out"]]
     assert built and left_out and results.index(left_out[0]) > results.index(built[0]), "full after some, not before"
@@ -276,55 +295,53 @@ def test_the_warm_up_stops_when_the_cache_is_full_and_what_it_built_stays(galaxy
     assert sorted(path for path, _size, _mtime, _ahead in tilecache.cache_files(root)) == before, "built ahead, kept"
 
 
-def test_a_cache_with_room_warms_everything_and_says_nothing_was_left_out(galaxy, tile_levels):
-    _expansion, results = _run_tile_units(galaxy)
+def test_a_cache_with_room_warms_everything_and_says_nothing_was_left_out(galaxy, node_levels):
+    expansion, results = _run_deep_units(galaxy)
     assert sum(result["left_out"] for result in results) == 0
+    assert sum(result["warmed"] for result in results) == DEEP_SLICE == expansion.plan["nodes"]
 
 
-def test_a_second_warm_up_with_nothing_changed_builds_no_tile(galaxy, tile_levels, monkeypatch):
-    """PERF.133 / Boss 2026-10-18 6:05 PM EDT: a tile is not compiled again when nothing it holds has changed."""
+def test_a_second_warm_up_with_nothing_changed_builds_no_node(galaxy, node_levels, monkeypatch):
+    """PERF.133 / Boss 2026-10-18 6:05 PM EDT: a node is not compiled again when nothing it holds has changed."""
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)   # every call asks the API what changed
-    _expansion, first = _run_tile_units(galaxy)
+    _expansion, first = _run_deep_units(galaxy)
     assert sum(result["built"] for result in first) > 0
-    _expansion, again = _run_tile_units(galaxy)
+    _expansion, again = _run_deep_units(galaxy)
     assert sum(result["built"] for result in again) == 0
     assert sum(result["cached"] for result in again) == sum(result["warmed"] for result in again) > 0
     assert "0 built" in again[0]["line"] and "already stored" in again[0]["line"]
 
 
-def test_a_change_inside_one_sector_rebuilds_only_the_tiles_holding_it(galaxy, tile_levels, monkeypatch):
-    centre = (5.0, 1.0, 2.0)
-    placed = _place_sector(galaxy.config, "Placed", centre)
+def test_a_change_inside_one_sector_rebuilds_only_the_nodes_holding_it(galaxy, node_levels, monkeypatch):
+    placed = _place_addressed(galaxy.config, "Placed", (5.0, 1.0, 2.0))
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    expansion, first = _run_tile_units(galaxy)
-    warmed = {key for args, _cost in expansion.units for key in args["keys"]}
-    holding = set(viewport.tile_keys_containing(centre)) & warmed
-    assert holding and len(holding) < len(warmed), "the sector sits in some of the stored tiles, not all"
+    _expansion, first = _run_deep_units(galaxy)
     time.sleep(0.01)
     _rename_sector(galaxy, placed)
-    _expansion, again = _run_tile_units(galaxy)
-    assert sum(result["built"] for result in again) == len(holding), "its tile at each level, nothing else"
-    _expansion, settled = _run_tile_units(galaxy)
+    _expansion, again = _run_deep_units(galaxy)
+    rebuilt = sum(result["built"] for result in again)
+    assert 0 < rebuilt < sum(result["warmed"] for result in first), "the nodes over the sector, not the rest"
+    _expansion, settled = _run_deep_units(galaxy)
     assert sum(result["built"] for result in settled) == 0
 
 
-def test_a_release_alone_does_not_rebuild_a_tile(galaxy, tile_levels, monkeypatch):
-    """PERF.133 / PERF.41: the stored tiles survive a release that changes neither the tile format nor the epoch."""
+def test_a_release_alone_does_not_rebuild_a_node(galaxy, node_levels, monkeypatch):
+    """PERF.133 / PERF.41: the stored nodes survive a release that changes neither the node format nor the epoch."""
     from planetgen.db import query
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    _expansion, first = _run_tile_units(galaxy)
+    _expansion, first = _run_deep_units(galaxy)
     assert sum(result["built"] for result in first) > 0
     monkeypatch.setattr(query, "__version__", "99.0.0")
-    _expansion, after_release = _run_tile_units(galaxy)
+    _expansion, after_release = _run_deep_units(galaxy)
     assert sum(result["built"] for result in after_release) == 0
-    # A new tile format, though, drops them all once.
+    # A new node format, though, drops them all once.
     monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
-    _expansion, after_format = _run_tile_units(galaxy)
+    _expansion, after_format = _run_deep_units(galaxy)
     assert sum(result["built"] for result in after_format) == sum(result["warmed"] for result in first)
 
 
 def _all_settings(monkeypatch, levels):
-    """The warm-up's settings as they are, except the small tile octree of `tile_levels` (which fakes the whole lot)."""
+    """The warm-up's settings as they are, except the zoom floor of `node_levels` (which fakes the whole lot)."""
     real = get_settings()
 
     class Settings:
@@ -340,188 +357,142 @@ def _phase_lines(caplog):
     return [record.getMessage() for record in caplog.records if record.getMessage().startswith("Phase ")]
 
 
-def test_a_small_galaxy_runs_through_every_phase_and_a_second_run_changes_nothing(galaxy, tile_levels, monkeypatch,
+def test_a_small_galaxy_runs_through_every_phase_and_a_second_run_changes_nothing(galaxy, node_levels, monkeypatch,
                                                                                  caplog):
     """PERF.141 / Boss's no-recompile rule: a warm-up over a galaxy that has not changed builds nothing, and every
     phase says so."""
     import logging
+    _place_addressed(galaxy.config, "Warm", (5.0, 1.0, 2.0))      # the built levels have a block to warm
     caplog.set_level(logging.INFO)
-    _all_settings(monkeypatch, tile_levels)
+    _all_settings(monkeypatch, node_levels)
     monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
     warm_cli.run_warm(_args())
     first = _phase_lines(caplog)
     assert [line.split(":")[0] for line in first] == [
-        "Phase 1 of 5, opening", "Phase 2 of 5, built-levels", "Phase 3 of 5, deep-tiles", "Phase 4 of 5, objects",
+        "Phase 1 of 5, opening", "Phase 2 of 5, built-levels", "Phase 3 of 5, deep-nodes", "Phase 4 of 5, objects",
         "Phase 5 of 5, search"]
     assert "built" in first[1] and "unchanged" not in first[1] and "unchanged" not in first[2]
     caplog.clear()
     warm_cli.run_warm(_args())
     again = _phase_lines(caplog)
-    assert len(again) == 5 and all(": unchanged, nothing built" in line for line in again), again
+    assert len(again) == 5
+    # The sector page of a sector with a grid address reads its Profile fresh each run (one answer built, objects phase).
+    assert all(": unchanged, nothing built" in line for number, line in enumerate(again) if number != 3), again
+    assert again[3].startswith("Phase 4 of 5, objects: 1 built, "), again
 
 
-def test_a_change_in_one_sector_rebuilds_only_the_tiles_holding_it_in_the_phases_that_hold_them(
-        galaxy, tile_levels, monkeypatch, caplog):
+def test_a_change_in_one_sector_rebuilds_only_the_nodes_holding_it_in_the_phases_that_hold_them(
+        galaxy, node_levels, monkeypatch, caplog):
     import logging
     caplog.set_level(logging.INFO)
-    centre = (5.0, 1.0, 2.0)
-    placed = _place_sector(galaxy.config, "Placed", centre)
+    placed = _place_addressed(galaxy.config, "Placed", (5.0, 1.0, 2.0))
     monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    warm_cli.run_warm(_args("built-levels", "deep-tiles"))
+    warm_cli.run_warm(_args("built-levels", "deep-nodes"))
     caplog.clear()
     time.sleep(0.01)
     _rename_sector(galaxy, placed)
-    warm_cli.run_warm(_args("built-levels", "deep-tiles"))
-    built = {line.split(":")[0]: line for line in _phase_lines(caplog)}
-    holding = set(viewport.tile_keys_containing(centre))
-    expected_built = len(holding & set(warmup.tiles_to_warm(None, 3, 5, deep=False)))
-    expected_deep = len(holding & set(warmup.tiles_to_warm(None, 3, 5, deep=True)))
-    assert f"{expected_built} built" in built["Phase 2 of 5, built-levels"], built
-    assert f"{expected_deep} built" in built["Phase 3 of 5, deep-tiles"], built
+    warm_cli.run_warm(_args("built-levels", "deep-nodes"))
+    lines = {line.split(":")[0]: line for line in _phase_lines(caplog)}
+    deep = lines["Phase 3 of 5, deep-nodes"]
+    assert not deep.split(":")[1].strip().startswith("0 built"), lines
 
 
-def test_a_run_stops_cleanly_at_a_small_budget_and_the_tile_phases_say_so(galaxy, tile_levels, monkeypatch, caplog):
+def test_a_run_stops_cleanly_at_a_small_budget_and_the_node_phases_say_so(galaxy, node_levels, monkeypatch, caplog):
     import logging
     caplog.set_level(logging.INFO)
-    _all_settings(monkeypatch, tile_levels)
+    _all_settings(monkeypatch, node_levels)
     monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
-    monkeypatch.setattr(warmup, "TILE_CHUNK", 4)
+    monkeypatch.setattr(warmup, "NODE_CHUNK", 4)
     monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0.0004")      # about 400 bytes: the first chunk fills it
-    warm_cli.run_warm(_args("built-levels", "deep-tiles"))
+    warm_cli.run_warm(_args("deep-nodes"))
     lines = {line.split(":")[0]: line for line in _phase_lines(caplog)}
-    assert "left out" in lines["Phase 2 of 5, built-levels"] and lines["Phase 2 of 5, built-levels"].endswith(
+    assert "left out" in lines["Phase 3 of 5, deep-nodes"] and lines["Phase 3 of 5, deep-nodes"].endswith(
         "stopped at the cache budget.")
-    assert "0 built, 0 already stored" in lines["Phase 3 of 5, deep-tiles"]
     assert "Cache warm-up done" in caplog.text, "stopping at the budget is not a failure"
 
 
 def test_the_phases_hold_every_family_once_in_the_order_they_run():
     assert [name for name, _text, _families in warmup.PHASES] == [
-        "opening", "built-levels", "deep-tiles", "objects", "search"]
+        "opening", "built-levels", "deep-nodes", "objects", "search"]
     assert [family for _name, _text, families in warmup.PHASES for family in families] == list(warmup.FAMILIES)
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
-    assert warmup.phase_of("systems") == "objects" and warmup.phase_of("galaxy-deep-tiles") == "deep-tiles"
+    assert warmup.phase_of("systems") == "objects" and warmup.phase_of("galaxy-deep-nodes") == "deep-nodes"
 
 
 def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
     assert warmup.expand_phases(["objects"]) == ["sectors", "systems", "phenomena"]
-    assert warmup.expand_phases(["search", "lists", "deep-tiles", "lists"]) == [
-        "lists", "galaxy-deep-tiles", "search"]
-    steps = wrapper.steps_for("warm", _args("deep-tiles", "opening"))
+    assert warmup.expand_phases(["search", "lists", "deep-nodes", "lists"]) == [
+        "lists", "galaxy-deep-nodes", "search"]
+    steps = wrapper.steps_for("warm", _args("deep-nodes", "opening"))
     assert [step.kind for step in steps] == ["warm-object-index", "warm-galaxy-map", "warm-lists",
-                                                  "warm-galaxy-deep-tiles"]
+                                                  "warm-galaxy-deep-nodes"]
     with pytest.raises(ValueError, match="no such cache family or phase"):
         warmup.expand_phases(["phase-seven"])
 
 
-def test_the_built_levels_and_the_deep_tiles_are_two_lists_that_make_up_the_old_one():
-    built = warmup.tiles_to_warm(None, 3, 6, deep=False)
-    deep = warmup.tiles_to_warm(None, 3, 6, deep=True)
-    assert built and deep and not set(built) & set(deep)
-    assert built + deep == warmup.tiles_to_warm(None, 3, 6)
-    assert max(viewport.parse_tile_key(key)[0] for key in built) == 3
-    assert min(viewport.parse_tile_key(key)[0] for key in deep) > 3
-    assert warmup.tiles_to_warm(None, 3, 3, deep=True) == [], "no zoom run finer than the built levels, no deep tiles"
-
-
 def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_many_were_left_out():
-    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "search"])
+    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "search"])
     tally.add("galaxy-map", {"built": 0, "cached": 4, "warmed": 4, "seconds": 0.5})
     tally.add("lists", {"built": 0, "cached": 20, "warmed": 20, "seconds": 1.0})
     assert tally.start("lists") == []
-    assert tally.start("galaxy-tiles") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 1.5 s."]
-    tally.add("galaxy-tiles", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
-    tally.add("galaxy-deep-tiles", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
-    assert tally.start("galaxy-deep-tiles") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s."]
+    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 1.5 s."]
+    tally.add("galaxy-nodes", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
+    tally.add("galaxy-deep-nodes", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
+    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s."]
     tally.add("search", {"built": 0, "cached": 1, "warmed": 1, "seconds": 0.1})
     assert tally.start("search") == [
-        "Phase 3 of 5, deep-tiles: 0 built, 0 already stored, 128 left out in 0.0 s; stopped at the cache budget."]
+        "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0.0 s; stopped at the cache budget."]
     assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 0.1 s."]
     assert tally.finish() == [], "each phase is reported once"
 
 
-def test_the_tile_command_is_cut_into_chunks_and_the_map_then_finds_every_tile_stored(galaxy, tile_levels,
-                                                                                   monkeypatch):
-    expansion, results = _run_tile_units(galaxy)
+def test_the_deep_node_command_is_cut_into_chunks_and_the_map_then_finds_every_node_stored(galaxy, node_levels,
+                                                                                         monkeypatch):
+    expansion, results = _run_deep_units(galaxy)
     keys = [key for args, _cost in expansion.units for key in args["keys"]]
-    assert len(keys) == expansion.plan["tiles"] == len(set(keys)) > 0
-    assert all(0 < len(args["keys"]) <= warmup.TILE_CHUNK and cost > 0 for args, cost in expansion.units)
+    assert len(keys) == expansion.plan["nodes"] == len(set(keys)) > 0
+    assert all(0 < len(args["keys"]) <= warmup.NODE_CHUNK and cost > 0 for args, cost in expansion.units)
     assert sum(result["warmed"] for result in results) == len(keys)
-    assert sum(result["built"] for result in results) == len(keys) and results[0]["noun"] == "tiles"
-    # A second run finds every tile stored and current: it builds nothing.
-    _expansion, again = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in results) == len(keys) and results[0]["noun"] == "nodes"
+    # A second run finds every node stored and current: it builds nothing.
+    _expansion, again = _run_deep_units(galaxy)
     assert sum(result["built"] for result in again) == 0 and sum(result["warmed"] for result in again) == len(keys)
     # A web worker that never saw the warm-up asks the API for none of them.
     asked = []
-    real = tilecache.get_galaxy_tiles
-    monkeypatch.setattr(tilecache, "get_galaxy_tiles", lambda db, wanted: asked.append(list(wanted)) or real(db, wanted))
-    for start in range(0, len(keys), tilecache.MAX_TILES_PER_REQUEST):
-        got = tilecache.fetch_tiles(galaxy.config.database, keys[start:start + tilecache.MAX_TILES_PER_REQUEST])
-        assert got["cached"] == len(got["tiles"])
+    real = tilecache.get_galaxy_nodes
+    monkeypatch.setattr(tilecache, "get_galaxy_nodes", lambda db, wanted: asked.append(list(wanted)) or real(db, wanted))
+    for start in range(0, len(keys), tilecache.MAX_NODES_PER_REQUEST):
+        got = tilecache.fetch_nodes(galaxy.config.database, keys[start:start + tilecache.MAX_NODES_PER_REQUEST])
+        assert got["cached"] == len(got["nodes"])
     assert [wanted for wanted in asked if wanted] == []
 
 
-def test_the_views_the_map_asks_for_on_the_way_in_are_stored(galaxy, tile_levels):
-    _run_tile_units(galaxy)
+def test_the_views_the_map_asks_for_on_the_way_in_are_stored(galaxy, node_levels):
     with warmup.build_app().test_request_context("/"):
         shape = apiclient.get_galaxy_shape(galaxy.config.database)
-    stored = set(warmup.tiles_to_warm(shape, tile_levels.warm_levels, tile_levels.warm_zoom_levels))
-    opening = [key for key in warmup.opening_request(shape)
-               if viewport.parse_tile_key(key)[0] <= tile_levels.warm_zoom_levels]
-    assert opening and set(opening) <= stored
+    opening = warmup.opening_request(shape)
+    assert opening and len(opening) <= tilecache.MAX_NODES_PER_REQUEST
+    with warmup.build_app().test_request_context("/"):
+        warmed = warmup.warm_opening_view(galaxy.config.database)
+    assert warmed["nodes"] == len(opening) and warmed["cached"] == 0
 
 
-# --- Building around a visit (PERF.132) ------------------------------------------------------------
+# --- Building around a visit (PERF.132, MAP.260) ---------------------------------------------------
 
-def test_the_tiles_after_a_visit_are_its_neighbours_and_the_next_level_inside_it():
-    from planetgen.web.lib import tileprefetch
-    asked = ["5/16/16/16", "5/17/16/16"]
-    found = list(tileprefetch.candidates(asked))
-    assert len(found) == len(set(found)) and not set(found) & set(asked)
-    assert found[:8] == [f"6/{32 + dx}/{32 + dy}/{32 + dz}" for dx in (0, 1) for dy in (0, 1) for dz in (0, 1)], \
-        "the children of the first (nearest) tile come first"
-    assert {"5/15/15/15", "5/17/17/17", "5/18/16/16"} <= set(found)
-    corner = list(tileprefetch.candidates(["1/0/0/0"]))
-    assert len([key for key in corner if key.startswith("1/")]) == 7, "the neighbours stop at the root cube"
-    assert list(tileprefetch.candidates([f"{viewport.TILE_MAX_LEVEL}/0/0/0"])) == [
-        f"{viewport.TILE_MAX_LEVEL}/{dx}/{dy}/{dz}" for dx in (0, 1) for dy in (0, 1) for dz in (0, 1)][1:], \
-        "the finest tiles have no children"
-
-
-def test_the_next_zoom_steps_are_the_cuts_for_the_camera_closer_along_its_line():
-    from planetgen.web.lib import tileprefetch
-    bounds = ((-20000.0, -20000.0, -20000.0), (20000.0, 20000.0, 20000.0))
-    camera, look = (3000.0, 1000.0, 500.0), (200.0, 100.0, 0.0)
-    found = list(tileprefetch.zoom_candidates(camera, look, bounds, steps=2))
-    scale = viewport.DISTANCE_CUT_FADE_BAND ** -1
-    first = viewport.fetch_cut_tiles(tuple(t + (c - t) * scale for c, t in zip(camera, look)), look, bounds)
-    assert found[:len(first)] == first, "the nearest step comes first"
-    assert len(found) == len(set(found)) > len(first)
-    asked = ["5/16/16/16"]
-    order = list(tileprefetch.wanted(asked, camera + look, bounds))
-    assert order[:len(first)] == first and not set(order) & set(asked)
-    assert list(tileprefetch.wanted(asked, None, None)) == list(tileprefetch.candidates(asked)), "no camera: the neighbours"
-
-
-@pytest.mark.parametrize("text,expected", [
-    ("1,2,3,4,5,6", (1.0, 2.0, 3.0, 4.0, 5.0, 6.0)), ("-1.5,0,3e3,4,5,6", (-1.5, 0.0, 3000.0, 4.0, 5.0, 6.0)),
-    (None, None), ("", None), ("1,2,3", None), ("1,2,3,4,5,x", None), ("1,2,3,4,5,nan", None),
-    ("1,2,3,4,5,inf", None), ("1,2,3,4,5,1e9", None)])
-def test_the_cameras_of_a_request_are_six_plain_numbers_or_nothing(text, expected):
-    from planetgen.web.galaxy_views import _camera_asked
-    assert _camera_asked(text) == expected
+ASKED = "81.2.1.1"
+"""str: A node the prefetch tests visit; 60 nodes lie around it (its children, its parent and the parent's children)."""
 
 
 @pytest.fixture
 def prefetch(galaxy, monkeypatch):
-    """The background build on the seeded galaxy, with the tiles it queues built in this process on a queue of its
+    """The background build on the seeded galaxy, with the nodes it queues built in this process on a queue of its
     own, and the limits as told."""
     from planetgen.web.lib import tileprefetch
     real = warmup.build_app
     monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
-    real(galaxy.config)                 # a web process: the app installs the in-process transport the tile cache reads by
+    real(galaxy.config)                 # a web process: the app installs the in-process transport the node cache reads by
 
     class Rules:
         prefetch_per_visit, prefetch_per_minute, prefetch_max_queued = 20, 100, 8
@@ -551,98 +522,86 @@ def _run_queued(prefetch):
     done.work(burst=True, logging_level="WARNING")
 
 
-def test_a_visit_queues_the_tiles_around_it_and_they_are_then_stored(galaxy, prefetch):
+def test_a_visit_queues_the_nodes_around_it_and_they_are_then_stored(galaxy, prefetch):
     with warmup.build_app().test_request_context("/"):
-        tilecache.fetch_tiles(prefetch.db, ["5/16/16/16"])          # the visit: the map asked for this tile
-    queued = prefetch.schedule(["5/16/16/16"])
+        tilecache.fetch_nodes(prefetch.db, [ASKED])          # the visit: the map asked for this node
+    queued = prefetch.schedule([ASKED])
     assert queued == 20 and prefetch.ran and "count" not in prefetch.ran[0], "the maintenance lane sets its own cap"
     _run_queued(prefetch)
-    around = list(prefetch.module.candidates(["5/16/16/16"]))[:20]
+    around = list(prefetch.module.candidates([ASKED]))[:20]
     with warmup.build_app().test_request_context("/"):
-        stored = tilecache.fetch_tiles(prefetch.db, around)
+        stored = tilecache.fetch_nodes(prefetch.db, around)
     assert stored["cached"] == 20, "a visitor asking for them next is served from the disk"
 
 
-def test_a_visit_with_a_camera_queues_the_next_zoom_steps_first(galaxy, prefetch):
-    camera, look = (9000.0, 3000.0, 800.0), (0.0, 0.0, 0.0)
-    with warmup.build_app().test_request_context("/"):
-        asked = viewport.fetch_cut_tiles(camera, look, ((-15000.0,) * 3, (15000.0,) * 3))
-        queued = prefetch.module.schedule(prefetch.db, asked, camera + look)
-        bounds = prefetch.module._bounds(prefetch.db)
-    assert queued == 20
-    ahead = [key for key in prefetch.module.wanted(asked, camera + look, bounds)][:20]
-    _run_queued(prefetch)
-    with warmup.build_app().test_request_context("/"):
-        assert tilecache.fetch_tiles(prefetch.db, ahead)["cached"] == 20
-
-
 def test_a_visit_to_a_built_area_queues_nothing_and_a_second_visitor_causes_no_build(galaxy, prefetch):
-    assert prefetch.schedule(["5/16/16/16"]) == 20
-    assert prefetch.schedule(["5/16/16/16"]) == 0, "the same area is claimed already"
+    assert prefetch.schedule([ASKED]) == 20
+    assert prefetch.schedule([ASKED]) == 0, "the same area is claimed already"
     _run_queued(prefetch)
-    assert prefetch.schedule(["5/16/16/16"]) == 14, "the rest of the area's 34 tiles, not the 20 built"
+    assert prefetch.schedule([ASKED]) == 20, "the next 20 of the area's 60 nodes, not the 20 built"
     _run_queued(prefetch)
-    every = list(prefetch.module.candidates(["5/16/16/16"]))
+    assert prefetch.schedule([ASKED]) == 20
+    _run_queued(prefetch)
+    every = list(prefetch.module.candidates([ASKED]))
     with warmup.build_app().test_request_context("/"):
-        assert tilecache.fetch_tiles(prefetch.db, every)["cached"] == len(every) == 34
-    assert prefetch.schedule(["5/16/16/16"]) == 0, "built: nothing left to queue"
+        assert tilecache.fetch_nodes(prefetch.db, every)["cached"] == len(every) == 60
+    assert prefetch.schedule([ASKED]) == 0, "built: nothing left to queue"
 
 
 def test_the_background_build_keeps_to_its_limits(galaxy, prefetch):
     prefetch.prefetch_per_visit, prefetch.prefetch_per_minute = 50, 30
-    assert prefetch.schedule(["6/32/32/32"]) == 30, "the minute's cap trims the visit"
-    assert prefetch.schedule(["6/10/10/10"]) == 0, "and the minute is spent"
+    assert prefetch.schedule([ASKED]) == 30, "the minute's cap trims the visit"
+    assert prefetch.schedule(["243.1.1.1"]) == 0, "and the minute is spent"
     prefetch.prefetch_per_visit = 0
-    assert prefetch.schedule(["6/50/50/50"]) == 0, "off"
+    assert prefetch.schedule(["81.3.4.15"]) == 0, "off"
 
 
 def test_the_background_build_waits_while_the_cache_is_full_or_the_queue_busy(galaxy, prefetch):
     root = tilecache.cache_dir()
     prefetch.module.mark_full(root)
-    assert prefetch.module.is_full(root) and prefetch.schedule(["7/64/64/64"]) == 0
+    assert prefetch.module.is_full(root) and prefetch.schedule([ASKED]) == 0
     import os
     os.unlink(os.path.join(root, prefetch.module.FULL_FILE))
     prefetch.prefetch_max_queued = 1
-    assert prefetch.schedule(["7/64/64/64"]) == 20      # one job per 16 tiles: two wait now
-    assert prefetch.schedule(["7/90/90/90"]) == 0, "bulk work is waiting"
+    assert prefetch.schedule([ASKED]) == 20      # one job per 16 nodes: two wait now
+    assert prefetch.schedule(["243.1.1.1"]) == 0, "bulk work is waiting"
 
 
-def test_an_answered_request_for_tiles_queues_the_tiles_around_it(galaxy, prefetch, monkeypatch):
+def test_an_answered_request_for_nodes_queues_the_nodes_around_it(galaxy, prefetch, monkeypatch):
     asked = []
-    monkeypatch.setattr(prefetch.module, "schedule", lambda db, keys, at=None: asked.append((db, list(keys), at)) or 0)
-    response = _web_worker(galaxy.config).get("/galaxy/tiles?tiles=5/16/16/16,5/17/16/16&at=10,20,30,1,2,3")
+    monkeypatch.setattr(prefetch.module, "schedule", lambda db, keys: asked.append((db, list(keys))) or 0)
+    response = _web_worker(galaxy.config).get(f"/galaxy/nodes?keys={ASKED},243.1.1.1")
     assert response.status_code == 200
     response.close()
-    assert asked == [(galaxy.config.database, ["5/16/16/16", "5/17/16/16"], (10.0, 20.0, 30.0, 1.0, 2.0, 3.0))]
+    assert asked == [(galaxy.config.database, [ASKED, "243.1.1.1"])]
 
 
-def test_a_change_builds_the_stored_tiles_it_touched_again_at_once(galaxy, prefetch, monkeypatch):
-    """PERF.133: the tiles a change deleted are queued for a rebuild, so the next visit finds them built."""
-    centre = (5.0, 1.0, 2.0)
-    placed = _place_sector(galaxy.config, "Placed", centre)
-    holding = sorted(viewport.tile_keys_containing(centre), key=lambda key: viewport.parse_tile_key(key)[0])
+def test_a_change_builds_the_stored_nodes_it_touched_again_at_once(galaxy, prefetch, monkeypatch):
+    """PERF.133: the nodes a change deleted are queued for a rebuild, so the next visit finds them built."""
+    placed = _place_addressed(galaxy.config, "Placed", (5.0, 1.0, 2.0))
+    keys = warmup.deep_nodes_to_warm(None, 81)[:60]
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
     app = warmup.build_app()
     with app.test_request_context("/"):
-        tilecache.fetch_tiles(prefetch.db, holding)
+        tilecache.fetch_nodes(prefetch.db, keys)
     assert tilecache.take_rebuilds(prefetch.db) == (None, []), "nothing changed, nothing is owed"
     time.sleep(0.01)
     _rename_sector(galaxy, placed)
     with app.test_request_context("/"):
-        tilecache.fetch_tiles(prefetch.db, holding[:1])             # the request that notices the change
+        tilecache.fetch_nodes(prefetch.db, keys[:1])             # the request that notices the change
     generation, owed = tilecache.take_rebuilds(prefetch.db)
-    assert generation and sorted(owed) == sorted(holding), "every stored tile that held the sector"
+    assert generation and owed and set(owed) <= set(keys), "every stored node that held the sector"
     assert tilecache.take_rebuilds(prefetch.db) == (None, []), "owed once"
     with app.test_request_context("/"):
-        assert prefetch.module.rebuild(prefetch.db, generation, owed) == len(holding)
-        assert prefetch.module.rebuild(prefetch.db, generation, owed) == 0, "a tile already queued is not queued twice"
+        assert prefetch.module.rebuild(prefetch.db, generation, owed) == len(owed)
+        assert prefetch.module.rebuild(prefetch.db, generation, owed) == 0, "a node already queued is not queued twice"
     _run_queued(prefetch)
     with app.test_request_context("/"):
-        assert tilecache.fetch_tiles(prefetch.db, holding)["cached"] == len(holding)
+        assert tilecache.fetch_nodes(prefetch.db, owed)["cached"] == len(owed)
 
 
 def test_the_rebuild_of_a_change_is_off_with_the_prefetch_and_during_an_update(galaxy, prefetch, monkeypatch):
-    keys = ["5/16/16/16", "4/8/8/8"]
+    keys = [ASKED, "243.1.1.1"]
     with warmup.build_app().test_request_context("/"):
         generation = tilecache.current_stamp(prefetch.db, tilecache.cache_dir())["generation"]
         monkeypatch.setattr(prefetch, "prefetch_per_minute", 0)
@@ -654,12 +613,12 @@ def test_the_rebuild_of_a_change_is_off_with_the_prefetch_and_during_an_update(g
 
 def test_an_answered_request_builds_what_a_change_touched_again(galaxy, prefetch, monkeypatch):
     rebuilt = []
-    monkeypatch.setattr(prefetch.module, "schedule", lambda db, keys, at=None: 0)
+    monkeypatch.setattr(prefetch.module, "schedule", lambda db, keys: 0)
     monkeypatch.setattr(prefetch.module, "rebuild", lambda db, generation, keys: rebuilt.append((db, generation, keys)))
-    tilecache._owe_rebuild(galaxy.config.database, "00000000000000aa", ["4/8/8/8", "5/16/16/16"])
-    response = _web_worker(galaxy.config).get("/galaxy/tiles?tiles=5/16/16/16")
+    tilecache._owe_rebuild(galaxy.config.database, "00000000000000aa", [ASKED, "243.1.1.1"])
+    response = _web_worker(galaxy.config).get(f"/galaxy/nodes?keys={ASKED}")
     response.close()
-    assert rebuilt == [(galaxy.config.database, "00000000000000aa", ["4/8/8/8", "5/16/16/16"])]
+    assert rebuilt == [(galaxy.config.database, "00000000000000aa", [ASKED, "243.1.1.1"])]
 
 
 def test_prune_marks_the_cache_full_for_the_background_build(tmp_path, monkeypatch):
@@ -697,6 +656,7 @@ def test_a_part_of_the_families_is_in_the_order_of_the_families_and_does_not_ope
 
 # --- `planetgen warm` ------------------------------------------------------------------------------
 
+
 @pytest.fixture
 def state_file(tmp_path, monkeypatch):
     path = tmp_path / "maintenance.json"
@@ -723,17 +683,14 @@ def script(monkeypatch, redis_server):
 
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
     monkeypatch.setattr(warmup, "warm_family", warm_family)
-    # The tile command is many units on a real galaxy; here, like the other families, it is one unit that is faked.
-    monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
-        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
+    # The node commands are many units on a real galaxy; here, like the other families, each is one unit that is faked.
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_nodes_unit", lambda args, report: warmup._warm_unit("galaxy-nodes", args))
-    monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_tiles", lambda params: commands.Expansion(
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_deep_tiles_unit",
-                        lambda args, report: warmup._warm_unit("galaxy-deep-tiles", args))
+    monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
+                        lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
     # The object index is built on the database itself, not through the site; here it is one more faked family.
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
@@ -756,9 +713,9 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 7 failed: WarmupFailed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists", "galaxy-tiles",
-                                                            "galaxy-nodes", "galaxy-deep-tiles", "sectors", "systems"], \
+    assert "the cache warm-up stopped: unit 0 of stage 6 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists",
+                                                            "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
 
 
@@ -860,6 +817,7 @@ def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, 
 
 # --- The Galaxy Map's sector-block nodes (MAP.260) --------------------------------------------------
 
+
 def _make_block_rows(config):
     """The block aggregates of the seeded galaxy: a few pre-placed stars (the seeded sectors have no grid address, so
     the stored light of the stars is what makes blocks), the totals `generate` makes after a run."""
@@ -882,7 +840,7 @@ def _run_node_units(galaxy):
 
 
 def test_the_nodes_to_warm_are_the_populated_blocks_from_the_top_down_and_a_second_run_builds_none(
-        galaxy, tile_levels, monkeypatch):
+        galaxy, node_levels, monkeypatch):
     from planetgen.db import nodes
     from planetgen.galaxy.drill import parse_node_key
     _make_block_rows(galaxy.config)
@@ -906,7 +864,7 @@ def test_the_nodes_to_warm_are_the_populated_blocks_from_the_top_down_and_a_seco
     assert "already stored" in again[0]["line"]
 
 
-def test_a_full_cache_leaves_the_nodes_out_and_says_so(galaxy, tile_levels, monkeypatch):
+def test_a_full_cache_leaves_the_nodes_out_and_says_so(galaxy, node_levels, monkeypatch):
     _make_block_rows(galaxy.config)
     monkeypatch.setattr(tilecache, "cache_is_full", lambda *args, **kwargs: True)
     _expansion, results = _run_node_units(galaxy)
@@ -914,7 +872,7 @@ def test_a_full_cache_leaves_the_nodes_out_and_says_so(galaxy, tile_levels, monk
     assert sum(result["left_out"] for result in results) > 0 and "left out" in results[0]["line"]
 
 
-def test_the_nodes_family_warms_inline_and_belongs_to_the_built_levels_phase(galaxy, tile_levels):
+def test_the_nodes_family_warms_inline_and_belongs_to_the_built_levels_phase(galaxy, node_levels):
     _make_block_rows(galaxy.config)
     assert warmup.phase_of("galaxy-nodes") == "built-levels"
     result = warmup.warm_family(galaxy.config.database, "galaxy-nodes", config=galaxy.config)
@@ -925,13 +883,15 @@ def test_the_nodes_after_a_visit_are_its_children_then_its_parent_and_the_parent
     from planetgen.galaxy.drill import drill_children, drill_parent, format_drill_key, parse_node_key
     from planetgen.web.lib import tileprefetch
     asked = ["243.30.4.2", "243.31.4.2"]
-    found = list(tileprefetch.node_candidates(asked))
+    found = list(tileprefetch.candidates(asked))
     assert len(found) == len(set(found)) and not set(found) & set(asked)
     first = parse_node_key(asked[0])
     children = [format_drill_key(child) for _shell, group in drill_children(first) for child in group]
     assert found[:len(children)] == children, "the children of the first (nearest) node come first"
     parent = format_drill_key(drill_parent(first))
     assert parent in found
-    assert list(tileprefetch.node_candidates(["not-a-key"])) == []
+    assert list(tileprefetch.candidates(["not-a-key"])) == []
     sector = parse_node_key("3.30.4.2")
-    assert all(parse_node_key(key).m in (1, 3, 9) for key in tileprefetch.node_candidates([format_drill_key(sector)]))
+    assert all(parse_node_key(key).m in (1, 3, 9) for key in tileprefetch.candidates([format_drill_key(sector)]))
+
+

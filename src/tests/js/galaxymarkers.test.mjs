@@ -13,8 +13,8 @@ const star = (id) => ({ type: "neutron_star", id, x: 1, y: 1, z: 1 });
 function kinds() {
   const registry = M.createMarkerKinds();
   registry.register(M.BLACK_HOLE_KIND);
-  registry.register({ id: "marker-test", label: "Test", glyph: "habitable", color: "#0f0", minLevel: 3,
-    source: (tile) => (tile.test || []).map((t) => ({ key: t.id, ...t })), rank: (item) => item.rank || 0 });
+  registry.register({ id: "marker-test", label: "Test", glyph: "habitable", color: "#0f0", maxBlock: 9,
+    source: (node) => (node.test || []).map((t) => ({ key: t.id, ...t })), rank: (item) => item.rank || 0 });
   return registry;
 }
 
@@ -28,47 +28,47 @@ test("a kind needs an id, a label and a known glyph, and is registered once", ()
   assert.equal(registry.get("y"), null);
 });
 
-test("black holes come from the tiles' points, and only black holes", () => {
+test("black holes come from the nodes' points, and only black holes", () => {
   const items = M.BLACK_HOLE_KIND.source({ points: [hole(1, 5), star(2), hole("s3", 9)] });
   assert.deepEqual(items.map((i) => i.key), ["1", "s3"]);
   assert.equal(M.BLACK_HOLE_KIND.describe(items[0]), "BH 1, Black Hole");
   assert.deepEqual(M.BLACK_HOLE_KIND.source({}), []);
 });
 
-test("a kind that is off draws nothing and a tile coarser than its minimum level lists nothing for it", () => {
+test("a kind that is off draws nothing and a node of a bigger block than its maximum lists nothing for it", () => {
   const registry = kinds();
-  const tiles = [{ key: "1/0/0/0", tile: { points: [hole(1, 5)], test: [{ id: "a", x: 0, y: 0, z: 0 }] } },
-                 { key: "4/0/0/0", tile: { test: [{ id: "b", x: 0, y: 0, z: 0 }] } }];
-  const all = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, tiles });
+  const nodes = [{ key: "81.0.0.0", node: { points: [hole(1, 5)], test: [{ id: "a", x: 0, y: 0, z: 0 }] } },
+                 { key: "3.0.0.0", node: { test: [{ id: "b", x: 0, y: 0, z: 0 }] } }];
+  const all = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes });
   assert.deepEqual(all.map((c) => c.kind.id + ":" + c.item.key).sort(), ["marker-black-hole:1", "marker-test:b"]);
-  const holesOff = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id !== "marker-black-hole", tiles });
+  const holesOff = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id !== "marker-black-hole", nodes });
   assert.deepEqual(holesOff.map((c) => c.item.key), ["b"]);
 });
 
-test("an item listed by several tiles is drawn once and a missing tile is skipped", () => {
+test("an item listed by several nodes is drawn once and a missing node is skipped", () => {
   const registry = kinds();
-  const tiles = [{ key: "2/0/0/0", tile: { points: [hole(1, 5)] } }, { key: "3/0/0/0", tile: { points: [hole(1, 5)] } },
-                 { key: "3/0/0/1", tile: undefined }];
-  assert.equal(M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, tiles }).length, 1);
+  const nodes = [{ key: "27.0.0.0", node: { points: [hole(1, 5)] } }, { key: "9.0.0.0", node: { points: [hole(1, 5)] } },
+                 { key: "9.0.0.1", node: undefined }];
+  assert.equal(M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes }).length, 1);
 });
 
 test("items out of view are left out, and the budget keeps the highest rank", () => {
   const registry = kinds();
   const points = [hole(1, 1, 0), hole(2, 9, 0), hole(3, 5, 0), hole(4, 7, 100)];
-  const tiles = [{ key: "3/0/0/0", tile: { points } }];
-  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, tiles, budget: 2, inView: (item) => item.x < 50 });
+  const nodes = [{ key: "9.0.0.0", node: { points } }];
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes, budget: 2, inView: (item) => item.x < 50 });
   assert.deepEqual(chosen.map((c) => c.item.key), ["2", "3"]);
 });
 
 test("kinds share the budget evenly and a kind with less hands the rest on", () => {
   const registry = kinds();
   const many = Array.from({ length: 10 }, (_, i) => ({ id: "t" + i, rank: i, x: 0, y: 0, z: 0 }));
-  const tiles = [{ key: "4/0/0/0", tile: { points: [hole(1, 1), hole(2, 2)], test: many } }];
-  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, tiles, budget: 6 });
+  const nodes = [{ key: "3.0.0.0", node: { points: [hole(1, 1), hole(2, 2)], test: many } }];
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes, budget: 6 });
   const count = (id) => chosen.filter((c) => c.kind.id === id).length;
   assert.equal(count("marker-black-hole"), 2);
   assert.equal(count("marker-test"), 4);
-  const tight = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, tiles, budget: 4 });
+  const tight = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes, budget: 4 });
   assert.equal(tight.filter((c) => c.kind.id === "marker-black-hole").length, 2);
   assert.equal(tight.filter((c) => c.kind.id === "marker-test").length, 2);
 });
@@ -76,9 +76,9 @@ test("kinds share the budget evenly and a kind with less hands the rest on", () 
 test("an item with its own size is hidden while it is under two pixels", () => {
   const registry = M.createMarkerKinds();
   registry.register({ id: "marker-cloud", label: "Clouds", glyph: "habitable", extentPc: (item) => item.radius,
-    source: (tile) => tile.clouds.map((c) => ({ key: c.id, ...c })) });
-  const tiles = [{ key: "0/0/0/0", tile: { clouds: [{ id: "big", radius: 10, x: 0, y: 0, z: 0 }, { id: "small", radius: 1, x: 0, y: 0, z: 0 }] } }];
-  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, tiles, pxOf: (item) => item.radius * 0.5 });
+    source: (node) => node.clouds.map((c) => ({ key: c.id, ...c })) });
+  const nodes = [{ key: "243.0.0.0", node: { clouds: [{ id: "big", radius: 10, x: 0, y: 0, z: 0 }, { id: "small", radius: 1, x: 0, y: 0, z: 0 }] } }];
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes, pxOf: (item) => item.radius * 0.5 });
   assert.deepEqual(chosen.map((c) => c.item.key), ["big"]);
   assert.equal(M.MIN_EXTENT_PX, 2);
 });
@@ -94,17 +94,17 @@ test("every glyph draws without error on a recording context", () => {
   assert.ok(calls.includes("arc") && calls.includes("stroke"));
 });
 
-test("the habitable world kind lists a tile's systems, most worlds first, and is off until asked for", () => {
+test("the habitable world kind lists a node's systems, most worlds first, and is off until asked for", () => {
   const kind = M.HABITABLE_KIND;
   assert.equal(kind.defaultOn, false);
-  const tile = { worlds: [{ id: 5, name: "Eden", worlds: 2, x: 1, y: 2, z: 3 }, { id: 6, name: "Rest", worlds: 1, x: 0, y: 0, z: 0 }] };
-  assert.deepEqual(kind.source(tile).map((i) => i.key), ["5", "6"]);
+  const node = { worlds: [{ id: 5, name: "Eden", worlds: 2, x: 1, y: 2, z: 3 }, { id: 6, name: "Rest", worlds: 1, x: 0, y: 0, z: 0 }] };
+  assert.deepEqual(kind.source(node).map((i) => i.key), ["5", "6"]);
   assert.deepEqual(kind.source({}), []);
   assert.ok(kind.rank({ worlds: 3 }) > kind.rank({ worlds: 1 }));
   assert.equal(kind.describe({ name: "Eden", worlds: 2 }), "Eden, 2 habitable worlds");
   assert.equal(kind.describe({ name: "Rest", worlds: 1 }), "Rest, 1 habitable world");
   const registry = M.createMarkerKinds();
   registry.register(kind);
-  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-habitable", tiles: [{ key: "9/0/0/0", tile }] });
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-habitable", nodes: [{ key: "9.0.0.0", node }] });
   assert.deepEqual(chosen.map((c) => c.item.name), ["Rest", "Eden"].reverse());
 });

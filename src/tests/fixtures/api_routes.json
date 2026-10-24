@@ -1,5 +1,5 @@
 {
- "api_version": 7,
+ "api_version": 8,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
@@ -83,7 +83,6 @@
   "/api/galaxy/stage GET",
   "/api/galaxy/stamp GET",
   "/api/galaxy/superbubbles GET",
-  "/api/galaxy/tiles GET",
   "/api/galaxy/uncharted GET",
   "/api/galaxy/window GET",
   "/api/health GET",

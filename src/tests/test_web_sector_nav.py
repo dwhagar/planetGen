@@ -222,9 +222,9 @@ def fake(monkeypatch):
     data = FakeData()
     for name in _FAKED:
         monkeypatch.setattr(apiclient, name, getattr(data, name))
-    # The map's first frame of galaxy tiles (the sector page embeds the Galaxy Map's engine).
-    monkeypatch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
-        "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
+    # The map's first frame of galaxy nodes (the sector page embeds the Galaxy Map's engine).
+    monkeypatch.setattr(sector_page, "fetch_nodes", lambda db, keys, known_stamp=None: {
+        "stamp": "0" * 16, "nodes": {}, "edge_pc": 3.066, "has_shape": False})
     return data
 
 

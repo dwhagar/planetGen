@@ -552,7 +552,7 @@ def format_count(value):
 
 def tile_cache_info():
     """
-    Where the galaxy tile cache lives, how much it holds against its
+    Where the galaxy node cache lives, how much it holds against its
     budget, and how much room is left on that disk. Reads the directory
     without creating it (unlike `tilecache.cache_dir`).
     """

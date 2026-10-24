@@ -1,28 +1,24 @@
 # planetgen/web/lib/tileprefetch.py
 
 """
-Builds the Galaxy Map's tiles around a visit before the visitor asks for them (PERF.132; design in
+Builds the Galaxy Map's nodes around a visit before the visitor asks for them (PERF.132, MAP.260; design in
 docs/design/operations/cache-warm-up.md).
 
-A request for tiles (`GET /galaxy/tiles`, `schedule` runs when its response has gone) names the view the visitor is
-in, and the page says where its camera and target are (`at`). The tiles the next move needs are (1) the next zoom
-steps: the tiles of the cut for the camera `ZOOM_STEPS` fade bands closer along the same line to the target
-(`zoom_candidates`, the same cut the map asks for, nearest step first), and (2) the neighbours of the requested tiles
-at their own level and the tiles of the next level inside them (`candidates`, nearest the camera first: a request lists
-its tiles nearest first), for a visitor who pans instead. Those that are not stored are queued as low-priority
-background jobs on the bulk queue (never the interactive one, so an admin's work is never behind them), a chunk of
-`CHUNK` tiles to a job, and a worker builds them into the same disk cache a visitor's request fills (`build_tiles`,
-`tilecache.fetch_tiles`).
+A request for nodes (`GET /galaxy/nodes`, `schedule` runs when its response has gone) names the blocks the visitor's
+view holds. The nodes the next move needs are, for each requested node (the request lists its nodes nearest first), its
+children (the next level inside it) and then its parent and the parent's other children (`candidates`), for a visitor
+who zooms in or out or pans. Those that are not stored are queued as low-priority background jobs on the bulk queue
+(never the interactive one, so an admin's work is never behind them), a chunk of `CHUNK` nodes to a job, and a worker
+builds them into the same disk cache a visitor's request fills (`build_nodes`, `tilecache.fetch_nodes`).
 
-It stays small by rules, all named settings of `tile_cache`: at most `prefetch_per_visit` tiles queued for one request,
+It stays small by rules, all named settings of `tile_cache`: at most `prefetch_per_visit` nodes queued for one request,
 `prefetch_per_minute` in all, nothing while `prefetch_max_queued` jobs wait on the bulk queue, nothing while the
-cache is full (`prune` has just deleted files, `full`), nothing during an update; a tile already stored or already
-claimed by an earlier visit (a Redis key per tile and generation, `claim`) is not queued again, so a visit to an
+cache is full (`prune` has just deleted files, `full`), nothing during an update; a node already stored or already
+claimed by an earlier visit (a Redis key per node and generation, `claim`) is not queued again, so a visit to an
 area that is built queues nothing and a second visitor to the same area causes no build. Everything fails open: a
 Redis that does not answer or a cache that cannot be read just means no prefetch, never an error for the visitor.
 """
 
-import itertools
 import os
 import time
 
@@ -30,36 +26,32 @@ import redis
 
 from planetgen.admin import updateguard
 from planetgen.galaxy.drill import drill_children, drill_parent, format_drill_key, parse_node_key
-from planetgen.galaxy.viewport import DISTANCE_CUT_FADE_BAND, TILE_MAX_LEVEL, fetch_cut_tiles, parse_tile_key, tile_key
 from planetgen.queue import redisclient, redisqueue, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import tilecache
 
 CHUNK = 16
-"""int: Tiles one queued job builds."""
+"""int: Nodes one queued job builds."""
 
-TILE_SECONDS = 2.0
-"""float: What the size of a chunk's work is counted at, for its time limit (PERF.144): the seconds a cold tile is
-expected to take to build, an estimate of the size and not a recorded time (none is recorded for tiles)."""
+NODE_SECONDS = 2.0
+"""float: What the size of a chunk's work is counted at, for its time limit (PERF.144): the seconds a cold node is
+expected to take to build, an estimate of the size and not a recorded time (none is recorded for nodes)."""
 
 JOB_START_SECONDS = 30.0
-"""float: What a chunk's start-up (the app a worker builds) is counted at, with `TILE_SECONDS` a tile."""
+"""float: What a chunk's start-up (the app a worker builds) is counted at, with `NODE_SECONDS` a node."""
 
 MIN_JOB_SECONDS = 600
 """int: The shortest limit of a chunk, and the ceiling is `redisqueue.MAX_TIMEOUT_SECONDS`."""
 
-ZOOM_STEPS = 4
-"""int: How many zoom steps ahead (each one fade band closer, `viewport.DISTANCE_CUT_FADE_BAND`) are built."""
-
 CLAIM_SECONDS = 900
-"""int: How long a tile stays claimed once queued: a job that never ran frees the tile after this."""
+"""int: How long a node stays claimed once queued: a job that never ran frees the node after this."""
 
 MINUTE_KEY = "planetgen:tileprefetch:minute:"
 """str: The per-minute counter's key prefix (the minute's number follows)."""
 
 CLAIM_KEY = "planetgen:tileprefetch:claim:"
-"""str: A claimed tile's key prefix (`<database hash>:<generation>:<tile>` follows)."""
+"""str: A claimed node's key prefix (`<database hash>:<generation>:<node>` follows)."""
 
 FULL_FILE = ".full"
 """str: The file `prune` leaves in the cache root when it had to delete files; its age says whether the cache is full."""
@@ -67,11 +59,8 @@ FULL_FILE = ".full"
 FULL_SECONDS = 600
 """int: How long after a prune that deleted files the cache counts as full."""
 
-JOB = "planetgen.web.lib.tileprefetch.build_tiles"
-"""str: The function a worker runs for a queued chunk (a string, the queue carries JSON)."""
-
-NODE_JOB = "planetgen.web.lib.tileprefetch.build_nodes"
-"""str: The function a worker runs for a queued chunk of nodes (MAP.260)."""
+JOB = "planetgen.web.lib.tileprefetch.build_nodes"
+"""str: The function a worker runs for a queued chunk of nodes (a string, the queue carries JSON)."""
 
 SOCKET_SECONDS = 0.5
 """float: How long one Redis call may take before it counts as unreachable."""
@@ -83,35 +72,9 @@ def _redis():
 
 def candidates(keys):
     """
-    The tiles worth building after a request for `keys`, in order: for each requested tile (nearest first), its eight
-    children (the next level inside it) and then its neighbours at its own level (up to 26, inside the root cube).
-    Neither the requested tiles nor a tile named twice appear.
-
-    Yields:
-        str: Tile keys.
-    """
-    seen = set(keys)
-    for key in keys:
-        level, ix, iy, iz = parse_tile_key(key)
-        found = []
-        if level < TILE_MAX_LEVEL:
-            found += [tile_key(level + 1, 2 * ix + dx, 2 * iy + dy, 2 * iz + dz)
-                      for dx, dy, dz in itertools.product((0, 1), repeat=3)]
-        span = 2 ** level
-        for dx, dy, dz in itertools.product((-1, 0, 1), repeat=3):
-            if (dx, dy, dz) != (0, 0, 0) and all(0 <= index < span for index in (ix + dx, iy + dy, iz + dz)):
-                found.append(tile_key(level, ix + dx, iy + dy, iz + dz))
-        for tile in found:
-            if tile not in seen:
-                seen.add(tile)
-                yield tile
-
-
-def node_candidates(keys):
-    """
-    The nodes worth building after a request for `keys` (MAP.260), in order: for each requested node (nearest first),
-    its children (the next level inside it: three shells of rows and wedges, a sector's own node for a level-3 block),
-    then its parent and the parent's other children. Neither the requested nodes nor one named twice appear.
+    The nodes worth building after a request for `keys`, in order: for each requested node (nearest first), its
+    children (the next level inside it: three shells of rows and wedges, a sector's own node for a level-3 block), then
+    its parent and the parent's other children. Neither the requested nodes nor one named twice appear.
 
     Yields:
         str: Node keys.
@@ -135,41 +98,6 @@ def node_candidates(keys):
                 yield node
 
 
-def zoom_candidates(camera, look, bounds, steps=ZOOM_STEPS):
-    """
-    The tiles of the next `steps` zoom steps: the cut (`viewport.fetch_cut_tiles`) for the camera one fade band
-    closer to `look` along its line, then two bands, and so on; each tile once, the nearest step first.
-
-    Args:
-        camera (tuple): The camera, parsecs.
-        look (tuple): The target it looks at, parsecs.
-        bounds (tuple): The box the cut covers (`galaxymap3d.tile_bounds_pc`).
-
-    Yields:
-        str: Tile keys.
-    """
-    seen = set()
-    for step in range(1, steps + 1):
-        scale = DISTANCE_CUT_FADE_BAND ** -step
-        nearer = tuple(target + (position - target) * scale for position, target in zip(camera, look))
-        for key in fetch_cut_tiles(nearer, look, bounds):
-            if key not in seen:
-                seen.add(key)
-                yield key
-
-
-def wanted(keys, at, bounds):
-    """The tiles to build after a request for `keys` from the camera and target `at` (six numbers, or `None`):
-    the next zoom steps first (when `at` is given), then the neighbours and the next level (`candidates`); never a
-    tile the request itself named."""
-    asked = set(keys)
-    if at is not None:
-        for key in zoom_candidates(tuple(at[:3]), tuple(at[3:]), bounds):
-            if key not in asked:
-                yield key
-    yield from (key for key in candidates(keys) if key not in asked)
-
-
 def mark_full(root):
     """Tells the prefetch the cache at `root` is full: `prune` calls this after it deleted files."""
     try:
@@ -191,62 +119,32 @@ def _claim_name(db, generation, key):
     return f"{CLAIM_KEY}{os.path.basename(tilecache._db_dir('x', db))}:{generation}:{key}"
 
 
-def _bounds(db):
-    """The box the map's cut covers for this database's galaxy (`galaxymap3d.tile_bounds_pc`)."""
-    from planetgen.physics.units import ly_to_pc
-    from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-    from planetgen.web.lib import apiclient
-    from planetgen.web.maps.galaxymap3d import tile_bounds_pc
-    shape = apiclient.get_galaxy_shape(db)
-    return tile_bounds_pc(shape["edge_pc"] if shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY), shape)
-
-
 def chunk_timeout(count):
-    """The seconds RQ lets a job of `count` tiles run (PERF.144): `redisqueue.job_timeout` of the size of its work,
-    `JOB_START_SECONDS` and `TILE_SECONDS` a tile; at least `MIN_JOB_SECONDS`."""
-    return redisqueue.job_timeout(JOB_START_SECONDS + TILE_SECONDS * count, floor=MIN_JOB_SECONDS)
+    """The seconds RQ lets a job of `count` nodes run (PERF.144): `redisqueue.job_timeout` of the size of its work,
+    `JOB_START_SECONDS` and `NODE_SECONDS` a node; at least `MIN_JOB_SECONDS`."""
+    return redisqueue.job_timeout(JOB_START_SECONDS + NODE_SECONDS * count, floor=MIN_JOB_SECONDS)
 
 
-def _enqueue_chunks(queue, db, keys, what, job=JOB, noun="tiles"):
-    """Queues `keys` as jobs of `CHUNK` tiles (or nodes) each on `queue`, `what` ("prefetch" or "rebuild") in their
-    description."""
+def _enqueue_chunks(queue, db, keys, what):
+    """Queues `keys` as jobs of `CHUNK` nodes each on `queue`, `what` ("prefetch" or "rebuild") in their description."""
     for start in range(0, len(keys), CHUNK):
         chunk = keys[start:start + CHUNK]
-        queue.enqueue(job, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,
-                      description=f"{what} {len(chunk)} {noun}")
+        queue.enqueue(JOB, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,
+                      description=f"{what} {len(chunk)} nodes")
 
 
-def schedule(db, keys, at=None):
+def schedule(db, keys):
     """
-    Queues the tiles around a request for `keys` that are not stored (see the module's text for the rules).
+    Queues the nodes around a request for `keys` that are not stored (`candidates`; see the module's text for the
+    rules).
 
     Args:
         db (str): The database the site shows.
-        keys (list[str]): The request's tile keys, nearest first.
-        at (tuple, optional): The page's camera and target, six numbers in parsecs.
+        keys (list[str]): The request's node keys, nearest first.
 
     Returns:
-        int: How many tiles were queued (0 when the prefetch is off, nothing is missing or a rule held it back).
+        int: How many nodes were queued (0 when the prefetch is off, nothing is missing or a rule held it back).
     """
-    return _schedule(db, keys, lambda: wanted(keys, at, _bounds(db) if at is not None else None),
-                     lambda key: tilecache._tile_filename("t", key), JOB, "tiles")
-
-
-def schedule_nodes(db, keys):
-    """
-    `schedule` for nodes (MAP.260): queues the nodes around a request for `keys` that are not stored (`node_candidates`),
-    by the same rules.
-
-    Returns:
-        int: How many nodes were queued.
-    """
-    return _schedule(db, keys, lambda: node_candidates(keys), lambda key: tilecache._node_filename(key), NODE_JOB,
-                     "nodes")
-
-
-def _schedule(db, keys, wanted_keys, filename, job, noun):
-    """The body `schedule` and `schedule_nodes` share: `wanted_keys()` yields the candidates in order, `filename(key)`
-    names a stored one, `job` is what a worker runs for a chunk of `noun`."""
     settings = get_settings().tile_cache
     if settings.prefetch_per_visit <= 0 or settings.prefetch_per_minute <= 0 or not keys:
         return 0
@@ -260,10 +158,10 @@ def _schedule(db, keys, wanted_keys, filename, job, noun):
         return 0
     generation_dir = os.path.join(tilecache._db_dir(root, db), generation)
     missing = []
-    for key in wanted_keys():
+    for key in candidates(keys):
         if key in missing:
             continue
-        if not os.path.exists(os.path.join(generation_dir, filename(key))):
+        if not os.path.exists(os.path.join(generation_dir, tilecache._node_filename(key))):
             missing.append(key)
             if len(missing) >= settings.prefetch_per_visit:
                 break
@@ -288,64 +186,32 @@ def _schedule(db, keys, wanted_keys, filename, job, noun):
         for key in claimed[room:]:
             connection.delete(_claim_name(db, generation, key))
         claimed = claimed[:room]
-        _enqueue_chunks(queue, db, claimed, "prefetch", job, noun)
+        _enqueue_chunks(queue, db, claimed, "prefetch")
         if claimed:
             workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
         return len(claimed)
     except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
-        log.debug(f"Tile prefetch: not queued ({exc}).")
+        log.debug(f"Node prefetch: not queued ({exc}).")
         return 0
 
 
 REBUILD_MAX = 2048
-"""int: Most tiles one change queues for a rebuild (coarsest first); the rest are built by the next visit that wants them."""
+"""int: Most nodes one change queues for a rebuild (coarsest first); the rest are built by the next visit that wants them."""
 
 
 def rebuild(db, generation, keys):
     """
-    Queues the building of tiles a change deleted from the stored generation (`tilecache.current_stamp`): the changed
-    tiles that were stored and their coarser parents, coarsest first, so the next visit finds them built again
-    (PERF.133). The rules are the prefetch's except the per-visit and per-minute counts and the queue depth (a change
-    touches a few hundred tiles at most, and it is the data the visitors are looking at): nothing while the
-    prefetch is off (`prefetch_per_minute` 0), during an update, or while the cache is full; a tile already claimed
-    is not queued twice.
+    Queues the building of nodes a change deleted from the stored generation (`tilecache.current_stamp`): the changed
+    nodes that were stored, coarsest first (the changed block chains are the nodes over a changed sector, so the root
+    nodes come first), so the next visit finds them built again (PERF.133, MAP.260). The rules are the prefetch's except
+    the per-visit and per-minute counts and the queue depth (a change touches a few hundred nodes at most, and it is
+    the data the visitors are looking at): nothing while the prefetch is off (`prefetch_per_minute` 0), during an
+    update, or while the cache is full; a node already claimed is not queued twice.
 
     Args:
         db (str): The database the site shows.
-        generation (str): The generation the tiles belong to.
-        keys (list[str]): The tile keys that were stored and were deleted.
-
-    Returns:
-        int: How many tiles were queued.
-    """
-    settings = get_settings().tile_cache
-    if settings.prefetch_per_minute <= 0 or not keys or updateguard.is_updating():
-        return 0
-    root = tilecache.cache_dir()
-    if root is None or is_full(root):
-        return 0
-    ordered = sorted(keys, key=lambda key: (parse_tile_key(key)[0], key))[:REBUILD_MAX]
-    try:
-        connection = _redis()
-        queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
-        pipe = connection.pipeline()
-        for key in ordered:
-            pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
-        claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
-        _enqueue_chunks(queue, db, claimed, "rebuild")
-        if claimed:
-            workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
-        return len(claimed)
-    except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
-        log.debug(f"Tile rebuild: not queued ({exc}).")
-        return 0
-
-
-def rebuild_nodes(db, generation, keys):
-    """
-    `rebuild` for nodes (MAP.260): queues the building of nodes a change deleted from the stored generation, coarsest
-    first (the changed block chains are the nodes over a changed sector, so the root nodes come first), by the same
-    rules.
+        generation (str): The generation the nodes belong to.
+        keys (list[str]): The node keys that were stored and were deleted.
 
     Returns:
         int: How many nodes were queued.
@@ -364,7 +230,7 @@ def rebuild_nodes(db, generation, keys):
         for key in ordered:
             pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
         claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
-        _enqueue_chunks(queue, db, claimed, "rebuild", NODE_JOB, "nodes")
+        _enqueue_chunks(queue, db, claimed, "rebuild")
         if claimed:
             workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
         return len(claimed)
@@ -375,7 +241,7 @@ def rebuild_nodes(db, generation, keys):
 
 def build_nodes(db, keys):
     """
-    The queued job for nodes: builds the nodes `keys` into the disk cache the way a visitor's request does
+    The queued job: builds the nodes `keys` into the disk cache the way a visitor's request does
     (`tilecache.fetch_nodes`), so what is stored is what a visitor is served. A node stored since it was queued is not
     built again.
 
@@ -387,19 +253,3 @@ def build_nodes(db, keys):
     with app.test_request_context("/"):
         result = tilecache.fetch_nodes(db, list(keys), ahead=True)
     return {"nodes": len(keys), "built": len(keys) - result["cached"]}
-
-
-def build_tiles(db, keys):
-    """
-    The queued job: builds the tiles `keys` into the disk cache the way a visitor's request does
-    (`tilecache.fetch_tiles`), so what is stored is what a visitor is served. A tile stored since it was queued is
-    not built again.
-
-    Returns:
-        dict: `tiles` asked and `built` (those that were not stored).
-    """
-    from planetgen.web import warmup
-    app = warmup.build_app()
-    with app.test_request_context("/"):
-        result = tilecache.fetch_tiles(db, list(keys), ahead=True)
-    return {"tiles": len(keys), "built": len(keys) - result["cached"]}

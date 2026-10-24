@@ -25,7 +25,7 @@ data bumps the tags it touches:
   change when they finish.
 - **The galaxy's content stamp**, the backstop for everything else (another process, a direct
   database edit). At most once per `stamp_seconds` per database, one cheap call (`GET
-  /api/galaxy/changes`, the stamp the Galaxy Map's tile cache uses, from the v27 `modified_at`
+  /api/galaxy/changes`, the stamp the Galaxy Map's node cache uses, from the v27 `modified_at`
   columns) says whether sectors or systems were added, edited or deleted. A new stamp bumps the
   tags of the sectors named (`sector:<id>`, `sector-data`, and the set tags when something was
   added) or, when the change cannot be placed, `epoch`. One process wins the claim on each state
@@ -71,9 +71,9 @@ DEFAULTS = PageCache().model_dump()
 """dict: The model's defaults (`settings.PageCache`), the settings a cache
 built without any uses."""
 
-UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin",
+UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/nodes", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin",
                      "/table-estimates", "/page-jobs")
-"""tuple: Paths never cached here: the stamp itself, the Galaxy Map's tile
+"""tuple: Paths never cached here: the stamp itself, the Galaxy Map's node
 and stage data (`tilecache.py` keeps those on disk), anything that
 depends on who is asking, and the slow-page mechanism's own reads (PERF.105)."""
 

@@ -8,18 +8,18 @@ whose whole-galaxy dataset was baked into one page load, and whose
 fixed-radius markers grew relative to the view as you zoomed in with no
 camera to shrink them the opposite way). This map's camera can travel
 anywhere in the galaxy instead, so most of what it draws is fetched live
-as the camera moves, one fixed cube of space ("tile") at a time
-(`/galaxy/tiles`, `planetgen/web/galaxy_views.py`, this page's own client-side
-JS `fetch()` target -- see that view's own docstring, and `planetgen.galaxy.viewport`'s
-"Cube tiles" section) rather than server-rendered once. Tiles are cached
+as the camera moves, one sector block ("node") at a time
+(`/galaxy/nodes`, `planetgen/web/galaxy_views.py`, this page's own client-side
+JS `fetch()` target -- see that view's own docstring, and `planetgen.galaxy.nodecut`)
+rather than server-rendered once. Nodes are cached
 on the server's disk (`planetgen/web/lib/tilecache.py`) and in the visitor's browser.
 
 This module's job mirrors `planetgen/web/maps/starmap.py`'s division of labor:
-`/galaxy` (`planetgen/web/galaxy_views.py`) fetches the first frame's tiles
-(`initial_tile_request` says which); this module only ever turns
+`/galaxy` (`planetgen/web/galaxy_views.py`) fetches the first frame's nodes
+(`initial_node_request` says which); this module only ever turns
 already-fetched plain data into the panel's HTML and its one starting
 JSON payload -- every *later* payload (`static/galaxymap3d.js`'s own live
-tile fetches as the camera moves) never passes through this module at
+node fetches as the camera moves) never passes through this module at
 all.
 
 One solid of blocks shows everything (`static/galaxyprisms.js`): each
@@ -83,12 +83,7 @@ import json
 
 import math
 
-from planetgen.galaxy.viewport import (
-    TILE_MAX_LEVEL,
-    TILE_ROOT_EDGE_PC,
-    fetch_cut_tiles,
-    tiles_intersecting_sphere,
-)
+from planetgen.galaxy.nodecut import MAX_NODES, node_cut
 from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
 from planetgen.tuning import GALAXY_RADIUS_PC
 from planetgen.physics.units import pc_to_ly
@@ -128,7 +123,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     `(min_view_radius_pc, max_view_radius_pc)` -- see the module
     docstring's own explanation of what these bound. A pure function of
     already-fetched data (no I/O), so the `/galaxy` page view can call it
-    directly to pick the radius its own first tile request uses,
+    directly to pick the radius its own first node request uses,
     before this module's own panel-rendering function ever runs.
 
     Args:
@@ -186,36 +181,23 @@ def galaxy_edge_pc(edge_pc, galaxy_shape):
     return GALAXY_RADIUS_PC
 
 
-FETCH_RADIUS_FACTOR = 1.6
-"""float: The map fetches content out to this multiple of the camera's
-orbit radius (it sizes the view ball: `viewRadius`), so what's just off-screen is
-already there when the camera turns."""
-
-MAX_TILES_PER_REQUEST = 128
-"""int: Mirrors `db.query.MAX_TILES_PER_REQUEST`."""
+MAX_NODES_PER_REQUEST = 128
+"""int: Mirrors `tilecache.MAX_NODES_PER_REQUEST`."""
 
 CAMERA_START_THETA_DEG = -32.0
 CAMERA_START_PHI_DEG = 60.0
 """float: The camera's starting azimuth and polar angle round its target
 (`static/galaxymap3d.js`'s `orbit`)."""
 
-DETAIL_CAMERA_PC = 120.0
-DETAIL_RADIUS_PC = 8.0
-"""float: Camera orbit radius out to which, and radius round the target
-within which, the finest tiles are fetched too (the same constants as
-`static/galaxymap3d.js`)."""
-
-INITIAL_TILE_LIMIT = 64
-"""int: Most tiles the page itself carries for the first frame (the nearest
+INITIAL_NODE_LIMIT = 64
+"""int: Most nodes the page itself carries for the first frame (the coarsest
 ones); the map fetches the rest of the cut as it opens, so a page render
-never waits on hundreds of tiles."""
+never waits on hundreds of nodes."""
 
 
-
-def tile_bounds_pc(edge_pc, galaxy_shape):
+def node_bounds_pc(edge_pc, galaxy_shape):
     """
-    The box the distance cut of tiles covers (MAP.152): the galaxy's
-    extent each way, a ball of its outer radius (`galaxy_extent_pc`).
+    The box the node cut covers: the galaxy's extent each way, a ball of its outer radius (`galaxy_extent_pc`).
 
     Returns:
         tuple: `((x_lo, y_lo, z_lo), (x_hi, y_hi, z_hi))`, parsecs.
@@ -236,30 +218,27 @@ def camera_position_pc(orbit_radius_pc, center_pc):
     )
 
 
-def initial_tile_request(orbit_radius_pc, center_pc, bounds_pc):
+def initial_node_request(orbit_radius_pc, center_pc, edge_pc, bounds_pc):
     """
-    The tiles the map's first frame needs, computed exactly the way
-    `static/galaxymap3d.js`'s own `neededTiles` does for every later
-    camera position, so the browser's first live fetch finds the first
-    frame's tiles already cached: the distance cut round the starting
-    camera (`viewport.fetch_cut_tiles`), and the finest tiles round the
-    target when the camera starts that close.
+    The nodes the map's first frame needs: the cut round the starting camera, computed exactly the way
+    `static/galaxymap3d.js`'s own `neededNodes` does for every later camera position (at the default canvas height, which
+    is what the client assumes until it knows its own), the coarsest first (the blocks it draws whole when nothing
+    finer has arrived), so the browser's first live fetch finds them cached.
 
     Args:
-        orbit_radius_pc (float): The starting camera orbit radius
-            (`view_radius_bounds`' max).
+        orbit_radius_pc (float): The starting camera orbit radius (`view_radius_bounds`' max).
         center_pc (tuple): The starting camera target.
-        bounds_pc (tuple): `tile_bounds_pc`.
+        edge_pc (float): The sector edge, parsecs.
+        bounds_pc (tuple): `node_bounds_pc`.
 
     Returns:
-        list: Tile keys, the finest ones first, then nearest first, at
-            most `INITIAL_TILE_LIMIT`.
+        list: Node keys `m.shell.band.wedge`, the coarsest first and the nearest first within a level, at most
+            `INITIAL_NODE_LIMIT`.
     """
     camera = camera_position_pc(orbit_radius_pc, center_pc)
-    keys = fetch_cut_tiles(camera, center_pc, bounds_pc)
-    if orbit_radius_pc <= DETAIL_CAMERA_PC:
-        keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, center_pc, DETAIL_RADIUS_PC) + keys
-    return keys[:INITIAL_TILE_LIMIT]
+    keys = node_cut(camera, center_pc, edge_pc, bounds_pc=bounds_pc, max_nodes=MAX_NODES).keys
+    keys = sorted(keys, key=lambda key: -int(key.split(".", 1)[0]))
+    return keys[:INITIAL_NODE_LIMIT]
 
 
 DENSITY_SHAPE_FIELDS = (
@@ -433,7 +412,7 @@ def _course_readout_html(course):
     )
 
 
-def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
+def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/nodes",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage", window_path="/galaxy/window",
                               locate_path="/galaxy/locate", course=None, made=None,
@@ -446,16 +425,16 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     seen from above and driven by the drill-down's picks: block of 243
     shells, ..., sector),
     plus a `<script type="application/json">` block carrying the
-    zoom-range numbers (`view_radius_bounds`), the tile settings the
-    client needs to pick tiles the same way `initial_tile_request` does,
+    zoom-range numbers (`view_radius_bounds`), the node settings the
+    client needs to pick nodes the same way `initial_node_request` does,
     and `initial_view`'s own payload for the first frame -- everything
     after that first frame comes from the client's own live `fetch()`
-    calls to `fetch_path` (the Flask `/galaxy/tiles`).
+    calls to `fetch_path` (the Flask `/galaxy/nodes`).
 
     Args:
         db_name (str): The database the page shows (from config, never
                        the URL). Only names the browser's own
-                       `localStorage` tile cache (`storageKey`) and
+                       `localStorage` node cache (`storageKey`) and
                        bookmark list (the Bookmarks menu's
                        `data-bookmark-db`, `static/bookmarks.js`), so each
                        database's are kept apart; it is never sent back
@@ -464,18 +443,18 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             return shape, or `None` if `planetgen plan` has never been
             run -- when `None`, the panel shows a hint that density
             shading isn't real yet (see
-            `db.query.galaxy_tiles`'s own `has_shape` field, which
+            `db.nodes.galaxy_nodes`'s own `has_shape` field, which
             `initial_view` already carries through).
         edge_pc (float): The sector edge length, parsecs
                          (`initial_view["edge_pc"]`, passed separately
                          since `view_radius_bounds` needs it before
                          `initial_view` itself is fetched).
-        initial_view (dict): `tilecache.fetch_tiles`' own return shape
-            (`stamp`/`tiles`/`density`/`edge_pc`/`has_shape`), fetched by
-            the `/galaxy` view for `initial_tile_request`'s tiles -- the
+        initial_view (dict): `tilecache.fetch_nodes`' own return shape
+            (`stamp`/`nodes`/`density`/`edge_pc`/`has_shape`), fetched by
+            the `/galaxy` view for `initial_node_request`'s nodes -- the
             zoomed-all-the-way-out starting view. The client seeds its
-            tile cache with it.
-        fetch_path (str): The tile endpoint's URL (`/galaxy/tiles`).
+            node cache with it.
+        fetch_path (str): The node endpoint's URL (`/galaxy/nodes`).
         sector_url (str, optional): A sector page URL with `{id}` where
             the id goes, for the info panel's "View sector" link (a real
             `<a href>`); without it the panel shows no link.
@@ -576,11 +555,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
         "systemUrl": system_url,
-        "tileRootEdgePc": TILE_ROOT_EDGE_PC,
-        "tileMaxLevel": TILE_MAX_LEVEL,
-        "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
-        "tileBoundsPc": [list(bound) for bound in tile_bounds_pc(edge_pc, galaxy_shape)],
-        "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
+        "nodeEdgePc": edge_pc,
+        "nodeBoundsPc": [list(bound) for bound in node_bounds_pc(edge_pc, galaxy_shape)],
+        "nodeBudget": MAX_NODES,
+        "maxNodesPerRequest": MAX_NODES_PER_REQUEST,
         "hasShape": bool(initial_view.get("has_shape")),
         # The galaxy's density model parameters -- static/galaxyprisms.js
         # evaluates planetgen.galaxy.density.relative_density from
@@ -597,7 +575,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "initialCenter": list(pinned["center_pc"]) if pinned else [0.0, 0.0, 0.0],
         "initialRadiusPc": min(max_radius, max(min_radius, 6 * edge_pc)) if pinned else max_radius,
         "pinned": {k: pinned[k] for k in ("shell", "band", "wedge")} if pinned else None,
-        # The first frame's tiles, without the tile cache's own count of how
+        # The first frame's nodes, without the node cache's own count of how
         # many it had cached: the page is cached and compared as text, and
         # that count differs between two loads of the same page.
         "initial": {key: value for key, value in initial_view.items() if key != "cached"},

@@ -1,10 +1,9 @@
 # tests/test_tilecache.py
 
 """
-Tests for `planetgen/web/lib/tilecache.py`, the web layer's on-disk cache of 3D
-Galaxy Map tiles. The API calls (`get_galaxy_changes`/`get_galaxy_tiles`)
-are replaced with fakes that count calls, so no API or database is
-needed.
+Tests for `planetgen/web/lib/tilecache.py`, the web layer's on-disk cache of the 3D Galaxy Map's sector-block nodes
+(MAP.260). The API calls (`get_galaxy_changes`/`get_galaxy_nodes`) are replaced with fakes that count calls, so no API
+or database is needed.
 """
 
 from planetgen.util import settings as settings_model
@@ -15,7 +14,6 @@ import os
 import pytest  # noqa: E402
 
 from planetgen.web.lib import tilecache, tilepack  # noqa: E402
-from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 
 
 FAKE_STAR = {
@@ -27,7 +25,7 @@ FAKE_STAR = {
 
 
 class FakeApi:
-    """`stamp` is the database's current stamp; `changed` the tiles
+    """`stamp` is the database's current stamp; `changed` the nodes
     `get_galaxy_changes` reports since the last stamp, or `None` for a
     `full` answer."""
 
@@ -36,7 +34,7 @@ class FakeApi:
         self.changed = []
         self.stamp_calls = 0
         self.since = []
-        self.tile_calls = []
+        self.node_calls = []
         self.changed_stages = []
         self.stage_calls = []
 
@@ -46,7 +44,7 @@ class FakeApi:
         full = since is None or self.changed is None
         return {
             "stamp": self.stamp, "state": "state-" + self.stamp,
-            "full": full, "tiles": [] if full else list(self.changed),
+            "full": full, "nodes": [] if full else list(self.changed),
             "stages": [] if full else list(self.changed_stages),
         }
 
@@ -54,13 +52,15 @@ class FakeApi:
         self.stage_calls.append(at)
         return {"at": at, "child_m": 27, "children": [{"shell": 1, "band": 0, "wedge": 2, "generated": 5}], "sectors": None}
 
-    def get_galaxy_tiles(self, db, tile_keys):
-        self.tile_calls.append(list(tile_keys))
+    def get_galaxy_nodes(self, db, node_keys):
+        self.node_calls.append(list(node_keys))
         return {
-            "tiles": {key: {"placed": [{"id": 1, "x": 1.23456789, "y": 0.0, "z": 0.0}], "planned": [], "filled": {"g": 1},
-                            "stars": [dict(FAKE_STAR)], "generated": [], "points": [], "clouds": [
-                                {"id": 3, "x": 1.23456789, "y": 0.0, "z": 0.0, "radius_pc": 2.34567891}]}
-                      for key in tile_keys},
+            "nodes": {key: {"aggregate": {"generated": 5, "stats": {"systems": 3.0},
+                                          "lights": {"stars": 4, "star_luminosity_sol": 1234.56789}},
+                            "stars": [dict(FAKE_STAR)], "generated": [], "points": [{"x": 1.23456789, "y": 0, "z": 0}],
+                            "clouds": [{"id": 3, "x": 1.23456789, "y": 0.0, "z": 0.0, "radius_pc": 2.34567891}],
+                            "placed": [{"id": 1, "x": 1.0, "y": 0.0, "z": 0.0}], "planned": [{"a": 1}]}
+                      for key in node_keys},
             "edge_pc": 3.526, "has_shape": True,
         }
 
@@ -69,7 +69,7 @@ class FakeApi:
 def api(monkeypatch, tmp_path):
     fake = FakeApi()
     monkeypatch.setattr(tilecache, "get_galaxy_changes", fake.get_galaxy_changes)
-    monkeypatch.setattr(tilecache, "get_galaxy_tiles", fake.get_galaxy_tiles)
+    monkeypatch.setattr(tilecache, "get_galaxy_nodes", fake.get_galaxy_nodes)
     monkeypatch.setattr(tilecache, "get_galaxy_stage", fake.get_galaxy_stage)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
@@ -78,38 +78,38 @@ def api(monkeypatch, tmp_path):
 
 
 def test_second_request_is_served_from_disk(api):
-    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+    first = tilecache.fetch_nodes("mydb", ["243.4.1.2", "243.4.1.3"])
     assert first["cached"] == 0
     assert first["stamp"] == api.stamp
-    clouds = first["tiles"]["12/1/2/3"]["clouds"]
+    clouds = first["nodes"]["243.4.1.2"]["clouds"]
     assert clouds[0]["x"] == 1.2346 and clouds[0]["radius_pc"] == 2.3457  # rounded for size
     assert "density" not in first
-    assert len(api.tile_calls) == 1
+    assert len(api.node_calls) == 1
 
-    second = tilecache.fetch_tiles("mydb", ["12/1/2/4", "12/1/2/3"])
+    second = tilecache.fetch_nodes("mydb", ["243.4.1.3", "243.4.1.2"])
     assert second["cached"] == 2
-    assert len(api.tile_calls) == 1  # no API call for tiles at all
-    assert second["tiles"] == first["tiles"]
+    assert len(api.node_calls) == 1  # no API call for nodes at all
+    assert second["nodes"] == first["nodes"]
     assert second["edge_pc"] == 3.526 and second["has_shape"] is True
 
 
-def test_only_missing_tiles_reach_the_api(api):
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/9/9/9"])
-    assert api.tile_calls[-1] == ["12/9/9/9"]
+def test_only_missing_nodes_reach_the_api(api):
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2", "81.12.3.0"])
+    assert api.node_calls[-1] == ["81.12.3.0"]
 
 
 def test_stamp_is_remembered_then_rechecked(api, monkeypatch):
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert api.stamp_calls == 1
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert api.stamp_calls == 2
 
 
-def test_full_change_drops_every_old_tile(api, monkeypatch):
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+def test_full_change_drops_every_old_node(api, monkeypatch):
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     root = tilecache.cache_dir()
     db_dir = tilecache._db_dir(root, "mydb")
     assert os.path.isdir(os.path.join(db_dir, api.stamp))
@@ -118,54 +118,54 @@ def test_full_change_drops_every_old_tile(api, monkeypatch):
     api.stamp = "00000000000000bb"
     api.changed = None
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    result = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert result["stamp"] == result["generation"] == "00000000000000bb"
     assert result["cached"] == 0
     assert not os.path.exists(os.path.join(db_dir, old_stamp))
 
 
-def test_only_changed_tiles_are_dropped(api, monkeypatch):
-    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+def test_only_changed_nodes_are_dropped(api, monkeypatch):
+    first = tilecache.fetch_nodes("mydb", ["243.4.1.2", "243.4.1.3"])
     assert api.since == [None]
 
     api.stamp = "00000000000000bb"
-    api.changed = ["12/1/2/3", "11/0/1/1"]
+    api.changed = ["243.4.1.2", "27.1.1.1"]
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    result = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+    result = tilecache.fetch_nodes("mydb", ["243.4.1.2", "243.4.1.3"])
     assert api.since[-1] == "state-00000000000000aa"
     assert result["stamp"] == "00000000000000bb"
     assert result["generation"] == first["generation"] == "00000000000000aa"
     assert result["cached"] == 1
-    assert api.tile_calls[-1] == ["12/1/2/3"]
+    assert api.node_calls[-1] == ["243.4.1.2"]
 
 
-def test_browser_is_told_which_tiles_changed_since_its_stamp(api, monkeypatch):
+def test_browser_is_told_which_nodes_changed_since_its_stamp(api, monkeypatch):
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    api.stamp, api.changed = "00000000000000bb", ["12/1/2/3"]
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    api.stamp, api.changed = "00000000000000cc", ["12/9/9/9"]
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    api.stamp, api.changed = "00000000000000bb", ["243.4.1.2"]
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    api.stamp, api.changed = "00000000000000cc", ["81.12.3.0"]
 
-    current = tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000cc")
+    current = tilecache.fetch_nodes("mydb", ["243.4.1.2"], known_stamp="00000000000000cc")
     assert "history" not in current
 
-    behind = tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000aa")
+    behind = tilecache.fetch_nodes("mydb", ["243.4.1.2"], known_stamp="00000000000000aa")
     assert behind["history"] == [
-        {"from": "00000000000000aa", "to": "00000000000000bb", "tiles": ["12/1/2/3"], "nodes": []},
-        {"from": "00000000000000bb", "to": "00000000000000cc", "tiles": ["12/9/9/9"], "nodes": []},
+        {"from": "00000000000000aa", "to": "00000000000000bb", "nodes": ["243.4.1.2"]},
+        {"from": "00000000000000bb", "to": "00000000000000cc", "nodes": ["81.12.3.0"]},
     ]
-    assert tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000bb")["history"] == behind["history"][1:]
+    assert tilecache.fetch_nodes("mydb", ["243.4.1.2"], known_stamp="00000000000000bb")["history"] == behind["history"][1:]
     # The first page render doesn't know the browser's stamp yet.
-    assert tilecache.fetch_tiles("mydb", ["12/1/2/3"])["history"] == behind["history"]
+    assert tilecache.fetch_nodes("mydb", ["243.4.1.2"])["history"] == behind["history"]
     # Too old for the history: the browser drops everything.
-    assert tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000ff")["history"] == []
+    assert tilecache.fetch_nodes("mydb", ["243.4.1.2"], known_stamp="00000000000000ff")["history"] == []
 
 
 def test_history_is_trimmed_to_its_key_budget(monkeypatch):
     monkeypatch.setattr(tilecache, "HISTORY_MAX_KEYS", 5)
-    history = [{"from": str(i), "to": str(i + 1), "tiles": ["k"] * 2} for i in range(4)]
+    history = [{"from": str(i), "to": str(i + 1), "nodes": ["k"] * 2} for i in range(4)]
     assert tilecache._trim_history(history) == history[2:]
-    assert tilecache._trim_history([{"from": "a", "to": "b", "tiles": ["k"] * 6}]) == []
+    assert tilecache._trim_history([{"from": "a", "to": "b", "nodes": ["k"] * 6}]) == []
 
 
 def test_old_stamp_file_format_starts_afresh(api):
@@ -174,36 +174,37 @@ def test_old_stamp_file_format_starts_afresh(api):
     os.makedirs(os.path.join(db_dir, "00000000000000aa"))
     with open(os.path.join(db_dir, "stamp.json"), "w", encoding="utf-8") as f:
         json.dump({"stamp": "00000000000000aa"}, f)
-    result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    result = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert api.since == [None]
     assert result["cached"] == 0 and result["generation"] == "00000000000000aa"
 
 
 def test_databases_are_cached_separately(api):
-    tilecache.fetch_tiles("db_one", ["12/1/2/3"])
-    tilecache.fetch_tiles("db_two", ["12/1/2/3"])
-    assert len(api.tile_calls) == 2
+    tilecache.fetch_nodes("db_one", ["243.4.1.2"])
+    tilecache.fetch_nodes("db_two", ["243.4.1.2"])
+    assert len(api.node_calls) == 2
 
 
 @pytest.mark.parametrize("keys", [
     ["nope"],
-    [f"{TILE_MAX_LEVEL + 1}/0/0/0"],
-    ["1/2/0/0"],
-    [f"12/{i}/0/0" for i in range(129)],
+    [f"243.4.1.{i}" for i in range(129)],
+    ["243.4.1.2", "243.4.1.x"],
+    ["5.1.2.3"],
+    ["243.1.2"],
 ])
 def test_bad_requests_are_rejected_before_any_api_call(api, keys):
     with pytest.raises(tilecache.TileRequestError):
-        tilecache.fetch_tiles("mydb", keys)
-    assert api.tile_calls == [] and api.stamp_calls == 0
+        tilecache.fetch_nodes("mydb", keys)
+    assert api.node_calls == [] and api.stamp_calls == 0
 
 
 def test_disabled_cache_still_works(api, monkeypatch):
     monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0")
     assert tilecache.cache_dir() is None
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    second = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    second = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert second["cached"] == 0
-    assert len(api.tile_calls) == 2
+    assert len(api.node_calls) == 2
 
 
 def test_unwritable_cache_dir_falls_back_to_the_api(api, monkeypatch, tmp_path):
@@ -211,30 +212,30 @@ def test_unwritable_cache_dir_falls_back_to_the_api(api, monkeypatch, tmp_path):
     blocker.write_text("not a directory")
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(blocker / "tiles"))
     assert tilecache.cache_dir() is None
-    result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    assert result["tiles"]["12/1/2/3"]["stars"]
+    result = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    assert result["nodes"]["243.4.1.2"]["stars"]
 
 
 def test_corrupt_cache_file_is_refetched(api):
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.bin")
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "n243_4_1_2.bin")
     with open(path, "wb") as f:
-        f.write(b"not a tile")
-    result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+        f.write(b"not a node")
+    result = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert result["cached"] == 0
     with open(path, "rb") as f:
-        assert tilepack.unpack_tile(f.read())["stars"]
+        assert tilepack.unpack_node(f.read())["stars"]
 
 
-def _stored_tiles(tmp_path, count=10, ahead=()):
-    """A cache of `count` 1,000-byte tile files, the i-th last visited at time 1000 + i; those in `ahead` are marked
+def _stored_nodes(tmp_path, count=10, ahead=()):
+    """A cache of `count` 1,000-byte node files, the i-th last visited at time 1000 + i; those in `ahead` are marked
     as built ahead."""
     root = tmp_path / "cache"
     stamp_dir = root / "db" / "00000000000000aa"
     stamp_dir.mkdir(parents=True)
     (root / "db" / "stamp.json").write_text('{"stamp": "00000000000000aa"}')
     for i in range(count):
-        path = stamp_dir / f"t12_{i}_0_0.bin"
+        path = stamp_dir / f"n1_{i}_1_2.bin"
         path.write_text("x" * 1000)
         path.chmod(tilecache.AHEAD_MODE if i in ahead else 0o600)
         os.utime(path, (1000 + i, 1000 + i))
@@ -242,65 +243,65 @@ def _stored_tiles(tmp_path, count=10, ahead=()):
 
 
 def test_prune_deletes_the_least_recently_visited_files_down_to_budget(tmp_path):
-    root, stamp_dir = _stored_tiles(tmp_path)
+    root, stamp_dir = _stored_nodes(tmp_path)
     tilecache.prune(str(root), max_bytes=5000)
     remaining = sorted(p.name for p in stamp_dir.iterdir())
-    assert remaining == [f"t12_{i}_0_0.bin" for i in range(6, 10)]
+    assert remaining == [f"n1_{i}_1_2.bin" for i in range(6, 10)]
     assert (root / "db" / "stamp.json").exists()
 
 
-def test_prune_never_deletes_a_tile_built_ahead(tmp_path):
-    """PERF.133: the oldest tiles here were built ahead; only the ones a visit asked for go, and when only
+def test_prune_never_deletes_a_node_built_ahead(tmp_path):
+    """PERF.133: the oldest nodes here were built ahead; only the ones a visit asked for go, and when only
     built-ahead tiles are left over the budget nothing more goes."""
-    root, stamp_dir = _stored_tiles(tmp_path, ahead={0, 1, 2})
+    root, stamp_dir = _stored_nodes(tmp_path, ahead={0, 1, 2})
     tilecache.prune(str(root), max_bytes=5000)
     remaining = sorted(p.name for p in stamp_dir.iterdir())
-    assert remaining == [f"t12_{i}_0_0.bin" for i in (0, 1, 2, 9)]
+    assert remaining == [f"n1_{i}_1_2.bin" for i in (0, 1, 2, 9)]
     tilecache.prune(str(root), max_bytes=1000)
-    assert sorted(p.name for p in stamp_dir.iterdir()) == [f"t12_{i}_0_0.bin" for i in (0, 1, 2)]
-    assert tilecache.cache_is_full(str(root), max_bytes=1000), "over the budget with only built-ahead tiles left"
+    assert sorted(p.name for p in stamp_dir.iterdir()) == [f"n1_{i}_1_2.bin" for i in (0, 1, 2)]
+    assert tilecache.cache_is_full(str(root), max_bytes=1000), "over the budget with only built-ahead nodes left"
     assert not tilecache.cache_is_full(str(root), max_bytes=10_000)
 
 
-def test_a_visit_refreshes_a_tile_and_a_warm_up_does_not(api, monkeypatch):
-    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+def test_a_visit_refreshes_a_node_and_a_warm_up_does_not(api, monkeypatch):
+    first = tilecache.fetch_nodes("mydb", ["243.4.1.2", "243.4.1.3"])
     directory = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), first["generation"])
-    visited, ahead = (os.path.join(directory, name) for name in ("t12_1_2_3.bin", "t12_1_2_4.bin"))
+    visited, ahead = (os.path.join(directory, name) for name in ("n243_4_1_2.bin", "n243_4_1_3.bin"))
     for path in (visited, ahead):
         os.utime(path, (1000, 1000))
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    tilecache.fetch_tiles("mydb", ["12/1/2/4"], ahead=True)
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.3"], ahead=True)
     assert os.stat(visited).st_mtime > 1000, "a visit counts as the last visit"
     assert os.stat(ahead).st_mtime == 1000, "building ahead does not"
 
 
 def test_what_is_built_ahead_is_marked_and_what_a_visit_asked_for_is_not(api):
-    ahead = tilecache.fetch_tiles("mydb", ["12/1/2/3"], ahead=True)
-    asked = tilecache.fetch_tiles("mydb", ["12/1/2/4"])
+    ahead = tilecache.fetch_nodes("mydb", ["243.4.1.2"], ahead=True)
+    asked = tilecache.fetch_nodes("mydb", ["243.4.1.3"])
     directory = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), ahead["generation"])
-    assert os.stat(os.path.join(directory, "t12_1_2_3.bin")).st_mode & 0o777 == tilecache.AHEAD_MODE
-    assert os.stat(os.path.join(directory, "t12_1_2_4.bin")).st_mode & 0o777 == 0o600
+    assert os.stat(os.path.join(directory, "n243_4_1_2.bin")).st_mode & 0o777 == tilecache.AHEAD_MODE
+    assert os.stat(os.path.join(directory, "n243_4_1_3.bin")).st_mode & 0o777 == 0o600
     assert asked["generation"] == ahead["generation"]
 
 
-def test_a_full_cache_drops_visited_tiles_and_keeps_those_built_ahead(api, monkeypatch):
-    """The decided behaviour at the budget (Boss, 2026-10-18, 5:56 PM EDT): the warm-up stops, the tiles built ahead
-    stay, the least recently visited tile a visit asked for goes."""
-    keys = [f"12/{i}/0/0" for i in range(8)]
-    tilecache.fetch_tiles("mydb", keys[:3], ahead=True)
+def test_a_full_cache_drops_visited_nodes_and_keeps_those_built_ahead(api, monkeypatch):
+    """The decided behaviour at the budget (Boss, 2026-10-18, 5:56 PM EDT): the warm-up stops, the nodes built ahead
+    stay, the least recently visited node a visit asked for goes."""
+    keys = [f"1.{i + 4}.1.2" for i in range(8)]
+    tilecache.fetch_nodes("mydb", keys[:3], ahead=True)
     for key in keys[3:]:
-        tilecache.fetch_tiles("mydb", [key])
+        tilecache.fetch_nodes("mydb", [key])
     root = tilecache.cache_dir()
     sizes = {path: size for path, size, _mtime, _ahead in tilecache.cache_files(root)}
     one = max(sizes.values())
     generation = tilecache.current_stamp("mydb", root)["generation"]
     directory = os.path.join(tilecache._db_dir(root, "mydb"), generation)
     for i in range(3, 8):
-        os.utime(os.path.join(directory, f"t12_{i}_0_0.bin"), (1000 + i, 1000 + i))
-    tilecache.prune(root, max_bytes=int(one * 6.5))                # room for six whole tiles at most
-    left = sorted(name for name in os.listdir(directory) if name.startswith("t12_"))
-    assert left[:3] == ["t12_0_0_0.bin", "t12_1_0_0.bin", "t12_2_0_0.bin"], "built ahead, kept"
-    assert "t12_3_0_0.bin" not in left and "t12_7_0_0.bin" in left, "the least recently visited went, the latest stayed"
+        os.utime(os.path.join(directory, f"n1_{i + 4}_1_2.bin"), (1000 + i, 1000 + i))
+    tilecache.prune(root, max_bytes=int(one * 6.5))                # room for six whole nodes at most
+    left = sorted((name for name in os.listdir(directory) if name.startswith("n1_")), key=lambda name: int(name.split("_")[1]))
+    assert left[:3] == ["n1_4_1_2.bin", "n1_5_1_2.bin", "n1_6_1_2.bin"], "built ahead, kept"
+    assert "n1_7_1_2.bin" not in left and "n1_11_1_2.bin" in left, "the least recently visited went, the latest stayed"
 
 
 def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_path):
@@ -346,22 +347,22 @@ def test_stage_keys_are_checked(api):
     assert api.stage_calls == []
 
 
-def test_a_busy_galaxy_keeps_its_cached_tiles_for_a_while_then_refreshes(api, monkeypatch):
+def test_a_busy_galaxy_keeps_its_cached_nodes_for_a_while_then_refreshes(api, monkeypatch):
     # PERF.34: a fill changes so much that every check says "full"; the cache is kept (and the stored state
     # with it) until the generation is BUSY_KEEP_SECONDS old, then thrown away once.
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     api.stamp = "00000000000000bb"
     real = api.get_galaxy_changes
-    api.get_galaxy_changes = lambda db, since=None: {**real(db, since), "full": True, "busy": True, "tiles": []}
+    api.get_galaxy_changes = lambda db, since=None: {**real(db, since), "full": True, "busy": True, "nodes": []}
     monkeypatch.setattr(tilecache, "get_galaxy_changes", api.get_galaxy_changes)
 
-    again = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    again = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert again["cached"] == 1 and again["stamp"] == "00000000000000aa"
-    assert len(api.tile_calls) == 1
+    assert len(api.node_calls) == 1
 
     monkeypatch.setattr(tilecache, "BUSY_KEEP_SECONDS", -1)
-    refreshed = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    refreshed = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert refreshed["cached"] == 0 and refreshed["stamp"] == "00000000000000bb"
 
 
@@ -369,7 +370,7 @@ def test_a_check_that_fails_under_load_serves_the_cache(api, monkeypatch):
     # PERF.34: a database too busy to answer the freshness check in time must not fail a request the cache can serve.
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
     tilecache._failed_checks.clear()
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     calls = []
 
     def failing(db, since=None):
@@ -377,58 +378,79 @@ def test_a_check_that_fails_under_load_serves_the_cache(api, monkeypatch):
         raise tilecache.apiclient.ApiError("planetGen API error (503): database unavailable", status_code=503)
 
     monkeypatch.setattr(tilecache, "get_galaxy_changes", failing)
-    again = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    again = tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert again["cached"] == 1
-    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_nodes("mydb", ["243.4.1.2"])
     assert len(calls) == 1  # not asked again straight away
     tilecache._failed_checks.clear()
 
 
-# --- MAP.157: trimmed tiles, served as stored bytes --------------------------------------
+# --- MAP.157: trimmed nodes, served as stored bytes --------------------------------------
 
-def test_a_tile_keeps_only_what_the_page_reads():
-    tile = tilecache.trim_tile({"placed": [{"id": 1}], "planned": [], "filled": {"g": 1}, "clouds": [],
-                                "stars": [dict(FAKE_STAR)], "generated": [dict(FAKE_STAR, system_id=12)], "points": []})
-    assert set(tile) == {"clouds", "stars", "generated", "points"}
-    assert tile["stars"][0] == {
+def test_a_node_keeps_what_the_page_reads():
+    node = tilecache.trim_node({"placed": [{"id": 1}], "planned": [{"a": 1}], "filled": {"g": 1}, "clouds": [],
+                                "stars": [dict(FAKE_STAR)], "generated": [dict(FAKE_STAR, system_id=12)], "points": [],
+                                "aggregate": {"lights": {"star_luminosity_sol": 1234.56789}}})
+    assert set(node) == {"aggregate", "clouds", "stars", "generated", "points", "placed"}
+    assert node["aggregate"]["lights"]["star_luminosity_sol"] == 1234.5679
+    assert node["stars"][0] == {
         "id": 7, "x": 1.235, "y": -2.0, "z": 0.0, "luminosity_sol": 1235.0, "temperature_k": 5780,
         "radius_sol": 1.23, "star_type": "G"}
-    assert tile["generated"][0]["system_id"] == 12 and "name" not in tile["generated"][0]
+    assert node["generated"][0]["system_id"] == 12 and "name" not in node["generated"][0]
 
 
 def test_a_star_without_a_radius_or_temperature_stays_without(api):
     star = {key: value for key, value in FAKE_STAR.items() if key not in ("radius_sol", "temperature_k")}
-    trimmed = tilecache.trim_tile({"stars": [star]})["stars"][0]
+    trimmed = tilecache.trim_node({"stars": [star]})["stars"][0]
     assert "radius_sol" not in trimmed and "temperature_k" not in trimmed
 
 
 def test_the_wire_body_is_the_stored_bytes_joined(api):
-    keys = ["12/1/2/3", "12/1/2/4"]
-    cold_body = tilecache.fetch_tiles_wire("mydb", keys)
-    warm_body = tilecache.fetch_tiles_wire("mydb", keys)
+    keys = ["243.4.1.2", "243.4.1.3"]
+    cold_body = tilecache.fetch_nodes_wire("mydb", keys)
+    warm_body = tilecache.fetch_nodes_wire("mydb", keys)
     warm, _ = tilepack.unpack_response(warm_body)
-    cold, tiles = tilepack.unpack_response(cold_body)
+    cold, nodes = tilepack.unpack_response(cold_body)
     assert warm["cached"] == 2 and cold["cached"] == 0
-    assert list(tiles) == keys and cold["stamp"] == api.stamp and cold["edge_pc"] == 3.526
-    assert tiles["12/1/2/3"]["stars"][0]["star_type"] == "G"
-    assert len(api.tile_calls) == 1, "the second request was served from disk"
-    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.bin")
+    assert list(nodes) == keys and cold["stamp"] == api.stamp and cold["edge_pc"] == 3.526
+    assert nodes["243.4.1.2"]["stars"][0]["star_type"] == "G"
+    assert len(api.node_calls) == 1, "the second request was served from disk"
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "n243_4_1_2.bin")
     with open(path, "rb") as f:
-        assert f.read() in warm_body, "a tile goes out as the bytes the cache stores"
+        assert f.read() in warm_body, "a node goes out as the bytes the cache stores"
 
 
 def test_an_empty_request_still_makes_a_valid_response(api):
-    header, tiles = tilepack.unpack_response(tilecache.fetch_tiles_wire("mydb", []))
-    assert tiles == {} and header["stamp"] == api.stamp
+    header, nodes = tilepack.unpack_response(tilecache.fetch_nodes_wire("mydb", []))
+    assert nodes == {} and header["stamp"] == api.stamp
 
 
-def test_a_torn_tile_file_is_refetched_not_sent(api):
-    tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"])
-    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.bin")
+def test_a_torn_node_file_is_refetched_not_sent(api):
+    tilecache.fetch_nodes_wire("mydb", ["243.4.1.2"])
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "n243_4_1_2.bin")
     with open(path, "rb") as f:
         whole = f.read()
     with open(path, "wb") as f:
         f.write(whole[:-5])
-    _, tiles = tilepack.unpack_response(tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"]))
-    assert tiles["12/1/2/3"]["stars"]
-    assert len(api.tile_calls) == 2
+    _, nodes = tilepack.unpack_response(tilecache.fetch_nodes_wire("mydb", ["243.4.1.2"]))
+    assert nodes["243.4.1.2"]["stars"]
+    assert len(api.node_calls) == 2
+
+
+def test_a_sector_key_is_a_node(api):
+    assert tilecache.fetch_nodes("mydb", ["1.4.1.2"])["nodes"]["1.4.1.2"]["stars"]
+
+
+def test_the_wire_body_carries_the_aggregate(api):
+    header, nodes = tilepack.unpack_response(tilecache.fetch_nodes_wire("mydb", ["243.4.1.2"]))
+    assert header["stamp"] == api.stamp and nodes["243.4.1.2"]["aggregate"]["generated"] == 5
+
+
+def test_a_dropped_node_is_owed_a_rebuild(api, monkeypatch):
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    tilecache.fetch_nodes("mydb", ["243.4.1.2", "81.12.3.0"])
+    api.stamp, api.changed = "00000000000000bb", ["243.4.1.2"]
+    tilecache.fetch_nodes("mydb", ["81.12.3.0"])
+    generation, keys = tilecache.take_rebuilds("mydb")
+    assert keys == ["243.4.1.2"] and generation == "00000000000000aa"
+    assert tilecache.take_rebuilds("mydb") == (None, [])
