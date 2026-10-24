@@ -19751,6 +19751,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Research (2026-10-09, Update): Lane 4 (7:40 AM EDT 2026-10-24, as the
   lane reported): a fresh machine without the AD9 download (ozone_uv)
   sees 6 test_body_radiation failures (DataMissing); environment only.
+  Research (2026-10-09, 10-24 log analysis): Seen again by the log
+  analysis lane (coordinator relay, 10:05 AM EDT as the relay reported):
+  the setup verify step still exits 1 on "markdown". Not moot after the
+  wiki strip (OPS.69): no code imports the markdown package, and the
+  Markdown export uses describe/markdown.py, so Boss's decision stands
+  (add it to the requirements the script installs). Same lane saw
+  test_plan_scatter_stores_stars_and_fill_builds_their_systems fail
+  (TEST.338, built mass 3.44e30 vs stored 4.98e30).
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
