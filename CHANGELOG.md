@@ -2,6 +2,38 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2148] - 2026-10-24
+
+**Headline:** A database that has its tables but no recorded schema version is now refused with a clear message instead of being guessed at.
+
+### Removed
+- `store.detect_schema_version` and the `_VERSION_MARKERS` table (DB.4): the code no longer works out a version from the shape of the tables, and a new migration no longer needs a marker row.
+- The "tables look like schema version N" line of `planetgen.cli.checkdb`; the recorded version, the Alembic revision and the model comparison still cover it.
+
+### Changed
+- A database with the galaxy tables but an empty or missing `schema_migrations` raises `SchemaVersionMissingError` from every connection, `migrate --status` and `migrate`, before any change is made. Restore it from a backup, or drop it and run `update.sh`.
+
+## [8.0.2147] - 2026-10-24
+
+**Headline:** Zooming into a window of the Galaxy Map no longer hides the stars and clouds outside it.
+
+### Changed
+- **Nothing is clipped to the window (MAP.264).** Stepping into a block, a window of sectors or a sector used to hide every star and cloud outside the window's cells, so the surroundings vanished at each stage. They all stay now and the map's visibility rules decide what is drawn; only a sector opened in place still leaves out the galaxy's own stars inside its cell, because that sector draws them itself.
+
+TODO items resolved: MAP.264. Added: none.
+
+## [8.0.2146] - 2026-10-24
+
+**Headline:** A planet page now states one pace, one chemistry and one set of milestones and ages for its life, so its paragraphs can no longer contradict each other.
+
+### Fixed
+- **GEN.666: the life paragraphs disagreed.** A page could say "life based on melanin would evolve at a normal pace" and, a paragraph later, "life here would evolve at a hyper-accelerated pace ... technological civilization, reached at 80 Myr". The pace was drawn twice (`life.get_evolutionary_speed` and a second draw inside `evolution.get_evolutionary_state`), stored in two columns and written by two writers. The generator now draws the pace once (`evolution.draw_scale`, one the star supports and the life chemistry needs) and stores it in `evolutionary_pace` for every body with a life chemistry. `evolutionary_speed` is dropped (migration 0143, schema v143; a body that had only a speed keeps it as its pace). `describe/life_facts.py` resolves the chemistry, pace, ages and milestone once into a `LifeFacts` and the life paragraph and the timeline paragraph are written from it alone; the timeline no longer repeats a pace of its own and says when the system was that old at the milestone. The unused second writer (`Planet._generate_life_and_flavor_paragraphs`, `evolution.timeline_paragraphs`) is removed.
+- **A world whose life does not split water is no longer told it releases oxygen.** The "photosynthesis" milestone is named and described by the chemistry's metabolism (`tuning.LIFE_METABOLISMS`): oxygenic photosynthesis, anoxygenic photosynthesis, retinal phototrophy or radiotrophy.
+- A body with no viable life chemistry no longer keeps a reflection spectrum.
+- **The atmosphere table now holds the class's balance gases.** A class B page said "a mix of helium, sodium, and oxygen" above a table of "Oxygen 100%": helium and sodium (the class's balance, named in the phrase and held in the surface pressure) were left out of the table. The table is now shares of the whole surface pressure (`physics/atmosphere.balance_names` and `balance_kpa`).
+
+generation-output: changed
+
 ## [8.0.2145] - 2026-10-24
 
 **Headline:** Several threads asking for a database connection at once no longer leave extra connections open on the server.

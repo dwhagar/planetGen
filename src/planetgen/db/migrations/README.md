@@ -15,9 +15,7 @@ To change the schema:
    existing database match `schema.sql`, using `op.*` or `op.execute(...)`.
 3. Run `python scripts/generate_db_models.py` to regenerate `planetgen/db/models.py`
    (`tests/test_db_models.py` fails while it disagrees with `schema.sql`).
-4. Add a marker for the new version to `_VERSION_MARKERS` in
-   `planetgen/db/store.py` (a column or index the version introduced).
-5. Check in `tests/fixtures/old_schemas/schema_v<previous>.sql.gz`, as
+4. Check in `tests/fixtures/old_schemas/schema_v<previous>.sql.gz`, as
    `tests/fixtures/old_schemas/README.md` describes, so the migration is
    tested against the schema it starts from.
 

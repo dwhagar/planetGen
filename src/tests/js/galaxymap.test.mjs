@@ -123,7 +123,6 @@ function open(href, options) {
     showPlacedInfo: (entry) => calls.placed.push(entry),
     showCellInfo: (cell) => calls.cells.push(cell),
     showHint: (text) => calls.hints.push(text),
-    setWedgeClip: (clip) => calls.clips.push(clip),
     sectorUrl: (id) => "/sector/" + id,
     pinned: options.pinned || null,
     openSectorPage: (id) => calls.pages.push(id),

@@ -49,7 +49,7 @@ HEAVY_FILES = frozenset({
     "test_api.py", "test_phenomenon_scatter.py", "test_work_queue_failures.py", "test_galaxy_urls_combined.py",
     "test_db_old_schemas.py", "test_web_generate.py", "test_api_thin_routes.py", "test_bright_star_scatter.py",
     "test_work_queue.py", "test_admin_edits.py", "test_gen_resume.py", "test_api_auth_sweep.py",
-    "test_search_edge_cases.py", "test_db_persistence.py", "test_db_schema_version_detect.py",
+    "test_search_edge_cases.py", "test_db_persistence.py",
 })
 
 _COMPILED = tuple((area, re.compile(pattern)) for area, pattern in AREA_RULES)

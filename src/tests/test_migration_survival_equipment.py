@@ -33,7 +33,7 @@ def test_a_v135_galaxy_gains_the_equipment_levels_and_loses_the_tier(mysql_confi
         assert set(equipment.FIELDS) <= columns and "equipment_tier" not in columns
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
 

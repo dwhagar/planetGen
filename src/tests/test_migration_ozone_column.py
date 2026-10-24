@@ -24,6 +24,6 @@ def test_a_v134_galaxy_gains_the_column_empty(mysql_config):
                 "SELECT DATA_TYPE, IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
                 " AND TABLE_NAME = ? AND COLUMN_NAME = 'ozone_column_du'", (table,)).fetchone()
             assert column is not None and column["IS_NULLABLE"] == "YES" and column["DATA_TYPE"] == "double"
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()

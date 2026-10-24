@@ -2670,7 +2670,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2781,19 +2781,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxystageview.js (rebase on its merges and tell it before each PR).
   Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
 
-- [ ] **MAP.264 S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. The
-  visibility law and the sector and system hand-offs already decide what
-  is drawn. Client only. Size S. Done: the surroundings stay in view
-  when you zoom, and a browser test finds a neighbouring star after
-  zooming into a sector. Owner: Core 2 (maps).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.265 S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2858,7 +2845,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   query, not against stages, and select by object ID at any scale. Size
   M. Done: labels and selection work from the galaxy to a planet with no
   stage, and a browser test covers both. Owner: Core 2 (maps).
-  Prerequisites: MAP.264, MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: MAP.265. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
@@ -13780,6 +13767,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more, lane L's research note
   reports/stripped-core-envelope-2026-10-24.md (stand-in envelope
   fraction 1e-4 to 4e-2) is the start.
+  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24: GEN.692
+  (#2799) made a class B page's atmosphere table list the class's
+  balance gases, so it shows helium and sodium until the class cut-over.
+  Boss's answer on the class B card (12:22 AM EDT: class B never has
+  hydrogen or helium) means the class lane must drop helium from the
+  class B phrase, the table and the stripped-core line at the cut-over;
+  nothing to change before then.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14108,20 +14102,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
-- [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
-  Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
-  page paragraph 1 said melanin life 'would evolve at a normal pace' and
-  paragraph 2 said 'hyper-accelerated pace', for an 80 Myr civilization
-  in a 13.8 Gyr system. Cause found by the Habitability text consistency
-  thread: the pace is drawn twice (life.get_evolutionary_speed and
-  evolution.get_evolutionary_state), stored in two columns and written
-  by two text writers. Done: the pace is drawn once, planets and moons
-  lose the evolutionary_speed column (migration, no shim), one LifeFacts
-  object feeds every life sentence on every page, and a consistency test
-  fails when two sentences about the same planet disagree. Owner:
-  Habitability text consistency thread (2026-10-23).
-  Prerequisites: none. Related: GEN.649, GEN.653.
-
 - [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
   Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
   GEN.413 merged as #2761): the ozone column is computed from an oxygen
@@ -14393,27 +14373,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the combination Green with a mask is valid. Owner: Habitability text
   lane / lane D.
   Prerequisites: none.
-
-- [ ] **GEN.692 The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug)**
-  Boss's live observation on a class B page (0.346 AU, 310 K, 19.8 kPa)
-  at 12:12 AM EDT 2026-10-24, reported by lane L. The table in
-  describe/build.py _atmosphere_composition adds up only the ten stored
-  partial pressures and divides each by that sum, so unstored balance
-  gases (helium, sodium; class B, E, F, I, J, T, V all have a balance)
-  vanish and oxygen shows 100% when the real share is about 6%. Do
-  (interim, before GEN.411): divide by the real total pressure and show
-  the unstored balance gases as named rows or an Other row, so the table
-  sums to the real total and never shows 100% for a mixture. Permanent
-  fix is GEN.411 plus GEN.415. Done: the class B page shows helium,
-  sodium and oxygen shares that sum to 100% of the total, and a test
-  covers a class with an unstored balance. Details:
-  reports/pure-oxygen-atmosphere-2026-10-24.md.
-  Research (2026-10-09, Decided): Related decision (Boss, 12:39 AM EDT
-  2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
-  coordinator)): answers 1 and 2 are GEN.694 (oxygen caps) and the class
-  B hydrogen and helium item (the second new item above, GEN.695).
-  Prerequisites: none. Related: GEN.411, GEN.415.
 
 - [ ] **GEN.699 Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9**
   Boss, 1:28 AM EDT 2026-10-24 (message
@@ -16117,20 +16076,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.418, GEN.419.
 
-- [ ] **DB.97 Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message**
-  Follows the DB.4 marker detection. Next in the regression-test cleanup
-  lane. Source: reports/regression-test-review-2026-10-23.md (Boss
-  approved A1, B1, C1, D1, E1), relayed by the regression-test cleanup
-  lane at 10:24 PM EDT 2026-10-23 as the lane reported.
-  Prerequisites: none.
-
 - [ ] **DB.98 Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test**
   Last in the regression-test cleanup lane, after the item that removes
   detect_schema_version. Source:
   reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
   C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
   EDT 2026-10-23 as the lane reported.
-  Prerequisites: DB.97.
+  Prerequisites: none.
 
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
@@ -19436,6 +19388,12 @@ clears each one.
   test_web_browser_sector_open.py::test_a_star_in_a_sector_far_from_the_core_is_selectable
   also fails under load and passes alone; the same isolation fix
   applies.
+  Research (2026-10-09, Update): Update 4:12 AM EDT 2026-10-24 (as Core
+  2 reported on MAP.264):
+  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view and
+  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
+  in test_web_browser_fixture_maps.py pass alone and fail under load;
+  the same isolation fix applies.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -19507,6 +19465,13 @@ clears each one.
   in code if the test is right, or make the test deterministic with the
   reason stated; never skip it. Done: 200 runs of the test pass. Owner:
   none for now (pool; the Flaky test fixes lane is proposed).
+  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24 (as Core
+  4 reported on GEN.270, 2:44 AM EDT): same failure seen again, about 1
+  run in 12 on main (reproduced on a GEN.450 tree, 1 of 12 loops with
+  `pytest -k M5V` alone; over 15 trials in the test one makes no belt
+  although ASTEROID_BELT and HABITABLE_WORLD are both forced). TEST.326
+  was filed for it by mistake and is dropped as a duplicate of this
+  item. Owner: lane 4 (Flaky test fixes), which listed TEST.313 next.
   Prerequisites: none.
 
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
@@ -19617,20 +19582,6 @@ clears each one.
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
 
-- [ ] **TEST.326 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug)**
-  Found by Core 4 at 2:44 AM EDT 2026-10-24 (as the lane reported). It
-  fails about 1 run in 12 on main too (reproduced on a GEN.450 tree: 1
-  of 12 loops with `pytest -k M5V` alone; over 15 trials in the test,
-  one makes no belt although ASTEROID_BELT and HABITABLE_WORLD are both
-  forced). So a forced belt is not always honoured. Do: find why the
-  belt is dropped for an M5V star with both flags forced (a failed
-  placement that gives up, or the habitable-world rebuild removing the
-  belt), fix the generator so a forced belt is always made or the test
-  states the real rule, and run the test 50 times. Done: 50 loops of the
-  test pass. Owner: Bug Hunt, unless Core 4 prefers it, since the flag
-  handling is generation code.
-  Prerequisites: none.
-
 - [ ] **TEST.328 Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists**
   Finding of lane B at 2:52 AM EDT 2026-10-24 (as the lane reported):
   test_migration_habitable_worlds, test_migration_snow_line and
@@ -19643,6 +19594,12 @@ clears each one.
   of these tests; do this after DB.98 and only for what is left. Done:
   adding a migration needs no edit to those tests. Owner: none (pool);
   the regression-test cleanup lane proposed, after DB.98.
+  Research (2026-10-09, Update): Update 4:18 AM EDT 2026-10-24 (as the
+  regression test lane reported on DB.97, #2905):
+  store.detect_schema_version and _VERSION_MARKERS are gone, so a
+  migration test that rewinds a database must record the rewound version
+  itself (DELETE FROM schema_migrations, then INSERT the version). The
+  shared helper of this item should do exactly that.
   Prerequisites: none. Related: DB.98.
 
 - [ ] **TEST.329 test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug)**

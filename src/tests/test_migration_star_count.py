@@ -50,6 +50,6 @@ def test_a_v133_galaxy_keeps_its_configs_with_no_count_the_default_cap_and_the_u
         assert (row["stars"], row["max_stars"], row["prevalence_multi_star"]) == (None, 12, 0)
         config = store.load_system_config(conn, conn.execute("SELECT id FROM system_configs").fetchone()["id"])
         assert (config.STARS, config.MAX_STARS, config.BINARY_SYSTEM, config.NUM_ORBITS) == (None, 12, True, 4)
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()

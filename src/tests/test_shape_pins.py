@@ -135,7 +135,7 @@ def test_a_v113_galaxy_gains_the_pins_and_keeps_its_row(mysql_config):
     assert store.migrate_database(config) == store.SCHEMA_VERSION
     conn = store.get_connection(config, ensure_schema=False)
     try:
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
         assert conn.execute("SELECT COUNT(*) AS n FROM galaxy_shape_pins").fetchone()["n"] == 0
         row = conn.execute("SELECT outer_shell_index, pinned_stellar_mass_solar FROM galaxy_shape").fetchone()
     finally:

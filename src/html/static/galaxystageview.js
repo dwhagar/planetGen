@@ -19,9 +19,6 @@
 //   to `dist` from `target` along the quaternion's back (+z) axis, turned
 //   by it
 //   (and the tiles, scale bar and wedge lines with it);
-// - setWedgeClip(clip): only the cells in view shown, {cells (their bounds
-//   {r0, r1, c0, c1, t0, t1}: radii, colatitudes and longitudes)} (null: the
-//   whole galaxy);
 // - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
 //   container ("?at=m.shell.band.wedge", or "" for the galaxy);
 // - fetchWindow(query): a Promise of GET /galaxy/window's JSON for a window
@@ -862,15 +859,6 @@ export function createStageView(host) {
 
   // --- Moving between stages -------------------------------------------------
 
-  function setWedgeClip(r) {
-    if (!host.setWedgeClip) return;
-    if (!r.view.blocks.length || isWholeGalaxy(r)) {
-      host.setWedgeClip(null);
-      return;
-    }
-    host.setWedgeClip({ cells: r.view.blocks.map(function (block) { return block.bounds; }) });
-  }
-
   // A stage's query with what a URL keeps beyond the stage: the NAV pick
   // (host.pickQuery(), "?pick=...") and the kinds of object left off the map
   // ("hide=nebula,roguePlanet", MAP.79).
@@ -1117,7 +1105,6 @@ export function createStageView(host) {
     pendingCamera = null;
     const old = display;
     const incoming = buildDisplay(r);
-    setWedgeClip(r);
     setDisplayFade(incoming, from ? 0 : 1);
     display = incoming;
     if (!from) {
@@ -1152,7 +1139,6 @@ export function createStageView(host) {
     closeAmbient();
     const old = display;
     const incoming = buildDisplay(r);
-    setWedgeClip(r);
     setDisplayFade(incoming, 0);
     display = incoming;
     if (old) leaving.push(old);
