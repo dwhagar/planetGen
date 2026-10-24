@@ -207,6 +207,9 @@ _BODY_GROUPS = (
            ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio"),
            ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
            ("mantle_activation_kj_mol", "Mantle viscosity activation energy")),
+    *_rows("composition", ("interior_kind", "Kind of interior", TEXT), ("core_mass_earth", "Compact core mass"),
+           ("dilute_core_mass_earth", "Dilute core mass"), ("metallization_pressure_gpa", "Pressure where hydrogen turns metallic"),
+           ("helium_depletion", "Helium left in the molecular envelope"), ("has_helium_shell", "Helium-rich shell", FLAG)),
 )
 
 _PLANET = _MOON = _BODY_GROUPS
