@@ -14088,6 +14088,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   list; confirm with Lane L; nobody has started it.
   Prerequisites: none. Related: GEN.471, GEN.423, GEN.479, GEN.754.
 
+- [ ] **GEN.763 The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug)**
+  Found by Bug Hunt while fixing TEST.353 (#3103, 5:45 PM EDT 2026-10-24
+  as the lane reported): for seed 5, a moon of 0.0004 Earth masses,
+  interior_heat gives a Urey ratio of 3.02, above 1. The test cap of 1.5
+  was dropped because a tiny cold moon can legitimately do this, but the
+  design table (docs/design on the interior heat model) only covers
+  Earth-size bodies. Check the physics: whether a Urey ratio above 1 is
+  right for a body whose heat is mostly radiogenic with no initial heat
+  (a small body that has already cooled to a steady state), extend the
+  docs table to small and large bodies with a source for the range, and
+  add a test with the range's bounds instead of the removed cap. Each
+  stand-in records its source tier and tweak level (GEN.725). Owner: Aux
+  5 (Lane H, GEN.699 heat owner).
+  Prerequisites: none. Related: GEN.699, GEN.721, GEN.735.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19138,6 +19153,11 @@ clears each one.
   fixed at the root; the scatter-pass module got a 3600 s timeout since
   its tests take 60 to 130 s alone. The serial browser phase of the gate
   (this item's own Do) is not done yet.
+  Research (2026-10-09, Progress 5:46 PM EDT 2026-10-24): Progress: Bug
+  Hunt merged #3107 (about 5:45 PM EDT as the lane reported): real_queue
+  tests now run alone and the parallel phases are capped by free memory
+  and load. Still open: measure which tests fail only in the parallel
+  phase on a loaded full run (the Done line).
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
 - [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
@@ -19166,53 +19186,6 @@ clears each one.
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
-
-- [ ] **TEST.352 test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug)**
-  Found by Lane I (relayed 3:50 PM EDT 2026-10-24 as the lane reported;
-  filed by the TODO thread). Kind: failing test on main, stale list. Do:
-  remove the four star disk columns from NULL_IN_THIS_GALAXY in
-  test_db_column_round_trip. Done: the test passes on main. Owner: Bug
-  Hunt (main-green rule). Related: TEST.350.
-  Prerequisites: none. Related: TEST.350.
-
-- [ ] **TEST.353 test_interior_heat::test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_an_output is red on main: a generated body has urey_ratio 2.09 and the test caps it at 1.5 (bug)**
-  Found by Lane I (relayed 4:10 PM EDT 2026-10-24 as the lane reported;
-  filed by the TODO thread). Not Lane I's change. Do: find out whether
-  the generated Urey ratio of 2.09 is a plausible output of the interior
-  heat model (then the cap in the test is wrong, with the physics reason
-  written down) or a model fault (then fix the model); do not loosen the
-  test without that reason. Done: the test passes on main for a stated
-  reason. Owner: Lane H (owns the interior heat model, GEN.721 and
-  GEN.735).
-  Check (2026-10-09): Update 4:16 PM EDT 2026-10-24: Lane H says this
-  duplicates TEST.351 (property sheet, fixed in #3059). It is a
-  different test (test_interior_heat.py, not the property sheet), so it
-  stays open until someone shows it passes on main. The TODO thread's
-  machine cannot confirm either way: there the test stops earlier on a
-  missing NLTK words resource. Lane H or Lane I, run it on a clean main
-  and report the Urey ratio the failing body gets; close the item if it
-  is green.
-  Confirmed (2026-10-09): Update 4:20 PM EDT 2026-10-24: Lane L also
-  reports the test red on clean main (urey_ratio 2.09 against the 1.5
-  bound, as the lane reported 4:19 PM EDT), so Lane I and Lane L both
-  saw it. Lane H owns the decision: the cap is wrong with a stated
-  physics reason, or the model is.
-  Prerequisites: none. Related: GEN.721, GEN.735.
-
-- [ ] **TEST.357 changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug)**
-  Found by the Redis lane's gate (relayed 5:12 PM EDT 2026-10-24 as the
-  lane reported; filed by the TODO thread). The release-note check
-  allows only the standard headings (### Changed plus the Headline
-  line); the file's line 6 is '### Tests'. Do: move the test lines into
-  the ### Changed section or delete the heading, and run `python3
-  scripts/bump_version.py --check-pr`. Done: the check passes on main.
-  Owner: Map nodes lane (it wrote the file; MAP.261/MAP.262 work).
-  Second red (2026-10-09): Update 5:22 PM EDT 2026-10-24: Lane Debug (as
-  the lane reported) also sees test_no_todo_codes_shown red on main:
-  db/point_columns.py line 177 shows the code MAP.220 in a user-visible
-  string. Same owner (Map nodes lane): reword the string in the same
-  small PR. Done adds that test passing.
-  Prerequisites: none. Related: MAP.262.
 
 ## USR: User accounts
 
