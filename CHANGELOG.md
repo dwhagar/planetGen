@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2218] - 2026-10-24
+
+**Headline:** Every guessed number in the atmosphere mixture draw is now listed with what it rests on and what will replace it.
+
+### Added
+- **The stand-in registry of the atmosphere mixture draw (GEN.675).** `docs/design/research/gap-filling-plan.md` section 6.7 gives each bracket, width and ratio of the mixture draw a row (kind, evidence, knobs, validity, the test that checks it, the item that replaces it), and a test fails on a row naming a constant or test that does not exist. No generated value changes.
+
 ## [8.0.2217] - 2026-10-24
 
 **Headline:** A hot star's nebula is lit by the star the place drew, not by whichever star of its system is heaviest.
