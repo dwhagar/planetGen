@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2205] - 2026-10-24
+
+**Headline:** The summary tree on the object pages is drawn properly again.
+
+### Changed
+
+- **Summary tree styling (UX.172).** A bad merge left a stray line and an unclosed block in the stylesheet, so the tree's rows, toggles and the rendered example only took their styles when the browser asked for reduced motion. The block is closed, and a test now fails for a conflict marker or an unclosed block in the stylesheet.
+
 ## [8.0.2204] - 2026-10-24
 
 **Headline:** Planets, moons, stars, belts and comets each have a full page of their own.
