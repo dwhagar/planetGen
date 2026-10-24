@@ -24,6 +24,6 @@ CH4, C2H6, H2CO and H2S have populations of 9 to 18 comets (geometric means 0.68
 ## 4. What it does not do
 
 - **The admission rule.** The statistics are of comets that were observed. The draws do not depend on the comet's distance, so the admission model of GEN.507 (which weights distance) does not change them and the targets use none. A coma class that depends on the distance does need it.
-- **The system offset.** The source check proposes a per-system offset of the log ratios, N(0, sigma_sys) with an upper edge near 1.5 dex, from the two interstellar objects (N = 2). Two objects bracket it only; it is not drawn, and the rows say so. Filed to the TODO thread.
+- **The system offset.** The source check proposes a per-system offset of the log ratios, N(0, sigma_sys) with an upper edge near 1.5 dex, from the two interstellar objects (N = 2). The live comet sampler (`physics/comet_population.py`, GEN.495) already draws an interstellar comet's CO and CO2 from the wider ranges one measured object forces, and its Solar System species agree with these rows (CH4, C2H6, H2CO, H2S within 0.05 dex, CO2 at 11 against 10.9 percent; its CO2 width 0.27 dex is at r_h up to 2 AU, the rows' 0.51 dex at 2.5 AU, the widest range rule). A shared system-level offset needs a model of the system; it is not drawn here and the rows say so.
 - **Correlation.** The one-factor model (mean pair correlation 0.13) is not drawn; k6 and k7 species are independent.
 - The recipes are not yet read by the generator, so no generated value changes and no epoch is taken.

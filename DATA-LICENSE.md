@@ -133,3 +133,11 @@ Fitted numbers only (counts of known and measured comets by group and perihelion
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
 maximum greenhouse rows). Published paper; values only. The paper's raw text is not in the repository.
+
+## The thermodynamic table (`src/planetgen/physics/data/thermo_nasa7.json`, GEN.518)
+
+The seven-coefficient polynomials of 54 gas species (`scripts/build_thermo_table.py`).
+
+| Source | Terms known |
+|---|---|
+| McBride, Gordon and Reno 1993, NASA Technical Memorandum 4513, "Coefficients for Calculating Thermodynamic and Transport Properties of Individual Species" | A publication of the United States government (NASA); United States government works are not under copyright. The coefficients were read from the `nasa_gas.yaml` file of the Cantera project (BSD licence; the file is not kept and none of its code is used) |

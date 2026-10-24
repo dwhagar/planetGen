@@ -215,12 +215,16 @@ MACHINE = {
     "g6": dict(kind="binary", classes=BD, weight="phi((1100 - teff_k)/100)"),
 
     # ---- h. hot Jupiters ----
-    "h1": dict(kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               weight="window(tday_k, None, 1500, 100)"),
-    "h2": dict(state="stand-in", replacement="GEN.518", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               weight="window(tday_k, 1500, 2200, 100)"),
-    "h3": dict(state="stand-in", replacement="GEN.518", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               weight="window(tday_k, 2200, None, 100)"),
+    "h1": dict(state="partly verified", limit="the edge is the equilibrium line of methane and carbon monoxide at the photospheric pressure, computed with the NASA polynomials at solar metals and C/O 0.55; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
+               lets={"edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)"},
+               weight="window(tday_k, None, edge, 100)"),
+    "h2": dict(state="partly verified", limit="the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
+               lets={"low_edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)",
+                     "high_edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"},
+               weight="window(tday_k, low_edge, high_edge, 100)"),
+    "h3": dict(state="partly verified", limit="the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
+               lets={"edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"},
+               weight="window(tday_k, edge, None, 100)"),
     "h4": dict(state="partly verified", limit="a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519)", kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
                constants={"c_h4": [2350.0, 2641.0, "uniform"]}, weight="1 if teq_k >= c_h4 else 0"),
     "h5": dict(kind="binary", classes=GIANT, when=[c("zone", equals="h")], weight="pdist('f7', 1.0, None)"),
@@ -369,10 +373,12 @@ MACHINE = {
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(state="partly verified", limit="percentile tracks of Tu 2015 (READ); the 0.25/0.5/0.25 weights are replaced by a uniform percentile (GEN.523)", kind="choice", classes=ANY, when=[drawn("p", "p4", "p5")],
-               options={"slow": {"weight": 0.25, "percentile": 10, "t_sat_myr": 5.7},
-                        "median": {"weight": 0.5, "percentile": 50, "t_sat_myr": 23},
-                        "fast": {"weight": 0.25, "percentile": 90, "t_sat_myr": 226}}),
+    "p6": dict(state="partly verified", limit="the three percentile tracks of Tu 2015 (10, 50 and 90; saturation ends at 5.7, 23 and 226 Myr, solar mass only) interpolated in the logarithm of the saturation time between them; no paper weights the tracks, so the percentile is drawn uniform from 0.02 to 0.98 as Johnstone 2021 offers; the dependence on mass needs the Mors tracks (GEN.523)", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
+               dist={"kind": "uniform", "lo": 0.02, "hi": 0.98}, sets="rotation_percentile",
+               values={"t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"},
+               source="Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation "
+                      "distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every "
+                      "integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one"),
 }
 
 # The group a row belongs to carries its fallback; these rows sit in no group (independent draws).

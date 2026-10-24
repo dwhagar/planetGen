@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 38, "partly verified": 46, "open": 0, "stand-in": 20}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 49, "open": 0, "stand-in": 18}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -277,10 +277,10 @@ def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows(
     g = Subject("brown-dwarf", {"teff_k": 848.4})
     assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9801, "g4": 0.0199}, abs=1e-3)
     assert RECIPES.probability("g6", g) == pytest.approx(0.994, abs=1e-3)
-    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h"}))) == pytest.approx(
-        {"h2": 0.0013, "h3": 0.9987}, abs=1e-4)
-    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2150.0, "zone": "h"}))) == pytest.approx(
-        {"h2": 0.6915, "h3": 0.3085}, abs=1e-4)
+    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
+        {"h2": 0.9989, "h3": 0.0011}, abs=1e-4)
+    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
+        {"h1": 0.7454, "h2": 0.2546}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
     s = Subject("J", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
     assert RECIPES.probability("h4", s) == 0.0, "TiO is not seen at 2350 K and below"
     assert RECIPES.probability("h4", Subject("J", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"
@@ -441,13 +441,13 @@ def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_i
     assert RECIPES.draw_binary("b6", full("E", zone="e")) == (False, None)
 
 
-def test_the_choice_of_the_rotation_track_follows_its_weights():
+def test_the_rotation_percentile_is_uniform_and_only_drawn_for_a_host_in_the_saturated_or_young_branch():
     s = full("E", **{"drawn.p": "p4"})
     with draw.bound(6):
-        picks = [RECIPES.draw_choice("p6", s) for _ in range(4000)]
-    assert {p: picks.count(p) / 4000 for p in ("slow", "median", "fast")} == pytest.approx(
-        {"slow": 0.25, "median": 0.5, "fast": 0.25}, abs=0.03)
-    assert RECIPES.draw_choice("p6", full("E", **{"drawn.p": "p1"})) is None
+        picks = [RECIPES.draw_value("p6", s) for _ in range(4000)]
+    assert min(picks) >= 0.02 and max(picks) <= 0.98
+    assert sum(picks) / 4000 == pytest.approx(0.5, abs=0.01)
+    assert RECIPES.draw_value("p6", full("E", **{"drawn.p": "p1"})) is None
 
 
 def test_draw_all_draws_the_tables_in_order_and_the_joint_probability_is_parent_times_conditional():

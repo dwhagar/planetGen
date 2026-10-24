@@ -183,3 +183,26 @@ def test_the_species_with_a_population_follow_it_and_the_single_comet_species_st
     assert dists["CH4"]["mu"] == "log10(0.0068)" and dists["CH4"]["sigma"] == 0.33
     assert {name: d["sigma"] for name, d in dists.items() if name in ("N2", "O2", "Xe")} == {"N2": 0.6, "O2": 0.6, "Xe": 0.6}
     assert "one comet" in RECIPES.entry("k7").limit
+
+
+# --- host-star rotation track (GEN.523) --------------------------------------------------------------------------------------
+
+
+def test_the_saturation_time_runs_through_the_three_published_tracks_and_the_percentile_is_drawn_uniform():
+    from planetgen.generation.possibility_table import Subject
+
+    s = Subject("E", {"drawn.p": "p5"})
+    t_sat = lambda u: RECIPES.derive("p6", s, value=u)["t_sat_myr"]  # noqa: E731
+    assert (t_sat(0.1), t_sat(0.5), t_sat(0.9)) == pytest.approx((5.7, 23.0, 226.0)), "Tu 2015: the 10th, 50th and 90th percentile tracks"
+    assert t_sat(0.02) < 5.7 < 23.0 < t_sat(0.98), "a monotonic run through the tail percentiles"
+    spec = RECIPES.entry("p6").spec["dist"]
+    assert (spec["kind"], spec["lo"], spec["hi"]) == ("uniform", 0.02, 0.98), "no paper weights the tracks"
+
+
+def test_the_m_dwarf_saturation_time_passes_through_the_three_measured_masses():
+    from planetgen.generation.possibility_table import Subject
+
+    def tau(mass):
+        return RECIPES.derive("p4", Subject("E", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0}))["tau_sat_gy"]
+    assert (tau(0.55), tau(0.25), tau(0.15)) == pytest.approx((0.162, 0.6, 2.3)), "Jackson 2012 and Medina 2022"
+    assert tau(0.55) < tau(0.4) < tau(0.25) < tau(0.2) < tau(0.15), "later saturation end for lower masses"
