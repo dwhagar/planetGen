@@ -294,3 +294,5 @@ All under `docs/design/composition/tunable-gaps-sources/` (copied unchanged from
 `tuning_harness.power(target, comparison)` asks whether a value wrong by a factor of 2 (0.301 dex on a log scale; 0.25 for a proportion) lies outside 2 sigma of the comparison. Every shipped target refuses both sides except two, listed in `WEAK_TARGETS` of `test_tuned_draws.py`: `k5-mean` (3 comets, refuses neither side) and `k7-H2S-sd` (refuses a doubled spread, not a halved one). A new target that is weak in this sense must be listed there with the reason.
 
 **Built (GEN.509, 2026-10-24):** rows e1 and e2 are tuned to the Kepler radius valley (`docs/design/composition/radius-valley-tuning.md`): `f_env0` log-uniform 0.035 to 0.08 with the loss efficiency 10 f_env0, one degenerate ridge; two targets (slope -0.11, radius 1.84 at 10 d).
+
+**Built in part (GEN.510, 2026-10-24):** row b4 follows the Bern logistic in mass (`docs/design/composition/water-delivery-tuning.md`), plateau bracketed 0 to 1; b1 to b3, b5, b6 stay stand-ins; the Luque and Palle density comparison is open.
