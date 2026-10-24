@@ -323,8 +323,7 @@
     },
     {
       "epoch": 66,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2122",
       "reason": "Every planet and moon with air draws a cloud, haze and dust optical depth, the cloud cover and an optics number on its own stream (five stored values, schema 138), so each such body's stored record gains those values (GEN.414)"
     }
   ]
