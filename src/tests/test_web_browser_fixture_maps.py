@@ -1382,6 +1382,7 @@ def test_sector_map_names_its_systems_through_the_label_engine_with_the_system_n
     assert not [label for label in page.evaluate(LABELS) if label["kind"] == "system"]
 
 
+@pytest.mark.viewport(1000, 900)
 def test_galaxy_map_names_a_nebula_where_it_is_large_enough_and_not_beyond(page, map_site):
     """MAP.268 (MAP.229, MAP.233): the label engine names the fixture nebula through the Labels group of the Menu:
     in the window it fills, off with the toggle (which the address keeps), and not from the whole galaxy, where it
@@ -1422,6 +1423,7 @@ def test_galaxy_map_names_a_generated_sector_in_its_window(page, map_site):
     page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'sector' && label.text === 'Fixture Prime')")
 
 
+@pytest.mark.viewport(1000, 900)
 def test_galaxy_map_labels_never_take_the_pick_and_stay_inside_the_map(page, map_site):
     """MAP.229: the labels are decoration over the map: they do not catch the pointer, none overlap and every one sits
     inside the map's window."""
@@ -3262,3 +3264,47 @@ def _check_a_selection_is_a_popup(page, map_site, pick=False):
     assert _selection_displays(page) == ["galaxymap3d-info"] and inside_the_window()
     info.locator("button", has_text="Close").click()
     assert _selection_displays(page) == []
+
+
+GEOMETRY = """() => {
+    const box = (sel) => { const r = document.querySelector(sel).getBoundingClientRect();
+        return {left: r.left, top: r.top, width: r.width, height: r.height, bottom: r.bottom}; };
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    return {
+        view: box(".galaxymap3d-panel .starmap-viewport"), canvas: box("#galaxymap3d-canvas"),
+        controls: box("#galaxymap3d-controls"), column: box(".galaxymap3d-panel .starmap-layout"),
+        buffer: [canvas.width, canvas.height], dpr: devicePixelRatio, scrollWidth: document.documentElement.scrollWidth,
+        inner: [innerWidth, innerHeight],
+    };
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(1000, 900), (1280, 720), (390, 700)])
+def test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves(page, map_site, width, height):
+    """MAP.291: the map's window is as wide as its column and as tall as the browser window leaves room for under the
+    header and search and above the toolbar (at least 320 px), with no fixed aspect ratio, and the canvas's drawing
+    buffer follows it."""
+    page.set_viewport_size({"width": width, "height": height})
+    _open_galaxy(page, map_site)
+    g = page.evaluate(GEOMETRY)
+    assert g["view"]["width"] == pytest.approx(g["column"]["width"], abs=1), g
+    assert g["canvas"]["width"] == pytest.approx(g["view"]["width"], abs=1) and g["canvas"]["height"] == pytest.approx(g["view"]["height"], abs=1)
+    assert g["buffer"] == [round(g["canvas"]["width"] * g["dpr"]), round(g["canvas"]["height"] * g["dpr"])], g
+    assert g["view"]["height"] >= 320 - 1
+    if g["view"]["height"] > 321:
+        # Room to spare: the toolbar under the map ends at the bottom of the window, not below it.
+        assert height - 40 <= g["controls"]["bottom"] <= height + 1, g
+    assert g["scrollWidth"] <= width, g
+
+
+def test_galaxy_map_window_follows_the_browser_window_when_it_is_resized(page, map_site):
+    """MAP.291: making the window taller makes the map taller (and wider, wider); the canvas follows."""
+    page.set_viewport_size({"width": 900, "height": 800})
+    _open_galaxy(page, map_site)
+    first = page.evaluate(GEOMETRY)
+    page.set_viewport_size({"width": 1200, "height": 1000})
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').clientWidth > 1000")
+    second = page.evaluate(GEOMETRY)
+    assert second["view"]["width"] > first["view"]["width"] + 200, (first, second)
+    assert second["view"]["height"] > first["view"]["height"] + 100, (first, second)
+    assert second["buffer"] == [round(second["canvas"]["width"] * second["dpr"]), round(second["canvas"]["height"] * second["dpr"])]
