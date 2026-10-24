@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.338 |
+| TEST | TEST.340 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -1376,7 +1376,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.648 | The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green | none | open |
 | GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed | none | open |
 | GEN.650 | Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646) | none | done, PR #2947 |
-| GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | none | open |
+| GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | none | done, PR #2952 |
 | GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | none | open |
 | GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | open |
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | open |
@@ -2741,6 +2741,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) | none | open |
 | TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) | none | open |
 | TEST.337 | test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further fails on unmodified main: minimum luminosity 5.4e28 against the required 1.9e29 (bug) | none | open |
+| TEST.338 | test_bright_star_scatter::test_plan_scatter_stores_stars_and_fill_builds_their_systems fails on main: the built primary differs from the stored row in 2 of 7 systems (bug) | none | open |
+| TEST.339 | test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
