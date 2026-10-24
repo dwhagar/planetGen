@@ -13525,26 +13525,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.650, GEN.646, GEN.509, GEN.510,
   GEN.675.
 
-- [ ] **GEN.712 The materials row complex_organics has a density of 1.5 g/cm3 but Choukroun 2020 gives about 2 g/cm3 (bug)**
-  Found by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
-  reported) while merging GEN.442 (#2956). The materials table row
-  complex_organics carries 1.5 g/cm3; Choukroun 2020 gives about 2
-  g/cm3. Standing source rule: a verified figure wins over a stand-in;
-  check the paper (the TODO thread has not read it) and, if it holds,
-  replace the value with the cited figure and label the range. Done: the
-  row cites its source, the density matches it, a test pins the value,
-  and the epoch is bumped if a drawn value changes. Owner: Lane K.
-  Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
-  lane reported): could not read Choukroun 2020; Blum and Bischoff 2022
-  give organics 1000 to 2000 kg/m3 and say the density is unknown, so
-  Lane K moves the comets to the table's 1.5 g/cm3 (epoch 80, gate
-  running). The item closes when that merges, unless a read of Choukroun
-  2020 says otherwise.
-  Research (2026-10-09, Update): Epoch 80 went to Lane J (#2912, 9:37 AM
-  EDT 2026-10-24, as the lane reported); this change renumbers to epoch
-  81 at merge.
-  Prerequisites: none. Related: GEN.442.
-
 - [ ] **GEN.713 Research the size law and the cut for long-period and interstellar comets (blocks GEN.559)**
   Habitability lane K (7:50 AM EDT 2026-10-24, as the lane reported)
   found GEN.559 blocked on this research gap after the comet composition
@@ -13642,6 +13622,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the cause; real tables are GEN.715. Owner: none (pool); lane E
   proposed.
   Prerequisites: none. Related: GEN.703, GEN.715, GEN.423.
+
+- [ ] **GEN.719 A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug)**
+  Found by Lane K (11:32 AM EDT 2026-10-24 as the lane reported) when
+  its PR 2956 shifted the draw stream and
+  test_prevalence::test_no_binaries_at_minus_100 failed (seed 3, system
+  471); the test passes again on the current stream by luck. Root cause:
+  multistar.draw_member_tree ignores n_stars=1 for a compact or white
+  dwarf placed object ("ignored for a compact or white dwarf placed
+  object"), because the companions come from MEMBER_STATE_BY_PLACED, so
+  a binary_system prevalence of -100 (no binaries) still gives a wide
+  double white dwarf. A latent bug in the GEN.631 tree, not in lane K's
+  change. Do: make n_stars=1 (and a prevalence of -100) produce a single
+  object for a placed white dwarf or compact object too, or state in the
+  docs why a placed compact object always has its companion and make the
+  test and the dial say so. Done: a test that forces no binaries and
+  finds no double white dwarf in a few hundred seeded systems, and the
+  epoch is bumped if a drawn value changes (next free at merge). Owner:
+  none (the star scatter lane, Core 3 or Core 1, is the nearest owner).
+  Prerequisites: none. Related: GEN.631, GEN.332.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
