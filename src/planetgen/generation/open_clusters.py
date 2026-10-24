@@ -37,6 +37,9 @@ from planetgen.physics import open_cluster_evolution as evolution
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
+from planetgen.physics import unit_registry as units
+
+_pc_to_m = units.converter("pc", "m")
 
 _ARM_ROUNDS = 24
 _MAX_AGE_GY = tuning.OPEN_CLUSTER_AGE_RANGE_MYR[1] / 1000.0
@@ -169,7 +172,7 @@ def _circular_speed_kms(radius_pc, shape):
     x = radius_pc / terms["nuclear_disc_length_pc"]
     enclosed = solar_per_model * (terms["nuclear_cluster_mass"]
                                   + terms["nuclear_disc_mass"] * (1.0 - (1.0 + x) * np.exp(-x)))
-    radius_m = np.maximum(radius_pc, 1.0) * constants.PARSEC_M
+    radius_m = _pc_to_m(np.maximum(radius_pc, 1.0))
     return np.sqrt(constants.G * enclosed * constants.SOLAR_MASS_TO_KG / radius_m) / 1.0e3
 
 

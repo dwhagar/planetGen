@@ -36,7 +36,6 @@ import math
 
 from planetgen import tuning
 from planetgen.generation import companion_classes, place_terms
-from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -45,6 +44,9 @@ from planetgen.physics.orbits import (
     circular_orbital_speed_kms, hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis,
     minimum_update_interval_years, orbital_position_au,
 )
+from planetgen.physics import unit_registry as units
+
+_km_to_au = units.converter("km", "au")
 
 
 class WideBinaryPair:
@@ -145,7 +147,7 @@ class WideBinaryPair:
                 place_terms.born_mass_solar(primary) + place_terms.born_mass_solar(secondary), inner_boost)
             self.eccentricity = sample_wide_binary_eccentricity()
         else:
-            self.separation_au = orbit.separation_km / constants.AU_TO_KM
+            self.separation_au = _km_to_au(orbit.separation_km)
             self.eccentricity = orbit.eccentricity
 
         self.periapsis_au = self.separation_au * (1 - self.eccentricity)

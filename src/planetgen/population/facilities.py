@@ -15,11 +15,13 @@ one.
 
 import math
 
-from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.physics.orbits import circular_orbital_speed_kms
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_km_to_au = units.converter("km", "au")
 
 PLACEMENTS = ("terrestrial", "orbital", "asteroid", "standalone")
 """tuple: Every `facilities.placement`."""
@@ -182,7 +184,7 @@ def orbit_for(host_mass_kg, host_radius_km, distance_km=None, highest_km=None):
                          f" ({highest_km:g} km)")
     if not host_mass_kg or host_mass_kg <= 0:
         raise ValueError("the host has no mass to orbit")
-    distance_au = distance_km / constants.AU_TO_KM
+    distance_au = _km_to_au(distance_km)
     period_years = calculate_orbital_period_years(distance_au, host_mass_kg)
     return {
         "distance_km": float(distance_km),
