@@ -166,6 +166,12 @@ class StarSystem:
     a loaded system has the tree that was stored. A system built from a tree (drawn, GEN.631, or a stored row's,
     `member_tree`) has its nodes from the start, a drawn tree's at `stored_trees.GENERATED_EPOCH_UNIX` until the save."""
 
+    placed_star = None
+    """Star: The star the system was built around, the one a pre-placed row or a sector's draw made first (the tree's member 0).
+    It is `stars[0]` unless a companion outweighs it, when the heavier takes the primary's place (GEN.631) and the placed star
+    is a secondary or a member; what the place says of the star (its natal nebula, GEN.530) is said of this one (GEN.710).
+    Set when the system is built, None for one loaded from the database."""
+
     member_stars = ()
     """tuple of Star: The stars beyond the pair (`stars[2:]`) of a system of more than two stars (GEN.630); empty for a
     single star and a pair. Each is stored as a `member` row of
@@ -310,6 +316,7 @@ class StarSystem:
                                   galactic_center_dist_ly=galactic_center_dist_ly,
                                   galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
+        self.placed_star = self.star
         self.planets = []
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)

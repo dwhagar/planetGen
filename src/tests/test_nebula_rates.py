@@ -155,7 +155,8 @@ def test_an_o_or_early_b_star_hosts_a_nebula_at_its_rule_chance(monkeypatch, let
 
         def __init__(self):
             Entry.made += 1
-            self.star_system = types.SimpleNamespace(stars=[Star(Entry.made)], name="x")
+            star = Star(Entry.made)
+            self.star_system = types.SimpleNamespace(stars=[star], placed_star=star, name="x")
             self.position = (0.0, 0.0, 0.0)
 
     class Sector:
