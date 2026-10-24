@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2083] - 2026-10-24
+
+**Headline:** The ground of a planet or moon now has a composition: the minerals, ices and ocean that cover it, drawn from the body's own bulk fractions, temperature and air.
+
+### Added
+- **Surface and crust composition kernel (GEN.441, first slice).** `planetgen.physics.surface_composition.draw_surface` gives a planet or moon its ground: what covers the surface (liquid ocean with its salts, or the ices that the temperature and the air let stand), the dominant ground of the land (metal-rich for a stripped mantle, carbon for carbon rock, otherwise basaltic where the heat flow still resurfaces it, else the primary crust, ultramafic or anorthositic by an FeO-weighted overturn chance), and the modifiers the inputs allow (granitoid with plate tectonics, clay where liquid water stood, iron-oxidised ground under free oxygen, evaporite beside an ocean, sulfur under tidal heating). Every ground type is a recipe of rows of the shared materials table (Hu, Ehlmann and Seager 2012, Table 2); the mass shares and the areal shares each add up to one. `band_albedo` and `crust_reservoir` read the ground's lab reflectance and its K, Th and U back from it. The kernel changes no stored value yet (wiring into the generator, the columns and the epoch follow GEN.428, GEN.459 and GEN.461).
+
 ## [8.0.2082] - 2026-10-24
 
 **Headline:** The planets and moons lists and every planet and moon page now show the habitability symbols.
