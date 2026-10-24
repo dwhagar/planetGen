@@ -452,7 +452,7 @@ with `clamp()`.
   follow-ups first (PERF.99, PERF.100, DB.29, PERF.120 to PERF.128)
   after PERF.135; this logging standard chain (UX.121 to UX.123,
   TEST.183) comes after them. Core 5 is the proposed owner.
-  Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
+  Prerequisites: UX.122, UX.123, TEST.183. Related: PERF.66.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -481,28 +481,6 @@ with `clamp()`.
   Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
-- [ ] **UX.121 The logging layer and the written standard**
-  Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). The design note that lists every
-  place the program writes a log or report a person reads, and the one
-  layer: Python's `logging` as the entry point; every record has an RFC
-  3339 UTC timestamp, an RFC 5424 severity (debug, info, notice,
-  warning, error, critical), a short component name, a message and
-  logfmt `key=value` fields; files are one record per line with an
-  optional JSON Lines form; one display renderer (used by the CLI and
-  the web log) with one divider style, one stage marker form ("Stage N
-  of M: name", "Stages N to M of M: name") and one wording for start,
-  finish and failure; timestamps in files always UTC, local time only in
-  the page display and labelled. Done: the note and the module with
-  tests that the same records give a file line and a display line that
-  agree.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Prerequisites: none. Related: UX.102.
-
 - [ ] **UX.122 The command line, the job log files and the downloadable log use the layer**
   Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Move the CLI commands' output, the
@@ -515,7 +493,7 @@ with `clamp()`.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Prerequisites: UX.121. Related: UX.102.
+  Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.123 The Generate page log, the admin log pages and update.sh output use the layer**
   Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -529,7 +507,7 @@ with `clamp()`.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Prerequisites: UX.121. Related: UX.102.
+  Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.125 The Generate page and the one-off system page on the field macro**
   Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -13897,6 +13875,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.178 went to a finished lane).
   Prerequisites: none. Related: PERF.178, PERF.174.
 
+- [ ] **PERF.186 CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug)**
+  Boss's live observation (relayed 3:13 PM EDT 2026-10-24 by the
+  coordinator; filed by the TODO thread). Boss: 'my system is still
+  saturated with python processes, I told it to cancel but it has not
+  actually cancelled, this is a serious problem. I need a functional way
+  to end all tasks and not start any more until I tell it to do
+  something new.' Kind: crash/safety, blocks his testing. Do: (1) find
+  why Cancel leaves worker processes running after PERF.99's 'Cancel
+  stops a run at once' (units already in a worker, workers started by
+  other callers, or workers restarted by ensure_workers after the
+  cancel) and fix it. (2) A Stop everything action, on the admin Queue
+  page and as a command (`planetgen queue stop-all`), that cancels every
+  run, empties every queue, kills every planetgen worker process and its
+  children on the host, and sets a stored pause flag. (3) While the
+  pause flag is set nothing starts: ensure_workers, the Generate page,
+  the CLI commands and update.sh steps refuse with one plain line saying
+  the system is paused and how to resume; a visible banner on every
+  admin page and a Resume button (and `planetgen queue resume`) clear
+  it. The flag survives restarts. Done: tests that a stopped host has no
+  planetgen worker processes left and that nothing starts while paused;
+  Boss can run New galaxy again after Resume. Owner: Lane OOM, ahead of
+  PERF.183. Related: PERF.181, PERF.99, PERF.173.
+  Prerequisites: none. Related: PERF.181, PERF.173, PERF.183.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18198,29 +18200,6 @@ clears each one.
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
-
-- [ ] **TEST.347 test_admin_edits::test_system_page_regenerates_a_planet and ::test_system_page_changes_a_class fail alone on main: the system page lacks the 'Regenerated ...' and 'Change class' text (bug)**
-  Found by Lane D (relayed 2:47 PM EDT 2026-10-24 as the lane reported,
-  on origin/main 35a7961; filed by the TODO thread). Kind: failing test
-  on main, not reproduced by the TODO thread. Both tests fail when run
-  alone: the rendered system page does not contain the text 'Regenerated
-  ...' after a planet regenerate nor the 'Change class' control. Do:
-  find whether a recent merge removed or renamed that text and the
-  controls (the class lane's work and the map or system page changes are
-  the likely causes) or whether the tests are stale; fix the page or the
-  tests without weakening them. Done: both pass on main, alone and in
-  the suite. Owner: Bug Hunt (main-green rule), who may hand it to the
-  admin lane.
-  Prerequisites: none. Related: TEST.343.
-
-- [ ] **TEST.348 test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug)**
-  Found by Lane 3 (relayed 2:47 PM EDT 2026-10-24 as the lane reported,
-  while merging UX.152 as #3038; filed by the TODO thread). Kind:
-  failing test on main, not reproduced by the TODO thread. Do: find
-  which merge changed the phenomenon page's class link and fix the page
-  or the stale test without weakening it. Done: all six pass on main,
-  alone and in the suite. Owner: Bug Hunt (main-green rule).
-  Prerequisites: none. Related: TEST.347, UX.152.
 
 - [ ] **TEST.349 The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug)**
   Found by Core 1 (relayed 3:06 PM EDT 2026-10-24 as the lane reported;
