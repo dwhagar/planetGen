@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.195 |
-| MAP | MAP.293 |
+| MAP | MAP.294 |
 | NAV | NAV.63 |
 | GEN | GEN.764 |
 | PERF | PERF.194 |
 | DB | DB.102 |
 | API | API.33 |
 | ADM | ADM.129 |
-| SEC | SEC.34 |
-| TEST | TEST.362 |
+| SEC | SEC.36 |
+| TEST | TEST.367 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -1485,13 +1485,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | none | open |
 | GEN.754 | Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads | none | open |
 | GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 | none | open |
-| GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | open |
-| GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | open |
+| GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | done, PR #3129 |
+| GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | done, PR #3129 |
 | GEN.758 | Piece of GEN.411: mechanical test fixes for the deleted class ranges | none | open |
 | GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module | none | open |
 | GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | none | open |
 | GEN.761 | Wire the satellite hosting gate (hosting_gate, GEN.579) into the moon draw | none | open |
-| GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw | none | open |
+| GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw | none | done, PR #3128 |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
@@ -1779,12 +1779,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | none | open |
 | MAP.285 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | none | open |
 | MAP.286 | Supernova remnant shells drawn by age on the maps | none | open |
-| MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | open |
+| MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | done, PR #3130 |
 | MAP.288 | Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width | none | done, PR #2875 |
 | MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) | none | open |
 | MAP.290 | The System Map draws only the close pair of a triple or larger system, not a scene for each extra star | none | done, PR #3054 |
-| MAP.291 | Galaxy view map window does not use the full page width or the page height (bug) | none | open |
+| MAP.291 | Galaxy view map window does not use the full page width or the page height (bug) | none | done, PR #3132 |
 | MAP.292 | Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug) | none | done, PR #3104 |
+| MAP.293 | Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2159,6 +2160,8 @@ Parents marked "new parent" had no old number of their own.
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | done, PR #2667 |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) | none | open |
+| SEC.34 | Upgrade Pillow from 12.3.0 to 13.0.0 in both lock files (37 advisories fixed in 13.0.0) | none | open |
+| SEC.35 | The picture upload opens the file with every format Pillow knows before refusing all but PNG, JPEG and ICO: restrict the formats on open | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -2850,8 +2853,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.357 | changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug) | none | done, PR #3103 |
 | TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) | none | done, PR #3123 |
 | TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) | none | done, PR #3118 |
-| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | open |
-| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | open |
+| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | dropped (not reproduced on main by Bug 1, 6:35 PM EDT 2026-10-24 as the lane reported) |
+| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | dropped (not reproduced on main by Bug 1, 6:35 PM EDT 2026-10-24 as the lane reported) |
+| TEST.362 | test_object_rows read-back fails on main with KeyError partial_pa (bug) | none | open |
+| TEST.363 | test_protection describer disagrees with habitability_explain on main (bug) | none | open |
+| TEST.364 | Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits) | none | open |
+| TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | open |
+| TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

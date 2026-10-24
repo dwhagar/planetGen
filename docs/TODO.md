@@ -2472,6 +2472,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after GEN.411 (4c, Aux 1).
   Prerequisites: GEN.411.
 
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
@@ -2480,6 +2483,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after GEN.670 (GEN.419 is done); nobody has started it.
   Prerequisites: GEN.670, GEN.419.
 
 - [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
@@ -2487,6 +2493,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), when DB.96 merges (DB.96 is with Aux 12 after DB.100 and
+  GEN.701); nobody has started it.
   Prerequisites: DB.96.
 
 - [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
@@ -2499,18 +2509,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), when DB.96 merges; nobody has started it.
   Prerequisites: DB.96.
 
 - [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after MAP.275 and GEN.422 (4c, Aux 1).
   Prerequisites: GEN.422, MAP.275.
 
 - [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
   Stand-in until sourced by GEN.670. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after GEN.670 and MAP.280.
   Prerequisites: GEN.670, MAP.280.
 
 - [ ] **MAP.283 Comet colour from the coma species**
@@ -2540,21 +2559,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reported); design doc docs/design/interface/body-rendering.md.
   Prerequisites: none.
 
-- [ ] **MAP.287 The 3D system view takes the body look record: systemscene.py still colours by class_color**
-  MAP.271 to MAP.278 moved the maps and pages to the server look record,
-  but systemscene.py (the 3D system view) still colours bodies by
-  class_color. Do: build its bodies from the look record and the shared
-  painter, and retire the class colour table there with no shim. From
-  the body-rendering build lane's retirement report (10:52 PM EDT
-  2026-10-23 as the lane reported); design doc
-  docs/design/interface/body-rendering.md.
-  Research (2026-10-09, Owner): Owner (TODO, 2026-10-24 5:36 PM EDT,
-  wiring request from Boss via the coordinator): Lane Map nodes after
-  MAP.289, or the rendering lane when the coordinator starts it; whoever
-  takes it confirms with TODO that nobody started it. Needs the body
-  look record (MAP.274 and the stored colour DB.99 chain).
-  Prerequisites: none.
-
 - [ ] **MAP.289 The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug)**
   Found by the map nodes lane while merging MAP.258 (#2896), as the lane
   reported at 5:12 AM EDT 2026-10-24. /galaxy/profile is answered fresh
@@ -2566,24 +2570,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
-- [ ] **MAP.291 Galaxy view map window does not use the full page width or the page height (bug)**
-  Boss live observation (1:50 PM EDT 2026-10-24). The Galaxy view map
-  window does not use the full page width; it should. Its height should
-  scale to the page height, leaving room for the toolbar, the search and
-  the view window, and the aspect ratio of the map should match the
-  viewing window. Do: size the map container to the full width of the
-  page and to the page height minus the toolbar, search and view window,
-  and set the render aspect ratio from the container so nothing is
-  stretched. Done: at desktop and phone widths the map fills the width,
-  the toolbar and search stay visible without page scroll, and a test
-  checks the container fills the available width and height. Owner: Core
-  2 after MAP.290.
-  Research (2026-10-09, 10-24 Boss): Related UX.142 (8.2 phase 2: the
-  viewing windows scale to the browser window so the controls are always
-  in view). MAP.291 is the live fix for the Galaxy view now; UX.142
-  covers every viewer later, so build MAP.291 so UX.142 can reuse the
-  same sizing.
-  Prerequisites: none. Related: MAP.290.
+- [ ] **MAP.293 Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug)**
+  Found by Aux 4 with test_habitability_end_to_end_browser.py::
+  test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count
+  (TEST.300), bisected: it passes at 1e79ee02c~1 (and at MAP.261,
+  MAP.266
+  and MAP.292) and fails at 1e79ee02c (MAP.267, #3114) and on main.
+  Picking
+  Color by Habitable worlds in a 3-sector window still shows the legend,
+  but no sector is filled (the patch round the habitable sector does not
+  change colour; the screenshot shows only the labels and a cross), and
+  turning the cell grid on does not help. The test is correct and stays
+  red on main until this is fixed. Owner: Aux 10 (Map nodes; it wrote
+  MAP.267), before it retires.
+  Prerequisites: none. Related: MAP.267, MAP.131, TEST.300.
 
 ## NAV: Navigation and courses
 
@@ -12637,6 +12637,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane reported; second-hand citations thread): ExoMol CoYuTe ammonia
   (Irwin 2019) is open first-hand and resolves the visible-ammonia gap
   of D2; a data job at setup, licence note only in DATA-LICENSE.md.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130); first in its rendering chain; nobody has started it.
 
 - [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
   Found by lane L (atmosphere mixture), report
@@ -13204,6 +13207,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Wolff solar-band w0 0.922 to 0.926, 0.940 for the smaller-grain case).
   Cooper 2001, Patterson 2012, Nordheim 2018 and Gronoff 2009 are still
   unread.
+  Research (2026-10-09, Update 6:36 PM EDT): Update 6:36 PM EDT
+  2026-10-24 (GEN.762 merged as #3128, Aux 13; epoch 96): two stand-ins
+  to register, with the tier and tweak level TODO proposes from the
+  lane's report (the registry owner confirms or corrects): (1) ice skin
+  depth over a body's clathrate-bearing crust, 1 m to 1 km drawn
+  log-uniform: tier 6 Marginal educated guess based on physics, tweak
+  level L0 as envisioned; (2) equal weights for the brine salt species
+  (perchlorate and the other eutectic salts): tier 4 Unverified, tweak
+  level L0. Both in clathrate_brine callers in
+  atmosphere.generate_atmosphere and hydrosphere.generate_hydrosphere.
   Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
 
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
@@ -13966,38 +13979,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: GEN.652. Related: GEN.741, GEN.553.
 
-- [ ] **GEN.756 Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py)**
-  Piece of GEN.411 (4c), split out so Lane L builds it in parallel with
-  Lane I. One function turns a planet or moon record (mass, radius,
-  gravity, equilibrium temperature, star and formation distance, class
-  if known, bulk composition when stored) into the subject the mixture
-  draw reads, so the mixture, the pressure and the molar density are
-  drawn from one description of the body. Pure function in a new module
-  physics/mixture_subject.py, planets and moons both, no random draw
-  inside it, unit test per body kind. GEN.411 reads it and is not
-  finished until this and the two sibling pieces have merged. Requested
-  by the coordinator for Boss (about 5:26 PM EDT 10-24, as the
-  coordinator relayed). Owner: Lane L (nobody else has started it; TODO
-  checked the TODO file and physics/ for any existing item or module).
-  Prerequisites: none. Related: GEN.411, GEN.726.
-
-- [ ] **GEN.757 Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py)**
-  Piece of GEN.411 (4c), split out so Lane L builds it in parallel. Two
-  pure functions in a new module physics/mixture_sinks.py: (1) the most
-  water vapour an atmosphere over an ocean can hold at the surface
-  temperature and pressure (saturation, from published vapour-pressure
-  data), so the drawn mixture never exceeds it; (2) the sulfur uptake,
-  how much sulfur gas the surface and any ocean remove from the mixture.
-  The sources and stand-ins are recorded with their tier and tweak level
-  in the registry (GEN.725). Boundary with the supply law: GEN.726 (Lane
-  I) owns how much is outgassed and the ocean and carbonate sinks of the
-  inventory; this piece only limits what the drawn mixture can show;
-  Lane L and Lane I confirm the boundary before writing so nothing is
-  built twice. GEN.411 is not finished until it and its sibling pieces
-  merge. Requested by the coordinator for Boss (about 5:26 PM EDT
-  10-24). Owner: Lane L (nobody else has started it).
-  Prerequisites: none. Related: GEN.411, GEN.726, GEN.674, GEN.725.
-
 - [ ] **GEN.758 Piece of GEN.411: mechanical test fixes for the deleted class ranges**
   Piece of GEN.411 (4c). When Lane I step 4b merges and the class ranges
   for pressure and molar density are deleted, many tests that assert a
@@ -14067,24 +14048,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.727/GEN.737, GEN.466) wait for it or tell Core 3 and TODO what
   they changed.
   Prerequisites: none. Related: GEN.579, GEN.466, GEN.754.
-
-- [ ] **GEN.762 Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw**
-  clathrate_brine.py (dissociation pressures and the liquid range of
-  eutectic brines for icy crusts and ocean moons, GEN.471) is only
-  imported by atmosphere_recipes. Make the icy-body atmosphere and ocean
-  draws read it: gas trapped in clathrate, and brines liquid below 273
-  K. It touches the atmosphere draw, so the owner confirms with Lane L
-  first. Found by the physics fix plan thread
-  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
-  never imported by the generator). No shim: the generator calls the
-  module, the old path is deleted, and a test fails if the module has no
-  caller (the wiring guard GEN.754). Takes a generator epoch in merge
-  order (next free is 95). Each stand-in it touches records its source
-  tier and tweak level in the registry (GEN.725). Requested by Boss
-  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
-  possible. Owner: Lane Draws (atmosphere draw tables) after its current
-  list; confirm with Lane L; nobody has started it.
-  Prerequisites: none. Related: GEN.471, GEN.423, GEN.479, GEN.754.
 
 - [ ] **GEN.763 The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug)**
   Found by Bug Hunt while fixing TEST.353 (#3103, 5:45 PM EDT 2026-10-24
@@ -16802,6 +16765,32 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
 
+- [ ] **SEC.34 Upgrade Pillow from 12.3.0 to 13.0.0 in both lock files (37 advisories fixed in 13.0.0)**
+  Found by Bug 1 in its TEST.261 prep sweeps
+  (reports/test261-pre-audit-sweeps-2026-10-24.md finding 1, pip-audit
+  at
+  main 02651a05, 6:36 PM EDT 2026-10-24 as the lane reported): all 37
+  advisories are in the TIFF, GIF, PPM and PDF decoders (out-of-bounds
+  reads, zero-width images) and are reachable only through the admin
+  picture upload. Do: move pillow to 13.0.0 in requirements.lock and
+  requirements-server.lock, check that every use of Pillow still works
+  (the picture upload, the map and render code that imports PIL), and
+  re-run pip-audit. Done when pip-audit lists no Pillow advisory. Owner:
+  Bug 1 (offered to take it). Merged before the audit so SEC.33 does not
+  find it again.
+  Prerequisites: none. Related: SEC.33, TEST.261.
+
+- [ ] **SEC.35 The picture upload opens the file with every format Pillow knows before refusing all but PNG, JPEG and ICO: restrict the formats on open**
+  Found by Bug 1 in its TEST.261 prep sweeps
+  (reports/test261-pre-audit-sweeps-2026-10-24.md finding 2, 6:36 PM EDT
+  2026-10-24 as the lane reported): web/assets.py::_image_info calls
+  Image.open without a format list, so a TIFF, PPM or GIF header is
+  parsed
+  before the format check refuses it. Do: call Image.open with
+  formats=["PNG", "JPEG", "ICO"] and add a test that a TIFF is refused.
+  Owner: Bug 1 (offered to take it). Merged before the audit.
+  Prerequisites: none. Related: SEC.33, TEST.261.
+
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -19149,20 +19138,61 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.360 test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug)**
-  Reported by Bug 2 while merging #3125 (PERF.187): the test fails on
-  main and is not from that change. Find the cause (a stale expectation
-  or
-  a real totals bug), fix it and record which. Owner: Bug 1.
-  Prerequisites: none. Related: PERF.187.
+- [ ] **TEST.362 test_object_rows read-back fails on main with KeyError partial_pa (bug)**
+  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
+  lane reported): a test in test_object_rows reads an atmosphere row
+  back
+  and raises KeyError: 'partial_pa'. Not from GEN.762. This is separate
+  from TEST.332 (the comet missing from the row-kind set). Find whether
+  the column was renamed by the supply-law or 4b changes or the test is
+  stale, fix it and record which. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.332.
 
-- [ ] **TEST.361 test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug)**
-  Reported by Bug 2 while merging #3125 (PERF.187): the test that no
-  screen text names a TODO code fails on main, and the lane traced it to
-  MAP.220 in `db/point_columns.py` near line 177. Locate the shown text
-  that names MAP.220, rewrite it in plain words, and keep the test.
-  Owner: Bug 1.
-  Prerequisites: none. Related: MAP.220.
+- [ ] **TEST.363 test_protection describer disagrees with habitability_explain on main (bug)**
+  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
+  lane reported): the test_protection describer check fails against
+  habitability_explain on main and is not from GEN.762. Find which side
+  is
+  right after the life score and radiation changes, fix the other, and
+  record which. Owner: Bug 1.
+  Prerequisites: none. Related: GEN.762.
+
+- [ ] **TEST.364 Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits)**
+  Found by Bug 1 in its TEST.261 prep sweeps
+  (reports/test261-pre-audit-sweeps-2026-10-24.md, dead and unused code,
+  6:36 PM EDT 2026-10-24 as the lane reported): ruff F reports 82
+  findings
+  (56 unused imports, 13 unused variables, 12 redefinitions while
+  unused,
+  1 loop variable shadowing an import, 68 auto-fixable) and vulture at
+  80
+  percent reports 12 lines. Do: remove them (no shims; where an import
+  is
+  kept for a re-export, make the re-export explicit), keep behaviour the
+  same, and add a ruff F check to the fast checks if one is not there.
+  Owner: Bug 1 after the two SEC items; not a security fix.
+  Prerequisites: none. Related: SEC.33, TEST.261.
+
+- [ ] **TEST.365 Six phenomenon-page tests in test_class_pages.py fail on clean main (bug)**
+  Reported by Aux 4 (Lane E) at 6:37 PM EDT 2026-10-24 as the lane
+  reported: six phenomenon-page tests in test_class_pages.py are red on
+  clean main and are not from its changes. Find the cause (a stale
+  expectation after the colour or look changes, or a real page defect),
+  fix it and record which. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.346.
+
+- [ ] **TEST.366 test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug)**
+  Reported by Aux 8 (Lane L) and Core 2 while merging GEN.756, GEN.757
+  and MAP.291 (6:34 and 6:37 PM EDT 2026-10-24 as the lanes reported):
+  the
+  test expects [('Holds', 'step')] and gets [('Holds', 'm...lds',
+  'step')].
+  Lane L's reading: it counts the host's MySQL memory. Make the memory
+  watch count only the step's own processes (or the test isolate the
+  watch from the host), without loosening the budget check. Owner: Bug 1
+  (PERF.183 and PERF.186 code, so ask Bug 2's report if it is not
+  clear).
+  Prerequisites: none. Related: PERF.183, PERF.186.
 
 ## USR: User accounts
 
