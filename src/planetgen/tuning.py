@@ -57,6 +57,27 @@ GIANT_MASS_FUNCTION_SLOPE = 0.31
 # limit is about 10 Jupiter masses).
 GIANT_MAX_STAR_MASS_RATIO = 0.01
 
+# The planet mass law once no class supplies the mass (GEN.650, `physics/planet_mass.py`). Each value is a planetGen
+# stand-in until the GEN.503 harness and the builders GEN.509 and GEN.510 tune it against the observed occurrence.
+#
+# Giant impacts merge the oligarchs of a feeding zone (Chambers 2001, recalled), and `GIANT_IMPACT_SURVIVAL_FRACTION` of
+# them survive as planets, so by mass conservation a planet is on average 1 / that fraction of an isolation mass; the
+# merging spreads the result by `PLANET_ASSEMBLY_SCATTER_DEX` dex (a normal in the logarithm of the mass).
+PLANET_ASSEMBLY_SCATTER_DEX = 0.8
+# A core that reaches this many Earth masses before the gas disc is gone can run away into a gas giant (core accretion:
+# Pollack et al. 1996; Rafikov 2006 give 5 to 20 Earth masses, recalled).
+GIANT_CORE_CRITICAL_MASS_EARTH = 10.0
+# The share of runaway-capable cores that still find gas left in the disc around a star of the disc's metallicity
+# (scaled for [Fe/H] by `metallicity.giant_occurrence_factor`); the rest stay ice giants.
+GIANT_GAS_SURVIVAL_SHARE = 0.5
+# A runaway giant is at least this heavy: below it the envelope has not yet outweighed the core (Earth masses).
+GIANT_RUNAWAY_MIN_MASS_EARTH = 30.0
+# How many times the minimum-mass nebula's solids the mass law assumes (Kepler's inner planets need several times the
+# MMSN: Chiang & Laughlin 2013, recalled). 1 is the nebula as `estimate_num_objects` counts with; tune with GEN.509.
+PLANET_DISC_SOLIDS_ENHANCEMENT = 5.0
+# A planet's solids are never more than this fraction of its star's mass (a disc holds about 1% of its star).
+PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
+
 # --- Star System Generation Parameters ---
 INITIAL_PLANET_DISTANCE_FACTOR = 0.55
 # Where a system's first slot sits, as a fraction of its star's habitable
