@@ -71,9 +71,10 @@ def test_quick_leaves_out_database_browser_and_heavy_tests():
     assert marker == "not db and not browser and not heavy"
 
 
-def test_full_runs_the_browser_tests_after_the_rest_on_fewer_workers():
+def test_full_runs_the_real_queue_tests_alone_and_the_browser_tests_last_on_fewer_workers():
     phases = runner.build_phases("full", [], 8, 2)
-    assert phases == [("non-browser", "not browser", 8), ("browser", "browser", 2)]
+    assert phases == [("non-browser", "not browser and not real_queue", 8), ("real-queue", "real_queue and not browser", 1),
+                      ("browser", "browser", 2)]
 
 
 def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(monkeypatch):
@@ -87,10 +88,11 @@ def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(mo
 
 
 def test_an_area_run_adds_the_browser_phase_only_for_the_web_area():
-    assert [p[0] for p in runner.build_phases("area", ["db", "api"], 4, 2)] == ["non-browser"]
+    assert [p[0] for p in runner.build_phases("area", ["db", "api"], 4, 2)] == ["non-browser", "real-queue"]
     web = runner.build_phases("area", ["web", "api"], 4, 2)
-    assert web[0][1] == "(area_web or area_api) and not browser"
-    assert web[1] == ("browser", "(area_web or area_api) and browser", 2)
+    assert web[0][1] == "(area_web or area_api) and not browser and not real_queue"
+    assert web[1] == ("real-queue", "(area_web or area_api) and real_queue and not browser", 1)
+    assert web[2] == ("browser", "(area_web or area_api) and browser", 2)
 
 
 def test_pytest_command_uses_xdist_only_for_more_than_one_worker():
@@ -166,7 +168,7 @@ def test_a_check_with_no_change_to_compare_is_refused_and_says_what_base_to_pass
     assert runner.check_without_changes("") == ""
 
 
-def test_changed_runs_the_same_two_phases_as_full():
+def test_changed_runs_the_same_phases_as_full():
     assert runner.build_phases("changed", [], 4, 2) == runner.build_phases("full", [], 4, 2)
 
 
@@ -176,7 +178,7 @@ def test_changed_options_reach_pytest(monkeypatch):
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["changed", "--base", "HEAD~1"]) == 0
-    assert all(call[-2:] == ["--changed", "HEAD~1"] for call in calls) and len(calls) == 2
+    assert all(call[-2:] == ["--changed", "HEAD~1"] for call in calls) and len(calls) == 3
 
 
 def test_the_summary_line_of_pytest_gives_the_counts():
@@ -249,3 +251,29 @@ def test_a_test_that_hangs_is_stopped_and_named(tmp_path):
                              "--timeout", "2", "--timeout-method", "signal", "-q", str(tmp_path / "test_hang.py")],
                             cwd=tmp_path, capture_output=True, text=True, timeout=60)
     assert result.returncode == 1 and "Timeout (>2.0s) from pytest-timeout" in result.stdout
+
+
+def test_the_worker_count_is_cut_to_the_memory_and_the_idle_cores():
+    assert runner.cap_workers(8, 20000, 0.5, 8, 1000) == (8, "")
+    assert runner.cap_workers(8, 3500, 0.5, 8, 1000) == (3, "3500 MB free at 1000 MB a worker")
+    assert runner.cap_workers(8, 20000, 5.4, 8, 1000) == (3, "load 5.4 on 8 cores")
+    assert runner.cap_workers(8, 20000, 12.0, 8, 1000) == (1, "load 12.0 on 8 cores")
+    assert runner.cap_workers(2, 1200, 0.0, 4, 2500) == (1, "1200 MB free at 2500 MB a worker")
+    assert runner.cap_workers(4, None, None, 8, 1000) == (4, "")  # no reading limits nothing
+    assert runner.cap_workers(1, 100, 30.0, 8, 1000) == (1, "")  # never below one, and nothing to say about one worker
+
+
+def test_a_phase_says_when_the_machine_cut_its_workers(monkeypatch, capsys):
+    monkeypatch.setattr(runner, "available_memory_mb", lambda: 2200)
+    monkeypatch.setattr(runner.os, "getloadavg", lambda: (0.0, 0.0, 0.0))
+    seen = []
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: seen.append(command) or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    assert runner.main(["full", "-n", "6"]) == 0
+    out = capsys.readouterr().out
+    assert "2 worker(s) (capped: 2200 MB free at 1000 MB a worker)" in out
+    assert seen[0][seen[0].index("-n") + 1] == "2" and "-n" not in seen[2]  # browser: 2200 MB / 2500 -> one worker
+    seen.clear()
+    assert runner.main(["full", "-n", "6", "--no-worker-cap"]) == 0
+    assert seen[0][seen[0].index("-n") + 1] == "6" and seen[2][seen[2].index("-n") + 1] == "2"

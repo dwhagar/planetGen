@@ -15,10 +15,16 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-
                                           an earlier run whose environment is the same and whose files that test
                                           used have not changed since (TEST.208)
 
-Every command except `quick` and `browser` (`changed` and `full` included) runs in two phases: the tests that
-need no browser on every core, then the browser tests on `--browser-workers`
-workers (default 2). Software WebGL needs the CPU the other workers would
-have, and running both at once is what timed the browser tests out (TEST.126).
+Every command except `quick` and `browser` (`changed` and `full` included) runs in three phases (TEST.126, TEST.344):
+the tests that need no browser and no real queue worker on every core, then the `real_queue` tests (they start real
+worker processes and read the shared queues by name, so two at once kill each other's workers) on one worker, then the
+browser tests on `--browser-workers` workers (default 2). Software WebGL needs the CPU the other workers would have,
+and running both at once is what timed the browser tests out.
+
+The two parallel phases are also capped by what the machine has free when the phase starts (`cap_workers`): at most one
+worker per `--worker-mb` MB of available memory (browser workers: `--browser-worker-mb`) and, for the first phase, no
+more than the cores the current load leaves idle, never fewer than one. A lane machine that is also running other
+lanes' gates then gets fewer workers instead of timeouts and OOM kills; the phase line says when it capped. `--no-worker-cap` turns the cap off.
 
 Failures: every failing test's full report (traceback, worker, machine load) is kept in `.test-failures.jsonl`,
 and when the run ends the failed tests are run again alone, on one worker, each with the verdict "passes alone"
@@ -59,6 +65,46 @@ KEEP_PROGRESS_SECONDS = 24 * 3600
 AREAS = ("web", "api", "db", "generation", "physics", "names", "ops", "other")
 
 
+WORKER_MB = 1000
+"""int: What one non-browser test worker may need (MB): its Python process, its share of the MySQL server and its
+database. An estimate (a test process peaked at 260 to 460 MB), tunable with `--worker-mb`."""
+
+BROWSER_WORKER_MB = 2500
+"""int: What one browser test worker may need (MB): its Python process plus Chromium with software WebGL. An estimate,
+tunable with `--browser-worker-mb`."""
+
+
+def available_memory_mb():
+    """The memory the kernel says is available (MB), or None where /proc/meminfo is not readable."""
+    try:
+        with open("/proc/meminfo") as meminfo:
+            for line in meminfo:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) // 1024
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def cap_workers(requested, available_mb, load, cores, worker_mb):
+    """
+    The worker count for a phase: `requested`, but no more than the memory available allows (`worker_mb` each) and no
+    more than the cores the 1-minute `load` leaves idle, and never fewer than one. A reading that is `None` limits
+    nothing.
+
+    Returns:
+        tuple: `(workers, why)`: the count and a short reason it was cut, or `""` when it was not.
+    """
+    requested = max(requested, 1)
+    limits = []
+    if available_mb is not None:
+        limits.append((max(available_mb // worker_mb, 1), f"{available_mb} MB free at {worker_mb} MB a worker"))
+    if load is not None and cores:
+        limits.append((max(cores - round(load), 1), f"load {load:.1f} on {cores} cores"))
+    workers, why = min(limits, key=lambda limit: limit[0], default=(requested, ""))
+    return (workers, why) if workers < requested else (requested, "")
+
+
 def build_phases(command, areas, workers, browser_workers):
     """The pytest runs for a command: a list of (label, marker expression, worker count)."""
     if command == "quick":
@@ -72,11 +118,13 @@ def build_phases(command, areas, workers, browser_workers):
         selected = " or ".join("area_" + area for area in areas)
     parts = []
     if selected:
-        parts = [("non-browser", f"({selected}) and not browser", workers)]
+        parts = [("non-browser", f"({selected}) and not browser and not real_queue", workers),
+                 ("real-queue", f"({selected}) and real_queue and not browser", 1)]
         if "web" in areas:  # the browser tests are all `test_web_*` files
             parts.append(("browser", f"({selected}) and browser", browser_workers))
     else:
-        parts = [("non-browser", "not browser", workers), ("browser", "browser", browser_workers)]
+        parts = [("non-browser", "not browser and not real_queue", workers), ("real-queue", "real_queue and not browser", 1),
+                 ("browser", "browser", browser_workers)]
     return parts
 
 
@@ -357,6 +405,12 @@ def main(argv=None):
                         help="workers for the non-browser tests (default: every core)")
     parser.add_argument("--no-rerun", action="store_true", help="do not run the failed tests again alone")
     parser.add_argument("--browser-workers", type=int, default=2, help="workers for the browser tests (default 2)")
+    parser.add_argument("--worker-mb", type=int, default=WORKER_MB,
+                        help=f"memory one non-browser worker may need, for the worker cap (default {WORKER_MB})")
+    parser.add_argument("--browser-worker-mb", type=int, default=BROWSER_WORKER_MB,
+                        help=f"memory one browser worker may need, for the worker cap (default {BROWSER_WORKER_MB})")
+    parser.add_argument("--no-worker-cap", action="store_true",
+                        help="run the phases on exactly the workers asked for, whatever memory and load say")
     parser.add_argument("--base", default="", help="for `changed` and `--check`: the commit to compare with "
                         "(default: where this branch left origin/main)")
     parser.add_argument("--resume", action="store_true",
@@ -426,6 +480,7 @@ def main(argv=None):
     if args.command == "budget":
         environment["PLANETGEN_BUDGET"] = "1"
     phase = "before the first phase"
+    first_phase = True
 
     def interrupted(signum, frame):
         raise KeyboardInterrupt(signal.Signals(signum).name)
@@ -434,7 +489,15 @@ def main(argv=None):
     try:
         for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
             phase = label
-            print(f"--- {label}: -m {marker!r}, {workers} worker(s)", flush=True)
+            capped = ""
+            if workers > 1 and not args.no_worker_cap:
+                # the load at the start is other people's work; later it is this run's own previous phase still fading
+                load = os.getloadavg()[0] if first_phase and hasattr(os, "getloadavg") else None
+                per_worker = args.browser_worker_mb if label == "browser" else args.worker_mb
+                workers, why = cap_workers(workers, available_memory_mb(), load, os.cpu_count() or 1, per_worker)
+                capped = f" (capped: {why})" if why else ""
+            first_phase = False
+            print(f"--- {label}: -m {marker!r}, {workers} worker(s){capped}", flush=True)
             code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
             for word, number in counts.items():
                 totals[word] = totals.get(word, 0) + number

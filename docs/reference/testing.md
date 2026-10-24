@@ -169,11 +169,17 @@ scripts/test.py full            # everything: the merge gate
 scripts/test.py full -- -x      # anything after -- goes to pytest
 ```
 
-Every command but `quick` and `browser` runs two phases: the tests that need
-no browser on every core, then the browser tests on 2 workers
-(`--browser-workers`). Software WebGL needs the CPU the other workers would
-have, and running both together is what timed the browser tests out
-(TEST.126). The first line printed is the start time and how long the same
+Every command but `quick` and `browser` runs three phases: the tests that need
+no browser and no real queue worker on every core, then the `real_queue` tests
+(they start real worker processes, so two at once kill each other's workers)
+on one worker, then the browser tests on 2 workers (`--browser-workers`).
+Software WebGL needs the CPU the other workers would have, and running both
+together is what timed the browser tests out (TEST.126). The two parallel
+phases are also capped by what the machine has free when they start (TEST.344):
+one worker per 1000 MB of available memory (`--worker-mb`; browser workers 2500
+MB, `--browser-worker-mb`) and, in the first phase, no more than the cores the
+current load leaves idle, never fewer than one; the phase line says when it
+capped, and `--no-worker-cap` turns the cap off. The first line printed is the start time and how long the same
 command took last time on this checkout (kept in `.test-runs.json`, not
 tracked by git); the last line is how long it took now.
 
