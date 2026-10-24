@@ -188,7 +188,7 @@ def test_a_planetary_nebulas_central_star_is_a_white_dwarf_with_a_star_or_white_
             assert tuning.WD_MASS_RANGE_SOL[0] <= tree.members[0].mass_solar <= tuning.WD_MASS_RANGE_SOL[1]
             seen[tree.members[1].kind] += 1
     assert sum(seen.values()) > 100 and set(seen) <= {"main-sequence", "giant", "white-dwarf", "brown-dwarf",
-                                                      "pre-main-sequence"}
+                                                      "pre-main-sequence", "stripped-helium"}
 
 
 def test_a_star_row_draws_the_star_count_of_its_spectral_class():

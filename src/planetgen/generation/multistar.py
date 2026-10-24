@@ -162,11 +162,15 @@ MEMBER_RUNAWAY_SUPERNOVA = 128
 MEMBER_RUNAWAY_DYNAMICAL = 256
 MEMBER_R_CRB = 512
 MEMBER_FK_COMAE = 1024
+MEMBER_MAGNETIC = 2048
+MEMBER_BARIUM = 4096
+MEMBER_SYMBIOTIC = 8192
 MEMBER_FLAGS = {"direct_collapse": MEMBER_DIRECT_COLLAPSE, "mass_reversed": MEMBER_MASS_REVERSED,
                 "mass_gainer": MEMBER_MASS_GAINER, "merger_product": MEMBER_MERGER_PRODUCT, "be": MEMBER_BE,
                 "fragile": MEMBER_FRAGILE, "theoretical": MEMBER_THEORETICAL,
                 "runaway_supernova": MEMBER_RUNAWAY_SUPERNOVA, "runaway_dynamical": MEMBER_RUNAWAY_DYNAMICAL,
-                "r_crb": MEMBER_R_CRB, "fk_comae": MEMBER_FK_COMAE}
+                "r_crb": MEMBER_R_CRB, "fk_comae": MEMBER_FK_COMAE, "magnetic": MEMBER_MAGNETIC,
+                "barium": MEMBER_BARIUM, "symbiotic": MEMBER_SYMBIOTIC}
 """dict: The bits of `Member.flags`. The classifier sets `mass_gainer` (the star that receives the mass of a
 semi-detached or contact pair), `mass_reversed` (the donor of a semi-detached pair that was the heavier at birth: an Algol),
 `fragile` and `theoretical`; the close-binary types (GEN.270) set `merger_product` (a massive star that merged, a field blue
@@ -191,7 +195,7 @@ MEMBER_STATE_BY_PLACED = {
     "recycled-pulsar": {"white-dwarf": (0.62, 0.50, 0.70), "star": (0.12, 0.05, 0.20),
                         "brown-dwarf": (0.04, 0.01, 0.08), "neutron-star": (2.0e-3, 6e-4, 4.3e-3),
                         "black-hole": (2.5e-5, 7e-6, 7e-5)},
-    "white-dwarf": {"star": (0.25, 0.20, 0.30), "white-dwarf": (0.05, 0.03, 0.10)},
+    "white-dwarf": {"star": (0.205, 0.15, 0.22), "white-dwarf": (0.095, 0.05, 0.12)},
     "planetary-nebula-star": {"star": (0.15, 0.10, 0.20), "white-dwarf": (0.05, 0.03, 0.10)},
 }
 """dict: Per class of placed object, the chance of a companion of each state as
@@ -320,6 +324,10 @@ class _Leaf:
     radius_au: float
     flags: int = 0
     effective_age_yr: float | None = None
+    orbit_au: tuple | None = None
+    """tuple or None: `(low, high)` AU. A pair of two single members, one of which has this, is placed with an axis
+    log-uniform over it (GEN.271: the close double white dwarf, the post-common-envelope pair, the cataclysmic
+    variable, whose axis is the one that fills the donor's lobe), in place of the period law."""
 
     @property
     def compact(self):
@@ -706,6 +714,18 @@ class _Builder:
                 flags[donor_index] = MEMBER_MASS_REVERSED
         return interaction, flags
 
+    def orbit_span(self, left, right):
+        """The `orbit_au` `(low, high)` a pair of two single members carries on one of them (GEN.271), else None."""
+        pair = self.pair_leaves(left, right)
+        if pair is None:
+            return None
+        return next((leaf.orbit_au for leaf in pair if leaf.orbit_au is not None), None)
+
+    def double_white_dwarf(self, left, right):
+        """Whether the pair is two white dwarfs, which the Peters rule screens as it does a compact pair."""
+        pair = self.pair_leaves(left, right)
+        return pair is not None and pair[0].kind == "white-dwarf" and pair[1].kind == "white-dwarf"
+
     def wide_cap(self, sub):
         """The widest axis the pair can have: 1,000 AU if it holds a neutron star or a black hole that did not
         collapse directly, else unbounded."""
@@ -766,6 +786,8 @@ class _Builder:
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
         fixed = self.fixed.get(id(sub))
+        span = self.orbit_span(left, right)
+        double_dwarf = self.double_white_dwarf(left, right)
         for _ in range(PAIR_RETRIES):
             rng = self.rng
             inclination = math.acos(1.0 - 2.0 * rng.random())
@@ -777,7 +799,13 @@ class _Builder:
             if parent is not None:
                 mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
                 a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual)
-            if fixed is None:
+            if fixed is None and span is not None:
+                axis = 10.0 ** (math.log10(span[0]) + rng.random() * (math.log10(span[1]) - math.log10(span[0])))
+                period_d = 365.25 * math.sqrt(axis ** 3 / total)
+                if axis < a_lo or axis > min(a_hi, cap):
+                    continue
+                e = self.eccentricity(law, period_d, axis, parent is None)
+            elif fixed is None:
                 period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
                 if period_d is None:
                     continue
@@ -791,9 +819,12 @@ class _Builder:
                 continue
             interaction, member_flags = self.interaction(left, right, axis, e)
             pair = self.pair_leaves(left, right)
+            if interaction == "accreting" and any(leaf.kind == "white-dwarf" for leaf in pair) and (
+                    span is None or span[0] < span[1]):
+                continue  # a white dwarf accretes only in the cataclysmic variable and AM CVn draws, which fix the rate
             if _gate_forbids(interaction, heavy, self.age_yr, () if pair is None else (pair[0].kind, pair[1].kind)):
                 continue
-            flags = NODE_INTERACTED if law != "star" else 0
+            flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
             if parent is not None:
                 if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual):
                     continue
@@ -803,7 +834,8 @@ class _Builder:
                     continue
                 if verdict == "kl_active":
                     flags |= NODE_KL_ACTIVE
-            if law == "compact-pair" and not stability.survives_gravitational_waves(m_left, m_right, axis, e, self.age_yr):
+            if ((law == "compact-pair" or double_dwarf)
+                    and not stability.survives_gravitational_waves(m_left, m_right, axis, e, self.age_yr)):
                 continue
             if self._in_desert(left, right, axis):
                 continue
@@ -878,9 +910,10 @@ def _shape(units, rng):
     return (_shape(items[:split], rng), _shape(items[split:], rng))
 
 
-STAR_TYPE_DRAWS = 6
-"""int: The uniforms a placed star's tree draws first, in a fixed order, for the close-binary types (GEN.270): the
-merger product, the Be star, its stripped companion, the mass gainer, the exotic star and the merger's rejuvenation."""
+STAR_TYPE_DRAWS = 7
+"""int: The uniforms a placed star's tree draws first, in a fixed order, for the close-binary types (GEN.270) and the giants'
+white dwarf companions (GEN.271): the merger product, the Be star, its stripped companion, the mass gainer, the exotic
+star, the merger's rejuvenation and the barium or symbiotic star."""
 
 
 def _young(age_yr):
@@ -983,6 +1016,130 @@ def _pair_placed(shape):
     return _swap_units(shape, 0, _leaf_pairs(beside)[0][0])
 
 
+def draw_white_dwarf_binary(class_name, state, age_yr, unit):
+    """
+    The binary type of a placed white dwarf's companion (GEN.271, `close-double-white-dwarf`, `white-dwarf-post-ce`,
+    `cataclysmic-variable` and `am-cvn` in `SYSTEM_TYPE_RATES`), given the `state` (`star` or `white-dwarf`) the screen drew
+    against `MEMBER_STATE_BY_PLACED[class_name]`: `double-white-dwarf` for a white dwarf companion; for a star, `am-cvn` (a
+    system of the old population), `cataclysmic-variable` or `post-common-envelope` (neither of the young population) at
+    the rows' rates per white dwarf over the class's odds of a star companion, else None (a pair on the period law). One
+    uniform.
+    """
+    if state == "white-dwarf":
+        return "double-white-dwarf"
+    if state != "star":
+        return None
+    rates = system_types.SYSTEM_TYPE_RATES
+    table = MEMBER_STATE_BY_PLACED[class_name]
+    star_odds = table["star"][0]
+    companions = sum(default for default, _low, _high in table.values())
+    old = age_yr / 1.0e9 >= tuning.OLD_POPULATION_MIN_AGE_GY
+    chances = (("am-cvn", rates["am-cvn"].default / star_odds if old else 0.0),
+               ("cataclysmic-variable", rates["cataclysmic-variable"].default / star_odds if not _young(age_yr) else 0.0),
+               ("post-common-envelope",
+                system_types.TUNING_KNOBS["post_ce_fraction"] * companions / star_odds if not _young(age_yr) else 0.0))
+    for kind, chance in chances:
+        if unit < chance:
+            return kind
+        unit -= chance
+    return None
+
+
+def draw_stripped_helium(unit):
+    """Whether the star of a post-common-envelope white dwarf pair is a stripped helium star, a hot subdwarf (GEN.271,
+    `hot-subdwarf-stripped`; `tuning.HOT_SUBDWARF_POST_CE_SHARE`). One uniform."""
+    return unit < tuning.HOT_SUBDWARF_POST_CE_SHARE
+
+
+def draw_white_dwarf_merger(age_yr, unit):
+    """Whether a placed white dwarf of the old population is the product of a double white dwarf merger (GEN.271,
+    `double-white-dwarf-merger`; the `white-dwarf` share of the `merger_product_fraction` knob, 10%). One uniform."""
+    shares = system_types.TUNING_KNOBS["merger_product_fraction"]
+    return age_yr / 1.0e9 >= tuning.OLD_POPULATION_MIN_AGE_GY and unit < shares["white-dwarf"]
+
+
+def draw_giant_companion(leaf_kind, birth_mass_sol, unit):
+    """
+    `symbiotic`, `barium` or None for a placed star (GEN.271, `symbiotic-barium`): a G or K giant (a giant born lighter
+    than `tuning.BARIUM_GIANT_MAX_INITIAL_MASS_SOL`) is a symbiotic star at the row's 5e-6 and a barium or CH star at its
+    1%; both have a white dwarf companion. One uniform.
+    """
+    if leaf_kind != "giant" or birth_mass_sol >= tuning.BARIUM_GIANT_MAX_INITIAL_MASS_SOL:
+        return None
+    entry = system_types.SYSTEM_TYPE_RATES["symbiotic-barium"]
+    if unit < entry.default:
+        return "symbiotic"
+    return "barium" if unit - entry.default < entry.by_class["barium and CH (G and K giants)"] else None
+
+
+def _filling_axis_au(donor, accretor_mass, period_range_days):
+    """The axis at which `donor` fills its lobe by `tuning.ACCRETING_FILL_FACTOR` about an accretor of `accretor_mass`, or
+    None when the period falls outside `period_range_days`."""
+    axis = roche.separation_for_filling(donor.radius_au, tuning.ACCRETING_FILL_FACTOR, donor.mass, accretor_mass)
+    period_d = 365.25 * math.sqrt(axis ** 3 / (donor.mass + accretor_mass))
+    return axis if period_range_days[0] <= period_d <= period_range_days[1] else None
+
+
+def _accreting_companion(placed_mass, kind, age_yr, rng):
+    """The donor of a cataclysmic variable (`kind` `cataclysmic-variable`: a main-sequence star) or an AM CVn binary
+    (`am-cvn`: a degenerate helium star) and its lobe-filling axis, `(leaf, axis_au)`, or None after the draws that fit
+    no period."""
+    if kind == "cataclysmic-variable":
+        window = tuple(hours / 24.0 for hours in tuning.CATACLYSMIC_PERIOD_HOURS)
+    else:
+        window = tuple(minutes / 1440.0 for minutes in tuning.AM_CVN_PERIOD_MINUTES)
+    for _ in range(PAIR_RETRIES):
+        if kind == "cataclysmic-variable":
+            donor = _star_leaf(rng.uniform(*tuning.CATACLYSMIC_DONOR_MASS_RANGE_SOL), age_yr, rng)
+            if donor.kind != "main-sequence":
+                continue
+        else:
+            low, high = tuning.AM_CVN_DONOR_MASS_RANGE_SOL
+            mass = math.exp(math.log(low) + rng.random() * (math.log(high) - math.log(low)))
+            radius_sol = tuning.AM_CVN_DONOR_RADIUS_SOL_AT_0_05 * (mass / 0.05) ** (-1.0 / 3.0)
+            donor = _Leaf("stripped-helium", None, mass, rng.uniform(1.0, 2.5),
+                          radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M)
+        axis = _filling_axis_au(donor, placed_mass, window)
+        if axis is not None:
+            donor.orbit_au = (axis, axis)
+            return donor
+    return None
+
+
+def _white_dwarf_companion(placed, base, binary, age_yr, rng):
+    """The companion leaf of a placed white dwarf for the `binary` type `draw_white_dwarf_binary` named (GEN.271), with
+    its orbit span, or None when none fits; a cataclysmic variable's white dwarf is magnetic at
+    `tuning.CATACLYSMIC_MAGNETIC_SHARE` (a flag on `base`)."""
+    if binary == "double-white-dwarf":
+        companion = _remnant("white-dwarf", age_yr, 0.0, rng)
+        span = tuning.DOUBLE_WHITE_DWARF_AXIS_AU
+    elif binary == "post-common-envelope":
+        companion = (_stripped_helium_leaf(1.0, rng) if draw_stripped_helium(rng.random())
+                     else _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng), age_yr, rng))
+        span = tuning.POST_COMMON_ENVELOPE_AXIS_AU
+    else:
+        companion = _accreting_companion(placed.mass_solar, binary, age_yr, rng)
+        if binary == "cataclysmic-variable" and companion is not None and rng.random() < tuning.CATACLYSMIC_MAGNETIC_SHARE:
+            base.flags |= MEMBER_MAGNETIC
+        span = None
+    if companion is not None and span is not None:
+        companion.orbit_au = span
+    return companion
+
+
+def _giant_white_dwarf(leaf, binary, age_yr, rng):
+    """The white dwarf of a barium or symbiotic giant (GEN.271), born from a star heavier than the giant, on the orbit of
+    the type, or None when no white dwarf can have formed by the age. The giant carries the flag."""
+    dwarf = _remnant("white-dwarf", age_yr, leaf.initial, rng)
+    if dwarf is None:
+        return None
+    days = tuning.SYMBIOTIC_PERIOD_DAYS if binary == "symbiotic" else tuning.BARIUM_PERIOD_DAYS
+    total = leaf.mass + dwarf.mass
+    dwarf.orbit_au = tuple(stability.axis_au(period / 365.25, total) for period in days)
+    leaf.flags |= MEMBER_SYMBIOTIC if binary == "symbiotic" else MEMBER_BARIUM
+    return dwarf
+
+
 _DRAW_COMPANION = object()
 """object: The default of `draw_member_tree`'s `companion`: the tree draws the compact object's companion
 state itself."""
@@ -1032,6 +1189,9 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         leaves, units = [leaf], [0]
         compact = (_bound_runaway_companion(placed, age_yr, rng) if bound_runaway
                    else _star_compact_companion(placed, age_yr, rng))
+        giant_type = draw_giant_companion(leaf.kind, birth, types[6])
+        if compact is None and giant_type is not None:
+            compact = _giant_white_dwarf(leaf, giant_type, age_yr, rng)
         if n_stars is None:
             count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
             if merger == "massive":
@@ -1055,10 +1215,16 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             "neutron-star": _remnant_leaf("neutron-star", birth, placed.mass_solar),
             "white-dwarf": _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]
     leaves = [base]
+    if placed.kind == "white-dwarf" and draw_white_dwarf_merger(age_yr, rng.random()):
+        base.flags |= MEMBER_MERGER_PRODUCT
+        base.effective_age_yr = rejuvenated_age_yr(age_yr, rng)
     state = companion_state(placed, rng) if companion is _DRAW_COMPANION else companion
     if state is None:
         return leaves, [0]
-    companion = _compact_pair_companion(placed, state, age_yr, rng)
+    binary = (draw_white_dwarf_binary(placed_class(placed), state, age_yr, rng.random())
+              if placed.kind == "white-dwarf" else None)
+    companion = (_white_dwarf_companion(placed, base, binary, age_yr, rng) if binary is not None
+                 else _compact_pair_companion(placed, state, age_yr, rng))
     if companion is None:
         return leaves, [0]
     leaves.append(companion)

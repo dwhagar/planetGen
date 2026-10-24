@@ -68,7 +68,7 @@ def test_an_entry_is_complete_and_in_order(key):
         assert isinstance(value, (int, float)) and value >= 0
 
 
-_LANDED_OWNERS = frozenset({253, 261, 270})
+_LANDED_OWNERS = frozenset({253, 261, 270, 271})
 """set: The items whose generators are written. A generator owned by an item outside this set may not exist
 yet; add the item's number here in the PR that adds its functions."""
 
