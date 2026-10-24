@@ -329,3 +329,5 @@ Update 4:19 PM EDT 2026-10-24: MAP.261 and MAP.262 (#3070, API_VERSION is 8, no 
 Update 4:20 PM EDT 2026-10-24: GEN.674 retired (#3072, Lane L, no epoch, the generator does not call the draw until GEN.411). Left over: the Pluto-like gate is carried on GEN.487; the five lava-vapour gases are GEN.751 (8.4, pool). TEST.353 is confirmed red by Lane L as well; test_settings is green on main (the PLANETGEN_JOB_ID red Lane L sees is on its own branch, fixed in #3040). 967 of 1330 8.1 items finished (72.7 percent), 363 open.
 
 Update 4:22 PM EDT 2026-10-24: the second-hand citations report (reports/secondhand-citations-2026-10-24.md) is attached as source notes on GEN.733 (Chabrier H/He EOS tables are open), GEN.482 (Gaillard papers open), GEN.747, GEN.670 (ExoMol CoYuTe ammonia) and GEN.725 (tier proposals, the CFC-12 0.32 against 0.33 and NH3 1.078 flags, the not-found list, two author errors in Boss's reference list).
+
+Update 4:26 PM EDT 2026-10-24: Bug Hunt merged #3075 (the Python half of TEST.350: 20 facility and population page tests, test fixes only). TEST.350 stays open for one browser test (web.system plain buttons).
