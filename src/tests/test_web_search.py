@@ -347,10 +347,10 @@ def test_groups_with_no_matches_are_left_out(client, fake):
     assert "No sectors, systems, stars, planets or moons match." in html
 
 
-def test_a_star_result_links_to_its_row_on_the_system_page(client, fake):
-    """NAV.8: a body result opens its system page at that body's row."""
+def test_a_star_result_links_to_its_own_page(client, fake):
+    """NAV.8: a body result opens the body's own page (UX.173 and UX.176 retired the row on the system page)."""
     html = client.get("/search?star_q=Kepler").get_data(as_text=True)
-    assert 'href="/system/7#star-3"' in html
+    assert 'href="/object/star:3"' in html and "#star-3" not in html
 
 
 def _body_row(id_, name, **extra):

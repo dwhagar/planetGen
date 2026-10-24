@@ -19,19 +19,28 @@ from tests.test_web_a11y import site_app, site_db  # noqa: F401 -- fixtures
 PUBLIC_ID = r"[0-9A-F]{10}-\d{7}-\d{3}"
 
 
+WALKED = 6
+"""int: How many objects of one kind the walk opens at most (the tests below slice at 6 or fewer)."""
+
+
 def _bodies(client):
-    """`{kind: [ref, ...]}` for every body of the first systems the database holds, from the system API."""
+    """`{kind: [ref, ...]}` for the bodies of the first systems the database holds, from the system API: it stops at the
+    first system after which every kind has `WALKED` objects (or the systems run out), so the fixture makes few calls
+    against the API's per-IP limit (TEST.349 followed a 429 from a loop over every system)."""
     found = {kind: [] for kind in item_pages.ITEM_PAGE_KINDS}
     for system in client.get("/api/systems?limit=100").get_json()["items"]:
         detail = client.get(f"/api/systems/{system['id']}").get_json()
         found["star"] += [f"star:{row['id']}" for row in detail["stars"]]
         found["belt"] += [f"belt:{row['id']}" for row in detail["belts"]]
         found["comet"] += [f"comet:{row['id']}" for row in detail["comets"]]
-        found["facility"] += [f"facility:{row['id']}" for row in client.get(f"/api/systems/{system['id']}/facilities")
-                              .get_json()["items"]]
+        if len(found["facility"]) < WALKED:
+            found["facility"] += [f"facility:{row['id']}" for row in client.get(f"/api/systems/{system['id']}/facilities")
+                                  .get_json()["items"]]
         for planet in detail["planets"]:
             found["planet"].append(f"planet:{planet['id']}")
             found["moon"] += [f"moon:{moon['id']}" for moon in planet.get("moons") or []]
+        if all(len(refs) >= WALKED for refs in found.values()):
+            break
     return found
 
 
