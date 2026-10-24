@@ -30,10 +30,16 @@ atmosphere (tau0 under about 0.6) gives a radiative closure and a continuity roo
 
 import math
 
+import numpy as np
+
 from planetgen.physics import constants
 
 DIFFUSIVITY = 1.66
 """float: The diffusivity factor D of Robinson and Catling (2012)."""
+STEPS = 400
+"""int: Simpson steps of the continuity integral (an even number)."""
+INTEGRAL_REACH = 60.0
+"""float: How many e-folds of `exp(-D s)` the continuity integral runs over (the rest is under 1e-26 of it)."""
 TAU0_MIN = 1e-6
 TAU0_MAX = 1e6
 """float: The range `tau0_implied` searches."""
@@ -60,21 +66,20 @@ def _exponent(gamma, alpha, n):
 
 
 def _boundary_residual(t, tau0, m):
-    """The continuity condition of Robinson and Catling at an optical depth `t` (zero at `tau_rc`)."""
-    integral = _integral(lambda s: (s / tau0) ** m * math.exp(-DIFFUSIVITY * (s - t)), t, tau0)
-    return ((math.exp(-DIFFUSIVITY * (tau0 - t)) + DIFFUSIVITY * integral) / (t / tau0) ** m
+    """The continuity condition of Robinson and Catling at optical depths `t` (an array; zero at `tau_rc`)."""
+    t = np.asarray(t, dtype=float)
+    # the integrand falls as exp(-D (s - t)), so past t + REACH / D it adds nothing; integrating the whole of a very thick atmosphere
+    # with a fixed number of steps would step over the part that counts
+    upper = np.minimum(tau0, t + INTEGRAL_REACH / DIFFUSIVITY)
+    fractions = np.linspace(0.0, 1.0, STEPS + 1)
+    s = t[..., None] + (upper - t)[..., None] * fractions
+    weights = np.full(STEPS + 1, 2.0)
+    weights[1::2] = 4.0
+    weights[0] = weights[-1] = 1.0
+    integrand = (s / tau0) ** m * np.exp(-DIFFUSIVITY * (s - t[..., None]))
+    integral = (integrand * weights).sum(axis=-1) * (upper - t) / STEPS / 3.0
+    return ((np.exp(-DIFFUSIVITY * (tau0 - t)) + DIFFUSIVITY * integral) / (t / tau0) ** m
             - (2.0 + DIFFUSIVITY * t) / (1.0 + DIFFUSIVITY * t))
-
-
-def _integral(f, a, b, steps=400):
-    """Composite Simpson's rule over [a, b]; the integrand is smooth and positive."""
-    if b <= a:
-        return 0.0
-    h = (b - a) / steps
-    total = f(a) + f(b)
-    for i in range(1, steps):
-        total += f(a + i * h) * (4.0 if i % 2 else 2.0)
-    return total * h / 3.0
 
 
 def radiative_convective_boundary(tau0, gamma, alpha, n):
@@ -86,19 +91,23 @@ def radiative_convective_boundary(tau0, gamma, alpha, n):
     hi = math.log10(tau0)
     if hi <= lo:
         return None
-    xs = [10 ** (lo + (hi - lo) * i / steps) for i in range(steps + 1)]
-    values = [_boundary_residual(x, tau0, m) for x in xs]
-    for a, b, fa, fb in zip(xs, xs[1:], values, values[1:]):
-        if fa * fb < 0:
-            for _ in range(80):
-                mid = 0.5 * (a + b)
-                fm = _boundary_residual(mid, tau0, m)
-                if fa * fm <= 0:
-                    b = mid
-                else:
-                    a, fa = mid, fm
-            return 0.5 * (a + b)
-    return None
+    xs = 10 ** (lo + (hi - lo) * np.arange(steps + 1) / steps)
+    values = _boundary_residual(xs, tau0, m)
+    changes = np.nonzero(values[:-1] * values[1:] < 0)[0]
+    if not len(changes):
+        return None
+    index = int(changes[0])
+    a, b, fa = float(xs[index]), float(xs[index + 1]), float(values[index])
+    for _ in range(80):
+        mid = 0.5 * (a + b)
+        fm = float(_boundary_residual(np.array([mid]), tau0, m)[0])
+        if fa * fm <= 0:
+            b = mid
+        else:
+            a, fa = mid, fm
+        if b - a < 1e-12 * a:
+            break
+    return 0.5 * (a + b)
 
 
 def surface_temperature_k(tau0, absorbed_flux_w_m2_, gamma, alpha, n):

@@ -66,6 +66,19 @@ def test_a_carbon_dioxide_doubling_warms_earth_by_a_degree():
     assert warmed - 288.0 == pytest.approx(1.12, rel=0.2)
 
 
+@pytest.mark.parametrize("n,tau0,ratio", [
+    (1, 300.0, 3.06), (1, 1000.0, 3.83), (1, 3000.0, 4.69),
+    (2, 300.0, 1.82), (2, 1000.0, 2.03), (2, 3000.0, 2.25), (2, 2.0e5, 3.31),
+])
+def test_a_very_thick_atmosphere_follows_the_table_of_part_03(n, tau0, ratio):
+    """GEN.703 found the continuity integral stepping over the part that counts above a tau0 of about 500; the ratios T_s / T_e of
+    part 03 section 5.4 (CO2, gamma 1.3, alpha 0.8) and Venus's 763 K at the 2e5 of Robinson and Catling hold to the table's two digits."""
+    absorbed = 160.0
+    temperature, boundary = gh.surface_temperature_k(tau0, absorbed, 1.3, 0.8, n)
+    assert temperature / gh.effective_temperature_k(absorbed) == pytest.approx(ratio, abs=0.015 * ratio)
+    assert boundary < 3.0       # the boundary stops depending on tau0 once the atmosphere is thick
+
+
 def test_the_check_reports_what_a_stored_multiplier_needs():
     result = gh.check_stored_multiplier(288.0, EARTH["absorbed"], EARTH["gamma"], EARTH["alpha"], EARTH["n"],
                                         stored_multiplier=1.168)

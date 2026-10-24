@@ -13,10 +13,8 @@ three separate random draws that never saw the gases. Here every one of them is 
 * surface density `rho = P M / (R T)` (ideal gas);
 * scale height `H = R T / (M g)`, so the surface pressure is `rho g H` as the barometric formula says;
 * column mass `P / g`, the mass above one square metre;
-* the infrared optical depth `tau0` of the whole column, the sum over the gases of `kappa_i m_i`, with `m_i = x_i M_i P / (M g)`
-  the mass of gas `i` above one square metre (a well-mixed hydrostatic column) and `kappa_i` its grey mass absorption
-  coefficient, m2/kg. Doubling a gas's partial pressure doubles its share of `tau0`; a heavier or weaker world (more `g`) has
-  less column per pascal.
+* the infrared optical depth `tau0` of the whole column, built on a wavenumber grid from the gases' bands, their far wings, the water
+  vapour continuum and the collision-induced pairs (`physics/infrared_opacity.py`, GEN.703), at the surface temperature;
 * the warming `G = (T_s / T_e)^4 - 1`, the variable the repo stores, from `physics/greenhouse.py` (Robinson and Catling) with
   that `tau0`, the heat-capacity ratio of the mixture, and the lapse-rate scaling.
 
@@ -27,36 +25,21 @@ Use:
     warm = atmosphere_state.greenhouse_warming(mixture, gravity_m_s2, absorbed_flux_w_m2)
     warm.optical_depth, warm.surface_temperature_k, warm.factor
 
-Limits (stated, lane E's GEN.703 replaces the opacity part): `kappa_i` are stand-ins read from the research's statements of
-how thick a pure gas is (`INFRARED_MASS_ABSORPTION_M2_KG`); there is no collision-induced absorption, so a dense N2 or H2 air
-shows none of its pressure-induced warming; no condensation (the stored water vapour is taken as it is); a single grey band
-with the pressure exponent `n` of 1 (opacity linear in the column, the line-dominated regime).
+Limits (stated): see `physics/infrared_opacity.py`: the band and wing opacities are stand-ins until real line data are in; the
+stored water vapour is taken as it is (no condensation); the closure's pressure exponent is 2 for every air.
 """
 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, gases, greenhouse, mixture, species_thermo
-
-INFRARED_MASS_ABSORPTION_M2_KG = {
-    "H2O": 1.0e-2,
-    "CO2": 3.0e-4,
-    "CO": 1.0e-5,
-}
-"""
-dict: The grey infrared mass absorption coefficient of a gas, m2 per kg of that gas. STAND-IN (labelled, replaced by GEN.703's
-band opacities): read from Koll 2019 (arXiv:1907.13145, text of his Fig. 4, part 03 section 6.2), who finds a pure H2O air
-optically thick above about 1e-2 bar (kappa about 1e-2 m2/kg at g near 10), a pure CO2 air of order unity at 1 bar (taken as
-3 optical depths at 1 bar, kappa 3e-4), and CO thin even at 1 bar (taken as 1e-5). The values are not tuned to Earth or Venus.
-"""
-GENERIC_BAND_M2_KG = 1.0e-3
-"""float: STAND-IN, a gas the table flags as an infrared absorber (`ir == "ir"`) with no entry above: between CO2 and H2O."""
-WEAK_BAND_M2_KG = 1.0e-5
-"""float: STAND-IN, a gas the table flags `"weak"`: as thin as CO."""
-LAPSE_SCALING = 0.8
-"""float: STAND-IN, the lapse-rate scaling alpha of Robinson and Catling (0.6 to 0.9: Earth 0.6, Venus 0.8, Titan 0.77, Jupiter 0.85)."""
-PRESSURE_EXPONENT = 1.0
-"""float: The exponent n of the closure; 1 because the opacity here is linear in the column (the line-dominated regime)."""
+from planetgen.physics import (
+    constants,
+    gases,
+    greenhouse,
+    infrared_opacity,
+    mixture,
+    species_thermo,
+)
 
 
 @dataclass(frozen=True)
@@ -91,7 +74,9 @@ class Warming:
         factor (float): `G = (T_s / T_e)^4 - 1`, the repo's greenhouse variable.
         gamma (float): The heat-capacity ratio of the mixture the closure used.
         radiative_convective_boundary (float or None): `tau_rc` (`None` for a purely radiative atmosphere).
-        by_gas (dict): Each absorbing gas's formula to its share of `tau0`.
+        by_gas (dict): Each absorbing gas's formula to the `tau0` of the air with only that gas's bands and wings kept.
+        by_part (dict): The `tau0` of the air with only bands, far wings, the water continuum or the collision-induced pairs kept.
+        lapse_scaling (float): The `alpha` of the closure (`infrared_opacity.lapse_scaling`).
     """
 
     optical_depth: float
@@ -101,6 +86,8 @@ class Warming:
     gamma: float
     radiative_convective_boundary: float | None
     by_gas: dict
+    by_part: dict
+    lapse_scaling: float
 
 
 def air_state(partial_pressures_pa, temperature_k, gravity_m_s2):
@@ -128,34 +115,6 @@ def gas_column_mass_kg_m2(partial_pressures_pa, gravity_m_s2):
             for formula, pressure in partial_pressures_pa.items()}
 
 
-def mass_absorption_m2_kg(formula):
-    """The grey infrared mass absorption coefficient of a gas, m2/kg: its entry in `INFRARED_MASS_ABSORPTION_M2_KG`, else the
-    table's flag (`"ir"` generic, `"weak"` thin, `"cia"` and `"none"` zero: no line absorption)."""
-    if formula in INFRARED_MASS_ABSORPTION_M2_KG:
-        return INFRARED_MASS_ABSORPTION_M2_KG[formula]
-    flag = gases.gas(formula).ir
-    if flag == "ir":
-        return GENERIC_BAND_M2_KG
-    if flag == "weak":
-        return WEAK_BAND_M2_KG
-    return 0.0
-
-
-def optical_depth_by_gas(partial_pressures_pa, gravity_m_s2):
-    """Each gas's share of the surface infrared optical depth, `kappa_i m_i`; gases with no line absorption are left out."""
-    shares = {}
-    for formula, column in gas_column_mass_kg_m2(partial_pressures_pa, gravity_m_s2).items():
-        kappa = mass_absorption_m2_kg(formula)
-        if kappa > 0.0:
-            shares[formula] = kappa * column
-    return shares
-
-
-def infrared_optical_depth(partial_pressures_pa, gravity_m_s2):
-    """`tau0`, the grey infrared optical depth of the whole column: the sum of `optical_depth_by_gas`."""
-    return sum(optical_depth_by_gas(partial_pressures_pa, gravity_m_s2).values())
-
-
 def heat_capacity_ratio(partial_pressures_pa, temperature_k):
     """
     `gamma = cp / (cp - R)` of the mixture at `temperature_k` (mole-fraction mean of the NASA fits' `cp / R`; the temperature is held
@@ -173,21 +132,31 @@ def greenhouse_warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2):
     """
     The warming of an air under an absorbed flux (the globally averaged W/m2 of `greenhouse.absorbed_flux_w_m2`).
 
-    The heat-capacity ratio is taken at the effective temperature (the airless grey temperature), the lowest the surface can be;
-    an air with no line absorber gives `tau0` zero and `G` zero.
+    `tau0` comes from `infrared_opacity.optical_depth` at the surface temperature, which the closure itself gives, so the two are
+    solved together: steps of the fixed point from the effective temperature, each a contraction of about a tenth (`tau0` depends on
+    the temperature only through the Planck weights and the continuum), so it settles in four to six steps; damped steps follow if
+    it does not. The heat-capacity ratio is taken at the effective temperature (the airless grey temperature, the lowest the surface
+    can be); an air with no absorber gives `tau0` zero and `G` zero.
 
     Raises:
         ValueError: The mixture is empty, or the flux or gravity is not positive.
     """
     _check_positive(absorbed_flux_w_m2=absorbed_flux_w_m2, gravity_m_s2=gravity_m_s2)
-    shares = optical_depth_by_gas(partial_pressures_pa, gravity_m_s2)
-    tau0 = sum(shares.values())
     effective = greenhouse.effective_temperature_k(absorbed_flux_w_m2)
     gamma = heat_capacity_ratio(partial_pressures_pa, effective)
-    surface, boundary = greenhouse.surface_temperature_k(tau0, absorbed_flux_w_m2, gamma, LAPSE_SCALING, PRESSURE_EXPONENT)
-    return Warming(optical_depth=tau0, effective_temperature_k=effective, surface_temperature_k=surface,
+    temperature = effective
+    for step in range(infrared_opacity.ITERATIONS):
+        opacity = infrared_opacity.optical_depth(partial_pressures_pa, temperature, gravity_m_s2)
+        lapse = infrared_opacity.lapse_scaling(opacity)
+        surface, boundary = greenhouse.surface_temperature_k(opacity.tau0, absorbed_flux_w_m2, gamma, lapse,
+                                                             infrared_opacity.PRESSURE_EXPONENT)
+        settled = abs(surface - temperature) < infrared_opacity.TOLERANCE_K
+        if settled:
+            break
+        temperature = surface if step < infrared_opacity.UNDAMPED_STEPS else 0.5 * (temperature + surface)
+    return Warming(optical_depth=opacity.tau0, effective_temperature_k=effective, surface_temperature_k=surface,
                    factor=greenhouse.greenhouse_factor(surface, effective), gamma=gamma, radiative_convective_boundary=boundary,
-                   by_gas=shares)
+                   by_gas=opacity.by_gas, by_part=opacity.by_part, lapse_scaling=lapse)
 
 
 def _check_positive(**values):
