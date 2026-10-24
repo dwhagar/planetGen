@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.165 |
+| UX | UX.166 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.679 |
+| GEN | GEN.691 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.314 |
+| TEST | TEST.316 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -1404,6 +1404,18 @@ Parents marked "new parent" had no old number of their own.
 | GEN.676 | Check the NH3 photolysis activity factor (1.078) against the published Huebner photodissociation table and replace the Boss-supplied value | none | dropped (Boss, 11:53 PM EDT 2026-10-23: the gap cannot be filled, no source is reachable; the factor 1.078 stays as a labelled stand-in) |
 | GEN.677 | The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug) | none | open |
 | GEN.678 | The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug) | none | open |
+| GEN.679 | classify(body) and planet_classes.json: the rule table as data and one pure function, with a total-partition test | none | done, PR #2781 |
+| GEN.680 | Class shadow sweep: compare classify with the drawn class and fit the thresholds, and report the shares | none | done, PR #2781 |
+| GEN.681 | The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw | none | open |
+| GEN.682 | Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range | none | open |
+| GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | none | open |
+| GEN.684 | Albedo and greenhouse come from the composition; delete the two class ranges | none | open |
+| GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | none | open |
+| GEN.686 | Age needs come from the processes; delete age_ranges | none | open |
+| GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | none | open |
+| GEN.688 | Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable | none | open |
+| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | none | open |
+| GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1673,7 +1685,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | none | open |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | none | open |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) | none | open |
-| MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) | none | open |
+| MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) | none | done, PR #2838 |
 | MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns | none | done, PR #2789 |
 | MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers | none | done, PR #2789 |
 | MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | none | done, PR #2789 |
@@ -2228,7 +2240,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.145 | The admin menu opens past the edge of the visible screen on the Sector Map (and possibly on other pages) (bug) | none | done, PR #2416 |
 | UX.146 | The top menu bar: Lists moves into the gear menu, the header search becomes an icon-only button, Nearby goes under Nav as Plot Course then Nearby Search (bug) | none | done, PR #2610 |
 | UX.147 | The Generate page has no clear way to generate only a galaxy plan, with no scatter, to see the sector layout on the galaxy screen and add sectors by hand (bug) | none | done, PR #2729 |
-| UX.148 | Log output from Generate is no longer in a fixed-width font (bug) | none | open |
+| UX.148 | Log output from Generate is no longer in a fixed-width font (bug) | none | done, PR #2838 |
 | UX.149 | Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug) | none | done, PR #2767 |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | none | open |
 | UX.151 | Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes | none | done, PR #2733 |
@@ -2245,6 +2257,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) | none | open |
 | UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | open |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
+| UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2664,6 +2677,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.311 | test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug) | none | open |
 | TEST.312 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails on main for the new ozone_uv dataset (bug) | none | done, PR #2810 |
 | TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) | none | open |
+| TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited | none | open |
+| TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

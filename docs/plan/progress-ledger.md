@@ -1213,3 +1213,8 @@ Baseline: PR #1817.
 | GEN.663 | 8.1 | Tuned draws and selection models |
 | GEN.92 | 8.4 | Planet classes |
 | TEST.310 | 8.1 | Bugs and flaky tests |
+| UX.165 | 8.1 | Consistency |
+| GEN.680 | 8.1 | Consistency |
+| GEN.679 | 8.1 | Consistency |
+| UX.148 | 8.1 | Generate page and directives |
+| MAP.270 | 8.1 | Fly-through map |
