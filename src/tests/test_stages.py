@@ -127,7 +127,7 @@ def test_the_new_galaxy_job_counts_every_stage_of_every_step():
 def test_ticking_skip_the_scatter_leaves_the_scatter_steps_out():
     found = jobs.job_stages(_steps("new_galaxy", {"confirm": "db", "skip_scatters": "on"}))
     scatter = [s for s in found if s["label"].startswith("Scatter") and "neighborhood" not in s["label"]]
-    assert scatter == [] and len(found) == 9
+    assert scatter == [] and len(found) == 8
 
 
 def test_a_plan_job_lists_its_scatter_steps_stages():
@@ -138,12 +138,12 @@ def test_a_plan_job_lists_its_scatter_steps_stages():
 
 def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     steps = _steps("new_galaxy", {"confirm": "db"})
-    job = {"stages": jobs.job_stages(steps), "step": 7, "finished": False,
+    job = {"stages": jobs.job_stages(steps), "step": 6, "finished": False,
            "progress": {"stage": {"index": 4, "total": 9, "label": "Scatter the massive stars", "skipped": None}}}
     view = generate_page.stage_view(job)
-    assert view["stage_text"] == "Stage 8 of 12: Scatter the massive stars"
+    assert view["stage_text"] == "Stage 7 of 11: Scatter the massive stars"
     states = [s["state"] for s in view["stage_list"]]
-    assert states[:7] == ["done"] * 7 and states[7] == "running" and "waiting" in states
+    assert states[:6] == ["done"] * 6 and states[6] == "running" and "waiting" in states
     assert "skipped" not in states
 
 
@@ -492,8 +492,8 @@ def test_the_runner_and_the_stages_agree_on_the_variables_that_number_a_jobs_sta
     assert (job_runner.STAGE_OFFSET_ENV, job_runner.STAGE_TOTAL_ENV) == (stages.STAGE_OFFSET_ENV, stages.STAGE_TOTAL_ENV)
 
 
-def test_the_new_galaxy_log_counts_twelve_tasks_not_five(tmp_path):
-    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 12 stages (13 and 5 with the data check, GEN.590)."""
+def test_the_new_galaxy_log_counts_eleven_tasks_not_ten(tmp_path):
+    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 11 stages (11 and 10 steps with the data check, GEN.590)."""
     import sys
     from planetgen.web import job_runner
     steps = _steps("new_galaxy", {"confirm": "db"})
@@ -501,7 +501,7 @@ def test_the_new_galaxy_log_counts_twelve_tasks_not_five(tmp_path):
               "argv": [sys.executable, "-c", "import os; print(os.environ['PLANETGEN_STAGE_OFFSET'], os.environ['PLANETGEN_STAGE_TOTAL'])"]}
              for step in steps]
     counts = job_runner._step_stage_counts(shown)
-    assert counts == [1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1] and sum(counts) == 12
+    assert counts == [1, 1, 1, 2, 1, 1, 1, 1, 1, 1] and sum(counts) == 11
     job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
     job_dir.mkdir(parents=True)
     (job_dir / "job.json").write_text(json.dumps({
@@ -509,10 +509,10 @@ def test_the_new_galaxy_log_counts_twelve_tasks_not_five(tmp_path):
         "cwd": str(tmp_path), "env": {}, "steps": shown}))
     assert job_runner.run(str(job_dir)) == 0
     log_text = (job_dir / "output.log").read_text()
-    assert "=== Stage 1 of 12: " in log_text and "=== Stage 4 of 12: " in log_text
-    assert "=== Stages 5 to 6 of 12: " in log_text and "of 5" not in log_text
-    assert "=== Stages 5 to 6 exited with status 0" in log_text
-    assert "\n4 12\n" in log_text      # the sectors step's process was told its stages start at 5 of 12
+    assert "=== Stage 1 of 11: " in log_text and "=== Stage 3 of 11: " in log_text
+    assert "=== Stages 4 to 5 of 11: " in log_text and "of 10" not in log_text
+    assert "=== Stages 4 to 5 exited with status 0" in log_text
+    assert "\n3 11\n" in log_text      # the sectors step's process was told its stages start at 4 of 11
 
 
 def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_jobs_until_the_last(monkeypatch):
