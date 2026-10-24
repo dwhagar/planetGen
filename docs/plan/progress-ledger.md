@@ -1230,3 +1230,6 @@ Baseline: PR #1817.
 | GEN.414 | 8.1 | Radiation chain for habitability (GEN.445) |
 | DB.68 | 8.1 | Consistency |
 | MAP.143 | 8.1 | Habitability system |
+| GEN.694 | 8.1 | Mixture and stored values |
+| GEN.693 | 8.1 | Mixture and stored values |
+| DB.73 | 8.1 | Radiation chain for habitability (GEN.445) |
