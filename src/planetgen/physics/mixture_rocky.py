@@ -73,6 +73,11 @@ INVENTORY = {
     "potassium_wt_percent": (0.005, 0.1, "log"),
     # The share of the 40Ar produced that has reached the air (part 05 section 3.6: 0.05 to 0.7).
     "argon_degassed": (0.05, 0.7, "uniform"),
+    # The share of the outgassed carbon and sulfur that stays in the air of a body with an ocean and a long-lived geology, the
+    # carbonate-silicate cycle and the sulfate sink having locked the rest in the crust: Earth keeps about 1.5e-5 of its near-surface
+    # carbon in the air (0.9e15 kg C in the CO2 against about 6e19 kg C in the crust's carbonates, TEST point read from memory, not
+    # re-checked); a warmer or younger world keeps more. A design bracket, replaced by the weathering feedback of GEN.481.
+    "weathering_sink": (1e-5, 1e-2, "log"),
 }
 """dict: name -> (low, high, shape), the draws of the inventory that no table of the recipes holds."""
 
@@ -162,6 +167,10 @@ def rocky_inventory(subject, recipe, constants):
     potassium = bracket(constants, "potassium_wt_percent", INVENTORY["potassium_wt_percent"]) / AMU_G_MOL["K"]
     degassed = bracket(constants, "argon_degassed", INVENTORY["argon_degassed"])
     argon = degassed * K40_ARGON_BRANCH * K40_ABUNDANCE * potassium * math.expm1(K40_DECAY_PER_GY * max(subject["age_gy"], 0.0))
+    if subject.get("ocean_present") and subject.get("long_lived_geology"):
+        sink = bracket(constants, "weathering_sink", INVENTORY["weathering_sink"])      # nitrogen and argon stay in the air (GEN.674)
+        carbon *= sink
+        sulfur *= sink
     return {"H": hydrogen, "C": carbon, "N": nitrogen, "S": sulfur, "Ar": argon}
 
 

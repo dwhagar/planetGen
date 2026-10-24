@@ -91,12 +91,26 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
 
 ## Stand-ins and limits
 
-- The recipe tables had no rows for the planned rocky classes U, Y and Z in tables a to d, l, m and o, although the rows of `j` are gated on
-  them (and `j3`, `j4` need a retention row `d4` or `d5`): `ROCKY` in `scripts/atmosphere_recipes_data.py` now lists them. No body has these
-  classes yet, so no output changes. Even so a Pluto-like body (escape speed 1.2 km/s) gets the retention row `d1` (airless) from the
-  shoreline, so `j4` is never drawn for it; filed with TODO.
-- The recipe rows `k` carry no gate on the perihelion: a comet or icy asteroid is drawn a coma whatever its distance; filed with TODO.
-- Design brackets this module added, each to be replaced by the research item named: `WATER_RESIDUAL`, `SULFUR_SINK`,
+- The recipe tables had no rows for the planned rocky classes U, Y and Z in tables a to d, l, m and o, although the rows of `j` are gated
+  on them (and `j3`, `j4` need a retention row `d4` or `d5`): `ROCKY` in `scripts/atmosphere_recipes_data.py` now lists them. No body has
+  these classes yet, so no output changes.
+- GEN.674 closed these gaps of the draw (all unwired until GEN.411, so no generator epoch): (1) a comet whose perihelion is beyond the
+  coma's gate (rows `k` pass only inside 3 AU, or for an icy asteroid) drew the `none` of group k and then fell through to the rocky
+  family; it is now `airless` (an asteroid still goes on to the rocky rows). (2) In a group whose fallback is `none` (j, k) the weights
+  are probabilities of occurrence, not shares: a lone row of weight 0.1 is drawn one time in ten, and a frost row 100 K outside its
+  window is no longer normalised to 1 (frost was drawn at 181 K); `c_j1` and `c_j5` now mean what their brackets say (the share of
+  eligible worlds that are Venus-like and that keep abiotic oxygen). (3) A body with an ocean and a long-lived geology keeps only the
+  share `INVENTORY["weathering_sink"]` (1e-5 to 1e-2, log; Earth keeps about 1.5e-5 of its near-surface carbon in the air) of the
+  outgassed carbon and sulfur, the nitrogen, argon and water staying: an Earth-like draw is nitrogen with some water and a little CO2
+  instead of a carbon dioxide and sulfur air (the water is capped by its saturation in the pressure bookkeeping, GEN.422).
+- Gaps that stay, each with its reason (GEN.674 items 3, 5 and 6; the filed finding numbers are in the item): rows `j3` and `j4` are
+  gated on the retention rows `d4` and `d5`, and the shoreline (a fit to hot rocky exoplanets, extrapolated to an escape speed of 1.2
+  km/s) gives a Pluto-like body `d1` (airless), so the Pluto-like family is never drawn for it. Boss decided (fork 7, 10-18) that
+  these families are an output of the escape and retention physics; the retention physics of cold volatile bodies (the sublimation
+  supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. The
+  gas table lacks Al, K2, KO, K2O and Na2O for the lava vapour: the table is generated from the research parts 01 and 03, so the
+  rows belong there first; until then a hot melt that makes more than `UNLISTED_LIMIT` of them is refused by name.
+- Design brackets this module added, each to be replaced by the research item named: `INVENTORY["weathering_sink"]` (GEN.481), `WATER_RESIDUAL`, `SULFUR_SINK`,
   `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the
   melt activity model of GEN.499 and the bulk composition of lane J), the k1 to k3 ordering rule of the coma.
@@ -107,5 +121,5 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
 - Above about 1600 K at low pressure the gas holds atoms and radicals (H, O, OH, C, N, S) that the gas table does not list: the draw
   refuses with `MixtureError` when they exceed `UNLISTED_LIMIT`. Those bodies are lava worlds (GEN.499); the gas table additions are
   filed with the TODO thread.
-- Missing from the rocky path, to come: the carbonate-silicate CO2 sink of a body with an ocean and plate tectonics, and the oxygen
-  that life makes (life is computed after the planet; the ordering belongs to GEN.422).
+- Missing from the rocky path, to come: the oxygen that life makes (life is computed after the planet; the ordering belongs to GEN.422)
+  and the temperature feedback of the weathering sink (GEN.481).

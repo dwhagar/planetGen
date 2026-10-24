@@ -13,7 +13,7 @@ BASE = dict(mass_earth=1.0, ts_k=288.0, pressure_bar=1.0, age_gy=4.5, long_lived
             snow_ratio=0.5, zone="e", host_type="G", is_moon=False, insolation=1.0, luminosity_solar=1.0, water_lost=False,
             runaway_ratio=0.5, teq_k=255.0, xuv_index=1.0, v_esc_kms=11.2, radius_km=6371.0, host_mass_solar=1.0)
 
-MARS = dict(mass_earth=0.1, ts_k=215.0, pressure_bar=0.006, v_esc_kms=5.0, radius_km=3400.0)
+MARS = dict(mass_earth=0.1, ts_k=215.0, pressure_bar=0.006, v_esc_kms=5.0, radius_km=3400.0, ocean_present=False, long_lived_geology=False)
 TITAN = dict(mass_earth=0.0225, ts_k=94.0, pressure_bar=1.5, is_moon=True, radius_km=2575.0, insolation=0.001, zone="c", v_esc_kms=2.6)
 # the shoreline gives the retention rows d4 and d5 that j3 and j4 are gated on only to a body with an escape speed this high
 PLUTO = dict(mass_earth=0.002, ts_k=40.0, pressure_bar=1e-5, radius_km=1188.0, zone="c", v_esc_kms=3.0, insolation=0.0006)
@@ -40,7 +40,7 @@ def test_a_mars_like_body_has_a_thin_carbon_dioxide_nitrogen_air_without_water()
 
 
 def test_a_venus_like_body_is_carbon_dioxide_with_a_few_percent_nitrogen():
-    changes = dict(water_lost=True, runaway_ratio=1.2, ts_k=735.0, pressure_bar=90.0, mass_earth=0.8)
+    changes = dict(water_lost=True, runaway_ratio=1.2, ts_k=735.0, pressure_bar=90.0, mass_earth=0.8, ocean_present=False)
     found = draws("S", changes, "venus", count=120)
     assert found
     for result in found:
