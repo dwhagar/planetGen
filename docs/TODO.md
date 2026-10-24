@@ -1408,7 +1408,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zoom budget and picking, shipping the black-hole kind), markers for
   habitable worlds and chosen classes (child b) and the station and
   vessel icons (child c, in 9.3).
-  Prerequisites: MAP.219, MAP.220, MAP.221.
+  Prerequisites: MAP.220, MAP.221.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -1744,7 +1744,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Draws the far-zoom markers of the marker layer (first child of
   MAP.132), so it needs it (2026-10-16 review); it keeps the
   planetary-nebula and remnant kind.
-  Prerequisites: GEN.202, MAP.173, MAP.219. Related: MAP.132.
+  Prerequisites: GEN.202, MAP.173. Related: MAP.132.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
 - [ ] **MAP.180 Picking, hover and fly-to for nebula regions and cover**
@@ -2143,26 +2143,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test shows that two overlapping regions combine in a stated order.
   Prerequisites: ADM.94, GEN.302, MAP.212. Related: MAP.119.
 
-- [ ] **MAP.219 Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind**
-  Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Build the one layer the other
-  marker kinds draw into: a registry (kind, glyph, colour token, minimum
-  zoom, source), the per-kind toggles of MAP.123, the budget of MAP.116
-  (markers show only at the zooms where it allows), a 2 px floor under
-  which a sprite stays hidden, hover and pick with the same keyboard
-  path as other map objects, and the legend rows. Ship it with the
-  black-hole kind from the stored black holes. Done: the layer, the
-  registry with black holes as its first kind, toggle and budget
-  behaviour, and a browser test that finds a black-hole marker on a
-  seeded sector and hides it when the kind is switched off.
-  Prerequisites: none. Related: MAP.132.
-  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
-  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
-  right now to build it, I want the habitability system finished before
-  8.1 is ready'; this overrides the 8.1-only pause for it and any
-  earlier owner line. Owner: Habitability lane C (map). Moved with
-  MAP.220, its prerequisite; the marker layer is shared with the later
-  marker kinds (MAP.132 stays in 9.3).
 - [ ] **MAP.220 Markers for habitable worlds and chosen classes, optional per kind**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Add the kinds that issue #1234
@@ -2170,7 +2150,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chosen object classes, each optional through its toggle and shown at
   the zooms the budget allows. Done: both kinds in the registry of child
   a, and a browser test that finds one of each on a seeded sector.
-  Prerequisites: MAP.219. Related: MAP.132.
+  Prerequisites: none. Related: MAP.132.
   Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
   2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
   right now to build it, I want the habitability system finished before
@@ -2191,7 +2171,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exist (issue #1234: 'icons for space stations, etc.'). Done: the two
   kinds in the registry with their toggles, and a browser test that
   finds a user's ship and a scattered station.
-  Prerequisites: MAP.219, USR.29, POP.11. Related: MAP.132.
+  Prerequisites: USR.29, POP.11. Related: MAP.132.
 
 - [ ] **MAP.222 Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone**
   Split from MAP.194 (2026-10-16, Boss 1:07 PM EDT: look at each item
