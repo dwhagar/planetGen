@@ -1192,3 +1192,4 @@ Baseline: PR #1817.
 | GEN.659 | 8.1 | Bulk composition |
 | DB.86 | 8.1 | Bulk composition |
 | UX.128 | 8.1 | The Quantity call-site sweep |
+| MAP.244 | 8.1 | Descriptions and maps |
