@@ -103,13 +103,14 @@ def test_the_thorium_scale_of_non_thin_disc_hosts_is_the_thick_disc_offset_on_th
 
 def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the_published_formula():
     from planetgen.generation.possibility_table import Subject
-    dist = lambda age: RECIPES._dist_of(RECIPES.entry("o4"), Subject("A", {"age_gy": age}))   # noqa: E731
-    low, high = dist(4.5)["lo"], dist(4.5)["hi"]
+    dist = lambda age, f: RECIPES._dist_of(RECIPES.entry("o4"), Subject("A", {"age_gy": age, "th_u_f": f}))   # noqa: E731
+    low, high = dist(4.5, 1.16254)["lo"], dist(4.5, 1.71724)["hi"]
     # the report's table (PR 1.751, mass Th/U at 4.5 Gyr) is 3.19 for T = 3 Gyr and 4.72 for T = 13 Gyr; the bounds use PR 1.667 and 2.0
     assert low == pytest.approx(3.19 * 1.667 / 1.751, rel=0.005) and high == pytest.approx(4.72 * 2.0 / 1.751, rel=0.005)
-    assert dist(6.0)["lo"] / low == pytest.approx(1.1719, rel=0.002), "x1.17 over 1.5 Gyr (decay constants 0.1058 per Gyr)"
-    assert dist(0.0)["lo"] == pytest.approx(0.97483 * 1.667 * 1.16254, rel=1e-6)
-    assert RECIPES.entry("o4").state == "partly verified" and "chemical-evolution" in RECIPES.entry("o4").limit
+    assert dist(6.0, 1.16254)["lo"] / dist(4.5, 1.16254)["lo"] == pytest.approx(1.1719, rel=0.002), "x1.17 over 1.5 Gyr (decay constants 0.1058 per Gyr)"
+    assert dist(0.0, 1.16254)["lo"] == pytest.approx(0.97483 * 1.667 * 1.16254, rel=1e-6)
+    assert RECIPES.entry("o4").state == "partly verified" and "disc's star formation history" in RECIPES.entry("o4").limit
+    assert "T = 3" not in str(RECIPES.entry("o4").spec["dist"]), "the uniform birth epoch is gone"
 
 
 def test_the_enriched_aluminium_share_bracket_is_the_published_one():
