@@ -324,7 +324,7 @@ class _Fake:
         return {"total": 0, "counts": {}, "items": []}
 
     def get_object_sheet(self, db, ref):
-        return {"groups": []}
+        return {"kind": ref.split(":", 1)[0], "groups": []}
 
     def auth_me(self, cookie_header):
         return None
