@@ -2129,10 +2129,9 @@ CREATE TABLE IF NOT EXISTS planets (
     habitable_zone_inner_km   DOUBLE NOT NULL,   -- copied from host star at generation time
     habitable_zone_outer_km   DOUBLE NOT NULL,
     life_chemical             VARCHAR(64),
-    evolutionary_speed        VARCHAR(64),
     flavor_text_count         INT NOT NULL DEFAULT 0,
     life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
-    evolutionary_pace         VARCHAR(16),      -- v110: the timeline scale (fast, normal, slow)
+    evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v136)
     life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
     life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
     flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
@@ -2321,10 +2320,9 @@ CREATE TABLE IF NOT EXISTS moons (
     habitable_zone_inner_km   DOUBLE NOT NULL,
     habitable_zone_outer_km   DOUBLE NOT NULL,
     life_chemical             VARCHAR(64),
-    evolutionary_speed        VARCHAR(64),
     flavor_text_count         INT NOT NULL DEFAULT 0,
     life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
-    evolutionary_pace         VARCHAR(16),      -- v110: the timeline scale (fast, normal, slow)
+    evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v136)
     life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
     life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
     flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)

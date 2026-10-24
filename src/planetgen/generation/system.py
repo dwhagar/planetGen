@@ -540,7 +540,7 @@ class StarSystem:
         # module docstring). Apply it now, in one pass over the finished system, so
         # evolutionary timelines are computed against the star's final, planet-adjusted
         # age rather than its provisional pre-adjustment one. Flavor text is decided
-        # in the same pass (after life data, since it reads evolutionary_data) so it
+        # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         with log.timed_phase("snow line pass"):
             for obj in self.planets + self.secondary_planets:

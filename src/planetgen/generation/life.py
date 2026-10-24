@@ -20,7 +20,7 @@ the star's final age rather than a provisional pre-adjustment one.
 
 
 
-from planetgen.generation.evolution import get_evolutionary_state
+from planetgen.generation import evolution
 from planetgen import tuning
 from planetgen.physics import habitability_world
 from planetgen.util import draw
@@ -38,10 +38,8 @@ def get_viable_life_chemicals(planet, spectral_class=None):
         planet (Planet): The planet or moon to evaluate.
         spectral_class (str, optional): The star's spectral class, if the
                                         caller already computed it (e.g.
-                                        `apply_life_data`, which also calls
-                                        `get_evolutionary_speed` for the same
-                                        star). Computed from `planet.star`
-                                        if not given.
+                                        `apply_life_data`). Computed from
+                                        `planet.star` if not given.
 
     Returns:
         dict: A dictionary mapping viable life chemical strings to their
@@ -92,63 +90,10 @@ def get_viable_life_chemicals(planet, spectral_class=None):
     return normalized_chemicals
 
 
-def get_evolutionary_speed(planet, spectral_class=None):
-    """
-    Determines the evolutionary speed for a planet's biosphere.
-    Finds the intersection of speeds supported by the star's lifespan
-    and the speed required by the planet's specific life chemical, then
-    chooses one randomly.
-
-    Args:
-        planet (Planet): The planet or moon to evaluate. Its `life_chemical`
-                         should already be set (by `apply_life_data`) if a
-                         chemical-specific speed is to be considered.
-        spectral_class (str, optional): The star's spectral class, if the
-                                        caller already computed it. Computed
-                                        from `planet.star` if not given.
-
-    Returns:
-        str: The chosen evolutionary speed (e.g., 'fast', 'normal', 'slow'),
-             or None if data is missing.
-    """
-    if not planet.star.type:
-        return None
-
-    # Determine the star's spectral class (e.g., 'G' from 'G2V')
-    spectral_class = spectral_class or get_star_spectral_class(planet.star)
-
-    # 1. Get the speeds supported by the star (see get_viable_life_chemicals
-    # above for why this uses get_star_evolutionary_profile rather than a raw
-    # STAR_EVOLUTION[spectral_class] lookup).
-    star_data = get_star_evolutionary_profile(planet.star)
-    if not star_data or not star_data.get("supported_evolutionary_scales"):
-        return None
-
-    star_speeds = star_data["supported_evolutionary_scales"]
-
-    # 2. Get the speeds supported by the chemical (if one is assigned)
-    if planet.life_chemical:
-        chem_data = tuning.LIFE_CHEMICALS.get(planet.life_chemical)
-        if chem_data and chem_data.get("evolutionary_time_scale"):
-            chem_speeds = chem_data["evolutionary_time_scale"]
-
-            # Ensure it's a list for intersection logic, even though
-            # tuning.py currently stores it as a single string
-            if isinstance(chem_speeds, str):
-                chem_speeds = [chem_speeds]
-
-            # Find the intersection
-            valid_speeds = [speed for speed in star_speeds if speed in chem_speeds]
-
-            if valid_speeds:
-                return draw.choice(valid_speeds)
-
-    # 3. Fallback: If no chemical is set (or if there's somehow no overlap),
-    # just pick a random speed supported by the star.
-    if star_speeds:
-        return draw.choice(star_speeds)
-
-    return None
+def get_chemical_scales(life_chemical):
+    """The evolutionary paces (`tuning.EVOLUTIONARY_TIMELINES` keys) a life chemistry allows, as a list."""
+    scales = tuning.LIFE_CHEMICALS.get(life_chemical, {}).get("evolutionary_time_scale")
+    return [scales] if isinstance(scales, str) else list(scales or ())
 
 
 def life_ceiling(planet):
@@ -178,7 +123,7 @@ def _set_description(planet):
 def apply_life_data(planet):
     """
     Determines and assigns a planet's (or moon's) life chemistry,
-    evolutionary speed, and — for habitable, non-moon worlds — its
+    evolutionary pace (drawn once, for every sentence about it), and — for habitable, non-moon worlds — its
     evolutionary timeline narrative.
 
     Called once per planet/moon by `StarSystem.__init__`, after all planets
@@ -188,8 +133,8 @@ def apply_life_data(planet):
     Args:
         planet (Planet): The planet or moon to apply life data to. Its
                          `life_chemical`, `reflection_spectrum_visible`,
-                         `reflection_spectrum_non_visible`, `evolutionary_speed`,
-                         and (if applicable) `life_stage`, `evolutionary_pace` and
+                         `reflection_spectrum_non_visible`, `evolutionary_pace`,
+                         and (if applicable) `life_stage` and
                          the two ages are set in place.
     """
     spectral_class = get_star_spectral_class(planet.star) if planet.star.type else None
@@ -202,7 +147,6 @@ def apply_life_data(planet):
         planet.life_chemical = None
         planet.reflection_spectrum_visible = None
         planet.reflection_spectrum_non_visible = None
-        planet.evolutionary_speed = None
         _set_evolutionary_state(planet, None)
         habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
         log.debug("Life chemistry: none, the habitability index gives microbial life 0")
@@ -226,27 +170,32 @@ def apply_life_data(planet):
         planet.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
     else:
         planet.life_chemical = None
+        planet.reflection_spectrum_visible = None
+        planet.reflection_spectrum_non_visible = None
         log.debug(f"Life chemistry: none viable for spectral class {spectral_class!r}")
 
-    # Determine the evolutionary speed based on the star and chosen chemical
-    planet.evolutionary_speed = get_evolutionary_speed(planet, spectral_class)
+    # The pace is drawn once, from what the star and the chemistry allow; the life sentence, the timeline and the
+    # stored column all read this one value.
+    planet.evolutionary_pace = (evolution.draw_scale(planet.star, get_chemical_scales(planet.life_chemical))
+                                if planet.life_chemical else None)
 
     # Generate evolutionary timeline data if the planet is habitable, has a
     # life chemistry and is not a moon. Without a chemistry nothing lives
     # there, so no timeline (a lifeless world used to get one, and the
     # population pass then gave it a species no page would show).
     if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
-        _set_evolutionary_state(planet, get_evolutionary_state(
-            planet.star, planet.planet_class, max_stage="photosynthesis" if ceiling == "microbial" else None))
+        _set_evolutionary_state(planet, evolution.get_evolutionary_state(
+            planet.star, planet.planet_class, planet.evolutionary_pace,
+            max_stage="photosynthesis" if ceiling == "microbial" else None))
     else:
         _set_evolutionary_state(planet, None)
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
 
 
 def _set_evolutionary_state(planet, state):
-    """Stores a `get_evolutionary_state` on the body (`None`: no timeline)."""
+    """Stores a `get_evolutionary_state` on the body (`None`: no timeline; the pace stays what `apply_life_data`
+    drew for the chemistry)."""
     planet.life_stage = state["stage"] if state else None
-    planet.evolutionary_pace = state["scale"] if state else None
     planet.life_milestone_age_gyr = state["milestone_age_gyr"] if state else None
     planet.life_system_age_gyr = state["system_age_gyr"] if state else None
 

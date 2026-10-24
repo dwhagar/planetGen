@@ -315,6 +315,12 @@
       "epoch": 64,
       "first_release": "8.0.2079",
       "reason": "The disc's recent star formation falls faster in its thin outer gas, so the density of young stars at large radius and every young star's place in the outer disc move, and with them the systems generated there (GEN.450)"
+    },
+    {
+      "epoch": 65,
+      "first_release": null,
+      "pending": true,
+      "reason": "A world's evolutionary pace is drawn once, from what the star and its life chemistry allow, instead of twice (the second draw sat inside the timeline), a body with no viable chemistry draws no pace, so the stream after the life draw moves (GEN.666)"
     }
   ]
 }

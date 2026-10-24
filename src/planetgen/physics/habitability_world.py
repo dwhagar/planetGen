@@ -159,7 +159,7 @@ def values_from_body(body):
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_chemical", None), getattr(body, "life_stage", None),
-                                   getattr(body, "evolutionary_pace", None) is not None),
+                                   getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
     }
     for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
@@ -179,7 +179,7 @@ def native_life(life_chemical, milestone, has_timeline):
     The `habitability.LIFE_STAGES` stage of a body's native life, from its life
     chemistry (`None` for none), the latest evolutionary milestone its timeline
     reached (`life_stage` on the body, `None` for none) and whether it has a
-    timeline (`evolutionary_pace` is set). Life with no timeline (a moon, or a
+    timeline (`life_system_age_gyr` is set). Life with no timeline (a moon, or a
     world outside the habitable zone) is microbial; a timeline that has reached
     no milestone yet is none.
     """

@@ -8,7 +8,8 @@ import re
 import pytest
 
 from planetgen import tuning
-from planetgen.describe import build as describe_build
+from planetgen.describe import build as describe_build, life_facts
+from planetgen.describe.quantity import inline_text
 from planetgen.generation import life as planetLife
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -50,7 +51,7 @@ def test_a_world_the_index_gives_no_microbial_life_makes_no_claim_of_life(host_s
     planet.phi_bio, planet.phi_cpx = 0.0, 0.0
     planetLife.apply_life_data(planet)
     assert planet.life_chemical is None
-    assert planet.evolutionary_data == [] and planet.evolutionary_speed is None
+    assert not planet.has_timeline and planet.evolutionary_pace is None
     assert planet.reflection_spectrum_visible is None and planet.reflection_spectrum_non_visible is None
     assert not LIFE_WORDS.search(planet.description), planet.description
     text = _description_and_life_text(planet)
@@ -67,7 +68,9 @@ def test_a_world_the_index_allows_only_microbial_life_stops_its_timeline_before_
         planetLife.apply_life_data(planet)
         assert planet.life_stage in (None, "abiogenesis", "photosynthesis")
         assert not COMPLEX_WORDS.search(planet.description), planet.description
-        assert not COMPLEX_WORDS.search(" ".join(planet.evolutionary_data)), planet.evolutionary_data
+        life = life_facts.resolve(planet)
+        timeline_text = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(life)) if life.timeline else ""
+        assert not COMPLEX_WORDS.search(timeline_text), timeline_text
 
 
 def test_no_class_description_claims_life_or_names_a_planet():
@@ -109,7 +112,7 @@ def test_no_generated_description_contradicts_its_own_habitability_index():
                 ceiling = planetLife.life_ceiling(body)
                 if ceiling == "none":
                     lifeless += 1
-                    assert body.life_chemical is None and body.evolutionary_data == [], body.name
+                    assert body.life_chemical is None and not body.has_timeline, body.name
                     assert not LIFE_WORDS.search(body.description), (body.name, body.description)
                 elif ceiling == "microbial":
                     microbial_only += 1
