@@ -432,6 +432,14 @@ def test_with_no_golden_file_checked_in_the_epoch_and_the_note_go_together(tmp_p
 
 
 @needs_git
+def test_the_pr_that_adds_the_first_golden_files_needs_no_epoch_bump(tmp_path):
+    root = _no_golden_repo(tmp_path)
+    _golden(root, "one")
+    _commit(root, FIXED_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
 @pytest.mark.parametrize("epoch, line, missing", [(True, False, "generation-output"), (False, True, "epoch bumped")])
 def test_with_no_golden_file_a_lone_epoch_or_note_line_is_still_refused(tmp_path, epoch, line, missing):
     root = _no_golden_repo(tmp_path)

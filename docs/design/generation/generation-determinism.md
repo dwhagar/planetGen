@@ -231,6 +231,8 @@ The same encoder: `seed` as 32 uppercase hex, `version_key` with parts spelled o
 
 ## 7. Golden-seed test structure (TEST.77)
 
+Built as described in [reproducible-galaxies.md](reproducible-galaxies.md) (the golden test paragraph): tier A pins a digest a case rather than a digest a named section, and the Rosetta text is three small battery cases, because a one-system sector is about 100 KB of canonical text.
+
 ### 7.1 Tiers
 
 Three tiers, cheapest first, so a failure is localised before the expensive test runs.

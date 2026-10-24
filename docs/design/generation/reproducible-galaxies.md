@@ -8,7 +8,7 @@ thread). This is the design note OPS.11 asks for.
 
 **Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The astropy-constants fix and the Python 3.9 and 3.10 caveats below are done (GEN.211, OPS.42); the version key's `env` list no longer names astropy.
 
-**Status (2026-10-15).** Built: the fingerprint (GEN.58, #809, `db/fingerprint.py`), the version-key history (OPS.13, #810), the mismatch warning (OPS.14, #876), the per-sector version (DB.7, #813) and `check-db` (DB.8, #893, `db/check.py`). Built: the epoch counter and its PR rule (OPS.56, `planetgen/util/generator_epoch.py`). Still open: the golden test (TEST.77), the battery digest (OPS.57), the history row (OPS.58), the encoder (GEN.136). Dropped by Boss on 2026-10-09: `reproduce` (OPS.12, section 10) and DB.10. ADM.50 removed the galaxy settings file (2026-10-16); section 7 describes what replaced it. So "planned and not built" in the status block below is out of date for the built items above.
+**Status (2026-10-15).** Built: the fingerprint (GEN.58, #809, `db/fingerprint.py`), the version-key history (OPS.13, #810), the mismatch warning (OPS.14, #876), the per-sector version (DB.7, #813) and `check-db` (DB.8, #893, `db/check.py`). Built: the epoch counter and its PR rule (OPS.56, `planetgen/util/generator_epoch.py`). Built since: the battery digest (OPS.57), the history row (OPS.58), the encoder (GEN.304) and the golden test (TEST.77). Dropped by Boss on 2026-10-09: `reproduce` (OPS.12, section 10) and DB.10. ADM.50 removed the galaxy settings file (2026-10-16); section 7 describes what replaced it. So "planned and not built" in the status block below is out of date for the built items above.
 
 **Scope change (Boss, 2026-10-09 20:42Z).** "Remove the idea of us letting
 the USER regenerate an entire galaxy from the seed and version, we'll use
@@ -298,7 +298,19 @@ full key text living on the `generation_runs` row. Detail:
   a hundred million), so TEST.77 reads the value when one float differs.
   The row-by-row leaf digest at save time and the tree of region digests
   (GEN.305, DB.9) are not built.
-- **Golden test (TEST.77).** A fixed seed builds a small galaxy (plan, a
+- **Golden test (TEST.77, built).** `tests/test_golden_seed.py` pins three files under `src/tests/golden/`, written by
+  `tests/golden_seed.py`: `battery.json` (tier A: the battery's `[full, structural]` digest of each case and the overall
+  one, read as "the code changed" when the structure differs and "the platform?" when only the numbers do),
+  `rosetta.txt` (three small battery cases as canonical text, one value a line, so a failing digest reads as a
+  `diff -u`), and `galaxy.json` (tier B: the galaxy of seed `5EED00000000A1B2C3D4E5F607182930`, `planetgen galaxy
+  --shells 1 --num-systems 4`, so the run's own scatter, backfill and settle are in it, at one worker and at four:
+  the two must agree, and the fingerprint of the plan, of every sector and, for a sector with systems, of each named
+  section must equal the file). Tier C is the hash-seed and locale probe of `test_reproducible_draws.py`. The files hold no epoch
+  number (it is numbered at merge); `bump_version.py --check-pr` ties a change to them to the epoch bump and the note's
+  `generation-output: changed` line. `python -m tests.golden_update --reason "..."` rewrites them (about ten minutes,
+  it needs the test database) and bumps the epoch; after a conflict in them, take main's files and run it again. The
+  test is not on CI (there is none, Boss's rule).
+  Original design: a fixed seed builds a small galaxy (plan, a
   few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
   Python leg, and its fingerprint must match the one pinned in
   `src/tests/golden/`. A PR that changes generation output updates the

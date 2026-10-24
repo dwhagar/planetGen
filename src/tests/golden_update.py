@@ -7,13 +7,16 @@ Bumps the generator epoch after the golden files were changed on purpose (OPS.56
 
 A PR that changes what the generator produces for a seed changes the golden files under `src/tests/golden/`, and
 `scripts/bump_version.py --check-pr` then requires three things together: those files, the epoch bumped by one, and
-a line `generation-output: changed` in the PR's `changes/` note. This tool does the second: it appends the next epoch
-to `src/tests/golden/epochs.json`, with the reason and no release yet (stamping the release names it).
+a line `generation-output: changed` in the PR's `changes/` note. This tool does the first two: it rewrites the golden
+files (TEST.77: `tests/test_golden_seed.py` run with `PLANETGEN_WRITE_GOLDEN=1`, about ten minutes, it needs the test
+database) and appends the next epoch to `src/tests/golden/epochs.json`, with the reason and no release yet (stamping
+the release names it). After a merge conflict in the golden files, take main's files and run it again: it writes the
+files afresh and leaves the epoch the change already holds.
 
 It refuses under CI (a golden file is never to be regenerated there, or a regression would rewrite its own proof),
-when golden files exist and none has changed since main (nothing to bump for) and for a second bump in the same change
-(the epoch already went up; the new golden changes ride on it). Until the golden test (TEST.77) checks in the first
-golden file there is nothing to change, so the bump needs only a reason and goes with the note's line.
+when the golden files exist and none differs from main after the rewrite (nothing to bump for) and for a second bump
+in the same change (the epoch already went up; the new golden changes ride on it). `--no-write` skips the rewrite for
+golden files that were already written.
 """
 
 import argparse
@@ -48,7 +51,7 @@ def _changed_golden_files(root):
 
 
 def _golden_files_exist(root):
-    """Whether any golden file other than `epochs.json` is checked in (none is until the golden test, TEST.77)."""
+    """Whether any golden file other than `epochs.json` is checked in."""
     names = _git(root, "ls-files", "--", GOLDEN_DIR).split()
     return any(os.path.basename(name) != "epochs.json" for name in names)
 
@@ -85,11 +88,33 @@ def bump(reason, root=ROOT, environ=None):
     return epochs[-1]["epoch"]
 
 
+def write_golden(root=ROOT, environ=None):
+    """
+    Rewrites the golden files: runs the golden test with `PLANETGEN_WRITE_GOLDEN=1`, which writes them instead of
+    comparing.
+
+    Raises:
+        Refused: Under CI, or when the golden test fails to run.
+    """
+    environ = dict(os.environ if environ is None else environ)
+    if environ.get("CI"):
+        raise Refused("refusing under CI: the golden files are changed on a developer's machine, in the PR")
+    environ["PLANETGEN_WRITE_GOLDEN"] = "1"
+    environ["PYTHONPATH"] = os.pathsep.join(filter(None, [os.path.join(root, "src"), environ.get("PYTHONPATH")]))
+    done = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+                           "src/tests/test_golden_seed.py"], cwd=root, env=environ)
+    if done.returncode != 0:
+        raise Refused("the golden test did not run to the end, so the golden files are not rewritten")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--reason", required=True, help="what changed in the generated output, and why")
+    parser.add_argument("--no-write", action="store_true", help="the golden files were already rewritten")
     args = parser.parse_args(argv)
     try:
+        if not args.no_write:
+            write_golden()
         epoch = bump(args.reason)
     except Refused as exc:
         print(f"golden_update: {exc}", file=sys.stderr)
