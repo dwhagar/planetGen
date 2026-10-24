@@ -327,7 +327,8 @@ def test_the_worker_count_is_read_and_set_through_the_api(admin_client, redis_se
     connection.delete(workers.WANTED_KEY)
     try:
         state = admin_client.get("/api/admin/work/workers").get_json()
-        assert set(state) == {"wanted", "live", "ludicrous", "cpus"} and state["wanted"] >= 1
+        assert set(state) == {"wanted", "live", "ludicrous", "cpus", "host_cap", "host_running", "host_refused"}
+        assert state["wanted"] >= 1
         done = admin_client.post("/api/admin/work/workers", json={"count": 3})
         assert done.status_code == 200 and done.get_json()["wanted"] == 3 and workers.wanted(connection) == 3
         done = admin_client.post("/api/admin/work/workers", json={"ludicrous": True})

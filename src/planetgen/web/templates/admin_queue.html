@@ -17,6 +17,9 @@
   {%- if workers %}
   <h3>Workers</h3>
   <p>The bulk queue asks for <strong>{{ workers.wanted }}</strong> {{ 'worker' if workers.wanted == 1 else 'workers' }}; {{ workers.live }} running now. Workers start when work is queued and exit after a minute without any; lowering the count lets the extra ones finish their unit first.</p>
+  {%- if workers.host_cap is defined %}
+  <p>Most worker processes this host allows at once, every queue together: <strong>{{ workers.host_cap }}</strong> ({{ workers.host_running }} running). A start past it is refused{% if workers.host_refused %}; {{ workers.host_refused }} {{ 'was' if workers.host_refused == 1 else 'were' }} refused in the last hour{% endif %}. The setting is <code>queue.max_host_workers</code>; 0 sizes it from the memory and cores.</p>
+  {%- endif %}
   <form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
     {{ csrf_field() }}
     <label>Workers <input type="number" name="count" min="1" value="{{ workers.wanted }}"></label>

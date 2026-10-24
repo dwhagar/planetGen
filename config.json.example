@@ -70,6 +70,7 @@
   "queue": {
     "interactive_workers": 1,
     "maintenance_workers": 1,
+    "max_host_workers": 0,
     "long_workers": 1,
     "long_job_seconds": 60.0,
     "unit_ceiling_seconds": 300.0,

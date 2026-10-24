@@ -232,7 +232,9 @@ def queue():
 def _workers_state(connection):
     queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
     return {"wanted": queueWorkers.wanted(connection), "live": queueWorkers.live_worker_count(queue),
-            "ludicrous": queueWorkers.ludicrous_count(), "cpus": workQueue.cpu_count()}
+            "ludicrous": queueWorkers.ludicrous_count(), "cpus": workQueue.cpu_count(),
+            "host_cap": queueWorkers.host_worker_cap(), "host_running": queueWorkers.host_worker_processes(),
+            "host_refused": int(connection.get(queueWorkers.REFUSED_KEY) or 0)}
 
 
 def _redis():

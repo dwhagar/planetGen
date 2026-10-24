@@ -384,6 +384,14 @@ class Queue(_Section):
         "the whole count.", unit="workers", group="speed", ge=1, le=64,
         label="Workers for upkeep during a run",
         summary="How many workers keep the caches and checks going while a generation run is live.")
+    max_host_workers: int = opt(
+        0, "The most worker processes planetgen may run on this host at once, every queue and command together: a "
+        "start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory "
+        "in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a "
+        "burst of requests, or several commands starting workers together, from filling the memory and getting "
+        "MySQL killed.", unit="workers", group="speed", ge=0, le=512,
+        label="Most workers on this host",
+        summary="The most worker processes planetgen runs at once on this host; 0 sizes it from memory and cores.")
     long_workers: int = opt(
         1, "How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a "
         "large settle, which can run for hours). They have a lane of their own so a long job can never hold the "
