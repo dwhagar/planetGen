@@ -9,7 +9,7 @@ the thresholds are read from `planetgen.physics.habitability` and `protection_li
 their sources (`domains`), so the tables cannot disagree with the score.
 """
 
-from planetgen.physics import atmosphere, habitability
+from planetgen.physics import atmosphere, constants, habitability, orbits
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
 from planetgen.web.lib import habitability_symbols
@@ -188,6 +188,42 @@ SYMBOL_ROWS = tuple((name, habitability_symbols.LABELS[name], habitability_symbo
 """tuple: `(name, words, what the shape looks like)` of each symbol, the six domains and then the overall one."""
 
 
+WHERE_INTRO = (
+    "The rating is shown the same way wherever a planet or moon appears: the overall symbol first, then the six "
+    "domain symbols. A world with no score yet (a gas giant has no surface, and a body not yet rated) shows none."
+)
+
+WHERE_ROWS = (
+    ("Planets and Moons lists", "/lists/planet and /lists/moon: a Habitability column before the Sector column "
+                               "(it is not sortable)."),
+    ("A planet or moon page", "The seven symbols sit under the title of its page."),
+    ("A system page", "Each planet and moon row carries the seven symbols in place of the old notes."),
+    ("Search", "The planet and moon panels of Search show the same symbols beside each result."),
+)
+"""tuple: `(place, what it shows)` for the places the symbols appear (UX.100, UX.155, UX.156)."""
+
+
+def zone_text():
+    """
+    What the habitable zone is and where its edges lie, with the numbers read from `physics/orbits` (GEN.146) so the
+    page cannot drift from the generator.
+    """
+    low, high = orbits.KOPPARAPU_TEFF_RANGE_K
+    inner, outer = orbits.calculate_habitable_zone(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K)
+    return (
+        "A star's habitable zone is the ring of orbits where a planet like Earth could keep liquid water on its "
+        "surface. Its inner edge is the runaway greenhouse limit, where a planet loses its water to space, and its "
+        "outer edge is the maximum greenhouse limit, beyond which a carbon dioxide atmosphere can no longer keep the "
+        "surface warm (Kopparapu et al., 2014). Both edges are a flux, in units of the sunlight Earth gets, that "
+        "depends on the star's temperature: a cool star's light is redder, so a planet takes more of it at the same "
+        "flux and the zone lies nearer in than the star's brightness alone says. "
+        f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The fits cover stars from {low:,.0f} to "
+        f"{high:,.0f} K; a star outside that range (a brown dwarf, a white dwarf, a remnant) takes the nearest end's "
+        "edges. The zone is a guide to where to look and is not the rating: a planet is rated by the six domains "
+        "above, from its own air, water, temperature and radiation, wherever it orbits."
+    )
+
+
 def page():
     """Everything the page shows."""
     return {
@@ -196,6 +232,9 @@ def page():
         "life_intro": LIFE_INTRO,
         "life_rows": LIFE_ROWS,
         "life_scores": (0, 3, 9),
+        "where_intro": WHERE_INTRO,
+        "where_rows": WHERE_ROWS,
+        "zone_text": zone_text(),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
         "equipment": EQUIPMENT_ITEMS,
         "domain_tiers": DOMAIN_TIERS,

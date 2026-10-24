@@ -8,7 +8,7 @@
     <thead><tr><th scope="col">Item</th><th scope="col">When it is needed</th></tr></thead>
     <tbody>
       {%- for label, meaning in equipment %}
-      <tr><th scope="row">{{ label }}</th><td>{{ meaning }}</td></tr>
+      <tr><th scope="row">{{ label|chem }}</th><td>{{ meaning|chem }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
@@ -29,6 +29,16 @@
     </tbody>
   </table></div>
   <p>Left to right: Blue, Green, Yellow and Red. The overall symbol takes the colour of the planet's PHI-6 score.</p>
+</section>
+
+<section class="panel" aria-labelledby="where-heading">
+  <div class="panel-header"><h2 id="where-heading">Where the symbols appear</h2></div>
+  <p>{{ where_intro }}</p>
+  <dl>
+    {%- for place, what in where_rows %}
+    <dt>{{ place }}</dt><dd>{{ what }}</dd>
+    {%- endfor %}
+  </dl>
 </section>
 
 <section class="panel" aria-labelledby="life-heading">
@@ -69,6 +79,11 @@
   </table></div>
   {%- endfor %}
   <p>Anything beyond the Yellow column is Red.</p>
+</section>
+
+<section class="panel" aria-labelledby="zone-heading">
+  <div class="panel-header"><h2 id="zone-heading">The habitable zone</h2></div>
+  <p>{{ zone_text }}</p>
 </section>
 
 <section class="panel" aria-labelledby="hosts-heading">

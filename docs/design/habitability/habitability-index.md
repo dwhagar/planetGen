@@ -614,3 +614,9 @@ domain. Facilities are not placements of a species: a facility's affiliation say
 report finds nothing; it matters once the limits are stored (DB.30, POP.13) and one is edited or its world changes.
 A species it lists is fixed by regenerating its limits or the placement; there is no tolerance flag.
 
+
+## 11. Where the rating is shown, and the zone (DOC.75)
+
+The in-app text for all of this is `/classes/habitability` (`web/lib/habitability_ref.py`, `templates/habitability.html`); its numbers are read from the code named in sections 2 and 9, so it cannot disagree with the score. The seven rating symbols (overall first, then the six domains; UX.101) are drawn on the Planets and Moons lists (`/lists/planet`, `/lists/moon`, a Habitability column that is not sortable; UX.100), under the title of a planet or moon page, in the rows of a system page and in the Search panels. A body with no score shows none; a gas giant has none. The four life scores (0 to 9, the cluster of life shapes beside the symbols) are described on the same page and in GEN.649. The sector colouring (MAP.143), the habitable-world markers (MAP.219, MAP.220) and the radiation terms (GEN.445) are added to the page as each lands.
+
+The habitable zone is a guide, not a rating. Its inner edge is the runaway greenhouse flux and its outer edge the maximum greenhouse flux of Kopparapu et al. (2014, Table 1), each a polynomial in the star's temperature minus 5780 K, valid from 2600 to 7200 K (a star outside takes the nearest end's edges); for the Sun they are 0.95 and 1.68 AU (`physics/orbits.calculate_habitable_zone`, GEN.146). The planet-mass dependence of the inner edge and the early runaway history are GEN.639.
