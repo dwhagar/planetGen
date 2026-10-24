@@ -91,6 +91,13 @@ class FakePopulation:
         self.calls.append(("planet_species", planet_id))
         return SPECIES if planet_id == SPECIES["homeworld_planet_id"] else None
 
+    def get_object_children(self, db, ref, limit=None, after=None):
+        """The system page's tree (UX.173) reads the children of the system and of each body; this one has none."""
+        return {"ref": ref, "kind": ref.partition(":")[0], "total": 0, "items": [], "next": None}
+
+    def get_object_sheet(self, db, ref):
+        return {"kind": ref.partition(":")[0], "groups": []}
+
     habitable = []
 
     def get_system_habitable_species(self, db, system_id):
@@ -109,7 +116,8 @@ NONE = dict(apiclient.POPULATION_NONE)
 def _install(monkeypatch, status):
     data = FakePopulation(status)
     for name in ("get_population_status", "get_species_list", "get_species", "get_polities", "get_polity",
-                 "get_planet_species", "get_system_owner", "get_system_habitable_species"):
+                 "get_planet_species", "get_system_owner", "get_system_habitable_species", "get_object_children",
+                 "get_object_sheet"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 
@@ -245,14 +253,14 @@ def test_polity_pages(monkeypatch, client, fake):
     assert client.get("/polities/9").status_code == 404
 
 
-def test_system_page_names_species_and_territory(monkeypatch, client, fake):
-    data = _install(monkeypatch, ALL)
+def test_system_page_names_the_territory(monkeypatch, client, fake):
+    """The system page names the polity that holds it; the dominant species of a world is on the world's own page
+    (UX.176, `tests/test_item_pages.py::test_a_life_worlds_page_names_its_dominant_species`)."""
+    _install(monkeypatch, ALL)
     fake.system["planets"] = [_planet(11, "Home", life="chlorophyll"), _planet(12, "Rock")]
     page = client.get("/system/5").get_data(as_text=True)
-    assert 'Dominant species: <a href="/species/3">Vel&lt;ar&gt;</a>' in page
-    assert "Species: Vel&lt;ar&gt;" in page
     assert 'Territory of <a href="/polities/2">Velar Concord</a>' in page
-    assert ("planet_species", 12) not in data.calls  # lifeless planets are never looked up
+    assert "Dominant species" not in page
 
 
 def test_classes_link_the_population_pages(monkeypatch, client, fake):
@@ -307,7 +315,9 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
     assert 'href="/species"' in _nav(listing) and str(markupsafe.escape(name)) in listing
     assert real_client.get("/polities").status_code == 200
     system = real_client.get(f"/system/{pid('system', galaxy['a'])}").get_data(as_text=True)
-    assert "Dominant species:" in system and "Territory of" in system
+    assert "Territory of" in system
+    world = real_client.get(f"/object/planet:{pid('planet', homeworld)}").get_data(as_text=True)   # UX.176
+    assert "Dominant species:" in world
 
 
 LIMITS = [

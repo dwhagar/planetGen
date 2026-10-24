@@ -225,6 +225,26 @@ def test_a_planets_page_lists_the_facilities_it_hosts_and_its_chips(client, monk
     assert "Outpost" not in star and 'class="item-chips"' not in star
 
 
+def test_a_life_worlds_page_names_its_dominant_species(client, monkeypatch):
+    """UX.176: the dominant species of a life world is on the world's own page; a lifeless body never looks one up."""
+    detail = _detail()
+    detail["planets"][0]["life_chemical"] = "chlorophyll"
+    asked = []
+
+    def get_planet_species(db, planet_id):
+        asked.append(planet_id)
+        return {"id": 3, "name": "Vel<ar>"}
+
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    monkeypatch.setattr(apiclient, "get_planet_species", get_planet_species)
+    monkeypatch.setattr(item_pages, "population_status", lambda: {"species": True})
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert 'Dominant species: <a href="/species/3">Vel&lt;ar&gt;</a>' in page
+    assert asked == ["FE81000A2B-0000005-001"]
+    assert "Dominant species" not in client.get(f"/object/{STAR}").get_data(as_text=True)
+    assert asked == ["FE81000A2B-0000005-001"]
+
+
 def test_no_link_to_a_body_goes_to_an_anchor_on_the_systems_page():
     """UX.176: a body has a page of its own; the system page's row anchors, their script and their helper are gone."""
     import pathlib
