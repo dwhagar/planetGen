@@ -195,6 +195,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [edit-everything.md](interface/edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
 | [roles-and-requests.md](interface/roles-and-requests.md) | The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves | plan |
 | [fly-through-view-distance.md](interface/fly-through-view-distance.md) | The fly-through map: view distance, near field, free camera | partly built |
+| [object-pages.md](interface/object-pages.md) | Object pages (UX.168 to UX.178): the page of every star, planet, moon, belt and comet, the property sheet, the children API and the summary trees on the system and sector pages | built |
 | [zoom-star-visibility.md](interface/zoom-star-visibility.md) | Smoother star visibility while zooming | research (superseded in part by MAP.152) |
 | [galaxy-map-wire-format.md](interface/galaxy-map-wire-format.md) | What the browser downloads for the map | built |
 | [nebula-map-visibility.md](interface/nebula-map-visibility.md) | Making nebulae visible on the Galaxy Map | partly built |
